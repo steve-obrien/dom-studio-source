@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@getdom/studio/vue": ["./src/pages/docs/lib/vue"],
+			"@getdom/studio/vue/*": ["./src/pages/docs/lib/vue/*"],
+			"@getdom/studio/headless": ["./src/pages/docs/lib/headless"],
+			"@getdom/studio/headless/*": ["./src/pages/docs/lib/headless/*"]
+		}
+	}
+}

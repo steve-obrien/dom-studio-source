@@ -1,0 +1,8 @@
+node_modules
+.DS_Store
+dist
+.vite
+.vscode
+.env
+.env.*
+!.env.example

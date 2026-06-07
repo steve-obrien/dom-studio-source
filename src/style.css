@@ -1,0 +1,355 @@
+@import "tailwindcss";
+@source inline("transition duration-1000 ease-in ease-out opacity-0 opacity-100 scale-50 scale-100");
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+:root {
+	color-scheme: light;
+	--radius: 0.625rem;
+	--radius-sm: calc(var(--radius) * 0.6);
+	--radius-md: calc(var(--radius) * 0.8);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.4);
+	--radius-2xl: calc(var(--radius) * 1.8);
+	--radius-3xl: calc(var(--radius) * 2.2);
+	--radius-4xl: calc(var(--radius) * 2.6);
+	--shadow-color: oklch(0 0 0);
+	--shadow-strength: 8%;
+	--shadow-distance: 1;
+	--shadow-softness: 1;
+	--shadow-xs: 0 calc(var(--shadow-distance) * 1px) calc(var(--shadow-softness) * 1px) 0 color-mix(in oklch, var(--shadow-color) calc(var(--shadow-strength) * 0.55), transparent);
+	--shadow-sm: 0 calc(var(--shadow-distance) * 1px) calc(var(--shadow-softness) * 2px) 0 color-mix(in oklch, var(--shadow-color) calc(var(--shadow-strength) * 0.75), transparent);
+	--shadow-md: 0 calc(var(--shadow-distance) * 3px) calc(var(--shadow-softness) * 8px) -2px color-mix(in oklch, var(--shadow-color) var(--shadow-strength), transparent);
+	--shadow-lg: 0 calc(var(--shadow-distance) * 8px) calc(var(--shadow-softness) * 20px) -6px color-mix(in oklch, var(--shadow-color) calc(var(--shadow-strength) * 1.25), transparent);
+	--shadow-xl: 0 calc(var(--shadow-distance) * 14px) calc(var(--shadow-softness) * 34px) -10px color-mix(in oklch, var(--shadow-color) calc(var(--shadow-strength) * 1.35), transparent);
+	--shadow-2xl: 0 calc(var(--shadow-distance) * 24px) calc(var(--shadow-softness) * 60px) -18px color-mix(in oklch, var(--shadow-color) calc(var(--shadow-strength) * 1.6), transparent);
+	--background: oklch(10 0 0);
+	--foreground: oklch(0.145 0 0);
+	--card: oklch(1 0 0);
+	--card-foreground: oklch(0.145 0 0);
+	--popover: oklch(1 0 0);
+	--popover-foreground: oklch(0.145 0 0);
+	--primary: oklch(0.205 0 0);
+	--primary-foreground: oklch(0.985 0 0);
+	--secondary: oklch(0.97 0 0);
+	--secondary-foreground: oklch(0.205 0 0);
+	--muted: oklch(0.97 0 0);
+	--muted-foreground: oklch(0.50 0 0);
+	--accent: oklch(0.97 0 0);
+	--accent-foreground: oklch(0.205 0 0);
+	--destructive: oklch(0.577 0.245 27.325);
+	--destructive-foreground: oklch(0.985 0 0);
+	--success: oklch(0.57 0.794 149.350);
+	--success-foreground: oklch(0.985 0 0);
+	--warning: oklch(0.7 0.2 84);
+	--warning-foreground: oklch(0.28 0.07 46);
+	--border: oklch(0.922 0 0);
+	--input: oklch(0.922 0 0);
+	--ring: oklch(0.708 0 0);
+}
+
+[data-theme="dark"] {
+	color-scheme: dark;
+	--background: oklch(0.145 0 0);
+	--foreground: oklch(0.985 0 0);
+	--card: oklch(0.205 0 0);
+	--card-foreground: oklch(0.985 0 0);
+	--popover: oklch(0.205 0 0);
+	--popover-foreground: oklch(0.985 0 0);
+	--primary: oklch(0.922 0 0);
+	--primary-foreground: oklch(0.205 0 0);
+	--secondary: oklch(0.269 0 0);
+	--secondary-foreground: oklch(0.985 0 0);
+	--muted: oklch(0.269 0 0);
+	--muted-foreground: oklch(0.708 0 0);
+	--accent: oklch(0.269 0 0);
+	--accent-foreground: oklch(0.985 0 0);
+	--destructive: oklch(0.704 0.191 22.216);
+	--destructive-foreground: oklch(0.985 0 0);
+	--success: oklch(0.696 0.17 162.48);
+	--success-foreground: oklch(0.145 0 0);
+	--warning: oklch(0.769 0.188 70.08);
+	--warning-foreground: oklch(0.145 0 0);
+	--border: oklch(1 0 0 / 10%);
+	--input: oklch(1 0 0 / 15%);
+	--ring: oklch(0.556 0 0);
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-warning: var(--warning);
+	--color-warning-foreground: var(--warning-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--radius-sm: calc(var(--radius) * 0.6);
+	--radius-md: calc(var(--radius) * 0.8);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.4);
+	--radius-2xl: calc(var(--radius) * 1.8);
+	--radius-3xl: calc(var(--radius) * 2.2);
+	--radius-4xl: calc(var(--radius) * 2.6);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+	min-height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family:
+		"Plus Jakarta Sans",
+		ui-sans-serif,
+		system-ui,
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		sans-serif;
+	background: var(--background);
+	color: var(--foreground);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}
+
+@layer utilities {
+	.shadow-xs {
+		--tw-shadow: var(--shadow-xs);
+		box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+	}
+
+	.shadow-sm {
+		--tw-shadow: var(--shadow-sm);
+		box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+	}
+
+	.shadow,
+	.shadow-md {
+		--tw-shadow: var(--shadow-md);
+		box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+	}
+
+	.shadow-lg {
+		--tw-shadow: var(--shadow-lg);
+		box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+	}
+
+	.shadow-xl {
+		--tw-shadow: var(--shadow-xl);
+		box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+	}
+
+	.shadow-2xl {
+		--tw-shadow: var(--shadow-2xl);
+		box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+	}
+}
+
+/* DOM Studio custom-elements: hide pre-upgrade light-DOM children so SSR'd
+ * dialog / popover content doesn't render in flow before the JS module
+ * loads and the shadow DOM takes over. Trigger slots stay visible. */
+dom-dialog:not(:defined) > *:not([slot="trigger"]),
+dom-popover:not(:defined) > *:not([slot="trigger"]) {
+	display: none;
+}
+
+/* Shiki code blocks. Shiki emits dual-theme styles in one render — the inline
+ * styles carry the light colours and the dark colours as CSS variables.
+ * Override those vars when [data-theme="dark"] is on the root. */
+.dom-shiki .shiki {
+	overflow-x: auto;
+	padding: 1rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+	font-size: 12.5px;
+	line-height: 1.65;
+}
+.dom-shiki .shiki,
+.dom-shiki .shiki code {
+	background-color: inherit;
+}
+[data-theme="dark"] .dom-shiki .shiki,
+[data-theme="dark"] .dom-shiki .shiki span {
+	color: var(--shiki-dark) !important;
+	background-color: var(--shiki-dark-bg) !important;
+}
+[data-theme="dark"] .dom-shiki .shiki span {
+	font-style: var(--shiki-dark-font-style) !important;
+	font-weight: var(--shiki-dark-font-weight) !important;
+	text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+@layer components {
+	.h-stack {
+		@apply flex flex-row items-center;
+	}
+
+	.v-stack {
+		@apply flex flex-col;
+	}
+
+	.flex-spacer {
+		@apply flex-1;
+	}
+
+	flex-h-stack {
+		@apply flex flex-row items-center;
+	}
+
+	flex-spacer {
+		@apply flex-1;
+	}
+
+	.dom-input {
+		@apply h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/30 disabled:opacity-50;
+	}
+
+	.dom-textarea {
+		@apply w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/30 disabled:opacity-50;
+	}
+
+	.dom-glass-surface {
+		background-color: color-mix(in oklch, var(--popover) 82%, transparent);
+		background-image:
+			linear-gradient(
+				to bottom,
+				color-mix(in oklch, white 70%, transparent),
+				color-mix(in oklch, var(--popover) 86%, transparent) 38%,
+				color-mix(in oklch, var(--popover) 92%, transparent)
+			);
+		@apply border border-border text-popover-foreground shadow-2xl shadow-black/10 ring-1 ring-border/60 backdrop-blur-xl dark:shadow-black/40;
+	}
+
+	[data-theme="dark"] .dom-glass-surface {
+		background-color: color-mix(in oklch, var(--popover) 82%, transparent);
+		background-image:
+			linear-gradient(
+				to bottom,
+				color-mix(in oklch, white 12%, transparent),
+				color-mix(in oklch, var(--popover) 88%, transparent) 38%,
+				color-mix(in oklch, var(--popover) 92%, transparent)
+			);
+	}
+
+	.dom-floating-transition,
+	.dom-popover-transition {
+		--dom-floating-enter-x: 0px;
+		--dom-floating-enter-y: -10px;
+		--dom-floating-origin: top center;
+		--dom-floating-scale: 0.975;
+		--dom-floating-enter-opacity-duration: 190ms;
+		--dom-floating-enter-transform-duration: 260ms;
+		--dom-floating-leave-opacity-duration: 190ms;
+		--dom-floating-leave-transform-duration: 260ms;
+		--dom-floating-enter-easing: cubic-bezier(0.16, 1, 0.3, 1);
+		--dom-floating-leave-easing: cubic-bezier(0.25, 0.1, 0.25, 1);
+		--dom-popover-arrow-x: 50%;
+		--dom-popover-arrow-y: auto;
+		opacity: 0;
+		transform: translate3d(var(--dom-floating-enter-x), var(--dom-floating-enter-y), 0) scale(var(--dom-floating-scale));
+		transform-origin: var(--dom-floating-origin);
+		transition:
+			opacity var(--dom-floating-enter-opacity-duration) var(--dom-floating-enter-easing),
+			transform var(--dom-floating-enter-transform-duration) var(--dom-floating-enter-easing);
+		will-change: opacity, transform;
+	}
+
+	.dom-floating-transition:popover-open,
+	.dom-popover-transition:popover-open {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+
+	.dom-floating-transition[data-entering="from"]:popover-open,
+	.dom-popover-transition[data-entering="from"]:popover-open {
+		opacity: 0;
+		transform: translate3d(var(--dom-floating-enter-x), var(--dom-floating-enter-y), 0) scale(var(--dom-floating-scale));
+	}
+
+	.dom-floating-transition[data-entering="to"]:popover-open,
+	.dom-popover-transition[data-entering="to"]:popover-open {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+
+	.dom-floating-transition[data-leaving="from"]:popover-open,
+	.dom-popover-transition[data-leaving="from"]:popover-open {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+
+	.dom-floating-transition[data-leaving="to"]:popover-open,
+	.dom-popover-transition[data-leaving="to"]:popover-open {
+		opacity: 0;
+		transform: translate3d(var(--dom-floating-enter-x), var(--dom-floating-enter-y), 0) scale(var(--dom-floating-scale));
+		transition:
+			opacity var(--dom-floating-leave-opacity-duration) linear,
+			transform var(--dom-floating-leave-transform-duration) var(--dom-floating-leave-easing);
+	}
+
+	@starting-style {
+		.dom-floating-transition:popover-open,
+		.dom-popover-transition:popover-open {
+			opacity: 0;
+			transform: translate3d(var(--dom-floating-enter-x), var(--dom-floating-enter-y), 0) scale(var(--dom-floating-scale));
+		}
+	}
+
+	.dom-floating-transition:not([data-animate-placement]),
+	.dom-popover-transition:not([data-animate-placement]) {
+		transition-property: opacity;
+	}
+
+	.dom-floating-transition[data-side="top"],
+	.dom-popover-transition[data-side="top"] {
+		--dom-floating-enter-y: 10px;
+		--dom-floating-origin: bottom center;
+	}
+
+	.dom-floating-transition[data-side="bottom"],
+	.dom-popover-transition[data-side="bottom"] {
+		--dom-floating-enter-y: -10px;
+		--dom-floating-origin: top center;
+	}
+
+	.dom-floating-transition[data-side="left"],
+	.dom-popover-transition[data-side="left"] {
+		--dom-floating-enter-x: 10px;
+		--dom-floating-enter-y: 0px;
+		--dom-floating-origin: center right;
+	}
+
+	.dom-floating-transition[data-side="right"],
+	.dom-popover-transition[data-side="right"] {
+		--dom-floating-enter-x: -10px;
+		--dom-floating-enter-y: 0px;
+		--dom-floating-origin: center left;
+	}
+
+	[data-invalid] .dom-input,
+	[data-invalid] .dom-textarea,
+	.dom-input[data-invalid],
+	.dom-textarea[data-invalid] {
+		@apply border-destructive focus:border-destructive focus:ring-destructive/25;
+	}
+}

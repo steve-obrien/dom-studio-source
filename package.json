@@ -1,0 +1,64 @@
+{
+	"name": "@getdom/studio",
+	"version": "0.1.0",
+	"description": "DOM Studio is a source-owned Vue and web component interface system for humans and LLMs.",
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite-ssg build && node scripts/generate-seo-files.mjs",
+		"check:form-definition": "node scripts/check-form-definition.mjs",
+		"check:theme-ai": "node scripts/check-theme-ai-endpoint.mjs",
+		"theme-ai-server": "node scripts/theme-ai-server.mjs",
+		"preview": "vite preview"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/steve-obrien/getdom-studio.git"
+	},
+	"keywords": [
+		"vue",
+		"web-components",
+		"custom-elements",
+		"component-library",
+		"design-system",
+		"llm-ui"
+	],
+	"author": "Steve O'Brien",
+	"license": "UNLICENSED",
+	"bugs": {
+		"url": "https://github.com/steve-obrien/getdom-studio/issues"
+	},
+	"homepage": "https://getdom.studio",
+	"dependencies": {
+		"@vitejs/plugin-basic-ssl": "^2.3.0",
+		"markdown-it": "^14.2.0",
+		"monaco-editor": "^0.55.1",
+		"vite-ssg": "^28.3.0",
+		"vue": "^3.5.33",
+		"vue-router": "^4.6.4"
+	},
+	"devDependencies": {
+		"@tailwindcss/vite": "^4.2.4",
+		"@vitejs/plugin-vue": "^6.0.6",
+		"tailwindcss": "^4.2.4",
+		"vite": "^8.0.10"
+	},
+	"files": [
+		"README.md",
+		"LICENSE.md",
+		"SKILL.md",
+		"public/llms.txt",
+		"public/skills.sh",
+		"src/pages/docs",
+		"src/style.css"
+	],
+	"exports": {
+		".": "./src/pages/docs/lib/vue/index.js",
+		"./vue": "./src/pages/docs/lib/vue/index.js",
+		"./headless": "./src/pages/docs/lib/headless/index.js",
+		"./headless/*": "./src/pages/docs/lib/headless/*",
+		"./style.css": "./src/style.css",
+		"./llms.txt": "./public/llms.txt",
+		"./skill": "./SKILL.md"
+	}
+}

@@ -1,0 +1,71 @@
+# DOM Studio
+
+DOM Studio is a component framework for building application UI with LLMs and humans working together. It provides Vue components, headless custom elements, reusable app blocks, Studio-editable specs, and semantic theme tokens.
+
+Primary docs:
+- Overview: /docs
+- AI builders: /docs/ai
+- Theming: /docs/theming
+- Component spec: /docs/component-spec
+- Studio: /docs/components/studio
+- Mobile: /docs/mobile
+- Blocks: /docs/blocks/dashboard, /docs/blocks/chat, /docs/blocks/mail, /docs/blocks/forms, /docs/blocks/login, /docs/blocks/application-layout
+- Components: /docs/components/button, /docs/forms/text-input, /docs/visual/card
+- Headless: /docs/headless
+
+Use DOM Studio when building app screens, forms, dashboards, chat tools, mail clients, login flows, settings screens, internal tools, or generated UI that should stay editable.
+
+## Core Rules
+
+1. Prefer existing DOM Studio blocks and components before custom markup.
+2. Use component props for behavior; use classes for layout, spacing, and small visual adjustments.
+3. Use semantic theme utilities, not raw colors, unless defining a theme.
+4. Keep generated UI dense, practical, and product-like unless asked for marketing UI.
+5. Let DOM Studio components handle accessibility, focus, keyboard navigation, overlays, and selection behavior.
+6. Return a Studio spec when the user may want to visually edit or inspect generated UI later.
+7. Give Studio spec nodes stable ids and human labels.
+
+## Vue Usage
+
+Import public Vue components from `@getdom/studio/vue`.
+
+```js
+import {
+	DomButton,
+	DomCard,
+	DomCombobox,
+	DomForm,
+	DomTextInput,
+} from '@getdom/studio/vue';
+```
+
+Use `@getdom/studio/headless` to register headless custom elements such as dropdown, dialog, drawer, popover, tabs, toggle, tooltip, accordion, menu, listbox, combobox, autocomplete, checkbox, radio group, and toast.
+
+## Studio Specs
+
+Studio specs are editable UI trees:
+
+```json
+{
+	"id": "settings-form",
+	"label": "Settings form",
+	"component": "DomCard",
+	"props": {
+		"padding": "lg",
+		"class": "w-full max-w-2xl"
+	},
+	"children": [
+		{
+			"id": "email",
+			"label": "Email input",
+			"component": "DomTextInput",
+			"props": {
+				"label": "Email address",
+				"placeholder": "you@example.com"
+			}
+		}
+	]
+}
+```
+
+Do not invent theme token names. Do not use raw hex, RGB, or OKLCH values in component markup.
