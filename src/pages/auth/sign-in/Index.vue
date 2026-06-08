@@ -1,8 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import DomStudioLayout from '../../docs/_layout/DomStudioLayout.vue';
-import { DomButton, DomPasswordInput, DomTextInput } from '../../docs/lib/vue';
+import DomStudioLayout from '../../_layout/DomStudioLayout.vue';
+import { DomButton, DomPasswordInput, DomTextInput } from '../../lib/vue';
 import { useAccountStatus } from '../../../composable/useAuth.js';
 
 const route = useRoute();
@@ -21,7 +21,7 @@ const loading = ref(false);
 
 const returnTo = computed(() => {
 	const value = Array.isArray(route.query.from) ? route.query.from[0] : route.query.from;
-	return value && value.startsWith('/') ? value : '/docs';
+	return value && value.startsWith('/') ? value : '/';
 });
 const licence = computed(() => route.query.licence === 'team' ? 'team' : 'individual');
 const checkoutUrl = computed(() => `/api/billing/checkout?licence=${licence.value}&from=${encodeURIComponent(returnTo.value)}`);

@@ -5,12 +5,31 @@ import { routes } from './routes';
 import { getAuthState, hasEntitlement, refreshSession } from './composable/useAuth.js';
 
 const siteName = 'getdom.studio';
+const documentationRoutePrefixes = [
+	'/ai',
+	'/blocks',
+	'/component-spec',
+	'/components',
+	'/forms',
+	'/headless',
+	'/mobile',
+	'/pricing',
+	'/theming',
+	'/visual',
+];
 
 const scrollBehavior = (to, from, savedPosition) => {
 	if (savedPosition) return savedPosition;
-	if (to.path.startsWith('/docs') && from.path.startsWith('/docs')) return false;
+	if (isDocumentationRoutePath(to.path) && isDocumentationRoutePath(from.path)) return false;
 	return { top: 0 };
 };
+
+function isDocumentationRoutePath(path) {
+	if (path === '/') return true;
+	return documentationRoutePrefixes.some((prefix) => (
+		path === prefix || path.startsWith(`${prefix}/`)
+	));
+}
 
 export function createDomStudioApp() {
 	const { app, router, pinia } = createNowApp({

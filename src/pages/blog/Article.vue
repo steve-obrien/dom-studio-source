@@ -1,15 +1,18 @@
 <script setup>
-import { computed, watchEffect } from 'vue';
+import { computed, nextTick, onMounted, ref, watch, watchEffect } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import { useAsyncData } from '#now/runtime/asyncData.js';
 import { useHead, useRouteStatus } from '#now/runtime/head.js';
 import { useApiFetch } from '../../composable/useApiFetch.js';
-import DomStudioLayout from '../docs/_layout/DomStudioLayout.vue';
+import DomStudioLayout from '../_layout/DomStudioLayout.vue';
+import { highlight } from '../_layout/docs/shiki.js';
 import { formatArticleDate, loadBlogArticle } from './blogData.js';
 
 const route = useRoute();
 const slug = computed(() => String(route.params.slug || ''));
 const apiFetch = useApiFetch();
+const articleContent = ref(null);
+let highlightRun = 0;
 
 const { data: article, pending, error } = useAsyncData(
 	`blog:article:${slug.value}`,
@@ -80,6 +83,45 @@ watchEffect(() => {
 		keywords: currentArticle.tags.join(', '),
 	});
 }, { flush: 'sync' });
+
+onMounted(highlightArticleCodeBlocks);
+watch(() => article.value?.rendered_html, highlightArticleCodeBlocks, { flush: 'post' });
+
+async function highlightArticleCodeBlocks() {
+	if (typeof window === 'undefined') return;
+
+	const run = ++highlightRun;
+	await nextTick();
+
+	const root = articleContent.value;
+	if (!root || run !== highlightRun) return;
+
+	const blocks = [...root.querySelectorAll('pre > code')];
+	for (const code of blocks) {
+		if (run !== highlightRun) return;
+		const pre = code.parentElement;
+		if (!pre || pre.dataset.shiki === 'pending') continue;
+
+		pre.dataset.shiki = 'pending';
+		const highlighted = await highlight(code.textContent || '', getCodeLanguage(code));
+		if (run !== highlightRun) return;
+
+		if (!highlighted) {
+			delete pre.dataset.shiki;
+			continue;
+		}
+
+		const wrapper = document.createElement('div');
+		wrapper.className = 'dom-shiki';
+		wrapper.innerHTML = highlighted;
+		pre.replaceWith(wrapper);
+	}
+}
+
+function getCodeLanguage(code) {
+	const className = [...code.classList].find((name) => name.startsWith('language-'));
+	return className ? className.slice('language-'.length) : 'html';
+}
 </script>
 
 <template>
@@ -112,7 +154,7 @@ watchEffect(() => {
 				class="my-10 aspect-[16/9] w-full rounded-lg border border-border object-cover"
 			>
 
-			<div class="blog-article-content" v-html="article.rendered_html"></div>
+			<div ref="articleContent" class="blog-article-content" v-html="article.rendered_html"></div>
 		</article>
 	</DomStudioLayout>
 </template>

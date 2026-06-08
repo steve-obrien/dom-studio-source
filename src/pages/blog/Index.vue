@@ -4,7 +4,7 @@ import { RouterLink } from 'vue-router';
 import { useAsyncData } from '#now/runtime/asyncData.js';
 import { useHead } from '#now/runtime/head.js';
 import { useApiFetch } from '../../composable/useApiFetch.js';
-import DomStudioLayout from '../docs/_layout/DomStudioLayout.vue';
+import DomStudioLayout from '../_layout/DomStudioLayout.vue';
 import { formatArticleDate, loadBlogArticles } from './blogData.js';
 
 const apiFetch = useApiFetch();

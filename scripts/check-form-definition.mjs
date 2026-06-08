@@ -5,7 +5,7 @@ import {
 	normalizeFormChildren,
 	normalizeFormNode,
 	registerFormType,
-} from '../src/pages/docs/forms/form/formDefinition.js';
+} from '../src/pages/forms/form/formDefinition.js';
 
 function fieldByName(children, name) {
 	return children.find((child) => child.props?.name === name);

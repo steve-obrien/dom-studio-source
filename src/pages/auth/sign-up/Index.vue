@@ -1,8 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import DomStudioLayout from '../../docs/_layout/DomStudioLayout.vue';
-import { DomButton, DomPasswordInput, DomTextInput } from '../../docs/lib/vue';
+import DomStudioLayout from '../../_layout/DomStudioLayout.vue';
+import { DomButton, DomPasswordInput, DomTextInput } from '../../lib/vue';
 import { useAccountStatus } from '../../../composable/useAuth.js';
 
 const route = useRoute();

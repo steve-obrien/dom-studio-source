@@ -15,6 +15,7 @@ const loadRoutesFromRoutesFile = async () => {
 				.map((match) => match[1]?.trim())
 				.filter(Boolean)
 				.filter((routePath) => routePath.startsWith("/"))
+				.filter((routePath) => routePath !== "/docs" && !routePath.startsWith("/docs/"))
 				.filter((routePath) => !routePath.includes(":") && !routePath.includes("*") && !routePath.includes("$")),
 		),
 	];
@@ -86,9 +87,9 @@ export const loadStaticRoutes = async () => {
 				...await loadLocalBlogRoutes(),
 			]),
 		]);
-		return routes.length ? routes : ["/", "/docs"];
+		return routes.length ? routes : ["/"];
 	} catch {
-		return ["/", "/docs"];
+		return ["/"];
 	}
 };
 

@@ -4,7 +4,7 @@ import MarkdownIt from 'markdown-it';
 import { getDb } from './db.js';
 
 const markdown = new MarkdownIt({
-	html: false,
+	html: true,
 	linkify: true,
 	typographer: true,
 });
@@ -269,9 +269,9 @@ function trimQuotes(value) {
 	return value.replace(/^['"]|['"]$/g, '');
 }
 
-function renderArticleHtml(contentMarkdown, fallbackHtml) {
+export function renderArticleHtml(contentMarkdown, fallbackHtml) {
 	if (contentMarkdown) return markdown.render(contentMarkdown);
-	return markdown.render(stripHtml(stringValue(fallbackHtml)));
+	return stringValue(fallbackHtml);
 }
 
 function normalizeArticleRow(row) {
@@ -331,10 +331,6 @@ function serializeDate(value) {
 	if (value instanceof Date) return value.toISOString();
 	const date = new Date(value);
 	return Number.isNaN(date.getTime()) ? null : date.toISOString();
-}
-
-function stripHtml(value) {
-	return value.replace(/<[^>]*>/g, ' ');
 }
 
 function stringValue(value) {

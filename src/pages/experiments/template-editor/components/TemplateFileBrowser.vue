@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
-import { DomTreeView } from '../../../docs/lib/vue';
+import { DomTreeView } from '../../../lib/vue';
 
 const props = defineProps({
 	endpoint: {

@@ -189,8 +189,8 @@ export default defineConfig({
 		dedupe: ['vue', 'vue-router', 'pinia'],
 		alias: {
 			'#now': fileURLToPath(new URL('./packages/now/src/framework', import.meta.url)),
-			'@getdom/studio/vue': fileURLToPath(new URL('./src/pages/docs/lib/vue', import.meta.url)),
-			'@getdom/studio/headless': fileURLToPath(new URL('./src/pages/docs/lib/headless', import.meta.url)),
+			'@getdom/studio/vue': fileURLToPath(new URL('./src/pages/lib/vue', import.meta.url)),
+			'@getdom/studio/headless': fileURLToPath(new URL('./src/pages/lib/headless', import.meta.url)),
 		},
 	},
 	base: '/',

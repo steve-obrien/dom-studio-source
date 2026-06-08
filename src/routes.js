@@ -2,21 +2,21 @@ import NotFoundPage from './NotFoundPage.vue';
 import SignInPage from './pages/auth/sign-in/Index.vue';
 import SignUpPage from './pages/auth/sign-up/Index.vue';
 import BlogArticlePage from './pages/blog/Article.vue';
-import DomStudioHome from './pages/docs/Index.vue';
-import FloatingHeadlessPage from './pages/docs/headless/floating/Index.vue';
+import DomStudioHome from './pages/Index.vue';
+import FloatingHeadlessPage from './pages/headless/floating/Index.vue';
 import PaywallPage from './pages/paywall/Index.vue';
-import { getFormRedirectRecords, getLazyComponentRecords } from './pages/docs/_layout/componentManager.js';
+import { getFormRedirectRecords, getLazyComponentRecords } from './pages/_layout/componentManager.js';
 
 const pageRouteModules = import.meta.glob([
 	'./pages/**/Index.vue',
+	'!./pages/Index.vue',
 	'!./pages/auth/sign-in/Index.vue',
 	'!./pages/auth/sign-up/Index.vue',
 	'!./pages/blog/Article.vue',
-	'!./pages/docs/Index.vue',
-	'!./pages/docs/headless/floating/Index.vue',
+	'!./pages/headless/floating/Index.vue',
 	'!./pages/paywall/Index.vue',
 ]);
-const generatedComponentPage = () => import('./pages/docs/_layout/GeneratedComponentPage.vue');
+const generatedComponentPage = () => import('./pages/_layout/GeneratedComponentPage.vue');
 
 function filePathToRoutePath(globKey) {
 	const m = globKey.match(/^\.\/pages\/(.+)\/Index\.vue$/);
@@ -29,7 +29,6 @@ function filePathToRoutePath(globKey) {
 
 function titleFromRoutePath(routePath) {
 	if (routePath === '/') return 'Home';
-	if (routePath === '/docs') return 'Docs';
 	const seg = routePath.split("/").filter(Boolean).pop();
 	if (!seg) return 'Index';
 	return seg
@@ -56,12 +55,7 @@ const manualRoutes = [
 		meta: { title: 'DOM Studio', description: 'Source-owned Vue and web component primitives for humans and LLMs.' },
 	},
 	{
-		path: '/docs',
-		component: DomStudioHome,
-		meta: { title: 'Docs', description: 'DOM Studio component docs, blocks, theme tokens, and AI builder guidance.' },
-	},
-	{
-		path: '/docs/headless/floating',
+		path: '/headless/floating',
 		component: FloatingHeadlessPage,
 		meta: { title: 'Floating', description: 'Shared positioning guidance for DOM Studio popovers, dropdowns, comboboxes, autocomplete lists, tooltips, and custom floating layers.' },
 	},
@@ -112,11 +106,23 @@ const movedFormRedirects = getFormRedirectRecords()
 		redirect: record.to,
 	}));
 
+const legacyDocsRedirects = [
+	{
+		path: '/docs',
+		redirect: '/',
+	},
+	{
+		path: '/docs/:pathMatch(.*)*',
+		redirect: redirectDocsPath,
+	},
+];
+
 export const routes = [
 	...manualRoutes,
 	...fileBasedRoutes.filter((r) => !manualPaths.has(r.path)),
 	...generatedComponentRoutes,
 	...movedFormRedirects,
+	...legacyDocsRedirects,
 	{
 		path: '/:pathMatch(.*)*',
 		name: 'NotFound',
@@ -129,5 +135,17 @@ function routeMeta(path) {
 	return {
 		title: titleFromRoutePath(path),
 		...(path.startsWith('/experiments') ? { requiresEntitlement: 'source' } : {}),
+	};
+}
+
+function redirectDocsPath(to) {
+	const pathMatch = to.params.pathMatch;
+	const segments = Array.isArray(pathMatch)
+		? pathMatch
+		: [pathMatch].filter(Boolean);
+	return {
+		path: `/${segments.join('/')}`,
+		query: to.query,
+		hash: to.hash,
 	};
 }

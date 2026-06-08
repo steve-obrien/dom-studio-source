@@ -1,8 +1,8 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import DomStudioLayout from '../docs/_layout/DomStudioLayout.vue';
-import { DomButton } from '../docs/lib/vue';
+import DomStudioLayout from '../_layout/DomStudioLayout.vue';
+import { DomButton } from '../lib/vue';
 import { useAuth } from '../../composable/useAuth.js';
 import { useBillingOffer } from '../../composable/useBillingOffer.js';
 
@@ -12,7 +12,7 @@ const { hasIndividualPromotion, individual, individualPrice } = useBillingOffer(
 
 const returnTo = computed(() => {
 	const value = Array.isArray(route.query.from) ? route.query.from[0] : route.query.from;
-	return value && value.startsWith('/') ? value : '/docs';
+	return value && value.startsWith('/') ? value : '/';
 });
 
 const signInTo = computed(() => ({

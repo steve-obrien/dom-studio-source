@@ -1,10 +1,10 @@
 <script setup>
 import { cloneVNode, computed, defineComponent, h, isVNode, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { DomClassToggleInput, DomCodeInput, DomSplitterPanel, DomTreeView } from '../../docs/lib/vue';
-import { tailwindClassIndex } from '../../docs/forms/_shared/serverLookup.js';
-import { componentRegistry as elementsComponentRegistry, groupedRegistry as elementsGroupedRegistry } from '../../docs/_layout/inspector/componentRegistry.js';
-import InspectorField from '../../docs/_layout/inspector/InspectorField.vue';
-import { inferSchema } from '../../docs/_layout/inspector/useInspector.js';
+import { DomClassToggleInput, DomCodeInput, DomSplitterPanel, DomTreeView } from '../../lib/vue';
+import { tailwindClassIndex } from '../../forms/_shared/serverLookup.js';
+import { componentRegistry as elementsComponentRegistry, groupedRegistry as elementsGroupedRegistry } from '../../_layout/inspector/componentRegistry.js';
+import InspectorField from '../../_layout/inspector/InspectorField.vue';
+import { inferSchema } from '../../_layout/inspector/useInspector.js';
 import StageViewport from './components/StageViewport.vue';
 import TemplateFileBrowser from './components/TemplateFileBrowser.vue';
 import TemplateMonacoEditor from './components/TemplateMonacoEditor.vue';

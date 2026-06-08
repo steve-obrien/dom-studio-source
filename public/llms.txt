@@ -3,15 +3,15 @@
 DOM Studio is a component framework for building application UI with LLMs and humans working together. It provides Vue components, headless custom elements, reusable app blocks, Studio-editable specs, and semantic theme tokens.
 
 Primary docs:
-- Overview: /docs
-- AI builders: /docs/ai
-- Theming: /docs/theming
-- Component spec: /docs/component-spec
-- Studio: /docs/components/studio
-- Mobile: /docs/mobile
-- Blocks: /docs/blocks/dashboard, /docs/blocks/chat, /docs/blocks/mail, /docs/blocks/forms, /docs/blocks/login, /docs/blocks/application-layout
-- Components: /docs/components/button, /docs/forms/text-input, /docs/visual/card
-- Headless: /docs/headless
+- Overview: /
+- AI builders: /ai
+- Theming: /theming
+- Component spec: /component-spec
+- Studio: /components/studio
+- Mobile: /mobile
+- Blocks: /blocks/dashboard, /blocks/chat, /blocks/mail, /blocks/forms, /blocks/login, /blocks/application-layout
+- Components: /components/button, /forms/text-input, /visual/card
+- Headless: /headless
 
 Use DOM Studio when building app screens, forms, dashboards, chat tools, mail clients, login flows, settings screens, internal tools, or generated UI that should stay editable.
 

@@ -294,6 +294,21 @@ dom-popover:not(:defined) > *:not([slot="trigger"]) {
 		@apply bg-transparent p-0;
 	}
 
+	.blog-article-content .dom-shiki {
+		@apply overflow-hidden rounded-lg border border-border bg-secondary;
+	}
+
+	.blog-article-content .dom-shiki .shiki {
+		@apply m-0;
+	}
+
+	.blog-article-content iframe {
+		@apply block w-full rounded-lg border border-border bg-secondary;
+		aspect-ratio: 16 / 9;
+		height: auto;
+		max-width: 100%;
+	}
+
 	[data-theme="dark"] .dom-glass-surface {
 		background-color: color-mix(in oklch, var(--popover) 82%, transparent);
 		background-image:

@@ -8,7 +8,7 @@ import {
 	DomRangeInput as ElRangeInput,
 	DomTextInput as ElTextInput,
 	DomTextareaInput as ElTextareaInput,
-} from '../../docs/lib/vue';
+} from '../../lib/vue';
 
 const activeState = ref('base');
 const previewInteraction = ref(null);
