@@ -1,10 +1,10 @@
 import { publishArticles, updateArticle, validateOutrankArticle } from '../../lib/blog.js';
 
 export async function post(req, res) {
-	const expectedToken = process.env.OUTRANK_WEBHOOK_ACCESS_TOKEN || process.env.BLOG_WEBHOOK_ACCESS_TOKEN || '';
+	const expectedToken = process.env.OUTRANK_WEBHOOK_ACCESS_TOKEN || '';
 	if (!expectedToken) {
 		res.status(503);
-		return { error: 'Blog webhook is not configured.' };
+		return { error: 'Outrank webhook is not configured.' };
 	}
 
 	if (!validateBearerToken(req, expectedToken)) {
@@ -22,7 +22,7 @@ export async function post(req, res) {
 		}
 
 		const count = await publishArticles(articles);
-		return { message: 'Webhook processed successfully.', count };
+		return { message: 'Outrank webhook processed successfully.', count };
 	}
 
 	if (eventType === 'update_article') {
@@ -34,11 +34,11 @@ export async function post(req, res) {
 		}
 
 		await updateArticle(article);
-		return { message: 'Webhook processed successfully.', count: 1 };
+		return { message: 'Outrank webhook processed successfully.', count: 1 };
 	}
 
 	res.status(400);
-	return { error: 'Unsupported event_type.' };
+	return { error: 'Unsupported Outrank event_type.' };
 }
 
 function validateBearerToken(req, expectedToken) {
