@@ -266,13 +266,25 @@ const strengthTones = ['', 'bg-destructive', 'bg-destructive', 'bg-warning', 'bg
 					:class="step <= passwordInfo.score ? strengthTones[passwordInfo.score] : 'bg-muted'"></span>
 			</div>
 			<p class="text-xs text-muted-foreground">
-				{{ field.value.value ? `${passwordInfo.label} password` : 'No password yet' }}
+				<span>{{ field.value.value ? `${passwordInfo.label} password` : '' }}</span>
+				<span v-if="passwordInfo.crackTime">  (Time to crack: {{ passwordInfo.crackTime }})</span>
 			</p>
-			<p v-if="passwordInfo.crackTime" class="text-xs text-muted-foreground">Time to crack your password: {{ passwordInfo.crackTime }}</p>
 		</div>
-
-		<p v-if="isCompromised" class="mt-3 rounded-lg border-warning-foreground/30 bg-warning text-warning-foreground px-3 py-2 text-xs leading-5">
-			{{ compromisedWarning }}
-		</p>
+		<transition
+			enter-active-class="transition duration-300 ease"
+			enter-from-class="opacity-0 -translate-y-2 max-h-0"
+			enter-to-class="opacity-100 translate-y-0 max-h-28"
+			leave-active-class="transition duration-200 ease"
+			leave-from-class="opacity-100 translate-y-0 max-h-28"
+			leave-to-class="opacity-0 -translate-y-2 max-h-0"
+		>
+			<p
+				v-if="isCompromised"
+				class="mt-3 rounded-lg border-warning-foreground/30 bg-warning text-warning-foreground px-3 py-2 text-xs leading-5 overflow-hidden"
+				style="transition: max-height 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s cubic-bezier(0.4,0,0.2,1), transform 0.3s cubic-bezier(0.4,0,0.2,1);" 
+			>
+				{{ compromisedWarning }}
+			</p>
+		</transition>
 	</DomField>
 </template>

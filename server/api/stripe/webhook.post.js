@@ -72,7 +72,12 @@ async function fulfillCheckoutSession(session, eventId) {
 }
 
 function parseClientReference(value) {
-	const [userId = '', licenceType = 'individual'] = String(value || '').split(':');
+	const reference = String(value || '');
+	const separator = reference.includes(':')
+		? reference.indexOf(':')
+		: reference.lastIndexOf('_');
+	const userId = separator > 0 ? reference.slice(0, separator) : reference;
+	const licenceType = separator > 0 ? reference.slice(separator + 1) : 'individual';
 
 	return {
 		userId,

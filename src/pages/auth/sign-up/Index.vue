@@ -140,6 +140,7 @@ async function submit() {
 								label="Password"
 								placeholder="Create a password"
 								autocomplete="new-password"
+								:check-compromised="true"
 								required
 							/>
 							<p v-if="error" class="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

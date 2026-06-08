@@ -42,7 +42,7 @@ export async function get(req, res) {
 
 	const checkoutUrl = new URL(paymentLink);
 	const offer = getOfferForLicence(licence);
-	checkoutUrl.searchParams.set('client_reference_id', `${auth.user.id}:${licence}`);
+	checkoutUrl.searchParams.set('client_reference_id', `${auth.user.id}_${licence}`);
 	if (auth.user.email) checkoutUrl.searchParams.set('prefilled_email', auth.user.email);
 	if (offer.promotionCode) checkoutUrl.searchParams.set('prefilled_promo_code', offer.promotionCode);
 

@@ -8,6 +8,7 @@ import { inferSchema } from '../../_layout/inspector/useInspector.js';
 import StageViewport from './components/StageViewport.vue';
 import TemplateFileBrowser from './components/TemplateFileBrowser.vue';
 import TemplateMonacoEditor from './components/TemplateMonacoEditor.vue';
+import projectDashboardSource from './components/ProjectDashboard.vue?raw';
 import {
 	buildSource,
 	evaluatePreviewExpression,
@@ -150,39 +151,12 @@ const primitivePalette = [
 const componentStore = ref([
 	{
 		name: 'ProjectDashboard',
-		file: 'experiment://components/ProjectDashboard.vue',
+		file: 'src/pages/experiments/template-editor/components/ProjectDashboard.vue',
 		role: 'page',
 		editable: true,
 		insertable: false,
-			props: [
-				{ name: 'project', type: 'Object' },
-				{ name: 'metrics', type: 'Array' },
-				{ name: 'tasks', type: 'Array' },
-			],
-			source: `<template>
-	<HeroPanel>
-		<Badge>{{ project.status }}</Badge>
-		<h1>{{ project.name }}</h1>
-		<p>{{ project.nextMilestone }}</p>
-		<ElButton>Open roadmap</ElButton>
-	</HeroPanel>
-	<MetricGrid :items="metrics" />
-	<SplitPanel>
-		<TaskList :tasks="tasks" />
-		<section>
-			<ElTextInput model-value="designer@example.com" />
-			<ElButton>Send invite</ElButton>
-		</section>
-	</SplitPanel>
-</template>
-
-<script setup>
-const props = defineProps({
-	project: Object,
-	metrics: Array,
-	tasks: Array,
-});
-</` + `script>`,
+		props: [],
+		source: projectDashboardSource,
 	},
 	{
 		name: 'TemplateFrame',
