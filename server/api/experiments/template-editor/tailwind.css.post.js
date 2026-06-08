@@ -1,4 +1,4 @@
-import { handleTemplateEditorTailwindRequest } from '../../../../src/pages/experiments/template-editor/tailwindServer.js';
+import { handleTemplateEditorTailwindRequest } from '../../../lib/templateEditorTailwind.js';
 
 export const config = {
 	body: 'raw',
