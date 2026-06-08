@@ -1,8 +1,9 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import DomField from '../field/DomField.vue';
 import { fieldProps } from '../field/fieldProps.js';
 import { useField } from '../field/useField.js';
+import { checkCompromisedPassword } from './pwnedPasswords.js';
 
 defineOptions({
 	__doc: {
@@ -42,6 +43,16 @@ const props = defineProps({
 		default: false,
 		_edit: { description: 'Show a warning when the current password has been found in a breach.' },
 	},
+	checkCompromised: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Check the password against the Have I Been Pwned Pwned Passwords API.' },
+	},
+	compromisedCheckDelay: {
+		type: Number,
+		default: 600,
+		_edit: { description: 'Delay in milliseconds before checking the Pwned Passwords API after typing.' },
+	},
 	compromisedMessage: {
 		type: String,
 		default: 'This password appears in known breaches. Choose a different password.',
@@ -52,10 +63,23 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'focus', 'blur']);
 const visible = ref(false);
 const field = useField(props, emit, { idPrefix: 'dom-password-input' });
+const compromisedCheck = ref({
+	pending: false,
+	compromised: false,
+	count: 0,
+	error: null,
+});
+const isCompromised = computed(() => props.compromised || (props.checkCompromised && compromisedCheck.value.compromised));
 const passwordFieldAttrs = computed(() => ({
 	...field.fieldAttrs.value,
-	invalid: field.invalid.value || props.compromised,
+	invalid: field.invalid.value || isCompromised.value,
 }));
+const compromisedWarning = computed(() => {
+	if (!props.checkCompromised || !compromisedCheck.value.compromised) return props.compromisedMessage;
+	const count = compromisedCheck.value.count;
+	const records = count === 1 ? 'record' : 'records';
+	return `${props.compromisedMessage} It appears in ${count.toLocaleString()} known breach ${records}.`;
+});
 
 const SECONDS_PER_YEAR = 31557600;
 
@@ -126,6 +150,78 @@ function passwordStrength(password) {
 
 const passwordInfo = computed(() => passwordStrength(field.value.value));
 
+let compromisedCheckTimer;
+let compromisedCheckController;
+
+const resetCompromisedCheck = () => {
+	clearTimeout(compromisedCheckTimer);
+	compromisedCheckController?.abort();
+	compromisedCheckController = null;
+	compromisedCheck.value = {
+		pending: false,
+		compromised: false,
+		count: 0,
+		error: null,
+	};
+};
+
+const runCompromisedCheck = async (password) => {
+	compromisedCheckController?.abort();
+	const controller = new AbortController();
+	compromisedCheckController = controller;
+	compromisedCheck.value = {
+		pending: true,
+		compromised: false,
+		count: 0,
+		error: null,
+	};
+
+	try {
+		const result = await checkCompromisedPassword(password, { signal: controller.signal });
+		if (controller.signal.aborted) return;
+		compromisedCheck.value = {
+			pending: false,
+			compromised: result.compromised,
+			count: result.count,
+			error: null,
+		};
+	} catch (error) {
+		if (controller.signal.aborted) return;
+		compromisedCheck.value = {
+			pending: false,
+			compromised: false,
+			count: 0,
+			error,
+		};
+	}
+};
+
+if (typeof window !== 'undefined') {
+	watch(
+		() => [props.checkCompromised, field.value.value, props.compromisedCheckDelay],
+		([shouldCheck, password, delay]) => {
+			clearTimeout(compromisedCheckTimer);
+			compromisedCheckController?.abort();
+
+			if (!shouldCheck || !password) {
+				resetCompromisedCheck();
+				return;
+			}
+
+			compromisedCheck.value = {
+				pending: true,
+				compromised: false,
+				count: 0,
+				error: null,
+			};
+			compromisedCheckTimer = setTimeout(() => runCompromisedCheck(password), Math.max(0, delay));
+		},
+		{ immediate: true },
+	);
+
+	onBeforeUnmount(resetCompromisedCheck);
+}
+
 // index matches score (1-5)
 const strengthTones = ['', 'bg-destructive', 'bg-destructive', 'bg-warning', 'bg-warning', 'bg-success'];
 </script>
@@ -136,7 +232,7 @@ const strengthTones = ['', 'bg-destructive', 'bg-destructive', 'bg-warning', 'bg
 			<input
 				v-bind="field.inputAttrs.value"
 				:type="visible ? 'text' : 'password'"
-				:aria-invalid="field.invalid.value || compromised || undefined"
+				:aria-invalid="field.invalid.value || isCompromised || undefined"
 				class="dom-input pr-11"
 				@input="field.onInput($event.target.value)"
 				@focus="field.onFocus"
@@ -175,8 +271,8 @@ const strengthTones = ['', 'bg-destructive', 'bg-destructive', 'bg-warning', 'bg
 			<p v-if="passwordInfo.crackTime" class="text-xs text-muted-foreground">Time to crack your password: {{ passwordInfo.crackTime }}</p>
 		</div>
 
-		<p v-if="compromised" class="mt-3 rounded-lg border border-warning/40 bg-warning/15 px-3 py-2 text-xs leading-5 text-warning">
-			{{ compromisedMessage }}
+		<p v-if="isCompromised" class="mt-3 rounded-lg border-warning-foreground/30 bg-warning text-warning-foreground px-3 py-2 text-xs leading-5">
+			{{ compromisedWarning }}
 		</p>
 	</DomField>
 </template>

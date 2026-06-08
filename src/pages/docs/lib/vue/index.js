@@ -62,6 +62,7 @@ export { default as DomPositionInput } from '../../forms/position-input/DomPosit
 export { default as DomSelectInput } from '../../forms/select-input/DomSelectInput.vue';
 export { default as DomNativeSelect } from '../../forms/native-select/DomNativeSelect.vue';
 export { default as DomPasswordInput } from '../../forms/password-input/DomPasswordInput.vue';
+export { checkCompromisedPassword, sha1PasswordHash } from '../../forms/password-input/pwnedPasswords.js';
 export { default as DomCalendar } from '../../forms/calendar/DomCalendar.vue';
 export { calendarProps } from '../../forms/calendar/DomCalendar.vue';
 export { default as DomDatePicker } from '../../forms/date-picker/DomDatePicker.vue';

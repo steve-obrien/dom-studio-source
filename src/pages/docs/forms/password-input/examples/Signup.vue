@@ -12,7 +12,7 @@ const password = ref('correct-horse');
 			label="Create password"
 			description="Use at least 12 characters, with a mix of symbols and numbers."
 			placeholder="Choose a password"
-			:compromised="password === 'password123'"
+			:check-compromised="true"
 		/>
 	</div>
 </template>
