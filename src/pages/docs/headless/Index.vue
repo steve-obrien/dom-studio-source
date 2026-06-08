@@ -82,6 +82,21 @@ function eventSummary(cls) {
 				<CodeBlock :code="install" lang="html" />
 			</DocSection>
 
+			<DocSection eyebrow="Floating UI" title="Dropdowns and popovers without the usual traps">
+				<div class="rounded-2xl border border-border bg-secondary/40 p-6">
+					<p class="text-sm leading-relaxed text-muted-foreground">
+						The shared <code>floating.js</code> engine and <code>&lt;dom-popover&gt;</code> panel solve the
+						failure modes that usually make dropdowns expensive: clipped parents, transformed ancestors, visual viewport
+						offsets, side collisions, scroll containers, long menus, arrow placement, and resize reflow. Use the
+						headless popover, dropdown, combobox, autocomplete, and tooltip controls first; drop to the low-level helper
+						only for custom surfaces.
+					</p>
+					<RouterLink to="/docs/headless/floating" class="mt-4 inline-flex text-sm font-medium text-foreground hover:underline">
+						View floating layer guide →
+					</RouterLink>
+				</div>
+			</DocSection>
+
 			<DocSection eyebrow="Reference" title="Every control at a glance">
 				<div class="grid gap-3 sm:grid-cols-2">
 					<RouterLink

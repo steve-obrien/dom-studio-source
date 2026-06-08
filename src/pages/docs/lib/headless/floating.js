@@ -2,6 +2,67 @@ const SIDE_OPTIONS = ['top', 'right', 'bottom', 'left'];
 const ALIGN_OPTIONS = ['start', 'center', 'end'];
 const FLOATING_MODES = ['viewport', 'anchor'];
 
+/**
+ * @typedef {'top' | 'right' | 'bottom' | 'left'} FloatingSide
+ */
+
+/**
+ * @typedef {'start' | 'center' | 'end' | 'left' | 'right'} FloatingAlign
+ */
+
+/**
+ * @typedef {'viewport' | 'anchor' | 'element'} FloatingMode
+ *
+ * `viewport` keeps the floating element inside the visible browser viewport by
+ * flipping and shifting when it would collide. `anchor` keeps the element
+ * attached to the requested side of the trigger, which is useful when a panel
+ * should scroll with its local context. `element` is kept as a backwards
+ * compatible alias for `anchor`.
+ */
+
+/**
+ * @typedef {Object} FloatingPositionOptions
+ * @property {`${FloatingSide}` | `${FloatingSide}-${'start' | 'center' | 'end'}`} [placement='bottom']
+ * Preferred side and optional alignment, such as `bottom-start`, `top-end`, or
+ * `right-center`.
+ * @property {FloatingAlign} [align='start']
+ * Fallback alignment when `placement` does not include one. `left` and `right`
+ * are normalized to `start` and `end`.
+ * @property {number} [offset=8]
+ * Gap in CSS pixels between the reference element and the floating element.
+ * @property {number} [padding=8]
+ * Collision padding in CSS pixels between the floating element and viewport.
+ * @property {FloatingMode} [mode='viewport']
+ * Positioning mode. `viewport` enables default flip and shift behavior.
+ * @property {FloatingMode} [floatingMode]
+ * Attribute-friendly alias for `mode`.
+ * @property {boolean} [flip]
+ * Whether to move to the opposite side when there is more space there.
+ * Defaults to true in `viewport` mode and false in `anchor` mode.
+ * @property {boolean} [shift]
+ * Whether to clamp coordinates inside the viewport bounds. Defaults to true in
+ * `viewport` mode and false in `anchor` mode.
+ * @property {'fixed' | 'absolute'} [strategy='fixed']
+ * CSS positioning strategy used by `applyFloatingPosition`.
+ */
+
+/**
+ * @typedef {Object} FloatingPositionResult
+ * @property {number} x Final viewport x coordinate in CSS pixels.
+ * @property {number} y Final viewport y coordinate in CSS pixels.
+ * @property {'viewport' | 'anchor'} mode Normalized positioning mode.
+ * @property {FloatingSide} side Resolved side after optional flipping.
+ * @property {'start' | 'center' | 'end'} align Normalized alignment.
+ * @property {string} placement Resolved placement name, such as `bottom-start`.
+ * @property {boolean} flipped Whether the side changed from the requested side.
+ * @property {Record<FloatingSide, number>} collision Overflow measured before shifting.
+ * @property {FloatingSide[]} collisionSides Sides that collided before shifting.
+ * @property {Record<FloatingSide, number>} overflow Remaining overflow after shifting.
+ * @property {FloatingSide[]} overflowSides Sides still overflowing after shifting.
+ * @property {number} availableWidth Viewport width available inside collision padding.
+ * @property {number} availableHeight Space available on the resolved vertical side.
+ */
+
 function clamp(value, min, max) {
 	return Math.min(Math.max(value, min), max);
 }
@@ -127,6 +188,23 @@ function getScrollParents(node) {
 	return parents;
 }
 
+/**
+ * Measure where a floating element should sit relative to a reference element.
+ *
+ * The calculation is deliberately DOM-only and framework-neutral. It handles
+ * visual viewport offsets, viewport collision padding, optional side flipping,
+ * optional coordinate shifting, and dimensions from layout size so panels that
+ * have just moved into the top layer can still be measured accurately.
+ *
+ * Use this when you want coordinates and metadata but want to apply styles
+ * yourself. Use `applyFloatingPosition` when you want the helper to write the
+ * standard DOM Studio inline styles and data attributes for you.
+ *
+ * @param {Element} referenceEl The trigger, input, button, or anchor element.
+ * @param {HTMLElement} floatingEl The panel, menu, tooltip, or listbox element.
+ * @param {FloatingPositionOptions} [options]
+ * @returns {FloatingPositionResult | null} Position metadata, or null outside the browser.
+ */
 export function computeFloatingPosition(referenceEl, floatingEl, options = {}) {
 	if (!referenceEl || !floatingEl || typeof window === 'undefined') return null;
 
@@ -191,6 +269,20 @@ export function computeFloatingPosition(referenceEl, floatingEl, options = {}) {
 	};
 }
 
+/**
+ * Position a floating element and expose placement metadata through attributes.
+ *
+ * This writes `position`, `top`, `left`, CSS custom properties for available
+ * size, popover arrow coordinates, and `data-*` attributes describing the final
+ * placement. DOM Studio popover, dropdown, combobox, autocomplete, tooltip, and
+ * menu surfaces all depend on this contract so styling can respond to placement
+ * without duplicating JavaScript.
+ *
+ * @param {Element} referenceEl The element the panel is anchored to.
+ * @param {HTMLElement} floatingEl The panel that should be moved.
+ * @param {FloatingPositionOptions} [options]
+ * @returns {FloatingPositionResult | null} The same result returned by `computeFloatingPosition`.
+ */
 export function applyFloatingPosition(referenceEl, floatingEl, options = {}) {
 	const result = computeFloatingPosition(referenceEl, floatingEl, options);
 	if (!result) return null;
@@ -234,6 +326,19 @@ export function applyFloatingPosition(referenceEl, floatingEl, options = {}) {
 	return result;
 }
 
+/**
+ * Re-run a positioning callback when layout conditions change.
+ *
+ * The helper watches scroll parents for both the anchor and panel, browser
+ * resize, visual viewport movement, and element resize. Updates are batched in
+ * `requestAnimationFrame` so rapid scroll and resize bursts only trigger one
+ * positioning pass per frame.
+ *
+ * @param {Element} referenceEl The element used as the positioning anchor.
+ * @param {HTMLElement} floatingEl The floating panel being observed.
+ * @param {() => void} update Callback that recomputes or reapplies position.
+ * @returns {() => void} Cleanup function that removes listeners and observers.
+ */
 export function autoUpdateFloating(referenceEl, floatingEl, update) {
 	if (!referenceEl || !floatingEl || typeof window === 'undefined') return () => {};
 

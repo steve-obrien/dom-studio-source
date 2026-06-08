@@ -4,8 +4,10 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useTheme } from '../../../composable/useTheme';
 import ThemeToggle from './ThemeToggle.vue';
 import { DomDrawer, DomButton } from '@getdom/studio/vue';
+import BrandLockup from './BrandLockup.vue';
 import SideNav from './SideNav.vue';
 import DomStudioFooter from './DomStudioFooter.vue';
+import AccountMenu from './AccountMenu.vue';
 
 const props = defineProps({
 	fullWidth: { type: Boolean, default: false },
@@ -32,6 +34,7 @@ const topLinks = [
 ];
 
 const mobileMenuOpen = ref(false);
+const isMounted = ref(false);
 const detailsPanel = ref(null);
 
 function scrollDetailsToTop() {
@@ -43,7 +46,10 @@ watch(() => route.fullPath, async () => {
 	scrollDetailsToTop();
 });
 
-onMounted(() => initTheme());
+onMounted(() => {
+	isMounted.value = true;
+	initTheme();
+});
 </script>
 
 <template>
@@ -54,13 +60,11 @@ onMounted(() => initTheme());
 		<header class="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
 			<div class="mx-auto flex h-16 w-full min-w-0 items-center justify-between gap-3 px-4 sm:px-6">
 				<RouterLink to="/docs" class="flex min-w-0 items-center gap-2 text-foreground">
-					<span class="grid size-7 place-items-center rounded-lg bg-primary text-primary-foreground text-xs font-bold tracking-tight">DOM</span>
-					<span class="truncate font-semibold tracking-tight">DOM Studio</span>
-					<span class="ml-2 hidden rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground ring-1 ring-border md:inline">v1.0</span>
+					<BrandLockup show-badge />
 				</RouterLink>
 				<!-- Mobile menu-->
 				<DomButton class="shrink-0 md:hidden" variant="secondary" @click="mobileMenuOpen = true">Menu</DomButton>
-				<Teleport to="body">
+				<Teleport v-if="isMounted" to="body">
 					<DomDrawer v-model="mobileMenuOpen" side="left" title="Menu" width="min(88vw, var(--container-xs))">
 						<div class="space-y-6 p-4 text-sm text-muted-foreground">
 							<nav class="grid gap-1">
@@ -75,6 +79,9 @@ onMounted(() => initTheme());
 									@click="mobileMenuOpen = false"
 								>{{ l.label }}</RouterLink>
 							</nav>
+							<div class="border-t border-border pt-4">
+								<AccountMenu />
+							</div>
 							<SideNav v-if="showSidebar" class="block w-full shrink-0" />
 						</div>
 					</DomDrawer>
@@ -92,18 +99,14 @@ onMounted(() => initTheme());
 					<div class="ml-2">
 						<ThemeToggle />
 					</div>
-					<RouterLink
-						to="/docs/pricing"
-						class="ml-2 rounded-full bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90"
-					>Get source</RouterLink>
-					
+					<AccountMenu class="ml-2" />
 				</nav>
 			</div>
 		</header>
 
 		<div v-if="showSidebar" class="w-full px-4">
 			<div class="flex min-h-0 gap-12 py-10 md:h-[calc(100vh-4rem)] md:overflow-hidden md:py-0">
-				<SideNav persist-scroll class="hidden w-56 shrink-0 md:block md:h-full md:overflow-y-auto md:py-10 md:pr-2" />
+				<SideNav persist-scroll class="docs-sidebar w-56 shrink-0 md:h-full md:overflow-y-auto md:py-10 md:pr-2" />
 
 				<main ref="detailsPanel" class="min-h-0 min-w-0 flex-1 md:h-full md:overflow-y-auto md:py-10 md:pr-2">
 					<div class="mx-auto w-full max-w-4xl">

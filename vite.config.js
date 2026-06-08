@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite';
 import { fileURLToPath } from 'node:url';
 import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
+import templateEditorTailwindServer from './src/pages/experiments/template-editor/tailwindServer.js';
 
 function themeAiServer() {
 	let apiKey = '';
@@ -174,6 +175,7 @@ function sendJson(response, status, body) {
 export default defineConfig({
 	plugins: [
 		themeAiServer(),
+		templateEditorTailwindServer(),
 		vue({
 			template: {
 				compilerOptions: {
@@ -184,7 +186,9 @@ export default defineConfig({
 		tailwindcss(),
 	],
 	resolve: {
+		dedupe: ['vue', 'vue-router', 'pinia'],
 		alias: {
+			'#now': fileURLToPath(new URL('./packages/now/src/framework', import.meta.url)),
 			'@getdom/studio/vue': fileURLToPath(new URL('./src/pages/docs/lib/vue', import.meta.url)),
 			'@getdom/studio/headless': fileURLToPath(new URL('./src/pages/docs/lib/headless', import.meta.url)),
 		},

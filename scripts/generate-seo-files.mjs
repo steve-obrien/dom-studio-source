@@ -3,7 +3,7 @@ import path from 'node:path';
 import { loadStaticRoutes } from './lib/load-routes.mjs';
 
 const rootDir = process.cwd();
-const distDir = path.join(rootDir, 'dist');
+const distDir = path.join(rootDir, 'dist', 'client');
 const cnamePath = path.join(rootDir, 'CNAME');
 const siteName = 'DOM Studio';
 

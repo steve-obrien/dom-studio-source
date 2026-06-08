@@ -109,7 +109,7 @@ function isFamilyOpen(item) {
 						@click="rememberScroll"
 					>
 						<span class="flex min-w-0 items-center gap-2">
-							<svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<svg width="16" height="16" class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 								<path :d="c.icon" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
 							</svg>
 							<span class="truncate">{{ c.label }}</span>

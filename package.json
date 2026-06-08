@@ -4,12 +4,17 @@
 	"description": "DOM Studio is a source-owned Vue and web component interface system for humans and LLMs.",
 	"type": "module",
 	"scripts": {
-		"dev": "vite",
-		"build": "vite-ssg build && node scripts/generate-seo-files.mjs",
+		"dev": "node server.js",
+		"build": "npm run build:client && npm run build:server && node scripts/generate-seo-files.mjs",
+		"build:client": "vite build --outDir dist/client --ssrManifest",
+		"build:server": "vite build --outDir dist/server --ssr src/entry-server.js",
 		"check:form-definition": "node scripts/check-form-definition.mjs",
 		"check:theme-ai": "node scripts/check-theme-ai-endpoint.mjs",
+		"db:migrate": "knex migrate:latest",
+		"db:rollback": "knex migrate:rollback",
+		"now:test": "npm --prefix packages/now test",
 		"theme-ai-server": "node scripts/theme-ai-server.mjs",
-		"preview": "vite preview"
+		"preview": "NODE_ENV=production node server.js"
 	},
 	"repository": {
 		"type": "git",
@@ -31,9 +36,15 @@
 	"homepage": "https://getdom.studio",
 	"dependencies": {
 		"@vitejs/plugin-basic-ssl": "^2.3.0",
+		"compression": "^1.8.1",
+		"dotenv": "^16.6.1",
+		"express": "^4.22.2",
+		"knex": "^3.2.10",
 		"markdown-it": "^14.2.0",
 		"monaco-editor": "^0.55.1",
-		"vite-ssg": "^28.3.0",
+		"mysql2": "^3.22.5",
+		"pinia": "^2.3.1",
+		"stripe": "^22.2.0",
 		"vue": "^3.5.33",
 		"vue-router": "^4.6.4"
 	},

@@ -27,7 +27,8 @@ const tiers = [
 		priceLabel: null,
 		priceSuffix: 'one-time · lifetime v1 access',
 		cta: 'Get source access',
-		ctaTo: '#checkout',
+		ctaTo: '/api/billing/checkout',
+		ctaExternal: true,
 		ctaVariant: 'primary',
 		highlight: true,
 		features: [
@@ -46,7 +47,8 @@ const tiers = [
 		priceLabel: null,
 		priceSuffix: 'one-time · lifetime v1 access · team licence',
 		cta: 'Get Studio',
-		ctaTo: '#checkout',
+		ctaTo: '/api/billing/checkout',
+		ctaExternal: true,
 		ctaVariant: 'secondary',
 		features: [
 			'Everything in Source',
@@ -165,7 +167,7 @@ const generatedSource = [
 				</ul>
 				<div class="mt-auto pt-8">
 					<DomButton
-						:as="t.ctaTo.startsWith('/') ? 'router-link' : 'a'"
+						:as="t.ctaExternal ? 'a' : t.ctaTo.startsWith('/') ? 'router-link' : 'a'"
 						:to="t.ctaTo"
 						:href="t.ctaTo"
 						:variant="t.ctaVariant"
@@ -256,7 +258,7 @@ const generatedSource = [
 				<h2 class="text-3xl font-bold tracking-tight text-foreground">Get the source and make it yours.</h2>
 				<p class="mt-3 text-muted-foreground">Buy once for DOM Studio v1 access. Copy components into your app, vendor the workspace with git subtree, and keep the living docs close to the code.</p>
 				<div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-					<DomButton size="lg">Get Source - £149 once</DomButton>
+					<DomButton :as="'a'" href="/api/billing/checkout" size="lg">Get Source - £149 once</DomButton>
 					<DomButton variant="secondary" size="lg" :as="'router-link'" :to="'/docs/components/button'">Try Open</DomButton>
 				</div>
 				<p class="mt-4 text-xs text-muted-foreground">14-day refund. No subscription required.</p>

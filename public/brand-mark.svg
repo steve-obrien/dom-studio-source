@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+	<title id="title">DOM Studio brand mark</title>
+	<desc id="desc">A compact DOM tree mark with three connected nodes.</desc>
+	<rect width="64" height="64" rx="14" fill="#0B0F14"/>
+	<path d="M32 16v14M20 42V30h24v12" stroke="#F6F7F7" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+	<rect x="24" y="10" width="16" height="12" rx="4" fill="#F6F7F7"/>
+	<rect x="12" y="38" width="16" height="12" rx="4" fill="#F6F7F7"/>
+	<rect x="36" y="38" width="16" height="12" rx="4" fill="#66E2B4"/>
+</svg>

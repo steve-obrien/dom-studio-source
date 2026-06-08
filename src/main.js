@@ -1,44 +1,75 @@
-import { ViteSSG } from 'vite-ssg';
+import { createNowApp } from '#now/runtime/createNowApp.js';
 import App from './App.vue';
 import './style.css';
 import { routes } from './routes';
+import { getAuthState, hasEntitlement, refreshSession } from './composable/useAuth.js';
 
-const siteName = 'DOM Studio';
+const siteName = 'getdom.studio';
 
-const applyInitialTheme = () => {
-	if (typeof window === 'undefined') return;
-	const stored = window.localStorage.getItem('theme-mode')
-		|| window.localStorage.getItem('theme')
-		|| 'system';
-	let theme = stored;
-	if (stored === 'system' || (stored !== 'light' && stored !== 'dark')) {
-		theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-	}
-	document.documentElement.dataset.theme = theme;
+const scrollBehavior = (to, from, savedPosition) => {
+	if (savedPosition) return savedPosition;
+	if (to.path.startsWith('/docs') && from.path.startsWith('/docs')) return false;
+	return { top: 0 };
 };
 
-const updateMetaTag = (selector, attributes) => {
-	let tag = document.head.querySelector(selector);
-	if (!tag) {
-		tag = document.createElement('meta');
-		document.head.appendChild(tag);
+export function createDomStudioApp() {
+	const { app, router, pinia } = createNowApp({
+		App,
+		routes,
+		routerOptions: {
+			scrollBehavior,
+		},
+	});
+
+	if (typeof window !== 'undefined') {
+		applyInitialTheme();
+		installAuthGuard(router);
+		router.afterEach((to) => updateDocumentHead(to));
 	}
 
-	for (const [key, value] of Object.entries(attributes)) {
-		tag.setAttribute(key, value);
-	}
-};
+	return { app, router, pinia };
+}
 
-const removeMetaTag = (selector) => {
-	document.head.querySelector(selector)?.remove();
-};
+function installAuthGuard(router) {
+	router.beforeEach(async (to) => {
+		const requiredEntitlement = to.matched.find((record) => record.meta?.requiresEntitlement)?.meta?.requiresEntitlement;
+		if (!requiredEntitlement) return true;
 
-const updateDocumentHead = (route) => {
+		getAuthState();
+		if (!hasEntitlement(requiredEntitlement)) {
+			await refreshSession();
+		}
+
+		if (hasEntitlement(requiredEntitlement)) return true;
+
+		return {
+			path: '/paywall',
+			query: { from: to.fullPath },
+		};
+	});
+}
+
+export function getRouteHead(route) {
 	const title = route.meta?.title ? `${route.meta.title} | ${siteName}` : siteName;
 	const description = route.meta?.description || '';
 	const keywords = route.meta?.keywords || '';
 
-	document.title = title;
+	return {
+		title,
+		meta: [
+			description ? { name: 'description', content: description } : null,
+			keywords ? { name: 'keywords', content: keywords } : null,
+		].filter(Boolean),
+	};
+}
+
+export function updateDocumentHead(route) {
+	const head = getRouteHead(route);
+
+	document.title = head.title;
+
+	const description = head.meta.find((meta) => meta.name === 'description')?.content;
+	const keywords = head.meta.find((meta) => meta.name === 'keywords')?.content;
 
 	if (description) {
 		updateMetaTag('meta[name="description"]', {
@@ -57,21 +88,32 @@ const updateDocumentHead = (route) => {
 	} else {
 		removeMetaTag('meta[name="keywords"]');
 	}
-};
+}
 
-export const createApp = ViteSSG(
-	App,
-	{
-		routes,
-		scrollBehavior(to, from, savedPosition) {
-			if (savedPosition) return savedPosition;
-			if (to.path.startsWith('/docs') && from.path.startsWith('/docs')) return false;
-			return { top: 0 };
-		},
-	},
-	({ router, isClient }) => {
-		if (!isClient) return;
-		applyInitialTheme();
-		router.afterEach((to) => updateDocumentHead(to));
-	},
-);
+function applyInitialTheme() {
+	if (typeof window === 'undefined') return;
+	const stored = window.localStorage.getItem('theme-mode')
+		|| window.localStorage.getItem('theme')
+		|| 'system';
+	let theme = stored;
+	if (stored === 'system' || (stored !== 'light' && stored !== 'dark')) {
+		theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+	}
+	document.documentElement.dataset.theme = theme;
+}
+
+function updateMetaTag(selector, attributes) {
+	let tag = document.head.querySelector(selector);
+	if (!tag) {
+		tag = document.createElement('meta');
+		document.head.appendChild(tag);
+	}
+
+	for (const [key, value] of Object.entries(attributes)) {
+		tag.setAttribute(key, value);
+	}
+}
+
+function removeMetaTag(selector) {
+	document.head.querySelector(selector)?.remove();
+}

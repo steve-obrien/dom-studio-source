@@ -97,6 +97,7 @@ export const sideNavLinks = [
 			{ to: '/docs/headless/dialog', label: 'Dialog' },
 			{ to: '/docs/headless/drawer', label: 'Drawer' },
 			{ to: '/docs/headless/popover', label: 'Popover' },
+			{ to: '/docs/headless/floating', label: 'Floating' },
 			{ to: '/docs/headless/tabs', label: 'Tabs' },
 			{ to: '/docs/headless/toggle', label: 'Toggle' },
 			{ to: '/docs/headless/tooltip', label: 'Tooltip' },

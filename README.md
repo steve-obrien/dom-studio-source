@@ -42,4 +42,12 @@ npm run dev
 npm run build
 ```
 
+The reusable SSR/backend framework prototype lives in `packages/now`.
+
+```sh
+npm run now:test
+```
+
+The root app is served by Now through `server.js`; `npm run dev`, `npm run build`, and `npm run preview` all use that SSR path.
+
 The public site is configured for `https://getdom.studio`.

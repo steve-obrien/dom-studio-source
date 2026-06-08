@@ -3,9 +3,23 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="description" content="DOM Studio is a source-owned Vue and web component interface system for humans and LLMs." />
-		<title>DOM Studio</title>
+		<!--now-head-->
+		<!--now-preload-links-->
+		<link rel="stylesheet" href="/src/style.css">
+		<style>
+			.docs-sidebar {
+				display: none;
+			}
+
+			@media (min-width: 768px) {
+				.docs-sidebar {
+					display: block;
+				}
+			}
+		</style>
 		<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+		<link rel="manifest" href="/site.webmanifest">
+		<meta name="theme-color" content="#0B0F14">
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
@@ -14,7 +28,8 @@
 		/>
 	</head>
 	<body>
-		<div id="app"></div>
-		<script type="module" src="/src/main.js"></script>
+		<div id="app"><!--now-html--></div>
+		<script>window.__NOW__ = <!--now-payload--></script>
+		<script type="module" src="/src/entry-client.js"></script>
 	</body>
 </html>

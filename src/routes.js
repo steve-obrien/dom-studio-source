@@ -1,17 +1,28 @@
 import NotFoundPage from './NotFoundPage.vue';
+import SignInPage from './pages/auth/sign-in/Index.vue';
+import SignUpPage from './pages/auth/sign-up/Index.vue';
 import DomStudioHome from './pages/docs/Index.vue';
+import FloatingHeadlessPage from './pages/docs/headless/floating/Index.vue';
+import PaywallPage from './pages/paywall/Index.vue';
 import { getFormRedirectRecords, getLazyComponentRecords } from './pages/docs/_layout/componentManager.js';
 
-const pageRouteModules = import.meta.glob('./pages/docs/**/Index.vue');
+const pageRouteModules = import.meta.glob([
+	'./pages/**/Index.vue',
+	'!./pages/auth/sign-in/Index.vue',
+	'!./pages/auth/sign-up/Index.vue',
+	'!./pages/docs/Index.vue',
+	'!./pages/docs/headless/floating/Index.vue',
+	'!./pages/paywall/Index.vue',
+]);
 const generatedComponentPage = () => import('./pages/docs/_layout/GeneratedComponentPage.vue');
 
 function filePathToRoutePath(globKey) {
-	const m = globKey.match(/^\.\/pages\/docs\/(.+)\/Index\.vue$/);
+	const m = globKey.match(/^\.\/pages\/(.+)\/Index\.vue$/);
 	if (!m) return null;
 	const inner = m[1];
 	if (inner === '.' || inner === '..' || inner.includes('..')) return null;
-	if (inner === 'index') return '/docs';
-	return `/docs/${inner}`;
+	if (inner.toLowerCase() === 'index') return '/';
+	return `/${inner}`;
 }
 
 function titleFromRoutePath(routePath) {
@@ -31,7 +42,7 @@ const fileBasedRoutes = Object.entries(pageRouteModules)
 		return {
 			path,
 			component: loader,
-			meta: { title: titleFromRoutePath(path) },
+			meta: routeMeta(path),
 		};
 	})
 	.filter(Boolean);
@@ -46,6 +57,26 @@ const manualRoutes = [
 		path: '/docs',
 		component: DomStudioHome,
 		meta: { title: 'Docs', description: 'DOM Studio component docs, blocks, theme tokens, and AI builder guidance.' },
+	},
+	{
+		path: '/docs/headless/floating',
+		component: FloatingHeadlessPage,
+		meta: { title: 'Floating', description: 'Shared positioning guidance for DOM Studio popovers, dropdowns, comboboxes, autocomplete lists, tooltips, and custom floating layers.' },
+	},
+	{
+		path: '/auth/sign-in',
+		component: SignInPage,
+		meta: { title: 'Sign in', description: 'Sign in to DOM Studio source access.' },
+	},
+	{
+		path: '/auth/sign-up',
+		component: SignUpPage,
+		meta: { title: 'Sign up', description: 'Create a DOM Studio account.' },
+	},
+	{
+		path: '/paywall',
+		component: PaywallPage,
+		meta: { title: 'Source access', description: 'Unlock DOM Studio source access.' },
 	},
 ];
 
@@ -63,7 +94,7 @@ const generatedComponentRoutes = getLazyComponentRecords()
 				componentSourceLoader: record.sourceLoader,
 				section: record.section,
 			},
-			meta: { title: titleFromRoutePath(record.route) },
+			meta: routeMeta(record.route),
 		};
 	})
 	.filter(Boolean);
@@ -86,3 +117,10 @@ export const routes = [
 		meta: { title: 'Page not found' },
 	},
 ];
+
+function routeMeta(path) {
+	return {
+		title: titleFromRoutePath(path),
+		...(path.startsWith('/experiments') ? { requiresEntitlement: 'source' } : {}),
+	};
+}
