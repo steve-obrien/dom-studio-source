@@ -19,6 +19,7 @@ export async function createNowServer({ config = {}, root } = {}) {
 	app.disable('x-powered-by')
 	app.use(requestContextMiddleware())
 	app.use(redirectLocalhostAlias)
+	app.use(ignoreChromeDevtoolsProbe)
 
 	await installApi(app, resolved)
 
@@ -56,6 +57,15 @@ function redirectLocalhostAlias(req, res, next) {
 	const target = new URL(`${req.protocol}://localhost${req.originalUrl}`)
 	if (req.socket.localPort) target.port = String(req.socket.localPort)
 	res.redirect(307, target.toString())
+}
+
+function ignoreChromeDevtoolsProbe(req, res, next) {
+	if (req.path !== '/.well-known/appspecific/com.chrome.devtools.json') {
+		next()
+		return
+	}
+
+	res.status(204).end()
 }
 
 async function installApi(app, config) {
