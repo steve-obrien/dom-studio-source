@@ -4,6 +4,7 @@ import path from 'node:path';
 const rootDir = process.cwd();
 const routesFilePath = path.join(rootDir, 'src', 'routes.js');
 const pagesDirPath = path.join(rootDir, 'src', 'pages');
+const blogContentDirPath = path.join(rootDir, 'src', 'pages', 'blog', 'content');
 
 const loadRoutesFromRoutesFile = async () => {
 	const routesFile = await readFile(routesFilePath, 'utf8');
@@ -58,12 +59,31 @@ const sortRoutes = (routes) => routes.sort((a, b) => {
 	return a.localeCompare(b);
 });
 
+const loadLocalBlogRoutes = async () => {
+	try {
+		const entries = await readdir(blogContentDirPath, { withFileTypes: true });
+		const routes = await Promise.all(entries
+			.filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
+			.map(async (entry) => {
+				const filePath = path.join(blogContentDirPath, entry.name);
+				const raw = await readFile(filePath, 'utf8');
+				const slug = readFrontmatterValue(raw, 'slug') || entry.name.replace(/\.md$/, '');
+				return `/blog/${normalizeSlug(slug)}`;
+			}));
+
+		return routes.filter((route) => route !== '/blog/');
+	} catch {
+		return [];
+	}
+};
+
 export const loadStaticRoutes = async () => {
 	try {
 		const routes = sortRoutes([
 			...new Set([
 				...await loadRoutesFromRoutesFile(),
 				...await loadRoutesFromPagesDir(),
+				...await loadLocalBlogRoutes(),
 			]),
 		]);
 		return routes.length ? routes : ["/", "/docs"];
@@ -71,3 +91,29 @@ export const loadStaticRoutes = async () => {
 		return ["/", "/docs"];
 	}
 };
+
+function readFrontmatterValue(raw, key) {
+	if (!raw.startsWith('---')) return '';
+	const match = raw.match(/^---\s*\n([\s\S]*?)\n---/);
+	if (!match) return '';
+
+	for (const line of match[1].split('\n')) {
+		const separator = line.indexOf(':');
+		if (separator === -1) continue;
+
+		const name = line.slice(0, separator).trim();
+		if (name !== key) continue;
+
+		return line.slice(separator + 1).trim().replace(/^['"]|['"]$/g, '');
+	}
+
+	return '';
+}
+
+function normalizeSlug(value) {
+	return String(value || '')
+		.toLowerCase()
+		.trim()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
+}

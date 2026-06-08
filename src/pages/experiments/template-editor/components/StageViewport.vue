@@ -360,6 +360,9 @@ function syncFrameStyles() {
 		.forEach((node) => {
 			const clone = node.cloneNode(true);
 			clone.setAttribute('data-template-frame-style', '');
+			if (clone instanceof HTMLLinkElement && node instanceof HTMLLinkElement) {
+				clone.href = node.href;
+			}
 			frameDocument.head.appendChild(clone);
 		});
 }

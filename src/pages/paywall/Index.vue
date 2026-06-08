@@ -4,9 +4,11 @@ import { useRoute } from 'vue-router';
 import DomStudioLayout from '../docs/_layout/DomStudioLayout.vue';
 import { DomButton } from '../docs/lib/vue';
 import { useAuth } from '../../composable/useAuth.js';
+import { useBillingOffer } from '../../composable/useBillingOffer.js';
 
 const route = useRoute();
 const { isAuthenticated, user } = useAuth();
+const { hasIndividualPromotion, individual, individualPrice } = useBillingOffer();
 
 const returnTo = computed(() => {
 	const value = Array.isArray(route.query.from) ? route.query.from[0] : route.query.from;
@@ -18,17 +20,17 @@ const signInTo = computed(() => ({
 	query: { from: returnTo.value },
 }));
 
-const checkoutHref = computed(() => `/api/billing/checkout?from=${encodeURIComponent(returnTo.value)}`);
+const checkoutHref = computed(() => `/api/billing/checkout?licence=individual&from=${encodeURIComponent(returnTo.value)}`);
 </script>
 
 <template>
 	<DomStudioLayout>
 		<section class="mx-auto grid min-h-[calc(100vh-13rem)] w-full max-w-6xl items-center gap-10 py-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
 			<div>
-				<p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Source access</p>
+				<p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">DOM Studio access</p>
 				<h1 class="mt-3 text-5xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl">Unlock the code behind DOM Studio.</h1>
 				<p class="mt-5 max-w-xl text-lg leading-8 text-muted-foreground">
-					Source access opens the paid experiments, editable implementation patterns, and generated source previews designed to be copied into your own apps.
+					Create an account, buy a licence, and unlock the paid experiments, editable implementation patterns, and generated source previews designed to be copied into your own apps.
 				</p>
 				<div class="mt-8 flex flex-wrap items-center gap-3">
 					<DomButton :as="'a'" :href="checkoutHref" size="lg">Continue to checkout</DomButton>
@@ -45,10 +47,14 @@ const checkoutHref = computed(() => `/api/billing/checkout?from=${encodeURICompo
 				<div class="rounded-2xl border border-border bg-background p-5">
 					<div class="flex items-center justify-between gap-4 border-b border-border pb-4">
 						<div>
-							<p class="text-sm font-semibold text-foreground">Source tier</p>
+							<p class="text-sm font-semibold text-foreground">Individual licence</p>
 							<p class="mt-1 text-sm text-muted-foreground">Lifetime DOM Studio v1 access</p>
 						</div>
-						<p class="text-3xl font-bold tracking-tight text-foreground">£149</p>
+						<div class="text-right">
+							<p v-if="hasIndividualPromotion" class="text-sm font-semibold text-muted-foreground line-through">£{{ individual.originalPrice }}</p>
+							<p class="text-3xl font-bold tracking-tight text-foreground">£{{ individualPrice }}</p>
+							<p v-if="individual.offerLabel" class="mt-1 text-xs font-semibold uppercase tracking-wider text-success">{{ individual.offerLabel }}</p>
+						</div>
 					</div>
 					<ul class="mt-5 space-y-3 text-sm text-muted-foreground">
 						<li class="flex gap-2">

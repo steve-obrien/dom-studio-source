@@ -1,10 +1,12 @@
 import { setNowPayload } from '#now/runtime/payload.js';
 import { createDomStudioApp, updateDocumentHead } from './main.js';
 import { hydrateAuthState } from './composable/useAuth.js';
+import { hydrateBillingOffer } from './composable/useBillingOffer.js';
 
 const payload = window.__NOW__ || {};
 setNowPayload(payload);
 hydrateAuthState(payload.auth);
+hydrateBillingOffer(payload.billingOffer);
 
 const { app, router, pinia } = createDomStudioApp();
 

@@ -6,7 +6,7 @@ defineProps({
 </script>
 
 <template>
-	<div class="mx-auto w-full max-w-[22rem] sm:max-w-[25rem]">
+	<div class="mx-auto w-full md:max-w-[25rem]">
 		<div v-if="title" class="mb-3 flex items-center justify-between px-1">
 			<p class="text-sm font-semibold tracking-tight text-foreground">{{ title }}</p>
 			<p class="hidden text-xs text-muted-foreground sm:block">{{ device }}</p>

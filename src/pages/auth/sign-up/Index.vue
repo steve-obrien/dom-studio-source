@@ -23,8 +23,9 @@ const returnTo = computed(() => {
 	const value = Array.isArray(route.query.from) ? route.query.from[0] : route.query.from;
 	return value && value.startsWith('/') ? value : '/paywall';
 });
+const licence = computed(() => route.query.licence === 'team' ? 'team' : 'individual');
 const shouldCheckout = computed(() => route.query.checkout === '1');
-const checkoutUrl = computed(() => `/api/billing/checkout?from=${encodeURIComponent(returnTo.value)}`);
+const checkoutUrl = computed(() => `/api/billing/checkout?licence=${licence.value}&from=${encodeURIComponent(returnTo.value)}`);
 const continueTo = computed(() => {
 	if (hasSourceAccess.value && returnTo.value === '/paywall') return '/';
 	return returnTo.value;
@@ -151,7 +152,7 @@ async function submit() {
 
 						<p class="mt-6 text-center text-sm text-muted-foreground">
 							Already have an account?
-							<RouterLink class="font-medium text-foreground hover:underline" :to="{ path: '/auth/sign-in', query: { from: returnTo } }">Sign in</RouterLink>
+							<RouterLink class="font-medium text-foreground hover:underline" :to="{ path: '/auth/sign-in', query: { from: returnTo, licence } }">Sign in</RouterLink>
 						</p>
 					</div>
 				</form>

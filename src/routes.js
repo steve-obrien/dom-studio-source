@@ -1,6 +1,7 @@
 import NotFoundPage from './NotFoundPage.vue';
 import SignInPage from './pages/auth/sign-in/Index.vue';
 import SignUpPage from './pages/auth/sign-up/Index.vue';
+import BlogArticlePage from './pages/blog/Article.vue';
 import DomStudioHome from './pages/docs/Index.vue';
 import FloatingHeadlessPage from './pages/docs/headless/floating/Index.vue';
 import PaywallPage from './pages/paywall/Index.vue';
@@ -10,6 +11,7 @@ const pageRouteModules = import.meta.glob([
 	'./pages/**/Index.vue',
 	'!./pages/auth/sign-in/Index.vue',
 	'!./pages/auth/sign-up/Index.vue',
+	'!./pages/blog/Article.vue',
 	'!./pages/docs/Index.vue',
 	'!./pages/docs/headless/floating/Index.vue',
 	'!./pages/paywall/Index.vue',
@@ -77,6 +79,11 @@ const manualRoutes = [
 		path: '/paywall',
 		component: PaywallPage,
 		meta: { title: 'Source access', description: 'Unlock DOM Studio source access.' },
+	},
+	{
+		path: '/blog/:slug',
+		component: BlogArticlePage,
+		meta: { title: 'Blog article' },
 	},
 ];
 

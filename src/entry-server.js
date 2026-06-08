@@ -1,14 +1,22 @@
 import { renderToString } from 'vue/server-renderer';
 import { createDomStudioApp, getRouteHead } from './main.js';
 import { hydrateAuthState } from './composable/useAuth.js';
+import { hydrateBillingOffer } from './composable/useBillingOffer.js';
 import { getAuthSession, hasEntitlement } from '../server/lib/auth.js';
+import { getBillingOffer } from '../server/lib/billingOffer.js';
 
 export async function render(url, ssrContext, serverContext = {}) {
+	ssrContext.req = serverContext.req || { headers: {} };
+	ssrContext.res = serverContext.res || {};
+
 	const { app, router, pinia } = createDomStudioApp();
-	const auth = await getAuthSession(serverContext.req || { headers: {} });
+	const auth = await getAuthSession(ssrContext.req);
+	const billingOffer = getBillingOffer();
 
 	ssrContext.payload.auth = auth;
+	ssrContext.payload.billingOffer = billingOffer;
 	hydrateAuthState(auth);
+	hydrateBillingOffer(billingOffer);
 
 	await router.push(url);
 	await router.isReady();

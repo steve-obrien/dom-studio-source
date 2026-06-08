@@ -31,6 +31,7 @@ const topLinks = [
 	{ to: '/docs/visual/card', label: 'Visual', match: '/docs/visual' },
 	{ to: '/docs/blocks/dashboard', label: 'Blocks', match: '/docs/blocks' },
 	{ to: '/docs/pricing', label: 'Pricing' },
+	{ to: '/blog', label: 'Blog' },
 ];
 
 const mobileMenuOpen = ref(false);

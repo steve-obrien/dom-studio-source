@@ -4,9 +4,10 @@ import { getNowPayload } from './payload.js'
 export function useAsyncData(key, loader, options = {}) {
 	const ssrContext = import.meta.env.SSR ? useSSRContext() : null
 	const payload = getClientPayload()
-	const initial = payload?.asyncData?.[key] ?? options.default ?? null
+	const hasInitial = Boolean(payload?.asyncData && Object.hasOwn(payload.asyncData, key))
+	const initial = hasInitial ? payload.asyncData[key] : options.default ?? null
 	const data = ref(initial)
-	const pending = ref(initial === null)
+	const pending = ref(!hasInitial)
 	const error = ref(null)
 
 	const execute = async () => {
@@ -27,7 +28,7 @@ export function useAsyncData(key, loader, options = {}) {
 
 	if (import.meta.env.SSR) {
 		onServerPrefetch(execute)
-	} else if (initial === null && options.immediate !== false) {
+	} else if (!hasInitial && options.immediate !== false) {
 		execute()
 	}
 

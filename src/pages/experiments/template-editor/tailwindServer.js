@@ -79,20 +79,7 @@ export default function templateEditorTailwindServer() {
 
 			server.middlewares.use(endpoint, async (request, response) => {
 				try {
-					const body = request.method === 'POST' ? await readRequestBody(request) : '';
-					const payload = body ? JSON.parse(body) : {};
-					const content = String(payload.content || '');
-					const candidates = extractTailwindCandidates(content);
-					const cacheKey = candidates.join(' ');
-
-					if (!cssCache.has(cacheKey)) {
-						const compiler = await getTailwindCompiler();
-						cssCache.set(cacheKey, compiler.build(candidates));
-					}
-
-					response.statusCode = 200;
-					response.setHeader('content-type', 'text/css; charset=utf-8');
-					response.end(cssCache.get(cacheKey));
+					await handleTemplateEditorTailwindRequest(request, response);
 				} catch (error) {
 					response.statusCode = 500;
 					response.setHeader('content-type', 'text/plain; charset=utf-8');
@@ -101,6 +88,30 @@ export default function templateEditorTailwindServer() {
 			});
 		},
 	};
+}
+
+export async function handleTemplateEditorTailwindRequest(request, response) {
+	if (request.method !== 'POST') {
+		response.statusCode = 405;
+		response.setHeader('allow', 'POST');
+		response.end('Method not allowed');
+		return;
+	}
+
+	const body = await readRequestPayload(request);
+	const payload = body ? JSON.parse(body) : {};
+	const content = String(payload.content || '');
+	const candidates = extractTailwindCandidates(content);
+	const cacheKey = candidates.join(' ');
+
+	if (!cssCache.has(cacheKey)) {
+		const compiler = await getTailwindCompiler();
+		cssCache.set(cacheKey, compiler.build(candidates));
+	}
+
+	response.statusCode = 200;
+	response.setHeader('content-type', 'text/css; charset=utf-8');
+	response.end(cssCache.get(cacheKey));
 }
 
 async function readSavedComponents() {
@@ -355,4 +366,11 @@ function readRequestBody(request) {
 		request.on('end', () => resolve(body));
 		request.on('error', reject);
 	});
+}
+
+function readRequestPayload(request) {
+	if (typeof request.body === 'string') return request.body;
+	if (Buffer.isBuffer(request.body)) return request.body.toString('utf8');
+	if (request.body && typeof request.body === 'object') return JSON.stringify(request.body);
+	return readRequestBody(request);
 }

@@ -6,6 +6,7 @@ export async function up(knex) {
 		table.text('password_hash');
 		table.timestamp('email_verified_at').nullable();
 		table.timestamp('paid_at').nullable();
+		table.string('licence_type', 32);
 		table.integer('failed_login_attempts').notNullable().defaultTo(0);
 		table.timestamp('last_failed_login_at').nullable();
 		table.timestamp('suspended_at').nullable();
@@ -41,6 +42,7 @@ export async function up(knex) {
 		table.string('stripe_session_id', 191).notNullable().unique();
 		table.string('stripe_customer_id', 191);
 		table.string('client_reference_id', 191);
+		table.string('licence_type', 32);
 		table.string('payment_status', 64);
 		table.string('mode', 64);
 		table.integer('amount_total');

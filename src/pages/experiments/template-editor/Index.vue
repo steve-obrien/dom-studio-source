@@ -690,11 +690,7 @@ async function refreshExperimentTailwind() {
 			statePreviewClassContentForText(sourceContent),
 			...flatNodes.value.map(({ node }) => statePreviewClassForNode(node)),
 		].join('\n');
-		const response = await fetch('/experiments/template-editor/tailwind.css', {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ content }),
-		});
+		const response = await fetchTemplateEditorTailwindCss(content);
 		if (!response.ok) return;
 		const css = await response.text();
 		let style = document.getElementById('template-editor-tailwind-runtime');
@@ -707,6 +703,17 @@ async function refreshExperimentTailwind() {
 	} catch {
 		// The endpoint only exists in the local experiment dev server.
 	}
+}
+
+async function fetchTemplateEditorTailwindCss(content) {
+	const request = {
+		method: 'POST',
+		headers: { 'content-type': 'application/json' },
+		body: JSON.stringify({ content }),
+	};
+	const response = await fetch('/api/experiments/template-editor/tailwind.css', request);
+	if (response.ok || response.status !== 404) return response;
+	return fetch('/experiments/template-editor/tailwind.css', request);
 }
 
 /**

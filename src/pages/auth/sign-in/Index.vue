@@ -23,7 +23,8 @@ const returnTo = computed(() => {
 	const value = Array.isArray(route.query.from) ? route.query.from[0] : route.query.from;
 	return value && value.startsWith('/') ? value : '/docs';
 });
-const checkoutUrl = computed(() => `/api/billing/checkout?from=${encodeURIComponent(returnTo.value)}`);
+const licence = computed(() => route.query.licence === 'team' ? 'team' : 'individual');
+const checkoutUrl = computed(() => `/api/billing/checkout?licence=${licence.value}&from=${encodeURIComponent(returnTo.value)}`);
 const continueTo = computed(() => {
 	if (hasSourceAccess.value && returnTo.value === '/paywall') return '/';
 	return returnTo.value;
@@ -143,7 +144,7 @@ async function signOut() {
 
 						<p class="mt-6 text-center text-sm text-muted-foreground">
 							Need an account?
-							<RouterLink class="font-medium text-foreground hover:underline" :to="{ path: '/auth/sign-up', query: { from: returnTo } }">Create one</RouterLink>
+							<RouterLink class="font-medium text-foreground hover:underline" :to="{ path: '/auth/sign-up', query: { from: returnTo, licence } }">Create one</RouterLink>
 						</p>
 					</div>
 				</form>

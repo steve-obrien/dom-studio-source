@@ -134,11 +134,11 @@ const components = [
 
 		<section class="border-t border-border py-20 text-center">
 			<h2 class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">Ready to ship interfaces that feel right?</h2>
-			<p class="mx-auto mt-3 max-w-xl text-muted-foreground">Pro adds blueprints, real app templates, and the components teams reach for first.</p>
+			<p class="mx-auto mt-3 max-w-xl text-muted-foreground">DOM Studio access includes blueprints, real app templates, and the components teams reach for first.</p>
 			<div class="mt-6 flex items-center justify-center gap-3">
 				<DomButton :as="'router-link'" :to="'/docs/pricing'" size="lg">Get access</DomButton>
-				<DomTooltip text="Open-source primitives included" placement="bottom">
-					<DomButton :as="'router-link'" :to="'/docs/components/button'" variant="ghost" size="lg">Try the free tier</DomButton>
+				<DomTooltip text="Preview the component docs" placement="bottom">
+					<DomButton :as="'router-link'" :to="'/docs/components/button'" variant="ghost" size="lg">Browse components</DomButton>
 				</DomTooltip>
 			</div>
 		</section>

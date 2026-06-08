@@ -139,12 +139,13 @@ export async function grantEntitlement(userId, key, provider = 'manual') {
 		});
 }
 
-export async function markUserPaid(userId) {
+export async function markUserPaid(userId, licenceType = 'individual') {
 	if (!userId) return;
 	await getDb()('users')
 		.where({ id: userId })
 		.update({
 			paid_at: getDb().fn.now(),
+			licence_type: normalizeLicenceType(licenceType),
 			updated_at: getDb().fn.now(),
 		});
 	await grantEntitlement(userId, 'source', 'stripe');
@@ -164,6 +165,7 @@ export async function serializeUserSession(user) {
 			id: user.id,
 			email: user.email,
 			name: user.name || '',
+			licenceType: user.licence_type || '',
 		},
 		entitlements: await getUserEntitlements(user.id),
 		isAuthenticated: true,
@@ -174,4 +176,8 @@ export function normalizeEmail(email) {
 	const value = String(email || '').trim().toLowerCase();
 	if (!value || !value.includes('@')) return '';
 	return value;
+}
+
+export function normalizeLicenceType(value) {
+	return value === 'team' ? 'team' : 'individual';
 }

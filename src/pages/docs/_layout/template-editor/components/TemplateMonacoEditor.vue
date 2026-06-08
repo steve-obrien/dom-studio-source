@@ -46,7 +46,6 @@ const dropActive = ref(false);
 const dropAllowed = ref(false);
 
 let monacoApi = null;
-let foldingControllerApi = null;
 let editor = null;
 let model = null;
 let selectedDecorations = [];
@@ -66,10 +65,8 @@ async function loadMonaco() {
 	cachedMonacoPromise = Promise.all([
 		import('monaco-editor/min/vs/editor/editor.main.css'),
 		import('monaco-editor/esm/vs/editor/editor.api'),
-		import('monaco-editor/esm/vs/editor/contrib/folding/browser/folding'),
 		import('monaco-editor/esm/vs/editor/editor.worker?worker'),
-	]).then(([, monaco, foldingModule, editorWorker]) => {
-		foldingControllerApi = foldingModule.FoldingController;
+	]).then(([, monaco, editorWorker]) => {
 		configureMonacoWorkers({
 			editorWorker: editorWorker.default,
 		});
@@ -167,63 +164,63 @@ function registerTemplateVueLanguage(monaco) {
 			aliases: ['Vue template', 'vue'],
 			extensions: ['.vue'],
 		});
-		monaco.languages.setLanguageConfiguration(languageId, {
-			comments: {
-				blockComment: ['<!--', '-->'],
-			},
-			brackets: [
-				['<', '>'],
-				['{', '}'],
-				['[', ']'],
-				['(', ')'],
-			],
-			autoClosingPairs: [
-				{ open: '<', close: '>' },
-				{ open: '"', close: '"' },
-				{ open: "'", close: "'" },
-				{ open: '{', close: '}' },
-				{ open: '[', close: ']' },
-				{ open: '(', close: ')' },
-			],
-		});
-		monaco.languages.setMonarchTokensProvider(languageId, {
-			defaultToken: '',
-			tokenizer: {
-				root: [
-					[/<!--/, 'comment', '@comment'],
-					[/<\/?[\w:-]+/, 'tag', '@tag'],
-					[/{{/, 'delimiter.bracket', '@mustache'],
-					[/\b(const|let|var|import|from|defineProps|return|if|else|for|in|of|true|false|null|undefined)\b/, 'keyword'],
-					[/"[^"]*"/, 'string'],
-					[/'[^']*'/, 'string'],
-					[/\b\d+(?:\.\d+)?\b/, 'number'],
-				],
-				tag: [
-					[/\s+/, ''],
-					[/\/?>/, 'delimiter.html', '@pop'],
-					[/[\w:@.#-]+(?=\=)/, 'attribute.name'],
-					[/[\w:@.#-]+/, 'attribute.name'],
-					[/=/, 'delimiter'],
-					[/"[^"]*"/, 'attribute.value'],
-					[/'[^']*'/, 'attribute.value'],
-					[/{{/, 'delimiter.bracket', '@mustache'],
-				],
-				mustache: [
-					[/}}/, 'delimiter.bracket', '@pop'],
-					[/\b(const|let|var|return|if|else|for|in|of|true|false|null|undefined)\b/, 'keyword'],
-					[/[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*/, 'variable'],
-					[/"[^"]*"/, 'string'],
-					[/'[^']*'/, 'string'],
-					[/\b\d+(?:\.\d+)?\b/, 'number'],
-				],
-				comment: [
-					[/-->/, 'comment', '@pop'],
-					[/[^-]+/, 'comment'],
-					[/./, 'comment'],
-				],
-			},
-		});
 	}
+	monaco.languages.setLanguageConfiguration(languageId, {
+		comments: {
+			blockComment: ['<!--', '-->'],
+		},
+		brackets: [
+			['<', '>'],
+			['{', '}'],
+			['[', ']'],
+			['(', ')'],
+		],
+		autoClosingPairs: [
+			{ open: '<', close: '>' },
+			{ open: '"', close: '"' },
+			{ open: "'", close: "'" },
+			{ open: '{', close: '}' },
+			{ open: '[', close: ']' },
+			{ open: '(', close: ')' },
+		],
+	});
+	monaco.languages.setMonarchTokensProvider(languageId, {
+		defaultToken: '',
+		tokenizer: {
+			root: [
+				[/<!--/, 'comment', '@comment'],
+				[/<\/?[\w:-]+/, 'tag', '@tag'],
+				[/{{/, 'delimiter.bracket', '@mustache'],
+				[/\b(const|let|var|import|from|defineProps|return|if|else|for|in|of|true|false|null|undefined)\b/, 'keyword'],
+				[/"[^"]*"/, 'string'],
+				[/'[^']*'/, 'string'],
+				[/\b\d+(?:\.\d+)?\b/, 'number'],
+			],
+			tag: [
+				[/\s+/, ''],
+				[/\/?>/, 'delimiter.html', '@pop'],
+				[/[\w:@.#-]+(?=\=)/, 'attribute.name'],
+				[/[\w:@.#-]+/, 'attribute.name'],
+				[/=/, 'delimiter'],
+				[/"[^"]*"/, 'attribute.value'],
+				[/'[^']*'/, 'attribute.value'],
+				[/{{/, 'delimiter.bracket', '@mustache'],
+			],
+			mustache: [
+				[/}}/, 'delimiter.bracket', '@pop'],
+				[/\b(const|let|var|return|if|else|for|in|of|true|false|null|undefined)\b/, 'keyword'],
+				[/[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*/, 'variable'],
+				[/"[^"]*"/, 'string'],
+				[/'[^']*'/, 'string'],
+				[/\b\d+(?:\.\d+)?\b/, 'number'],
+			],
+			comment: [
+				[/-->/, 'comment', '@pop'],
+				[/[^-]+/, 'comment'],
+				[/./, 'comment'],
+			],
+		},
+	});
 	registerTemplateVueFolding(monaco, languageId);
 }
 
@@ -271,6 +268,8 @@ async function mountEditor() {
 			theme: themeName(),
 			wordWrap: 'on',
 		});
+		monacoApi.editor.setModelLanguage(model, languageFor(props.lang));
+		monacoApi.editor.setTheme(themeName());
 
 		editor.onDidChangeModelContent(() => {
 			if (!model || applyingExternalValue) return;
@@ -748,7 +747,7 @@ async function watchFoldingState() {
 }
 
 async function currentFoldingModel() {
-	const controller = foldingControllerApi?.get?.(editor);
+	const controller = editor?.getContribution?.('editor.contrib.folding');
 	return controller?.getFoldingModel?.() || null;
 }
 
@@ -869,20 +868,20 @@ defineExpose({
 }
 
 .template-monaco-editor :deep(.template-monaco-hovered-line) {
-	background: color-mix(in oklch, var(--accent) 60%, transparent);
+	background: color-mix(in oklch, var(--accent) 60%, transparent) !important;
 }
 
 .template-monaco-editor :deep(.template-monaco-hovered-gutter) {
-	background: color-mix(in oklch, var(--accent) 75%, transparent);
+	background: color-mix(in oklch, var(--accent) 75%, transparent) !important;
 }
 
 .template-monaco-editor :deep(.template-monaco-selected-line) {
-	background: color-mix(in oklch, var(--ring) 22%, transparent);
+	background: color-mix(in oklch, var(--ring) 22%, transparent) !important;
 	box-shadow: inset 3px 0 0 var(--ring);
 }
 
 .template-monaco-editor :deep(.template-monaco-selected-gutter) {
-	background: color-mix(in oklch, var(--ring) 30%, transparent);
+	background: color-mix(in oklch, var(--ring) 30%, transparent) !important;
 }
 
 .template-monaco-editor[data-code-drop-state="allowed"] {

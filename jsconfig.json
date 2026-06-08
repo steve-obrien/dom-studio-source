@@ -1,7 +1,10 @@
 {
 	"compilerOptions": {
 		"baseUrl": ".",
+		"ignoreDeprecations": "6.0",
 		"paths": {
+			"#now": ["./packages/now/src/framework"],
+			"#now/*": ["./packages/now/src/framework/*"],
 			"@getdom/studio/vue": ["./src/pages/docs/lib/vue"],
 			"@getdom/studio/vue/*": ["./src/pages/docs/lib/vue/*"],
 			"@getdom/studio/headless": ["./src/pages/docs/lib/headless"],

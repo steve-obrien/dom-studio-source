@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { getDb } from '../../lib/db.js';
-import { markUserPaid } from '../../lib/users.js';
+import { markUserPaid, normalizeLicenceType } from '../../lib/users.js';
 
 export const config = {
 	body: 'raw',
@@ -37,7 +37,8 @@ export async function post(req, res) {
 }
 
 async function fulfillCheckoutSession(session, eventId) {
-	const userId = session.client_reference_id || '';
+	const reference = parseClientReference(session.client_reference_id);
+	const userId = reference.userId;
 	if (!userId) return;
 
 	await getDb()('stripe_checkout_sessions')
@@ -45,7 +46,8 @@ async function fulfillCheckoutSession(session, eventId) {
 			user_id: userId,
 			stripe_session_id: session.id,
 			stripe_customer_id: stringifyStripeId(session.customer),
-			client_reference_id: userId,
+			client_reference_id: session.client_reference_id || userId,
+			licence_type: reference.licenceType,
 			payment_status: session.payment_status || '',
 			mode: session.mode || '',
 			amount_total: session.amount_total || null,
@@ -57,15 +59,25 @@ async function fulfillCheckoutSession(session, eventId) {
 		.merge({
 			user_id: userId,
 			stripe_customer_id: stringifyStripeId(session.customer),
+			licence_type: reference.licenceType,
 			payment_status: session.payment_status || '',
 			raw_event_id: eventId,
 			completed_at: getDb().fn.now(),
 			updated_at: getDb().fn.now(),
-		});
+	});
 
 	if (session.payment_status === 'paid') {
-		await markUserPaid(userId);
+		await markUserPaid(userId, reference.licenceType);
 	}
+}
+
+function parseClientReference(value) {
+	const [userId = '', licenceType = 'individual'] = String(value || '').split(':');
+
+	return {
+		userId,
+		licenceType: normalizeLicenceType(licenceType),
+	};
 }
 
 function stringifyStripeId(value) {
