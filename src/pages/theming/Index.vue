@@ -350,7 +350,7 @@ const aiThemeStatus = ref('');
 const isGeneratingTheme = ref(false);
 let originalTheme = 'light';
 let themeObserver = null;
-const themeAiEndpoint = import.meta.env.VITE_THEME_AI_ENDPOINT || (import.meta.env.DEV ? '/api/theme-tokens' : '');
+const themeAiEndpoint = import.meta.env.VITE_THEME_AI_ENDPOINT || '/api/ai/theme';
 const themeAiPublicToken = import.meta.env.VITE_THEME_AI_PUBLIC_TOKEN || '';
 
 const activeToken = computed(() => editableColorTokens.find((token) => token.name === activeTokenName.value) || editableColorTokens[0]);
@@ -575,7 +575,7 @@ function themeSnapshot() {
 
 async function generateThemeWithAi() {
 	if (!themeAiEndpoint) {
-		aiThemeStatus.value = 'GitHub Pages needs a secure API endpoint before AI requests can run. Use the randomizer here, or point VITE_THEME_AI_ENDPOINT at a serverless proxy.';
+		aiThemeStatus.value = 'AI theme generation needs a secure API endpoint. Use the randomizer here, or point VITE_THEME_AI_ENDPOINT at a serverless proxy.';
 		return;
 	}
 

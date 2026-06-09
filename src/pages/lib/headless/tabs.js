@@ -76,6 +76,7 @@ export class DomTabsElement extends DomElementBase {
 		// tab click. Only the change event is gated on an actual change.
 		const prev = this.getAttribute('value');
 		if (prev !== next) this.setAttribute('value', next);
+		if (!this._tabs || !this._panels) return;
 		this._tabs.forEach((tab) => {
 			const active = tab.dataset.tab === next;
 			tab.setAttribute('aria-selected', String(active));
