@@ -19,7 +19,7 @@ const article = ref({
 		/>
 		<div class="flex items-center gap-2">
 			<DomButton type="submit">Save article</DomButton>
-			<code class="text-xs text-muted-foreground">{{ article.slug }}</code>
+			<code class="text-xs text-muted-fg">{{ article.slug }}</code>
 		</div>
 	</DomForm>
 </template>

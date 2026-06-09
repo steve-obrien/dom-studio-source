@@ -52,7 +52,7 @@ function onInvalid({ errors }) {
 
 			<div class="flex items-center justify-between gap-3">
 				<DomButton type="submit">Create account</DomButton>
-				<p class="text-xs text-muted-foreground">
+				<p class="text-xs text-muted-fg">
 					{{ state.valid ? 'Valid' : `${state.errorCount} error${state.errorCount === 1 ? '' : 's'}` }}
 				</p>
 			</div>
@@ -67,7 +67,7 @@ function onInvalid({ errors }) {
 				{{ lastSubmit.message }}
 			</p>
 
-			<div class="grid gap-3 rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground sm:grid-cols-2">
+			<div class="grid gap-3 rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg sm:grid-cols-2">
 				<pre class="overflow-auto font-mono">{{ values }}</pre>
 				<pre class="overflow-auto font-mono">{{ errors }}</pre>
 			</div>

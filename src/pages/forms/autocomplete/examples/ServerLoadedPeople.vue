@@ -43,12 +43,12 @@ async function queryPeople(query) {
 			<template #item="{ item }">
 				<span class="block min-w-0">
 					<span class="block truncate font-medium">{{ item.label }}</span>
-					<span class="block truncate text-xs text-muted-foreground">{{ item.description }}</span>
+					<span class="block truncate text-xs text-muted-fg">{{ item.description }}</span>
 				</span>
 			</template>
 		</DomAutocomplete>
-		<p class="rounded-2xl border border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
-			Text value: <code class="font-mono text-foreground">{{ value || 'Empty' }}</code>
+		<p class="rounded-2xl border border-border bg-secondary/40 p-3 text-xs text-muted-fg">
+			Text value: <code class="font-mono text-fg">{{ value || 'Empty' }}</code>
 		</p>
 	</div>
 </template>

@@ -3,7 +3,6 @@ import { RouterLink, useRoute } from 'vue-router';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useTheme } from '../../composable/useTheme';
 import ThemeToggle from './ThemeToggle.vue';
-import { DomDrawer, DomButton } from '@getdom/studio/vue';
 import BrandLockup from './BrandLockup.vue';
 import SideNav from './SideNav.vue';
 import DomStudioFooter from './DomStudioFooter.vue';
@@ -44,8 +43,6 @@ const topLinks = [
 	{ to: '/blog', label: 'Blog' },
 ];
 
-const mobileMenuOpen = ref(false);
-const isMounted = ref(false);
 const detailsPanel = ref(null);
 
 function scrollDetailsToTop() {
@@ -58,45 +55,20 @@ watch(() => route.fullPath, async () => {
 });
 
 onMounted(() => {
-	isMounted.value = true;
 	initTheme();
 });
 </script>
 
 <template>
 	<div
-		class="min-h-screen bg-background text-foreground"
+		class="min-h-screen bg-background text-fg"
 		:class="showSidebar && 'md:fixed md:inset-0 md:overflow-hidden'"
 	>
 		<header class="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
 			<div class="mx-auto flex h-16 w-full min-w-0 items-center justify-between gap-3 px-4 sm:px-6">
-				<RouterLink to="/" class="flex min-w-0 items-center gap-2 text-foreground">
+				<RouterLink to="/" class="flex min-w-0 items-center gap-2 text-fg">
 					<BrandLockup show-badge />
 				</RouterLink>
-				<!-- Mobile menu-->
-				<DomButton class="shrink-0 md:hidden" variant="secondary" @click="mobileMenuOpen = true">Menu</DomButton>
-				<Teleport v-if="isMounted" to="body">
-					<DomDrawer v-model="mobileMenuOpen" side="left" title="Menu" width="min(88vw, var(--container-xs))">
-						<div class="space-y-6 p-4 text-sm text-muted-foreground">
-							<nav class="grid gap-1">
-								<RouterLink
-									v-for="l in topLinks"
-									:key="l.to"
-									:to="l.to"
-									class="rounded-lg px-3 py-2 font-medium transition"
-									:class="(l.exact ? route.path === l.to : route.path.startsWith(l.match || l.to))
-										? 'bg-primary text-primary-foreground'
-										: 'text-muted-foreground hover:bg-secondary hover:text-foreground'"
-									@click="mobileMenuOpen = false"
-								>{{ l.label }}</RouterLink>
-							</nav>
-							<div class="border-t border-border pt-4">
-								<AccountMenu />
-							</div>
-							<SideNav v-if="showSidebar" class="block w-full shrink-0" />
-						</div>
-					</DomDrawer>
-				</Teleport>
 				<nav class="hidden min-w-0 items-center gap-1 text-sm md:flex">
 					<RouterLink
 						v-for="l in topLinks"
@@ -104,8 +76,8 @@ onMounted(() => {
 						:to="l.to"
 						class="rounded-full px-3 py-1.5 font-medium transition"
 						:class="(l.exact ? route.path === l.to : route.path.startsWith(l.match || l.to))
-							? 'bg-primary text-primary-foreground'
-							: 'text-muted-foreground hover:text-foreground'"
+							? 'bg-primary text-primary-fg'
+							: 'text-muted-fg hover:text-fg'"
 					>{{ l.label }}</RouterLink>
 					<div class="ml-2">
 						<ThemeToggle />

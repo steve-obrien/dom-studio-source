@@ -44,8 +44,8 @@ defineProps({
 
 <template>
 	<header
-		class="bg-card/95 px-4 backdrop-blur-xl"
-		:class="[border && 'border-b border-border', large ? 'py-4' : 'py-3']"
+		class="skin-raised px-4"
+		:class="[!border && 'border-0', large ? 'py-4' : 'py-3']"
 	>
 		<div class="flex min-h-11 items-center gap-3">
 			<div v-if="$slots.leading" class="flex shrink-0 items-center">
@@ -54,10 +54,10 @@ defineProps({
 			<div class="min-w-0 flex-1">
 				<h1
 					v-if="title"
-					class="truncate font-semibold tracking-tight text-foreground"
+					class="truncate font-semibold tracking-tight text-fg"
 					:class="large ? 'text-2xl' : 'text-base'"
 				>{{ title }}</h1>
-				<p v-if="subtitle" class="truncate text-xs text-muted-foreground">{{ subtitle }}</p>
+				<p v-if="subtitle" class="truncate text-xs text-muted-fg">{{ subtitle }}</p>
 			</div>
 			<div v-if="$slots.trailing" class="flex shrink-0 items-center gap-1">
 				<slot name="trailing" />

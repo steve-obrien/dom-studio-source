@@ -15,11 +15,11 @@ const items = [
 <template>
 	<div class="w-full max-w-md space-y-3">
 		<DomContextMenu :items="items" @select="selected = $event.value">
-			<div class="rounded-2xl border border-dashed border-border bg-secondary/30 p-6 text-center text-sm text-muted-foreground">
+			<div class="rounded-2xl border border-dashed border-border bg-secondary/30 p-6 text-center text-sm text-muted-fg">
 				Right click this panel to open the context menu.
 			</div>
 		</DomContextMenu>
 
-		<p class="text-xs text-muted-foreground">Selected: <code class="text-foreground">{{ selected }}</code></p>
+		<p class="text-xs text-muted-fg">Selected: <code class="text-fg">{{ selected }}</code></p>
 	</div>
 </template>

@@ -818,10 +818,9 @@ onBeforeUnmount(cancelDragExpand);
 	<div
 		role="tree"
 		:id="treeId"
-		class="w-full text-sm text-foreground"
+		class="w-full text-sm text-fg"
 		:class="[
-			chrome ? 'rounded-2xl border border-border p-1 shadow-sm' : '',
-		//	variant === 'finder' ? 'bg-secondary/50 backdrop-blur' : 'bg-background',
+			chrome ? 'skin-raised rounded-2xl p-1' : '',
 		]"
 		:aria-label="label"
 		:aria-describedby="draggable ? `${treeId}-instructions` : undefined"
@@ -847,14 +846,14 @@ onBeforeUnmount(cancelDragExpand);
 				:tabindex="String(activeValue) === String(node.value) || (!activeValue && visibleNodes[0]?.value === node.value) ? 0 : -1"
 				:aria-keyshortcuts="draggable ? 'Alt+ArrowUp Alt+ArrowDown' : null"
 				:draggable="dragAllowed(node)"
-				class="group relative flex min-w-0 cursor-pointer items-center rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50 aria-selected:bg-primary aria-selected:text-primary-foreground"
+				class="group relative flex min-w-0 cursor-pointer items-center rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50 aria-selected:bg-primary aria-selected:text-primary-fg"
 				:class="[
 					density === 'comfortable' ? 'min-h-4' : 'min-h-6',
-					variant === 'finder' ? 'hover:bg-foreground/80 hover:text-background aria-selected:bg-accent aria-selected:text-accent-foreground' : 'hover:bg-secondary',
+					variant === 'finder' ? 'hover:bg-fg/80 hover:text-background aria-selected:bg-accent aria-selected:text-accent-fg' : 'hover:bg-secondary',
 					dropClass(node, 'inside'),
 					isDropPosition(node, 'before') ? 'before:opacity-100' : '',
 					isDropPosition(node, 'after') ? 'after:opacity-100' : '',
-					String(hoveredValue) === String(node.value) && String(selectedValue) !== String(node.value) ? 'bg-secondary text-foreground' : '',
+					String(hoveredValue) === String(node.value) && String(selectedValue) !== String(node.value) ? 'bg-secondary text-fg' : '',
 					'before:pointer-events-none before:absolute before:inset-x-2 before:top-0 before:h-0.5 before:rounded-full before:bg-ring before:opacity-0 after:pointer-events-none after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-ring after:opacity-0',
 				]"
 				:style="{ paddingLeft: `${(node.depth - 1) * 1.25}rem` }"
@@ -884,7 +883,7 @@ onBeforeUnmount(cancelDragExpand);
 					<button
 						v-if="node.expandable"
 						type="button"
-						class="grid size-7 shrink-0 cursor-pointer place-items-center rounded-lg transition  group-aria-selected:text-primary-foreground/80"
+						class="grid size-7 shrink-0 cursor-pointer place-items-center rounded-lg transition  group-aria-selected:text-primary-fg/80"
 						:tabindex="-1"
 						:aria-label="node.open ? 'Collapse item' : 'Expand item'"
 						@click.stop="toggleNode(node)"
@@ -898,7 +897,7 @@ onBeforeUnmount(cancelDragExpand);
 						</svg>
 					</button>
 					<span v-else class="size-7 shrink-0" aria-hidden="true"></span>
-					<span class="grid size-6 shrink-0 place-items-center group-aria-selected:text-primary-foreground/80">
+					<span class="grid size-6 shrink-0 place-items-center group-aria-selected:text-primary-fg/80">
 						<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
 							<path :d="iconPath(node.item)" />
 						</svg>
@@ -913,7 +912,7 @@ onBeforeUnmount(cancelDragExpand);
 							v-for="action in rowActions(node.item)"
 							:key="action.value || action.label"
 							type="button"
-							class="grid size-6 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-secondary hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 group-aria-selected:text-primary-foreground/80 group-aria-selected:hover:bg-primary-foreground/15"
+							class="grid size-6 cursor-pointer place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 group-aria-selected:text-primary-fg/80 group-aria-selected:hover:bg-primary-fg/15"
 							:aria-label="action.label || action.value || 'Tree item action'"
 							:title="action.label || action.value || 'Tree item action'"
 							:disabled="action.disabled || undefined"

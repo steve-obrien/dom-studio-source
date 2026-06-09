@@ -26,15 +26,15 @@ const pageTitle = computed(() => {
 </script>
 
 <template>
-	<div class="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+	<div class="flex h-dvh flex-col overflow-hidden bg-background text-fg">
 		<header class="z-30 shrink-0 border-b border-border/60 bg-background">
 			<div class="flex h-12 items-center justify-between gap-4 px-4">
 				<div class="flex min-w-0 items-center gap-4">
-					<RouterLink to="/" class="flex shrink-0 items-center gap-2 text-foreground">
+					<RouterLink to="/" class="flex shrink-0 items-center gap-2 text-fg">
 						<BrandLockup mark-class="size-6" />
 					</RouterLink>
 					<span class="hidden h-4 w-px bg-border sm:block" aria-hidden="true"></span>
-					<p class="truncate text-sm font-semibold tracking-tight text-foreground">{{ pageTitle }}</p>
+					<p class="truncate text-sm font-semibold tracking-tight text-fg">{{ pageTitle }}</p>
 				</div>
 				<nav class="flex shrink-0 items-center gap-1 text-sm">
 					<RouterLink
@@ -43,10 +43,10 @@ const pageTitle = computed(() => {
 					:to="l.to"
 					class="hidden rounded-full px-2.5 py-1 text-xs font-medium transition sm:inline"
 					:class="(l.exact ? route.path === l.to : route.path.startsWith(l.match || l.to))
-						? 'bg-primary text-primary-foreground'
-						: 'text-muted-foreground hover:text-foreground'">{{ l.label }}</RouterLink>
+						? 'bg-primary text-primary-fg'
+						: 'text-muted-fg hover:text-fg'">{{ l.label }}</RouterLink>
 					<ThemeToggle />
-					<AccountMenu compact class="hidden md:inline-block" />
+					<AccountMenu compact class="hidden md:inline-flex" />
 				</nav>
 			</div>
 		</header>

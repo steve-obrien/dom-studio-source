@@ -96,15 +96,15 @@ function isFamilyOpen(item) {
 <template>
 	<aside ref="root" @scroll.passive="saveScroll">
 		<div v-for="(group, gi) in sideNavLinks" :key="group.label" :class="gi > 0 && 'mt-5'">
-			<p class="px-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{{ group.label }}</p>
+			<p class="px-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">{{ group.label }}</p>
 			<nav class="mt-2 space-y-0.5">
 				<div v-for="c in group.items" :key="c.to">
 					<RouterLink
 						:to="c.to"
 						class="flex items-center justify-between rounded-lg px-3 py-1.5 text-sm font-medium transition"
 						:class="isItemActive(c)
-							? 'bg-secondary text-secondary-foreground'
-							: 'text-muted-foreground hover:bg-secondary hover:text-foreground'"
+							? 'bg-secondary text-secondary-fg'
+							: 'text-muted-fg hover:bg-secondary hover:text-fg'"
 						@mousedown.prevent="rememberScroll"
 						@click="rememberScroll"
 					>
@@ -123,8 +123,8 @@ function isFamilyOpen(item) {
 							:to="child.to"
 							class="flex items-center justify-between rounded-md px-2 py-1 text-sm font-medium transition"
 							:class="isChildActive(child)
-								? 'bg-secondary text-secondary-foreground'
-								: 'text-muted-foreground hover:bg-secondary hover:text-foreground'"
+								? 'bg-secondary text-secondary-fg'
+								: 'text-muted-fg hover:bg-secondary hover:text-fg'"
 							@mousedown.prevent="rememberScroll"
 							@click="rememberScroll"
 						>
@@ -136,9 +136,9 @@ function isFamilyOpen(item) {
 			</nav>
 		</div>
 		<div class="mt-8 rounded-2xl border border-border bg-gradient-to-br from-secondary to-transparent p-4">
-			<p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Pro</p>
-			<p class="mt-1 text-sm font-medium text-foreground">Get every blueprint, template &amp; pre-built app.</p>
-			<RouterLink to="/pricing" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-foreground hover:underline">
+			<p class="text-xs font-semibold uppercase tracking-wider text-muted-fg">Pro</p>
+			<p class="mt-1 text-sm font-medium text-fg">Get every blueprint, template &amp; pre-built app.</p>
+			<RouterLink to="/pricing" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-fg hover:underline">
 				View pricing →
 			</RouterLink>
 		</div>

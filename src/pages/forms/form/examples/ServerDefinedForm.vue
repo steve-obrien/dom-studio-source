@@ -63,7 +63,7 @@ async function validate() {
 				<DomButton type="button" @click="validate">Validate generated fields</DomButton>
 			</div>
 		</DomForm>
-		<p v-if="result" class="mt-4 text-sm text-muted-foreground">{{ result }}</p>
-		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">{{ user }}</pre>
+		<p v-if="result" class="mt-4 text-sm text-muted-fg">{{ result }}</p>
+		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ user }}</pre>
 	</div>
 </template>

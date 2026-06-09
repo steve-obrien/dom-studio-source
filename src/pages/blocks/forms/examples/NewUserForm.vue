@@ -27,9 +27,9 @@ const teams = [
 <template>
 	<DomCard padding="lg" class="w-full max-w-2xl">
 		<div class="border-b border-border pb-6">
-			<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Users</p>
+			<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Users</p>
 			<h3 class="mt-2 text-2xl font-semibold tracking-tight">Add a new user</h3>
-			<p class="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
+			<p class="mt-2 max-w-lg text-sm leading-6 text-muted-fg">
 				A team admin form for creating a user, assigning access, and choosing whether to send the invite immediately.
 			</p>
 		</div>
@@ -58,7 +58,7 @@ const teams = [
 			<div class="flex items-center justify-between gap-4 rounded-2xl border border-border bg-secondary/50 p-4">
 				<div>
 					<p class="text-sm font-medium">Send invitation email</p>
-					<p class="mt-1 text-sm text-muted-foreground">Email the user a secure setup link after creation.</p>
+					<p class="mt-1 text-sm text-muted-fg">Email the user a secure setup link after creation.</p>
 				</div>
 				<DomToggle name="sendInvite" label="Send invitation email" :chrome="false" />
 			</div>

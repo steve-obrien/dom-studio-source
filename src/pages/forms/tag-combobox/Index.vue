@@ -103,7 +103,7 @@ const keys = [
 				<ul class="space-y-2 rounded-2xl border border-border bg-secondary/40 p-5 text-sm">
 					<li v-for="event in events" :key="event.name" class="flex items-start gap-4">
 						<code class="rounded bg-background px-2 py-0.5 font-mono text-xs ring-1 ring-border">{{ event.name }}</code>
-						<span class="text-muted-foreground">{{ event.description }}</span>
+						<span class="text-muted-fg">{{ event.description }}</span>
 					</li>
 				</ul>
 			</DocSection>
@@ -112,7 +112,7 @@ const keys = [
 				<ul class="space-y-2 rounded-2xl border border-border bg-secondary/40 p-5 text-sm">
 					<li v-for="row in keys" :key="row.k" class="flex items-start gap-4">
 						<kbd class="rounded bg-background px-2 py-0.5 font-mono text-xs ring-1 ring-border">{{ row.k }}</kbd>
-						<span class="text-muted-foreground">{{ row.d }}</span>
+						<span class="text-muted-fg">{{ row.d }}</span>
 					</li>
 				</ul>
 			</DocSection>

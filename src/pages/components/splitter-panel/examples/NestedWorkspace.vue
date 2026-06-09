@@ -19,14 +19,14 @@ const preview = ref(250);
 			handle-class="transition hover:bg-border/70 focus-visible:bg-ring/35 data-[dragging=true]:bg-ring/30"
 		>
 			<template #start>
-				<aside class="flex h-full flex-col bg-card">
+				<aside class="flex h-full flex-col skin-raised">
 					<header class="border-b border-border px-4 py-3">
-						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Workspace</p>
+						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Workspace</p>
 					</header>
 					<nav class="space-y-1 p-3">
-						<button class="w-full rounded-md bg-secondary px-3 py-2 text-left font-medium text-secondary-foreground">Canvas.vue</button>
-						<button class="w-full rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-secondary">Inspector.vue</button>
-						<button class="w-full rounded-md px-3 py-2 text-left text-muted-foreground hover:bg-secondary">Timeline.vue</button>
+						<button class="w-full rounded-md bg-secondary px-3 py-2 text-left font-medium text-secondary-fg">Canvas.vue</button>
+						<button class="w-full rounded-md px-3 py-2 text-left text-muted-fg hover:bg-secondary">Inspector.vue</button>
+						<button class="w-full rounded-md px-3 py-2 text-left text-muted-fg hover:bg-secondary">Timeline.vue</button>
 					</nav>
 				</aside>
 			</template>
@@ -44,26 +44,26 @@ const preview = ref(250);
 					<main class="h-full min-w-0 overflow-auto p-5">
 						<div class="h-full rounded-lg border border-border bg-background p-5 shadow-sm">
 							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Preview</p>
-							<h3 class="mt-3 text-xl font-semibold text-foreground">Nested splitters</h3>
-							<p class="mt-2 max-w-md leading-6 text-muted-foreground">
+							<h3 class="mt-3 text-xl font-semibold text-fg">Nested splitters</h3>
+							<p class="mt-2 max-w-md leading-6 text-muted-fg">
 								The center workspace uses a vertical splitter while the surrounding shell keeps horizontal resize handles.
 							</p>
 							<div class="mt-5 grid grid-cols-2 gap-3">
-								<div class="rounded-md border border-border bg-card p-3">
-									<p class="text-xs text-muted-foreground">Viewport</p>
-									<strong class="mt-1 block text-foreground">Desktop</strong>
+								<div class="rounded-md border border-border skin-raised p-3">
+									<p class="text-xs text-muted-fg">Viewport</p>
+									<strong class="mt-1 block text-fg">Desktop</strong>
 								</div>
-								<div class="rounded-md border border-border bg-card p-3">
-									<p class="text-xs text-muted-foreground">State</p>
-									<strong class="mt-1 block text-foreground">Draft</strong>
+								<div class="rounded-md border border-border skin-raised p-3">
+									<p class="text-xs text-muted-fg">State</p>
+									<strong class="mt-1 block text-fg">Draft</strong>
 								</div>
 							</div>
 						</div>
 					</main>
 				</template>
 
-				<section class="h-full overflow-auto border-t border-border bg-background p-4 font-mono text-xs leading-6 text-muted-foreground">
-					<p class="text-foreground">build: preview updated</p>
+				<section class="h-full overflow-auto border-t border-border bg-background p-4 font-mono text-xs leading-6 text-muted-fg">
+					<p class="text-fg">build: preview updated</p>
 					<p>layout: vertical splitter resized</p>
 					<p>sync: persisted panel sizes</p>
 					<p>status: ready</p>
@@ -71,15 +71,15 @@ const preview = ref(250);
 			</DomSplitterPanel>
 
 			<template #end>
-				<aside class="h-full overflow-auto bg-card p-4">
-					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Inspector</p>
+				<aside class="h-full overflow-auto skin-raised p-4">
+					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Inspector</p>
 					<div class="mt-4 space-y-3">
-						<label class="block text-xs font-medium text-muted-foreground">Width</label>
-						<div class="rounded-md border border-border bg-background px-3 py-2 text-foreground">fluid</div>
-						<label class="block text-xs font-medium text-muted-foreground">Height</label>
-						<div class="rounded-md border border-border bg-background px-3 py-2 text-foreground">split</div>
-						<label class="block text-xs font-medium text-muted-foreground">Handle</label>
-						<div class="rounded-md border border-border bg-background px-3 py-2 text-foreground">transparent</div>
+						<label class="block text-xs font-medium text-muted-fg">Width</label>
+						<div class="rounded-md border border-border bg-background px-3 py-2 text-fg">fluid</div>
+						<label class="block text-xs font-medium text-muted-fg">Height</label>
+						<div class="rounded-md border border-border bg-background px-3 py-2 text-fg">split</div>
+						<label class="block text-xs font-medium text-muted-fg">Handle</label>
+						<div class="rounded-md border border-border bg-background px-3 py-2 text-fg">transparent</div>
 					</div>
 				</aside>
 			</template>

@@ -28,7 +28,7 @@ const items = [
 
 <template>
 	<DomStudioLayout>
-		<DocPage name="Menu" tagline="A roving-focus action menu for command lists, settings panels, and menu surfaces." tag="<dom-menu>">
+		<DocPage name="Menu" tagline="A roving-focus action menu for command lists, settings panels, and skinned menus." tag="<dom-menu>">
 			<DocSection eyebrow="Playground" title="Try every prop live">
 				<Playground
 					:inspect="DomMenu"

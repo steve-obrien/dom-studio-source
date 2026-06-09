@@ -103,7 +103,7 @@ async function mountEditor() {
 		const theme = cm.EditorView.theme({
 			'&': {
 				backgroundColor: 'var(--background)',
-				color: 'var(--foreground)',
+				color: 'var(--fg)',
 				fontSize: '12.5px',
 				borderRadius: '0.75rem',
 				outline: 'none',
@@ -120,7 +120,7 @@ async function mountEditor() {
 			},
 			'.cm-gutters': {
 				backgroundColor: 'color-mix(in oklch, var(--secondary) 55%, transparent)',
-				color: 'var(--muted-foreground)',
+				color: 'var(--muted-fg)',
 				borderRight: '1px solid var(--border)',
 			},
 			'.cm-activeLineGutter, .cm-activeLine': {
@@ -177,7 +177,7 @@ onBeforeUnmount(() => {
 				v-if="label"
 				:id="labelId || undefined"
 				:for="enhanced ? undefined : htmlFor"
-				class="block cursor-pointer text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
+				class="block cursor-pointer text-[11px] font-medium uppercase tracking-wider text-muted-fg"
 				@click="enhanced ? focusControl() : undefined"
 			>
 				{{ label }}
@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
 				v-bind="field.inputAttrs.value"
 				:rows="rows"
 				spellcheck="false"
-				class="block min-h-40 w-full resize-y bg-background p-3 font-mono text-[12.5px] leading-relaxed text-foreground outline-none placeholder:text-muted-foreground disabled:opacity-50"
+				class="block min-h-40 w-full resize-y bg-background p-3 font-mono text-[12.5px] leading-relaxed text-fg outline-none placeholder:text-muted-fg disabled:opacity-50"
 				@input="update($event.target.value)"
 				@focus="field.onFocus"
 				@blur="field.onBlur"

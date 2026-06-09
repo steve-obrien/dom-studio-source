@@ -16,9 +16,9 @@ const date = ref('2026-11-24');
 			:calendar-props="{ locale: 'en-US', weekStartsOn: 0 }"
 		/>
 
-		<p class="rounded-xl border border-border bg-secondary px-3 py-2 text-sm text-muted-foreground">
+		<p class="rounded-xl border border-border bg-secondary px-3 py-2 text-sm text-muted-fg">
 			Stored value:
-			<code class="font-mono text-foreground">{{ date || 'empty' }}</code>
+			<code class="font-mono text-fg">{{ date || 'empty' }}</code>
 		</p>
 	</div>
 </template>

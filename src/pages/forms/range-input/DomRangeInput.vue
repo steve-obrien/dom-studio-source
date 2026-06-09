@@ -88,7 +88,7 @@ function toNumber(value) {
 				@focus="field.onFocus"
 				@blur="field.onBlur"
 			/>
-			<output v-if="showValue" class="min-w-10 text-right font-mono text-xs text-muted-foreground">
+			<output v-if="showValue" class="min-w-10 text-right font-mono text-xs text-muted-fg">
 				{{ displayValue }}{{ suffix }}
 			</output>
 		</div>

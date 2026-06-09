@@ -89,7 +89,7 @@ async function selectAccountAction(value) {
 </script>
 
 <template>
-	<template v-if="loaded">
+	<div v-show="loaded" class="inline-flex flex-wrap items-center gap-2">
 		<template v-if="!isLoggedIn">
 			<DomButton variant="secondary" :as="'router-link'" to="/auth/sign-in">
 				Sign In
@@ -117,7 +117,7 @@ async function selectAccountAction(value) {
 						item.disabled && 'pointer-events-none opacity-70',
 					]"
 				>
-					<span v-if="item.eyebrow" class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{{ item.eyebrow }}</span>
+					<span v-if="item.eyebrow" class="text-[10px] font-semibold uppercase tracking-wider text-muted-fg">{{ item.eyebrow }}</span>
 					<span class="truncate font-medium">{{ item.label }}</span>
 				</span>
 			</template>
@@ -125,5 +125,5 @@ async function selectAccountAction(value) {
 		<template v-if="needsPurchase">
 			<DomButton :as="'router-link'" to="/auth/sign-up">Get full access</DomButton>
 		</template>
-	</template>
+	</div>
 </template>

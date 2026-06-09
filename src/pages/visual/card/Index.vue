@@ -22,14 +22,14 @@ const doc = DomCard.__doc;
 			<DocSection eyebrow="Playground" title="Try every prop live">
 				<Playground
 					:inspect="DomCard"
-					:initial="{ padding: 'md', glass: true, interactive: false }"
+					:initial="{ padding: 'md', interactive: false }"
 					title="Card playground"
-					description="Cards are visual-only: they provide the surface, gradient, border, and spacing, while your markup decides the content."
+					description="Cards are visual-only: skin-raised provides the material recipe and spacing, while your markup decides the content."
 				>
 					<div class="space-y-2">
-						<p class="text-lg font-semibold tracking-tight">Glass card</p>
-						<p class="max-w-sm text-sm leading-6 text-muted-foreground">
-							This primitive uses bg-card and text-card-foreground, with a subtle top-light gradient.
+						<p class="text-lg font-semibold tracking-tight">Skin card</p>
+						<p class="max-w-sm text-sm leading-6 text-muted-fg">
+							This primitive uses skin-raised, so borders, shadows, gradients, and glass effects come from theme tokens.
 						</p>
 					</div>
 				</Playground>
@@ -39,17 +39,17 @@ const doc = DomCard.__doc;
 				<Example
 					:source="BasicSrc"
 					filename="Basic.vue"
-					description="Use DomCard for grouped content that needs a consistent semantic surface."
+					description="Use DomCard for grouped content that needs a consistent skin recipe."
 				>
 					<Basic />
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Demo" title="Apple-style glass">
+			<DocSection eyebrow="Demo" title="Token-driven glass">
 				<Example
 					:source="GlassSrc"
 					filename="Glass.vue"
-					description="The glass treatment is still token-driven, so it adapts cleanly across light and dark themes."
+					description="Glass is a skin recipe, so it can be applied by changing CSS variables rather than component props."
 				>
 					<Glass />
 				</Example>

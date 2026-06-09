@@ -17,26 +17,26 @@ const details = ref(260);
 			:min-end="220"
 		>
 			<template #start>
-				<aside class="h-full bg-card p-4">
-					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Sources</p>
+				<aside class="h-full skin-raised p-4">
+					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Sources</p>
 					<div class="mt-4 space-y-2">
-						<div class="rounded-md bg-secondary px-3 py-2 font-medium text-secondary-foreground">projects</div>
-						<div class="rounded-md px-3 py-2 text-muted-foreground">tasks</div>
-						<div class="rounded-md px-3 py-2 text-muted-foreground">users</div>
+						<div class="rounded-md bg-secondary px-3 py-2 font-medium text-secondary-fg">projects</div>
+						<div class="rounded-md px-3 py-2 text-muted-fg">tasks</div>
+						<div class="rounded-md px-3 py-2 text-muted-fg">users</div>
 					</div>
 				</aside>
 			</template>
 
 			<main class="h-full min-w-0 overflow-auto p-5">
 				<table class="w-full min-w-[420px] text-left">
-					<thead class="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+					<thead class="text-xs uppercase tracking-[0.14em] text-muted-fg">
 						<tr>
 							<th class="border-b border-border py-2">Project</th>
 							<th class="border-b border-border py-2">Owner</th>
 							<th class="border-b border-border py-2">Status</th>
 						</tr>
 					</thead>
-					<tbody class="text-foreground">
+					<tbody class="text-fg">
 						<tr>
 							<td class="border-b border-border py-3">Launch OS</td>
 							<td class="border-b border-border py-3">Product</td>
@@ -57,10 +57,10 @@ const details = ref(260);
 			</main>
 
 			<template #end>
-				<aside class="h-full bg-card p-4">
-					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Row details</p>
-					<h3 class="mt-4 font-semibold text-foreground">Launch OS</h3>
-					<p class="mt-2 leading-6 text-muted-foreground">Resizable detail panes work well for database browsers, API explorers, and admin tools.</p>
+				<aside class="h-full skin-raised p-4">
+					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Row details</p>
+					<h3 class="mt-4 font-semibold text-fg">Launch OS</h3>
+					<p class="mt-2 leading-6 text-muted-fg">Resizable detail panes work well for database browsers, API explorers, and admin tools.</p>
 				</aside>
 			</template>
 		</DomSplitterPanel>

@@ -89,7 +89,7 @@ function chooseSection({ value }) {
 			<template #panel>
 				<div class="w-full p-1">
 					<div class="px-2 pb-2 pt-1">
-						<p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Move to</p>
+						<p class="text-xs font-medium uppercase tracking-wide text-muted-fg">Move to</p>
 					</div>
 					<DomTreeView
 						v-model="selected"
@@ -104,8 +104,8 @@ function chooseSection({ value }) {
 				</div>
 			</template>
 		</DomDropdown>
-		<p class="text-xs text-muted-foreground">
-			Destination: <code class="text-foreground">{{ selectedSection?.label }}</code>
+		<p class="text-xs text-muted-fg">
+			Destination: <code class="text-fg">{{ selectedSection?.label }}</code>
 		</p>
 	</div>
 </template>

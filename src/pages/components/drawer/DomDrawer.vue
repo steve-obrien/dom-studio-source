@@ -5,7 +5,7 @@ defineOptions({
 	__doc: {
 		name: 'Drawer',
 		tag: '<DomDrawer>',
-		description: 'A slide-out panel for navigation menus, filters, or any secondary surface — slides from the left, right, or bottom with backdrop dismiss, drag dismiss, scroll lock, and focus trap built in.',
+		description: 'A slide-out panel for navigation menus, filters, or secondary app panels with backdrop dismiss, drag dismiss, scroll lock, and focus trap built in.',
 		slots: [
 			{ name: 'trigger', description: 'Element that opens the drawer when clicked (omit when controlling open state yourself).' },
 			{ name: '(default)', description: 'Panel body.' },
@@ -122,7 +122,7 @@ defineExpose({
 			<slot name="trigger" />
 		</span>
 		<div
-			class="flex h-full flex-col bg-card/95 ring-1 ring-border backdrop-blur-sm"
+			class="skin-overlay flex h-full flex-col"
 		>
 			<button
 				v-if="side === 'bottom'"
@@ -131,16 +131,16 @@ defineExpose({
 				class="group mx-auto mt-1 flex h-9 w-28 shrink-0 items-center justify-center"
 				aria-label="Drag to close drawer"
 			>
-				<span class="block h-1.5 w-12 rounded-full bg-muted-foreground/35 transition group-hover:bg-muted-foreground/50"></span>
+				<span class="block h-1.5 w-12 rounded-full bg-muted-fg/35 transition group-hover:bg-muted-fg/50"></span>
 			</button>
 			<header v-if="title || $slots.header" class="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-4">
 				<slot name="header">
-						<h2 v-if="title" :id="titleId" class="text-base font-semibold tracking-tight text-foreground">{{ title }}</h2>
+						<h2 v-if="title" :id="titleId" class="text-base font-semibold tracking-tight text-fg">{{ title }}</h2>
 				</slot>
 				<button
 					data-close
 					type="button"
-					class="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground ring-1 ring-border transition hover:bg-secondary hover:text-foreground"
+					class="skin-control inline-flex size-9 shrink-0 items-center justify-center rounded-full text-muted-fg transition hover:brightness-[0.98]"
 					aria-label="Close"
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5" aria-hidden="true">

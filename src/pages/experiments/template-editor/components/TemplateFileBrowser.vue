@@ -83,15 +83,15 @@ function collectOpenValues(item, values = []) {
 </script>
 
 <template>
-	<section class="flex h-full min-h-0 flex-col bg-card text-card-foreground">
+	<section class="flex h-full min-h-0 flex-col skin-raised text-fg">
 		<header class="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
 			<div class="min-w-0">
-				<p class="truncate text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Files</p>
+				<p class="truncate text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Files</p>
 			</div>
 			<div class="flex shrink-0 items-center gap-1">
 				<button
 					type="button"
-					class="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+					class="grid size-8 place-items-center rounded-md text-muted-fg hover:bg-secondary hover:text-fg"
 					aria-label="Refresh files"
 					title="Refresh files"
 					:disabled="loading"
@@ -103,7 +103,7 @@ function collectOpenValues(item, values = []) {
 				</button>
 				<button
 					type="button"
-					class="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+					class="grid size-8 place-items-center rounded-md text-muted-fg hover:bg-secondary hover:text-fg"
 					aria-label="Close file browser"
 					title="Close file browser"
 					@click="emit('close')"
@@ -120,7 +120,7 @@ function collectOpenValues(item, values = []) {
 		</div>
 
 		<div class="min-h-0 flex-1 overflow-y-auto bg-background p-2">
-			<div v-if="loading && !treeItems.length" class="px-2 py-3 text-xs text-muted-foreground">Loading files...</div>
+			<div v-if="loading && !treeItems.length" class="px-2 py-3 text-xs text-muted-fg">Loading files...</div>
 			<DomTreeView
 				v-else-if="treeItems.length"
 				:model-value="selectedValue"
@@ -138,16 +138,16 @@ function collectOpenValues(item, values = []) {
 						<span class="truncate">{{ item.label }}</span>
 						<span
 							v-if="item.kind === 'file'"
-							class="ml-auto shrink-0 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground group-aria-selected:bg-primary-foreground/15 group-aria-selected:text-primary-foreground/80"
+							class="ml-auto shrink-0 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-fg group-aria-selected:bg-primary-fg/15 group-aria-selected:text-primary-fg/80"
 						>Vue</span>
-						<span v-if="loadingPath === item.path" class="shrink-0 text-[10px] text-muted-foreground group-aria-selected:text-primary-foreground/80">Opening</span>
+						<span v-if="loadingPath === item.path" class="shrink-0 text-[10px] text-muted-fg group-aria-selected:text-primary-fg/80">Opening</span>
 					</span>
 				</template>
 			</DomTreeView>
-			<p v-else class="px-2 py-3 text-xs text-muted-foreground">No Vue files found.</p>
+			<p v-else class="px-2 py-3 text-xs text-muted-fg">No Vue files found.</p>
 		</div>
 
-		<footer class="shrink-0 truncate border-t border-border px-4 py-3 text-[11px] text-muted-foreground">
+		<footer class="shrink-0 truncate border-t border-border px-4 py-3 text-[11px] text-muted-fg">
 			src/pages/experiments/template-editor/components
 		</footer>
 	</section>

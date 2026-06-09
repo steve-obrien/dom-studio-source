@@ -26,7 +26,7 @@ defineExpose({ data });
 			<button
 				slot="trigger"
 				type="button"
-				class="inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
+				class="inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-fg hover:opacity-90"
 			>Open drawer</button>
 		</template>
 		<nav class="space-y-1 p-4">

@@ -156,10 +156,10 @@ watch(() => props.modelValue, setOpen);
 				>
 					<span class="block h-1.5 w-12 rounded-full bg-white/70 shadow-sm transition group-hover:bg-white"></span>
 				</button>
-				<div class="overflow-hidden rounded-[1.75rem] border border-border bg-card text-card-foreground shadow-2xl shadow-black/25">
+				<div class="skin-overlay overflow-hidden rounded-[1.75rem]">
 					<div v-if="title || description" class="border-b border-border px-5 py-4 text-center">
-						<h2 v-if="title" :id="titleId" class="text-sm font-semibold text-foreground">{{ title }}</h2>
-						<p v-if="description" class="mt-1 text-xs leading-5 text-muted-foreground">{{ description }}</p>
+						<h2 v-if="title" :id="titleId" class="text-sm font-semibold text-fg">{{ title }}</h2>
+						<p v-if="description" class="mt-1 text-xs leading-5 text-muted-fg">{{ description }}</p>
 					</div>
 					<div>
 						<button
@@ -167,18 +167,18 @@ watch(() => props.modelValue, setOpen);
 							:key="action.value || action.label"
 							type="button"
 							class="block min-h-14 w-full border-b border-border px-5 py-3 text-center transition last:border-b-0 hover:bg-secondary/70 active:bg-secondary"
-							:class="action.variant === 'danger' ? 'text-destructive' : 'text-foreground'"
+							:class="action.variant === 'danger' ? 'text-destructive' : 'text-fg'"
 							@click="selectAction(action)"
 						>
 							<span class="block text-sm font-medium">{{ action.label }}</span>
-							<span v-if="action.description" class="mt-0.5 block text-xs text-muted-foreground">{{ action.description }}</span>
+							<span v-if="action.description" class="mt-0.5 block text-xs text-muted-fg">{{ action.description }}</span>
 						</button>
 					</div>
 				</div>
 				<button
 					data-close
 					type="button"
-					class="mt-2 min-h-14 w-full rounded-[1.5rem] border border-border bg-card px-5 text-sm font-semibold text-foreground shadow-xl shadow-black/10 transition hover:bg-secondary active:bg-secondary"
+					class="skin-control mt-2 min-h-14 w-full rounded-[1.5rem] px-5 text-sm font-semibold transition hover:brightness-[0.98] active:brightness-[0.96]"
 				>{{ cancelLabel }}</button>
 			</section>
 		</div>

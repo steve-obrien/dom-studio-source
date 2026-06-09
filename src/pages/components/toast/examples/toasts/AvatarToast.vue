@@ -26,8 +26,8 @@ const emit = defineEmits(['action', 'dismiss']);
 			class="size-10 rounded-full object-cover ring-1 ring-border"
 		/>
 		<div class="min-w-0 flex-1">
-			<p class="truncate text-sm font-semibold text-foreground">{{ name }}</p>
-			<p v-if="role" class="mt-0.5 truncate text-sm text-muted-foreground">{{ role }}</p>
+			<p class="truncate text-sm font-semibold text-fg">{{ name }}</p>
+			<p v-if="role" class="mt-0.5 truncate text-sm text-muted-fg">{{ role }}</p>
 		</div>
 		<DomButton
 			size="sm"
@@ -37,7 +37,7 @@ const emit = defineEmits(['action', 'dismiss']);
 		<button
 			type="button"
 			aria-label="Dismiss notification"
-			class="-mr-1 rounded-full px-2 text-lg leading-none text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+			class="-mr-1 rounded-full px-2 text-lg leading-none text-muted-fg transition hover:bg-secondary hover:text-fg"
 			@click="emit('dismiss')"
 		>×</button>
 	</div>

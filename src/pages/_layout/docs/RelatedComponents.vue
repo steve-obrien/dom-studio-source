@@ -46,8 +46,8 @@ function sortRecords(a, b) {
 <template>
 	<section v-if="related.length" class="space-y-4">
 		<div>
-			<h2 class="text-2xl font-semibold tracking-tight text-foreground">Related components</h2>
-			<p class="mt-2 text-sm leading-6 text-muted-foreground">
+			<h2 class="text-2xl font-semibold tracking-tight text-fg">Related components</h2>
+			<p class="mt-2 text-sm leading-6 text-muted-fg">
 				Generated from sibling component files that share this documentation route.
 			</p>
 		</div>
@@ -61,16 +61,16 @@ function sortRecords(a, b) {
 		>
 			<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3">
 				<span class="min-w-0">
-					<span class="block truncate text-sm font-semibold text-foreground">{{ record.label }}</span>
-					<span v-if="record.doc.description" class="mt-1 block text-sm leading-5 text-muted-foreground">
+					<span class="block truncate text-sm font-semibold text-fg">{{ record.label }}</span>
+					<span v-if="record.doc.description" class="mt-1 block text-sm leading-5 text-muted-fg">
 						{{ record.doc.description }}
 					</span>
 				</span>
-				<span class="text-sm text-muted-foreground transition group-open:rotate-180">⌄</span>
+				<span class="text-sm text-muted-fg transition group-open:rotate-180">⌄</span>
 			</summary>
 			<div class="space-y-6 border-t border-border p-4">
-				<div v-if="record.doc.tag" class="text-sm text-muted-foreground">
-					<code class="font-mono text-foreground">{{ record.doc.tag }}</code>
+				<div v-if="record.doc.tag" class="text-sm text-muted-fg">
+					<code class="font-mono text-fg">{{ record.doc.tag }}</code>
 				</div>
 				<ComponentProps :component="record.component" />
 				<ComponentSlots :component="record.component" />

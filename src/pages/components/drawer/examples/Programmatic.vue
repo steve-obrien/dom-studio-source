@@ -12,9 +12,9 @@ const drawerRef = ref(null);
 		<DomButton variant="ghost" @click="drawerRef?.toggle()">Toggle</DomButton>
 	</div>
 	<DomDrawer ref="drawerRef" title="Via template ref">
-		<p class="p-4 text-sm text-muted-foreground">
-			Call <code class="text-foreground">open()</code>, <code class="text-foreground">close()</code>, or
-			<code class="text-foreground">toggle()</code> on the component ref — or bind <code class="text-foreground">v-model</code> from script.
+		<p class="p-4 text-sm text-muted-fg">
+			Call <code class="text-fg">open()</code>, <code class="text-fg">close()</code>, or
+			<code class="text-fg">toggle()</code> on the component ref — or bind <code class="text-fg">v-model</code> from script.
 		</p>
 	</DomDrawer>
 </template>

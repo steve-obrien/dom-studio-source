@@ -46,7 +46,7 @@ const platformPoints = [
 			tagline="Capacitor-ready app components shown inside a phone preview shell, with safe areas, thumb navigation, sheets, and native-feeling app chrome."
 		>
 			<DocSection eyebrow="Overview" title="Web-first mobile apps">
-				<div class="max-w-3xl space-y-4 text-sm leading-7 text-muted-foreground">
+				<div class="max-w-3xl space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
 						The web works brilliantly for mobile apps. It gives you the most stable rendering platform we have: HTML, CSS, and JavaScript running in a browser engine that every major device vendor must keep compatible.
 					</p>
@@ -62,10 +62,10 @@ const platformPoints = [
 					<div
 						v-for="point in platformPoints"
 						:key="point.title"
-						class="rounded-lg border border-border bg-card p-4"
+						class="rounded-lg border border-border skin-raised p-4"
 					>
-						<p class="text-sm font-semibold text-foreground">{{ point.title }}</p>
-						<p class="mt-1 text-xs leading-5 text-muted-foreground">{{ point.description }}</p>
+						<p class="text-sm font-semibold text-fg">{{ point.title }}</p>
+						<p class="mt-1 text-xs leading-5 text-muted-fg">{{ point.description }}</p>
 					</div>
 				</div>
 			</DocSection>
@@ -76,13 +76,13 @@ const platformPoints = [
 			>
 				<template #notes>
 					<div class="grid gap-3 sm:grid-cols-2">
-						<div class="rounded-lg border border-border bg-card p-4">
-							<p class="text-sm font-semibold text-foreground">Capacitor posture</p>
-							<p class="mt-1 text-xs leading-5 text-muted-foreground">Keep the UI web-native, then bridge native status bar, haptics, keyboard, camera, and share actions through Capacitor plugins.</p>
+						<div class="rounded-lg border border-border skin-raised p-4">
+							<p class="text-sm font-semibold text-fg">Capacitor posture</p>
+							<p class="mt-1 text-xs leading-5 text-muted-fg">Keep the UI web-native, then bridge native status bar, haptics, keyboard, camera, and share actions through Capacitor plugins.</p>
 						</div>
-						<div class="rounded-lg border border-border bg-card p-4">
-							<p class="text-sm font-semibold text-foreground">Mobile defaults</p>
-							<p class="mt-1 text-xs leading-5 text-muted-foreground">One scroll container, safe-area-aware chrome, large touch targets, and bottom actions for thumb reach.</p>
+						<div class="rounded-lg border border-border skin-raised p-4">
+							<p class="text-sm font-semibold text-fg">Mobile defaults</p>
+							<p class="mt-1 text-xs leading-5 text-muted-fg">One scroll container, safe-area-aware chrome, large touch targets, and bottom actions for thumb reach.</p>
 						</div>
 					</div>
 				</template>
@@ -105,10 +105,10 @@ const platformPoints = [
 					<div
 						v-for="item in mobileFoundations"
 						:key="item[0]"
-						class="rounded-lg border border-border bg-card p-4"
+						class="rounded-lg border border-border skin-raised p-4"
 					>
-						<code class="text-xs font-semibold text-foreground">&lt;{{ item[0] }}&gt;</code>
-						<p class="mt-2 text-sm leading-6 text-muted-foreground">{{ item[1] }}</p>
+						<code class="text-xs font-semibold text-fg">&lt;{{ item[0] }}&gt;</code>
+						<p class="mt-2 text-sm leading-6 text-muted-fg">{{ item[1] }}</p>
 					</div>
 				</div>
 			</DocSection>

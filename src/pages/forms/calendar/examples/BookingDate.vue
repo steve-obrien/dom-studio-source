@@ -14,8 +14,8 @@ const date = ref('2026-06-18');
 			min="2026-01-01"
 			max="2026-12-31"
 		/>
-		<p class="mt-3 text-xs text-muted-foreground">
-			Selected date: <code class="text-foreground">{{ date }}</code>
+		<p class="mt-3 text-xs text-muted-fg">
+			Selected date: <code class="text-fg">{{ date }}</code>
 		</p>
 	</div>
 </template>

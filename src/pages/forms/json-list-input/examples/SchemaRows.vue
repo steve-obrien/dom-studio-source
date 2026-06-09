@@ -53,6 +53,6 @@ const schema = {
 			add-label="+ Add toast"
 			:schema="schema"
 		/>
-		<pre class="max-h-96 overflow-auto rounded-xl border border-border bg-secondary/50 p-3 text-xs text-muted-foreground">{{ rows }}</pre>
+		<pre class="max-h-96 overflow-auto rounded-xl border border-border bg-secondary/50 p-3 text-xs text-muted-fg">{{ rows }}</pre>
 	</div>
 </template>

@@ -40,10 +40,10 @@ const props = defineProps({
 		default: 'vertical',
 		_edit: { options: ['vertical', 'horizontal'], description: 'Arrow key direction.' },
 	},
-	surface: {
+	skin: {
 		type: Boolean,
 		default: true,
-		_edit: { description: 'Render menu as a bordered surface. Disable when embedding inside a popover or dropdown.' },
+		_edit: { description: 'Render menu with the floating skin. Disable when embedding inside a popover or dropdown.' },
 	},
 });
 const emit = defineEmits(['select', 'change']);
@@ -232,7 +232,7 @@ onBeforeUnmount(() => {
 		ref="root"
 		:orientation="orientation"
 		class="block w-full"
-		:class="surface ? 'dom-glass-surface rounded-2xl p-1 shadow-sm' : ''"
+		:class="skin ? 'skin-floating rounded-2xl p-1' : ''"
 	>
 		<slot v-if="!hasItemPropRows" />
 		<template v-for="(item, index) in items" v-else :key="valueOf(item) || index">
@@ -253,7 +253,7 @@ onBeforeUnmount(() => {
 					:aria-checked="item?.checked == null ? null : String(item.checked)"
 					:aria-disabled="item?.disabled ? 'true' : null"
 					:disabled="item?.disabled || null"
-					class="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm text-foreground outline-none transition hover:bg-secondary focus:bg-secondary aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[tone=danger]:text-destructive"
+					class="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm text-fg outline-none transition hover:bg-secondary focus:bg-secondary aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[tone=danger]:text-destructive"
 					:data-tone="item?.tone || null"
 					@keydown="onItemKeydown($event, item)"
 				>
@@ -261,11 +261,11 @@ onBeforeUnmount(() => {
 						<span class="min-w-0">
 							<slot name="item" v-bind="slotProps(item, index)">{{ labelOf(item) }}</slot>
 						</span>
-						<span v-if="hasChildren(item)" aria-hidden="true" class="text-xs text-muted-foreground">›</span>
+						<span v-if="hasChildren(item)" aria-hidden="true" class="text-xs text-muted-fg">›</span>
 						<span
 							v-else-if="item?.type === 'checkbox' || item?.type === 'radio'"
 							aria-hidden="true"
-							class="text-xs text-muted-foreground transition"
+							class="text-xs text-muted-fg transition"
 							:class="item?.checked ? 'opacity-100' : 'opacity-0'"
 						>✓</span>
 					</slot>
@@ -278,12 +278,12 @@ onBeforeUnmount(() => {
 		v-if="openPath"
 		:ref="setSubmenuPanel"
 		data-dom-menu-submenu-panel
-		class="dom-popover-panel dom-glass-surface absolute z-50 min-w-40 rounded-2xl p-1 outline-none"
+		class="dom-popover-panel skin-floating absolute z-50 min-w-40 rounded-2xl p-1 outline-none"
 		@keydown="onSubmenuKeydown($event, { value: openPath })"
 		@mouseenter="cancelSubmenuClose"
 		@mouseleave="maybeCloseSubmenuPanel"
 	>
-		<DomMenu :items="activeChildItems()" :surface="false" @select="onSelect" @change="onChange">
+		<DomMenu :items="activeChildItems()" :skin="false" @select="onSelect" @change="onChange">
 			<template v-for="(_, slotName) in $slots" #[slotName]="childSlotProps">
 				<slot :name="slotName" v-bind="childSlotProps" />
 			</template>

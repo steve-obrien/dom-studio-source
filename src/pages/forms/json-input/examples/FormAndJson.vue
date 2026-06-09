@@ -96,6 +96,6 @@ const schema = {
 			:schema="schema"
 			:rows="15"
 		/>
-		<pre class="max-h-[34rem] overflow-auto rounded-xl border border-border bg-secondary/50 p-3 text-xs text-muted-foreground">{{ config }}</pre>
+		<pre class="max-h-[34rem] overflow-auto rounded-xl border border-border bg-secondary/50 p-3 text-xs text-muted-fg">{{ config }}</pre>
 	</div>
 </template>

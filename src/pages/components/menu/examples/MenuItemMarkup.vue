@@ -28,7 +28,7 @@ function onChange(event) {
 					</span>
 					<span class="min-w-0">
 						<span class="block truncate font-medium">Sync status</span>
-						<span class="block truncate text-xs text-muted-foreground">Updated just now</span>
+						<span class="block truncate text-xs text-muted-fg">Updated just now</span>
 					</span>
 				</span>
 				<span class="text-xs text-success">Ready</span>
@@ -37,7 +37,7 @@ function onChange(event) {
 			<MenuItem value="notifications">
 				<span class="min-w-0">
 					<span class="block truncate font-medium">Notifications</span>
-					<span class="block truncate text-xs text-muted-foreground">Delivery channels and density</span>
+					<span class="block truncate text-xs text-muted-fg">Delivery channels and density</span>
 				</span>
 
 				<template #submenu>
@@ -49,7 +49,7 @@ function onChange(event) {
 							aria-hidden="true"
 						>
 							<span
-								class="absolute left-0.5 top-0.5 size-4 rounded-full bg-card shadow-sm transition"
+								class="absolute left-0.5 top-0.5 size-4 rounded-full skin-raised shadow-sm transition"
 								:class="liveMode ? 'translate-x-4' : 'translate-x-0'"
 							></span>
 						</span>
@@ -62,7 +62,7 @@ function onChange(event) {
 							aria-hidden="true"
 						>
 							<span
-								class="absolute left-0.5 top-0.5 size-4 rounded-full bg-card shadow-sm transition"
+								class="absolute left-0.5 top-0.5 size-4 rounded-full skin-raised shadow-sm transition"
 								:class="compactSidebar ? 'translate-x-4' : 'translate-x-0'"
 							></span>
 						</span>
@@ -70,7 +70,7 @@ function onChange(event) {
 					<MenuItem value="notifications-email">
 						<span class="min-w-0">
 							<span class="block truncate font-medium">Email digest</span>
-							<span class="block truncate text-xs text-muted-foreground">Send once each morning</span>
+							<span class="block truncate text-xs text-muted-fg">Send once each morning</span>
 						</span>
 					</MenuItem>
 				</template>
@@ -84,6 +84,6 @@ function onChange(event) {
 			</MenuItem>
 		</DomMenu>
 
-		<p class="text-xs text-muted-foreground">Selected: <code class="text-foreground">{{ selected }}</code></p>
+		<p class="text-xs text-muted-fg">Selected: <code class="text-fg">{{ selected }}</code></p>
 	</div>
 </template>

@@ -24,26 +24,26 @@ const socialProviders = [
 
 <template>
 	<div class="grid w-full max-w-4xl overflow-hidden rounded-3xl border border-border bg-background shadow-2xl shadow-black/10 md:grid-cols-[0.9fr_1.1fr]">
-		<section class="hidden bg-primary p-8 text-primary-foreground md:flex md:flex-col md:justify-between">
+		<section class="hidden bg-primary p-8 text-primary-fg md:flex md:flex-col md:justify-between">
 			<div>
-				<span class="grid size-10 place-items-center rounded-2xl bg-primary-foreground/15 text-sm font-bold">E</span>
+				<span class="grid size-10 place-items-center rounded-2xl bg-primary-fg/15 text-sm font-bold">E</span>
 				<h3 class="mt-8 text-3xl font-semibold tracking-tight">Build with components AI can edit.</h3>
-				<p class="mt-3 text-sm leading-6 text-primary-foreground/75">
+				<p class="mt-3 text-sm leading-6 text-primary-fg/75">
 					Sign in to continue refining app blocks, specs, tokens, and reusable UI.
 				</p>
 			</div>
-			<div class="rounded-2xl border border-primary-foreground/15 bg-primary-foreground/10 p-4">
+			<div class="rounded-2xl border border-primary-fg/15 bg-primary-fg/10 p-4">
 				<p class="text-sm font-medium">Studio-ready output</p>
-				<p class="mt-1 text-sm text-primary-foreground/70">Every generated layer keeps a stable id and readable label.</p>
+				<p class="mt-1 text-sm text-primary-fg/70">Every generated layer keeps a stable id and readable label.</p>
 			</div>
 		</section>
 
-		<DomCard padding="lg" glass class="rounded-none border-0 shadow-none">
+		<DomCard padding="lg" class="rounded-none">
 			<div class="mx-auto max-w-sm">
 				<div class="text-center md:text-left">
-					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Welcome back</p>
+					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Welcome back</p>
 					<h2 class="mt-2 text-3xl font-semibold tracking-tight">Sign in</h2>
-					<p class="mt-2 text-sm text-muted-foreground">Use your workspace account or continue with a provider.</p>
+					<p class="mt-2 text-sm text-muted-fg">Use your workspace account or continue with a provider.</p>
 				</div>
 
 				<div class="mt-6 grid gap-2 sm:grid-cols-3">
@@ -51,7 +51,7 @@ const socialProviders = [
 						v-for="provider in socialProviders"
 						:key="provider.label"
 						type="button"
-						class="flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-background text-sm font-medium text-foreground transition hover:bg-secondary hover:text-secondary-foreground"
+						class="flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-background text-sm font-medium text-fg transition hover:bg-secondary hover:text-secondary-fg"
 					>
 						<span class="grid size-5 place-items-center rounded bg-secondary text-[10px] font-semibold">{{ provider.mark }}</span>
 						{{ provider.label }}
@@ -60,7 +60,7 @@ const socialProviders = [
 
 				<div class="my-6 flex items-center gap-3">
 					<span class="h-px flex-1 bg-border"></span>
-					<span class="text-xs text-muted-foreground">or use email</span>
+					<span class="text-xs text-muted-fg">or use email</span>
 					<span class="h-px flex-1 bg-border"></span>
 				</div>
 
@@ -81,15 +81,15 @@ const socialProviders = [
 
 					<div class="flex items-center justify-between gap-4">
 						<DomCheckbox v-model="remember" label="Remember me" />
-						<a href="#" class="text-sm font-medium text-foreground hover:underline">Forgot password?</a>
+						<a href="#" class="text-sm font-medium text-fg hover:underline">Forgot password?</a>
 					</div>
 
 					<DomButton class="w-full" size="lg">Sign in</DomButton>
 				</form>
 
-				<p class="mt-6 text-center text-sm text-muted-foreground">
+				<p class="mt-6 text-center text-sm text-muted-fg">
 					New here?
-					<a href="#" class="font-medium text-foreground hover:underline">Create an account</a>
+					<a href="#" class="font-medium text-fg hover:underline">Create an account</a>
 				</p>
 			</div>
 		</DomCard>

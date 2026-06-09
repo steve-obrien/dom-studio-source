@@ -55,7 +55,7 @@ const actions = [
 				<template #trailing>
 					<button
 						type="button"
-						class="grid size-10 place-items-center rounded-full bg-secondary text-foreground active:scale-95"
+						class="grid size-10 place-items-center rounded-full bg-secondary text-fg active:scale-95"
 						aria-label="More actions"
 						@click="sheetOpen = true"
 					>
@@ -68,7 +68,7 @@ const actions = [
 		</template>
 
 		<section class="space-y-4 p-4">
-			<div class="rounded-[1.75rem] bg-primary p-5 text-primary-foreground shadow-xl shadow-black/10">
+			<div class="rounded-[1.75rem] bg-primary p-5 text-primary-fg shadow-xl shadow-black/10">
 				<p class="text-xs font-medium uppercase tracking-[0.16em] opacity-80">Today</p>
 				<h2 class="mt-2 text-2xl font-semibold tracking-tight">Build mobile primitives.</h2>
 				<p class="mt-2 text-sm leading-6 opacity-85">A web UI system, tuned for Capacitor screens and native app rhythms.</p>

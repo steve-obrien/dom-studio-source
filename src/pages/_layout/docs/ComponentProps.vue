@@ -54,17 +54,17 @@ function hoverCodeForProp(prop) {
 
 <template>
 	<section v-if="info?.props?.length" class="space-y-3">
-		<h3 class="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">{{ title }}</h3>
+		<h3 class="text-sm font-semibold uppercase tracking-[0.18em] text-muted-fg">{{ title }}</h3>
 		<div
 			v-for="group in propGroups"
 			:key="group.name"
 			class="relative rounded-2xl border border-border"
 		>
 			<div class="border-b border-border bg-background px-4 py-3">
-				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{{ group.name }}</p>
+				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">{{ group.name }}</p>
 			</div>
 			<table class="w-full text-left text-sm">
-				<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-foreground">
+				<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-fg">
 					<tr>
 						<th class="px-4 py-2 font-medium">Name</th>
 						<th class="px-4 py-2 font-medium">Type</th>
@@ -76,7 +76,7 @@ function hoverCodeForProp(prop) {
 				<tbody class="divide-y divide-border">
 					<template v-for="p in group.props" :key="p.name">
 						<tr>
-							<td class="px-4 py-3 font-mono text-[12.5px] text-foreground">
+							<td class="px-4 py-3 font-mono text-[12.5px] text-fg">
 								<DomPopover
 									v-if="hoverCodeForProp(p)"
 									trigger="hover-click"
@@ -96,8 +96,8 @@ function hoverCodeForProp(prop) {
 									<code>{{ p.name }}</code><span v-if="p.required" class="ml-0.5 text-destructive">*</span>
 								</span>
 							</td>
-							<td class="px-4 py-3 font-mono text-[12.5px] text-muted-foreground">{{ p.type }}</td>
-							<td class="px-4 py-3 font-mono text-[12.5px] text-muted-foreground">
+							<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">{{ p.type }}</td>
+							<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">
 								<template v-for="(token, index) in typeTokens(p)" :key="`${p.name}:${index}`">
 									<DomPopover
 										v-if="token.definition"
@@ -107,21 +107,21 @@ function hoverCodeForProp(prop) {
 										padding="p-0"
 									>
 										<template #trigger>
-											<span class="cursor-help text-foreground underline decoration-dotted underline-offset-4">{{ token.text }}</span>
+											<span class="cursor-help text-fg underline decoration-dotted underline-offset-4">{{ token.text }}</span>
 										</template>
 										<TypeCodeBlock class="max-h-80" :code="token.definition" :definitions="token.definitions" :framed="false" />
 									</DomPopover>
 									<span v-else>{{ token.text }}</span>
 								</template>
 							</td>
-							<td class="px-4 py-3 font-mono text-[12.5px] text-muted-foreground">{{ p.default }}</td>
-							<td class="px-4 py-3 text-muted-foreground">{{ p.description || '—' }}</td>
+							<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">{{ p.default }}</td>
+							<td class="px-4 py-3 text-muted-fg">{{ p.description || '—' }}</td>
 						</tr>
 					</template>
 				</tbody>
 			</table>
 		</div>
-		<p class="text-[11px] text-muted-foreground">
+		<p class="text-[11px] text-muted-fg">
 			Auto-generated from <code class="font-mono">{{ info.name || 'component' }}.props</code> and inline
 			<code class="font-mono">_edit</code> hints.
 		</p>

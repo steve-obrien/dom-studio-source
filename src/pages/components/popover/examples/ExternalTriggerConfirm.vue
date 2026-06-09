@@ -20,7 +20,7 @@ function remove(row) {
 <template>
 	<div class="w-full overflow-hidden rounded-2xl border border-border bg-background">
 		<table class="w-full text-left text-sm">
-			<thead class="bg-secondary/70 text-xs uppercase tracking-wider text-muted-foreground">
+			<thead class="bg-secondary/70 text-xs uppercase tracking-wider text-muted-fg">
 				<tr>
 					<th class="px-4 py-3 font-medium">Name</th>
 					<th class="px-4 py-3 font-medium">Email</th>
@@ -30,9 +30,9 @@ function remove(row) {
 			</thead>
 			<tbody class="divide-y divide-border">
 				<tr v-for="row in rows" :key="row.id">
-					<td class="px-4 py-3 font-medium text-foreground">{{ row.name }}</td>
-					<td class="px-4 py-3 text-muted-foreground">{{ row.email }}</td>
-					<td class="px-4 py-3 text-muted-foreground">{{ row.role }}</td>
+					<td class="px-4 py-3 font-medium text-fg">{{ row.name }}</td>
+					<td class="px-4 py-3 text-muted-fg">{{ row.email }}</td>
+					<td class="px-4 py-3 text-muted-fg">{{ row.role }}</td>
 					<td class="px-4 py-3 text-right">
 						<button
 							:id="triggerId(row)"
@@ -50,8 +50,8 @@ function remove(row) {
 						>
 							<div class="space-y-3">
 								<div class="space-y-1">
-									<p class="font-medium text-foreground">Delete {{ row.name }}?</p>
-									<p class="text-sm leading-5 text-muted-foreground">
+									<p class="font-medium text-fg">Delete {{ row.name }}?</p>
+									<p class="text-sm leading-5 text-muted-fg">
 										This removes the row from the local table. The trigger button lives outside the popover.
 									</p>
 								</div>
@@ -65,6 +65,6 @@ function remove(row) {
 				</tr>
 			</tbody>
 		</table>
-		<p v-if="!rows.length" class="px-4 py-8 text-center text-sm text-muted-foreground">All rows removed.</p>
+		<p v-if="!rows.length" class="px-4 py-8 text-center text-sm text-muted-fg">All rows removed.</p>
 	</div>
 </template>

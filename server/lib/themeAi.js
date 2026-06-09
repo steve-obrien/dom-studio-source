@@ -1,28 +1,22 @@
-export const themeAiEndpointPath = '/api/ai/theme';
-export const legacyThemeAiEndpointPath = '/api/theme-tokens';
 export const defaultThemeAiModel = 'gpt-4.1-mini';
 
 const tokenNames = [
 	'--background',
-	'--foreground',
-	'--card',
-	'--card-foreground',
-	'--popover',
-	'--popover-foreground',
+	'--fg',
 	'--primary',
-	'--primary-foreground',
+	'--primary-fg',
 	'--secondary',
-	'--secondary-foreground',
+	'--secondary-fg',
 	'--muted',
-	'--muted-foreground',
+	'--muted-fg',
 	'--accent',
-	'--accent-foreground',
+	'--accent-fg',
 	'--destructive',
-	'--destructive-foreground',
+	'--destructive-fg',
 	'--success',
-	'--success-foreground',
+	'--success-fg',
 	'--warning',
-	'--warning-foreground',
+	'--warning-fg',
 	'--border',
 	'--input',
 	'--ring',
@@ -30,18 +24,49 @@ const tokenNames = [
 
 const appearanceTokenNames = [
 	'--radius',
-	'--shadow-color',
-	'--shadow-strength',
-	'--shadow-distance',
-	'--shadow-softness',
+];
+
+const skinNames = [
+	'base',
+	'raised',
+	'floating',
+	'overlay',
+	'inset',
+	'control',
+	'action',
+];
+
+const skinPropertyNames = [
+	'bg',
+	'fg',
+	'border',
+	'borderWidth',
+	'borderStyle',
+	'shadow',
+	'backdrop',
+	'bgImage',
 ];
 
 const defaultAllowedOrigins = [
 	'http://localhost:3333',
-	'http://localhost:5174',
-	'http://localhost:5175',
 	'https://getdom.studio',
 ];
+
+const themeGenerationInstructions = [
+	'Generate accessible CSS theme tokens for DOM Studio, a Tailwind-like component framework.',
+	'Return only the requested structured JSON. Do not include prose, markdown, selectors, @rules, semicolons, braces, comments, or url().',
+	'Palette tokens in light and dark must be hex colours. Every bg/fg pair must be readable: background with fg, primary with primary-fg, secondary with secondary-fg, muted with muted-fg, accent with accent-fg, destructive with destructive-fg, success with success-fg, and warning with warning-fg.',
+	'Dark mode is first-class. The dark palette should feel intentionally designed, not just inverted; keep surfaces distinct from the canvas, keep inputs visible, and avoid washed-out text or black-on-dark controls.',
+	'Skins are shared by light and dark modes, so skin colour values must be mode-adaptive. Prefer var(--background), var(--fg), var(--border), var(--input), var(--primary), var(--secondary), var(--muted), var(--accent), and color-mix(in oklch, ...) recipes. Do not use fixed hex colours for skin bg, fg, or border.',
+	'Skin roles: base is the page canvas; raised is cards and panels; floating is dropdowns, popovers, combobox menus, context menus, and tooltips; overlay is dialogs, drawers, command palettes, and action sheets; inset is inputs, textareas, native selects, and editable recessed controls; control is quiet buttons, toggles, segmented controls, and neutral triggers; action is primary buttons and high-emphasis commands.',
+	'Do not create card or popover palette tokens. Cards and popovers are represented by raised and floating skins.',
+	'For glass themes, use translucent color-mix() backgrounds, backdrop blur/saturate, a subtle top-light gradient, a bottom shade, and layered shadows or inset highlights. The same recipe must still work in dark mode.',
+	'For subtle shadcn-like themes, use restrained borders, small shadows, quiet neutral skins, and crisp focus rings.',
+	'For expressive or whacky themes, use accent-driven gradients, unusual border styles, or coloured shadows, but keep controls legible and avoid overwhelming the base canvas.',
+	'The inset skin is especially important: make form controls readable in dark mode by giving them a background distinct from --background, a visible --input/--border edge, clear --fg text, and muted placeholder contrast.',
+	'Each skin recipe must include bg, fg, border, borderWidth, borderStyle, shadow, backdrop, and bgImage. Use "none" for shadow/backdrop/bgImage when no effect is wanted.',
+	'Allowed CSS for skin bg/fg/border is var(...), transparent, none, or color-mix(in oklch, ...). Allowed CSS for shadows and gradients may use semantic variables, color-mix(), rgb(... / alpha), linear-gradient(), radial-gradient(), and multiple comma-separated layers.',
+].join('\n');
 
 export function resolveThemeAiConfig(env = process.env) {
 	return {
@@ -97,8 +122,13 @@ export async function requestThemeFromOpenAi({
 		},
 		body: JSON.stringify({
 			model,
-			instructions: 'Generate accessible CSS theme tokens for a component library. Return only the requested structured JSON. Colour tokens must be hex. Appearance tokens should keep the UI usable: radius in rem, shadow strength in percent, and shadow distance/softness as unitless multipliers.',
-			input: `Theme direction: ${prompt || 'surprise me with a polished, production-ready theme'}\n\nCurrent tokens:\n${JSON.stringify(tokens, null, 2)}`,
+			instructions: themeGenerationInstructions,
+			input: [
+				`Theme direction: ${prompt || 'surprise me with a polished, production-ready theme'}`,
+				'Use the current tokens as a baseline, but improve the whole system when the prompt asks for a stronger direction.',
+				'Remember that light/dark palettes are separate, while skins are shared adaptive recipes that must work against both palettes.',
+				`Current tokens:\n${JSON.stringify(tokens, null, 2)}`,
+			].join('\n\n'),
 			text: {
 				format: {
 					type: 'json_schema',
@@ -131,28 +161,53 @@ function themeResponseSchema() {
 			type: 'string',
 			pattern: '^(0|0?\\.\\d+|1(\\.\\d+)?)rem$',
 		},
-		'--shadow-color': {
-			type: 'string',
-			pattern: '^#[0-9a-fA-F]{6}$',
-		},
-		'--shadow-strength': {
-			type: 'string',
-			pattern: '^([0-9]|1[0-9]|2[0-8])%$',
-		},
-		'--shadow-distance': {
-			type: 'string',
-			pattern: '^(0|0?\\.\\d+|1(\\.\\d+)?|2(\\.0+)?)$',
-		},
-		'--shadow-softness': {
-			type: 'string',
-			pattern: '^(0\\.2[5-9]|0\\.[3-9]\\d*|1(\\.\\d+)?|2(\\.0+)?)$',
-		},
 	};
+	const safeCssPattern = '^[^;{}@]{1,360}$';
+	const skinColorCssPattern = '^(transparent|none|var\\(--[a-z0-9-]+\\)|color-mix\\(in oklch, [^;{}@]{1,132}\\))$';
+	const skinProperties = Object.fromEntries(skinNames.map((name) => [name, {
+		type: 'object',
+		additionalProperties: false,
+		required: skinPropertyNames,
+		properties: {
+			bg: {
+				type: 'string',
+				pattern: skinColorCssPattern,
+			},
+			fg: {
+				type: 'string',
+				pattern: skinColorCssPattern,
+			},
+			border: {
+				type: 'string',
+				pattern: skinColorCssPattern,
+			},
+			borderWidth: {
+				type: 'string',
+				pattern: '^(0|[0-4](\\.\\d+)?px)$',
+			},
+			borderStyle: {
+				type: 'string',
+				enum: ['none', 'solid', 'dashed', 'dotted', 'double'],
+			},
+			shadow: {
+				type: 'string',
+				pattern: safeCssPattern,
+			},
+			backdrop: {
+				type: 'string',
+				pattern: safeCssPattern,
+			},
+			bgImage: {
+				type: 'string',
+				pattern: safeCssPattern,
+			},
+		},
+	}]));
 
 	return {
 		type: 'object',
 		additionalProperties: false,
-		required: ['name', 'appearance', 'light', 'dark'],
+		required: ['name', 'appearance', 'skins', 'light', 'dark'],
 		properties: {
 			name: { type: 'string' },
 			appearance: {
@@ -160,6 +215,12 @@ function themeResponseSchema() {
 				additionalProperties: false,
 				required: appearanceTokenNames,
 				properties: appearanceProperties,
+			},
+			skins: {
+				type: 'object',
+				additionalProperties: false,
+				required: skinNames,
+				properties: skinProperties,
 			},
 			light: {
 				type: 'object',

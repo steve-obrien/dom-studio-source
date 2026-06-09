@@ -135,7 +135,7 @@ function onKeydown(event, index, option) {
 				:aria-invalid="field.invalid.value || undefined"
 				:aria-errormessage="field.errorId.value || undefined"
 				:data-invalid="field.invalid.value ? '' : undefined"
-			class="inline-flex w-fit rounded-2xl border border-border bg-secondary/60 p-1 shadow-inner shadow-black/5 data-[invalid]:border-destructive"
+			class="skin-control inline-flex w-fit rounded-2xl p-1 data-[invalid]:border-destructive"
 			:class="orientation === 'vertical' ? 'flex-col' : 'flex-row'"
 		>
 			<button
@@ -145,7 +145,7 @@ function onKeydown(event, index, option) {
 				type="button"
 				:aria-pressed="String(selected(option))"
 				:disabled="field.disabled.value || option?.disabled || undefined"
-				class="inline-flex items-center justify-center gap-2 rounded-xl font-medium text-muted-foreground outline-none transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm"
+				class="inline-flex items-center justify-center gap-2 rounded-xl font-medium text-muted-fg outline-none transition hover:text-fg focus-visible:ring-2 focus-visible:ring-ring/50 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:bg-background aria-pressed:text-fg aria-pressed:shadow-sm"
 				:class="sizeClass"
 				@click="selectOption(option)"
 				@keydown="onKeydown($event, index, option)"

@@ -25,7 +25,7 @@ const nameErrors = computed(() => [...firstErrors.value, ...lastErrors.value]);
 				<label
 					:for="htmlFor"
 					class="pt-2 text-sm font-semibold"
-					:class="invalid ? 'text-destructive' : 'text-muted-foreground'"
+					:class="invalid ? 'text-destructive' : 'text-muted-fg'"
 				>
 					{{ label }}<span v-if="required" aria-hidden="true">*</span>
 				</label>
@@ -52,7 +52,7 @@ const nameErrors = computed(() => [...firstErrors.value, ...lastErrors.value]);
 						required
 					/>
 				</div>
-				<div class="grid gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground sm:grid-cols-2">
+				<div class="grid gap-2 text-[11px] font-medium uppercase tracking-wider text-muted-fg sm:grid-cols-2">
 					<span>First</span>
 					<span>Last</span>
 				</div>

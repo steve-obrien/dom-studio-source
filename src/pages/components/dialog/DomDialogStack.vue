@@ -103,7 +103,7 @@ function dialogComponent(dialog) {
 				@resolve="resolve(dialog, $event)"
 				@dismiss="dismiss(dialog, $event)"
 			/>
-			<p v-else-if="dialog.message" class="text-sm text-muted-foreground">
+			<p v-else-if="dialog.message" class="text-sm text-muted-fg">
 				{{ dialog.message }}
 			</p>
 		</slot>

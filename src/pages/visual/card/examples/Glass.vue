@@ -7,9 +7,9 @@ import { DomButton, DomCard } from '../../../lib/vue';
 		<DomCard padding="lg" class="min-h-64">
 			<div class="flex h-full flex-col justify-between gap-8">
 				<div>
-					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Today</p>
+					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Today</p>
 					<h3 class="mt-3 text-3xl font-semibold tracking-tight">42,860</h3>
-					<p class="mt-2 text-sm text-muted-foreground">Monthly active sessions</p>
+					<p class="mt-2 text-sm text-muted-fg">Monthly active sessions</p>
 				</div>
 				<div class="grid grid-cols-6 items-end gap-1.5">
 					<span v-for="height in [36, 54, 44, 72, 62, 92]" :key="height" class="rounded-t-lg bg-primary/80" :style="{ height: `${height}px` }"></span>
@@ -27,11 +27,11 @@ import { DomButton, DomCard } from '../../../lib/vue';
 					>
 					<div>
 						<p class="font-semibold">Avery Stone</p>
-						<p class="text-sm text-muted-foreground">Product lead</p>
+						<p class="text-sm text-muted-fg">Product lead</p>
 					</div>
 				</div>
-				<p class="text-sm leading-6 text-muted-foreground">
-					Glass cards should still use semantic tokens, so theme contrast stays predictable.
+				<p class="text-sm leading-6 text-muted-fg">
+					Glass cards come from skin tokens, so theme contrast stays predictable.
 				</p>
 				<DomButton variant="primary" size="sm">Message</DomButton>
 			</div>

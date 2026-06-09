@@ -14,8 +14,8 @@ const selected = ref('');
 <template>
 	<div class="flex flex-col items-center gap-3">
 		<DomDropdown :items="items" label="Account ▾" @select="(v) => selected = v" />
-		<p class="text-xs text-muted-foreground">
-			Selected: <code class="text-foreground">{{ selected || '—' }}</code>
+		<p class="text-xs text-muted-fg">
+			Selected: <code class="text-fg">{{ selected || '—' }}</code>
 		</p>
 	</div>
 </template>

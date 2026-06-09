@@ -48,8 +48,8 @@ const previewClasses = computed(() => {
 <template>
 	<figure class="my-6 min-w-0 overflow-hidden rounded-2xl border border-border bg-background">
 		<figcaption v-if="title || description" class="border-b border-border bg-secondary/40 px-5 py-3">
-			<p v-if="title" class="text-sm font-semibold tracking-tight text-foreground">{{ title }}</p>
-			<p v-if="description" class="mt-0.5 text-sm text-muted-foreground">{{ description }}</p>
+			<p v-if="title" class="text-sm font-semibold tracking-tight text-fg">{{ title }}</p>
+			<p v-if="description" class="mt-0.5 text-sm text-muted-fg">{{ description }}</p>
 		</figcaption>
 
 		<CodePanel
@@ -79,10 +79,10 @@ const previewClasses = computed(() => {
 
 			<aside
 				v-if="hasProperties"
-				class="min-h-0 border-t border-border bg-card text-card-foreground md:border-l md:border-t-0"
+				class="min-h-0 border-t border-border skin-raised text-fg md:border-l md:border-t-0"
 			>
-				<div class="sticky top-0 z-10 border-b border-border bg-card px-4 py-3">
-					<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{{ props.propertiesTitle }}</p>
+				<div class="sticky top-0 z-10 border-b border-border skin-raised px-4 py-3">
+					<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">{{ props.propertiesTitle }}</p>
 				</div>
 				<div class="max-h-72 space-y-4 overflow-y-auto p-4 md:max-h-[32rem]">
 					<slot name="properties" />

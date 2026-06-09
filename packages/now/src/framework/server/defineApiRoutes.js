@@ -11,14 +11,16 @@ export async function defineApiRoutes(app, options) {
 
 	for (const route of routes) {
 		const module = await import(pathToFileURL(route.file).href)
-		const handler = resolveHandler(module, route.method)
-		const routeMiddleware = module.config?.body === 'raw' ? rawMiddleware : middleware
+		const handlers = resolveHandlers(module, route.method)
 
-		if (!handler) {
-			throw new Error(`No handler exported for ${route.method.toUpperCase()} ${route.path}`)
+		if (!handlers.length) {
+			throw new Error(`No handler exported for ${route.method?.toUpperCase() || 'ANY'} ${route.path}`)
 		}
 
-		app[route.method](route.path, ...routeMiddleware, createHandler(handler))
+		for (const { method, handler } of handlers) {
+			const routeMiddleware = module.config?.body === 'raw' ? rawMiddleware : middleware
+			app[method](route.path, ...routeMiddleware, createHandler(handler))
+		}
 	}
 }
 
@@ -37,7 +39,7 @@ export function fileToApiRoute(file, apiDir, prefix = '/api') {
 	const fileName = parts.pop()
 	const nameParts = fileName.replace(/\.js$/, '').split('.')
 	const possibleMethod = nameParts.at(-1)
-	const method = methods.has(possibleMethod) ? possibleMethod : 'get'
+	const method = methods.has(possibleMethod) ? possibleMethod : null
 
 	if (methods.has(possibleMethod)) {
 		nameParts.pop()
@@ -66,11 +68,25 @@ export function fileToApiRoute(file, apiDir, prefix = '/api') {
 	}
 }
 
-function resolveHandler(module, method) {
+function resolveHandler(module, method, { allowDefaultFunction = true } = {}) {
 	if (typeof module[method] === 'function') return module[method]
-	if (typeof module.default === 'function') return module.default
+	if (allowDefaultFunction && typeof module.default === 'function') return module.default
 	if (module.default && typeof module.default[method] === 'function') return module.default[method]
 	return null
+}
+
+function resolveHandlers(module, method) {
+	if (method) {
+		const handler = resolveHandler(module, method)
+		return handler ? [{ method, handler }] : []
+	}
+
+	return [...methods]
+		.map((candidate) => {
+			const handler = resolveHandler(module, candidate, { allowDefaultFunction: false })
+			return handler ? { method: candidate, handler } : null
+		})
+		.filter(Boolean)
 }
 
 function createHandler(handler) {

@@ -745,8 +745,8 @@ function mergeClassValues(...values) {
 
 function basePreviewClassForNode(node) {
 	if (node.type === 'root') return 'min-h-full bg-background';
-	if (node.type === 'headline') return 'text-2xl font-semibold tracking-tight text-foreground';
-	if (node.type === 'text' || node.type === 'paragraph') return 'text-sm leading-6 text-muted-foreground';
+	if (node.type === 'headline') return 'text-2xl font-semibold tracking-tight text-fg';
+	if (node.type === 'text' || node.type === 'paragraph') return 'text-sm leading-6 text-muted-fg';
 	if (node.type === 'element' && isEmptyElement(node)) return 'min-h-12 rounded-md border border-dashed border-border bg-background/80 p-4';
 	return '';
 }
@@ -820,13 +820,13 @@ async function refreshTailwind() {
 
 <template>
 	<figure
-		class="template-example-editor-shell my-6 overflow-hidden rounded-2xl border border-border bg-background text-foreground"
+		class="template-example-editor-shell my-6 overflow-hidden rounded-2xl border border-border bg-background text-fg"
 		:class="shellClass"
 	>
 		<figcaption v-if="title || description" class="border-b border-border bg-secondary/40 px-5 py-3">
 			<div class="min-w-0">
-				<p v-if="title" class="text-sm font-semibold tracking-tight text-foreground">{{ title }}</p>
-				<p v-if="description" class="mt-0.5 text-sm text-muted-foreground">{{ description }}</p>
+				<p v-if="title" class="text-sm font-semibold tracking-tight text-fg">{{ title }}</p>
+				<p v-if="description" class="mt-0.5 text-sm text-muted-fg">{{ description }}</p>
 			</div>
 		</figcaption>
 
@@ -840,10 +840,10 @@ async function refreshTailwind() {
 			:min-end="280"
 		>
 			<template #start>
-				<aside class="flex h-full min-h-0 flex-col overflow-hidden border-r border-border bg-card text-card-foreground">
+				<aside class="flex h-full min-h-0 flex-col overflow-hidden border-r border-border skin-raised text-fg">
 					<div class="shrink-0 border-b border-border px-4 py-3">
-						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Layers</p>
-						<p class="mt-1 truncate text-sm font-medium text-foreground">{{ componentNameFromFilename(filename) }}</p>
+						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Layers</p>
+						<p class="mt-1 truncate text-sm font-medium text-fg">{{ componentNameFromFilename(filename) }}</p>
 					</div>
 					<div class="min-h-0 flex-1 overflow-y-auto bg-background p-2">
 						<DomTreeView
@@ -865,18 +865,18 @@ async function refreshTailwind() {
 			</template>
 
 			<section class="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
-				<div class="flex min-h-12 items-center justify-between gap-3 border-b border-border bg-card px-4 text-card-foreground">
+				<div class="flex min-h-12 items-center justify-between gap-3 border-b border-border skin-raised px-4 text-fg">
 					<div class="min-w-0">
 						<p class="truncate text-sm font-medium">{{ selectedNode?.label || selectedNode?.tag || 'Template' }}</p>
-						<p class="truncate font-mono text-[11px] text-muted-foreground">{{ sourceFileLabel }}</p>
+						<p class="truncate font-mono text-[11px] text-muted-fg">{{ sourceFileLabel }}</p>
 					</div>
 					<div class="flex shrink-0 items-center gap-2">
-						<button type="button" class="h-7 rounded-md border border-border px-2 text-[11px] font-medium text-muted-foreground hover:bg-secondary hover:text-foreground" @click="resetFromSource()">Reset</button>
-						<button type="button" class="h-7 rounded-md bg-secondary px-2 text-[11px] font-medium text-secondary-foreground hover:bg-secondary/80" @click="toggleCodeOpen">{{ isCodeOpen ? 'Hide code' : 'Show code' }}</button>
+						<button type="button" class="h-7 rounded-md border border-border px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-fg" @click="resetFromSource()">Reset</button>
+						<button type="button" class="h-7 rounded-md bg-secondary px-2 text-[11px] font-medium text-secondary-fg hover:bg-secondary/80" @click="toggleCodeOpen">{{ isCodeOpen ? 'Hide code' : 'Show code' }}</button>
 						<button
 							v-if="expandable"
 							type="button"
-							class="h-7 rounded-md bg-primary px-2.5 text-[11px] font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+							class="h-7 rounded-md bg-primary px-2.5 text-[11px] font-semibold text-primary-fg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 							:aria-label="isExpanded ? 'Close expanded editor' : 'Expand editor'"
 							@click="isExpanded ? collapseEditor() : expandEditor()"
 						>
@@ -907,15 +907,15 @@ async function refreshTailwind() {
 									@hover="hoveredId = $event"
 									@hover-end="hoveredId = ''"
 								/>
-								<p v-else class="text-sm text-muted-foreground">No template loaded.</p>
+								<p v-else class="text-sm text-muted-fg">No template loaded.</p>
 							</div>
 						</div>
 					</template>
 
-					<section class="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] border-t border-border bg-card text-card-foreground">
+					<section class="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] border-t border-border skin-raised text-fg">
 						<div class="flex h-10 items-center justify-between border-b border-border px-4">
-							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Code</p>
-							<p class="truncate text-[11px]" :class="codeError ? 'text-destructive' : 'text-muted-foreground'">{{ codeError || filename }}</p>
+							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Code</p>
+							<p class="truncate text-[11px]" :class="codeError ? 'text-destructive' : 'text-muted-fg'">{{ codeError || filename }}</p>
 						</div>
 						<div class="min-h-0">
 							<TemplateMonacoEditor
@@ -946,37 +946,37 @@ async function refreshTailwind() {
 							@hover="hoveredId = $event"
 							@hover-end="hoveredId = ''"
 						/>
-						<p v-else class="text-sm text-muted-foreground">No template loaded.</p>
+						<p v-else class="text-sm text-muted-fg">No template loaded.</p>
 					</div>
 				</div>
 			</section>
 
 			<template #end>
-				<aside class="h-full min-h-0 overflow-hidden border-l border-border bg-card text-card-foreground">
-					<div class="sticky top-0 z-10 border-b border-border bg-card px-4 py-3">
-						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Properties</p>
-						<p class="mt-1 truncate text-sm font-medium text-foreground">{{ selectedNode?.tag || selectedNode?.label || 'Template' }}</p>
+				<aside class="h-full min-h-0 overflow-hidden border-l border-border skin-raised text-fg">
+					<div class="sticky top-0 z-10 border-b border-border skin-raised px-4 py-3">
+						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Properties</p>
+						<p class="mt-1 truncate text-sm font-medium text-fg">{{ selectedNode?.tag || selectedNode?.label || 'Template' }}</p>
 					</div>
 					<div class="h-[calc(100%-4.5rem)] min-h-0 space-y-4 overflow-y-auto p-4">
 						<label v-if="selectedNode && 'binding' in selectedNode" class="grid gap-1">
-							<span class="text-xs text-muted-foreground">Data binding</span>
-							<input class="h-9 rounded-md border border-input bg-background px-3 font-mono text-xs text-foreground outline-none focus:border-ring" :value="selectedNode.binding || ''" @input="updateBinding($event.target.value)">
+							<span class="text-xs text-muted-fg">Data binding</span>
+							<input class="h-9 rounded-md border border-input bg-background px-3 font-mono text-xs text-fg outline-none focus:border-ring" :value="selectedNode.binding || ''" @input="updateBinding($event.target.value)">
 						</label>
 						<div v-if="selectedResolvedValue != null" class="rounded-md border border-border bg-background px-3 py-2">
-							<p class="text-[11px] font-medium text-muted-foreground">Resolved value</p>
+							<p class="text-[11px] font-medium text-muted-fg">Resolved value</p>
 							<code class="mt-1 block truncate font-mono text-xs text-primary">{{ selectedResolvedValue }}</code>
 						</div>
 						<label v-if="selectedNode && 'text' in selectedNode" class="grid gap-1">
-							<span class="text-xs text-muted-foreground">Text</span>
-							<input class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus:border-ring" :value="selectedNode.text || ''" @input="updateText($event.target.value)">
+							<span class="text-xs text-muted-fg">Text</span>
+							<input class="h-9 rounded-md border border-input bg-background px-3 text-sm text-fg outline-none focus:border-ring" :value="selectedNode.text || ''" @input="updateText($event.target.value)">
 						</label>
 						<label v-if="selectedNode?.repeat" class="grid gap-1">
-							<span class="text-xs text-muted-foreground">Repeated template</span>
-							<input class="h-9 rounded-md border border-input bg-background px-3 font-mono text-xs text-foreground outline-none focus:border-ring" :value="selectedNode.repeat.source" @input="updateRepeatSource($event.target.value)">
+							<span class="text-xs text-muted-fg">Repeated template</span>
+							<input class="h-9 rounded-md border border-input bg-background px-3 font-mono text-xs text-fg outline-none focus:border-ring" :value="selectedNode.repeat.source" @input="updateRepeatSource($event.target.value)">
 						</label>
 
 						<div v-if="selectedNode && selectedNode.type !== 'root'" class="grid gap-1">
-							<span class="text-xs text-muted-foreground">Class</span>
+							<span class="text-xs text-muted-fg">Class</span>
 							<div class="template-example-class-input">
 								<DomClassToggleInput
 									:key="selectedNode.id"
@@ -990,7 +990,7 @@ async function refreshTailwind() {
 						</div>
 
 						<div v-if="selectedInspectorFields.length" class="grid gap-3">
-							<p class="text-xs font-medium text-muted-foreground">Component props</p>
+							<p class="text-xs font-medium text-muted-fg">Component props</p>
 							<InspectorField
 								v-for="field in selectedInspectorFields"
 								:key="field.key"
@@ -1002,8 +1002,8 @@ async function refreshTailwind() {
 
 						<div v-if="selectedNode && selectedNode.type !== 'root'" class="grid gap-2">
 							<div class="flex items-center justify-between">
-								<span class="text-xs text-muted-foreground">HTML attributes</span>
-								<span class="text-[11px] text-muted-foreground">{{ selectedAttrs.length }}</span>
+								<span class="text-xs text-muted-fg">HTML attributes</span>
+								<span class="text-[11px] text-muted-fg">{{ selectedAttrs.length }}</span>
 							</div>
 							<div v-if="selectedAttrs.length" class="grid gap-2">
 								<div
@@ -1011,22 +1011,22 @@ async function refreshTailwind() {
 									:key="key"
 									class="grid min-w-0 grid-cols-[minmax(4.5rem,0.35fr)_minmax(0,1fr)_auto] gap-2"
 								>
-									<input class="h-8 min-w-0 rounded-md border border-input bg-muted px-2 font-mono text-[11px] text-muted-foreground outline-none" readonly :value="key">
-									<input class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-xs text-foreground outline-none focus:border-ring" :value="value" @input="updateSelectedProp(key, $event.target.value)">
-									<button type="button" class="h-8 rounded-md border border-border px-2 text-[11px] text-muted-foreground hover:bg-destructive/10 hover:text-destructive" @click="removeSelectedAttr(key)">Remove</button>
+									<input class="h-8 min-w-0 rounded-md border border-input bg-muted px-2 font-mono text-[11px] text-muted-fg outline-none" readonly :value="key">
+									<input class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-xs text-fg outline-none focus:border-ring" :value="value" @input="updateSelectedProp(key, $event.target.value)">
+									<button type="button" class="h-8 rounded-md border border-border px-2 text-[11px] text-muted-fg hover:bg-destructive/10 hover:text-destructive" @click="removeSelectedAttr(key)">Remove</button>
 								</div>
 							</div>
 							<div class="grid min-w-0 grid-cols-[minmax(4.5rem,0.35fr)_minmax(0,1fr)_auto] gap-2">
-								<input v-model="newAttr.name" class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-[11px] text-foreground outline-none focus:border-ring" placeholder="aria-label">
-								<input v-model="newAttr.value" class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-xs text-foreground outline-none focus:border-ring" placeholder="value">
-								<button type="button" class="h-8 rounded-md bg-secondary px-2 text-xs text-secondary-foreground hover:bg-secondary/80" @click="addSelectedAttr">Add</button>
+								<input v-model="newAttr.name" class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-[11px] text-fg outline-none focus:border-ring" placeholder="aria-label">
+								<input v-model="newAttr.value" class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-xs text-fg outline-none focus:border-ring" placeholder="value">
+								<button type="button" class="h-8 rounded-md bg-secondary px-2 text-xs text-secondary-fg hover:bg-secondary/80" @click="addSelectedAttr">Add</button>
 							</div>
 						</div>
 
 						<div v-if="selectedNode?.type === 'root'" class="grid gap-2">
 							<div class="flex items-center justify-between">
-								<span class="text-xs text-muted-foreground">Root data</span>
-								<span class="text-[11px]" :class="rootDataError ? 'text-destructive' : 'text-muted-foreground'">{{ rootDataError || 'Live' }}</span>
+								<span class="text-xs text-muted-fg">Root data</span>
+								<span class="text-[11px]" :class="rootDataError ? 'text-destructive' : 'text-muted-fg'">{{ rootDataError || 'Live' }}</span>
 							</div>
 							<DomCodeInput
 								:model-value="rootDataText"
@@ -1045,18 +1045,18 @@ async function refreshTailwind() {
 		</DomSplitterPanel>
 
 		<section v-else class="template-example-editor-compact-workspace flex min-h-0 flex-col bg-background">
-			<div class="flex min-h-12 flex-wrap items-center justify-between gap-3 border-b border-border bg-card px-4 py-2 text-card-foreground">
+			<div class="flex min-h-12 flex-wrap items-center justify-between gap-3 border-b border-border skin-raised px-4 py-2 text-fg">
 				<div class="min-w-0">
 					<p class="truncate text-sm font-medium">{{ selectedNode?.label || selectedNode?.tag || 'Template' }}</p>
-					<p class="truncate font-mono text-[11px] text-muted-foreground">{{ sourceFileLabel }}</p>
+					<p class="truncate font-mono text-[11px] text-muted-fg">{{ sourceFileLabel }}</p>
 				</div>
 				<div class="flex shrink-0 flex-wrap items-center justify-end gap-2">
-					<button type="button" class="h-8 rounded-md border border-border px-2.5 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground" @click="resetFromSource()">Reset</button>
-					<button type="button" class="h-8 rounded-md bg-secondary px-2.5 text-xs font-medium text-secondary-foreground hover:bg-secondary/80" @click="toggleCodeOpen">{{ isCodeOpen ? 'Hide code' : 'Show code' }}</button>
+					<button type="button" class="h-8 rounded-md border border-border px-2.5 text-xs font-medium text-muted-fg hover:bg-secondary hover:text-fg" @click="resetFromSource()">Reset</button>
+					<button type="button" class="h-8 rounded-md bg-secondary px-2.5 text-xs font-medium text-secondary-fg hover:bg-secondary/80" @click="toggleCodeOpen">{{ isCodeOpen ? 'Hide code' : 'Show code' }}</button>
 					<button
 						v-if="expandable"
 						type="button"
-						class="h-8 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+						class="h-8 rounded-md bg-primary px-3 text-xs font-semibold text-primary-fg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 						aria-label="Expand editor"
 						@click="expandEditor"
 					>
@@ -1076,9 +1076,9 @@ async function refreshTailwind() {
 			>
 				<template #start>
 					<section class="template-example-editor-compact-stage grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden rounded-lg border border-border bg-background">
-						<div class="flex h-10 items-center justify-between border-b border-border bg-card px-4 text-card-foreground">
-							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Preview</p>
-							<p class="truncate text-[11px] text-muted-foreground">{{ selectedNode?.label || selectedNode?.tag || 'Template' }}</p>
+						<div class="flex h-10 items-center justify-between border-b border-border skin-raised px-4 text-fg">
+							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Preview</p>
+							<p class="truncate text-[11px] text-muted-fg">{{ selectedNode?.label || selectedNode?.tag || 'Template' }}</p>
 						</div>
 						<div class="min-h-0 overflow-auto bg-muted/35 p-4">
 							<div class="mx-auto min-h-full max-w-5xl rounded-lg border border-border bg-background p-4 shadow-sm" :class="previewClass">
@@ -1092,40 +1092,40 @@ async function refreshTailwind() {
 									@hover="hoveredId = $event"
 									@hover-end="hoveredId = ''"
 								/>
-								<p v-else class="text-sm text-muted-foreground">No template loaded.</p>
+								<p v-else class="text-sm text-muted-fg">No template loaded.</p>
 							</div>
 						</div>
 					</section>
 				</template>
 
-				<aside class="template-example-editor-compact-side h-full min-h-0 overflow-hidden rounded-lg border border-border bg-card text-card-foreground">
+				<aside class="template-example-editor-compact-side h-full min-h-0 overflow-hidden rounded-lg border border-border skin-raised text-fg">
 					<DomTabs v-model="compactPanelTab" :tabs="compactPanelTabs" fill class="template-example-editor-compact-tabs h-full min-h-0 p-3">
 						<template #properties>
-							<section class="template-example-editor-compact-panel overflow-auto bg-card text-card-foreground">
+							<section class="template-example-editor-compact-panel overflow-auto skin-raised text-fg">
 								<div class="border-b border-border pb-3">
-									<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Properties</p>
-									<p class="mt-1 truncate text-sm font-medium text-foreground">{{ selectedNode?.tag || selectedNode?.label || 'Template' }}</p>
+									<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Properties</p>
+									<p class="mt-1 truncate text-sm font-medium text-fg">{{ selectedNode?.tag || selectedNode?.label || 'Template' }}</p>
 								</div>
 								<div class="space-y-4 py-4">
 									<label v-if="selectedNode && 'binding' in selectedNode" class="grid gap-1">
-										<span class="text-xs text-muted-foreground">Data binding</span>
-										<input class="h-9 rounded-md border border-input bg-background px-3 font-mono text-xs text-foreground outline-none focus:border-ring" :value="selectedNode.binding || ''" @input="updateBinding($event.target.value)">
+										<span class="text-xs text-muted-fg">Data binding</span>
+										<input class="h-9 rounded-md border border-input bg-background px-3 font-mono text-xs text-fg outline-none focus:border-ring" :value="selectedNode.binding || ''" @input="updateBinding($event.target.value)">
 									</label>
 									<div v-if="selectedResolvedValue != null" class="rounded-md border border-border bg-background px-3 py-2">
-										<p class="text-[11px] font-medium text-muted-foreground">Resolved value</p>
+										<p class="text-[11px] font-medium text-muted-fg">Resolved value</p>
 										<code class="mt-1 block truncate font-mono text-xs text-primary">{{ selectedResolvedValue }}</code>
 									</div>
 									<label v-if="selectedNode && 'text' in selectedNode" class="grid gap-1">
-										<span class="text-xs text-muted-foreground">Text</span>
-										<input class="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus:border-ring" :value="selectedNode.text || ''" @input="updateText($event.target.value)">
+										<span class="text-xs text-muted-fg">Text</span>
+										<input class="h-9 rounded-md border border-input bg-background px-3 text-sm text-fg outline-none focus:border-ring" :value="selectedNode.text || ''" @input="updateText($event.target.value)">
 									</label>
 									<label v-if="selectedNode?.repeat" class="grid gap-1">
-										<span class="text-xs text-muted-foreground">Repeated template</span>
-										<input class="h-9 rounded-md border border-input bg-background px-3 font-mono text-xs text-foreground outline-none focus:border-ring" :value="selectedNode.repeat.source" @input="updateRepeatSource($event.target.value)">
+										<span class="text-xs text-muted-fg">Repeated template</span>
+										<input class="h-9 rounded-md border border-input bg-background px-3 font-mono text-xs text-fg outline-none focus:border-ring" :value="selectedNode.repeat.source" @input="updateRepeatSource($event.target.value)">
 									</label>
 
 									<div v-if="selectedNode && selectedNode.type !== 'root'" class="grid gap-1">
-										<span class="text-xs text-muted-foreground">Class</span>
+										<span class="text-xs text-muted-fg">Class</span>
 										<div class="template-example-class-input">
 											<DomClassToggleInput
 												:key="selectedNode.id"
@@ -1139,7 +1139,7 @@ async function refreshTailwind() {
 									</div>
 
 									<div v-if="selectedInspectorFields.length" class="grid gap-3">
-										<p class="text-xs font-medium text-muted-foreground">Component props</p>
+										<p class="text-xs font-medium text-muted-fg">Component props</p>
 										<InspectorField
 											v-for="field in selectedInspectorFields"
 											:key="field.key"
@@ -1151,8 +1151,8 @@ async function refreshTailwind() {
 
 									<div v-if="selectedNode && selectedNode.type !== 'root'" class="grid gap-2">
 										<div class="flex items-center justify-between">
-											<span class="text-xs text-muted-foreground">HTML attributes</span>
-											<span class="text-[11px] text-muted-foreground">{{ selectedAttrs.length }}</span>
+											<span class="text-xs text-muted-fg">HTML attributes</span>
+											<span class="text-[11px] text-muted-fg">{{ selectedAttrs.length }}</span>
 										</div>
 										<div v-if="selectedAttrs.length" class="grid gap-2">
 											<div
@@ -1160,22 +1160,22 @@ async function refreshTailwind() {
 												:key="key"
 												class="grid min-w-0 gap-2 sm:grid-cols-[minmax(6rem,0.35fr)_minmax(0,1fr)_auto]"
 											>
-												<input class="h-8 min-w-0 rounded-md border border-input bg-muted px-2 font-mono text-[11px] text-muted-foreground outline-none" readonly :value="key">
-												<input class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-xs text-foreground outline-none focus:border-ring" :value="value" @input="updateSelectedProp(key, $event.target.value)">
-												<button type="button" class="h-8 rounded-md border border-border px-2 text-[11px] text-muted-foreground hover:bg-destructive/10 hover:text-destructive" @click="removeSelectedAttr(key)">Remove</button>
+												<input class="h-8 min-w-0 rounded-md border border-input bg-muted px-2 font-mono text-[11px] text-muted-fg outline-none" readonly :value="key">
+												<input class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-xs text-fg outline-none focus:border-ring" :value="value" @input="updateSelectedProp(key, $event.target.value)">
+												<button type="button" class="h-8 rounded-md border border-border px-2 text-[11px] text-muted-fg hover:bg-destructive/10 hover:text-destructive" @click="removeSelectedAttr(key)">Remove</button>
 											</div>
 										</div>
 										<div class="grid min-w-0 gap-2 sm:grid-cols-[minmax(6rem,0.35fr)_minmax(0,1fr)_auto]">
-											<input v-model="newAttr.name" class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-[11px] text-foreground outline-none focus:border-ring" placeholder="aria-label">
-											<input v-model="newAttr.value" class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-xs text-foreground outline-none focus:border-ring" placeholder="value">
-											<button type="button" class="h-8 rounded-md bg-secondary px-2 text-xs text-secondary-foreground hover:bg-secondary/80" @click="addSelectedAttr">Add</button>
+											<input v-model="newAttr.name" class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-[11px] text-fg outline-none focus:border-ring" placeholder="aria-label">
+											<input v-model="newAttr.value" class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-xs text-fg outline-none focus:border-ring" placeholder="value">
+											<button type="button" class="h-8 rounded-md bg-secondary px-2 text-xs text-secondary-fg hover:bg-secondary/80" @click="addSelectedAttr">Add</button>
 										</div>
 									</div>
 
 									<div v-if="selectedNode?.type === 'root'" class="grid gap-2">
 										<div class="flex items-center justify-between">
-											<span class="text-xs text-muted-foreground">Root data</span>
-											<span class="text-[11px]" :class="rootDataError ? 'text-destructive' : 'text-muted-foreground'">{{ rootDataError || 'Live' }}</span>
+											<span class="text-xs text-muted-fg">Root data</span>
+											<span class="text-[11px]" :class="rootDataError ? 'text-destructive' : 'text-muted-fg'">{{ rootDataError || 'Live' }}</span>
 										</div>
 										<DomCodeInput
 											:model-value="rootDataText"
@@ -1212,10 +1212,10 @@ async function refreshTailwind() {
 						</template>
 
 						<template #code>
-							<section class="template-example-editor-compact-panel grid grid-rows-[auto_minmax(0,1fr)] overflow-hidden bg-card text-card-foreground">
+							<section class="template-example-editor-compact-panel grid grid-rows-[auto_minmax(0,1fr)] overflow-hidden skin-raised text-fg">
 								<div class="flex h-10 items-center justify-between border-b border-border">
-									<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Code</p>
-									<p class="truncate text-[11px]" :class="codeError ? 'text-destructive' : 'text-muted-foreground'">{{ codeError || filename }}</p>
+									<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Code</p>
+									<p class="truncate text-[11px]" :class="codeError ? 'text-destructive' : 'text-muted-fg'">{{ codeError || filename }}</p>
 								</div>
 								<div class="min-h-0">
 									<TemplateMonacoEditor
@@ -1256,7 +1256,7 @@ async function refreshTailwind() {
 	margin: 0 !important;
 	border-width: 0;
 	border-radius: 0 !important;
-	box-shadow: 0 24px 80px color-mix(in oklch, var(--foreground) 18%, transparent);
+	box-shadow: 0 24px 80px color-mix(in oklch, var(--fg) 18%, transparent);
 	overflow: hidden !important;
 }
 
@@ -1321,7 +1321,7 @@ async function refreshTailwind() {
 .template-example-class-input :deep(.dom-input) {
 	border-color: var(--input);
 	background: var(--background);
-	color: var(--foreground);
+	color: var(--fg);
 	outline: none;
 }
 
@@ -1331,11 +1331,11 @@ async function refreshTailwind() {
 }
 
 .template-example-class-input :deep(label) {
-	color: var(--foreground);
+	color: var(--fg);
 }
 
 .template-example-class-input :deep(label.opacity-50) {
-	color: var(--muted-foreground);
+	color: var(--muted-fg);
 	opacity: 1;
 }
 

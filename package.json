@@ -13,7 +13,6 @@
 		"db:migrate": "knex migrate:latest",
 		"db:rollback": "knex migrate:rollback",
 		"now:test": "npm --prefix packages/now test",
-		"theme-ai-server": "node scripts/theme-ai-server.mjs",
 		"preview": "NODE_ENV=production node server.js"
 	},
 	"repository": {

@@ -6,9 +6,9 @@ import { DomButton, DomCard } from '../../../lib/vue';
 	<DomCard class="max-w-sm">
 		<div class="space-y-4">
 			<div>
-				<p class="text-sm font-medium text-muted-foreground">Workspace</p>
+				<p class="text-sm font-medium text-muted-fg">Workspace</p>
 				<h3 class="mt-1 text-xl font-semibold tracking-tight">Design system audit</h3>
-				<p class="mt-2 text-sm leading-6 text-muted-foreground">
+				<p class="mt-2 text-sm leading-6 text-muted-fg">
 					Review token usage and component coverage before the next release.
 				</p>
 			</div>

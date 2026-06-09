@@ -24,7 +24,7 @@ function onSelect(event) {
 			class="w-full"
 			@select="onSelect"
 		/>
-		<p class="text-xs text-muted-foreground">Typed text: <code class="text-foreground">{{ text || '—' }}</code></p>
-		<p class="text-xs text-muted-foreground">Selected item: <code class="text-foreground">{{ selected?.email || '—' }}</code></p>
+		<p class="text-xs text-muted-fg">Typed text: <code class="text-fg">{{ text || '—' }}</code></p>
+		<p class="text-xs text-muted-fg">Selected item: <code class="text-fg">{{ selected?.email || '—' }}</code></p>
 	</div>
 </template>

@@ -32,6 +32,6 @@ function setExternalValues() {
 			</div>
 		</DomForm>
 
-		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">{{ profile }}</pre>
+		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ profile }}</pre>
 	</div>
 </template>

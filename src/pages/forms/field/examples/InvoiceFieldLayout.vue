@@ -47,12 +47,12 @@ function money(value) {
 		<DomField :field-layout="InvoiceLetterFieldLayout" :chrome="false">
 			<div class="grid gap-6 lg:grid-cols-[1fr_18rem]">
 				<div>
-					<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Invoice to</p>
+					<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">Invoice to</p>
 					<DomTextInput name="client" label="Client" />
 					<DomTextInput name="contact" label="Contact" />
 				</div>
 				<div>
-					<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Details</p>
+					<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">Details</p>
 					<DomTextInput name="number" label="Number" />
 					<DomTextInput name="due" label="Due" />
 				</div>
@@ -61,7 +61,7 @@ function money(value) {
 
 		<div class="overflow-x-auto">
 			<div class="min-w-[44rem]">
-				<div class="grid grid-cols-[minmax(0,1.5fr)_5rem_7rem_7rem] gap-2 border-b border-border pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+				<div class="grid grid-cols-[minmax(0,1.5fr)_5rem_7rem_7rem] gap-2 border-b border-border pb-2 text-xs font-semibold uppercase tracking-wider text-muted-fg">
 					<span>Item</span>
 					<span>Qty</span>
 					<span>Rate</span>
@@ -100,7 +100,7 @@ function money(value) {
 						>
 							<output
 								:id="`line-${index}-total`"
-								class="flex h-10 items-center justify-end rounded-md border border-input bg-secondary/50 px-3 text-sm font-semibold text-foreground"
+								class="flex h-10 items-center justify-end rounded-md border border-input bg-secondary/50 px-3 text-sm font-semibold text-fg"
 							>
 								{{ money(lineTotal(item)) }}
 							</output>
@@ -112,11 +112,11 @@ function money(value) {
 
 		<div class="flex justify-end">
 			<div class="w-full max-w-xs space-y-2 text-sm">
-				<div class="flex justify-between text-muted-foreground">
+				<div class="flex justify-between text-muted-fg">
 					<span>Subtotal</span>
 					<span>{{ money(total) }}</span>
 				</div>
-				<div class="flex justify-between border-t border-border pt-3 text-lg font-semibold text-foreground">
+				<div class="flex justify-between border-t border-border pt-3 text-lg font-semibold text-fg">
 					<span>Total</span>
 					<span>{{ money(total) }}</span>
 				</div>

@@ -240,7 +240,7 @@ const strengthTones = ['', 'bg-destructive', 'bg-destructive', 'bg-warning', 'bg
 			/>
 			<button
 				type="button"
-				class="absolute inset-y-1 right-1 grid size-8 place-items-center rounded-md text-muted-foreground transition hover:bg-secondary hover:text-secondary-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50"
+				class="absolute inset-y-1 right-1 grid size-8 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-secondary-fg focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50"
 				:disabled="field.disabled.value"
 				:aria-label="visible ? 'Hide password' : 'Show password'"
 				@click="visible = !visible"
@@ -265,7 +265,7 @@ const strengthTones = ['', 'bg-destructive', 'bg-destructive', 'bg-warning', 'bg
 					class="h-1.5 rounded-full transition"
 					:class="step <= passwordInfo.score ? strengthTones[passwordInfo.score] : 'bg-muted'"></span>
 			</div>
-			<p class="text-xs text-muted-foreground">
+			<p class="text-xs text-muted-fg">
 				<span>{{ field.value.value ? `${passwordInfo.label} password` : '' }}</span>
 				<span v-if="passwordInfo.crackTime">  (Time to crack: {{ passwordInfo.crackTime }})</span>
 			</p>
@@ -280,7 +280,7 @@ const strengthTones = ['', 'bg-destructive', 'bg-destructive', 'bg-warning', 'bg
 		>
 			<p
 				v-if="isCompromised"
-				class="mt-3 rounded-lg border-warning-foreground/30 bg-warning text-warning-foreground px-3 py-2 text-xs leading-5 overflow-hidden"
+				class="mt-3 rounded-lg border-warning-fg/30 bg-warning text-warning-fg px-3 py-2 text-xs leading-5 overflow-hidden"
 				style="transition: max-height 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s cubic-bezier(0.4,0,0.2,1), transform 0.3s cubic-bezier(0.4,0,0.2,1);" 
 			>
 				{{ compromisedWarning }}

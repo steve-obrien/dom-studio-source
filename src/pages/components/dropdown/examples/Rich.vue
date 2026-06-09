@@ -31,8 +31,8 @@ const current = computed(() => items.find((i) => i.value === assigned.value));
 					:class="item.color"
 				>{{ item.initials }}</span>
 				<div class="min-w-0">
-					<p class="truncate text-sm font-medium text-foreground">{{ item.name }}</p>
-					<p class="truncate text-xs text-muted-foreground">{{ item.role }}</p>
+					<p class="truncate text-sm font-medium text-fg">{{ item.name }}</p>
+					<p class="truncate text-xs text-muted-fg">{{ item.role }}</p>
 				</div>
 			</div>
 		</template>

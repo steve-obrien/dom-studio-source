@@ -195,7 +195,7 @@ const SAMPLE_CHILDREN = {
 		{
 			id: null,
 			component: 'p',
-			props: { class: 'mt-2 text-sm leading-6 text-muted-foreground' },
+			props: { class: 'mt-2 text-sm leading-6 text-muted-fg' },
 			children: [{ id: null, text: 'Drop content into this visual surface.' }],
 		},
 	],
@@ -389,7 +389,7 @@ const htmlEntries = [
 		icon: 'H',
 		accepts: 'children',
 		defaults: {
-			props: { class: 'text-2xl font-bold tracking-tight text-foreground' },
+			props: { class: 'text-2xl font-bold tracking-tight text-fg' },
 			children: [{ id: null, text: 'Heading' }],
 		},
 	},
@@ -401,7 +401,7 @@ const htmlEntries = [
 		icon: '¶',
 		accepts: 'children',
 		defaults: {
-			props: { class: 'text-sm leading-relaxed text-muted-foreground' },
+			props: { class: 'text-sm leading-relaxed text-muted-fg' },
 			children: [{ id: null, text: 'Body copy lives here.' }],
 		},
 	},
@@ -425,7 +425,7 @@ const htmlEntries = [
 		icon: '▣',
 		accepts: 'children',
 		defaults: {
-			props: { class: 'inline-flex rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground' },
+			props: { class: 'inline-flex rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary-fg' },
 			children: [{ id: null, text: 'New' }],
 		},
 	},

@@ -6,7 +6,7 @@ import {
 
 const leaveTimers = new WeakMap();
 const leaveDuration = 820;
-const transitionClasses = ['dom-floating-transition', 'dom-popover-transition'];
+const transitionClasses = ['dom-floating-transition'];
 
 function hasFloatingTransition(panel) {
 	return transitionClasses.some((className) => panel?.classList.contains(className));

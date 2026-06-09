@@ -271,13 +271,13 @@ function splitTokens(value) {
 				<span
 					v-for="entry in selectedItems"
 					:key="optionKey(entry.value)"
-					class="inline-flex max-w-full items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground ring-1 ring-border"
+					class="inline-flex max-w-full items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-fg ring-1 ring-border"
 				>
 					<slot name="tag" :item="entry" :value="entry.value" :label="entry.label" :remove="() => removeValue(entry.value)">
 						<span class="truncate">{{ entry.label }}</span>
 						<button
 							type="button"
-							class="-mr-1 inline-flex size-4 items-center justify-center rounded-full text-muted-foreground hover:bg-background hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+							class="-mr-1 inline-flex size-4 items-center justify-center rounded-full text-muted-fg hover:bg-background hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 							:aria-label="`Remove ${entry.label}`"
 							@click.stop="removeValue(entry.value)"
 							@mousedown.prevent
@@ -297,7 +297,7 @@ function splitTokens(value) {
 					:aria-expanded="showMenu"
 					:aria-controls="`${field.id.value}-listbox`"
 					:placeholder="hasTags ? '' : placeholder"
-					class="min-w-28 flex-1 bg-transparent px-1 py-1 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+					class="min-w-28 flex-1 bg-transparent px-1 py-1 text-sm outline-none placeholder:text-muted-fg disabled:cursor-not-allowed"
 					@focus="onFocus"
 					@blur="onBlur"
 					@keydown="onKeydown"
@@ -309,7 +309,7 @@ function splitTokens(value) {
 					<button
 						v-if="isClearable && hasTags"
 					type="button"
-					class="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+					class="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 					aria-label="Clear tags"
 					@click.stop="clearAll"
 					@mousedown.prevent
@@ -324,9 +324,9 @@ function splitTokens(value) {
 				v-if="showMenu"
 				:id="`${field.id.value}-listbox`"
 				role="listbox"
-					class="dom-glass-surface absolute z-40 mt-2 max-h-72 w-full overflow-auto rounded-2xl p-1 shadow-xl"
+					class="skin-floating absolute z-40 mt-2 max-h-72 w-full overflow-auto rounded-2xl p-1"
 				>
-					<li v-if="hasEmptyState" class="rounded-xl px-3 py-2 text-sm text-muted-foreground">
+					<li v-if="hasEmptyState" class="rounded-xl px-3 py-2 text-sm text-muted-fg">
 						{{ emptyText }}
 					</li>
 				<li
@@ -335,7 +335,7 @@ function splitTokens(value) {
 					role="option"
 					:aria-selected="activeIndex === index"
 					class="cursor-pointer rounded-xl px-3 py-2 text-sm transition"
-					:class="activeIndex === index ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/70'"
+					:class="activeIndex === index ? 'bg-accent text-accent-fg' : 'hover:bg-accent/70'"
 					@mouseenter="activeIndex = index"
 					@mousedown.prevent
 					@click="commitItem(entry)"
@@ -344,11 +344,11 @@ function splitTokens(value) {
 						<div class="flex min-w-0 items-center justify-between gap-3">
 							<span class="min-w-0">
 								<span class="block truncate font-medium">{{ entry.custom ? `Add "${entry.label}"` : entry.label }}</span>
-								<span v-if="entry.item.description || entry.item.group" class="block truncate text-xs text-muted-foreground">
+								<span v-if="entry.item.description || entry.item.group" class="block truncate text-xs text-muted-fg">
 									{{ entry.item.description || entry.item.group }}
 								</span>
 							</span>
-							<span v-if="entry.custom" class="shrink-0 rounded-full bg-background/70 px-2 py-0.5 text-[11px] text-muted-foreground ring-1 ring-border">custom</span>
+							<span v-if="entry.custom" class="shrink-0 rounded-full bg-background/70 px-2 py-0.5 text-[11px] text-muted-fg ring-1 ring-border">custom</span>
 						</div>
 					</slot>
 				</li>

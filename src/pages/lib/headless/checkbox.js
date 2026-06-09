@@ -15,7 +15,7 @@ dom-checkbox {
 	border: 1px solid var(--border);
 	border-radius: 0.375rem;
 	background: var(--background);
-	color: var(--primary-foreground);
+	color: var(--primary-fg);
 	cursor: pointer;
 	vertical-align: middle;
 }

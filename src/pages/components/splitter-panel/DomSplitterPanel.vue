@@ -101,7 +101,7 @@ const handleBaseClass = computed(() => [
 		: 'min-h-0 cursor-col-resize items-stretch justify-center',
 ]);
 const defaultIndicatorClass = computed(() => [
-	'rounded-full bg-muted-foreground/35 opacity-0 transition group-hover:opacity-100 group-data-[dragging=true]:opacity-100 group-data-[dragging=true]:bg-foreground/50',
+	'rounded-full bg-muted-fg/35 opacity-0 transition group-hover:opacity-100 group-data-[dragging=true]:opacity-100 group-data-[dragging=true]:bg-fg/50',
 	isVertical.value ? 'mx-auto h-0.5 w-10' : 'my-auto h-10 w-0.5',
 ]);
 const gridStyle = computed(() => {

@@ -54,7 +54,7 @@ function clearErrors() {
 			</div>
 		</DomForm>
 
-		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">{{ lastAction }}</pre>
-		<pre class="mt-3 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">{{ runtimeErrors }}</pre>
+		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ lastAction }}</pre>
+		<pre class="mt-3 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ runtimeErrors }}</pre>
 	</div>
 </template>

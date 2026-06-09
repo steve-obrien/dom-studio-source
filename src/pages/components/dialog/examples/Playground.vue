@@ -21,7 +21,7 @@ defineExpose({ data });
 		<template #trigger>
 			<DomButton variant="primary">Open dialog</DomButton>
 		</template>
-		<p class="text-sm text-muted-foreground">Dialog body content.</p>
+		<p class="text-sm text-muted-fg">Dialog body content.</p>
 		<template #footer>
 			<DomButton variant="secondary" data-close>Cancel</DomButton>
 			<DomButton data-close>Confirm</DomButton>

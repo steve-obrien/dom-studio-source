@@ -180,7 +180,7 @@ const relationships = [
 			tag="Definitions + data"
 		>
 			<DocSection eyebrow="Model" title="Definitions are not submission data">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						A form system stores at least two different things. The definition describes
 						how to render, validate, and eventually persist a form. The data is the object
@@ -192,7 +192,7 @@ const relationships = [
 							href="https://form.io/form-json-schema-vs-submission/"
 							target="_blank"
 							rel="noreferrer"
-							class="font-medium text-foreground underline underline-offset-4"
+							class="font-medium text-fg underline underline-offset-4"
 						>Form.io's schema/submission model</a>:
 						the definition and the submitted values are related, but they should not be
 						stored as one thing.
@@ -200,7 +200,7 @@ const relationships = [
 					<p>
 						DOM Studio uses a typed form definition as the practical authoring format. It can
 						normalize to renderable
-						<code class="font-mono text-foreground">children</code>
+						<code class="font-mono text-fg">children</code>
 						and project toward JSON Schema when a portable data contract is needed.
 					</p>
 				</div>
@@ -209,16 +209,16 @@ const relationships = [
 			<DocSection eyebrow="Example" title="Definition and values">
 				<div class="grid gap-4 lg:grid-cols-2">
 					<div class="space-y-3">
-						<h3 class="text-sm font-semibold text-foreground">Form definition</h3>
-						<p class="text-sm leading-6 text-muted-foreground">
+						<h3 class="text-sm font-semibold text-fg">Form definition</h3>
+						<p class="text-sm leading-6 text-muted-fg">
 							The definition records the data type first. A component can be inferred from
 							that type, or overridden when the default renderer is not specific enough.
 						</p>
 						<CodeBlock lang="js" :code="formSchemaCode" />
 					</div>
 					<div class="space-y-3">
-						<h3 class="text-sm font-semibold text-foreground">Form data</h3>
-						<p class="text-sm leading-6 text-muted-foreground">
+						<h3 class="text-sm font-semibold text-fg">Form data</h3>
+						<p class="text-sm leading-6 text-muted-fg">
 							The model only contains the values keyed by field names.
 						</p>
 						<CodeBlock lang="js" :code="formDataCode" />
@@ -228,19 +228,19 @@ const relationships = [
 
 			<DocSection eyebrow="Normalization" title="Author tersely, render explicitly">
 				<div class="grid gap-4 lg:grid-cols-2">
-					<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+					<div class="space-y-4 text-sm leading-6 text-muted-fg">
 						<p>
 							Keyed
-							<code class="font-mono text-foreground">properties</code>
+							<code class="font-mono text-fg">properties</code>
 							match JSON Schema's object shape and avoid repeating the field name inside
 							every child. During normalization, those keys become
-							<code class="font-mono text-foreground">props.name</code>.
+							<code class="font-mono text-fg">props.name</code>.
 						</p>
 						<p>
 							The canonical render shape keeps both
-							<code class="font-mono text-foreground">type</code>
+							<code class="font-mono text-fg">type</code>
 							and
-							<code class="font-mono text-foreground">component</code>.
+							<code class="font-mono text-fg">component</code>.
 							The type describes the data. The component describes the editor currently
 							used to manage that data.
 						</p>
@@ -251,7 +251,7 @@ const relationships = [
 
 			<DocSection eyebrow="JSON Schema" title="Use pure schema for the data contract">
 				<div class="grid gap-4 lg:grid-cols-2">
-					<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+					<div class="space-y-4 text-sm leading-6 text-muted-fg">
 						<p>
 							Pure JSON Schema is useful when the object shape needs to be understood by
 							tools outside DOM Studio. It describes object properties, primitive types,
@@ -269,11 +269,11 @@ const relationships = [
 
 			<DocSection eyebrow="Decoration" title="Decorate pure schema with DOM Studio metadata">
 				<div class="grid gap-4 lg:grid-cols-2">
-					<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+					<div class="space-y-4 text-sm leading-6 text-muted-fg">
 						<p>
 							When a pure JSON Schema needs form-specific information, use a vendor
 							extension such as
-							<code class="font-mono text-foreground">x-el</code>.
+							<code class="font-mono text-fg">x-el</code>.
 							JSON Schema validators can ignore unknown extension keys, while DOM Studio
 							adapters can read them to choose components, placeholders, option labels,
 							inspector hints, and other UI-only details.
@@ -291,7 +291,7 @@ const relationships = [
 			<DocSection eyebrow="Relationship" title="Four layers">
 				<div class="overflow-hidden rounded-2xl border border-border">
 					<table class="w-full text-left text-sm">
-						<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-foreground">
+						<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-fg">
 							<tr>
 								<th class="px-4 py-2 font-medium">Layer</th>
 								<th class="px-4 py-2 font-medium">Purpose</th>
@@ -300,9 +300,9 @@ const relationships = [
 						</thead>
 						<tbody class="divide-y divide-border">
 							<tr v-for="row in relationships" :key="row.name">
-								<td class="px-4 py-3 font-medium text-foreground">{{ row.name }}</td>
-								<td class="px-4 py-3 text-muted-foreground">{{ row.description }}</td>
-								<td class="px-4 py-3 font-mono text-[12.5px] text-muted-foreground">{{ row.example }}</td>
+								<td class="px-4 py-3 font-medium text-fg">{{ row.name }}</td>
+								<td class="px-4 py-3 text-muted-fg">{{ row.description }}</td>
+								<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">{{ row.example }}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -310,7 +310,7 @@ const relationships = [
 			</DocSection>
 
 			<DocSection eyebrow="Direction" title="Generate either way">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						A database table is often enough to generate a useful first form: strings become
 						text inputs, booleans become toggles, dates become date pickers, required columns
@@ -328,7 +328,7 @@ const relationships = [
 			</DocSection>
 
 			<DocSection eyebrow="Lifecycle" title="Transform at the boundary">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						Components should eventually know how their values travel through the system.
 						The browser value, the submitted form value, and the database value are usually
@@ -340,12 +340,12 @@ const relationships = [
 			</DocSection>
 
 			<DocSection eyebrow="Current scope" title="Frontend first">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						Right now, DOM Studio concentrates on the frontend contract:
-						<code class="font-mono text-foreground">DomForm</code>
+						<code class="font-mono text-fg">DomForm</code>
 						normalizes typed definitions into renderable children and stores user input in
-						<code class="font-mono text-foreground">v-model</code>.
+						<code class="font-mono text-fg">v-model</code>.
 					</p>
 					<p>
 						The next layer can add storage metadata without changing that core relationship.

@@ -30,10 +30,10 @@ function selectAction({ item }) {
 	<div class="space-y-3">
 		<DomPopover ref="popover" label="Actions" position="bottom-end" width="min-w-[12rem]" padding="p-1" @open="focusMenu">
 			<div ref="menu">
-				<DomMenu :items="actions" :surface="false" @select="selectAction" />
+				<DomMenu :items="actions" :skin="false" @select="selectAction" />
 			</div>
 		</DomPopover>
 
-		<p v-if="lastAction" class="text-sm text-muted-foreground">Selected {{ lastAction }}.</p>
+		<p v-if="lastAction" class="text-sm text-muted-fg">Selected {{ lastAction }}.</p>
 	</div>
 </template>

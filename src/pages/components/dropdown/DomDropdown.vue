@@ -141,7 +141,7 @@ defineExpose({
 		<button
 			slot="trigger"
 			type="button"
-			class="inline-flex h-10 items-center gap-2 rounded-full bg-secondary px-4 text-sm font-medium text-foreground ring-1 ring-border transition hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+			class="skin-control inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium transition hover:brightness-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 		>
 			<slot name="trigger">{{ label }}</slot>
 			<svg viewBox="0 0 20 20" class="size-4 opacity-70" fill="none">
@@ -151,7 +151,7 @@ defineExpose({
 		<Teleport to="body" :disabled="!isMounted">
 			<div
 				:id="menuId"
-				class="dom-dropdown-menu dom-floating-transition dom-glass-surface rounded-2xl p-1"
+				class="dom-dropdown-menu dom-floating-transition skin-floating rounded-2xl p-1"
 				:class="width"
 				:data-composite-panel="$slots.panel ? 'true' : null"
 				:data-haspopup="$slots.panel ? panelType : null"

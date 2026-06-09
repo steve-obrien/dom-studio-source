@@ -83,7 +83,7 @@ function onAction({ action, item }) {
 			<template #item="{ item }">
 				<span class="flex min-w-0 items-center gap-2">
 					<span class="truncate">{{ item.label }}</span>
-					<span v-if="item.acceptsChildren === false" class="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-muted-foreground group-aria-selected:bg-primary-foreground/15 group-aria-selected:text-primary-foreground/80">
+					<span v-if="item.acceptsChildren === false" class="rounded-full bg-secondary px-1.5 py-0.5 text-[10px] text-muted-fg group-aria-selected:bg-primary-fg/15 group-aria-selected:text-primary-fg/80">
 						locked
 					</span>
 				</span>
@@ -92,15 +92,15 @@ function onAction({ action, item }) {
 
 		<div class="rounded-2xl border border-border bg-secondary/40 p-4">
 			<div class="mb-3 flex items-center justify-between">
-				<p class="text-sm font-medium text-foreground">Stage</p>
-				<p class="text-xs text-muted-foreground">Selected: <code>{{ selected }}</code></p>
+				<p class="text-sm font-medium text-fg">Stage</p>
+				<p class="text-xs text-muted-fg">Selected: <code>{{ selected }}</code></p>
 			</div>
 			<div class="space-y-3 rounded-xl border border-border bg-background p-4">
 				<div class="w-full rounded-xl border border-border p-4 text-left transition hover:border-ring" :class="selected === 'hero' && 'ring-2 ring-ring/40'" @click="selectFromStage('hero')">
-					<p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Hero group</p>
-					<button type="button" class="mt-3 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground" :class="selected === 'hero-title' && 'ring-2 ring-ring/50'" @click.stop="selectFromStage('hero-title')">Headline layer</button>
+					<p class="text-xs font-medium uppercase tracking-wide text-muted-fg">Hero group</p>
+					<button type="button" class="mt-3 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-fg" :class="selected === 'hero-title' && 'ring-2 ring-ring/50'" @click.stop="selectFromStage('hero-title')">Headline layer</button>
 				</div>
-				<button type="button" class="rounded-xl border border-border bg-card p-4 text-sm transition hover:border-ring" :class="selected === 'hero-card' && 'ring-2 ring-ring/40'" @click="selectFromStage('hero-card')">
+				<button type="button" class="rounded-xl border border-border skin-raised p-4 text-sm transition hover:border-ring" :class="selected === 'hero-card' && 'ring-2 ring-ring/40'" @click="selectFromStage('hero-card')">
 					Feature card layer
 				</button>
 			</div>

@@ -12,9 +12,9 @@ const twoFactor = ref(true);
 	<DomCard padding="lg" class="w-full max-w-2xl">
 		<div class="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
 			<div>
-				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Account</p>
+				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Account</p>
 				<h3 class="mt-2 text-2xl font-semibold tracking-tight">Security settings</h3>
-				<p class="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
+				<p class="mt-2 max-w-lg text-sm leading-6 text-muted-fg">
 					A complete form starter with text input, native select, password strength, breach warning, and a toggle.
 				</p>
 			</div>
@@ -50,7 +50,7 @@ const twoFactor = ref(true);
 			<div class="flex items-center justify-between gap-4 rounded-2xl border border-border bg-secondary/60 p-4">
 				<div>
 					<p class="text-sm font-medium">Two-factor authentication</p>
-					<p class="mt-1 text-sm text-muted-foreground">Require a verification code during login.</p>
+					<p class="mt-1 text-sm text-muted-fg">Require a verification code during login.</p>
 				</div>
 				<DomToggle v-model="twoFactor" label="Two-factor authentication" />
 			</div>

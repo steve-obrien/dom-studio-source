@@ -63,38 +63,38 @@ async function signOut() {
 	<DomStudioLayout>
 		<section class="mx-auto flex min-h-[calc(100vh-13rem)] w-full max-w-5xl items-center py-8">
 			<div class="grid w-full overflow-hidden rounded-3xl border border-border bg-background shadow-2xl shadow-black/10 md:grid-cols-[0.9fr_1.1fr]">
-				<div class="hidden bg-primary p-8 text-primary-foreground md:flex md:flex-col md:justify-between">
+				<div class="hidden bg-primary p-8 text-primary-fg md:flex md:flex-col md:justify-between">
 					<div>
-						<p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary-foreground/70">DOM Studio</p>
+						<p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary-fg/70">DOM Studio</p>
 						<h1 class="mt-6 text-4xl/snug font-bold tracking-tight ">Source access for people who own their UI.</h1>
-						<p class="mt-4 text-sm leading-6 text-primary-foreground/70">
+						<p class="mt-4 text-sm leading-6 text-primary-fg/70">
 							Continue into paid templates, source previews, experiments, and private implementation notes.
 						</p>
 					</div>
-					<div class="rounded-2xl border border-primary-foreground/15 bg-primary-foreground/10 p-4">
+					<div class="rounded-2xl border border-primary-fg/15 bg-primary-fg/10 p-4">
 						<p class="text-sm font-medium">Pay once, Own forever.</p>
-						<p class="mt-1 text-sm text-primary-foreground/70">Lifetime access and updates</p>
+						<p class="mt-1 text-sm text-primary-fg/70">Lifetime access and updates</p>
 					</div>
 				</div>
 
 				<div v-if="isLoggedIn" class="p-6 sm:p-10">
 					<div class="mx-auto max-w-sm">
-						<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Account</p>
-						<h2 class="mt-2 text-3xl font-bold tracking-tight text-foreground">You are already signed in</h2>
-						<p class="mt-2 text-sm leading-6 text-muted-foreground">
-							You are signed in as <span class="font-medium text-foreground">{{ user.email }}</span>.
+						<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">Account</p>
+						<h2 class="mt-2 text-3xl font-bold tracking-tight text-fg">You are already signed in</h2>
+						<p class="mt-2 text-sm leading-6 text-muted-fg">
+							You are signed in as <span class="font-medium text-fg">{{ user.email }}</span>.
 						</p>
 
 						<div class="mt-8 space-y-4">
 							<div v-if="needsPurchase" class="rounded-2xl border border-border bg-secondary/40 p-4">
-								<p class="text-sm font-semibold text-foreground">Finish unlocking lifetime access</p>
-								<p class="mt-1 text-sm leading-6 text-muted-foreground">
+								<p class="text-sm font-semibold text-fg">Finish unlocking lifetime access</p>
+								<p class="mt-1 text-sm leading-6 text-muted-fg">
 									Continue to payment to unlock DOM Studio source access for this account.
 								</p>
 							</div>
 							<div v-else-if="hasSourceAccess" class="rounded-2xl border border-success/30 bg-success/10 p-4">
-								<p class="text-sm font-semibold text-foreground">Source access is active</p>
-								<p class="mt-1 text-sm leading-6 text-muted-foreground">
+								<p class="text-sm font-semibold text-fg">Source access is active</p>
+								<p class="mt-1 text-sm leading-6 text-muted-fg">
 									Your lifetime access is already linked to this account.
 								</p>
 							</div>
@@ -114,9 +114,9 @@ async function signOut() {
 
 				<form v-else class="p-6 sm:p-10" @submit.prevent="submit" @keydown.enter="submitFromPassword">
 					<div class="mx-auto max-w-sm">
-						<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Account</p>
-						<h2 class="mt-2 text-3xl font-bold tracking-tight text-foreground">Sign in</h2>
-						<p class="mt-2 text-sm leading-6 text-muted-foreground">Use your account password.</p>
+						<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">Account</p>
+						<h2 class="mt-2 text-3xl font-bold tracking-tight text-fg">Sign in</h2>
+						<p class="mt-2 text-sm leading-6 text-muted-fg">Use your account password.</p>
 
 						<div class="mt-8 space-y-4">
 							<DomTextInput
@@ -142,9 +142,9 @@ async function signOut() {
 							</DomButton>
 						</div>
 
-						<p class="mt-6 text-center text-sm text-muted-foreground">
+						<p class="mt-6 text-center text-sm text-muted-fg">
 							Need an account?
-							<RouterLink class="font-medium text-foreground hover:underline" :to="{ path: '/auth/sign-up', query: { from: returnTo, licence } }">Create one</RouterLink>
+							<RouterLink class="font-medium text-fg hover:underline" :to="{ path: '/auth/sign-up', query: { from: returnTo, licence } }">Create one</RouterLink>
 						</p>
 					</div>
 				</form>

@@ -63,9 +63,9 @@ const keys = [
 					title="Tabs playground"
 					description="Edit props in the inspector — switch tabs to preview panel slots and the active tab key."
 				>
-					<template #overview><p class="text-sm text-muted-foreground">Overview panel content.</p></template>
-					<template #pricing><p class="text-sm text-muted-foreground">Pricing panel content.</p></template>
-					<template #changelog><p class="text-sm text-muted-foreground">Changelog panel content.</p></template>
+					<template #overview><p class="text-sm text-muted-fg">Overview panel content.</p></template>
+					<template #pricing><p class="text-sm text-muted-fg">Pricing panel content.</p></template>
+					<template #changelog><p class="text-sm text-muted-fg">Changelog panel content.</p></template>
 				</Playground>
 			</DocSection>
 
@@ -74,13 +74,13 @@ const keys = [
 					<div class="w-full max-w-md">
 						<DomTabs v-model="active" :tabs="tabs">
 							<template #overview>
-								<div class="rounded-xl border border-border bg-background p-5 text-sm text-muted-foreground">Overview content. Tabs preserve focus and announce panel changes to assistive tech.</div>
+								<div class="rounded-xl border border-border bg-background p-5 text-sm text-muted-fg">Overview content. Tabs preserve focus and announce panel changes to assistive tech.</div>
 							</template>
 							<template #pricing>
-								<div class="rounded-xl border border-border bg-background p-5 text-sm text-muted-foreground">Pricing content. Use the arrow keys to move between tabs.</div>
+								<div class="rounded-xl border border-border bg-background p-5 text-sm text-muted-fg">Pricing content. Use the arrow keys to move between tabs.</div>
 							</template>
 							<template #changelog>
-								<div class="rounded-xl border border-border bg-background p-5 text-sm text-muted-foreground">Changelog content. Each panel is keyboard-reachable.</div>
+								<div class="rounded-xl border border-border bg-background p-5 text-sm text-muted-fg">Changelog content. Each panel is keyboard-reachable.</div>
 							</template>
 						</DomTabs>
 					</div>
@@ -103,7 +103,7 @@ const keys = [
 				<ul class="space-y-2 rounded-2xl border border-border bg-secondary/40 p-5 text-sm">
 					<li v-for="row in keys" :key="row.k" class="flex items-start gap-4">
 						<kbd class="rounded bg-background px-2 py-0.5 font-mono text-xs ring-1 ring-border">{{ row.k }}</kbd>
-						<span class="text-muted-foreground">{{ row.d }}</span>
+						<span class="text-muted-fg">{{ row.d }}</span>
 					</li>
 				</ul>
 			</DocSection>

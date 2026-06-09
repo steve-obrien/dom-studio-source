@@ -895,13 +895,13 @@ function shadowTitle(shadow) {
 </script>
 
 <template>
-	<main class="min-h-screen bg-background text-foreground xl:h-dvh xl:overflow-hidden">
+	<main class="min-h-screen bg-background text-fg xl:h-dvh xl:overflow-hidden">
 		<section class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8 xl:h-full xl:max-w-none">
 			<header class="flex flex-col gap-3 border-b border-border pb-4 lg:flex-row lg:items-end lg:justify-between xl:shrink-0">
 				<div class="max-w-3xl space-y-1.5">
-					<p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Experiments / CSS tools</p>
-					<h1 class="text-2xl font-semibold tracking-normal text-foreground sm:text-3xl">CSS button creator</h1>
-					<p class="max-w-2xl text-sm leading-6 text-muted-foreground">
+					<p class="text-xs font-medium uppercase tracking-wide text-muted-fg">Experiments / CSS tools</p>
+					<h1 class="text-2xl font-semibold tracking-normal text-fg sm:text-3xl">CSS button creator</h1>
+					<p class="max-w-2xl text-sm leading-6 text-muted-fg">
 						Design-tool style button CSS editor with stateful preview and generated output.
 					</p>
 				</div>
@@ -913,7 +913,7 @@ function shadowTitle(shadow) {
 
 			<div class="grid min-h-0 gap-4 xl:flex-1 xl:grid-cols-[minmax(0,1fr)_420px] xl:overflow-hidden">
 				<section class="min-h-0 space-y-4 focus:outline-none xl:overflow-y-auto xl:pr-1" tabindex="0" aria-label="Preview and generated code">
-					<section class="overflow-hidden rounded-lg border border-border bg-card text-card-foreground xl:sticky xl:top-0 xl:z-10">
+					<section class="overflow-hidden rounded-lg border border-border skin-raised text-fg xl:sticky xl:top-0 xl:z-10">
 						<div class="grid min-h-[24rem] place-items-center bg-[linear-gradient(135deg,color-mix(in_oklch,var(--secondary)_82%,transparent),var(--background))] p-8 xl:min-h-[clamp(18rem,52vh,34rem)]">
 							<button
 								class="button-preview"
@@ -932,15 +932,15 @@ function shadowTitle(shadow) {
 						<div class="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3">
 							<div>
 								<h2 class="text-sm font-semibold">Stage</h2>
-								<p class="text-xs text-muted-foreground">Previewing {{ stateLabels[previewState].toLowerCase() }} styling.</p>
+								<p class="text-xs text-muted-fg">Previewing {{ stateLabels[previewState].toLowerCase() }} styling.</p>
 							</div>
-							<div class="rounded-full border border-border bg-secondary px-3 py-1 font-mono text-xs text-secondary-foreground">
+							<div class="rounded-full border border-border bg-secondary px-3 py-1 font-mono text-xs text-secondary-fg">
 								{{ enabledCurrentShadows.length }} active shadow{{ enabledCurrentShadows.length === 1 ? '' : 's' }}
 							</div>
 						</div>
 					</section>
 
-					<section class="rounded-lg border border-border bg-card text-card-foreground">
+					<section class="rounded-lg border border-border skin-raised text-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.css = !sectionOpen.css">
 								<span class="block truncate text-sm font-semibold">CSS</span>
@@ -959,16 +959,16 @@ function shadowTitle(shadow) {
 								spellcheck="false"
 								autocapitalize="off"
 								autocomplete="off"
-								class="block max-h-96 min-h-80 w-full resize-y overflow-auto bg-transparent p-4 font-mono text-xs leading-6 text-foreground outline-none focus:ring-2 focus:ring-inset focus:ring-ring/30"
+								class="block max-h-96 min-h-80 w-full resize-y overflow-auto bg-transparent p-4 font-mono text-xs leading-6 text-fg outline-none focus:ring-2 focus:ring-inset focus:ring-ring/30"
 								@input="applyCssEditorStyles"
 								@focus="isEditingCss = true"
 								@blur="finishCssEditing"
 							></textarea>
-							<p v-if="cssEditorFeedback" class="border-t border-border px-4 py-2 text-xs text-muted-foreground">{{ cssEditorFeedback }}</p>
+							<p v-if="cssEditorFeedback" class="border-t border-border px-4 py-2 text-xs text-muted-fg">{{ cssEditorFeedback }}</p>
 						</div>
 					</section>
 
-					<section class="rounded-lg border border-border bg-card text-card-foreground">
+					<section class="rounded-lg border border-border skin-raised text-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.import = !sectionOpen.import">
 								<span class="block truncate text-sm font-semibold">Import styles</span>
@@ -980,31 +980,31 @@ function shadowTitle(shadow) {
 						</div>
 						<div v-if="sectionOpen.import" class="space-y-3 border-t border-border p-3">
 							<label class="block space-y-1.5">
-								<span class="text-xs font-medium uppercase text-muted-foreground">CSS or Tailwind</span>
+								<span class="text-xs font-medium uppercase text-muted-fg">CSS or Tailwind</span>
 								<textarea
 									v-model="importSource"
 									rows="6"
 									spellcheck="false"
 									autocapitalize="off"
 									autocomplete="off"
-									class="min-h-36 w-full resize-y rounded-md border border-input bg-background px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+									class="min-h-36 w-full resize-y rounded-md border border-input bg-background px-3 py-2 font-mono text-xs leading-5 text-fg outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
 								></textarea>
 							</label>
 							<button
 								type="button"
-								class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+								class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-fg transition hover:bg-primary/90"
 								@click="applyImportedStyles"
 							>
 								Apply to {{ stateLabels[activeState] }}
 							</button>
-							<p v-if="importFeedback" class="text-xs text-muted-foreground">{{ importFeedback }}</p>
-							<p class="text-xs leading-5 text-muted-foreground">
+							<p v-if="importFeedback" class="text-xs text-muted-fg">{{ importFeedback }}</p>
+							<p class="text-xs leading-5 text-muted-fg">
 								Supports common background layers, border, radius, padding, type, text colour, and box-shadow values for the active state.
 							</p>
 						</div>
 					</section>
 
-					<section class="rounded-lg border border-border bg-card text-card-foreground">
+					<section class="rounded-lg border border-border skin-raised text-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.tailwind = !sectionOpen.tailwind">
 								<span class="block truncate text-sm font-semibold">Tailwind</span>
@@ -1023,7 +1023,7 @@ function shadowTitle(shadow) {
 				</section>
 
 				<aside class="flex min-h-0 flex-col gap-3 focus:outline-none xl:h-full xl:overflow-y-auto xl:pr-1" tabindex="0" aria-label="Button properties">
-					<section class="order-1 rounded-lg border border-border bg-card text-card-foreground">
+					<section class="order-1 rounded-lg border border-border skin-raised text-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.states = !sectionOpen.states">
 								<span class="block truncate text-sm font-semibold">States</span>
@@ -1036,7 +1036,7 @@ function shadowTitle(shadow) {
 								:key="key"
 								type="button"
 								class="h-9 rounded-md px-2 text-xs font-medium transition"
-								:class="activeState === key ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'"
+								:class="activeState === key ? 'bg-primary text-primary-fg shadow-sm' : 'text-muted-fg hover:bg-secondary hover:text-secondary-fg'"
 								@click="setActiveState(key)"
 							>
 								{{ label }}
@@ -1044,7 +1044,7 @@ function shadowTitle(shadow) {
 						</div>
 					</section>
 
-					<section class="order-2 rounded-lg border border-border bg-card text-card-foreground">
+					<section class="order-2 rounded-lg border border-border skin-raised text-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.content = !sectionOpen.content">
 								<span class="block truncate text-sm font-semibold">Content</span>
@@ -1056,11 +1056,11 @@ function shadowTitle(shadow) {
 						</div>
 					</section>
 
-					<section class="order-6 rounded-lg border border-border bg-card text-card-foreground" :class="!currentButton.background.enabled && 'opacity-60'">
+					<section class="order-6 rounded-lg border border-border skin-raised text-fg" :class="!currentButton.background.enabled && 'opacity-60'">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.background = !sectionOpen.background">
 								<span class="block truncate text-sm font-semibold">Fill</span>
-								<span class="block text-xs text-muted-foreground">{{ enabledFills(currentButton.background.fills).length }} of {{ currentButton.background.fills.length }} visible</span>
+								<span class="block text-xs text-muted-fg">{{ enabledFills(currentButton.background.fills).length }} of {{ currentButton.background.fills.length }} visible</span>
 							</button>
 							<div class="flex items-center gap-1">
 								<ElButton size="sm" type="button" @click.stop="addFill">Add</ElButton>
@@ -1133,7 +1133,7 @@ function shadowTitle(shadow) {
 							</div>
 					</section>
 
-					<section class="order-4 rounded-lg border border-border bg-card text-card-foreground" :class="!currentButton.typography.enabled && 'opacity-60'">
+					<section class="order-4 rounded-lg border border-border skin-raised text-fg" :class="!currentButton.typography.enabled && 'opacity-60'">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.typography = !sectionOpen.typography">
 								<span class="block truncate text-sm font-semibold">Typography</span>
@@ -1158,7 +1158,7 @@ function shadowTitle(shadow) {
 						</div>
 					</section>
 
-					<section class="order-3 rounded-lg border border-border bg-card text-card-foreground" :class="!currentButton.layout.enabled && 'opacity-60'">
+					<section class="order-3 rounded-lg border border-border skin-raised text-fg" :class="!currentButton.layout.enabled && 'opacity-60'">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.layout = !sectionOpen.layout">
 								<span class="block truncate text-sm font-semibold">Layout</span>
@@ -1183,7 +1183,7 @@ function shadowTitle(shadow) {
 						</div>
 					</section>
 
-					<section class="order-5 rounded-lg border border-border bg-card text-card-foreground" :class="!currentButton.border.enabled && 'opacity-60'">
+					<section class="order-5 rounded-lg border border-border skin-raised text-fg" :class="!currentButton.border.enabled && 'opacity-60'">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.border = !sectionOpen.border">
 								<span class="block truncate text-sm font-semibold">Border</span>
@@ -1207,11 +1207,11 @@ function shadowTitle(shadow) {
 						</div>
 					</section>
 
-					<section class="order-7 rounded-lg border border-border bg-card text-card-foreground">
+					<section class="order-7 rounded-lg border border-border skin-raised text-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.shadows = !sectionOpen.shadows">
 								<span class="block truncate text-sm font-semibold">{{ stateLabels[activeState] }} box shadows</span>
-								<span class="block text-xs text-muted-foreground">{{ enabledCurrentShadows.length }} of {{ currentShadows.length }} visible</span>
+								<span class="block text-xs text-muted-fg">{{ enabledCurrentShadows.length }} of {{ currentShadows.length }} visible</span>
 							</button>
 							<div class="flex items-center gap-1">
 								<ElButton size="sm" type="button" @click.stop="addShadow()">Add</ElButton>
@@ -1225,7 +1225,7 @@ function shadowTitle(shadow) {
 											<template #trigger>
 												<button type="button" class="w-full min-w-0 rounded-md text-left transition hover:bg-secondary/60" @pointerdown.capture="closeAllLayerPopovers">
 													<span class="flex min-w-0 items-center gap-2">
-														<span class="font-mono text-[11px] text-muted-foreground">{{ index + 1 }}</span>
+														<span class="font-mono text-[11px] text-muted-fg">{{ index + 1 }}</span>
 														<span class="truncate text-sm font-medium">{{ shadowTitle(shadow) }}</span>
 													</span>
 												</button>
@@ -1270,7 +1270,7 @@ function shadowTitle(shadow) {
 							</div>
 					</section>
 
-					<section class="order-8 rounded-lg border border-border bg-card text-card-foreground">
+					<section class="order-8 rounded-lg border border-border skin-raised text-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.ai = !sectionOpen.ai">
 								<span class="block truncate text-sm font-semibold">AI theme request</span>
@@ -1320,7 +1320,7 @@ function shadowTitle(shadow) {
 	align-items: center;
 	justify-content: center;
 	border-radius: 0.375rem;
-	color: var(--muted-foreground);
+	color: var(--muted-fg);
 	font-size: 0.875rem;
 	line-height: 1;
 	transition: background-color 140ms ease, color 140ms ease;
@@ -1333,6 +1333,6 @@ function shadowTitle(shadow) {
 
 .icon-button:hover {
 	background: var(--secondary);
-	color: var(--secondary-foreground);
+	color: var(--secondary-fg);
 }
 </style>

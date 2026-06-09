@@ -70,20 +70,20 @@ const isButton = computed(() => props.as === 'button');
 		:class="[selected && 'bg-secondary', danger && 'text-destructive']"
 		:type="isButton ? 'button' : undefined"
 	>
-		<div v-if="$slots.icon" class="grid size-10 shrink-0 place-items-center rounded-2xl bg-secondary text-muted-foreground">
+		<div v-if="$slots.icon" class="grid size-10 shrink-0 place-items-center rounded-2xl bg-secondary text-muted-fg">
 			<slot name="icon" />
 		</div>
 		<div class="min-w-0 flex-1">
 			<div class="flex min-w-0 items-baseline gap-2">
-				<p class="truncate text-sm font-medium" :class="danger ? 'text-destructive' : 'text-foreground'">{{ label }}</p>
-				<p v-if="meta" class="shrink-0 text-xs text-muted-foreground">{{ meta }}</p>
+				<p class="truncate text-sm font-medium" :class="danger ? 'text-destructive' : 'text-fg'">{{ label }}</p>
+				<p v-if="meta" class="shrink-0 text-xs text-muted-fg">{{ meta }}</p>
 			</div>
-			<p v-if="description" class="mt-0.5 line-clamp-2 text-xs leading-5 text-muted-foreground">{{ description }}</p>
+			<p v-if="description" class="mt-0.5 line-clamp-2 text-xs leading-5 text-muted-fg">{{ description }}</p>
 		</div>
-		<div v-if="$slots.trailing" class="flex shrink-0 items-center text-muted-foreground">
+		<div v-if="$slots.trailing" class="flex shrink-0 items-center text-muted-fg">
 			<slot name="trailing" />
 		</div>
-		<svg v-else-if="chevron" class="size-4 shrink-0 text-muted-foreground" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+		<svg v-else-if="chevron" class="size-4 shrink-0 text-muted-fg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
 			<path d="M7.3 4.3a1 1 0 0 1 1.4 0l5 5a1 1 0 0 1 0 1.4l-5 5a1 1 0 1 1-1.4-1.4L11.58 10 7.3 5.7a1 1 0 0 1 0-1.4Z" />
 		</svg>
 	</component>

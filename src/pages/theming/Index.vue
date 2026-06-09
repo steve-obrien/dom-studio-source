@@ -9,78 +9,64 @@ import { DomPopover } from '../lib/vue';
 const tokenPairs = [
 	{
 		name: 'Background',
-		surface: '--background',
-		foreground: '--foreground',
-		utilities: 'bg-background text-foreground',
+		bg: '--background',
+		fg: '--fg',
+		utilities: 'bg-background text-fg',
 		use: 'The app canvas and ordinary page text.',
 	},
 	{
-		name: 'Card',
-		surface: '--card',
-		foreground: '--card-foreground',
-		utilities: 'bg-card text-card-foreground',
-		use: 'Raised or grouped content, panels, toast bodies, and dialogs.',
-	},
-	{
-		name: 'Popover',
-		surface: '--popover',
-		foreground: '--popover-foreground',
-		utilities: 'bg-popover text-popover-foreground',
-		use: 'Floating menus, combobox panels, dropdowns, and command palettes.',
-	},
-	{
 		name: 'Primary',
-		surface: '--primary',
-		foreground: '--primary-foreground',
-		utilities: 'bg-primary text-primary-foreground',
+		bg: '--primary',
+		fg: '--primary-fg',
+		utilities: 'bg-primary text-primary-fg',
 		use: 'Primary actions and high emphasis selected states.',
 	},
 	{
 		name: 'Secondary',
-		surface: '--secondary',
-		foreground: '--secondary-foreground',
-		utilities: 'bg-secondary text-secondary-foreground',
+		bg: '--secondary',
+		fg: '--secondary-fg',
+		utilities: 'bg-secondary text-secondary-fg',
 		use: 'Quiet buttons, subtle panels, inactive controls, and helper UI.',
 	},
 	{
 		name: 'Muted',
-		surface: '--muted',
-		foreground: '--muted-foreground',
-		utilities: 'bg-muted text-muted-foreground',
+		bg: '--muted',
+		fg: '--muted-fg',
+		utilities: 'bg-muted text-muted-fg',
 		use: 'Low-emphasis backgrounds and supporting copy.',
 	},
 	{
 		name: 'Accent',
-		surface: '--accent',
-		foreground: '--accent-foreground',
-		utilities: 'bg-accent text-accent-foreground',
+		bg: '--accent',
+		fg: '--accent-fg',
+		utilities: 'bg-accent text-accent-fg',
 		use: 'Hover, focus, active rows, and soft selected states.',
 	},
 	{
 		name: 'Destructive',
-		surface: '--destructive',
-		foreground: '--destructive-foreground',
-		utilities: 'bg-destructive text-destructive-foreground',
+		bg: '--destructive',
+		fg: '--destructive-fg',
+		utilities: 'bg-destructive text-destructive-fg',
 		use: 'Delete, remove, error, and irreversible actions.',
 	},
 	{
 		name: 'Success',
-		surface: '--success',
-		foreground: '--success-foreground',
-		utilities: 'bg-success text-success-foreground',
+		bg: '--success',
+		fg: '--success-fg',
+		utilities: 'bg-success text-success-fg',
 		use: 'Saved, complete, connected, and positive confirmation states.',
 	},
 	{
 		name: 'Warning',
-		surface: '--warning',
-		foreground: '--warning-foreground',
-		utilities: 'bg-warning text-warning-foreground',
+		bg: '--warning',
+		fg: '--warning-fg',
+		utilities: 'bg-warning text-warning-fg',
 		use: 'Attention, pending review, expiring, and recoverable risk states.',
 	},
 ];
 
-const foregroundBySurface = Object.fromEntries(tokenPairs.map((pair) => [pair.surface, pair.foreground]));
-const surfaceByForeground = Object.fromEntries(tokenPairs.map((pair) => [pair.foreground, pair.surface]));
+const fgByBg = Object.fromEntries(tokenPairs.map((pair) => [pair.bg, pair.fg]));
+const bgByFg = Object.fromEntries(tokenPairs.map((pair) => [pair.fg, pair.bg]));
 
 const utilityTokens = [
 	{
@@ -111,50 +97,42 @@ const themeModes = [
 const themeTokenDefaults = {
 	light: {
 		'--background': 'oklch(1 0 0)',
-		'--foreground': 'oklch(0.145 0 0)',
-		'--card': 'oklch(1 0 0)',
-		'--card-foreground': 'oklch(0.145 0 0)',
-		'--popover': 'oklch(1 0 0)',
-		'--popover-foreground': 'oklch(0.145 0 0)',
+		'--fg': 'oklch(0.145 0 0)',
 		'--primary': 'oklch(0.205 0 0)',
-		'--primary-foreground': 'oklch(0.985 0 0)',
+		'--primary-fg': 'oklch(0.985 0 0)',
 		'--secondary': 'oklch(0.97 0 0)',
-		'--secondary-foreground': 'oklch(0.205 0 0)',
+		'--secondary-fg': 'oklch(0.205 0 0)',
 		'--muted': 'oklch(0.97 0 0)',
-		'--muted-foreground': 'oklch(0.5 0 0)',
+		'--muted-fg': 'oklch(0.5 0 0)',
 		'--accent': 'oklch(0.97 0 0)',
-		'--accent-foreground': 'oklch(0.205 0 0)',
+		'--accent-fg': 'oklch(0.205 0 0)',
 		'--destructive': 'oklch(0.577 0.245 27.325)',
-		'--destructive-foreground': 'oklch(0.985 0 0)',
+		'--destructive-fg': 'oklch(0.985 0 0)',
 		'--success': 'oklch(0.627 0.194 149.214)',
-		'--success-foreground': 'oklch(0.985 0 0)',
+		'--success-fg': 'oklch(0.985 0 0)',
 		'--warning': 'oklch(0.84 0.16 84)',
-		'--warning-foreground': 'oklch(0.28 0.07 46)',
+		'--warning-fg': 'oklch(0.28 0.07 46)',
 		'--border': 'oklch(0.922 0 0)',
 		'--input': 'oklch(0.922 0 0)',
 		'--ring': 'oklch(0.708 0 0)',
 	},
 	dark: {
 		'--background': 'oklch(0.145 0 0)',
-		'--foreground': 'oklch(0.985 0 0)',
-		'--card': 'oklch(0.205 0 0)',
-		'--card-foreground': 'oklch(0.985 0 0)',
-		'--popover': 'oklch(0.205 0 0)',
-		'--popover-foreground': 'oklch(0.985 0 0)',
+		'--fg': 'oklch(0.985 0 0)',
 		'--primary': 'oklch(0.922 0 0)',
-		'--primary-foreground': 'oklch(0.205 0 0)',
+		'--primary-fg': 'oklch(0.205 0 0)',
 		'--secondary': 'oklch(0.269 0 0)',
-		'--secondary-foreground': 'oklch(0.985 0 0)',
+		'--secondary-fg': 'oklch(0.985 0 0)',
 		'--muted': 'oklch(0.269 0 0)',
-		'--muted-foreground': 'oklch(0.708 0 0)',
+		'--muted-fg': 'oklch(0.708 0 0)',
 		'--accent': 'oklch(0.269 0 0)',
-		'--accent-foreground': 'oklch(0.985 0 0)',
+		'--accent-fg': 'oklch(0.985 0 0)',
 		'--destructive': 'oklch(0.704 0.191 22.216)',
-		'--destructive-foreground': 'oklch(0.985 0 0)',
+		'--destructive-fg': 'oklch(0.985 0 0)',
 		'--success': 'oklch(0.696 0.17 162.48)',
-		'--success-foreground': 'oklch(0.145 0 0)',
+		'--success-fg': 'oklch(0.145 0 0)',
 		'--warning': 'oklch(0.769 0.188 70.08)',
-		'--warning-foreground': 'oklch(0.145 0 0)',
+		'--warning-fg': 'oklch(0.145 0 0)',
 		'--border': 'oklch(0.269 0 0)',
 		'--input': 'oklch(0.32 0 0)',
 		'--ring': 'oklch(0.556 0 0)',
@@ -163,10 +141,6 @@ const themeTokenDefaults = {
 
 const appearanceTokenDefaults = {
 	'--radius': '0.625rem',
-	'--shadow-color': '#000000',
-	'--shadow-strength': '8%',
-	'--shadow-distance': '1',
-	'--shadow-softness': '1',
 };
 
 const appearanceTokenGroups = [
@@ -186,76 +160,214 @@ const appearanceTokenGroups = [
 			},
 		],
 	},
-	{
-		label: 'Flatness and shadow',
-		description: 'Lower strength, distance, and softness make the system feel flatter.',
-		tokens: [
-			{
-				label: 'Shadow strength',
-				name: '--shadow-strength',
-				type: 'range',
-				min: 0,
-				max: 28,
-				step: 1,
-				unit: '%',
-				use: 'Opacity mixed into the shadow scale.',
-			},
-			{
-				label: 'Shadow distance',
-				name: '--shadow-distance',
-				type: 'range',
-				min: 0,
-				max: 2,
-				step: 0.05,
-				unit: '',
-				use: 'Vertical offset multiplier for all elevations.',
-			},
-			{
-				label: 'Shadow softness',
-				name: '--shadow-softness',
-				type: 'range',
-				min: 0.25,
-				max: 2,
-				step: 0.05,
-				unit: '',
-				use: 'Blur multiplier for the shadow scale.',
-			},
-			{
-				label: 'Shadow color',
-				name: '--shadow-color',
-				type: 'color',
-				use: 'The colour mixed into shadow utilities.',
-			},
-		],
-	},
 ];
 
 const editableAppearanceTokens = appearanceTokenGroups.flatMap((group) => group.tokens);
 
-const shadowPreviewLevels = [
-	{ label: 'XS', token: '--shadow-xs' },
-	{ label: 'SM', token: '--shadow-sm' },
-	{ label: 'MD', token: '--shadow-md' },
-	{ label: 'LG', token: '--shadow-lg' },
-	{ label: 'XL', token: '--shadow-xl' },
-	{ label: '2XL', token: '--shadow-2xl' },
+const skinLevels = [
+	{
+		name: 'base',
+		label: 'Base',
+		className: 'skin-base',
+		use: 'The page canvas and ordinary application background.',
+	},
+	{
+		name: 'raised',
+		label: 'Raised',
+		className: 'skin-raised',
+		use: 'Cards, panels, calendars, and grouped content.',
+	},
+	{
+		name: 'floating',
+		label: 'Floating',
+		className: 'skin-floating',
+		use: 'Dropdowns, popovers, combobox menus, and context menus.',
+	},
+	{
+		name: 'overlay',
+		label: 'Overlay',
+		className: 'skin-overlay',
+		use: 'Dialogs, drawers, command palettes, and action sheets.',
+	},
+	{
+		name: 'inset',
+		label: 'Inset',
+		className: 'skin-inset',
+		use: 'Inputs, textareas, and editable recessed controls.',
+	},
+	{
+		name: 'control',
+		label: 'Control',
+		className: 'skin-control',
+		use: 'Secondary buttons, quiet triggers, and neutral controls.',
+	},
+	{
+		name: 'action',
+		label: 'Action',
+		className: 'skin-action',
+		use: 'Primary actions and high-emphasis commands.',
+	},
 ];
+
+const skinPropertyDefinitions = [
+	{
+		key: 'bg',
+		suffix: 'bg',
+		label: 'Bg',
+		use: 'CSS colour, color-mix(), or a semantic colour variable.',
+		maxLength: 160,
+	},
+	{
+		key: 'fg',
+		suffix: 'fg',
+		label: 'Fg',
+		use: 'Text and icon colour for this skin.',
+		maxLength: 160,
+	},
+	{
+		key: 'border',
+		suffix: 'border',
+		label: 'Border',
+		use: 'Border colour or transparent.',
+		maxLength: 160,
+	},
+	{
+		key: 'borderWidth',
+		suffix: 'border-width',
+		label: 'Border width',
+		use: 'Usually 0px, 1px, or 2px.',
+		maxLength: 12,
+	},
+	{
+		key: 'borderStyle',
+		suffix: 'border-style',
+		label: 'Border style',
+		use: 'Solid for most themes; dashed or dotted for expressive themes.',
+		options: ['solid', 'none', 'dashed', 'dotted', 'double'],
+		maxLength: 12,
+	},
+	{
+		key: 'shadow',
+		suffix: 'shadow',
+		label: 'Shadow',
+		use: 'One or more box-shadow layers, or none.',
+		multiline: true,
+		maxLength: 360,
+	},
+	{
+		key: 'backdrop',
+		suffix: 'backdrop',
+		label: 'Backdrop',
+		use: 'Backdrop filter such as blur(16px) saturate(1.1), or none.',
+		maxLength: 160,
+	},
+	{
+		key: 'bgImage',
+		suffix: 'bg-image',
+		label: 'Gradient',
+		use: 'Linear/radial gradients for top-light, sheen, or material texture.',
+		multiline: true,
+		maxLength: 360,
+	},
+];
+
+const skinTokenDefaults = {
+	base: {
+		bg: 'var(--background)',
+		fg: 'var(--fg)',
+		border: 'transparent',
+		borderWidth: '0px',
+		borderStyle: 'solid',
+		shadow: 'none',
+		backdrop: 'none',
+		bgImage: 'none',
+	},
+	raised: {
+		bg: 'color-mix(in oklch, var(--background) 98.5%, var(--fg))',
+		fg: 'var(--fg)',
+		border: 'var(--border)',
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		shadow: 'var(--shadow-sm)',
+		backdrop: 'none',
+		bgImage: 'linear-gradient(to bottom, color-mix(in oklch, white 7%, transparent), color-mix(in oklch, var(--fg) 1%, transparent))',
+	},
+	floating: {
+		bg: 'color-mix(in oklch, var(--background) 94%, var(--fg))',
+		fg: 'var(--fg)',
+		border: 'var(--border)',
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		shadow: 'var(--shadow-xl)',
+		backdrop: 'blur(16px) saturate(1.08)',
+		bgImage: 'none',
+	},
+	overlay: {
+		bg: 'color-mix(in oklch, var(--background) 95%, var(--fg))',
+		fg: 'var(--fg)',
+		border: 'var(--border)',
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		shadow: 'var(--shadow-2xl)',
+		backdrop: 'blur(20px) saturate(1.12)',
+		bgImage: 'none',
+	},
+	inset: {
+		bg: 'color-mix(in oklch, var(--background) 98%, var(--fg))',
+		fg: 'var(--fg)',
+		border: 'var(--input)',
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		shadow: 'inset 0 1px 2px rgb(15 23 42 / 0.04)',
+		backdrop: 'none',
+		bgImage: 'none',
+	},
+	control: {
+		bg: 'var(--secondary)',
+		fg: 'var(--secondary-fg)',
+		border: 'var(--border)',
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		shadow: 'var(--shadow-xs)',
+		backdrop: 'none',
+		bgImage: 'none',
+	},
+	action: {
+		bg: 'var(--primary)',
+		fg: 'var(--primary-fg)',
+		border: 'color-mix(in oklch, var(--primary) 80%, var(--border))',
+		borderWidth: '1px',
+		borderStyle: 'solid',
+		shadow: 'var(--shadow-sm)',
+		backdrop: 'none',
+		bgImage: 'linear-gradient(to bottom, color-mix(in oklch, white 10%, transparent), transparent)',
+	},
+};
+
+const editableSkinTokens = skinLevels.flatMap((level) => skinPropertyDefinitions.map((property) => ({
+	level: level.name,
+	levelLabel: level.label,
+	property,
+	name: skinTokenName(level.name, property),
+})));
+
+const skinBorderStyleOptions = ['none', 'solid', 'dashed', 'dotted', 'double'];
 
 const editorTokenGroups = [
 	{
 		label: 'Canvas',
 		description: 'Page background and ordinary text.',
 		tokens: [
-			{ label: 'Background', role: 'Surface', name: '--background' },
-			{ label: 'Foreground', role: 'Foreground', name: '--foreground' },
+			{ label: 'Background', role: 'Bg', name: '--background' },
+			{ label: 'Fg', role: 'Fg', name: '--fg' },
 		],
 	},
 	...tokenPairs.slice(1).map((pair) => ({
 		label: pair.name,
 		description: pair.use,
 		tokens: [
-			{ label: pair.name, role: 'Surface', name: pair.surface },
-			{ label: `${pair.name} foreground`, role: 'Foreground', name: pair.foreground },
+			{ label: pair.name, role: 'Bg', name: pair.bg },
+			{ label: `${pair.name} fg`, role: 'Fg', name: pair.fg },
 		],
 	})),
 	{
@@ -276,11 +388,19 @@ const editableColorTokens = Array.from(new Map(
 function createThemeEditorState() {
 	return {
 		appearance: { ...appearanceTokenDefaults },
+		skins: createSkinDefaults(),
 		colors: Object.fromEntries(themeModes.map((mode) => [
 			mode.value,
 			Object.fromEntries(editableColorTokens.map((token) => [token.name, oklchToHex(themeTokenDefaults[mode.value][token.name])])),
 		])),
 	};
+}
+
+function createSkinDefaults() {
+	return Object.fromEntries(skinLevels.map((level) => [
+		level.name,
+		{ ...skinTokenDefaults[level.name] },
+	]));
 }
 
 function getThemeEditorState() {
@@ -290,6 +410,13 @@ function getThemeEditorState() {
 
 	for (const token of editableAppearanceTokens) {
 		state.appearance[token.name] ??= appearanceTokenDefaults[token.name];
+	}
+	state.skins ??= createSkinDefaults();
+	for (const level of skinLevels) {
+		state.skins[level.name] ??= {};
+		for (const property of skinPropertyDefinitions) {
+			state.skins[level.name][property.key] ??= skinTokenDefaults[level.name][property.key];
+		}
 	}
 	for (const mode of themeModes) {
 		state.colors[mode.value] ??= {};
@@ -302,40 +429,49 @@ function getThemeEditorState() {
 }
 
 const decisionRows = [
-	['Page background', 'bg-background text-foreground', 'Use once at layout level.'],
-	['Dialog, drawer, toast, card', 'bg-card text-card-foreground', 'Use for contained surfaces that are not floating menus.'],
-	['Popover, dropdown, combobox menu', 'bg-popover text-popover-foreground', 'Use for layers attached to a trigger.'],
-	['Primary button', 'bg-primary text-primary-foreground', 'Use the token pair: base token paints, foreground token reads on top.'],
-	['Secondary button', 'bg-secondary text-secondary-foreground', 'Quiet control with a paired readable foreground.'],
-	['Menu item hover', 'hover:bg-accent hover:text-accent-foreground', 'Use accent for temporary interaction states.'],
-	['Helper copy', 'text-muted-foreground', 'Use for hints, captions, placeholders, and metadata.'],
-	['Danger action', 'text-destructive or bg-destructive text-destructive-foreground', 'Text-only for subtle danger, filled for destructive confirmation.'],
-	['Success status', 'bg-success text-success-foreground', 'Use for positive, completed, or saved states.'],
-	['Warning status', 'bg-warning text-warning-foreground', 'Use when attention is needed but the action is recoverable.'],
+	['Page background', 'skin-base', 'Use once at layout level when the canvas should come from the theme recipe.'],
+	['Card or panel', 'skin-raised', 'Use for grouped content that needs the standard raised material.'],
+	['Popover or menu', 'skin-floating', 'Use for layers attached to a trigger.'],
+	['Dialog or drawer', 'skin-overlay', 'Use for modal and app-level overlay panels.'],
+	['Input chrome', 'skin-inset', 'Use for recessed editable controls.'],
+	['Primary button', 'skin-action', 'Use for high-emphasis commands.'],
+	['Secondary button', 'skin-control', 'Use for quiet controls and neutral triggers.'],
+	['Menu item hover', 'hover:bg-accent hover:text-accent-fg', 'Use accent for temporary interaction states.'],
+	['Helper copy', 'text-muted-fg', 'Use for hints, captions, placeholders, and metadata.'],
+	['Danger action', 'text-destructive or bg-destructive text-destructive-fg', 'Text-only for subtle danger, filled for destructive confirmation.'],
+	['Success status', 'bg-success text-success-fg', 'Use for positive, completed, or saved states.'],
+	['Warning status', 'bg-warning text-warning-fg', 'Use when attention is needed but the action is recoverable.'],
 	['Focus state', 'focus-visible:ring-ring', 'Use for keyboard focus, usually with a transparent offset.'],
 ];
 
 const themeCode = `:root {
 \t--background: oklch(1 0 0);
-\t--foreground: oklch(0.145 0 0);
+\t--fg: oklch(0.145 0 0);
 \t--primary: oklch(0.205 0 0);
-\t--primary-foreground: oklch(0.985 0 0);
+\t--primary-fg: oklch(0.985 0 0);
 \t--success: oklch(0.627 0.194 149.214);
-\t--success-foreground: oklch(0.985 0 0);
+\t--success-fg: oklch(0.985 0 0);
 \t--warning: oklch(0.84 0.16 84);
-\t--warning-foreground: oklch(0.28 0.07 46);
+\t--warning-fg: oklch(0.28 0.07 46);
+\t--skin-raised-bg: color-mix(in oklch, var(--background) 98.5%, var(--fg));
+\t--skin-raised-fg: var(--fg);
+\t--skin-raised-shadow: var(--shadow-sm);
+\t--skin-raised-bg-image: linear-gradient(to bottom, color-mix(in oklch, white 7%, transparent), color-mix(in oklch, var(--fg) 1%, transparent));
+\t--skin-floating-bg: color-mix(in oklch, var(--background) 94%, var(--fg));
+\t--skin-floating-shadow: 0 24px 64px -26px rgb(15 23 42 / 0.42);
+\t--skin-floating-backdrop: blur(20px) saturate(1.16);
 }`;
 
-const usageCode = `<button class="rounded-full bg-primary px-4 py-2 text-primary-foreground">
+const usageCode = `<button class="skin-action rounded-full px-4 py-2">
 \tSave changes
 </button>
 
-<div class="rounded-2xl border border-border bg-card p-4 text-card-foreground">
-\t<p class="text-sm text-muted-foreground">Use secondary text inside a card.</p>
+<div class="skin-raised rounded-2xl p-4">
+\t<p class="text-sm text-muted-fg">Use secondary text inside a card.</p>
 </div>
 
-<div class="rounded-2xl bg-popover p-2 text-popover-foreground shadow-2xl">
-\t<button class="rounded-xl px-3 py-2 hover:bg-accent hover:text-accent-foreground">
+<div class="skin-floating rounded-2xl p-2">
+\t<button class="rounded-xl px-3 py-2 hover:bg-accent hover:text-accent-fg">
 \t\tOpen project
 \t</button>
 </div>`;
@@ -343,11 +479,14 @@ const usageCode = `<button class="rounded-full bg-primary px-4 py-2 text-primary
 const themeEditorState = getThemeEditorState();
 const tokenHexValues = reactive(themeEditorState.colors);
 const appearanceValues = reactive(themeEditorState.appearance);
+const skinValues = reactive(themeEditorState.skins);
 const activeMode = ref('light');
 const activeTokenName = ref('--primary');
 const aiThemePrompt = ref('');
 const aiThemeStatus = ref('');
 const isGeneratingTheme = ref(false);
+const hasGeneratedTheme = ref(false);
+const generatedThemeName = ref('dom-studio-theme');
 let originalTheme = 'light';
 let themeObserver = null;
 const themeAiEndpoint = import.meta.env.VITE_THEME_AI_ENDPOINT || '/api/ai/theme';
@@ -358,8 +497,11 @@ const activeTokenValue = computed(() => hexToOklch(tokenHexValues[activeMode.val
 const appearanceCode = computed(() => editableAppearanceTokens
 	.map((token) => `\t${token.name}: ${appearanceCssValue(token.name)};`)
 	.join('\n'));
+const skinCode = computed(() => skinLevels.map((level) => skinPropertyDefinitions
+	.map((property) => `\t${skinTokenName(level.name, property)}: ${skinCssValue(level.name, property)};`)
+	.join('\n')).join('\n'));
 const themeEditorCode = computed(() => [
-	`:root {\n${appearanceCode.value}\n}`,
+	`:root {\n${appearanceCode.value}\n${skinCode.value ? `\n${skinCode.value}` : ''}\n}`,
 	...themeModes.map((mode) => `${mode.selector} {\n${editableColorTokens
 		.map((token) => `\t${token.name}: ${hexToOklch(tokenHexValues[mode.value][token.name])};`)
 		.join('\n')}\n}`),
@@ -368,8 +510,8 @@ const themeEditorCode = computed(() => [
 
 function swatchStyle(pair) {
 	return {
-		background: `var(${pair.surface})`,
-		color: `var(${pair.foreground})`,
+		background: `var(${pair.bg})`,
+		color: `var(${pair.fg})`,
 	};
 }
 
@@ -385,11 +527,28 @@ function variableSwatchStyle(name) {
 	};
 }
 
-function shadowPreviewStyle(token) {
-	return {
-		boxShadow: `var(${token})`,
-		borderRadius: 'var(--radius-lg)',
-	};
+function skinTokenName(levelName, property) {
+	return `--skin-${levelName}-${property.suffix}`;
+}
+
+function skinValue(levelName, property) {
+	return skinValues[levelName]?.[property.key] ?? skinTokenDefaults[levelName][property.key];
+}
+
+function skinCssValue(levelName, property) {
+	return normalizeSkinValue(property, skinValue(levelName, property)) || skinTokenDefaults[levelName][property.key];
+}
+
+function skinPreviewStyle(level) {
+	return Object.fromEntries(skinPropertyDefinitions.map((property) => [
+		skinTokenName(level.name, property),
+		skinCssValue(level.name, property),
+	]));
+}
+
+function updateSkinToken(levelName, property, value) {
+	skinValues[levelName][property.key] = normalizeSkinValue(property, value) || skinTokenDefaults[levelName][property.key];
+	applyActiveTheme();
 }
 
 function updateColorToken(mode, name, value) {
@@ -419,6 +578,11 @@ function resetColorTokens() {
 	for (const token of editableAppearanceTokens) {
 		appearanceValues[token.name] = appearanceTokenDefaults[token.name];
 	}
+	for (const level of skinLevels) {
+		for (const property of skinPropertyDefinitions) {
+			skinValues[level.name][property.key] = skinTokenDefaults[level.name][property.key];
+		}
+	}
 	activeTokenName.value = '--primary';
 	activeMode.value = originalTheme;
 	clearAppliedTheme();
@@ -432,6 +596,9 @@ function applyActiveTheme() {
 	for (const token of editableAppearanceTokens) {
 		document.documentElement.style.setProperty(token.name, appearanceCssValue(token.name));
 	}
+	for (const token of editableSkinTokens) {
+		document.documentElement.style.setProperty(token.name, skinCssValue(token.level, token.property));
+	}
 	for (const token of editableColorTokens) {
 		document.documentElement.style.setProperty(token.name, hexToOklch(tokenHexValues[activeMode.value][token.name]));
 	}
@@ -440,6 +607,9 @@ function applyActiveTheme() {
 function clearAppliedTheme() {
 	if (typeof document === 'undefined') return;
 	for (const token of editableAppearanceTokens) {
+		document.documentElement.style.removeProperty(token.name);
+	}
+	for (const token of editableSkinTokens) {
 		document.documentElement.style.removeProperty(token.name);
 	}
 	for (const token of editableColorTokens) {
@@ -454,6 +624,11 @@ function hydrateAppearanceFromDocument() {
 		const value = styles.getPropertyValue(token.name).trim();
 		if (!value) continue;
 		appearanceValues[token.name] = normalizeAppearanceValue(token, value);
+	}
+	for (const token of editableSkinTokens) {
+		const value = styles.getPropertyValue(token.name).trim();
+		if (!value) continue;
+		skinValues[token.level][token.property.key] = normalizeSkinValue(token.property, value) || skinTokenDefaults[token.level][token.property.key];
 	}
 }
 
@@ -472,17 +647,17 @@ function tokenSwatchStyle(mode, name) {
 }
 
 function pairedTokenSwatchStyle(mode, name) {
-	const foreground = foregroundBySurface[name];
-	const surface = surfaceByForeground[name];
-	if (foreground) {
+	const fg = fgByBg[name];
+	const bg = bgByFg[name];
+	if (fg) {
 		return {
 			backgroundColor: tokenHex(mode, name),
-			color: tokenHex(mode, foreground),
+			color: tokenHex(mode, fg),
 		};
 	}
-	if (surface) {
+	if (bg) {
 		return {
-			backgroundColor: tokenHex(mode, surface),
+			backgroundColor: tokenHex(mode, bg),
 			color: tokenHex(mode, name),
 		};
 	}
@@ -490,34 +665,34 @@ function pairedTokenSwatchStyle(mode, name) {
 }
 
 function tokenSwatchLabel(name) {
-	return foregroundBySurface[name] || surfaceByForeground[name] ? 'Aa' : '';
+	return fgByBg[name] || bgByFg[name] ? 'Aa' : '';
 }
 
 function groupPairPreviewStyle(mode, group) {
-	const surface = groupSurfaceToken(group);
-	if (!surface) return {};
+	const bg = groupBgToken(group);
+	if (!bg) return {};
 	return {
-		backgroundColor: tokenHex(mode, surface.name),
-		color: tokenHex(mode, foregroundBySurface[surface.name]),
+		backgroundColor: tokenHex(mode, bg.name),
+		color: tokenHex(mode, fgByBg[bg.name]),
 	};
 }
 
 function hasGroupPairPreview(group) {
-	return Boolean(groupSurfaceToken(group));
+	return Boolean(groupBgToken(group));
 }
 
-function groupSurfaceToken(group) {
-	return group.tokens.find((token) => foregroundBySurface[token.name]);
+function groupBgToken(group) {
+	return group.tokens.find((token) => fgByBg[token.name]);
 }
 
-function groupForegroundToken(group) {
-	const surface = groupSurfaceToken(group);
-	if (!surface) return null;
-	return group.tokens.find((token) => token.name === foregroundBySurface[surface.name]);
+function groupFgToken(group) {
+	const bg = groupBgToken(group);
+	if (!bg) return null;
+	return group.tokens.find((token) => token.name === fgByBg[bg.name]);
 }
 
 function groupPairTokens(group) {
-	return [groupSurfaceToken(group), groupForegroundToken(group)].filter(Boolean);
+	return [groupBgToken(group), groupFgToken(group)].filter(Boolean);
 }
 
 function isActiveGroup(group) {
@@ -542,13 +717,11 @@ function appearanceDisplayValue(token) {
 
 function appearanceCssValue(name) {
 	const value = appearanceValues[name];
-	if (name === '--shadow-color') return hexToOklch(value);
 	return value;
 }
 
 function appearancePreviewStyle() {
 	return {
-		boxShadow: 'var(--shadow-xl)',
 		borderRadius: 'calc(var(--radius) * 2.2)',
 	};
 }
@@ -566,6 +739,10 @@ function themeColumnStyle(mode) {
 function themeSnapshot() {
 	return {
 		appearance: Object.fromEntries(editableAppearanceTokens.map((token) => [token.name, appearanceValues[token.name]])),
+		skins: Object.fromEntries(skinLevels.map((level) => [
+			level.name,
+			Object.fromEntries(skinPropertyDefinitions.map((property) => [property.key, skinValue(level.name, property)])),
+		])),
 		...Object.fromEntries(themeModes.map((mode) => [
 			mode.value,
 			Object.fromEntries(editableColorTokens.map((token) => [token.name, tokenHexValues[mode.value][token.name]])),
@@ -575,7 +752,7 @@ function themeSnapshot() {
 
 async function generateThemeWithAi() {
 	if (!themeAiEndpoint) {
-		aiThemeStatus.value = 'AI theme generation needs a secure API endpoint. Use the randomizer here, or point VITE_THEME_AI_ENDPOINT at a serverless proxy.';
+		aiThemeStatus.value = 'AI theme generation needs a secure API endpoint. Use the randomizer here, or point VITE_THEME_AI_ENDPOINT at a server route.';
 		return;
 	}
 
@@ -597,8 +774,10 @@ async function generateThemeWithAi() {
 
 		const payload = await response.json();
 		if (!response.ok) throw new Error(payload.error || 'Theme request failed.');
-		applyThemePayload(payload.theme || payload);
-		aiThemeStatus.value = payload.name ? `Applied ${payload.name}.` : 'Applied AI theme.';
+		const theme = payload.theme || payload;
+		applyThemePayload(theme);
+		rememberGeneratedTheme(theme);
+		aiThemeStatus.value = theme.name ? `Applied ${theme.name}.` : 'Applied AI theme.';
 	} catch (error) {
 		aiThemeStatus.value = error.message || 'AI theme request failed.';
 	} finally {
@@ -609,7 +788,35 @@ async function generateThemeWithAi() {
 function generateRandomTheme() {
 	const theme = createLocalTheme(aiThemePrompt.value);
 	applyThemePayload(theme);
+	rememberGeneratedTheme(theme);
 	aiThemeStatus.value = theme.name;
+}
+
+function rememberGeneratedTheme(theme) {
+	generatedThemeName.value = theme?.name || 'dom-studio-theme';
+	hasGeneratedTheme.value = true;
+}
+
+function downloadThemeCss() {
+	if (typeof document === 'undefined') return;
+	const blob = new Blob([`${themeEditorCode.value}\n`], { type: 'text/css' });
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement('a');
+	link.href = url;
+	link.download = `${slugifyThemeName(generatedThemeName.value)}.css`;
+	document.body.append(link);
+	link.click();
+	link.remove();
+	URL.revokeObjectURL(url);
+}
+
+function slugifyThemeName(value) {
+	const slug = String(value || '')
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '');
+
+	return slug || 'dom-studio-theme';
 }
 
 function applyThemePayload(theme) {
@@ -618,6 +825,15 @@ function applyThemePayload(theme) {
 		const value = appearance[token.name];
 		if (value == null) continue;
 		appearanceValues[token.name] = normalizeAppearanceValue(token, value);
+	}
+	const skins = theme.skins || {};
+	for (const level of skinLevels) {
+		const source = skins[level.name] || {};
+		for (const property of skinPropertyDefinitions) {
+			const value = source[property.key];
+			if (value == null) continue;
+			skinValues[level.name][property.key] = normalizeSkinValue(property, value) || skinTokenDefaults[level.name][property.key];
+		}
 	}
 	for (const mode of themeModes) {
 		const source = theme[mode.value] || {};
@@ -633,6 +849,18 @@ function applyThemePayload(theme) {
 function normalizeAppearanceValue(token, value) {
 	if (token.type === 'color') return normalizeThemeColor(value);
 	return formatAppearanceInputValue(token, Number.parseFloat(value));
+}
+
+function normalizeSkinValue(property, value) {
+	const raw = String(value ?? '').trim();
+	if (!raw || raw.length > property.maxLength || /[;{}@]/.test(raw) || /\burl\s*\(/i.test(raw)) return '';
+	if (property.key === 'borderWidth') {
+		return /^(0|[0-4](?:\.\d+)?px)$/i.test(raw) ? raw : '';
+	}
+	if (property.key === 'borderStyle') {
+		return skinBorderStyleOptions.includes(raw) ? raw : '';
+	}
+	return raw;
 }
 
 function formatAppearanceInputValue(token, value) {
@@ -662,52 +890,45 @@ function createLocalTheme(prompt = '') {
 	return {
 		name: 'Applied a local theme mix.',
 		appearance: createLocalAppearance(prompt),
+		skins: createLocalSkins(prompt),
 		light: {
 			'--background': hslToHex(hue, 34, 98),
-			'--foreground': hslToHex(hue, 26, 10),
-			'--card': '#ffffff',
-			'--card-foreground': hslToHex(hue, 26, 10),
-			'--popover': '#ffffff',
-			'--popover-foreground': hslToHex(hue, 26, 10),
+			'--fg': hslToHex(hue, 26, 10),
 			'--primary': hslToHex(hue, primarySaturation, primaryLightness),
-			'--primary-foreground': contrastText(hue, primarySaturation, primaryLightness),
+			'--primary-fg': contrastText(hue, primarySaturation, primaryLightness),
 			'--secondary': hslToHex(hue, 38, 93),
-			'--secondary-foreground': hslToHex(hue, 32, 18),
+			'--secondary-fg': hslToHex(hue, 32, 18),
 			'--muted': hslToHex(hue, 28, 94),
-			'--muted-foreground': hslToHex(hue, 12, 42),
+			'--muted-fg': hslToHex(hue, 12, 42),
 			'--accent': hslToHex(accentHue, 54, 90),
-			'--accent-foreground': hslToHex(accentHue, 52, 18),
+			'--accent-fg': hslToHex(accentHue, 52, 18),
 			'--destructive': hslToHex(dangerHue, 76, 48),
-			'--destructive-foreground': '#ffffff',
+			'--destructive-fg': '#ffffff',
 			'--success': hslToHex(successHue, 62, 38),
-			'--success-foreground': '#ffffff',
+			'--success-fg': '#ffffff',
 			'--warning': hslToHex(warningHue, 88, 62),
-			'--warning-foreground': hslToHex(warningHue, 70, 16),
+			'--warning-fg': hslToHex(warningHue, 70, 16),
 			'--border': hslToHex(hue, 24, 86),
 			'--input': hslToHex(hue, 24, 86),
 			'--ring': hslToHex(hue, primarySaturation, Math.min(primaryLightness + 12, 58)),
 		},
 		dark: {
 			'--background': hslToHex(hue, 26, 8),
-			'--foreground': hslToHex(hue, 20, 96),
-			'--card': hslToHex(hue, 24, 12),
-			'--card-foreground': hslToHex(hue, 20, 96),
-			'--popover': hslToHex(hue, 24, 12),
-			'--popover-foreground': hslToHex(hue, 20, 96),
+			'--fg': hslToHex(hue, 20, 96),
 			'--primary': hslToHex(hue, primarySaturation, bold ? 68 : 72),
-			'--primary-foreground': hslToHex(hue, 28, 9),
+			'--primary-fg': hslToHex(hue, 28, 9),
 			'--secondary': hslToHex(hue, 22, 18),
-			'--secondary-foreground': hslToHex(hue, 18, 94),
+			'--secondary-fg': hslToHex(hue, 18, 94),
 			'--muted': hslToHex(hue, 20, 18),
-			'--muted-foreground': hslToHex(hue, 13, 68),
+			'--muted-fg': hslToHex(hue, 13, 68),
 			'--accent': hslToHex(accentHue, 36, 24),
-			'--accent-foreground': hslToHex(accentHue, 48, 92),
+			'--accent-fg': hslToHex(accentHue, 48, 92),
 			'--destructive': hslToHex(dangerHue, 70, 64),
-			'--destructive-foreground': hslToHex(dangerHue, 36, 9),
+			'--destructive-fg': hslToHex(dangerHue, 36, 9),
 			'--success': hslToHex(successHue, 54, 62),
-			'--success-foreground': hslToHex(successHue, 34, 9),
+			'--success-fg': hslToHex(successHue, 34, 9),
 			'--warning': hslToHex(warningHue, 76, 66),
-			'--warning-foreground': hslToHex(warningHue, 48, 10),
+			'--warning-fg': hslToHex(warningHue, 48, 10),
 			'--border': hslToHex(hue, 18, 24),
 			'--input': hslToHex(hue, 18, 28),
 			'--ring': hslToHex(hue, primarySaturation, 62),
@@ -717,17 +938,98 @@ function createLocalTheme(prompt = '') {
 
 function createLocalAppearance(prompt = '') {
 	const lower = prompt.toLowerCase();
-	const flat = /\b(flat|minimal|quiet|plain|low shadow|no shadow)\b/i.test(lower);
-	const elevated = /\b(elevated|depth|shadow|soft|float|floating|layered)\b/i.test(lower);
 	const sharp = /\b(sharp|square|brutalist|flat corners)\b/i.test(lower);
 	const round = /\b(round|rounded|soft|pill|friendly)\b/i.test(lower);
 
 	return {
 		'--radius': `${sharp ? 0.125 : round ? 0.95 : 0.625}rem`,
-		'--shadow-color': lower.includes('warm') ? '#3d2414' : '#000000',
-		'--shadow-strength': `${flat ? 2 : elevated ? 18 : 8}%`,
-		'--shadow-distance': `${flat ? 0.2 : elevated ? 1.45 : 1}`,
-		'--shadow-softness': `${flat ? 0.45 : elevated ? 1.55 : 1}`,
+	};
+}
+
+function createLocalSkins(prompt = '') {
+	const lower = prompt.toLowerCase();
+	const flat = /\b(flat|minimal|quiet|plain|low shadow|no shadow|shadcn)\b/i.test(lower);
+	const glass = /\b(glass|glassmorphism|frost|frosted|apple|liquid)\b/i.test(lower);
+	const whacky = /\b(whacky|wild|weird|playful|neon|cyber|loud)\b/i.test(lower);
+	const warm = /\b(warm|amber|gold|sunset)\b/i.test(lower);
+	const shadowColor = warm ? '120 53 15' : whacky ? '88 28 135' : '15 23 42';
+	const softBorder = glass ? 'color-mix(in oklch, white 34%, var(--border))' : 'var(--border)';
+	const softGradient = glass
+		? 'linear-gradient(to bottom, color-mix(in oklch, white 26%, transparent), transparent 52%, color-mix(in oklch, black 7%, transparent))'
+		: whacky
+			? 'linear-gradient(135deg, color-mix(in oklch, var(--primary) 18%, transparent), color-mix(in oklch, var(--accent) 22%, transparent))'
+			: 'none';
+	const liftedShadow = flat
+		? 'none'
+		: glass
+			? `0 1px 0 color-mix(in oklch, white 45%, transparent) inset, 0 -1px 0 color-mix(in oklch, black 10%, transparent) inset, 0 18px 44px -24px rgb(${shadowColor} / 0.34)`
+			: whacky
+				? `0 0 0 1px color-mix(in oklch, var(--primary) 24%, transparent), 0 18px 50px -20px rgb(${shadowColor} / 0.38)`
+				: 'var(--shadow-sm)';
+	const floatingShadow = flat
+		? 'var(--shadow-sm)'
+		: glass
+			? `0 1px 0 color-mix(in oklch, white 55%, transparent) inset, 0 -1px 0 color-mix(in oklch, black 12%, transparent) inset, 0 24px 64px -26px rgb(${shadowColor} / 0.42)`
+			: whacky
+				? `0 0 0 1px color-mix(in oklch, var(--primary) 32%, transparent), 0 24px 72px -24px rgb(${shadowColor} / 0.46)`
+				: 'var(--shadow-xl)';
+
+	return {
+		base: {
+			...skinTokenDefaults.base,
+			bgImage: whacky
+				? 'radial-gradient(circle at top left, color-mix(in oklch, var(--primary) 18%, transparent), transparent 34%), radial-gradient(circle at bottom right, color-mix(in oklch, var(--accent) 18%, transparent), transparent 40%)'
+				: 'none',
+		},
+		raised: {
+			...skinTokenDefaults.raised,
+			bg: glass
+				? 'color-mix(in oklch, var(--background) 76%, transparent)'
+				: skinTokenDefaults.raised.bg,
+			border: softBorder,
+			shadow: liftedShadow,
+			backdrop: glass ? 'blur(18px) saturate(1.16)' : 'none',
+			bgImage: softGradient,
+		},
+		floating: {
+			...skinTokenDefaults.floating,
+			bg: glass
+				? 'color-mix(in oklch, var(--background) 72%, transparent)'
+				: skinTokenDefaults.floating.bg,
+			border: softBorder,
+			shadow: floatingShadow,
+			backdrop: glass ? 'blur(22px) saturate(1.2)' : skinTokenDefaults.floating.backdrop,
+			bgImage: softGradient,
+		},
+		overlay: {
+			...skinTokenDefaults.overlay,
+			bg: glass
+				? 'color-mix(in oklch, var(--background) 74%, transparent)'
+				: skinTokenDefaults.overlay.bg,
+			border: softBorder,
+			shadow: flat ? 'var(--shadow-md)' : floatingShadow,
+			backdrop: glass ? 'blur(26px) saturate(1.22)' : skinTokenDefaults.overlay.backdrop,
+			bgImage: softGradient,
+		},
+		inset: {
+			...skinTokenDefaults.inset,
+			shadow: flat ? 'none' : skinTokenDefaults.inset.shadow,
+		},
+		control: {
+			...skinTokenDefaults.control,
+			bg: glass ? 'color-mix(in oklch, var(--secondary) 70%, transparent)' : 'var(--secondary)',
+			border: softBorder,
+			shadow: flat ? 'none' : 'var(--shadow-xs)',
+			backdrop: glass ? 'blur(12px) saturate(1.1)' : 'none',
+			bgImage: glass ? 'linear-gradient(to bottom, color-mix(in oklch, white 14%, transparent), transparent)' : 'none',
+		},
+		action: {
+			...skinTokenDefaults.action,
+			shadow: flat ? 'none' : whacky ? `0 0 0 1px color-mix(in oklch, white 18%, transparent) inset, 0 14px 36px -18px rgb(${shadowColor} / 0.44)` : 'var(--shadow-sm)',
+			bgImage: whacky
+				? 'linear-gradient(135deg, color-mix(in oklch, white 24%, transparent), transparent 42%, color-mix(in oklch, black 16%, transparent))'
+				: skinTokenDefaults.action.bgImage,
+		},
 	};
 }
 
@@ -877,71 +1179,71 @@ onBeforeUnmount(() => {
 	<DomStudioLayout>
 		<DocPage
 			name="Theming"
-			tagline="DOM Studio use css variable design tokens: base tokens paint surfaces, and matching -foreground tokens keep text readable."
+			tagline="DOM Studio uses css variable design tokens: base tokens paint skins, and matching -fg tokens keep text readable."
 			tag="style.css"
 			eyebrow="Foundation"
 		>
-			<DocSection eyebrow="Model" title="Surface and foreground pairs">
+			<DocSection eyebrow="Model" title="Colour and fg pairs">
 				<div class="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-					<div class="rounded-3xl border border-border bg-card p-6 text-card-foreground shadow-xl shadow-black/5">
-						<p class="text-sm leading-6 text-muted-foreground">
-							Use the base token when you are painting a surface. Use the matching
-							<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">*-foreground</code>
-							token when text or icons need to sit on that surface.
+					<div class="rounded-3xl border border-border skin-raised p-6 text-fg shadow-xl shadow-black/5">
+						<p class="text-sm leading-6 text-muted-fg">
+							Use the base token when you are painting a background. Use the matching
+							<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">*-fg</code>
+							token when text or icons need to sit on it.
 						</p>
 						<div class="mt-6 grid gap-3 sm:grid-cols-2">
-							<div class="rounded-2xl bg-primary p-4 text-primary-foreground">
+							<div class="rounded-2xl bg-primary p-4 text-primary-fg">
 								<p class="text-xs font-semibold uppercase tracking-[0.16em] opacity-75">Filled action</p>
 								<p class="mt-2 text-lg font-semibold">bg-primary</p>
-								<p class="mt-1 text-sm opacity-80">text-primary-foreground</p>
+								<p class="mt-1 text-sm opacity-80">text-primary-fg</p>
 							</div>
-							<div class="rounded-2xl border border-border bg-secondary p-4 text-foreground">
-								<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Quiet surface</p>
+							<div class="rounded-2xl border border-border bg-secondary p-4 text-fg">
+								<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Quiet panel</p>
 								<p class="mt-2 text-lg font-semibold">bg-secondary</p>
-								<p class="mt-1 text-sm text-muted-foreground">text-secondary-foreground or text-foreground</p>
+								<p class="mt-1 text-sm text-muted-fg">text-secondary-fg or text-fg</p>
 							</div>
 						</div>
 					</div>
 					<div class="rounded-3xl border border-border bg-secondary/50 p-6">
-						<p class="text-sm font-semibold text-foreground">Token naming convention</p>
+						<p class="text-sm font-semibold text-fg">Token naming convention</p>
 						<dl class="mt-4 space-y-3 text-sm">
 							<div class="rounded-2xl border border-border bg-background p-3">
-								<dt class="font-mono text-xs text-muted-foreground">Surface token</dt>
-								<dd class="mt-1 font-mono text-foreground">DOM Studio --primary</dd>
+								<dt class="font-mono text-xs text-muted-fg">Bg token</dt>
+								<dd class="mt-1 font-mono text-fg">DOM Studio --primary</dd>
 							</div>
 							<div class="rounded-2xl border border-border bg-background p-3">
-								<dt class="font-mono text-xs text-muted-foreground">Foreground token</dt>
-								<dd class="mt-1 font-mono text-foreground">DOM Studio --primary-foreground</dd>
+								<dt class="font-mono text-xs text-muted-fg">Fg token</dt>
+								<dd class="mt-1 font-mono text-fg">DOM Studio --primary-fg</dd>
 							</div>
 							<div class="rounded-2xl border border-border bg-background p-3">
-								<dt class="font-mono text-xs text-muted-foreground">Added pairs</dt>
-								<dd class="mt-1 font-mono text-foreground">success, warning, destructive, card, popover</dd>
+								<dt class="font-mono text-xs text-muted-fg">Added pairs</dt>
+								<dd class="mt-1 font-mono text-fg">primary, secondary, muted, accent, status</dd>
 							</div>
 						</dl>
 					</div>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="At a glance" title="Read the theme as a product surface">
+			<DocSection eyebrow="At a glance" title="Read the theme as product UI">
 				<div class="overflow-hidden rounded-3xl border border-border bg-background shadow-2xl shadow-black/5">
-					<div class="border-b border-border bg-card px-5 py-4">
+					<div class="border-b border-border skin-raised px-5 py-4">
 						<div class="flex flex-wrap items-center justify-between gap-3">
 							<div>
-								<p class="text-sm font-semibold text-foreground">Project dashboard</p>
-								<p class="text-xs text-muted-foreground">Example composition using only semantic tokens.</p>
+								<p class="text-sm font-semibold text-fg">Project dashboard</p>
+								<p class="text-xs text-muted-fg">Example composition using only semantic tokens.</p>
 							</div>
 							<div class="flex items-center gap-2">
-								<span class="rounded-full bg-success px-2.5 py-1 text-xs font-medium text-success-foreground">Saved</span>
-								<button class="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm">Publish</button>
+								<span class="rounded-full bg-success px-2.5 py-1 text-xs font-medium text-success-fg">Saved</span>
+								<button class="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg shadow-sm">Publish</button>
 							</div>
 						</div>
 					</div>
 					<div class="grid gap-4 p-5 lg:grid-cols-[1fr_18rem]">
 						<div class="space-y-4">
-							<div class="rounded-2xl border border-border bg-card p-4 text-card-foreground">
+							<div class="rounded-2xl border border-border skin-raised p-4 text-fg">
 								<div class="flex items-start justify-between gap-4">
 									<div>
-										<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Revenue</p>
+										<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Revenue</p>
 										<p class="mt-2 text-3xl font-semibold tracking-tight">GBP 42,860</p>
 									</div>
 									<span class="rounded-full bg-success/15 px-2.5 py-1 text-xs font-medium text-success">+12.4%</span>
@@ -952,8 +1254,8 @@ onBeforeUnmount(() => {
 							</div>
 							<div class="grid gap-4 sm:grid-cols-2">
 								<div class="rounded-2xl border border-border bg-secondary/70 p-4">
-									<p class="text-sm font-medium text-foreground">Quiet panel</p>
-									<p class="mt-1 text-sm text-muted-foreground">Secondary surfaces group nearby controls without demanding attention.</p>
+									<p class="text-sm font-medium text-fg">Quiet panel</p>
+									<p class="mt-1 text-sm text-muted-fg">Secondary skins group nearby controls without demanding attention.</p>
 								</div>
 								<div class="rounded-2xl border border-warning/40 bg-warning/15 p-4 text-warning">
 									<p class="text-sm font-semibold">Review needed</p>
@@ -961,22 +1263,22 @@ onBeforeUnmount(() => {
 								</div>
 							</div>
 						</div>
-						<div class="space-y-3 rounded-2xl border border-border bg-popover p-3 text-popover-foreground shadow-xl shadow-black/10">
-							<p class="px-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Command menu</p>
-							<button class="block w-full rounded-xl bg-accent px-3 py-2 text-left text-sm font-medium text-accent-foreground">Open project</button>
-							<button class="block w-full rounded-xl px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground">Invite teammate</button>
-							<button class="block w-full rounded-xl px-3 py-2 text-left text-sm text-destructive hover:bg-destructive hover:text-destructive-foreground">Delete project</button>
+						<div class="space-y-3 rounded-2xl border border-border skin-floating p-3 text-fg shadow-xl shadow-black/10">
+							<p class="px-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Command menu</p>
+							<button class="block w-full rounded-xl bg-accent px-3 py-2 text-left text-sm font-medium text-accent-fg">Open project</button>
+							<button class="block w-full rounded-xl px-3 py-2 text-left text-sm text-muted-fg hover:bg-accent hover:text-accent-fg">Invite teammate</button>
+							<button class="block w-full rounded-xl px-3 py-2 text-left text-sm text-destructive hover:bg-destructive hover:text-destructive-fg">Delete project</button>
 						</div>
 					</div>
 				</div>
 			</DocSection>
 
 			<DocSection eyebrow="Editor" title="Tune CSS variable colours">
-				<div class="space-y-4 rounded-2xl border border-border bg-card p-4 text-card-foreground">
+				<div class="space-y-4 rounded-2xl border border-border skin-raised p-4 text-fg">
 					<div class="flex flex-wrap items-start justify-between gap-3">
 						<div>
-							<p class="text-sm font-semibold text-foreground">{{ activeToken.label }} - {{ activeMode }}</p>
-							<p class="font-mono text-xs text-muted-foreground">{{ activeToken.name }}: {{ activeTokenValue }}</p>
+							<p class="text-sm font-semibold text-fg">{{ activeToken.label }} - {{ activeMode }}</p>
+							<p class="font-mono text-xs text-muted-fg">{{ activeToken.name }}: {{ activeTokenValue }}</p>
 						</div>
 						<div class="flex flex-wrap items-center gap-2">
 							<div class="inline-flex rounded-full border border-border bg-background p-1">
@@ -985,7 +1287,7 @@ onBeforeUnmount(() => {
 									:key="mode.value"
 									type="button"
 									class="rounded-full px-3 py-1.5 text-sm font-medium transition-colors"
-									:class="activeMode === mode.value ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'"
+									:class="activeMode === mode.value ? 'bg-primary text-primary-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
 									@click="setEditorMode(mode.value)"
 								>
 									Preview {{ mode.label }}
@@ -993,7 +1295,7 @@ onBeforeUnmount(() => {
 							</div>
 							<button
 								type="button"
-								class="rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+								class="rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-secondary"
 								@click="resetColorTokens"
 							>
 								Reset
@@ -1001,45 +1303,53 @@ onBeforeUnmount(() => {
 						</div>
 					</div>
 					<div>
-						<label class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground" for="theme-ai-prompt">AI theme direction</label>
-						<div class="mt-2 grid gap-2 lg:grid-cols-[1fr_auto_auto]">
+						<label class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg" for="theme-ai-prompt">AI theme direction</label>
+						<div class="mt-2 grid gap-2 lg:grid-cols-[1fr_auto_auto_auto]">
 							<input
 								id="theme-ai-prompt"
 								v-model="aiThemePrompt"
 								type="text"
-								class="h-10 min-w-0 rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-ring"
+								class="h-10 min-w-0 rounded-lg border border-input bg-background px-3 text-sm text-fg outline-none transition-colors focus:border-ring"
 								placeholder="brand color is yellow and big and bold"
 							>
 							<button
 								type="button"
-								class="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+								class="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-secondary"
 								@click="generateRandomTheme"
 							>
 								Random mix
 							</button>
 							<button
 								type="button"
-								class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90 disabled:pointer-events-none disabled:opacity-50"
+								class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg transition-colors hover:opacity-90 disabled:pointer-events-none disabled:opacity-50"
 								:disabled="isGeneratingTheme"
 								@click="generateThemeWithAi"
 							>
 								{{ isGeneratingTheme ? 'Asking AI' : 'Ask AI' }}
 							</button>
+							<button
+								type="button"
+								class="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-secondary disabled:pointer-events-none disabled:opacity-50"
+								:disabled="!hasGeneratedTheme"
+								@click="downloadThemeCss"
+							>
+								Download CSS
+							</button>
 						</div>
-						<p v-if="aiThemeStatus" class="mt-2 text-sm text-muted-foreground">{{ aiThemeStatus }}</p>
+						<p v-if="aiThemeStatus" class="mt-2 text-sm text-muted-fg">{{ aiThemeStatus }}</p>
 					</div>
 				</div>
 
-				<div class="grid gap-4 lg:grid-cols-2">
-					<div class="grid gap-4">
+				<div class="grid gap-4">
+					<div class="grid gap-4 lg:grid-cols-2">
 						<section
 							v-for="group in appearanceTokenGroups"
 							:key="group.label"
-							class="rounded-2xl border border-border bg-card p-4 text-card-foreground"
+							class="rounded-2xl border border-border skin-raised p-4 text-fg"
 						>
 							<div>
-								<p class="text-sm font-semibold text-foreground">{{ group.label }}</p>
-								<p class="mt-1 text-sm text-muted-foreground">{{ group.description }}</p>
+								<p class="text-sm font-semibold text-fg">{{ group.label }}</p>
+								<p class="mt-1 text-sm text-muted-fg">{{ group.description }}</p>
 							</div>
 							<div class="mt-4 space-y-4">
 								<label
@@ -1049,8 +1359,8 @@ onBeforeUnmount(() => {
 								>
 									<span class="flex items-start justify-between gap-3">
 										<span class="min-w-0">
-											<span class="block text-sm font-medium text-foreground">{{ token.label }}</span>
-											<span class="mt-0.5 block font-mono text-xs text-muted-foreground">{{ token.name }}: {{ appearanceDisplayValue(token) }}</span>
+											<span class="block text-sm font-medium text-fg">{{ token.label }}</span>
+											<span class="mt-0.5 block font-mono text-xs text-muted-fg">{{ token.name }}: {{ appearanceDisplayValue(token) }}</span>
 										</span>
 										<span
 											v-if="token.type === 'color'"
@@ -1077,61 +1387,109 @@ onBeforeUnmount(() => {
 										:aria-label="token.label"
 										@input="updateAppearanceToken(token, $event.target.value)"
 									>
-									<span class="mt-2 block text-xs text-muted-foreground">{{ token.use }}</span>
+									<span class="mt-2 block text-xs text-muted-fg">{{ token.use }}</span>
 								</label>
 							</div>
 						</section>
-					</div>
-					<div
-						class="rounded-2xl border border-border bg-card p-4 text-card-foreground"
-					>
-						<div>
-							<p class="text-sm font-semibold text-foreground">Shape preview</p>
-							<p class="mt-1 text-sm text-muted-foreground">Radius and shadow tokens applied live.</p>
-						</div>
-						<div class="mt-4 space-y-4">
-							<div class="border border-border bg-background p-4" :style="appearancePreviewStyle()">
-								<p class="text-sm font-semibold text-foreground">Elevated card</p>
-								<p class="mt-1 text-sm text-muted-foreground">shadow-xl and rounded scale</p>
-							</div>
-							<div class="grid grid-cols-3 gap-2">
-								<span class="h-12 rounded-sm border border-border bg-secondary"></span>
-								<span class="h-12 rounded-lg border border-border bg-secondary"></span>
-								<span class="h-12 rounded-3xl border border-border bg-secondary"></span>
-							</div>
+						<div class="rounded-2xl border border-border skin-raised p-4 text-fg">
 							<div>
-								<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Shadow levels</p>
-								<div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-									<div
-										v-for="level in shadowPreviewLevels"
-										:key="level.token"
-										class="grid h-20 place-items-center border border-border bg-background text-xs font-semibold text-muted-foreground"
-										:style="shadowPreviewStyle(level.token)"
-									>
-										<span>{{ level.label }}</span>
-									</div>
+								<p class="text-sm font-semibold text-fg">Shape preview</p>
+								<p class="mt-1 text-sm text-muted-fg">Radius is still global because it affects every rounded utility.</p>
+							</div>
+							<div class="mt-4 space-y-4">
+								<div class="border border-border bg-background p-4" :style="appearancePreviewStyle()">
+									<p class="text-sm font-semibold text-fg">Rounded frame</p>
+									<p class="mt-1 text-sm text-muted-fg">Uses the same radius scale as components.</p>
+								</div>
+								<div class="grid grid-cols-3 gap-2">
+									<span class="h-12 rounded-sm border border-border bg-secondary"></span>
+									<span class="h-12 rounded-lg border border-border bg-secondary"></span>
+									<span class="h-12 rounded-3xl border border-border bg-secondary"></span>
 								</div>
 							</div>
 						</div>
 					</div>
+					<section class="rounded-2xl border border-border skin-raised p-4 text-fg">
+						<div>
+							<p class="text-sm font-semibold text-fg">Skin recipes</p>
+							<p class="mt-1 text-sm text-muted-fg">These Tailwind-like utilities carry material, border, shadow, blur, and gradient from variables.</p>
+						</div>
+						<div class="mt-4 grid gap-4 2xl:grid-cols-2">
+							<article
+								v-for="level in skinLevels"
+								:key="level.name"
+								class="rounded-xl border border-border bg-background p-3"
+							>
+								<div
+									class="min-h-24 rounded-xl p-4"
+									:class="level.className"
+									:style="skinPreviewStyle(level)"
+								>
+									<p class="text-sm font-semibold">{{ level.label }}</p>
+									<p class="mt-1 text-xs opacity-75">{{ level.className }}</p>
+								</div>
+								<p class="mt-3 text-xs leading-5 text-muted-fg">{{ level.use }}</p>
+								<div class="mt-3 grid gap-2">
+									<label
+										v-for="property in skinPropertyDefinitions"
+										:key="property.key"
+										class="block rounded-lg border border-border skin-raised p-2"
+									>
+										<span class="flex items-start justify-between gap-2">
+											<span class="min-w-0">
+												<span class="block text-xs font-semibold text-fg">{{ property.label }}</span>
+												<span class="mt-0.5 block truncate font-mono text-[11px] text-muted-fg">{{ skinTokenName(level.name, property) }}</span>
+											</span>
+											<span class="max-w-[7rem] text-right text-[11px] leading-4 text-muted-fg">{{ property.use }}</span>
+										</span>
+										<select
+											v-if="property.options"
+											class="mt-2 h-9 w-full rounded-md border border-input bg-background px-2 text-xs text-fg outline-none focus:border-ring"
+											:value="skinValue(level.name, property)"
+											:aria-label="`${level.label} ${property.label}`"
+											@change="updateSkinToken(level.name, property, $event.target.value)"
+										>
+											<option v-for="option in property.options" :key="option" :value="option">{{ option }}</option>
+										</select>
+										<textarea
+											v-else-if="property.multiline"
+											rows="2"
+											class="mt-2 min-h-16 w-full rounded-md border border-input bg-background px-2 py-2 font-mono text-xs text-fg outline-none focus:border-ring"
+											:value="skinValue(level.name, property)"
+											:aria-label="`${level.label} ${property.label}`"
+											@input="updateSkinToken(level.name, property, $event.target.value)"
+										></textarea>
+										<input
+											v-else
+											type="text"
+											class="mt-2 h-9 w-full rounded-md border border-input bg-background px-2 font-mono text-xs text-fg outline-none focus:border-ring"
+											:value="skinValue(level.name, property)"
+											:aria-label="`${level.label} ${property.label}`"
+											@input="updateSkinToken(level.name, property, $event.target.value)"
+										>
+									</label>
+								</div>
+							</article>
+						</div>
+					</section>
 				</div>
 
 				<div class="grid gap-4 xl:grid-cols-2">
 					<div
 						v-for="mode in themeModes"
 						:key="mode.value"
-						class="relative rounded-2xl border border-border bg-card text-card-foreground"
+						class="relative rounded-2xl border border-border skin-raised text-fg"
 						:data-theme="mode.value"
 						:style="themeColumnStyle(mode.value)"
 					>
 						<div class="flex items-center justify-between gap-3 border-b border-border bg-secondary/45 px-4 py-3">
 							<div>
-								<p class="text-sm font-semibold text-foreground">{{ mode.label }} mode</p>
-								<p class="text-xs text-muted-foreground">{{ mode.selector }}</p>
+								<p class="text-sm font-semibold text-fg">{{ mode.label }} mode</p>
+								<p class="text-xs text-muted-fg">{{ mode.selector }}</p>
 							</div>
 							<button
 								type="button"
-								class="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-secondary"
+								class="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-fg transition-colors hover:bg-secondary"
 								@click="setEditorMode(mode.value)"
 							>
 								Preview
@@ -1142,8 +1500,8 @@ onBeforeUnmount(() => {
 								<div class="bg-secondary/30 px-4 py-3">
 									<div class="flex items-center justify-between gap-3">
 										<div class="min-w-0">
-											<p class="truncate text-sm font-semibold text-foreground">{{ group.label }}</p>
-											<p class="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{{ group.description }}</p>
+											<p class="truncate text-sm font-semibold text-fg">{{ group.label }}</p>
+											<p class="mt-0.5 line-clamp-2 text-xs text-muted-fg">{{ group.description }}</p>
 										</div>
 										<DomPopover
 											v-if="hasGroupPairPreview(group)"
@@ -1158,7 +1516,7 @@ onBeforeUnmount(() => {
 													type="button"
 													class="grid h-10 w-16 shrink-0 place-items-center rounded-lg border border-border text-sm font-semibold shadow-sm transition-shadow hover:ring-2 hover:ring-ring/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 													:style="groupPairPreviewStyle(mode.value, group)"
-													:title="`${group.label} surface and foreground preview`"
+													:title="`${group.label} bg and fg preview`"
 													:aria-label="`Edit ${group.label} ${mode.value} colors`"
 												>
 													Aa
@@ -1167,7 +1525,7 @@ onBeforeUnmount(() => {
 											<div>
 												<div>
 													<p class="text-sm font-semibold">{{ group.label }}</p>
-													<p class="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{{ group.description }}</p>
+													<p class="mt-0.5 line-clamp-2 text-xs text-muted-fg">{{ group.description }}</p>
 												</div>
 												<div class="mt-3 grid gap-2">
 													<label
@@ -1207,7 +1565,7 @@ onBeforeUnmount(() => {
 										v-for="token in group.tokens"
 										:key="token.name"
 										class="relative flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/60"
-										:class="isActiveToken(token.name) && 'bg-accent text-accent-foreground hover:bg-accent'"
+										:class="isActiveToken(token.name) && 'bg-accent text-accent-fg hover:bg-accent'"
 									>
 										<span
 											class="grid size-10 shrink-0 place-items-center rounded-lg border border-border text-[11px] font-semibold shadow-sm"
@@ -1218,7 +1576,7 @@ onBeforeUnmount(() => {
 										<span class="min-w-0 flex-1">
 											<span class="flex flex-wrap items-center gap-2">
 												<span class="truncate text-sm font-medium">{{ token.label }}</span>
-												<span class="rounded-full bg-background/70 px-2 py-0.5 text-[11px] font-medium text-muted-foreground ring-1 ring-border">{{ token.role }}</span>
+												<span class="rounded-full bg-background/70 px-2 py-0.5 text-[11px] font-medium text-muted-fg ring-1 ring-border">{{ token.role }}</span>
 											</span>
 											<span class="mt-0.5 block truncate font-mono text-xs opacity-70">{{ token.name }}: {{ tokenOklch(mode.value, token.name) }}</span>
 										</span>
@@ -1246,7 +1604,7 @@ onBeforeUnmount(() => {
 					<article
 						v-for="pair in tokenPairs"
 						:key="pair.name"
-						class="overflow-hidden rounded-2xl border border-border bg-card text-card-foreground"
+						class="overflow-hidden rounded-2xl border border-border skin-raised text-fg"
 					>
 						<div class="flex min-h-28 items-end p-4" :style="swatchStyle(pair)">
 							<div>
@@ -1255,41 +1613,41 @@ onBeforeUnmount(() => {
 							</div>
 						</div>
 						<div class="space-y-3 p-4">
-							<p class="text-sm text-muted-foreground">{{ pair.use }}</p>
+							<p class="text-sm text-muted-fg">{{ pair.use }}</p>
 							<div class="grid gap-2 text-xs">
 								<div class="flex items-center justify-between gap-3">
-									<span class="text-muted-foreground">Surface</span>
+									<span class="text-muted-fg">Bg</span>
 									<label class="relative flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-secondary">
-										<code class="font-mono text-foreground">{{ pair.surface }}</code>
+										<code class="font-mono text-fg">{{ pair.bg }}</code>
 										<span
 											class="size-3 rounded-full ring-1 ring-border"
-											:style="variableSwatchStyle(pair.surface)"
+											:style="variableSwatchStyle(pair.bg)"
 										></span>
 										<input
 											type="color"
 											class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-											:value="tokenHex(activeMode, pair.surface)"
-											:aria-label="`Edit ${pair.name} surface ${activeMode} color`"
-											@focus="activeTokenName = pair.surface"
-											@input="updateColorToken(activeMode, pair.surface, $event.target.value)"
+											:value="tokenHex(activeMode, pair.bg)"
+											:aria-label="`Edit ${pair.name} bg ${activeMode} color`"
+											@focus="activeTokenName = pair.bg"
+											@input="updateColorToken(activeMode, pair.bg, $event.target.value)"
 										/>
 									</label>
 								</div>
 								<div class="flex items-center justify-between gap-3">
-									<span class="text-muted-foreground">Foreground</span>
+									<span class="text-muted-fg">Fg</span>
 									<label class="relative flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-secondary">
-										<code class="font-mono text-foreground">{{ pair.foreground }}</code>
+										<code class="font-mono text-fg">{{ pair.fg }}</code>
 										<span
 											class="size-3 rounded-full ring-1 ring-border"
-											:style="variableSwatchStyle(pair.foreground)"
+											:style="variableSwatchStyle(pair.fg)"
 										></span>
 										<input
 											type="color"
 											class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-											:value="tokenHex(activeMode, pair.foreground)"
-											:aria-label="`Edit ${pair.name} foreground ${activeMode} color`"
-											@focus="activeTokenName = pair.foreground"
-											@input="updateColorToken(activeMode, pair.foreground, $event.target.value)"
+											:value="tokenHex(activeMode, pair.fg)"
+											:aria-label="`Edit ${pair.name} fg ${activeMode} color`"
+											@focus="activeTokenName = pair.fg"
+											@input="updateColorToken(activeMode, pair.fg, $event.target.value)"
 										/>
 									</label>
 								</div>
@@ -1302,17 +1660,17 @@ onBeforeUnmount(() => {
 					<article
 						v-for="token in utilityTokens"
 						:key="token.name"
-						class="rounded-2xl border border-border bg-card p-4 text-card-foreground"
+						class="rounded-2xl border border-border skin-raised p-4 text-fg"
 					>
 						<div class="flex items-center gap-3">
 							<span class="size-10 rounded-xl ring-1 ring-border" :style="utilitySwatchStyle(token)"></span>
 							<div>
 								<p class="font-semibold">{{ token.name }}</p>
-								<code class="font-mono text-xs text-muted-foreground">{{ token.token }}</code>
+								<code class="font-mono text-xs text-muted-fg">{{ token.token }}</code>
 							</div>
 						</div>
-						<p class="mt-3 text-sm text-muted-foreground">{{ token.use }}</p>
-						<p class="mt-3 rounded-lg bg-secondary px-2 py-1 font-mono text-xs text-muted-foreground">{{ token.utility }}</p>
+						<p class="mt-3 text-sm text-muted-fg">{{ token.use }}</p>
+						<p class="mt-3 rounded-lg bg-secondary px-2 py-1 font-mono text-xs text-muted-fg">{{ token.utility }}</p>
 					</article>
 				</div>
 			</DocSection>
@@ -1320,7 +1678,7 @@ onBeforeUnmount(() => {
 			<DocSection eyebrow="Decision guide" title="Which token should I use?">
 				<div class="overflow-x-auto overflow-y-hidden rounded-2xl border border-border">
 					<table class="w-full min-w-[42rem] text-left text-sm">
-						<thead class="bg-secondary text-xs uppercase tracking-[0.14em] text-muted-foreground">
+						<thead class="bg-secondary text-xs uppercase tracking-[0.14em] text-muted-fg">
 							<tr>
 								<th class="px-4 py-3 font-semibold">Intent</th>
 								<th class="px-4 py-3 font-semibold">Utility</th>
@@ -1329,9 +1687,9 @@ onBeforeUnmount(() => {
 						</thead>
 						<tbody class="divide-y divide-border bg-background">
 							<tr v-for="row in decisionRows" :key="row[0]">
-								<td class="px-4 py-3 font-medium text-foreground">{{ row[0] }}</td>
-								<td class="px-4 py-3"><code class="font-mono text-xs text-muted-foreground">{{ row[1] }}</code></td>
-								<td class="px-4 py-3 text-muted-foreground">{{ row[2] }}</td>
+								<td class="px-4 py-3 font-medium text-fg">{{ row[0] }}</td>
+								<td class="px-4 py-3"><code class="font-mono text-xs text-muted-fg">{{ row[1] }}</code></td>
+								<td class="px-4 py-3 text-muted-fg">{{ row[2] }}</td>
 							</tr>
 						</tbody>
 					</table>

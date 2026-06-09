@@ -165,7 +165,7 @@ onMounted(async () => {
 			v-else-if="!triggerId"
 			slot="trigger"
 			type="button"
-			class="inline-flex h-10 items-center gap-2 rounded-full bg-secondary px-4 text-sm font-medium text-foreground ring-1 ring-border transition hover:bg-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+			class="skin-control inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium transition hover:brightness-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 		>
 			{{ label }}
 		</button>
@@ -175,7 +175,7 @@ onMounted(async () => {
 			:class="width"
 		>
 			<div
-				class="dom-popover-card relative rounded-lg border border-border bg-popover text-left text-sm text-popover-foreground shadow-2xl shadow-black/10 ring-1 ring-border/60 dark:shadow-black/40"
+				class="dom-popover-card skin-floating relative rounded-lg text-left text-sm"
 				:class="padding"
 			>
 				<svg v-if="arrow" class="dom-popover-arrow" aria-hidden="true" viewBox="0 0 16 8">
@@ -198,49 +198,45 @@ onMounted(async () => {
 	width: 16px;
 	height: 8px;
 	overflow: visible;
-	fill: var(--popover);
-	stroke: var(--border);
+	fill: var(--skin-floating-bg);
+	stroke: var(--skin-floating-border);
 	stroke-width: 1;
 	stroke-linejoin: round;
 	pointer-events: none;
 }
 
 .dom-popover-arrow-fill {
-	fill: var(--popover);
+	fill: var(--skin-floating-bg);
 	stroke: none;
 }
 
 .dom-popover-arrow-stroke {
 	fill: none;
-	stroke: var(--border);
+	stroke: var(--skin-floating-border);
 	stroke-width: 1;
 	stroke-linecap: round;
 	stroke-linejoin: round;
 }
 
-.dom-floating-transition[data-side="top"] > .dom-popover-card > .dom-popover-arrow,
-.dom-popover-transition[data-side="top"] > .dom-popover-card > .dom-popover-arrow {
+.dom-floating-transition[data-side="top"] > .dom-popover-card > .dom-popover-arrow {
 	bottom: -8px;
 	left: var(--dom-popover-arrow-x);
 	transform: translateX(-50%) rotate(180deg);
 }
 
-.dom-floating-transition[data-side="bottom"] > .dom-popover-card > .dom-popover-arrow,
-.dom-popover-transition[data-side="bottom"] > .dom-popover-card > .dom-popover-arrow {
+.dom-floating-transition[data-side="bottom"] > .dom-popover-card > .dom-popover-arrow {
 	top: -8px;
 	left: var(--dom-popover-arrow-x);
 	transform: translateX(-50%);
 }
 
-.dom-floating-transition[data-side="left"] > .dom-popover-card > .dom-popover-arrow,
-.dom-popover-transition[data-side="left"] > .dom-popover-card > .dom-popover-arrow {
+.dom-floating-transition[data-side="left"] > .dom-popover-card > .dom-popover-arrow {
 	right: -12px;
 	top: var(--dom-popover-arrow-y);
 	transform: translateY(-50%) rotate(90deg);
 }
 
-.dom-floating-transition[data-side="right"] > .dom-popover-card > .dom-popover-arrow,
-.dom-popover-transition[data-side="right"] > .dom-popover-card > .dom-popover-arrow {
+.dom-floating-transition[data-side="right"] > .dom-popover-card > .dom-popover-arrow {
 	left: -12px;
 	top: var(--dom-popover-arrow-y);
 	transform: translateY(-50%) rotate(-90deg);

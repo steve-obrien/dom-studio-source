@@ -45,8 +45,8 @@ const lastAction = ref('');
 				</span>
 			</template>
 		</DomDropdown>
-		<p v-if="lastAction" class="text-xs text-muted-foreground">
-			Last action: <code class="text-foreground">{{ lastAction }}</code>
+		<p v-if="lastAction" class="text-xs text-muted-fg">
+			Last action: <code class="text-fg">{{ lastAction }}</code>
 		</p>
 	</div>
 </template>

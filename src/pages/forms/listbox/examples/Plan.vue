@@ -18,6 +18,6 @@ const options = [
 				<span class="block text-xs opacity-75">{{ option.description }}</span>
 			</template>
 		</DomListbox>
-		<p class="text-xs text-muted-foreground">Selected value: <code class="text-foreground">{{ value }}</code></p>
+		<p class="text-xs text-muted-fg">Selected value: <code class="text-fg">{{ value }}</code></p>
 	</div>
 </template>

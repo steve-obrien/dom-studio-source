@@ -24,9 +24,9 @@ const countries = [
 	<DomCard padding="lg" class="w-full max-w-2xl">
 		<div class="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
 			<div>
-				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Payment</p>
+				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Payment</p>
 				<h3 class="mt-2 text-2xl font-semibold tracking-tight">Collect payment</h3>
-				<p class="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
+				<p class="mt-2 max-w-lg text-sm leading-6 text-muted-fg">
 					A billing form layout for card details, region, amount, and save-card preference.
 				</p>
 			</div>
@@ -62,7 +62,7 @@ const countries = [
 			</div>
 
 			<div class="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
-				<p class="text-xs text-muted-foreground">Card processing UI only. Wire this to your payment provider in application code.</p>
+				<p class="text-xs text-muted-fg">Card processing UI only. Wire this to your payment provider in application code.</p>
 				<DomButton type="submit">Charge card</DomButton>
 			</div>
 		</DomForm>

@@ -142,7 +142,7 @@ watch(field.value, syncInputFromModel);
 			<Teleport to="body" :disabled="!isMounted">
 				<ul
 					:id="listId"
-					class="dom-glass-surface z-50 max-h-[min(15rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"
+					class="skin-floating z-50 max-h-[min(15rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"
 				>
 					<li
 						v-for="(option, index) in items"

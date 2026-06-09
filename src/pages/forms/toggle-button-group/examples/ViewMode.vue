@@ -35,6 +35,6 @@ const toolOptions = [
 			description="Multiple mode lets users keep more than one option pressed."
 		/>
 
-		<pre class="overflow-auto rounded-xl border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">{{ { view, tools } }}</pre>
+		<pre class="overflow-auto rounded-xl border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ { view, tools } }}</pre>
 	</div>
 </template>

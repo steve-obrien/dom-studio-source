@@ -15,9 +15,9 @@ const contact = ref({
 <template>
 	<DomCard padding="lg" class="w-full max-w-2xl">
 		<div class="border-b border-border pb-6">
-			<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Contact</p>
+			<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Contact</p>
 			<h3 class="mt-2 text-2xl font-semibold tracking-tight">Start a conversation</h3>
-			<p class="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
+			<p class="mt-2 max-w-lg text-sm leading-6 text-muted-fg">
 				A compact lead form with contact details, business context, and a newsletter opt-in.
 			</p>
 		</div>

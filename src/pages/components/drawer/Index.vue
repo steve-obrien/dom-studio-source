@@ -51,7 +51,7 @@ const doc = DomDrawer.__doc;
 				<Example
 					:source="FiltersSrc"
 					filename="Filters.vue"
-					description="Set side=&quot;left&quot; for filter panels, detail views, or any secondary surface anchored to the opposite edge."
+					description="Set side=&quot;left&quot; for filter panels, detail views, or any secondary panel anchored to the opposite edge."
 				>
 					<Filters />
 				</Example>

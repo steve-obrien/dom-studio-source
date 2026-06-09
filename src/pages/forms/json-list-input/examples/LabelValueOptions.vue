@@ -39,9 +39,9 @@ const schema = {
 			:schema="schema"
 		/>
 		<div>
-			<p class="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Bound elsewhere</p>
+			<p class="mb-2 text-xs font-medium uppercase tracking-wider text-muted-fg">Bound elsewhere</p>
 			<DomDropdown :items="items" label="Pick a fruit" />
-			<pre class="mt-3 overflow-auto rounded-xl border border-border bg-secondary/50 p-3 text-xs text-muted-foreground">{{ items }}</pre>
+			<pre class="mt-3 overflow-auto rounded-xl border border-border bg-secondary/50 p-3 text-xs text-muted-fg">{{ items }}</pre>
 		</div>
 	</div>
 </template>

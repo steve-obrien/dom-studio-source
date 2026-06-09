@@ -65,29 +65,29 @@ const useFieldReturns = [
 	<DomStudioLayout>
 		<DocPage :name="doc.name" :tagline="doc.description" :tag="doc.tag">
 			<DocSection eyebrow="Purpose" title="The shared form wrapper">
-				<div class="grid gap-4 text-sm text-muted-foreground md:grid-cols-3">
-					<div class="rounded-2xl border border-border bg-card p-4 text-card-foreground">
-						<p class="font-medium text-foreground">Use it for custom controls</p>
-						<p class="mt-2 text-sm text-muted-foreground">When an input is not already covered by an DOM Studio form component, wrap the control with DomField to keep labels and descriptions consistent.</p>
+				<div class="grid gap-4 text-sm text-muted-fg md:grid-cols-3">
+					<div class="skin-raised rounded-2xl p-4">
+						<p class="font-medium text-fg">Use it for custom controls</p>
+						<p class="mt-2 text-sm text-muted-fg">When an input is not already covered by an DOM Studio form component, wrap the control with DomField to keep labels and descriptions consistent.</p>
 					</div>
-					<div class="rounded-2xl border border-border bg-card p-4 text-card-foreground">
-						<p class="font-medium text-foreground">Keep accessible labels</p>
-						<p class="mt-2 text-sm text-muted-foreground">Pass htmlFor when the slotted control has an id, so clicking the label focuses the underlying input.</p>
+					<div class="skin-raised rounded-2xl p-4">
+						<p class="font-medium text-fg">Keep accessible labels</p>
+						<p class="mt-2 text-sm text-muted-fg">Pass htmlFor when the slotted control has an id, so clicking the label focuses the underlying input.</p>
 					</div>
-					<div class="rounded-2xl border border-border bg-card p-4 text-card-foreground">
-						<p class="font-medium text-foreground">Avoid duplicated chrome</p>
-						<p class="mt-2 text-sm text-muted-foreground">Packaged inputs share fieldProps and useField, then render DomField by default. Set :chrome="false" when a parent DomField owns the visual layout.</p>
+					<div class="skin-raised rounded-2xl p-4">
+						<p class="font-medium text-fg">Avoid duplicated chrome</p>
+						<p class="mt-2 text-sm text-muted-fg">Packaged inputs share fieldProps and useField, then render DomField by default. Set :chrome="false" when a parent DomField owns the visual layout.</p>
 					</div>
 				</div>
 			</DocSection>
 
 			<DocSection eyebrow="Validation" title="Invalid fields">
-				<div class="space-y-3 text-sm text-muted-foreground">
+				<div class="space-y-3 text-sm text-muted-fg">
 					<p>
-						Pass <code class="font-mono text-foreground">invalid</code> or
-						<code class="font-mono text-foreground">data-invalid</code> to mark the field wrapper invalid.
-						Inputs using the shared <code class="font-mono text-foreground">dom-input</code> or
-						<code class="font-mono text-foreground">dom-textarea</code> utility automatically pick up the destructive border and focus ring.
+						Pass <code class="font-mono text-fg">invalid</code> or
+						<code class="font-mono text-fg">data-invalid</code> to mark the field wrapper invalid.
+						Inputs using the shared <code class="font-mono text-fg">dom-input</code> or
+						<code class="font-mono text-fg">dom-textarea</code> utility automatically pick up the destructive border and focus ring.
 					</p>
 					<CodeBlock
 						:code="`<DomField label=&quot;Email&quot; html-for=&quot;email&quot; data-invalid>\n\t<input id=&quot;email&quot; name=&quot;email&quot; class=&quot;dom-input&quot; aria-invalid=&quot;true&quot; />\n</DomField>`"
@@ -118,14 +118,14 @@ const useFieldReturns = [
 
 			<DocSection eyebrow="Component pattern" title="Create your own form input">
 				<div class="space-y-4">
-					<p class="text-sm leading-6 text-muted-foreground">
+					<p class="text-sm leading-6 text-muted-fg">
 						A custom input should compose
-						<code class="font-mono text-foreground">fieldProps</code>,
-						call <code class="font-mono text-foreground">useField</code>,
-						and render <code class="font-mono text-foreground">DomField</code>.
-						That gives it standalone <code class="font-mono text-foreground">v-model</code>,
+						<code class="font-mono text-fg">fieldProps</code>,
+						call <code class="font-mono text-fg">useField</code>,
+						and render <code class="font-mono text-fg">DomField</code>.
+						That gives it standalone <code class="font-mono text-fg">v-model</code>,
 						parent form registration, generated names and IDs, validation state, and optional
-						<code class="font-mono text-foreground">:chrome="false"</code> support.
+						<code class="font-mono text-fg">:chrome="false"</code> support.
 					</p>
 					<Example
 						:source="SlugInputSrc"
@@ -140,20 +140,20 @@ const useFieldReturns = [
 			</DocSection>
 
 			<DocSection eyebrow="Behaviour" title="What useField gives you">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
-						<code class="font-mono text-foreground">useField()</code> is the behaviour layer.
-						It reads and writes the nearest <code class="font-mono text-foreground">DomForm</code>
-						when one exists, falls back to standalone <code class="font-mono text-foreground">v-model</code>
+						<code class="font-mono text-fg">useField()</code> is the behaviour layer.
+						It reads and writes the nearest <code class="font-mono text-fg">DomForm</code>
+						when one exists, falls back to standalone <code class="font-mono text-fg">v-model</code>
 						when it does not, and returns the state and attributes needed by both
-						<code class="font-mono text-foreground">DomField</code> and the real control.
-						<code class="font-mono text-foreground">DomField</code> itself stays presentational:
-						it receives <code class="font-mono text-foreground">fieldAttrs</code> or listens to
+						<code class="font-mono text-fg">DomField</code> and the real control.
+						<code class="font-mono text-fg">DomField</code> itself stays presentational:
+						it receives <code class="font-mono text-fg">fieldAttrs</code> or listens to
 						child fields through a display-only provider.
 					</p>
 					<div class="overflow-hidden rounded-lg border border-border">
 						<table class="w-full text-left text-sm">
-							<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-foreground">
+							<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-fg">
 								<tr>
 									<th class="px-4 py-2 font-medium">Group</th>
 									<th class="px-4 py-2 font-medium">Returns</th>
@@ -162,9 +162,9 @@ const useFieldReturns = [
 							</thead>
 							<tbody class="divide-y divide-border">
 								<tr v-for="item in useFieldReturns" :key="item.name">
-									<td class="px-4 py-3 font-mono text-[12.5px] text-foreground">{{ item.name }}</td>
-									<td class="px-4 py-3 font-mono text-[12.5px] text-muted-foreground">{{ item.value }}</td>
-									<td class="px-4 py-3 text-muted-foreground">{{ item.description }}</td>
+									<td class="px-4 py-3 font-mono text-[12.5px] text-fg">{{ item.name }}</td>
+									<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">{{ item.value }}</td>
+									<td class="px-4 py-3 text-muted-fg">{{ item.description }}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -172,15 +172,15 @@ const useFieldReturns = [
 					<div class="grid gap-4 lg:grid-cols-2">
 						<div class="space-y-2">
 							<p>
-								Bind <code class="font-mono text-foreground">field.fieldAttrs.value</code>
-								to <code class="font-mono text-foreground">DomField</code>. This is the display
+								Bind <code class="font-mono text-fg">field.fieldAttrs.value</code>
+								to <code class="font-mono text-fg">DomField</code>. This is the display
 								state: label, helper text, IDs, required marker, errors, and visibility.
 							</p>
 							<CodeBlock :code="fieldAttrsCode" lang="js" filename="fieldAttrs.value" />
 						</div>
 						<div class="space-y-2">
 							<p>
-								Bind <code class="font-mono text-foreground">field.inputAttrs.value</code>
+								Bind <code class="font-mono text-fg">field.inputAttrs.value</code>
 								to the native input. This automates form names, IDs, ARIA, invalid styling,
 								and disabled/read-only wiring.
 							</p>
@@ -191,20 +191,20 @@ const useFieldReturns = [
 			</DocSection>
 
 			<DocSection eyebrow="Headless" title="Wrap a control with custom chrome">
-				<div class="space-y-3 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-3 text-sm leading-6 text-muted-fg">
 					<p>
 						DomField can act as a headless display provider for child controls. Wrap the
-						control in <code class="font-mono text-foreground">DomField</code>, set the inner
-						packaged input to <code class="font-mono text-foreground">:chrome="false"</code>,
+						control in <code class="font-mono text-fg">DomField</code>, set the inner
+						packaged input to <code class="font-mono text-fg">:chrome="false"</code>,
 						and use DomField slots to place labels, controls, descriptions, and errors.
 					</p>
 					<p>
 						The display provider is separate from the
-						<code class="font-mono text-foreground">DomForm</code> data provider, so nested
+						<code class="font-mono text-fg">DomForm</code> data provider, so nested
 						visual fields do not create form scopes, change field paths, or write values.
 						If all you need is your own markup, make the wrapping
-						<code class="font-mono text-foreground">DomField</code> headless with
-						<code class="font-mono text-foreground">:chrome="false"</code> and read the
+						<code class="font-mono text-fg">DomField</code> headless with
+						<code class="font-mono text-fg">:chrome="false"</code> and read the
 						slot props yourself.
 					</p>
 					<Example
@@ -227,11 +227,11 @@ const useFieldReturns = [
 			</DocSection>
 
 			<DocSection eyebrow="Form state" title="Display field state separately">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						When the surrounding UI should not use
-						<code class="font-mono text-foreground">DomField</code> slots at all, the
-						<code class="font-mono text-foreground">DomForm</code> slot exposes the form API.
+						<code class="font-mono text-fg">DomField</code> slots at all, the
+						<code class="font-mono text-fg">DomForm</code> slot exposes the form API.
 						Read field values, field state, generated IDs, native names, paths, and errors
 						from the form, then render them wherever the design needs them.
 					</p>
@@ -247,13 +247,13 @@ const useFieldReturns = [
 			</DocSection>
 
 			<DocSection eyebrow="Reusable layout" title="Provide a field layout component">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						Use scoped slots for one-off exceptions. When a whole section should share a
 						field shape, pass a layout component through
-						<code class="font-mono text-foreground">fieldLayout</code> on
-						<code class="font-mono text-foreground">DomField</code>. Use
-						<code class="font-mono text-foreground">:chrome="false"</code> when the field
+						<code class="font-mono text-fg">fieldLayout</code> on
+						<code class="font-mono text-fg">DomField</code>. Use
+						<code class="font-mono text-fg">:chrome="false"</code> when the field
 						only provides layout to descendant controls. Nested forms can still scope data
 						paths, but they do not know or care about the layout.
 					</p>
@@ -297,11 +297,11 @@ const useFieldReturns = [
 			</DocSection>
 
 			<DocSection eyebrow="Composite layout" title="Represent multiple fields as one row">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
-						For grouped inputs, keep one visual <code class="font-mono text-foreground">DomField</code>
+						For grouped inputs, keep one visual <code class="font-mono text-fg">DomField</code>
 						around the row and set the internal controls to
-						<code class="font-mono text-foreground">:chrome="false"</code>. Each input can
+						<code class="font-mono text-fg">:chrome="false"</code>. Each input can
 						still write its own form value while shared label and group errors stay in one
 						place.
 					</p>
@@ -316,7 +316,7 @@ const useFieldReturns = [
 			</DocSection>
 
 			<DocSection eyebrow="Usage" title="Vue">
-				<div class="space-y-3 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-3 text-sm leading-6 text-muted-fg">
 					<p>
 						This is the same component used in the rendered native-control demo above,
 						so the source and output stay coupled.

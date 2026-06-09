@@ -19,7 +19,7 @@ const email = ref('steve.example');
 				<label
 					:for="htmlFor"
 					class="pt-2 text-sm font-semibold"
-					:class="invalid ? 'text-destructive' : 'text-muted-foreground'"
+					:class="invalid ? 'text-destructive' : 'text-muted-fg'"
 				>
 					{{ label }}
 					<span aria-hidden="true">*</span>
@@ -36,7 +36,7 @@ const email = ref('steve.example');
 					<p
 						v-if="description"
 						:id="descriptionId || undefined"
-						class="text-xs leading-5 text-muted-foreground"
+						class="text-xs leading-5 text-muted-fg"
 					>
 						{{ description }}
 					</p>

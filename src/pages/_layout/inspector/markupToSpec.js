@@ -18,7 +18,7 @@ export function slotToSpec(slot) {
 		id: 'root',
 		label: 'Studio root',
 		component: 'div',
-		props: { class: 'min-w-[640px] w-full rounded-3xl border border-border bg-background p-6 text-foreground shadow-2xl shadow-black/10' },
+		props: { class: 'min-w-[640px] w-full rounded-3xl border border-border bg-background p-6 text-fg shadow-2xl shadow-black/10' },
 		children: specs,
 	};
 }

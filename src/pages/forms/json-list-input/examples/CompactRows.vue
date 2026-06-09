@@ -65,7 +65,7 @@ const schema = {
 </script>
 
 <template>
-	<div class="w-full max-w-md rounded-2xl border border-border bg-card p-4 text-card-foreground">
+	<div class="w-full max-w-md rounded-2xl border border-border skin-raised p-4 text-fg">
 		<DomJsonListInput
 			v-model="people"
 			label="People"

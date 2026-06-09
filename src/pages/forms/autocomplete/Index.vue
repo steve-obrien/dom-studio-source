@@ -67,13 +67,13 @@ const events = [
 			</DocSection>
 
 			<DocSection eyebrow="Usage" title="Plain HTML">
-				<p class="text-sm leading-relaxed text-muted-foreground">
+				<p class="text-sm leading-relaxed text-muted-fg">
 					Use the headless custom element when you want autocomplete in plain HTML or another framework.
 					The headless page includes a copyable HTML and JavaScript example.
 				</p>
 				<RouterLink
 					to="/headless/autocomplete"
-					class="mt-4 inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+					class="mt-4 inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-fg transition hover:opacity-90"
 				>
 					View headless autocomplete
 				</RouterLink>
@@ -87,7 +87,7 @@ const events = [
 				<ul class="space-y-2 rounded-2xl border border-border bg-secondary/40 p-5 text-sm">
 					<li v-for="event in events" :key="event.name" class="flex items-start gap-4">
 						<code class="rounded bg-background px-2 py-0.5 font-mono text-xs ring-1 ring-border">{{ event.name }}</code>
-						<span class="text-muted-foreground">{{ event.description }}</span>
+						<span class="text-muted-fg">{{ event.description }}</span>
 					</li>
 				</ul>
 			</DocSection>

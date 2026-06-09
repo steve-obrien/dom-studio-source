@@ -106,10 +106,10 @@ defineExpose({
 		<span slot="trigger" class="contents">
 			<slot name="trigger" />
 		</span>
-		<div class="rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-2xl shadow-black/30 ring-1 ring-foreground/20 outline-none w-[min(92vw,28rem)]">
+		<div class="skin-overlay rounded-2xl p-6 outline-none w-[min(92vw,28rem)]">
 			<div v-if="title || description" class="space-y-2">
 				<h2 v-if="title" :id="titleId" class="text-lg font-semibold tracking-tight">{{ title }}</h2>
-				<p v-if="description" :id="descriptionId" class="text-sm text-muted-foreground">{{ description }}</p>
+				<p v-if="description" :id="descriptionId" class="text-sm text-muted-fg">{{ description }}</p>
 			</div>
 			<div :class="(title || description) && 'mt-4'">
 				<slot />
@@ -119,7 +119,7 @@ defineExpose({
 					<button
 						data-close
 						type="button"
-						class="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
+						class="skin-action inline-flex h-9 items-center rounded-full px-4 text-sm font-medium hover:opacity-90"
 					>Close</button>
 				</slot>
 			</div>

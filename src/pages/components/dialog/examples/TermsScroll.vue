@@ -69,22 +69,22 @@ function acceptTerms() {
 	>
 		<div
 			ref="terms"
-			class="max-h-[min(52vh,22rem)] overflow-y-auto rounded-xl border border-border bg-secondary/30 p-4 pr-3 text-sm leading-6 text-muted-foreground"
+			class="max-h-[min(52vh,22rem)] overflow-y-auto rounded-xl border border-border bg-secondary/30 p-4 pr-3 text-sm leading-6 text-muted-fg"
 			@scroll="updateScrollState"
 		>
 			<div class="space-y-5">
 				<section v-for="section in sections" :key="section.title" class="space-y-1">
-					<h3 class="text-sm font-semibold text-foreground">{{ section.title }}</h3>
+					<h3 class="text-sm font-semibold text-fg">{{ section.title }}</h3>
 					<p>{{ section.body }}</p>
 				</section>
-				<p class="border-t border-border pt-5 text-foreground">
+				<p class="border-t border-border pt-5 text-fg">
 					By accepting, you confirm that you have reviewed the terms above and are authorised to agree on behalf of your workspace.
 				</p>
 			</div>
 		</div>
 
 		<template #footer>
-			<p class="mr-auto text-xs text-muted-foreground">
+			<p class="mr-auto text-xs text-muted-fg">
 				{{ canAccept ? 'Ready to accept.' : 'Scroll to the end to continue.' }}
 			</p>
 			<DomButton variant="secondary" @click="open = false">Cancel</DomButton>

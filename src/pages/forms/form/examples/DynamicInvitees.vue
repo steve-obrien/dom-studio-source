@@ -47,7 +47,7 @@ function inviteeFields(index) {
 	return [
 		{
 			component: 'p',
-			props: { class: 'text-xs font-semibold uppercase tracking-wider text-muted-foreground' },
+			props: { class: 'text-xs font-semibold uppercase tracking-wider text-muted-fg' },
 			children: [{ text: `Invitee ${index + 1}` }],
 		},
 		{
@@ -120,8 +120,8 @@ function onInvalid({ values, state }) {
 			</div>
 		</DomForm>
 
-		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">{{ invitation }}</pre>
-		<pre class="mt-3 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">{{ submitResult }}</pre>
-		<pre class="mt-3 max-h-40 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">{{ children }}</pre>
+		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ invitation }}</pre>
+		<pre class="mt-3 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ submitResult }}</pre>
+		<pre class="mt-3 max-h-40 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ children }}</pre>
 	</div>
 </template>

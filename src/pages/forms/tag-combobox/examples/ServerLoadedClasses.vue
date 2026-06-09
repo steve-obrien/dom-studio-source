@@ -37,7 +37,7 @@ async function searchClasses(query) {
 			placeholder="Type a class prefix"
 			@query="searchClasses"
 		/>
-		<p class="rounded-2xl border border-border bg-secondary/40 p-3 font-mono text-xs text-muted-foreground">
+		<p class="rounded-2xl border border-border bg-secondary/40 p-3 font-mono text-xs text-muted-fg">
 			{{ classes.join(' ') }}
 		</p>
 	</div>

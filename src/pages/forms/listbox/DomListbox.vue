@@ -84,7 +84,7 @@ const valueOf = (option) => String(option && typeof option === 'object' ? (optio
 				:aria-describedby="field.describedBy.value || undefined"
 				:aria-invalid="field.invalid.value || undefined"
 				:aria-errormessage="field.errorId.value || undefined"
-				class="grid gap-1 rounded-2xl border border-border bg-background p-1 shadow-sm data-[invalid]:border-destructive"
+				class="skin-raised grid gap-1 rounded-2xl p-1 data-[invalid]:border-destructive"
 			:class="orientation === 'horizontal' && 'grid-flow-col'"
 			:data-invalid="field.invalid.value ? '' : undefined"
 		>
@@ -94,7 +94,7 @@ const valueOf = (option) => String(option && typeof option === 'object' ? (optio
 				role="option"
 				:data-value="valueOf(option)"
 				:disabled="field.disabled.value || undefined"
-				class="rounded-xl px-3 py-2 text-left text-sm text-foreground outline-none transition hover:bg-secondary focus:bg-secondary aria-selected:bg-primary aria-selected:text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+				class="rounded-xl px-3 py-2 text-left text-sm text-fg outline-none transition hover:bg-secondary focus:bg-secondary aria-selected:bg-primary aria-selected:text-primary-fg disabled:cursor-not-allowed disabled:opacity-50"
 				@focus="field.onFocus"
 				@blur="field.onBlur"
 			>

@@ -12,6 +12,6 @@ const options = [
 <template>
 	<div class="flex w-full max-w-sm flex-col gap-2">
 		<DomCombobox v-model="value" :options="options" placeholder="Pick a fruit" class="w-full" />
-		<p class="text-xs text-muted-foreground">Selected value: <code class="text-foreground">{{ value || '—' }}</code></p>
+		<p class="text-xs text-muted-fg">Selected value: <code class="text-fg">{{ value || '—' }}</code></p>
 	</div>
 </template>

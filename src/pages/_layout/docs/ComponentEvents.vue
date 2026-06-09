@@ -24,10 +24,10 @@ function payloadTokens(event) {
 
 <template>
 	<section v-if="info?.events?.length" class="space-y-3">
-		<h3 class="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">{{ title }}</h3>
+		<h3 class="text-sm font-semibold uppercase tracking-[0.18em] text-muted-fg">{{ title }}</h3>
 		<div class="overflow-hidden rounded-2xl border border-border">
 			<table class="w-full text-left text-sm">
-				<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-foreground">
+				<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-fg">
 					<tr>
 						<th class="px-4 py-2 font-medium">Name</th>
 						<th class="px-4 py-2 font-medium">Payload</th>
@@ -37,8 +37,8 @@ function payloadTokens(event) {
 				<tbody class="divide-y divide-border">
 					<template v-for="e in info.events" :key="e.name">
 						<tr>
-							<td class="px-4 py-3 font-mono text-[12.5px] text-foreground">{{ prefix }}{{ e.name }}</td>
-							<td class="px-4 py-3 font-mono text-[12.5px] text-muted-foreground">
+							<td class="px-4 py-3 font-mono text-[12.5px] text-fg">{{ prefix }}{{ e.name }}</td>
+							<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">
 								<template v-for="(token, index) in payloadTokens(e)" :key="`${e.name}:${index}`">
 									<DomPopover
 										v-if="token.definition"
@@ -48,14 +48,14 @@ function payloadTokens(event) {
 										padding="p-0"
 									>
 										<template #trigger>
-											<span class="cursor-help text-foreground underline decoration-dotted underline-offset-4">{{ token.text }}</span>
+											<span class="cursor-help text-fg underline decoration-dotted underline-offset-4">{{ token.text }}</span>
 										</template>
 										<TypeCodeBlock class="max-h-80" :code="token.definition" :definitions="token.typeDefinitions || {}" :framed="false" />
 									</DomPopover>
 									<span v-else>{{ token.text }}</span>
 								</template>
 							</td>
-							<td class="px-4 py-3 text-muted-foreground">{{ e.description || '—' }}</td>
+							<td class="px-4 py-3 text-muted-fg">{{ e.description || '—' }}</td>
 						</tr>
 						<tr v-if="e.details" class="bg-secondary/30">
 							<td colspan="3" class="px-4 py-3">
@@ -72,7 +72,7 @@ function payloadTokens(event) {
 				</tbody>
 			</table>
 		</div>
-		<p class="text-[11px] text-muted-foreground">
+		<p class="text-[11px] text-muted-fg">
 			Names auto-detected from <code class="font-mono">defineEmits</code> and source <code class="font-mono">emit()</code> calls; payload and description from
 			<code class="font-mono">__doc.events</code> when present.
 		</p>

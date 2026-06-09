@@ -104,13 +104,13 @@ const doc = DomDialog.__doc;
 			</DocSection>
 
 			<DocSection eyebrow="Usage" title="Plain HTML">
-				<p class="text-sm leading-relaxed text-muted-foreground">
+				<p class="text-sm leading-relaxed text-muted-fg">
 					Use the headless custom element when you want the same native dialog behaviour in plain HTML or another framework.
 					The headless page includes copyable dialog examples with trigger, close, static, and programmatic controls.
 				</p>
 				<RouterLink
 					to="/headless/dialog"
-					class="mt-4 inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+					class="mt-4 inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-fg transition hover:opacity-90"
 				>
 					View headless dialog
 				</RouterLink>
@@ -128,8 +128,8 @@ const doc = DomDialog.__doc;
 						:key="b.t"
 						class="rounded-xl border border-border bg-secondary/40 p-4"
 					>
-						<p class="text-sm font-semibold tracking-tight text-foreground">{{ b.t }}</p>
-						<p class="mt-1 text-sm text-muted-foreground">{{ b.d }}</p>
+						<p class="text-sm font-semibold tracking-tight text-fg">{{ b.t }}</p>
+						<p class="mt-1 text-sm text-muted-fg">{{ b.d }}</p>
 					</div>
 				</div>
 			</DocSection>

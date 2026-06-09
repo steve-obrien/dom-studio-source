@@ -493,13 +493,13 @@ const componentLinks = [
 			eyebrow="Forms"
 		>
 			<DocSection eyebrow="Principle" title="Keep the contract in code">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						DOM Studio form components should feel simple when used directly, but should
 						also be able to participate in a larger form system. The stable contract is:
-						fields present one named value, <code class="font-mono text-foreground">useField</code>
+						fields present one named value, <code class="font-mono text-fg">useField</code>
 						wires that value into local and parent state, and
-						<code class="font-mono text-foreground">DomForm</code> aggregates values,
+						<code class="font-mono text-fg">DomForm</code> aggregates values,
 						errors, validation, and paths.
 					</p>
 					<p>
@@ -517,8 +517,8 @@ const componentLinks = [
 						:key="status.name"
 						class="rounded-lg border border-border bg-background p-4"
 					>
-						<h3 class="text-sm font-semibold text-foreground">{{ status.name }}</h3>
-						<p class="mt-2 text-sm leading-6 text-muted-foreground">{{ status.description }}</p>
+						<h3 class="text-sm font-semibold text-fg">{{ status.name }}</h3>
+						<p class="mt-2 text-sm leading-6 text-muted-fg">{{ status.description }}</p>
 					</div>
 				</div>
 			</DocSection>
@@ -526,7 +526,7 @@ const componentLinks = [
 			<DocSection eyebrow="Layers" title="How the pieces divide responsibility">
 				<div class="overflow-hidden rounded-lg border border-border">
 					<table class="w-full text-left text-sm">
-						<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-foreground">
+						<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-fg">
 							<tr>
 								<th class="px-4 py-2 font-medium">Layer</th>
 								<th class="px-4 py-2 font-medium">Responsibility</th>
@@ -534,8 +534,8 @@ const componentLinks = [
 						</thead>
 						<tbody class="divide-y divide-border">
 							<tr v-for="principle in principles" :key="principle.name">
-								<td class="px-4 py-3 font-medium text-foreground">{{ principle.name }}</td>
-								<td class="px-4 py-3 text-muted-foreground">{{ principle.description }}</td>
+								<td class="px-4 py-3 font-medium text-fg">{{ principle.name }}</td>
+								<td class="px-4 py-3 text-muted-fg">{{ principle.description }}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -544,41 +544,41 @@ const componentLinks = [
 
 			<DocSection eyebrow="Definitions" title="Author forms as typed data shapes">
 				<div class="space-y-6">
-					<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+					<div class="space-y-4 text-sm leading-6 text-muted-fg">
 						<p>
 							A form definition can be authored like a data schema. The root
-							<code class="font-mono text-foreground">type</code>
+							<code class="font-mono text-fg">type</code>
 							can be a data type such as
-							<code class="font-mono text-foreground">object</code>
+							<code class="font-mono text-fg">object</code>
 							or a component type such as
-							<code class="font-mono text-foreground">DomForm</code>.
+							<code class="font-mono text-fg">DomForm</code>.
 							Keyed
-							<code class="font-mono text-foreground">properties</code>
+							<code class="font-mono text-fg">properties</code>
 							or
-							<code class="font-mono text-foreground">children</code>
+							<code class="font-mono text-fg">children</code>
 							become child fields, and each key becomes the field name unless the
 							field explicitly sets another name.
 						</p>
 						<p>
 							The normalizer turns that authoring shape into the canonical render shape:
 							every node has a semantic
-							<code class="font-mono text-foreground">type</code>,
+							<code class="font-mono text-fg">type</code>,
 							a renderer
-							<code class="font-mono text-foreground">component</code>,
+							<code class="font-mono text-fg">component</code>,
 							and component props. Top-level non-structural keys are passed as props;
 							explicit
-							<code class="font-mono text-foreground">props</code>
+							<code class="font-mono text-fg">props</code>
 							win when both are present.
 						</p>
 					</div>
 
 					<div class="grid gap-4 lg:grid-cols-2">
 						<div class="space-y-3">
-							<p class="text-sm font-medium text-foreground">Terse authoring shape</p>
+							<p class="text-sm font-medium text-fg">Terse authoring shape</p>
 							<CodeBlock lang="js" :code="definitionShapeCode" />
 						</div>
 						<div class="space-y-3">
-							<p class="text-sm font-medium text-foreground">Equivalent render shape</p>
+							<p class="text-sm font-medium text-fg">Equivalent render shape</p>
 							<CodeBlock lang="js" :code="equivalentChildrenCode" />
 						</div>
 					</div>
@@ -586,15 +586,15 @@ const componentLinks = [
 					<div class="grid gap-4 xl:grid-cols-2">
 						<div class="space-y-3">
 							<div>
-								<p class="text-sm font-medium text-foreground">Editable definition</p>
-								<p class="mt-1 text-sm leading-6 text-muted-foreground">
+								<p class="text-sm font-medium text-fg">Editable definition</p>
+								<p class="mt-1 text-sm leading-6 text-muted-fg">
 									Edit the terse JSON and compare the normalized render definition with the JSON Schema projection.
 								</p>
 							</div>
 							<textarea
 								v-model="definitionSource"
 								spellcheck="false"
-								class="min-h-96 w-full resize-y rounded-xl border border-input bg-background p-4 font-mono text-xs leading-5 text-foreground outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+								class="min-h-96 w-full resize-y rounded-xl border border-input bg-background p-4 font-mono text-xs leading-5 text-fg outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
 							/>
 							<p v-if="parsedDefinition.error" class="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
 								{{ parsedDefinition.error }}
@@ -603,8 +603,8 @@ const componentLinks = [
 
 						<div class="space-y-4">
 							<div>
-								<p class="text-sm font-medium text-foreground">Live form</p>
-								<p class="mt-1 text-sm leading-6 text-muted-foreground">
+								<p class="text-sm font-medium text-fg">Live form</p>
+								<p class="mt-1 text-sm leading-6 text-muted-fg">
 									The renderer receives normalized children, while the model remains plain form data.
 								</p>
 							</div>
@@ -620,12 +620,12 @@ const componentLinks = [
 						</div>
 
 						<div class="space-y-3">
-							<p class="text-sm font-medium text-foreground">Normalized form definition</p>
+							<p class="text-sm font-medium text-fg">Normalized form definition</p>
 							<CodeBlock lang="json" :code="normalizedDefinitionCode" />
 						</div>
 
 						<div class="space-y-3">
-							<p class="text-sm font-medium text-foreground">JSON Schema projection</p>
+							<p class="text-sm font-medium text-fg">JSON Schema projection</p>
 							<CodeBlock lang="json" :code="jsonSchemaCodeOutput" />
 						</div>
 					</div>
@@ -633,14 +633,14 @@ const componentLinks = [
 			</DocSection>
 
 			<DocSection eyebrow="Field controls" title="Build inputs from the shared field contract">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						A packaged input should be mostly presentation and interaction. It spreads
-						<code class="font-mono text-foreground">fieldProps</code>, calls
-						<code class="font-mono text-foreground">useField</code>, and passes the returned
-						attrs into <code class="font-mono text-foreground">DomField</code> and the
-						real control. That gives standalone <code class="font-mono text-foreground">v-model</code>
-						and parent <code class="font-mono text-foreground">DomForm</code> participation
+						<code class="font-mono text-fg">fieldProps</code>, calls
+						<code class="font-mono text-fg">useField</code>, and passes the returned
+						attrs into <code class="font-mono text-fg">DomField</code> and the
+						real control. That gives standalone <code class="font-mono text-fg">v-model</code>
+						and parent <code class="font-mono text-fg">DomForm</code> participation
 						without two separate component APIs.
 					</p>
 					<CodeBlock lang="vue" :code="customInputCode" />
@@ -648,18 +648,18 @@ const componentLinks = [
 			</DocSection>
 
 			<DocSection eyebrow="Layout" title="Swap field layout by subtree">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
-						For one-off layouts, wrap controls in <code class="font-mono text-foreground">DomField</code>
-						and set the inner controls to <code class="font-mono text-foreground">:chrome="false"</code>.
+						For one-off layouts, wrap controls in <code class="font-mono text-fg">DomField</code>
+						and set the inner controls to <code class="font-mono text-fg">:chrome="false"</code>.
 						For a repeated layout pattern, pass a
-						<code class="font-mono text-foreground">fieldLayout</code> component to
-						<code class="font-mono text-foreground">DomField</code>. Use
-						<code class="font-mono text-foreground">:chrome="false"</code> when the field is
+						<code class="font-mono text-fg">fieldLayout</code> component to
+						<code class="font-mono text-fg">DomField</code>. Use
+						<code class="font-mono text-fg">:chrome="false"</code> when the field is
 						only providing layout to descendant controls. That changes presentation without
 						creating a new data provider or changing field paths. The layout component receives
 						the same label, default, errors, and description slots that
-						<code class="font-mono text-foreground">DomField</code> renders by default.
+						<code class="font-mono text-fg">DomField</code> renders by default.
 					</p>
 					<CodeBlock lang="vue" :code="fieldLayoutCode" />
 				</div>
@@ -667,11 +667,11 @@ const componentLinks = [
 
 			<DocSection eyebrow="Field contract" title="One named chunk of form data">
 				<div class="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-					<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+					<div class="space-y-4 text-sm leading-6 text-muted-fg">
 						<p>
 							A field should represent one named chunk of form data. Form inputs should
 							not define the common prop block manually; they should spread
-							<code class="font-mono text-foreground">fieldProps</code> and extend it
+							<code class="font-mono text-fg">fieldProps</code> and extend it
 							only with control-specific props.
 						</p>
 						<ul class="space-y-2">
@@ -688,7 +688,7 @@ const componentLinks = [
 			<DocSection eyebrow="Field state" title="The state every form-capable control should understand">
 				<div class="overflow-hidden rounded-lg border border-border">
 					<table class="w-full text-left text-sm">
-						<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-foreground">
+						<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-fg">
 							<tr>
 								<th class="px-4 py-2 font-medium">State</th>
 								<th class="px-4 py-2 font-medium">Meaning</th>
@@ -696,8 +696,8 @@ const componentLinks = [
 						</thead>
 						<tbody class="divide-y divide-border">
 							<tr v-for="state in fieldStates" :key="state.name">
-								<td class="px-4 py-3 font-mono text-[12.5px] text-foreground">{{ state.name }}</td>
-								<td class="px-4 py-3 text-muted-foreground">{{ state.description }}</td>
+								<td class="px-4 py-3 font-mono text-[12.5px] text-fg">{{ state.name }}</td>
+								<td class="px-4 py-3 text-muted-fg">{{ state.description }}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -705,15 +705,15 @@ const componentLinks = [
 			</DocSection>
 
 			<DocSection eyebrow="Form provider" title="Let forms derive paths and aggregate state">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						Fields use local names. Parent forms derive the dot path, native bracket name,
 						and default ID from the form hierarchy. For example, a field named
-						<code class="font-mono text-foreground">postcode</code> inside the
-						<code class="font-mono text-foreground">billing</code> subform writes to
-						<code class="font-mono text-foreground">billing.postcode</code>,
-						and receives the native HTML name <code class="font-mono text-foreground">billing[postcode]</code>.
-						The default input ID is <code class="font-mono text-foreground">billing_postcode</code>.
+						<code class="font-mono text-fg">postcode</code> inside the
+						<code class="font-mono text-fg">billing</code> subform writes to
+						<code class="font-mono text-fg">billing.postcode</code>,
+						and receives the native HTML name <code class="font-mono text-fg">billing[postcode]</code>.
+						The default input ID is <code class="font-mono text-fg">billing_postcode</code>.
 					</p>
 					<CodeBlock lang="vue" :code="providerCode" />
 				</div>
@@ -721,7 +721,7 @@ const componentLinks = [
 
 			<DocSection eyebrow="Form context" title="DomForm owns aggregation, not business state">
 				<div class="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-					<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+					<div class="space-y-4 text-sm leading-6 text-muted-fg">
 						<p>
 							A root form owns ordinary Vue state unless an app binds the model to Pinia
 							or another store. Fields should only depend on the form provider contract,
@@ -729,10 +729,10 @@ const componentLinks = [
 						</p>
 						<p>
 							When an app already uses Pinia, keep business data in the store and bind it
-							to <code class="font-mono text-foreground">DomForm</code> with
-							<code class="font-mono text-foreground">v-model</code>. The form instance
+							to <code class="font-mono text-fg">DomForm</code> with
+							<code class="font-mono text-fg">v-model</code>. The form instance
 							still provides registration, validation, path helpers, and programmatic
-							updates through refs or the named <code class="font-mono text-foreground">forms</code>
+							updates through refs or the named <code class="font-mono text-fg">forms</code>
 							registry.
 						</p>
 						<ul class="space-y-2">
@@ -747,29 +747,29 @@ const componentLinks = [
 			</DocSection>
 
 			<DocSection eyebrow="Nested data" title="Subforms scope paths without nested native forms">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						Forms can contain subforms for billing addresses, contact lists, repeatable
 						rows, or conditional sections. A root
-						<code class="font-mono text-foreground">DomForm</code> renders a native
-						<code class="font-mono text-foreground">&lt;form&gt;</code>. An
-						<code class="font-mono text-foreground">DomForm</code> inside another form
-						renders as a <code class="font-mono text-foreground">&lt;fieldset&gt;</code>
+						<code class="font-mono text-fg">DomForm</code> renders a native
+						<code class="font-mono text-fg">&lt;form&gt;</code>. An
+						<code class="font-mono text-fg">DomForm</code> inside another form
+						renders as a <code class="font-mono text-fg">&lt;fieldset&gt;</code>
 						while keeping the same scoped API.
 					</p>
 					<p>
 						Each subform contributes its local name to the derived path. A field named
-						<code class="font-mono text-foreground">email</code> inside an
-						<code class="font-mono text-foreground">invitees.0</code> subform writes to
-						<code class="font-mono text-foreground">invitees.0.email</code>, receives the
-						native name <code class="font-mono text-foreground">invitees[0][email]</code>,
-						and defaults to the ID <code class="font-mono text-foreground">invitees_0_email</code>.
+						<code class="font-mono text-fg">email</code> inside an
+						<code class="font-mono text-fg">invitees.0</code> subform writes to
+						<code class="font-mono text-fg">invitees.0.email</code>, receives the
+						native name <code class="font-mono text-fg">invitees[0][email]</code>,
+						and defaults to the ID <code class="font-mono text-fg">invitees_0_email</code>.
 					</p>
 				</div>
 			</DocSection>
 
 			<DocSection eyebrow="Validation" title="Validators should become portable records">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						Validators can currently be functions or objects attached through field props.
 						The long-term direction is a serializable validator record backed by a registry,
@@ -783,7 +783,7 @@ const componentLinks = [
 					</p>
 					<div class="overflow-hidden rounded-lg border border-border">
 						<table class="w-full text-left text-sm">
-							<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-foreground">
+							<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-fg">
 								<tr>
 									<th class="px-4 py-2 font-medium">Phase</th>
 									<th class="px-4 py-2 font-medium">Direction</th>
@@ -791,8 +791,8 @@ const componentLinks = [
 							</thead>
 							<tbody class="divide-y divide-border">
 								<tr v-for="(phase, index) in validatorPhases" :key="phase">
-									<td class="px-4 py-3 font-mono text-[12.5px] text-foreground">{{ index + 1 }}</td>
-									<td class="px-4 py-3 text-muted-foreground">{{ phase }}</td>
+									<td class="px-4 py-3 font-mono text-[12.5px] text-fg">{{ index + 1 }}</td>
+									<td class="px-4 py-3 text-muted-fg">{{ phase }}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -802,7 +802,7 @@ const componentLinks = [
 
 			<DocSection eyebrow="Server validation" title="Keep async validation tied to field paths">
 				<div class="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-					<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+					<div class="space-y-4 text-sm leading-6 text-muted-fg">
 						<p>
 							Async server validators should use stale-result protection and return
 							normalized errors keyed by field path. The request should include the
@@ -821,7 +821,7 @@ const componentLinks = [
 			<DocSection eyebrow="Runtime state" title="Keep authored props separate from runtime errors">
 				<div class="overflow-hidden rounded-lg border border-border">
 					<table class="w-full text-left text-sm">
-						<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-foreground">
+						<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-fg">
 							<tr>
 								<th class="px-4 py-2 font-medium">Boundary</th>
 								<th class="px-4 py-2 font-medium">Meaning</th>
@@ -829,8 +829,8 @@ const componentLinks = [
 						</thead>
 						<tbody class="divide-y divide-border">
 							<tr v-for="boundary in runtimeBoundaries" :key="boundary.name">
-								<td class="px-4 py-3 font-medium text-foreground">{{ boundary.name }}</td>
-								<td class="px-4 py-3 text-muted-foreground">{{ boundary.description }}</td>
+								<td class="px-4 py-3 font-medium text-fg">{{ boundary.name }}</td>
+								<td class="px-4 py-3 text-muted-fg">{{ boundary.description }}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -838,7 +838,7 @@ const componentLinks = [
 			</DocSection>
 
 			<DocSection eyebrow="Packaged inputs" title="Convenience wrappers should not duplicate fields">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						Some inputs should exist as convenience components with default presentation,
 						input type, validators, and transformers. They should usually wrap a more
@@ -846,7 +846,7 @@ const componentLinks = [
 					</p>
 					<div class="overflow-hidden rounded-lg border border-border">
 						<table class="w-full text-left text-sm">
-							<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-foreground">
+							<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-fg">
 								<tr>
 									<th class="px-4 py-2 font-medium">Layer</th>
 									<th class="px-4 py-2 font-medium">Role</th>
@@ -854,8 +854,8 @@ const componentLinks = [
 							</thead>
 							<tbody class="divide-y divide-border">
 								<tr v-for="layer in packagedLayers" :key="layer.name">
-									<td class="px-4 py-3 font-mono text-[12.5px] text-foreground">{{ layer.name }}</td>
-									<td class="px-4 py-3 text-muted-foreground">{{ layer.description }}</td>
+									<td class="px-4 py-3 font-mono text-[12.5px] text-fg">{{ layer.name }}</td>
+									<td class="px-4 py-3 text-muted-fg">{{ layer.description }}</td>
 								</tr>
 							</tbody>
 						</table>
@@ -865,7 +865,7 @@ const componentLinks = [
 
 			<DocSection eyebrow="Active fields" title="Backend data types and value lifecycles">
 				<div class="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-					<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+					<div class="space-y-4 text-sm leading-6 text-muted-fg">
 						<p>
 							Longer term, a field can map to a backend data type such as string, text,
 							integer, decimal, boolean, date, datetime, JSON, enum, relation, array,
@@ -882,7 +882,7 @@ const componentLinks = [
 			</DocSection>
 
 			<DocSection eyebrow="Server assembly" title="Server schemas can feed the same client contract">
-				<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						Eventually, forms may be assembled on the server. The client should still render
 						the same schema shape and post structured data back; server form classes can read
@@ -893,7 +893,7 @@ const componentLinks = [
 						<span
 							v-for="item in serverSchemaItems"
 							:key="item"
-							class="rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground"
+							class="rounded-full border border-border bg-secondary px-3 py-1 text-xs font-medium text-muted-fg"
 						>
 							{{ item }}
 						</span>
@@ -903,7 +903,7 @@ const componentLinks = [
 
 			<DocSection eyebrow="Conditional fields" title="Prefer form-level expressions over field coupling">
 				<div class="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-					<div class="space-y-4 text-sm leading-6 text-muted-foreground">
+					<div class="space-y-4 text-sm leading-6 text-muted-fg">
 						<p>
 							Fields often need to react to other fields: a toggle reveals a subform, a
 							country changes postcode validation, a payment method changes required fields,
@@ -920,7 +920,7 @@ const componentLinks = [
 			</DocSection>
 
 			<DocSection eyebrow="Coverage" title="Current component coverage">
-				<ul class="grid gap-3 text-sm leading-6 text-muted-foreground md:grid-cols-2">
+				<ul class="grid gap-3 text-sm leading-6 text-muted-fg md:grid-cols-2">
 					<li
 						v-for="item in implementedCoverage"
 						:key="item"
@@ -933,9 +933,9 @@ const componentLinks = [
 			</DocSection>
 
 			<DocSection eyebrow="Open questions" title="Questions to resolve as the system grows">
-				<ol class="space-y-3 text-sm leading-6 text-muted-foreground">
+				<ol class="space-y-3 text-sm leading-6 text-muted-fg">
 					<li v-for="(question, index) in openQuestions" :key="question" class="flex gap-3">
-						<span class="font-mono text-[12.5px] text-foreground">{{ index + 1 }}.</span>
+						<span class="font-mono text-[12.5px] text-fg">{{ index + 1 }}.</span>
 						<span>{{ question }}</span>
 					</li>
 				</ol>
@@ -950,10 +950,10 @@ const componentLinks = [
 						class="block rounded-lg border border-border bg-background p-4 transition hover:border-primary/40 hover:bg-secondary/40"
 					>
 						<div class="flex items-start justify-between gap-3">
-							<h3 class="text-sm font-semibold text-foreground">{{ link.title }}</h3>
-							<code class="rounded-md bg-secondary px-2 py-1 text-[11px] text-muted-foreground ring-1 ring-border">{{ link.tag }}</code>
+							<h3 class="text-sm font-semibold text-fg">{{ link.title }}</h3>
+							<code class="rounded-md bg-secondary px-2 py-1 text-[11px] text-muted-fg ring-1 ring-border">{{ link.tag }}</code>
 						</div>
-						<p class="mt-3 text-sm leading-6 text-muted-foreground">{{ link.body }}</p>
+						<p class="mt-3 text-sm leading-6 text-muted-fg">{{ link.body }}</p>
 					</RouterLink>
 				</div>
 			</DocSection>

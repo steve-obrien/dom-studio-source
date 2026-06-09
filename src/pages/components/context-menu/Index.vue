@@ -14,7 +14,7 @@ import NestedSrc from './examples/Nested.vue?raw';
 
 <template>
 	<DomStudioLayout>
-		<DocPage name="Context menu" tagline="A right-click menu surface built on the shared menu primitive." tag="<DomContextMenu>">
+		<DocPage name="Context menu" tagline="A right-click menu built on the shared menu primitive." tag="<DomContextMenu>">
 			<DocSection eyebrow="Demo" title="Right-click menu">
 				<Example
 					:source="RowsSrc"

@@ -16,9 +16,9 @@ const date = ref('2026-06-18');
 			:calendar-props="{ min: '2026-01-01', max: '2026-12-31' }"
 		/>
 
-		<p class="rounded-xl border border-border bg-secondary px-3 py-2 text-sm text-muted-foreground">
+		<p class="rounded-xl border border-border bg-secondary px-3 py-2 text-sm text-muted-fg">
 			Stored value:
-			<code class="font-mono text-foreground">{{ date || 'empty' }}</code>
+			<code class="font-mono text-fg">{{ date || 'empty' }}</code>
 		</p>
 	</div>
 </template>

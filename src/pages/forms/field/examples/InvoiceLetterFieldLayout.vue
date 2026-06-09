@@ -32,7 +32,7 @@ const attrs = useAttrs();
 			v-if="label"
 			:for="htmlFor || undefined"
 			class="pt-2 text-xs font-semibold uppercase tracking-wider"
-			:class="invalid ? 'text-destructive' : 'text-muted-foreground'"
+			:class="invalid ? 'text-destructive' : 'text-muted-fg'"
 		>
 			{{ label }}
 			<span v-if="required" aria-hidden="true">*</span>

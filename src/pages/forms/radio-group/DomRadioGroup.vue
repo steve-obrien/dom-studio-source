@@ -88,7 +88,7 @@ const selected = (option) => String(field.value.value ?? '') === valueOf(option)
 				role="radio"
 				:data-value="valueOf(option)"
 				:disabled="field.disabled.value || undefined"
-				class="inline-flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2 text-left text-sm text-foreground outline-none transition hover:bg-secondary focus:ring-2 focus:ring-ring/40 aria-checked:border-primary aria-checked:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+				class="inline-flex items-center gap-3 rounded-xl border border-border bg-background px-3 py-2 text-left text-sm text-fg outline-none transition hover:bg-secondary focus:ring-2 focus:ring-ring/40 aria-checked:border-primary aria-checked:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
 				@focus="field.onFocus"
 				@blur="field.onBlur"
 			>

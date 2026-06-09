@@ -39,10 +39,10 @@ onMounted(() => {
 <template>
 	<div class="overflow-hidden rounded-2xl border border-border bg-background">
 		<div class="flex items-center justify-between border-b border-border bg-secondary/40 px-4 py-2">
-			<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{{ title }}</p>
+			<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">{{ title }}</p>
 			<button
 				type="button"
-				class="rounded-full px-2.5 py-1 text-[11px] font-medium text-muted-foreground ring-1 ring-border hover:bg-background hover:text-foreground"
+				class="rounded-full px-2.5 py-1 text-[11px] font-medium text-muted-fg ring-1 ring-border hover:bg-background hover:text-fg"
 				@click="reset"
 			>Reset</button>
 		</div>

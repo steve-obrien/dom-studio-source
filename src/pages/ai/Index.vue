@@ -19,7 +19,7 @@ const principles = [
 	},
 	{
 		title: 'Use semantic tokens',
-		body: 'Token utilities such as bg-card, text-muted-foreground, border-border, bg-primary, bg-success, and bg-warning keep generated screens on-theme.',
+		body: 'Token utilities such as skin-raised, text-muted-fg, border-border, bg-primary, bg-success, and bg-warning keep generated screens on-theme.',
 	},
 	{
 		title: 'Keep Studio as a second path',
@@ -92,7 +92,6 @@ const specCode = `{
 \t"component": "DomCard",
 \t"props": {
 \t\t"padding": "lg",
-\t\t"glass": true,
 \t\t"class": "w-full max-w-2xl"
 \t},
 \t"children": [
@@ -175,15 +174,15 @@ const promptCode = `When building with DOM Studio:
 		>
 			<DocSection eyebrow="Goal" title="Make the best path the easiest path">
 				<div class="grid gap-4 md:grid-cols-2">
-					<div class="rounded-3xl border border-border bg-card p-6 text-card-foreground">
+					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
 						<h3 class="text-lg font-semibold tracking-tight">For LLM-built apps</h3>
-						<p class="mt-2 text-sm leading-6 text-muted-foreground">
+						<p class="mt-2 text-sm leading-6 text-muted-fg">
 							DOM Studio gives AI a compact set of reliable choices: accessible primitives for behaviour, visual components for surfaces, and blocks for complete application patterns.
 						</p>
 					</div>
-					<div class="rounded-3xl border border-border bg-card p-6 text-card-foreground">
+					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
 						<h3 class="text-lg font-semibold tracking-tight">For human follow-through</h3>
-						<p class="mt-2 text-sm leading-6 text-muted-foreground">
+						<p class="mt-2 text-sm leading-6 text-muted-fg">
 							The output should be easy to read, easy to change, and when needed, easy to round-trip through Studio as a named tree of components, props, and children.
 						</p>
 					</div>
@@ -192,9 +191,9 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Principles" title="What AI should learn from DOM Studio">
 				<div class="grid gap-4 md:grid-cols-2">
-					<article v-for="principle in principles" :key="principle.title" class="rounded-2xl border border-border bg-card p-5 text-card-foreground">
+					<article v-for="principle in principles" :key="principle.title" class="rounded-2xl border border-border skin-raised p-5 text-fg">
 						<h3 class="font-semibold tracking-tight">{{ principle.title }}</h3>
-						<p class="mt-2 text-sm leading-6 text-muted-foreground">{{ principle.body }}</p>
+						<p class="mt-2 text-sm leading-6 text-muted-fg">{{ principle.body }}</p>
 					</article>
 				</div>
 			</DocSection>
@@ -202,7 +201,7 @@ const promptCode = `When building with DOM Studio:
 			<DocSection eyebrow="LLM docs" title="What actually helps an AI use DOM Studio">
 				<div class="overflow-hidden rounded-2xl border border-border">
 					<table class="w-full text-left text-sm">
-						<thead class="bg-secondary text-xs uppercase tracking-[0.14em] text-muted-foreground">
+						<thead class="bg-secondary text-xs uppercase tracking-[0.14em] text-muted-fg">
 							<tr>
 								<th class="px-4 py-3 font-semibold">Area</th>
 								<th class="px-4 py-3 font-semibold">Why it helps</th>
@@ -210,8 +209,8 @@ const promptCode = `When building with DOM Studio:
 						</thead>
 						<tbody class="divide-y divide-border bg-background">
 							<tr v-for="row in llmContract" :key="row[0]">
-								<td class="px-4 py-3 font-medium text-foreground">{{ row[0] }}</td>
-								<td class="px-4 py-3 text-muted-foreground">{{ row[1] }}</td>
+								<td class="px-4 py-3 font-medium text-fg">{{ row[0] }}</td>
+								<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -220,12 +219,12 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Terse context" title="A small docs file beats a long sales page">
 				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border bg-card p-6 text-card-foreground">
+					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
 						<h3 class="text-lg font-semibold tracking-tight">What /llms.txt is for</h3>
-						<p class="mt-2 text-sm leading-6 text-muted-foreground">
+						<p class="mt-2 text-sm leading-6 text-muted-fg">
 							The AI-facing documentation should be short, direct, and practical. It should name the components, explain the house style, and tell an agent which patterns to prefer.
 						</p>
-						<p class="mt-3 text-sm leading-6 text-muted-foreground">
+						<p class="mt-3 text-sm leading-6 text-muted-fg">
 							The public docs can sell the vision. The LLM file should behave more like a recipe card.
 						</p>
 					</div>
@@ -235,12 +234,12 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Editable output" title="Prefer Studio specs for AI-authored UI">
 				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border bg-card p-6 text-card-foreground">
+					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
 						<h3 class="text-lg font-semibold tracking-tight">Why specs beat raw markup</h3>
-						<p class="mt-2 text-sm leading-6 text-muted-foreground">
+						<p class="mt-2 text-sm leading-6 text-muted-fg">
 							Specs preserve the intent behind the UI. A card is still a card, a password field is still a password field, and each layer has a stable identity for later editing.
 						</p>
-						<ul class="mt-5 space-y-2 text-sm text-muted-foreground">
+						<ul class="mt-5 space-y-2 text-sm text-muted-fg">
 							<li class="flex gap-2"><span class="text-success">OK</span><span>Components can be inspected and reconfigured.</span></li>
 							<li class="flex gap-2"><span class="text-success">OK</span><span>Blocks can be composed, duplicated, and normalized.</span></li>
 							<li class="flex gap-2"><span class="text-success">OK</span><span>Generated apps can round-trip through Studio.</span></li>
@@ -252,11 +251,11 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Studio metadata" title="_edit is for Studio, not the main AI contract">
 				<div class="grid gap-4 lg:grid-cols-2">
-					<div class="rounded-3xl border border-border bg-card p-6 text-card-foreground">
-						<p class="text-sm leading-6 text-muted-foreground">
+					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+						<p class="text-sm leading-6 text-muted-fg">
 							The <code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">_edit</code> blocks are mostly for Studio. They tell the inspector which editor to render for a prop.
 						</p>
-						<p class="mt-3 text-sm leading-6 text-muted-foreground">
+						<p class="mt-3 text-sm leading-6 text-muted-fg">
 							They can help an AI only in the narrower case where the AI is generating Studio-aware components or specs. For ordinary app generation, examples, props, events, and theme rules matter more.
 						</p>
 					</div>
@@ -266,13 +265,13 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Component folders" title="Component metadata lives with the component">
 				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border bg-card p-6 text-card-foreground">
+					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
 						<h3 class="text-lg font-semibold tracking-tight">Discovery convention</h3>
-						<p class="mt-2 text-sm leading-6 text-muted-foreground">
+						<p class="mt-2 text-sm leading-6 text-muted-fg">
 							Each component can live beside its docs page and examples. A component manager discovers folders and paths, then the inspector reads Vue props and the component's
 							<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">__doc</code> metadata when a view needs labels, docs, or Studio settings.
 						</p>
-						<p class="mt-3 text-sm leading-6 text-muted-foreground">
+						<p class="mt-3 text-sm leading-6 text-muted-fg">
 							Set <code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">studio.hidden</code> when a helper component should be exported but not offered in Studio.
 						</p>
 					</div>
@@ -282,18 +281,18 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Roadmap" title="What to add next">
 				<div class="grid gap-4 md:grid-cols-2">
-					<article v-for="item in additions" :key="item.title" class="rounded-2xl border border-border bg-card p-5 text-card-foreground">
+					<article v-for="item in additions" :key="item.title" class="rounded-2xl border border-border skin-raised p-5 text-fg">
 						<h3 class="font-semibold tracking-tight">{{ item.title }}</h3>
-						<p class="mt-2 text-sm leading-6 text-muted-foreground">{{ item.body }}</p>
+						<p class="mt-2 text-sm leading-6 text-muted-fg">{{ item.body }}</p>
 					</article>
 				</div>
 			</DocSection>
 
 			<DocSection eyebrow="Future examples" title="AI-specific UI patterns">
 				<div class="grid gap-4 md:grid-cols-2">
-					<article v-for="item in futureAiPages" :key="item.title" class="rounded-2xl border border-border bg-card p-5 text-card-foreground">
+					<article v-for="item in futureAiPages" :key="item.title" class="rounded-2xl border border-border skin-raised p-5 text-fg">
 						<h3 class="font-semibold tracking-tight">{{ item.title }}</h3>
-						<p class="mt-2 text-sm leading-6 text-muted-foreground">{{ item.body }}</p>
+						<p class="mt-2 text-sm leading-6 text-muted-fg">{{ item.body }}</p>
 					</article>
 				</div>
 			</DocSection>

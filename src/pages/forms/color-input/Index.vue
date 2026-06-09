@@ -53,7 +53,7 @@ const accent = ref('#0ea5e9');
 						/>
 						<div class="flex items-center gap-2 text-sm">
 							<span class="size-6 rounded-md ring-1 ring-border" :style="{ background: accent }"></span>
-							<code class="text-foreground">{{ accent }}</code>
+							<code class="text-fg">{{ accent }}</code>
 						</div>
 					</div>
 				</Demo>

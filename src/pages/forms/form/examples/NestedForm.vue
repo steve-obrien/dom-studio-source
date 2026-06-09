@@ -24,7 +24,7 @@ function updateInvitee() {
 			<DomTextInput name="title" label="Event title" />
 
 			<DomForm name="invitees.0" class="space-y-3 rounded-xl border border-border bg-secondary/25 p-4">
-				<p class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">First invitee</p>
+				<p class="text-xs font-semibold uppercase tracking-wider text-muted-fg">First invitee</p>
 				<DomTextInput name="name" label="Name" />
 				<DomEmailInput name="email" label="Email" />
 			</DomForm>
@@ -35,6 +35,6 @@ function updateInvitee() {
 			</div>
 		</DomForm>
 
-		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">{{ event }}</pre>
+		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ event }}</pre>
 	</div>
 </template>

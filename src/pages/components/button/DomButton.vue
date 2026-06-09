@@ -47,12 +47,12 @@ const props = defineProps({
 	},
 });
 const attrs = useAttrs();
-const active = 'select-none active:data-disabled:bg-secondary active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]  active:border-t-border active:data-disabled:shadow-none active:data-disabled:border-t-border focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-1 data-disabled:text-muted-foreground';
+const active = 'select-none active:bg-[linear-gradient(rgb(0_0_0/6%)_0_0)] active:border-t-border active:data-disabled:bg-secondary active:data-disabled:border-t-border active:data-disabled:shadow-none active:scale-[0.97] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-1 data-disabled:text-muted-fg';
 const variants = {
-	primary: 'bg-primary text-primary-foreground hover:opacity-90 ring-1 ring-border hover:bg-[linear-gradient(rgb(0_0_0/3%)_0_0)]  active:bg-[linear-gradient(rgb(0_0_0/6%)_0_0)] active:scale-[0.97]',
-	secondary: 'bg-secondary text-secondary-foreground ring-1 ring-border hover:bg-accent hover:text-accent-foreground hover:bg-[linear-gradient(rgb(0_0_0/3%)_0_0)]  active:bg-[linear-gradient(rgb(0_0_0/6%)_0_0)] active:scale-[0.97]',
-	ghost: 'text-foreground hover:bg-secondary hover:text-secondary-foreground hover:bg-[linear-gradient(rgb(0_0_0/3%)_0_0)]  active:bg-[linear-gradient(rgb(0_0_0/6%)_0_0)] active:scale-[0.97]',
-	danger: 'bg-secondary ring-1 ring-border hover:bg-accent text-destructive hover:bg-[linear-gradient(rgb(255_0_0/3%)_0_0)]  active:bg-[linear-gradient(rgb(255_0_0/6%)_0_0)] active:scale-[0.97]',
+	primary: 'skin-action hover:opacity-90',
+	secondary: 'skin-control hover:brightness-[0.98]',
+	ghost: 'text-fg hover:bg-secondary hover:text-secondary-fg',
+	danger: 'skin-control text-destructive hover:brightness-[0.98]',
 };
 const sizes = {
 	sm: 'h-8 px-3 text-xs',
@@ -72,9 +72,17 @@ const disabledState = computed(() => props.disabled || props.loading);
 const isNativeButton = computed(() => props.as === 'button');
 const componentAttrs = computed(() => {
 	const { disabled, tabindex, onClick, ...rest } = attrs;
-	if (isNativeButton.value) return { ...rest, disabled: disabledState.value || undefined };
+	const dataDisabled = disabledState.value ? '' : rest['data-disabled'];
+	if (isNativeButton.value) {
+		return {
+			...rest,
+			'data-disabled': dataDisabled,
+			disabled: disabledState.value || undefined,
+		};
+	}
 	return {
 		...rest,
+		'data-disabled': dataDisabled,
 		'aria-disabled': disabledState.value ? 'true' : undefined,
 		tabindex: disabledState.value ? -1 : tabindex,
 	};

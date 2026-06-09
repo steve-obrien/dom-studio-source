@@ -36,11 +36,11 @@ defineExpose({ data });
 					<img :src="item.avatar" alt="" class="size-8 rounded-full bg-secondary object-cover" />
 					<span class="min-w-0">
 						<span class="block truncate font-medium">{{ item.label }}</span>
-						<span class="block truncate text-xs text-muted-foreground">{{ item.role }}</span>
+						<span class="block truncate text-xs text-muted-fg">{{ item.role }}</span>
 					</span>
 				</div>
 			</template>
 		</DomCombobox>
-		<p class="text-xs text-muted-foreground">Selected value: <code class="text-foreground">{{ data.modelValue || '—' }}</code></p>
+		<p class="text-xs text-muted-fg">Selected value: <code class="text-fg">{{ data.modelValue || '—' }}</code></p>
 	</div>
 </template>

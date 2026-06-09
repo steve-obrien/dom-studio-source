@@ -62,8 +62,8 @@ const positions = [
 				:class="[
 					position.class,
 					field.value.value === position.value
-						? 'border-primary bg-primary text-primary-foreground shadow-sm'
-						: 'border-border bg-background text-muted-foreground hover:border-ring hover:bg-accent',
+						? 'border-primary bg-primary text-primary-fg shadow-sm'
+						: 'border-border bg-background text-muted-fg hover:border-ring hover:bg-accent',
 				]"
 				:title="position.label"
 				:aria-label="position.label"
@@ -76,6 +76,6 @@ const positions = [
 				<span class="size-1.5 rounded-full bg-current"></span>
 			</button>
 		</div>
-		<p class="font-mono text-xs text-muted-foreground">{{ field.value.value }}</p>
+		<p class="font-mono text-xs text-muted-fg">{{ field.value.value }}</p>
 	</DomField>
 </template>

@@ -39,12 +39,12 @@ async function queryPeople(query) {
 			<template #item="{ item }">
 				<span class="block min-w-0">
 					<span class="block truncate font-medium">{{ item.label }}</span>
-					<span class="block truncate text-xs text-muted-foreground">{{ item.email }} - {{ item.role }}</span>
+					<span class="block truncate text-xs text-muted-fg">{{ item.email }} - {{ item.role }}</span>
 				</span>
 			</template>
 		</DomCombobox>
-		<p class="rounded-2xl border border-border bg-secondary/40 p-3 text-xs text-muted-foreground">
-			Selected value: <code class="font-mono text-foreground">{{ value || 'None' }}</code>
+		<p class="rounded-2xl border border-border bg-secondary/40 p-3 text-xs text-muted-fg">
+			Selected value: <code class="font-mono text-fg">{{ value || 'None' }}</code>
 		</p>
 	</div>
 </template>

@@ -23,20 +23,20 @@ const metrics = [
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-foreground shadow-2xl shadow-black/10">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
 		<div class="grid min-h-[34rem] md:grid-cols-[15rem_1fr]">
-			<aside class="hidden border-r border-border bg-card p-4 text-card-foreground md:block">
+			<aside class="hidden border-r border-border skin-raised p-4 text-fg md:block">
 				<div class="flex items-center gap-2 px-2">
-					<span class="grid size-8 place-items-center rounded-xl bg-primary text-xs font-bold text-primary-foreground">E</span>
+					<span class="grid size-8 place-items-center rounded-xl bg-primary text-xs font-bold text-primary-fg">E</span>
 					<span class="font-semibold tracking-tight">DOM Studio CRM</span>
 				</div>
 				<nav class="mt-8 space-y-1">
 					<button
 						v-for="[label, path] in navItems"
 						:key="label"
-						class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium transition first:bg-secondary first:text-secondary-foreground hover:bg-secondary"
+						class="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium transition first:bg-secondary first:text-secondary-fg hover:bg-secondary"
 					>
-						<svg class="size-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<svg class="size-4 text-muted-fg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 							<path :d="path" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
 						</svg>
 						{{ label }}
@@ -45,9 +45,9 @@ const metrics = [
 			</aside>
 
 			<main class="min-w-0">
-				<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card/70 px-5 py-4 backdrop-blur">
+				<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-raised px-5 py-4 backdrop-blur">
 					<div>
-						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Dashboard</p>
+						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Dashboard</p>
 						<h3 class="mt-1 text-xl font-semibold tracking-tight">Good morning, Alex</h3>
 					</div>
 					<div class="flex items-center gap-2">
@@ -68,7 +68,7 @@ const metrics = [
 				<div class="space-y-4 p-5">
 					<div class="grid gap-4 lg:grid-cols-3">
 						<DomCard v-for="metric in metrics" :key="metric.label">
-							<p class="text-sm text-muted-foreground">{{ metric.label }}</p>
+							<p class="text-sm text-muted-fg">{{ metric.label }}</p>
 							<div class="mt-3 flex items-end justify-between gap-4">
 								<p class="text-2xl font-semibold tracking-tight">{{ metric.value }}</p>
 								<span class="rounded-full bg-success/15 px-2 py-1 text-xs font-medium text-success">{{ metric.change }}</span>
@@ -80,7 +80,7 @@ const metrics = [
 						<div class="flex flex-wrap items-start justify-between gap-4">
 							<div>
 								<h4 class="font-semibold tracking-tight">Revenue trend</h4>
-								<p class="mt-1 text-sm text-muted-foreground">Semantic tokens keep the chart calm and readable.</p>
+								<p class="mt-1 text-sm text-muted-fg">Semantic tokens keep the chart calm and readable.</p>
 							</div>
 							<DomButton variant="secondary" size="sm">Export</DomButton>
 						</div>

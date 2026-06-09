@@ -27,17 +27,22 @@ if (!response.ok) {
 }
 
 const requiredModes = ['light', 'dark'];
-const requiredTokens = ['--background', '--foreground', '--primary', '--primary-foreground', '--border', '--ring'];
-const requiredAppearanceTokens = ['--radius', '--shadow-color', '--shadow-strength', '--shadow-distance', '--shadow-softness'];
+const requiredTokens = ['--background', '--fg', '--primary', '--primary-fg', '--border', '--ring'];
+const requiredAppearanceTokens = ['--radius'];
+const requiredSkinLevels = ['raised', 'floating', 'overlay', 'control', 'action'];
+const requiredSkinTokens = ['bg', 'fg', 'border', 'borderWidth', 'borderStyle', 'shadow', 'backdrop', 'bgImage'];
 const missing = requiredModes.flatMap((mode) => requiredTokens
 	.filter((token) => !payload[mode]?.[token])
 	.map((token) => `${mode}.${token}`));
 const missingAppearance = requiredAppearanceTokens
 	.filter((token) => !payload.appearance?.[token])
 	.map((token) => `appearance.${token}`);
+const missingSkins = requiredSkinLevels.flatMap((level) => requiredSkinTokens
+	.filter((token) => !payload.skins?.[level]?.[token])
+	.map((token) => `skins.${level}.${token}`));
 
-if (missing.length || missingAppearance.length) {
-	console.error(`Theme endpoint response is missing: ${[...missing, ...missingAppearance].join(', ')}`);
+if (missing.length || missingAppearance.length || missingSkins.length) {
+	console.error(`Theme endpoint response is missing: ${[...missing, ...missingAppearance, ...missingSkins].join(', ')}`);
 	process.exit(1);
 }
 

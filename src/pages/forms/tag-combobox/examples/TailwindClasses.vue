@@ -49,7 +49,7 @@ const className = computed(() => classes.value.join(' '));
 			<template #item="{ item, custom }">
 				<div class="flex min-w-0 items-center justify-between gap-3">
 					<span class="truncate font-mono text-xs">{{ custom ? item.value : item.label }}</span>
-					<span class="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[11px] text-muted-foreground">
+					<span class="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[11px] text-muted-fg">
 						{{ custom ? 'custom' : item.group }}
 					</span>
 				</div>
@@ -61,7 +61,7 @@ const className = computed(() => classes.value.join(' '));
 				<p class="text-sm font-medium">Preview block</p>
 				<p class="mt-1 text-xs opacity-70">Selected classes are joined into one class string.</p>
 			</div>
-			<code class="block rounded-xl bg-background p-3 font-mono text-xs text-muted-foreground ring-1 ring-border">
+			<code class="block rounded-xl bg-background p-3 font-mono text-xs text-muted-fg ring-1 ring-border">
 				class="{{ className }}"
 			</code>
 		</div>

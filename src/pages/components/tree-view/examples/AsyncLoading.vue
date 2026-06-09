@@ -52,6 +52,6 @@ function loadChildren({ value }) {
 			v-model:items="items"
 			@load-children="loadChildren"
 		/>
-		<p class="mt-3 text-xs text-muted-foreground">Open a remote folder to simulate a server lookup.</p>
+		<p class="mt-3 text-xs text-muted-fg">Open a remote folder to simulate a server lookup.</p>
 	</div>
 </template>

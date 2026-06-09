@@ -271,7 +271,7 @@ async function focusCalendar() {
 			<button
 				:id="triggerId"
 				type="button"
-				class="absolute inset-y-1 right-1 grid size-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50"
+				class="absolute inset-y-1 right-1 grid size-8 cursor-pointer place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50"
 				:disabled="field.disabled.value || field.readOnly.value"
 				:aria-label="`Choose date for ${props.label || field.name.value}`"
 				@click.stop

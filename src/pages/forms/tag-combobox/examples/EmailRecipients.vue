@@ -24,7 +24,7 @@ const contacts = [
 			<template #item="{ item, custom }">
 				<div class="min-w-0">
 					<span class="block truncate font-medium">{{ custom ? `Invite ${item.value}` : item.label }}</span>
-					<span class="block truncate text-xs text-muted-foreground">{{ custom ? 'New address' : item.description }}</span>
+					<span class="block truncate text-xs text-muted-fg">{{ custom ? 'New address' : item.description }}</span>
 				</div>
 			</template>
 
@@ -32,7 +32,7 @@ const contacts = [
 				<span class="truncate">{{ item.description ? item.label : value }}</span>
 				<button
 					type="button"
-					class="-mr-1 inline-flex size-4 items-center justify-center rounded-full text-muted-foreground hover:bg-background hover:text-foreground"
+					class="-mr-1 inline-flex size-4 items-center justify-center rounded-full text-muted-fg hover:bg-background hover:text-fg"
 					:aria-label="`Remove ${value}`"
 					@click.stop="remove"
 					@mousedown.prevent
@@ -45,8 +45,8 @@ const contacts = [
 		</DomTagCombobox>
 
 		<div class="rounded-2xl border border-border bg-secondary/40 p-4 text-sm">
-			<p class="font-medium text-foreground">Recipients</p>
-			<p class="mt-1 break-all font-mono text-xs text-muted-foreground">{{ recipients.join(', ') || 'None' }}</p>
+			<p class="font-medium text-fg">Recipients</p>
+			<p class="mt-1 break-all font-mono text-xs text-muted-fg">{{ recipients.join(', ') || 'None' }}</p>
 		</div>
 	</div>
 </template>

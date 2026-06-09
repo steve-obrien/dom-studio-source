@@ -200,7 +200,7 @@ provide(fieldLayoutProviderKey, resolvedFieldLayout);
 						:is="resolvedHtmlFor ? 'label' : 'p'"
 						v-if="resolvedLabel"
 						v-bind="resolvedHtmlFor ? { for: resolvedHtmlFor } : {}"
-						class="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
+						class="block text-[11px] font-medium uppercase tracking-wider text-muted-fg"
 					>
 						{{ resolvedLabel }}
 						<span v-if="resolvedRequired" class="text-destructive">*</span>
@@ -227,7 +227,7 @@ provide(fieldLayoutProviderKey, resolvedFieldLayout);
 					<p
 						v-if="resolvedDescription"
 						:id="resolvedDescriptionId || undefined"
-						class="text-[11px] leading-snug text-muted-foreground"
+						class="text-[11px] leading-snug text-muted-fg"
 					>{{ resolvedDescription }}</p>
 				</slot>
 			</template>
@@ -238,7 +238,7 @@ provide(fieldLayoutProviderKey, resolvedFieldLayout);
 					:is="resolvedHtmlFor ? 'label' : 'p'"
 					v-if="resolvedLabel"
 					v-bind="resolvedHtmlFor ? { for: resolvedHtmlFor } : {}"
-					class="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
+					class="block text-[11px] font-medium uppercase tracking-wider text-muted-fg"
 				>
 					{{ resolvedLabel }}
 					<span v-if="resolvedRequired" class="text-destructive">*</span>
@@ -259,7 +259,7 @@ provide(fieldLayoutProviderKey, resolvedFieldLayout);
 				<p
 					v-if="resolvedDescription"
 					:id="resolvedDescriptionId || undefined"
-					class="text-[11px] leading-snug text-muted-foreground"
+					class="text-[11px] leading-snug text-muted-fg"
 				>{{ resolvedDescription }}</p>
 			</slot>
 		</div>

@@ -20,12 +20,12 @@ function onDragEnd() { if (ctx) ctx.dragEntry = null; }
 <template>
 	<div class="flex h-full flex-col">
 		<div v-if="showHeader" class="border-b border-border px-4 py-3">
-			<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Palette</p>
-			<p class="text-sm font-medium text-foreground">Drag onto the stage</p>
+			<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Palette</p>
+			<p class="text-sm font-medium text-fg">Drag onto the stage</p>
 		</div>
 		<div class="flex-1 overflow-auto p-3">
 			<div v-for="[group, entries] in groups" :key="group" class="mb-5 last:mb-0">
-				<p class="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{{ group }}</p>
+				<p class="mb-2 px-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-fg">{{ group }}</p>
 				<div class="grid grid-cols-2 gap-2">
 					<button
 						v-for="e in entries"
@@ -36,8 +36,8 @@ function onDragEnd() { if (ctx) ctx.dragEntry = null; }
 						@dragstart="onDragStart($event, e)"
 						@dragend="onDragEnd"
 					>
-						<span class="grid size-7 place-items-center rounded-md bg-secondary text-[14px] font-semibold text-foreground">{{ e.icon }}</span>
-						<span class="text-[12px] font-medium text-foreground">{{ e.label }}</span>
+						<span class="grid size-7 place-items-center rounded-md bg-secondary text-[14px] font-semibold text-fg">{{ e.icon }}</span>
+						<span class="text-[12px] font-medium text-fg">{{ e.label }}</span>
 					</button>
 				</div>
 			</div>

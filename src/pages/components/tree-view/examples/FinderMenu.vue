@@ -45,7 +45,7 @@ const places = ref([
 			<template #item="{ item, depth }">
 				<span
 					class="truncate"
-					:class="depth === 1 && 'text-[11px] font-semibold uppercase tracking-wide text-muted-foreground group-aria-selected:text-accent-foreground'"
+					:class="depth === 1 && 'text-[11px] font-semibold uppercase tracking-wide text-muted-fg group-aria-selected:text-accent-fg'"
 				>{{ item.label }}</span>
 			</template>
 		</DomTreeView>

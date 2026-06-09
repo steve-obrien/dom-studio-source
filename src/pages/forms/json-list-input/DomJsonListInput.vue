@@ -153,7 +153,7 @@ function legacyFieldToFormNode(field) {
 					<button
 						type="button"
 						class="rounded-md px-2.5 py-1 text-xs font-medium transition"
-						:class="mode === 'fields' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'"
+						:class="mode === 'fields' ? 'bg-background text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
 						:aria-pressed="mode === 'fields'"
 						@click="mode = 'fields'"
 					>
@@ -162,7 +162,7 @@ function legacyFieldToFormNode(field) {
 					<button
 						type="button"
 						class="rounded-md px-2.5 py-1 text-xs font-medium transition"
-						:class="mode === 'json' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'"
+						:class="mode === 'json' ? 'bg-background text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
 						:aria-pressed="mode === 'json'"
 						@click="mode = 'json'"
 					>

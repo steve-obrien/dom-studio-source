@@ -769,13 +769,13 @@ DomFormComponent = defineComponent({
 			return [
 				h('div', { class: 'space-y-0.5' }, [
 					props.label
-						? h('p', { class: 'text-[11px] font-semibold uppercase tracking-wider text-muted-foreground' }, [
+						? h('p', { class: 'text-[11px] font-semibold uppercase tracking-wider text-muted-fg' }, [
 							props.label,
 							props.required ? h('span', { class: 'text-destructive' }, '*') : null,
 						])
 						: null,
 					props.description
-						? h('p', { class: 'text-[11px] leading-snug text-muted-foreground' }, props.description)
+						? h('p', { class: 'text-[11px] leading-snug text-muted-fg' }, props.description)
 						: null,
 				]),
 			];
@@ -798,7 +798,7 @@ DomFormComponent = defineComponent({
 			return h('button', {
 				type: 'button',
 				class: [
-					'grid place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground',
+					'grid place-items-center rounded-md text-muted-fg hover:bg-secondary hover:text-fg',
 					props.compact ? 'size-6' : 'size-7',
 				],
 				title,
@@ -837,7 +837,7 @@ DomFormComponent = defineComponent({
 				],
 			}, [
 				h('div', { class: 'flex items-center justify-between gap-2' }, [
-					h('span', { class: 'text-[11px] font-semibold uppercase tracking-wider text-muted-foreground' }, `Row ${rowIndex + 1}`),
+					h('span', { class: 'text-[11px] font-semibold uppercase tracking-wider text-muted-fg' }, `Row ${rowIndex + 1}`),
 					h('span', { class: 'flex items-center gap-1' }, [
 						rowButton('↑', `Move row ${rowIndex + 1} up`, () => moveArrayRow(rowIndex, -1)),
 						rowButton('↓', `Move row ${rowIndex + 1} down`, () => moveArrayRow(rowIndex, 1)),
@@ -865,7 +865,7 @@ DomFormComponent = defineComponent({
 					h('button', {
 						type: 'button',
 						class: [
-							'flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-background text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-foreground',
+							'flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-background text-xs font-medium text-muted-fg hover:border-primary/40 hover:text-fg',
 							props.compact ? 'py-1.5' : 'py-2',
 						],
 						onClick: addArrayRow,

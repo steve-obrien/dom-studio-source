@@ -79,7 +79,7 @@ const previewHeight = ref(420);
 	<DomStudioLayout>
 		<DocPage :name="doc.name" :tagline="doc.description" :tag="doc.tag">
 			<DocSection eyebrow="Why" title="Use it as an application shell">
-				<div class="max-w-3xl space-y-4 text-sm leading-7 text-muted-foreground">
+				<div class="max-w-3xl space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
 						A splitter rarely makes sense as an isolated widget. It is a layout primitive for tools where users need to balance navigation, work area, and detail panels without leaving the current screen.
 					</p>

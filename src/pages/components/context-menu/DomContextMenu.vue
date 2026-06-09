@@ -7,7 +7,7 @@ defineOptions({
 	__doc: {
 		name: 'Context menu',
 		tag: '<DomContextMenu>',
-		description: 'A right-click menu surface built on DomMenu, with popover top-layer placement and keyboard navigation.',
+		description: 'A right-click menu built on DomMenu, with popover top-layer placement and keyboard navigation.',
 		slots: [
 			{ name: '(default)', description: 'The area that opens the context menu on right click.' },
 			{ name: 'item', payload: '{ item, index, value, label, checked, open, hasChildren }', description: 'Custom label/body content inside the default menu row.' },
@@ -162,10 +162,10 @@ defineExpose({
 			:id="panelId"
 			ref="panel"
 			popover="manual"
-			class="dom-popover-panel dom-glass-surface fixed rounded-2xl p-1 outline-none"
+			class="dom-popover-panel skin-floating fixed rounded-2xl p-1 outline-none"
 			:class="width"
 		>
-			<DomMenu :items="items" :surface="false" @select="onSelect">
+			<DomMenu :items="items" :skin="false" @select="onSelect">
 				<template v-for="(_, slotName) in $slots" #[slotName]="slotProps">
 					<slot :name="slotName" v-bind="slotProps" />
 				</template>

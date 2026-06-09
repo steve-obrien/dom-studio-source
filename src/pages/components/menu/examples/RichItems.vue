@@ -35,7 +35,7 @@ function onChange(event) {
 					</span>
 					<span class="min-w-0">
 						<span class="block truncate font-medium">{{ label }}</span>
-						<span class="block truncate text-xs text-muted-foreground">Updated just now</span>
+						<span class="block truncate text-xs text-muted-fg">Updated just now</span>
 					</span>
 				</span>
 				<span class="text-xs text-success">Ready</span>
@@ -44,7 +44,7 @@ function onChange(event) {
 			<template #live="{ label, item }">
 				<span class="min-w-0">
 					<span class="block truncate font-medium">{{ label }}</span>
-					<span class="block truncate text-xs text-muted-foreground">Broadcast changes to viewers</span>
+					<span class="block truncate text-xs text-muted-fg">Broadcast changes to viewers</span>
 				</span>
 				<span class="rounded-full bg-success/15 px-2 py-0.5 text-[11px] font-medium text-success">{{ item.badge }}</span>
 			</template>
@@ -57,7 +57,7 @@ function onChange(event) {
 					aria-hidden="true"
 				>
 					<span
-						class="absolute left-0.5 top-0.5 size-4 rounded-full bg-card shadow-sm transition"
+						class="absolute left-0.5 top-0.5 size-4 rounded-full skin-raised shadow-sm transition"
 						:class="checked ? 'translate-x-4' : 'translate-x-0'"
 					></span>
 				</span>
@@ -69,6 +69,6 @@ function onChange(event) {
 			</template>
 		</DomMenu>
 
-		<p class="text-xs text-muted-foreground">Selected: <code class="text-foreground">{{ selected }}</code></p>
+		<p class="text-xs text-muted-fg">Selected: <code class="text-fg">{{ selected }}</code></p>
 	</div>
 </template>

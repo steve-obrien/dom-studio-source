@@ -249,11 +249,11 @@ onMounted(() => {
 	<div class="dom-studio flex min-h-0 flex-1 overflow-hidden bg-background">
 		<div class="relative grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[240px_1fr_360px]">
 			<!-- Left rail ----------------------------------------------------- -->
-			<aside class="relative z-10 flex min-h-0 flex-col border-r border-border bg-card text-card-foreground">
+			<aside class="relative z-10 flex min-h-0 flex-col border-r border-border skin-raised text-fg">
 				<div class="border-b border-border p-2">
 					<button
 						type="button"
-						class="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+						class="flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-medium text-primary-fg shadow-sm transition hover:opacity-90"
 						@click="showPalette = !showPalette"
 					>
 						<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -267,8 +267,8 @@ onMounted(() => {
 
 				<div class="max-h-[46%] overflow-hidden border-t border-border bg-background/50">
 					<div class="flex items-center justify-between px-3 py-2">
-						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Layers</p>
-						<span class="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">{{ nodes.length }}</span>
+						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Layers</p>
+						<span class="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-fg">{{ nodes.length }}</span>
 					</div>
 					<ul class="max-h-72 space-y-0.5 overflow-auto px-2 pb-2">
 						<li v-for="{ node, depth } in nodes" :key="node.id">
@@ -276,8 +276,8 @@ onMounted(() => {
 								type="button"
 								class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition"
 								:class="state.selectedId === node.id
-									? 'bg-primary/10 text-foreground ring-1 ring-primary/20'
-									: 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'"
+									? 'bg-primary/10 text-fg ring-1 ring-primary/20'
+									: 'text-muted-fg hover:bg-secondary hover:text-secondary-fg'"
 								:style="{ paddingLeft: 8 + depth * 14 + 'px' }"
 								@click="select(node.id)"
 							>
@@ -294,16 +294,16 @@ onMounted(() => {
 			<!-- Webflow-style component drawer ------------------------------- -->
 			<div
 				v-if="showPalette"
-				class="absolute bottom-3 left-3 top-3 z-30 w-[20rem] overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground shadow-2xl shadow-black/20 ring-1 ring-border/60 lg:left-[252px]"
+				class="absolute bottom-3 left-3 top-3 z-30 w-[20rem] overflow-hidden rounded-2xl border border-border skin-floating text-fg shadow-2xl shadow-black/20 ring-1 ring-border/60 lg:left-[252px]"
 			>
 				<div class="flex items-center justify-between border-b border-border px-4 py-3">
 					<div>
-						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Add</p>
+						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Add</p>
 						<p class="text-sm font-medium">Components</p>
 					</div>
 					<button
 						type="button"
-						class="grid size-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
+						class="grid size-8 place-items-center rounded-lg text-muted-fg hover:bg-secondary hover:text-secondary-fg"
 						aria-label="Close component palette"
 						@click="showPalette = false"
 					>
@@ -324,14 +324,14 @@ onMounted(() => {
 				@dragleave="onDragLeave"
 				@drop="onDrop"
 			>
-				<div v-if="state.dragEntry" class="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-foreground shadow-lg">
+				<div v-if="state.dragEntry" class="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-medium text-primary-fg shadow-lg">
 					Drop onto the stage
 				</div>
 
 				<div v-if="!tree.children?.length" class="pointer-events-none absolute inset-6 grid place-items-center rounded-2xl border-2 border-dashed border-border text-center">
 					<div>
-						<p class="text-sm font-medium text-muted-foreground">Drop components here</p>
-						<p class="mt-1 text-xs text-muted-foreground">Click + Component, then drag from the palette.</p>
+						<p class="text-sm font-medium text-muted-fg">Drop components here</p>
+						<p class="mt-1 text-xs text-muted-fg">Click + Component, then drag from the palette.</p>
 					</div>
 				</div>
 
@@ -351,7 +351,7 @@ onMounted(() => {
 			</div>
 
 			<!-- Right rail --------------------------------------------------- -->
-			<aside class="flex min-h-0 flex-col border-l border-border bg-card text-card-foreground">
+			<aside class="flex min-h-0 flex-col border-l border-border skin-raised text-fg">
 				<div class="border-b border-border p-2">
 					<div class="flex items-center gap-1">
 						<button
@@ -360,8 +360,8 @@ onMounted(() => {
 							type="button"
 							class="h-8 flex-1 rounded-md px-2 text-xs font-medium transition"
 							:class="activePanel === panel.key
-								? 'bg-primary text-primary-foreground'
-								: 'text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'"
+								? 'bg-primary text-primary-fg'
+								: 'text-muted-fg hover:bg-secondary hover:text-secondary-fg'"
 							@click="activePanel = panel.key"
 						>{{ panel.label }}</button>
 					</div>
@@ -370,8 +370,8 @@ onMounted(() => {
 							type="button"
 							class="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-medium ring-1 transition"
 							:class="state.pickMode
-								? 'bg-secondary text-secondary-foreground ring-border'
-								: 'bg-background text-muted-foreground ring-border hover:bg-secondary'"
+								? 'bg-secondary text-secondary-fg ring-border'
+								: 'bg-background text-muted-fg ring-border hover:bg-secondary'"
 							:title="state.pickMode ? 'Click selects - turn off to interact' : 'Clicks pass through - turn on to select'"
 							@click="togglePick"
 						>
@@ -382,7 +382,7 @@ onMounted(() => {
 						</button>
 						<button
 							type="button"
-							class="h-8 rounded-md px-2.5 text-xs font-medium text-muted-foreground ring-1 ring-border hover:bg-secondary hover:text-secondary-foreground"
+							class="h-8 rounded-md px-2.5 text-xs font-medium text-muted-fg ring-1 ring-border hover:bg-secondary hover:text-secondary-fg"
 							@click="reset"
 						>Reset</button>
 					</div>
@@ -400,10 +400,10 @@ onMounted(() => {
 
 					<div v-else-if="activePanel === 'data'" class="space-y-3 p-3">
 						<div class="flex items-center justify-between gap-3">
-							<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">JSON data</p>
+							<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">JSON data</p>
 							<button
 								type="button"
-								class="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border hover:bg-secondary hover:text-secondary-foreground"
+								class="rounded-md px-2 py-1 text-xs font-medium text-muted-fg ring-1 ring-border hover:bg-secondary hover:text-secondary-fg"
 								@click="copy(jsonText, 'data')"
 							>{{ copied === 'data' ? 'Copied' : 'Copy' }}</button>
 						</div>
@@ -423,10 +423,10 @@ onMounted(() => {
 
 					<div v-else-if="activePanel === 'html'" class="space-y-3 p-3">
 						<div class="flex items-center justify-between gap-3">
-							<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Rendered HTML</p>
+							<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Rendered HTML</p>
 							<button
 								type="button"
-								class="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-border hover:bg-secondary hover:text-secondary-foreground"
+								class="rounded-md px-2 py-1 text-xs font-medium text-muted-fg ring-1 ring-border hover:bg-secondary hover:text-secondary-fg"
 								@click="copy(htmlOutput, 'html')"
 							>{{ copied === 'html' ? 'Copied' : 'Copy' }}</button>
 						</div>
@@ -434,7 +434,7 @@ onMounted(() => {
 					</div>
 
 					<div v-else class="space-y-3 p-3">
-						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">DomRenderer preview</p>
+						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">DomRenderer preview</p>
 						<div class="rounded-xl border border-border bg-background p-5">
 							<DomRenderer :spec="serializedSpec" />
 						</div>

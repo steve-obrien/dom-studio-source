@@ -76,7 +76,7 @@ function toggle() {
 				:aria-errormessage="field.errorId.value || undefined"
 				:data-invalid="field.invalid.value ? '' : undefined"
 			:disabled="field.disabled.value || undefined"
-			class="inline-flex w-fit items-center justify-center gap-2 rounded-xl border border-border bg-background font-medium text-foreground shadow-sm outline-none transition hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring/50 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground data-[invalid]:border-destructive data-[invalid]:ring-destructive/20"
+			class="skin-control inline-flex w-fit items-center justify-center gap-2 rounded-xl font-medium outline-none transition hover:brightness-[0.98] focus-visible:ring-2 focus-visible:ring-ring/50 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-fg data-[invalid]:border-destructive data-[invalid]:ring-destructive/20"
 			:class="sizeClass"
 			@click="toggle"
 			@focus="field.onFocus"

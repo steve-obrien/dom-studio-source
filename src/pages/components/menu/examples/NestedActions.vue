@@ -43,10 +43,10 @@ function focusMenu() {
 				</DomButton>
 			</template>
 			<div ref="menu">
-				<DomMenu :items="items" :surface="false" @select="onSelect" />
+				<DomMenu :items="items" :skin="false" @select="onSelect" />
 			</div>
 		</DomPopover>
 
-		<p class="text-xs text-muted-foreground">Selected: <code class="text-foreground">{{ selected }}</code></p>
+		<p class="text-xs text-muted-fg">Selected: <code class="text-fg">{{ selected }}</code></p>
 	</div>
 </template>

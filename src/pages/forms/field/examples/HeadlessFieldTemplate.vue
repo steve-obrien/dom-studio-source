@@ -23,7 +23,7 @@ const errors = [
 				<label
 					:for="htmlFor"
 					class="pt-2 text-sm font-semibold transition-colors"
-					:class="invalid ? 'text-destructive' : 'text-muted-foreground'"
+					:class="invalid ? 'text-destructive' : 'text-muted-fg'"
 				>
 					{{ label }}
 					<span v-if="required" aria-hidden="true">*</span>
@@ -58,7 +58,7 @@ const errors = [
 						</template>
 						<div class="space-y-2">
 							<p class="text-xs font-semibold uppercase tracking-wider text-destructive">Validation</p>
-							<ul class="space-y-1 text-xs leading-5 text-popover-foreground">
+							<ul class="space-y-1 text-xs leading-5 text-fg">
 								<li v-for="error in fieldErrors" :key="error">{{ error }}</li>
 							</ul>
 						</div>
@@ -76,7 +76,7 @@ const errors = [
 				<p
 					v-if="description"
 					:id="descriptionId || undefined"
-					class="text-xs leading-5 text-muted-foreground sm:col-start-2"
+					class="text-xs leading-5 text-muted-fg sm:col-start-2"
 				>
 					{{ description }}
 				</p>

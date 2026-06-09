@@ -126,23 +126,23 @@ function getCodeLanguage(code) {
 
 <template>
 	<DomStudioLayout>
-		<div v-if="pending" class="py-16 text-sm text-muted-foreground">Loading article...</div>
+		<div v-if="pending" class="py-16 text-sm text-muted-fg">Loading article...</div>
 		<div v-else-if="error" class="py-16 text-sm text-destructive">The article could not be loaded.</div>
 		<section v-else-if="!article" class="py-16">
-			<p class="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">Not found</p>
-			<h1 class="mt-3 text-4xl font-bold tracking-tight text-foreground">Article not found</h1>
-			<RouterLink to="/blog" class="mt-6 inline-flex text-sm font-semibold text-foreground hover:underline">Back to blog</RouterLink>
+			<p class="text-sm font-semibold uppercase tracking-[0.18em] text-muted-fg">Not found</p>
+			<h1 class="mt-3 text-4xl font-bold tracking-tight text-fg">Article not found</h1>
+			<RouterLink to="/blog" class="mt-6 inline-flex text-sm font-semibold text-fg hover:underline">Back to blog</RouterLink>
 		</section>
 
 		<article v-else class="pb-16">
-			<RouterLink to="/blog" class="text-sm font-semibold text-muted-foreground hover:text-foreground">← Blog</RouterLink>
+			<RouterLink to="/blog" class="text-sm font-semibold text-muted-fg hover:text-fg">← Blog</RouterLink>
 			<header class="mt-8 border-b border-border pb-10">
-				<div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+				<div class="flex flex-wrap items-center gap-2 text-xs text-muted-fg">
 					<span v-if="articleDate">{{ articleDate }}</span>
 					<span v-for="tag in article.tags" :key="tag" class="rounded-full border border-border px-2 py-0.5">{{ tag }}</span>
 				</div>
-				<h1 class="mt-4 text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl">{{ article.title }}</h1>
-				<p v-if="article.meta_description" class="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
+				<h1 class="mt-4 text-4xl font-bold leading-tight tracking-tight text-fg sm:text-5xl">{{ article.title }}</h1>
+				<p v-if="article.meta_description" class="mt-5 max-w-2xl text-base leading-relaxed text-muted-fg">
 					{{ article.meta_description }}
 				</p>
 			</header>
@@ -154,7 +154,11 @@ function getCodeLanguage(code) {
 				class="my-10 aspect-[16/9] w-full rounded-lg border border-border object-cover"
 			>
 
-			<div ref="articleContent" class="blog-article-content" v-html="article.rendered_html"></div>
+			<div
+				ref="articleContent"
+				class="max-w-none text-base leading-8 text-fg [&>*+*]:mt-6 [&_a]:font-semibold [&_a]:text-fg [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-5 [&_blockquote]:text-muted-fg [&_code]:rounded [&_code]:bg-secondary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_code]:text-fg [&_h2]:mt-12 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:leading-tight [&_h2]:tracking-tight [&_h2]:text-fg [&_h3]:mt-10 [&_h3]:text-2xl [&_h3]:font-semibold [&_h3]:leading-tight [&_h3]:tracking-tight [&_h3]:text-fg [&_iframe]:block [&_iframe]:aspect-video [&_iframe]:h-auto [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:rounded-lg [&_iframe]:border [&_iframe]:border-border [&_iframe]:bg-secondary [&_li]:text-muted-fg [&_ol]:ml-6 [&_ol]:list-decimal [&_ol]:space-y-2 [&_p]:text-muted-fg [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-border [&_pre]:bg-secondary [&_pre]:p-4 [&_pre]:text-sm [&_pre]:leading-6 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_ul]:ml-6 [&_ul]:list-disc [&_ul]:space-y-2 [&_.dom-shiki]:overflow-hidden [&_.dom-shiki]:rounded-lg [&_.dom-shiki]:border [&_.dom-shiki]:border-border [&_.dom-shiki]:bg-secondary [&_.dom-shiki_.shiki]:m-0"
+				v-html="article.rendered_html"
+			></div>
 		</article>
 	</DomStudioLayout>
 </template>

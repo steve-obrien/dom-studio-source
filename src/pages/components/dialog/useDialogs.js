@@ -83,7 +83,6 @@ export function useDialogs(defaults = {}) {
 		const base = typeof input === 'string' ? { title: input } : { ...input };
 		return showDialog({
 			type: 'confirm',
-			showCancdom: true,
 			confirmText: 'Confirm',
 			...base,
 			...options,
@@ -216,7 +215,6 @@ function normalizeDialog(input, propsOrOptions, options, defaults) {
 		type: 'dialog',
 		backdrop: true,
 		static: false,
-		showCancdom: false,
 		footer: true,
 		cancelText: 'Cancel',
 		confirmText: 'OK',

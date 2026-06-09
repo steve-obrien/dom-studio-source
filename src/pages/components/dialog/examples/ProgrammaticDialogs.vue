@@ -76,7 +76,7 @@ async function openSchemaForm() {
 			<DomButton variant="secondary" @click="openInviteForm">Open form</DomButton>
 			<DomButton variant="secondary" @click="openSchemaForm">Open schema form</DomButton>
 		</div>
-		<p class="text-sm text-muted-foreground">{{ lastResult }}</p>
+		<p class="text-sm text-muted-fg">{{ lastResult }}</p>
 	</div>
 
 	<DomDialogStack

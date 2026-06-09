@@ -174,21 +174,21 @@ function prettify(value) {
 			>
 				<div class="flex items-start justify-between gap-2">
 					<div class="min-w-0">
-						<p class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Validator {{ rowIndex + 1 }}</p>
-						<p class="truncate text-xs text-muted-foreground">{{ definitionFor(validator).description }}</p>
+						<p class="text-[11px] font-semibold uppercase tracking-wider text-muted-fg">Validator {{ rowIndex + 1 }}</p>
+						<p class="truncate text-xs text-muted-fg">{{ definitionFor(validator).description }}</p>
 					</div>
 					<div class="flex shrink-0 items-center gap-1">
-						<button type="button" class="h-7 rounded-md px-2 text-[11px] font-medium text-muted-foreground hover:bg-secondary hover:text-foreground" title="Move up" :aria-label="`Move validator ${rowIndex + 1} up`" @click="move(rowIndex, -1)">Up</button>
-						<button type="button" class="h-7 rounded-md px-2 text-[11px] font-medium text-muted-foreground hover:bg-secondary hover:text-foreground" title="Move down" :aria-label="`Move validator ${rowIndex + 1} down`" @click="move(rowIndex, 1)">Down</button>
+						<button type="button" class="h-7 rounded-md px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-fg" title="Move up" :aria-label="`Move validator ${rowIndex + 1} up`" @click="move(rowIndex, -1)">Up</button>
+						<button type="button" class="h-7 rounded-md px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-fg" title="Move down" :aria-label="`Move validator ${rowIndex + 1} down`" @click="move(rowIndex, 1)">Down</button>
 						<button type="button" class="h-7 rounded-md px-2 text-[11px] font-medium text-destructive hover:bg-destructive/10" title="Remove" :aria-label="`Remove validator ${rowIndex + 1}`" @click="remove(rowIndex)">Remove</button>
 					</div>
 				</div>
 
 				<label class="mt-2 block">
-					<span class="mb-1 block text-[11px] font-medium text-muted-foreground">Type</span>
+					<span class="mb-1 block text-[11px] font-medium text-muted-fg">Type</span>
 					<select
 						:value="selectedType(validator)"
-						class="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring/40"
+						class="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-fg outline-none focus:ring-2 focus:ring-ring/40"
 						@change="changeType(rowIndex, $event.target.value)"
 					>
 						<option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
@@ -196,11 +196,11 @@ function prettify(value) {
 				</label>
 
 				<label v-if="selectedType(validator) === CUSTOM_VALIDATOR" class="mt-2 block">
-					<span class="mb-1 block text-[11px] font-medium text-muted-foreground">Validator name</span>
+					<span class="mb-1 block text-[11px] font-medium text-muted-fg">Validator name</span>
 					<input
 						:value="validator.name || ''"
 						placeholder="serverUnique"
-						class="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring/40"
+						class="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-fg outline-none focus:ring-2 focus:ring-ring/40"
 						@input="setName(rowIndex, $event.target.value)"
 					/>
 				</label>
@@ -225,23 +225,23 @@ function prettify(value) {
 				/>
 
 				<label class="mt-2 block">
-					<span class="mb-1 block text-[11px] font-medium text-muted-foreground">Custom message</span>
+					<span class="mb-1 block text-[11px] font-medium text-muted-fg">Custom message</span>
 					<input
 						:value="validator.message || ''"
 						placeholder="Optional error message"
-						class="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none focus:ring-2 focus:ring-ring/40"
+						class="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-fg outline-none focus:ring-2 focus:ring-ring/40"
 						@input="setMessage(rowIndex, $event.target.value)"
 					/>
 				</label>
 			</div>
 
-			<p v-if="!rows.length" class="rounded-lg border border-dashed border-border bg-secondary/30 px-3 py-3 text-xs text-muted-foreground">
+			<p v-if="!rows.length" class="rounded-lg border border-dashed border-border bg-secondary/30 px-3 py-3 text-xs text-muted-fg">
 				No validators yet.
 			</p>
 
 			<button
 				type="button"
-				class="flex w-full items-center justify-center rounded-lg border border-dashed border-border bg-background py-2 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-foreground"
+				class="flex w-full items-center justify-center rounded-lg border border-dashed border-border bg-background py-2 text-xs font-medium text-muted-fg hover:border-primary/40 hover:text-fg"
 				@click="add"
 			>
 				Add validator

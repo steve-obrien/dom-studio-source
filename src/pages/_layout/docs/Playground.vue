@@ -166,8 +166,8 @@ const previewClasses = computed(() => {
 <template>
 	<figure class="my-6 min-w-0 overflow-hidden rounded-2xl border border-border bg-background">
 		<figcaption v-if="title || description" class="border-b border-border bg-secondary/40 px-5 py-3">
-			<p v-if="title" class="text-sm font-semibold tracking-tight text-foreground">{{ title }}</p>
-			<p v-if="description" class="mt-0.5 text-sm text-muted-foreground">{{ description }}</p>
+			<p v-if="title" class="text-sm font-semibold tracking-tight text-fg">{{ title }}</p>
+			<p v-if="description" class="mt-0.5 text-sm text-muted-fg">{{ description }}</p>
 		</figcaption>
 
 		<div class="grid max-h-[38rem] w-full min-w-0 grid-cols-1 items-stretch bg-gradient-to-br from-secondary/40 via-background to-secondary/30 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -182,23 +182,23 @@ const previewClasses = computed(() => {
 						@update:modelValue="onUpdateModelValue"
 					>
 						<template #top>
-							<div class="border-b border-border bg-card px-4 py-3">
-								<p class="text-sm font-semibold text-foreground">Preview</p>
-								<p class="text-xs text-muted-foreground">Mobile component</p>
+							<div class="border-b border-border skin-raised px-4 py-3">
+								<p class="text-sm font-semibold text-fg">Preview</p>
+								<p class="text-xs text-muted-fg">Mobile component</p>
 							</div>
 						</template>
 						<div class="space-y-3 p-4">
-							<div class="rounded-[1.5rem] bg-primary p-5 text-primary-foreground">
+							<div class="rounded-[1.5rem] bg-primary p-5 text-primary-fg">
 								<p class="text-xs font-medium uppercase tracking-[0.16em] opacity-80">Sample</p>
 								<p class="mt-2 text-xl font-semibold">Scrollable app content</p>
 							</div>
-							<div class="rounded-[1.5rem] border border-border bg-card p-4">
-								<p class="text-sm font-medium text-foreground">Card content</p>
-								<p class="mt-1 text-xs leading-5 text-muted-foreground">The shell keeps top and bottom chrome pinned while this area scrolls.</p>
+							<div class="rounded-[1.5rem] border border-border skin-raised p-4">
+								<p class="text-sm font-medium text-fg">Card content</p>
+								<p class="mt-1 text-xs leading-5 text-muted-fg">The shell keeps top and bottom chrome pinned while this area scrolls.</p>
 							</div>
 						</div>
 						<template #bottom>
-							<div class="border-t border-border bg-card px-4 py-3 text-center text-xs font-medium text-muted-foreground">Bottom chrome</div>
+							<div class="border-t border-border skin-raised px-4 py-3 text-center text-xs font-medium text-muted-fg">Bottom chrome</div>
 						</template>
 					</component>
 					<DomAppShell v-else>
@@ -220,7 +220,7 @@ const previewClasses = computed(() => {
 									<slot :name="name" v-bind="slotProps || {}" />
 								</template>
 							</component>
-							<div v-else class="rounded-[1.5rem] bg-primary p-5 text-primary-foreground">
+							<div v-else class="rounded-[1.5rem] bg-primary p-5 text-primary-fg">
 								<p class="text-xs font-medium uppercase tracking-[0.16em] opacity-80">Preview</p>
 								<p class="mt-2 text-xl font-semibold">Mobile content area</p>
 							</div>
@@ -261,7 +261,7 @@ const previewClasses = computed(() => {
 
 			<aside class="min-h-0 border-t border-border bg-background/70 text-left backdrop-blur lg:border-l lg:border-t-0">
 				<div class="sticky top-0 z-10 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
-					<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Properties</p>
+					<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Properties</p>
 				</div>
 				<div class="max-h-72 space-y-4 overflow-y-auto p-4 lg:max-h-[34rem]">
 					<template v-if="data">
@@ -270,7 +270,7 @@ const previewClasses = computed(() => {
 							:key="group.name"
 							class="space-y-3"
 						>
-							<p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{{ group.name }}</p>
+							<p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-fg">{{ group.name }}</p>
 							<InspectorField
 								v-for="f in group.fields"
 								:key="f.key"
@@ -291,8 +291,8 @@ const previewClasses = computed(() => {
 				type="button"
 				class="rounded-md px-2.5 py-1 text-xs font-medium transition"
 				:class="tab === t.key
-					? 'bg-background text-foreground shadow-sm ring-1 ring-border'
-					: 'text-muted-foreground hover:bg-background hover:text-foreground'"
+					? 'bg-background text-fg shadow-sm ring-1 ring-border'
+					: 'text-muted-fg hover:bg-background hover:text-fg'"
 				@click="tab = t.key"
 			>{{ t.label }}</button>
 		</div>

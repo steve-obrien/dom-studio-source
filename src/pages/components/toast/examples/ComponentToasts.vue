@@ -39,7 +39,7 @@ function onAction(event) {
 			<DomButton variant="secondary" @click="showAvatarToast">Avatar toast</DomButton>
 			<DomButton variant="secondary" @click="showUpdateToast">Software update</DomButton>
 		</div>
-		<p class="text-xs text-muted-foreground">Action: <code class="text-foreground">{{ lastAction }}</code></p>
+		<p class="text-xs text-muted-fg">Action: <code class="text-fg">{{ lastAction }}</code></p>
 		<DomToastStack
 			:toasts="toasts"
 			position="bottom-right"

@@ -20,6 +20,6 @@ const value = ref({
 			description="Valid JSON emits parsed data. Invalid JSON is held locally until fixed."
 			:rows="10"
 		/>
-		<pre class="overflow-auto rounded-xl border border-border bg-secondary/50 p-3 text-xs text-muted-foreground">{{ value }}</pre>
+		<pre class="overflow-auto rounded-xl border border-border bg-secondary/50 p-3 text-xs text-muted-fg">{{ value }}</pre>
 	</div>
 </template>

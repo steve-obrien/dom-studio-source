@@ -61,7 +61,7 @@ function eventSummary(cls) {
 		>
 			<DocSection eyebrow="Why" title="The headless layer">
 				<div class="rounded-2xl border border-border bg-secondary/40 p-6">
-					<p class="text-sm leading-relaxed text-muted-foreground">
+					<p class="text-sm leading-relaxed text-muted-fg">
 						Every interactive component in this library starts as a custom element —
 						<code>&lt;dom-dropdown&gt;</code>, <code>&lt;dom-dialog&gt;</code>,
 						<code>&lt;dom-popover&gt;</code> and so on. They carry the behavioural contract (state, ARIA wiring,
@@ -69,7 +69,7 @@ function eventSummary(cls) {
 						Django template, or wrap them in any framework. The Vue components in this library are thin wrappers
 						around exactly these controls.
 					</p>
-					<ul class="mt-4 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+					<ul class="mt-4 grid gap-2 text-sm text-muted-fg sm:grid-cols-2">
 						<li>✓ ~2kb gzipped per control, SSR-safe (guards <code>customElements</code>)</li>
 						<li>✓ Light DOM by default — Tailwind classes cascade in normally</li>
 						<li>✓ ARIA + roving tabindex + focus management built in</li>
@@ -84,14 +84,14 @@ function eventSummary(cls) {
 
 			<DocSection eyebrow="Floating UI" title="Dropdowns and popovers without the usual traps">
 				<div class="rounded-2xl border border-border bg-secondary/40 p-6">
-					<p class="text-sm leading-relaxed text-muted-foreground">
+					<p class="text-sm leading-relaxed text-muted-fg">
 						The shared <code>floating.js</code> engine and <code>&lt;dom-popover&gt;</code> panel solve the
 						failure modes that usually make dropdowns expensive: clipped parents, transformed ancestors, visual viewport
 						offsets, side collisions, scroll containers, long menus, arrow placement, and resize reflow. Use the
 						headless popover, dropdown, combobox, autocomplete, and tooltip controls first; drop to the low-level helper
 						only for custom surfaces.
 					</p>
-					<RouterLink to="/headless/floating" class="mt-4 inline-flex text-sm font-medium text-foreground hover:underline">
+					<RouterLink to="/headless/floating" class="mt-4 inline-flex text-sm font-medium text-fg hover:underline">
 						View floating layer guide →
 					</RouterLink>
 				</div>
@@ -106,11 +106,11 @@ function eventSummary(cls) {
 						class="group block rounded-2xl border border-border bg-background p-5 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
 					>
 						<div class="flex items-center justify-between">
-							<code class="text-sm font-semibold tracking-tight text-foreground">&lt;{{ control.cls.__doc.name }}&gt;</code>
-							<span class="text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground">→</span>
+							<code class="text-sm font-semibold tracking-tight text-fg">&lt;{{ control.cls.__doc.name }}&gt;</code>
+							<span class="text-muted-fg transition group-hover:translate-x-0.5 group-hover:text-fg">→</span>
 						</div>
-						<p class="mt-1.5 text-sm leading-relaxed text-muted-foreground">{{ control.cls.__doc.description }}</p>
-						<dl class="mt-3 space-y-1 text-[11px] text-muted-foreground">
+						<p class="mt-1.5 text-sm leading-relaxed text-muted-fg">{{ control.cls.__doc.description }}</p>
+						<dl class="mt-3 space-y-1 text-[11px] text-muted-fg">
 							<div class="flex gap-2">
 								<dt class="font-semibold uppercase tracking-wider">Attrs</dt>
 								<dd class="font-mono">{{ attrSummary(control.cls) }}</dd>
@@ -122,14 +122,14 @@ function eventSummary(cls) {
 						</dl>
 					</RouterLink>
 				</div>
-				<p class="mt-3 text-[11px] text-muted-foreground">
+				<p class="mt-3 text-[11px] text-muted-fg">
 					Cards reflect each class's static <code class="font-mono">__doc</code>. Click for the full slots / attributes / events / keyboard reference.
 				</p>
 			</DocSection>
 
 			<DocSection eyebrow="Events" title="The dom:* convention">
 				<div class="rounded-2xl border border-border bg-secondary/40 p-6">
-					<p class="text-sm leading-relaxed text-muted-foreground">
+					<p class="text-sm leading-relaxed text-muted-fg">
 						Every control emits <code>dom:open</code> / <code>dom:close</code> when it shows or hides, plus an
 						component-specific verb (<code>dom:select</code>, <code>dom:change</code>, <code>dom:show</code>) for the action it
 						mediates. All events <strong>bubble</strong> and use the <code>detail</code> field for data:
@@ -141,7 +141,7 @@ function eventSummary(cls) {
 			</DocSection>
 
 			<DocSection eyebrow="Teleport / portals" title="External popups">
-				<p class="text-sm text-muted-foreground">
+				<p class="text-sm text-muted-fg">
 					When a popup needs to escape its host (e.g. you teleport a menu to <code>document.body</code> to dodge an
 					ancestor with <code>overflow: hidden</code>), set <code>data-menu-id</code> on
 					<code>&lt;dom-dropdown&gt;</code> or <code>&lt;dom-combobox&gt;</code>, and

@@ -96,7 +96,7 @@ async function validate() {
 			</div>
 		</DomForm>
 
-		<p v-if="result" class="mt-4 text-sm text-muted-foreground">{{ result }}</p>
-		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">{{ account }}</pre>
+		<p v-if="result" class="mt-4 text-sm text-muted-fg">{{ result }}</p>
+		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ account }}</pre>
 	</div>
 </template>

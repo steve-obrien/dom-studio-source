@@ -1,6 +1,6 @@
 <template>
 	<span
-		class="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-foreground"
+		class="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-fg"
 		role="status"
 		aria-label="Loading options"
 	>

@@ -33,12 +33,12 @@ function dismiss(toastId) {
 				<div class="flex items-center gap-3">
 					<img :src="toast.avatar" alt="" class="size-10 rounded-full object-cover ring-1 ring-border" />
 					<div class="min-w-0 flex-1">
-						<p class="text-sm font-semibold text-foreground">{{ toast.title }}</p>
-						<p class="mt-0.5 text-sm text-muted-foreground">{{ toast.description }}</p>
+						<p class="text-sm font-semibold text-fg">{{ toast.title }}</p>
+						<p class="mt-0.5 text-sm text-muted-fg">{{ toast.description }}</p>
 					</div>
 					<button
 						type="button"
-						class="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-foreground hover:bg-accent"
+						class="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-fg hover:bg-accent"
 						@click="dismissToast(toast.id)"
 					>
 						Done

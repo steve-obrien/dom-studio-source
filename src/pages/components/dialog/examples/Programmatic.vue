@@ -16,9 +16,9 @@ const dialogRef = ref(null);
 		title="Programmatic control"
 		description="No trigger slot — open from script via the component ref."
 	>
-		<p class="text-sm text-muted-foreground">
-			Call <code class="text-foreground">open()</code>, <code class="text-foreground">close()</code>, or
-			<code class="text-foreground">toggle()</code> on the ref, or bind <code class="text-foreground">v-model</code>.
+		<p class="text-sm text-muted-fg">
+			Call <code class="text-fg">open()</code>, <code class="text-fg">close()</code>, or
+			<code class="text-fg">toggle()</code> on the ref, or bind <code class="text-fg">v-model</code>.
 		</p>
 		<template #footer>
 			<DomButton variant="secondary" data-close>Done</DomButton>

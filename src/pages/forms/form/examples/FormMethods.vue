@@ -43,7 +43,7 @@ const children = [
 		children: [
 			{
 				component: 'p',
-				props: { class: 'text-xs font-semibold uppercase tracking-wider text-muted-foreground' },
+				props: { class: 'text-xs font-semibold uppercase tracking-wider text-muted-fg' },
 				children: [{ text: 'Reviewer' }],
 			},
 			{
@@ -121,7 +121,7 @@ onBeforeUnmount(() => {
 			</div>
 		</DomForm>
 
-		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">{{ lastAction }}</pre>
-		<pre class="mt-3 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-foreground">{{ project }}</pre>
+		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ lastAction }}</pre>
+		<pre class="mt-3 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ project }}</pre>
 	</div>
 </template>

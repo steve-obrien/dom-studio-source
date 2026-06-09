@@ -100,17 +100,17 @@ function cloneItems(items) {
 <template>
 	<div class="grid w-full gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
 		<div class="rounded-xl border border-border bg-secondary/40 p-3">
-			<p class="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Palette</p>
+			<p class="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-fg">Palette</p>
 			<div class="grid gap-2">
 				<button
 					v-for="snippet in snippets"
 					:key="snippet.id"
 					type="button"
 					draggable="true"
-					class="flex h-9 items-center gap-2 rounded-lg border border-border bg-background px-3 text-left text-sm text-foreground transition hover:border-ring hover:bg-card"
+					class="flex h-9 items-center gap-2 rounded-lg border border-border bg-background px-3 text-left text-sm text-fg transition hover:border-ring hover:skin-raised"
 					@dragstart="onPaletteDragStart(snippet, $event)"
 				>
-					<svg class="size-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true">
+					<svg class="size-4 text-muted-fg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true">
 						<path :d="snippet.icon" />
 					</svg>
 					<span>{{ snippet.label }}</span>

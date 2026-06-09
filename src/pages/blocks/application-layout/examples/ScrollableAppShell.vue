@@ -30,13 +30,13 @@ const activity = [
 
 <template>
 	<div class="grid h-[38rem] w-full overflow-hidden rounded-3xl border border-border bg-background shadow-2xl shadow-black/10 lg:grid-cols-[16rem_minmax(0,1fr)]">
-		<aside class="flex min-h-0 flex-col border-r border-border bg-card">
+		<aside class="flex min-h-0 flex-col border-r border-border skin-raised">
 			<div class="shrink-0 border-b border-border p-4">
 				<div class="flex items-center gap-3">
-					<span class="grid size-9 place-items-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">A</span>
+					<span class="grid size-9 place-items-center rounded-xl bg-primary text-sm font-bold text-primary-fg">A</span>
 					<div class="min-w-0">
-						<p class="truncate text-sm font-semibold text-foreground">Atlas Studio</p>
-						<p class="truncate text-xs text-muted-foreground">Product workspace</p>
+						<p class="truncate text-sm font-semibold text-fg">Atlas Studio</p>
+						<p class="truncate text-xs text-muted-fg">Product workspace</p>
 					</div>
 				</div>
 				<DomButton class="mt-4 w-full justify-start" size="sm">
@@ -52,10 +52,10 @@ const activity = [
 					v-for="section in sections"
 					:key="section"
 					type="button"
-					class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-medium text-muted-foreground transition first:bg-secondary first:text-secondary-foreground hover:bg-secondary hover:text-foreground"
+					class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-medium text-muted-fg transition first:bg-secondary first:text-secondary-fg hover:bg-secondary hover:text-fg"
 				>
 					<span class="truncate">{{ section }}</span>
-					<span v-if="section === 'Tasks'" class="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">8</span>
+					<span v-if="section === 'Tasks'" class="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-fg">8</span>
 				</button>
 			</nav>
 
@@ -76,8 +76,8 @@ const activity = [
 			<header class="sticky top-0 z-10 border-b border-border bg-background/85 p-5 backdrop-blur">
 				<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 					<div>
-						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Workspace</p>
-						<h3 class="mt-1 text-2xl font-semibold tracking-tight text-foreground">Customer health</h3>
+						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Workspace</p>
+						<h3 class="mt-1 text-2xl font-semibold tracking-tight text-fg">Customer health</h3>
 					</div>
 					<div class="flex flex-wrap gap-2">
 						<DomNativeSelect
@@ -97,8 +97,8 @@ const activity = [
 			<div class="space-y-5 p-5">
 				<div class="grid gap-4 md:grid-cols-3">
 					<DomCard v-for="metric in ['Active accounts', 'At risk', 'Expansion']" :key="metric" padding="md">
-						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{{ metric }}</p>
-						<p class="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">{{ metric }}</p>
+						<p class="mt-3 text-3xl font-semibold tracking-tight text-fg">
 							{{ metric === 'At risk' ? '12' : metric === 'Expansion' ? '$42k' : '248' }}
 						</p>
 					</DomCard>
@@ -106,25 +106,25 @@ const activity = [
 
 				<DomCard padding="none" class="overflow-hidden">
 					<div class="border-b border-border p-4">
-						<h4 class="font-semibold tracking-tight text-foreground">Activity feed</h4>
-						<p class="mt-1 text-sm text-muted-foreground">The main panel scrolls independently from the left navigation.</p>
+						<h4 class="font-semibold tracking-tight text-fg">Activity feed</h4>
+						<p class="mt-1 text-sm text-muted-fg">The main panel scrolls independently from the left navigation.</p>
 					</div>
 					<div class="divide-y divide-border">
 						<article v-for="item in activity" :key="item.title" class="p-4">
 							<div class="flex items-start justify-between gap-4">
 								<div>
-									<h5 class="text-sm font-semibold text-foreground">{{ item.title }}</h5>
-									<p class="mt-1 text-sm leading-6 text-muted-foreground">{{ item.body }}</p>
+									<h5 class="text-sm font-semibold text-fg">{{ item.title }}</h5>
+									<p class="mt-1 text-sm leading-6 text-muted-fg">{{ item.body }}</p>
 								</div>
-								<span class="shrink-0 text-xs text-muted-foreground">{{ item.meta }}</span>
+								<span class="shrink-0 text-xs text-muted-fg">{{ item.meta }}</span>
 							</div>
 						</article>
 					</div>
 				</DomCard>
 
 				<DomCard padding="lg">
-					<h4 class="text-lg font-semibold tracking-tight text-foreground">Detail section</h4>
-					<p class="mt-3 text-sm leading-6 text-muted-foreground">
+					<h4 class="text-lg font-semibold tracking-tight text-fg">Detail section</h4>
+					<p class="mt-3 text-sm leading-6 text-muted-fg">
 						This lower content exists to prove the layout can keep a persistent left rail while the working area continues scrolling through detailed content, tables, forms, or editor panels.
 					</p>
 				</DomCard>

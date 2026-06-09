@@ -20,7 +20,7 @@ dom-tooltip {
 	line-height: 1rem;
 	font-weight: 500;
 	background: var(--primary);
-	color: var(--primary-foreground);
+	color: var(--primary-fg);
 	box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.25);
 	white-space: nowrap;
 	pointer-events: none;

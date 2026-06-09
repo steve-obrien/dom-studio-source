@@ -22,7 +22,7 @@ const ariaLabel = computed(() => {
 		type="button"
 		:aria-label="ariaLabel"
 		:title="ariaLabel"
-		class="grid size-9 place-items-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+		class="grid size-9 place-items-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
 		@click="cycleMode"
 	>
 		<svg

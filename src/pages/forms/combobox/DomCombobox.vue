@@ -171,7 +171,7 @@ function clearSelection() {
 			<button
 				v-if="isClearable && hasSelection"
 				type="button"
-				class="absolute right-9 top-1 inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+				class="absolute right-9 top-1 inline-flex size-8 items-center justify-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 				aria-label="Clear selection"
 				@click.stop="clearSelection"
 				@mousedown.prevent
@@ -184,7 +184,7 @@ function clearSelection() {
 			<button
 				slot="toggle"
 				type="button"
-				class="absolute right-1 top-1 inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition hover:bg-secondary hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+				class="absolute right-1 top-1 inline-flex size-8 items-center justify-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 				aria-label="Show options"
 			>
 				<svg viewBox="0 0 20 20" class="size-4" fill="none">
@@ -194,7 +194,7 @@ function clearSelection() {
 			<Teleport to="body" :disabled="!isMounted">
 				<ul
 					:id="listId"
-					class="dom-glass-surface z-50 max-h-[min(15rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"
+					class="skin-floating z-50 max-h-[min(15rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"
 				>
 					<li
 						v-for="(option, index) in optionList"
