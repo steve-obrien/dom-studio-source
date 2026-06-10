@@ -10,7 +10,7 @@ DOM Studio is a source-owned UI system for app-like interfaces built by humans a
 ## Workflow
 
 1. Classify the screen: dashboard, chat, mail, form, login, application shell, settings, detail, or custom.
-2. Start from the closest block or example under `src/pages/docs/blocks` when the request matches a common app pattern.
+2. Start from the closest block or example under `src/pages/blocks` when the request matches a common app pattern.
 3. Compose with `@getdom/studio/vue` components before writing custom markup.
 4. Use props for behavior and classes for layout, spacing, and small visual adjustments.
 5. Use semantic theme utilities, not raw colors, unless defining a theme.

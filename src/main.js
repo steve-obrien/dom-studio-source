@@ -111,9 +111,7 @@ export function updateDocumentHead(route) {
 
 function applyInitialTheme() {
 	if (typeof window === 'undefined') return;
-	const stored = window.localStorage.getItem('theme-mode')
-		|| window.localStorage.getItem('theme')
-		|| 'system';
+	const stored = window.localStorage.getItem('theme-mode') || 'system';
 	let theme = stored;
 	if (stored === 'system' || (stored !== 'light' && stored !== 'dark')) {
 		theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
