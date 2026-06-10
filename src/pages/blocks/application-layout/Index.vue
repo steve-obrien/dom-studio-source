@@ -19,6 +19,8 @@ import ScrollableAppShellSrc from './examples/ScrollableAppShell.vue?raw';
 				<Example
 					:source="ScrollableAppShellSrc"
 					filename="ScrollableAppShell.vue"
+					presentation="iframe"
+					frame-src="/blocks/application-layout/preview/ScrollableAppShell"
 					description="Use this when the app needs persistent navigation or layers on the left, while the detail view scrolls on its own."
 					default-open
 				>

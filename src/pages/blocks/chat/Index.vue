@@ -19,6 +19,8 @@ import AssistantChatSrc from './examples/AssistantChat.vue?raw';
 				<Example
 					:source="AssistantChatSrc"
 					filename="AssistantChat.vue"
+					presentation="iframe"
+					frame-src="/blocks/chat/preview/AssistantChat"
 					description="A compact chat shell that uses cards for messages and keeps the controls native-feeling."
 					default-open
 				>

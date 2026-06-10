@@ -1,0 +1,9 @@
+export default {
+	category: 'Work Management',
+	categoryDescription: 'Planning, prioritization, and delivery surfaces for product and operations teams.',
+	categoryOrder: 25,
+	order: 34,
+	tag: 'New',
+	summary: 'A sprint planning board for prioritizing backlog work, balancing engineering capacity, and tracking release readiness.',
+	icon: 'M5 5h14v14H5V5Zm4 0v14M15 5v14M7 8h1M11 10h2M17 9h1M11 15h2M17 14h1',
+};

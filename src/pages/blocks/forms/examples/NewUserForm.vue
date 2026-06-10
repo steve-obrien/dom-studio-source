@@ -25,7 +25,7 @@ const teams = [
 </script>
 
 <template>
-	<DomCard padding="lg" class="w-full max-w-2xl">
+	<DomCard padding="lg" class="w-full max-w-2xl mx-auto">
 		<div class="border-b border-border pb-6">
 			<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Users</p>
 			<h3 class="mt-2 text-2xl font-semibold tracking-tight">Add a new user</h3>

@@ -20,6 +20,8 @@ import SupportTicketWorkspaceSrc from './examples/SupportTicketWorkspace.vue?raw
 				<Example
 					:source="SupportTicketWorkspaceSrc"
 					filename="SupportTicketWorkspace.vue"
+					presentation="iframe"
+					frame-src="/blocks/support-center/preview/SupportTicketWorkspace"
 					description="Copy this into a helpdesk, CRM, admin panel, or customer success app. Replace the local arrays with ticket, account, message, and SLA data from your API."
 					default-open
 					:preview-lines="14"

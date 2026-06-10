@@ -6,7 +6,7 @@ It includes:
 
 - Vue components exported from `@getdom/studio/vue`.
 - Framework-neutral custom elements registered from `@getdom/studio/headless`.
-- Blocks for common app screens such as dashboards, chat, mail, forms, login, and mobile shells.
+- Source-owned blocks in `src/pages/blocks` for common app screens such as dashboards, chat, mail, forms, login, and mobile shells.
 - Studio metadata, examples, prop docs, and `llms.txt` so generated apps stay inspectable and editable.
 
 ## Usage
@@ -25,6 +25,8 @@ Headless primitives use the `dom-*` custom element prefix:
 	<form method="dialog">...</form>
 </dom-dialog>
 ```
+
+The published package exports the Vue layer, headless primitives, styles, and AI context files. Block implementations remain in the source tree for direct reuse and adaptation rather than as a versioned import surface.
 
 ## LLMs
 

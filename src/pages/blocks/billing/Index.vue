@@ -19,6 +19,8 @@ import SubscriptionSettingsSrc from './examples/SubscriptionSettings.vue?raw';
 				<Example
 					:source="SubscriptionSettingsSrc"
 					filename="SubscriptionSettings.vue"
+					presentation="iframe"
+					frame-src="/blocks/billing/preview/SubscriptionSettings"
 					description="Copy this into an account settings area, then wire the plan, invoice, usage, and payment actions to your billing provider."
 					default-open
 				>

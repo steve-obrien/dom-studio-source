@@ -19,6 +19,8 @@ import ProductDashboardSrc from './examples/ProductDashboard.vue?raw';
 				<Example
 					:source="ProductDashboardSrc"
 					filename="ProductDashboard.vue"
+					presentation="iframe"
+					frame-src="/blocks/dashboard/preview/ProductDashboard"
 					description="A larger composition showing how Card, Button, Dropdown, and NativeSelect fit together."
 					default-open
 				>

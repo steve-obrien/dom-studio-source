@@ -20,6 +20,8 @@ import LoginPanelSrc from './examples/LoginPanel.vue?raw';
 				<Example
 					:source="LoginPanelSrc"
 					filename="LoginPanel.vue"
+					presentation="iframe"
+					frame-src="/blocks/login/preview/LoginPanel"
 					description="A practical auth block using Card, Button, TextInput, PasswordInput, and Checkbox."
 					default-open
 				>

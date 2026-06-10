@@ -125,7 +125,7 @@ export class DomDropdownElement extends DomElementBase {
 		const inner = this.querySelector('[slot="menu"], [data-menu]');
 		if (inner) return inner;
 		const id = this.dataset.menuId;
-		return id ? document.getElementById(id) : null;
+		return id ? this.ownerDocument?.getElementById(id) : null;
 	}
 
 	_prepareMenu() {

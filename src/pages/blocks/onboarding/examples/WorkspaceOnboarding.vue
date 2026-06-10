@@ -55,7 +55,7 @@ function goNext() {
 </script>
 
 <template>
-	<div class="w-full max-w-5xl overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
+	<div class="w-full max-w-5xl mx-auto overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
 		<div class="grid min-h-[38rem] lg:grid-cols-[18rem_1fr]">
 			<aside class="border-b border-border skin-raised p-5 lg:border-b-0 lg:border-r">
 				<div class="flex items-center gap-3">

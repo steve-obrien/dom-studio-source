@@ -21,7 +21,7 @@ const countries = [
 </script>
 
 <template>
-	<DomCard padding="lg" class="w-full max-w-2xl">
+	<DomCard padding="lg" class="w-full max-w-2xl mx-auto">
 		<div class="flex flex-wrap items-start justify-between gap-4 border-b border-border pb-6">
 			<div>
 				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Payment</p>

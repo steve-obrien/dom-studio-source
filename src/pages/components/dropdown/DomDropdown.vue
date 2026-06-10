@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, useId } from 'vue';
+import { nextTick, onMounted, ref, shallowRef, useId } from 'vue';
 
 defineOptions({
 	__doc: {
@@ -97,9 +97,12 @@ const emit = defineEmits(['select']);
 
 const root = ref(null);
 const isMounted = ref(false);
+const teleportTarget = shallowRef(null);
 
 onMounted(async () => {
+	teleportTarget.value = root.value?.ownerDocument?.body || document.body;
 	isMounted.value = true;
+	await nextTick();
 	await import('../../lib/headless/dropdown.js');
 	root.value?.addEventListener('dom:select', (e) => emit('select', e.detail.value));
 });
@@ -148,7 +151,7 @@ defineExpose({
 				<path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
 			</svg>
 		</button>
-		<Teleport to="body" :disabled="!isMounted">
+		<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
 			<div
 				:id="menuId"
 				class="dom-dropdown-menu dom-floating-transition skin-floating rounded-2xl p-1"

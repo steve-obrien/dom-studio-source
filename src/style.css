@@ -52,7 +52,7 @@
 	--skin-raised-border-style: solid;
 	--skin-raised-shadow: var(--shadow-sm);
 	--skin-raised-backdrop: none;
-	--skin-raised-bg-image: linear-gradient(to bottom, color-mix(in oklch, white 7%, transparent), color-mix(in oklch, var(--fg) 1%, transparent));
+	--skin-raised-bg-image: linear-gradient(to bottom, color-mix(in oklch, white 95%, transparent), color-mix(in oklch, var(--fg) 1%, transparent));
 	--skin-floating-bg: color-mix(in oklch, var(--background) 94%, var(--fg));
 	--skin-floating-fg: var(--fg);
 	--skin-floating-border: var(--border);
@@ -69,7 +69,7 @@
 	--skin-overlay-shadow: var(--shadow-2xl);
 	--skin-overlay-backdrop: blur(20px) saturate(1.12);
 	--skin-overlay-bg-image: none;
-	--skin-inset-bg: color-mix(in oklch, var(--background) 98%, var(--fg));
+	--skin-inset-bg: var(--background);
 	--skin-inset-fg: var(--fg);
 	--skin-inset-border: var(--input);
 	--skin-inset-border-width: 1px;

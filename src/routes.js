@@ -2,6 +2,7 @@ import NotFoundPage from './NotFoundPage.vue';
 import SignInPage from './pages/auth/sign-in/Index.vue';
 import SignUpPage from './pages/auth/sign-up/Index.vue';
 import BlogArticlePage from './pages/blog/Article.vue';
+import BlockPreviewPage from './pages/blocks/Preview.vue';
 import DomStudioHome from './pages/Index.vue';
 import FloatingHeadlessPage from './pages/headless/floating/Index.vue';
 import PaywallPage from './pages/paywall/Index.vue';
@@ -78,6 +79,11 @@ const manualRoutes = [
 		path: '/blog/:slug',
 		component: BlogArticlePage,
 		meta: { title: 'Blog article' },
+	},
+	{
+		path: '/blocks/:slug/preview/:example',
+		component: BlockPreviewPage,
+		meta: { title: 'Block preview' },
 	},
 ];
 

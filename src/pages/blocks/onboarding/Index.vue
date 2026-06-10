@@ -19,6 +19,8 @@ import WorkspaceOnboardingSrc from './examples/WorkspaceOnboarding.vue?raw';
 				<Example
 					:source="WorkspaceOnboardingSrc"
 					filename="WorkspaceOnboarding.vue"
+					presentation="iframe"
+					frame-src="/blocks/onboarding/preview/WorkspaceOnboarding"
 					description="A responsive onboarding wizard with step progress, goal selection, invite collection, and a launch-ready summary. Adapt the steps to capture the few fields that unlock value in your product."
 					default-open
 					:preview-lines="12"

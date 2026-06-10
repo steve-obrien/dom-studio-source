@@ -32,6 +32,11 @@ const showSidebar = computed(() => !props.fullWidth && sidebarRoutePrefixes.some
 	route.path === prefix || route.path.startsWith(`${prefix}/`)
 )));
 
+const contentMaxWidthClass = computed(() => (
+	route.path === '/blocks' || route.path.startsWith('/blocks/')
+		? 'max-w-none'
+		: 'max-w-4xl'
+));
 
 const topLinks = [
 	{ to: '/', label: 'Overview', exact: true },
@@ -165,7 +170,7 @@ onMounted(() => {
 				<SideNav persist-scroll class="docs-sidebar w-56 shrink-0 md:h-full md:overflow-y-auto md:py-10 md:pr-2" />
 
 				<main ref="detailsPanel" class="min-h-0 min-w-0 flex-1 md:h-full md:overflow-y-auto md:py-10 md:pr-2">
-					<div class="mx-auto w-full max-w-4xl">
+					<div class="mx-auto w-full" :class="contentMaxWidthClass">
 						<slot />
 					</div>
 					<DomStudioFooter class="mt-16" />
@@ -176,7 +181,7 @@ onMounted(() => {
 		<div v-else class="w-full px-4">
 			<div class="flex gap-12 py-10" :class="fullWidth && 'py-6'">
 				<main class="min-w-0 flex-1">
-					<div class="mx-auto w-full max-w-4xl">
+					<div class="mx-auto w-full" :class="contentMaxWidthClass">
 						<slot />
 					</div>
 				</main>

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, useSlots } from 'vue';
 import CodePanel from './CodePanel.vue';
+import IframePreview from './IframePreview.vue';
 import MobilePreview from './MobilePreview.vue';
 
 // Pair a live demo with its source code — guaranteed in sync because both come
@@ -26,20 +27,30 @@ const props = defineProps({
 	presentation: {
 		type: String,
 		default: 'default',
-		validator: (value) => ['default', 'mobile'].includes(value),
+		validator: (value) => ['default', 'iframe', 'mobile'].includes(value),
 	},
 	deviceTitle: { type: String, default: '' },
 	device: { type: String, default: 'DOM Studio Phone' },
+	frameTitle: { type: String, default: '' },
+	frameMinWidth: { type: Number, default: 320 },
+	frameMaxWidth: { type: Number, default: 1440 },
+	frameDefaultWidth: { type: Number, default: 0 },
+	frameHeight: { type: Number, default: 720 },
+	frameSrc: { type: String, default: '' },
 });
 
 const slots = useSlots();
 const hasProperties = computed(() => Boolean(slots.properties));
+const isIframePresentation = computed(() => props.presentation === 'iframe');
 const isMobilePresentation = computed(() => props.presentation === 'mobile');
 const previewClasses = computed(() => {
 	if (isMobilePresentation.value) {
 		return hasProperties.value
 			? 'flex min-h-[200px] items-center justify-center overflow-hidden bg-secondary/30 p-4 sm:p-8'
 			: 'flex min-h-[200px] items-center justify-center overflow-hidden bg-secondary/30 p-4 sm:p-8';
+	}
+	if (isIframePresentation.value) {
+		return 'min-h-[200px] overflow-hidden';
 	}
 	return 'flex min-h-[200px] items-center justify-center overflow-auto p-10';
 });
@@ -74,6 +85,17 @@ const previewClasses = computed(() => {
 				>
 					<slot />
 				</MobilePreview>
+				<IframePreview
+					v-else-if="isIframePresentation"
+					:title="frameTitle || title || filename"
+					:src="frameSrc"
+					:min-width="frameMinWidth"
+					:max-width="frameMaxWidth"
+					:default-width="frameDefaultWidth"
+					:height="frameHeight"
+				>
+					<slot />
+				</IframePreview>
 				<slot v-else />
 			</div>
 

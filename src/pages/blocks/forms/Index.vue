@@ -25,6 +25,8 @@ import NewUserFormSrc from './examples/NewUserForm.vue?raw';
 				<Example
 					:source="ContactFormSrc"
 					filename="ContactForm.vue"
+					presentation="iframe"
+					frame-src="/blocks/forms/preview/ContactForm"
 					description="A compact contact form for collecting a name, email, business, phone number, message, and subscription opt-in."
 				>
 					<ContactForm />
@@ -35,6 +37,8 @@ import NewUserFormSrc from './examples/NewUserForm.vue?raw';
 				<Example
 					:source="PaymentCollectionSrc"
 					filename="PaymentCollection.vue"
+					presentation="iframe"
+					frame-src="/blocks/forms/preview/PaymentCollection"
 					description="A payment details layout with card fields, amount, region, and a save-card preference."
 				>
 					<PaymentCollection />
@@ -45,6 +49,8 @@ import NewUserFormSrc from './examples/NewUserForm.vue?raw';
 				<Example
 					:source="NewUserFormSrc"
 					filename="NewUserForm.vue"
+					presentation="iframe"
+					frame-src="/blocks/forms/preview/NewUserForm"
 					description="A user creation form for assigning role, team, and invite behaviour."
 				>
 					<NewUserForm />
@@ -55,6 +61,8 @@ import NewUserFormSrc from './examples/NewUserForm.vue?raw';
 				<Example
 					:source="AccountSecuritySrc"
 					filename="AccountSecurity.vue"
+					presentation="iframe"
+					frame-src="/blocks/forms/preview/AccountSecurity"
 					description="This shows how richer fields should behave inside a real settings form."
 					default-open
 				>

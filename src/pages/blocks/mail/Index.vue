@@ -19,6 +19,8 @@ import MailClientSrc from './examples/MailClient.vue?raw';
 				<Example
 					:source="MailClientSrc"
 					filename="MailClient.vue"
+					presentation="iframe"
+					frame-src="/blocks/mail/preview/MailClient"
 					description="A dense application block that keeps spacing compact and predictable."
 					default-open
 				>

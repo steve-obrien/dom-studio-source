@@ -95,12 +95,12 @@ function oppositeSide(side) {
 	}[side] || 'bottom';
 }
 
-function getViewportRect(padding) {
-	const viewport = window.visualViewport;
+function getViewportRect(padding, view = window) {
+	const viewport = view.visualViewport;
 	const left = viewport ? viewport.offsetLeft : 0;
 	const top = viewport ? viewport.offsetTop : 0;
-	const width = viewport ? viewport.width : window.innerWidth;
-	const height = viewport ? viewport.height : window.innerHeight;
+	const width = viewport ? viewport.width : view.innerWidth;
+	const height = viewport ? viewport.height : view.innerHeight;
 
 	return {
 		top: top + padding,
@@ -175,16 +175,18 @@ function arrowContainer(floatingEl) {
 
 function getScrollParents(node) {
 	const parents = [];
+	const doc = node?.ownerDocument || document;
+	const view = doc.defaultView || window;
 	let parent = node?.parentElement;
 
-	while (parent && parent !== document.body) {
-		const style = getComputedStyle(parent);
+	while (parent && parent !== doc.body) {
+		const style = view.getComputedStyle(parent);
 		const overflow = `${style.overflow}${style.overflowX}${style.overflowY}`;
 		if (/(auto|scroll|overlay|hidden|clip)/.test(overflow)) parents.push(parent);
 		parent = parent.parentElement;
 	}
 
-	parents.push(window);
+	parents.push(view);
 	return parents;
 }
 
@@ -206,7 +208,8 @@ function getScrollParents(node) {
  * @returns {FloatingPositionResult | null} Position metadata, or null outside the browser.
  */
 export function computeFloatingPosition(referenceEl, floatingEl, options = {}) {
-	if (!referenceEl || !floatingEl || typeof window === 'undefined') return null;
+	const view = referenceEl?.ownerDocument?.defaultView;
+	if (!referenceEl || !floatingEl || !view) return null;
 
 	const {
 		placement = 'bottom',
@@ -220,7 +223,7 @@ export function computeFloatingPosition(referenceEl, floatingEl, options = {}) {
 	const shouldFlip = flip ?? mode === 'viewport';
 	const shouldShift = shift ?? mode === 'viewport';
 	const preferred = parsePlacement(placement, align);
-	const bounds = getViewportRect(Number(padding) || 0);
+	const bounds = getViewportRect(Number(padding) || 0, view);
 	const reference = referenceEl.getBoundingClientRect();
 	const floating = rectWithLayoutSize(floatingEl);
 	let side = preferred.side;
@@ -340,12 +343,13 @@ export function applyFloatingPosition(referenceEl, floatingEl, options = {}) {
  * @returns {() => void} Cleanup function that removes listeners and observers.
  */
 export function autoUpdateFloating(referenceEl, floatingEl, update) {
-	if (!referenceEl || !floatingEl || typeof window === 'undefined') return () => {};
+	const view = referenceEl?.ownerDocument?.defaultView;
+	if (!referenceEl || !floatingEl || !view) return () => {};
 
 	let frame = 0;
 	const requestUpdate = () => {
 		if (frame) return;
-		frame = requestAnimationFrame(() => {
+		frame = view.requestAnimationFrame(() => {
 			frame = 0;
 			update();
 		});
@@ -354,13 +358,13 @@ export function autoUpdateFloating(referenceEl, floatingEl, update) {
 		...getScrollParents(referenceEl),
 		...getScrollParents(floatingEl),
 	]);
-	const viewport = window.visualViewport;
-	const resizeObserver = 'ResizeObserver' in window
-		? new ResizeObserver(requestUpdate)
+	const viewport = view.visualViewport;
+	const resizeObserver = 'ResizeObserver' in view
+		? new view.ResizeObserver(requestUpdate)
 		: null;
 
 	for (const parent of parents) parent.addEventListener('scroll', requestUpdate, { passive: true });
-	window.addEventListener('resize', requestUpdate);
+	view.addEventListener('resize', requestUpdate);
 	viewport?.addEventListener('resize', requestUpdate);
 	viewport?.addEventListener('scroll', requestUpdate);
 	resizeObserver?.observe(referenceEl);
@@ -368,9 +372,9 @@ export function autoUpdateFloating(referenceEl, floatingEl, update) {
 	requestUpdate();
 
 	return () => {
-		if (frame) cancelAnimationFrame(frame);
+		if (frame) view.cancelAnimationFrame(frame);
 		for (const parent of parents) parent.removeEventListener('scroll', requestUpdate);
-		window.removeEventListener('resize', requestUpdate);
+		view.removeEventListener('resize', requestUpdate);
 		viewport?.removeEventListener('resize', requestUpdate);
 		viewport?.removeEventListener('scroll', requestUpdate);
 		resizeObserver?.disconnect();
