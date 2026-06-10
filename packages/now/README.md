@@ -14,6 +14,10 @@ It provides:
 
 The host app owns its pages, Vue root component, route glob or route records, client/server entries, and build output. This keeps Now separable as a future package while allowing `getdom.studio` to use it directly today.
 
+## Requirements
+
+- Node.js 20 or newer
+
 ## Entry Points
 
 - `src/framework/server/createNowServer.js`
