@@ -36,16 +36,7 @@ export function useTheme() {
 	const initTheme = () => {
 		if (typeof window === 'undefined') return;
 
-		// Migrate the old 'theme' key (held 'light' or 'dark') to the new
-		// 'theme-mode' key without losing the user's preference.
 		let stored = localStorage.getItem(MODE_KEY);
-		if (!stored) {
-			const legacy = localStorage.getItem('theme');
-			if (legacy === 'light' || legacy === 'dark') {
-				stored = legacy;
-				localStorage.setItem(MODE_KEY, stored);
-			}
-		}
 		mode.value = MODES.includes(stored) ? stored : 'system';
 
 		const mql = window.matchMedia('(prefers-color-scheme: dark)');
