@@ -6,9 +6,11 @@ import { fileToRoutePath } from '../src/framework/runtime/routes.js'
 import { defineApiRoutes, fileToApiRoute } from '../src/framework/server/defineApiRoutes.js'
 
 describe('page route conventions', () => {
-	it('maps index pages', () => {
+	it('maps index pages for both lowercase and PascalCase conventions', () => {
 		expect(fileToRoutePath('/src/pages/index.vue')).toBe('/')
 		expect(fileToRoutePath('/src/pages/docs/index.vue')).toBe('/docs')
+		expect(fileToRoutePath('/src/pages/Index.vue')).toBe('/')
+		expect(fileToRoutePath('/src/pages/docs/Index.vue')).toBe('/docs')
 	})
 
 	it('maps dynamic and catch-all pages', () => {

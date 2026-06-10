@@ -16,7 +16,7 @@ export function fileToRoutePath(file) {
 	const segments = page
 		.split('/')
 		.filter(Boolean)
-		.filter((segment) => segment !== 'index')
+		.filter((segment) => segment.toLowerCase() !== 'index')
 		.map((segment) => {
 			if (/^\[\.\.\..+\]$/.test(segment)) {
 				return `:${segment.slice(4, -1)}(.*)*`
