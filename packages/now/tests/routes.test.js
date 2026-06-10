@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import express from 'express'
-import { fileToRoutePath } from '../src/framework/runtime/routes.js'
+import { createRoutesFromPages, fileToRoutePath } from '../src/framework/runtime/routes.js'
 import { defineApiRoutes, fileToApiRoute } from '../src/framework/server/defineApiRoutes.js'
 
 describe('page route conventions', () => {
@@ -16,6 +16,20 @@ describe('page route conventions', () => {
 	it('maps dynamic and catch-all pages', () => {
 		expect(fileToRoutePath('/src/pages/blog/[slug].vue')).toBe('/blog/:slug')
 		expect(fileToRoutePath('/src/pages/[...all].vue')).toBe('/:all(.*)*')
+	})
+
+	it('orders static routes ahead of dynamic and catch-all routes', () => {
+		const routes = createRoutesFromPages({
+			'/src/pages/[...all].vue': 'catch-all',
+			'/src/pages/blog/[slug].vue': 'dynamic',
+			'/src/pages/blog/archive.vue': 'static'
+		})
+
+		expect(routes.map((route) => route.path)).toEqual([
+			'/blog/archive',
+			'/blog/:slug',
+			'/:all(.*)*'
+		])
 	})
 })
 
