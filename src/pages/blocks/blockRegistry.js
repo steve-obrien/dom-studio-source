@@ -9,6 +9,9 @@ const categoryDescriptions = {
 	Communication: 'Messaging, inbox, and conversation surfaces with realistic application density.',
 	Conversion: 'Authentication, activation, and setup flows that move users into the product.',
 	'Data Capture': 'Form-led compositions for collecting and validating structured product data.',
+	Monetization: 'Billing, subscription, pricing, and revenue-management surfaces for SaaS products.',
+	Operations: 'Internal workspaces for support, administration, customer success, and account operations.',
+	'Work Management': 'Planning and execution surfaces for organizing backlog, capacity, and delivery.',
 };
 
 export function getBlockRecords() {
