@@ -16,12 +16,12 @@ The host app owns its pages, Vue root component, route glob or route records, cl
 
 ## Entry Points
 
-- `src/framework/server/createNowServer.js`
-- `src/framework/runtime/createNowApp.js`
-- `src/framework/runtime/router.js`
-- `src/composables/useAsyncData.js`
-- `src/composables/useHead.js`
-- `server/middleware/index.js`
+- `packages/now/src/framework/server/createNowServer.js`
+- `packages/now/src/framework/runtime/createNowApp.js`
+- `packages/now/src/framework/runtime/router.js`
+- `packages/now/src/composables/useAsyncData.js`
+- `packages/now/src/composables/useHead.js`
+- `packages/now/server/middleware/index.js`
 
 ## Test
 
