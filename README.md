@@ -50,8 +50,11 @@ npm run preview
 The reusable SSR/backend framework prototype lives in `packages/now`.
 
 ```sh
+npm run check:form-definition
 npm run now:test
 ```
+
+Use `npm run check:form-definition` for the fastest structural validation of the form-definition helpers and `npm run now:test` for the reusable SSR/runtime package tests.
 
 The root app is served by Now through `server.js`; `npm run dev`, `npm run build`, and `npm run preview` all use that SSR path.
 
