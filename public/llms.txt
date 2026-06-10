@@ -9,7 +9,7 @@ Primary docs:
 - Component spec: /component-spec
 - Studio: /components/studio
 - Mobile: /mobile
-- Blocks: /blocks/dashboard, /blocks/chat, /blocks/mail, /blocks/forms, /blocks/login, /blocks/application-layout
+- Blocks: /blocks
 - Components: /components/button, /forms/text-input, /visual/card
 - Headless: /headless
 
