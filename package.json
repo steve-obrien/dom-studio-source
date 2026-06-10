@@ -74,6 +74,7 @@
 		"./headless/*": "./src/pages/lib/headless/*",
 		"./style.css": "./src/style.css",
 		"./llms.txt": "./public/llms.txt",
-		"./skill": "./SKILL.md"
+		"./skill": "./SKILL.md",
+		"./skills.sh": "./public/skills.sh"
 	}
 }

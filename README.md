@@ -30,7 +30,9 @@ The published package exports the Vue layer, headless primitives, styles, and AI
 
 ## LLMs
 
-Point agents at [`public/llms.txt`](public/llms.txt) or install the local [`SKILL.md`](SKILL.md) instructions when you want them to prefer DOM Studio primitives, blocks, theme tokens, and Studio specs.
+Point agents at [`public/llms.txt`](public/llms.txt), install the local [`SKILL.md`](SKILL.md) instructions, or use [`public/skills.sh`](public/skills.sh) when you want them to prefer DOM Studio primitives, blocks, theme tokens, and Studio specs.
+
+When consuming the published package, those agent context files are available at `@getdom/studio/llms.txt`, `@getdom/studio/skill`, and `@getdom/studio/skills.sh`.
 
 ## Commercial Model
 
