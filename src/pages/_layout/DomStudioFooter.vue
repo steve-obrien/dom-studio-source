@@ -16,7 +16,7 @@ import BrandMark from './BrandMark.vue';
 				<RouterLink to="/theming" class="hover:text-fg">Theming</RouterLink>
 				<RouterLink to="/components/button" class="hover:text-fg">Components</RouterLink>
 				<RouterLink to="/visual/card" class="hover:text-fg">Visual</RouterLink>
-				<RouterLink to="/blocks/dashboard" class="hover:text-fg">Blocks</RouterLink>
+				<RouterLink to="/blocks" class="hover:text-fg">Blocks</RouterLink>
 				<RouterLink to="/pricing" class="hover:text-fg">Pricing</RouterLink>
 				<a href="https://github.com/steve-obrien/getdom-studio" target="_blank" rel="noopener" class="hover:text-fg">GitHub</a>
 			</div>

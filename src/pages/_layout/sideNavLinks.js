@@ -5,6 +5,7 @@ import {
 	primaryExportNameForSlug,
 } from './componentManager.js';
 import { inspectComponentRecord } from './componentInspector.js';
+import { getBlockNavItems } from '../blocks/blockRegistry.js';
 
 const sidebarComponentSectionOrder = ['components', 'forms', 'mobile', 'visual'];
 
@@ -21,6 +22,7 @@ const staticIconPaths = {
 	Mail: 'M4 6h16v12H4V6Zm0 0 8 7 8-7',
 	Forms: 'M7 4h10l3 3v13H7V4Zm10 0v4h4M10 12h7M10 16h5',
 	Login: 'M10 17l5-5-5-5M15 12H3M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5',
+	Onboarding: 'M6 5h12v14H6V5Zm3 4h6M9 13h3M15 13h.01M9 17h6',
 	'Application layout': 'M4 5h16v14H4V5Zm5 0v14M12 9h5M12 13h4',
 	Overview: 'M5 5h14v14H5V5Zm4 4h6M9 13h6',
 	Dropdown: 'M7 10l5 5 5-5',
@@ -62,6 +64,10 @@ const staticIconPaths = {
 	'Textarea Input': 'M6 6h12v12H6V6Zm3 4h6M9 13h6M9 16h4',
 };
 
+const blockNavItems = [
+	{ to: '/blocks', label: 'Overview', icon: staticIconPaths.Overview },
+	...getBlockNavItems(),
+];
 const componentNavGroups = groupsFromDiscoveredComponents();
 
 export const sideNavLinks = [
@@ -80,14 +86,7 @@ export const sideNavLinks = [
 	...componentNavGroups,
 	{
 		label: 'Blocks',
-		items: [
-			{ to: '/blocks/dashboard', label: 'Dashboard', tag: 'New' },
-			{ to: '/blocks/chat', label: 'Chat', tag: 'New' },
-			{ to: '/blocks/mail', label: 'Mail', tag: 'New' },
-			{ to: '/blocks/forms', label: 'Forms', tag: 'New' },
-			{ to: '/blocks/login', label: 'Login', tag: 'New' },
-			{ to: '/blocks/application-layout', label: 'Application layout', tag: 'New' },
-		],
+		items: blockNavItems,
 	},
 	{
 		label: 'Headless',

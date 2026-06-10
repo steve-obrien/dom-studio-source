@@ -39,7 +39,7 @@ const topLinks = [
 	{ to: '/theming', label: 'Theming' },
 	{ to: '/components/button', label: 'Components', match: '/components' },
 	{ to: '/visual/card', label: 'Visual', match: '/visual' },
-	{ to: '/blocks/dashboard', label: 'Blocks', match: '/blocks' },
+	{ to: '/blocks', label: 'Blocks', match: '/blocks' },
 	{ to: '/pricing', label: 'Pricing' },
 	{ to: '/blog', label: 'Blog' },
 ];

@@ -40,6 +40,7 @@ This project is configured as `UNLICENSED` by default. That keeps the door open 
 npm install
 npm run dev
 npm run build
+npm run preview
 ```
 
 The reusable SSR/backend framework prototype lives in `packages/now`.

@@ -144,7 +144,7 @@ const libraryGroups = [
 	{
 		title: 'Blocks and mobile',
 		description: 'Production-shaped dashboards, chat, mail, login, mobile shells, safe areas, action sheets, and app navigation.',
-		to: '/blocks/dashboard',
+		to: '/blocks',
 		accent: 'border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300',
 		items: ['Dashboard', 'Chat', 'Mail', 'Login', 'App shell', 'Bottom nav'],
 	},
@@ -186,7 +186,7 @@ const accordionItems = [
 const commands = [
 	{ label: 'Browse components', value: '/components/button', description: 'Open the component docs.' },
 	{ label: 'Explore form system', value: '/forms', description: 'See schema-driven fields and inputs.' },
-	{ label: 'Open block library', value: '/blocks/dashboard', description: 'Preview product-shaped screens.' },
+	{ label: 'Open block library', value: '/blocks', description: 'Preview product-shaped screens.' },
 	{ label: 'Show toast demo', value: 'toast', description: 'Trigger a live toast from the homepage.' },
 ];
 
@@ -230,7 +230,7 @@ function runCommand({ value }) {
 						</p>
 						<div class="mt-8 flex flex-wrap items-center gap-3">
 							<DomButton as="router-link" to="/components/button" size="lg">Browse the library</DomButton>
-							<DomButton as="router-link" to="/blocks/dashboard" variant="secondary" size="lg">See blocks</DomButton>
+							<DomButton as="router-link" to="/blocks" variant="secondary" size="lg">See blocks</DomButton>
 							<DomTooltip text="Open a live command palette from this page" placement="bottom">
 								<DomButton variant="ghost" size="lg" @click="commandOpen = true">Open command palette</DomButton>
 							</DomTooltip>
