@@ -15,6 +15,7 @@ const props = defineProps({
 const { initTheme } = useTheme();
 
 const route = useRoute();
+const mobileMenuOpen = ref(false);
 const sidebarRoutePrefixes = [
 	'/ai',
 	'/blocks',
@@ -45,11 +46,18 @@ const topLinks = [
 
 const detailsPanel = ref(null);
 
+function isTopLinkActive(link) {
+	return link.exact
+		? route.path === link.to
+		: route.path.startsWith(link.match || link.to);
+}
+
 function scrollDetailsToTop() {
 	if (detailsPanel.value) detailsPanel.value.scrollTo({ top: 0 });
 }
 
 watch(() => route.fullPath, async () => {
+	mobileMenuOpen.value = false;
 	await nextTick();
 	scrollDetailsToTop();
 });
@@ -75,7 +83,7 @@ onMounted(() => {
 						:key="l.to"
 						:to="l.to"
 						class="rounded-full px-3 py-1.5 font-medium transition"
-						:class="(l.exact ? route.path === l.to : route.path.startsWith(l.match || l.to))
+						:class="isTopLinkActive(l)
 							? 'bg-primary text-primary-fg'
 							: 'text-muted-fg hover:text-fg'"
 					>{{ l.label }}</RouterLink>
@@ -84,6 +92,71 @@ onMounted(() => {
 					</div>
 					<AccountMenu class="ml-2" />
 				</nav>
+				<div class="flex shrink-0 items-center gap-1 md:hidden">
+					<ThemeToggle />
+					<button
+						type="button"
+						class="grid size-9 place-items-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+						:aria-expanded="mobileMenuOpen"
+						aria-controls="mobile-site-menu"
+						:aria-label="mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'"
+						@click="mobileMenuOpen = !mobileMenuOpen"
+					>
+						<svg
+							v-if="!mobileMenuOpen"
+							viewBox="0 0 24 24"
+							class="size-5"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.8"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+						>
+							<path d="M4 7h16M4 12h16M4 17h16" />
+						</svg>
+						<svg
+							v-else
+							viewBox="0 0 24 24"
+							class="size-5"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.8"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true"
+						>
+							<path d="M6 6l12 12M18 6 6 18" />
+						</svg>
+					</button>
+				</div>
+			</div>
+			<div
+				v-if="mobileMenuOpen"
+				id="mobile-site-menu"
+				class="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border/60 bg-background/95 shadow-lg backdrop-blur md:hidden"
+			>
+				<nav class="grid gap-1 px-4 py-3 text-sm">
+					<RouterLink
+						v-for="l in topLinks"
+						:key="l.to"
+						:to="l.to"
+						class="rounded-lg px-3 py-2 font-medium transition"
+						:class="isTopLinkActive(l)
+							? 'bg-primary text-primary-fg'
+							: 'text-muted-fg hover:bg-secondary hover:text-fg'"
+					>{{ l.label }}</RouterLink>
+				</nav>
+				<div v-if="showSidebar" class="border-t border-border/60 px-4 py-4">
+					<SideNav
+						persist-scroll
+						scroll-key="dom-studio-mobile-side-nav-scroll"
+					/>
+				</div>
+				<div class="flex items-center justify-between border-t border-border/60 px-4 py-3">
+					<ThemeToggle />
+					<AccountMenu compact />
+				</div>
 			</div>
 		</header>
 
