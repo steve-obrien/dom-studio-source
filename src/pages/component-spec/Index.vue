@@ -5,9 +5,9 @@ import DocSection from '../_layout/DocSection.vue';
 import CodeBlock from '../_layout/CodeBlock.vue';
 
 const discoveryCode = `// Discovered by componentManager.js from:
-// src/pages/components/*/El*.vue
-// src/pages/forms/*/El*.vue
-// src/pages/visual/*/El*.vue
+// src/pages/components/*/Dom*.vue
+// src/pages/forms/*/Dom*.vue
+// src/pages/visual/*/Dom*.vue
 
 {
 \t"id": "forms/text-input",
@@ -178,7 +178,7 @@ const studioSpecCode = `// Studio renderer spec. This is different from the comp
 }`;
 
 const addComponentCode = `src/pages/forms/my-input/
-\tElMyInput.vue
+\tDomMyInput.vue
 \tIndex.vue
 \texamples/
 \t\tBasic.vue`;
@@ -192,7 +192,7 @@ const currentRules = [
 ];
 
 const autoDocumenterParts = [
-	['Discovery', 'Finds local El*.vue files in configured component folders with Vite glob imports.'],
+	['Discovery', 'Finds local Dom*.vue files in configured component folders with Vite glob imports.'],
 	['Inspection', 'Reads __doc, __studio, Vue prop definitions, slots, and events from the component object.'],
 	['Generated page', 'Renders a playground, props table, slots, and events when no bespoke Index.vue exists.'],
 	['Navigation', 'Adds the component to the sidebar unless __doc.hidden or __doc.nav.hidden is set.'],
@@ -281,7 +281,7 @@ const editFields = [
 					<div class="rounded-3xl border border-border bg-secondary/50 p-6">
 						<h3 class="font-semibold tracking-tight text-fg">Adding a component</h3>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">
-							Put an <code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">El*.vue</code> file under
+							Put a <code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">Dom*.vue</code> file under
 							<code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">components</code>,
 							<code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">forms</code>, or
 							<code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">visual</code>.
