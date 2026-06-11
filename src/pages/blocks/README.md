@@ -34,9 +34,10 @@ export default {
 
 `categoryDescription` is optional only when the block uses one of the built-in top-level categories already described in `blockRegistry.js`: `App Shells`, `Account Settings`, `Communication`, `Conversion`, `Data Capture`, `Monetization`, `Operations`, or `Work Management`. Custom categories should set `categoryDescription` explicitly so the block index does not fall back to generic copy.
 
-If `block.meta.js` is omitted, the block is still discovered with fallback values:
+If `block.meta.js` is omitted, the block is still discovered with fallback values. The category path still comes from the folder structure first, so a block in `src/pages/blocks/operations/bulk-actions` still appears under `Operations`. `Uncategorised` is only used when no category folder can be derived:
 
 - `category`: `Uncategorised`
+- `categoryPath`: derived from the folder path before the block slug, otherwise `['Uncategorised']`
 - `categoryDescription`: `Auto-discovered block family.`
 - `categoryOrder`: `1000`
 - `summary`: `Auto-discovered {block name} block.`
