@@ -32,7 +32,7 @@ export default {
 };
 ```
 
-`categoryDescription` is optional only when the block uses one of the built-in categories already described in `blockRegistry.js`: `App Shells`, `Communication`, `Conversion`, `Data Capture`, `Monetization`, `Operations`, or `Work Management`. Custom categories should set `categoryDescription` explicitly so the block index does not fall back to generic copy.
+`categoryDescription` is optional only when the block uses one of the built-in top-level categories already described in `blockRegistry.js`: `App Shells`, `Account Settings`, `Communication`, `Conversion`, `Data Capture`, `Monetization`, `Operations`, or `Work Management`. Custom categories should set `categoryDescription` explicitly so the block index does not fall back to generic copy.
 
 If `block.meta.js` is omitted, the block is still discovered with fallback values:
 
