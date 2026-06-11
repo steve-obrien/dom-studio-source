@@ -1,6 +1,6 @@
 ---
 name: dom-studio
-description: Build, edit, or review application UI with DOM Studio. Use when generating Vue UI with @getdom/studio/vue, creating editable Studio specs, composing DOM Studio blocks/components/forms/headless primitives, adding DOM Studio components or docs metadata, or replacing custom UI behavior with DOM Studio primitives.
+description: Build, edit, or review application UI with DOM Studio. Use when generating Vue UI with @getdom/studio or @getdom/studio/vue, creating editable Studio specs, composing DOM Studio blocks/components/forms/headless primitives, adding DOM Studio components or docs metadata, or replacing custom UI behavior with DOM Studio primitives.
 ---
 
 # DOM Studio
@@ -11,7 +11,7 @@ DOM Studio is a source-owned UI system for app-like interfaces built by humans a
 
 1. Classify the screen: dashboard, chat, mail, form, login, application shell, settings, detail, or custom.
 2. Start from the closest block or example under `src/pages/blocks` when the request matches a common app pattern.
-3. Compose with `@getdom/studio/vue` components before writing custom markup.
+3. Compose with `@getdom/studio` components before writing custom markup; `@getdom/studio/vue` exports the same Vue surface when an explicit subpath is clearer.
 4. Use props for behavior and classes for layout, spacing, and small visual adjustments.
 5. Use semantic theme utilities, not raw colors, unless defining a theme.
 6. Return a Studio spec when the UI should remain visually editable.
@@ -26,10 +26,10 @@ import {
 	DomCombobox,
 	DomForm,
 	DomTextInput,
-} from '@getdom/studio/vue';
+} from '@getdom/studio';
 ```
 
-Use headless custom elements by importing `@getdom/studio/headless`; Vite treats tags beginning with `dom-` as custom elements.
+The package root exports the same Vue surface as `@getdom/studio/vue`. Use headless custom elements by importing `@getdom/studio/headless`; Vite treats tags beginning with `dom-` as custom elements.
 
 ## Component Choice
 
