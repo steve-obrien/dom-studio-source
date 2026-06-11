@@ -60,7 +60,7 @@ npm run now:test
 
 Use `npm run check:form-definition` for the fastest structural validation of the form-definition helpers and `npm run now:test` for the reusable SSR/runtime package tests.
 
-Use `npm run check:theme-ai` only when the theme AI endpoint is reachable. By default it posts to `http://127.0.0.1:3333/api/ai/theme`, or you can override that with `THEME_AI_ENDPOINT` and `THEME_AI_PUBLIC_TOKEN`.
+Use `npm run check:theme-ai` only when the theme AI endpoint is reachable. By default it posts to `http://127.0.0.1:3333/api/ai/theme`, or you can override that with `THEME_AI_ENDPOINT` and either `THEME_AI_PUBLIC_TOKEN` or `VITE_THEME_AI_PUBLIC_TOKEN`.
 
 The root app is served by Now through `server.js`; `npm run dev`, `npm run build`, and `npm run preview` all use that SSR path.
 
