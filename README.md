@@ -48,6 +48,7 @@ npm run dev
 npm run dev:screenshot
 npm run build
 npm run preview
+npm run types:generate
 ```
 
 The reusable SSR/backend framework prototype lives in `packages/now`.
@@ -59,6 +60,8 @@ npm run now:test
 ```
 
 Use `npm run check:form-definition` for the fastest structural validation of the form-definition helpers and `npm run now:test` for the reusable SSR/runtime package tests.
+
+Use `npm run types:generate` after changing the public Vue or headless export surface so the published declaration files stay aligned with the package API.
 
 Use `npm run check:theme-ai` only when the theme AI endpoint is reachable. By default it posts to `http://127.0.0.1:3333/api/ai/theme`, or you can override that with `THEME_AI_ENDPOINT` and either `THEME_AI_PUBLIC_TOKEN` or `VITE_THEME_AI_PUBLIC_TOKEN`.
 
