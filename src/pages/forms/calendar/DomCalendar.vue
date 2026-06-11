@@ -38,6 +38,21 @@ export const calendarProps = {
 		default: '',
 		_edit: { description: 'Maximum selectable date as YYYY-MM-DD.' },
 	},
+	enabledDates: {
+		type: Array,
+		default: () => [],
+		_edit: {
+			component: 'DomJsonListInput',
+			props: {
+				description: 'Optional allow-list of selectable YYYY-MM-DD dates. When empty, every date inside the min/max range is selectable.',
+				compact: true,
+				schema: [
+					{ key: 'value', label: 'Date', placeholder: '2026-06-18' },
+				],
+			},
+			description: 'Optional allow-list of selectable dates as YYYY-MM-DD values.',
+		},
+	},
 	showAdjacentDays: {
 		type: Boolean,
 		default: true,
@@ -123,6 +138,7 @@ const dateLabelFormatter = computed(() => new Intl.DateTimeFormat(props.locale, 
 	month: 'long',
 	year: 'numeric',
 }));
+const enabledDateSet = computed(() => new Set(props.enabledDates.map(normalizeEnabledDate).filter(Boolean)));
 
 const cells = computed(() => {
 	const first = new Date(viewYear.value, viewMonth.value, 1);
@@ -141,7 +157,7 @@ const cells = computed(() => {
 			currentMonth,
 			selected: value === field.value.value,
 			today: value === formatDate(today),
-			disabled: field.disabled.value || field.readOnly.value || outsideRange(value),
+			disabled: field.disabled.value || field.readOnly.value || unavailableDate(value),
 			hidden: !currentMonth && !props.showAdjacentDays,
 		};
 	});
@@ -183,13 +199,24 @@ function formatDate(date) {
 }
 
 function dateLabel(cell) {
-	return dateLabelFormatter.value.format(cell.date);
+	const label = dateLabelFormatter.value.format(cell.date);
+	return cell.disabled && !field.disabled.value && !field.readOnly.value ? `${label}, unavailable` : label;
 }
 
 function outsideRange(value) {
 	if (props.min && value < props.min) return true;
 	if (props.max && value > props.max) return true;
 	return false;
+}
+
+function normalizeEnabledDate(item) {
+	const value = item && typeof item === 'object' ? item.value : item;
+	return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : '';
+}
+
+function unavailableDate(value) {
+	if (outsideRange(value)) return true;
+	return enabledDateSet.value.size > 0 && !enabledDateSet.value.has(value);
 }
 
 function emitViewChange() {
@@ -231,7 +258,7 @@ function visibleSelectableValue() {
 
 async function focusDate(value, updateView = true) {
 	const date = parseDate(value);
-	if (!date || outsideRange(value)) return false;
+	if (!date || unavailableDate(value)) return false;
 	activeDateValue.value = value;
 	if (updateView && (date.getFullYear() !== viewYear.value || date.getMonth() !== viewMonth.value)) {
 		viewYear.value = date.getFullYear();
@@ -279,7 +306,7 @@ async function onCellKeydown(event, cell) {
 }
 
 async function focusSelectedDate() {
-	const selected = parseDate(field.value.value) && !outsideRange(field.value.value)
+	const selected = parseDate(field.value.value) && !unavailableDate(field.value.value)
 		? field.value.value
 		: visibleSelectableValue();
 	if (selected) await focusDate(selected);

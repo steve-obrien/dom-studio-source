@@ -28,12 +28,21 @@ const sidebarRoutePrefixes = [
 	'/visual',
 ];
 
+const wideContentRoutePrefixes = [
+	'/blocks',
+	'/components',
+	'/forms',
+	'/headless',
+	'/mobile',
+	'/visual',
+];
+
 const showSidebar = computed(() => !props.fullWidth && sidebarRoutePrefixes.some((prefix) => (
 	route.path === prefix || route.path.startsWith(`${prefix}/`)
 )));
 
 const contentMaxWidthClass = computed(() => (
-	route.path === '/blocks' || route.path.startsWith('/blocks/')
+	wideContentRoutePrefixes.some((prefix) => route.path === prefix || route.path.startsWith(`${prefix}/`))
 		? 'max-w-none'
 		: 'max-w-4xl'
 ));

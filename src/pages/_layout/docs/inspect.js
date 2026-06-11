@@ -37,11 +37,24 @@ export function inspectComponent(component, source = '') {
 		description: doc.description || null,
 		tag: doc.tag || null,
 		props: propEntries(component).map(([name, def]) => buildPropDoc(name, def, docTypes, jsdoc.props[name])),
-		slots: doc.slots || [],
+		slots: buildSlots(doc.slots || [], docTypes),
 		events: mergeEvents(component, doc.events, docTypes, sourceEvents),
 		keyboard: doc.keyboard || [],
 		examples: doc.examples || [],
 	};
+}
+
+function buildSlots(slots, docTypes = {}) {
+	return slots.map((slot) => {
+		const payload = slot.payload || '';
+		const typeRef = slot.typeRef || typeRefFromPayload(payload);
+		return {
+			...slot,
+			details: formatDocDetails(slot.details, docTypes) || formatTypeRef(typeRef, docTypes),
+			payloadTokens: payloadTokensFor(payload, typeRef, docTypes),
+			typeDefinitions: typeDefinitionsFor(typeRef, docTypes),
+		};
+	});
 }
 
 function emitNames(component) {

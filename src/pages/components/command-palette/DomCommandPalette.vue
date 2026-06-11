@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useId, watch } from 'vue';
 
 defineOptions({
 	__doc: {
@@ -41,9 +41,11 @@ const query = ref('');
 const activeIndex = ref(0);
 const input = ref(null);
 const panel = ref(null);
+const isMounted = ref(false);
 const isRendered = ref(false);
 const isVisible = ref(false);
 const motion = ref('closed');
+const teleportTarget = shallowRef(null);
 const listId = `dom-command-palette-${useId()}-list`;
 const dialogLabel = 'Command palette';
 let motionTimer = null;
@@ -89,6 +91,8 @@ watch(filtered, (items) => {
 	if (activeIndex.value >= items.length) activeIndex.value = Math.max(0, items.length - 1);
 });
 onMounted(() => {
+	teleportTarget.value = panel.value?.ownerDocument?.body || document.body;
+	isMounted.value = true;
 	window.addEventListener('keydown', onShortcut, { capture: true });
 	document.addEventListener('keydown', onShortcut, { capture: true });
 	window.addEventListener('keyup', onShortcutFallback, { capture: true });
@@ -191,7 +195,7 @@ function matchesShortcut(event, shortcut) {
 </script>
 
 <template>
-	<Teleport to="body">
+	<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
 		<div
 			v-if="isRendered"
 			class="fixed inset-0 z-[90] p-4"

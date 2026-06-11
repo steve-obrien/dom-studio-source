@@ -1,0 +1,32 @@
+<script setup>
+import DomStudioLayout from '../../../_layout/DomStudioLayout.vue';
+import DocPage from '../../../_layout/DocPage.vue';
+import DocSection from '../../../_layout/DocSection.vue';
+import Example from '../../../_layout/docs/Example.vue';
+import MailClient from './examples/MailClient.vue';
+import MailClientSrc from './examples/MailClient.vue?raw';
+</script>
+
+<template>
+	<DomStudioLayout>
+		<DocPage
+			name="Mail Block"
+			tagline="A Mac Mail-style three-pane layout with folders, message list, and readable preview panel."
+			tag="Application UI"
+			eyebrow="Blocks"
+		>
+			<DocSection eyebrow="Starter" title="Three-pane mail">
+				<Example
+					:source="MailClientSrc"
+					filename="MailClient.vue"
+					presentation="iframe"
+					frame-src="/blocks/communication/mail/preview/MailClient"
+					description="A dense application block that keeps spacing compact and predictable."
+					default-open
+				>
+					<MailClient />
+				</Example>
+			</DocSection>
+		</DocPage>
+	</DomStudioLayout>
+</template>

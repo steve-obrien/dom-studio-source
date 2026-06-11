@@ -5,7 +5,7 @@ const props = defineProps({
 	title: { type: String, default: 'Example preview' },
 	src: { type: String, default: '' },
 	minWidth: { type: Number, default: 320 },
-	maxWidth: { type: Number, default: 1440 },
+	maxWidth: { type: Number, default: 0 },
 	defaultWidth: { type: Number, default: 0 },
 	height: { type: Number, default: 720 },
 });
@@ -13,8 +13,9 @@ const props = defineProps({
 const canvas = ref(null);
 const iframe = ref(null);
 const mountTarget = shallowRef(null);
+const fallbackPreviewWidth = 1200;
 const availableWidth = ref(0);
-const previewWidth = ref(props.defaultWidth || props.maxWidth);
+const previewWidth = ref(props.defaultWidth || props.maxWidth || fallbackPreviewWidth);
 const userResized = ref(false);
 const isDragging = ref(false);
 
@@ -25,7 +26,8 @@ let styleSyncFrame = 0;
 let dragStartX = 0;
 let dragStartWidth = 0;
 
-const clampedWidth = computed(() => clamp(previewWidth.value, props.minWidth, props.maxWidth));
+const effectiveMaxWidth = computed(() => Math.max(props.minWidth, props.maxWidth || availableWidth.value || props.defaultWidth || fallbackPreviewWidth));
+const clampedWidth = computed(() => clamp(previewWidth.value, props.minWidth, effectiveMaxWidth.value));
 const roundedWidth = computed(() => Math.round(clampedWidth.value));
 const iframeStyle = computed(() => ({
 	width: `${roundedWidth.value}px`,
@@ -36,12 +38,33 @@ function clamp(value, min, max) {
 	return Math.min(Math.max(value, min), max);
 }
 
-function preferredWidth() {
-	return props.defaultWidth || availableWidth.value || props.maxWidth;
+function preferredWidth(width = availableWidth.value) {
+	return props.defaultWidth || width || props.maxWidth || fallbackPreviewWidth;
 }
 
-function fitToAvailableWidth() {
-	previewWidth.value = clamp(preferredWidth(), props.minWidth, props.maxWidth);
+function measureAvailableWidth(entry) {
+	if (entry?.contentRect?.width) return entry.contentRect.width;
+	if (!canvas.value) return 0;
+
+	const style = window.getComputedStyle(canvas.value);
+	const horizontalPadding = Number.parseFloat(style.paddingLeft || '0') + Number.parseFloat(style.paddingRight || '0');
+	return Math.max(0, canvas.value.clientWidth - horizontalPadding);
+}
+
+function updateAvailableWidth(entry) {
+	const width = measureAvailableWidth(entry);
+	if (width) availableWidth.value = width;
+	return width;
+}
+
+function fitToAvailableWidth(entry) {
+	const width = updateAvailableWidth(entry);
+	previewWidth.value = clamp(preferredWidth(width), props.minWidth, effectiveMaxWidth.value);
+}
+
+function syncAvailableWidth() {
+	if (!userResized.value) fitToAvailableWidth();
+	else updateAvailableWidth();
 }
 
 function writeFrameDocument() {
@@ -155,8 +178,8 @@ function observeShell() {
 	if (!canvas.value) return;
 
 	resizeObserver = new ResizeObserver(([entry]) => {
-		availableWidth.value = entry.contentRect.width;
-		if (!userResized.value) fitToAvailableWidth();
+		if (!userResized.value) fitToAvailableWidth(entry);
+		else updateAvailableWidth(entry);
 	});
 	resizeObserver.observe(canvas.value);
 }
@@ -173,7 +196,7 @@ function startResize(event) {
 }
 
 function resizePreview(event) {
-	previewWidth.value = clamp(dragStartWidth + event.clientX - dragStartX, props.minWidth, props.maxWidth);
+	previewWidth.value = clamp(dragStartWidth + event.clientX - dragStartX, props.minWidth, effectiveMaxWidth.value);
 }
 
 function stopResize() {
@@ -202,7 +225,7 @@ function resizeWithKeyboard(event) {
 	if (event.key === 'End') {
 		event.preventDefault();
 		userResized.value = true;
-		previewWidth.value = props.maxWidth;
+		previewWidth.value = effectiveMaxWidth.value;
 		return;
 	}
 
@@ -210,7 +233,7 @@ function resizeWithKeyboard(event) {
 
 	event.preventDefault();
 	userResized.value = true;
-	previewWidth.value = clamp(clampedWidth.value + keySteps[event.key], props.minWidth, props.maxWidth);
+	previewWidth.value = clamp(clampedWidth.value + keySteps[event.key], props.minWidth, effectiveMaxWidth.value);
 }
 
 watch(
@@ -228,6 +251,8 @@ onMounted(async () => {
 	await nextTick();
 	observeShell();
 	fitToAvailableWidth();
+	requestAnimationFrame(syncAvailableWidth);
+	window.addEventListener('resize', syncAvailableWidth);
 	if (!props.src) {
 		writeFrameDocument();
 		observeHostDocument();
@@ -238,6 +263,7 @@ onBeforeUnmount(() => {
 	resizeObserver?.disconnect();
 	headObserver?.disconnect();
 	themeObserver?.disconnect();
+	window.removeEventListener('resize', syncAvailableWidth);
 	window.removeEventListener('pointermove', resizePreview);
 	if (styleSyncFrame) cancelAnimationFrame(styleSyncFrame);
 });

@@ -3,17 +3,21 @@
 	"version": "0.1.0",
 	"description": "DOM Studio is a source-owned Vue and web component interface system for humans and LLMs.",
 	"type": "module",
+	"types": "./src/pages/lib/vue/index.d.ts",
 	"scripts": {
 		"dev": "node server.js",
 		"build": "npm run build:client && npm run build:server && node scripts/generate-seo-files.mjs",
 		"build:client": "vite build --outDir dist/client --ssrManifest",
 		"build:server": "vite build --outDir dist/server --ssr src/entry-server.js",
+		"types:generate": "node scripts/generate-types.mjs",
+		"prepack": "npm run types:generate",
 		"check:form-definition": "node scripts/check-form-definition.mjs",
 		"check:theme-ai": "node scripts/check-theme-ai-endpoint.mjs",
 		"db:migrate": "knex migrate:latest",
 		"db:rollback": "knex migrate:rollback",
 		"now:test": "npm --prefix packages/now test",
-		"preview": "NODE_ENV=production node server.js"
+		"preview": "NODE_ENV=production node server.js",
+		"dev:screenshot": "HOST=127.0.0.1 PORT=3342 npm run dev"
 	},
 	"repository": {
 		"type": "git",
@@ -50,8 +54,25 @@
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.2.4",
+		"@vue/compiler-sfc": "^3.5.33",
 		"@vitejs/plugin-vue": "^6.0.6",
 		"vite": "^8.0.10"
+	},
+	"typesVersions": {
+		"*": {
+			"vue": [
+				"src/pages/lib/vue/index.d.ts"
+			],
+			"headless": [
+				"src/pages/lib/headless/index.d.ts"
+			],
+			"headless/*.js": [
+				"src/pages/lib/headless/*.d.ts"
+			],
+			"headless/*": [
+				"src/pages/lib/headless/*.d.ts"
+			]
+		}
 	},
 	"files": [
 		"README.md",
@@ -68,10 +89,26 @@
 		"src/style.css"
 	],
 	"exports": {
-		".": "./src/pages/lib/vue/index.js",
-		"./vue": "./src/pages/lib/vue/index.js",
-		"./headless": "./src/pages/lib/headless/index.js",
-		"./headless/*": "./src/pages/lib/headless/*",
+		".": {
+			"types": "./src/pages/lib/vue/index.d.ts",
+			"import": "./src/pages/lib/vue/index.js"
+		},
+		"./vue": {
+			"types": "./src/pages/lib/vue/index.d.ts",
+			"import": "./src/pages/lib/vue/index.js"
+		},
+		"./headless": {
+			"types": "./src/pages/lib/headless/index.d.ts",
+			"import": "./src/pages/lib/headless/index.js"
+		},
+		"./headless/*.js": {
+			"types": "./src/pages/lib/headless/*.d.ts",
+			"import": "./src/pages/lib/headless/*.js"
+		},
+		"./headless/*": {
+			"types": "./src/pages/lib/headless/*.d.ts",
+			"import": "./src/pages/lib/headless/*.js"
+		},
 		"./style.css": "./src/style.css",
 		"./llms.txt": "./public/llms.txt",
 		"./skill": "./SKILL.md",

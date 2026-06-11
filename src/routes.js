@@ -7,6 +7,7 @@ import DomStudioHome from './pages/Index.vue';
 import FloatingHeadlessPage from './pages/headless/floating/Index.vue';
 import PaywallPage from './pages/paywall/Index.vue';
 import { getFormRedirectRecords, getLazyComponentRecords } from './pages/_layout/componentManager.js';
+import { getBlockLegacyRedirects } from './pages/blocks/blockRegistry.js';
 
 const pageRouteModules = import.meta.glob([
 	'./pages/**/Index.vue',
@@ -81,7 +82,7 @@ const manualRoutes = [
 		meta: { title: 'Blog article' },
 	},
 	{
-		path: '/blocks/:slug/preview/:example',
+		path: '/blocks/:blockPath(.*)/preview/:example',
 		component: BlockPreviewPage,
 		meta: { title: 'Block preview' },
 	},
@@ -89,6 +90,13 @@ const manualRoutes = [
 
 const manualPaths = new Set(manualRoutes.map((r) => r.path));
 const fileBasedPaths = new Set(fileBasedRoutes.map((r) => r.path));
+
+const blockLegacyRedirects = getBlockLegacyRedirects()
+	.filter((record) => record.from !== record.to && !fileBasedPaths.has(record.from))
+	.map((record) => ({
+		path: record.from,
+		redirect: record.to,
+	}));
 
 const generatedComponentRoutes = getLazyComponentRecords()
 	.map((record) => {
@@ -126,6 +134,7 @@ const legacyDocsRedirects = [
 export const routes = [
 	...manualRoutes,
 	...fileBasedRoutes.filter((r) => !manualPaths.has(r.path)),
+	...blockLegacyRedirects,
 	...generatedComponentRoutes,
 	...movedFormRedirects,
 	...legacyDocsRedirects,

@@ -1,5 +1,6 @@
 <script setup>
 import { computed, useSlots } from 'vue';
+import { useRoute } from 'vue-router';
 import CodePanel from './CodePanel.vue';
 import IframePreview from './IframePreview.vue';
 import MobilePreview from './MobilePreview.vue';
@@ -20,6 +21,8 @@ const props = defineProps({
 	title: { type: String, default: '' },
 	description: { type: String, default: '' },
 	filename: { type: String, default: '' },
+	sourcePath: { type: String, default: '' },
+	sourceHref: { type: String, default: '' },
 	defaultOpen: { type: Boolean, default: false },
 	codeFirst: { type: Boolean, default: false },
 	previewLines: { type: Number, default: 5 },
@@ -33,16 +36,18 @@ const props = defineProps({
 	device: { type: String, default: 'DOM Studio Phone' },
 	frameTitle: { type: String, default: '' },
 	frameMinWidth: { type: Number, default: 320 },
-	frameMaxWidth: { type: Number, default: 1440 },
+	frameMaxWidth: { type: Number, default: 0 },
 	frameDefaultWidth: { type: Number, default: 0 },
 	frameHeight: { type: Number, default: 720 },
 	frameSrc: { type: String, default: '' },
 });
 
+const route = useRoute();
 const slots = useSlots();
 const hasProperties = computed(() => Boolean(slots.properties));
 const isIframePresentation = computed(() => props.presentation === 'iframe');
 const isMobilePresentation = computed(() => props.presentation === 'mobile');
+const resolvedSourcePath = computed(() => props.sourcePath || sourcePathFromRoute());
 const previewClasses = computed(() => {
 	if (isMobilePresentation.value) {
 		return hasProperties.value
@@ -54,6 +59,17 @@ const previewClasses = computed(() => {
 	}
 	return 'flex min-h-[200px] items-center justify-center overflow-auto p-10';
 });
+
+function sourcePathFromRoute() {
+	if (!props.filename || props.filename.includes('/')) return '';
+
+	const routePath = route.path
+		.replace(/\/preview\/.*$/, '')
+		.replace(/^\/+|\/+$/g, '');
+	if (!routePath) return '';
+
+	return `src/pages/${routePath}/examples/${props.filename}`;
+}
 </script>
 
 <template>
@@ -68,6 +84,8 @@ const previewClasses = computed(() => {
 			:source="source"
 			:lang="lang"
 			:filename="filename"
+			:source-path="resolvedSourcePath"
+			:source-href="sourceHref"
 			:default-open="defaultOpen"
 			:preview-lines="previewLines"
 		/>
@@ -117,6 +135,8 @@ const previewClasses = computed(() => {
 			:source="source"
 			:lang="lang"
 			:filename="filename"
+			:source-path="resolvedSourcePath"
+			:source-href="sourceHref"
 			:default-open="defaultOpen"
 			:preview-lines="previewLines"
 		/>

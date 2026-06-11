@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { highlight } from './shiki.js';
+import { isExternalSourceHref, sourceHrefForPath } from './sourceLinks.js';
 
 // The code half of an <Example> / <Playground>. Shows a toolbar with a copy
 // button + show/hide toggle, and renders the source with Shiki highlighting
@@ -9,6 +10,8 @@ const props = defineProps({
 	source: { type: String, default: '' },
 	lang: { type: String, default: 'vue' },
 	filename: { type: String, default: '' },
+	sourcePath: { type: String, default: '' },
+	sourceHref: { type: String, default: '' },
 	defaultOpen: { type: Boolean, default: true },
 	previewLines: { type: Number, default: 0 },
 	borderTop: { type: Boolean, default: true },
@@ -20,6 +23,9 @@ const copied = ref(false);
 const highlighted = ref(null);
 const isPreview = computed(() => props.previewLines > 0);
 const isClipped = computed(() => showCode.value && isPreview.value && !expanded.value);
+const resolvedSourceHref = computed(() => props.sourceHref || sourceHrefForPath(props.sourcePath));
+const sourceLinkTarget = computed(() => isExternalSourceHref(resolvedSourceHref.value) ? '_blank' : null);
+const sourceLinkTitle = computed(() => props.sourcePath ? `Open ${props.sourcePath}` : 'Open source file');
 const toggleLabel = computed(() => {
 	if (isPreview.value) return expanded.value ? 'Collapse code' : 'Expand code';
 	return showCode.value ? 'Hide code' : 'Show code';
@@ -74,7 +80,15 @@ function expandPreview() {
 				{{ toggleLabel }}
 			</button>
 			<div class="flex items-center gap-2">
-				<span v-if="filename" class="font-mono text-[11px] text-muted-fg">{{ filename }}</span>
+				<a
+					v-if="filename && resolvedSourceHref"
+					:href="resolvedSourceHref"
+					:target="sourceLinkTarget || undefined"
+					:rel="sourceLinkTarget ? 'noopener' : undefined"
+					:title="sourceLinkTitle"
+					class="font-mono text-[11px] text-muted-fg underline decoration-border underline-offset-4 transition hover:text-fg"
+				>{{ filename }}</a>
+				<span v-else-if="filename" class="font-mono text-[11px] text-muted-fg">{{ filename }}</span>
 				<span class="font-mono text-[11px] uppercase tracking-wider text-muted-fg">{{ lang }}</span>
 				<button
 					type="button"

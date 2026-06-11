@@ -16,9 +16,9 @@
 	--shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.06);
 	--shadow-md: 0 3px 8px -2px rgb(15 23 42 / 0.12), 0 1px 2px -1px rgb(15 23 42 / 0.08);
 	--shadow-lg: 0 8px 20px -6px rgb(15 23 42 / 0.16), 0 2px 6px -2px rgb(15 23 42 / 0.08);
-	--shadow-xl: 0 14px 34px -10px rgb(15 23 42 / 0.18), 0 4px 10px -4px rgb(15 23 42 / 0.1);
+	--shadow-xl: 0 18px 44px -18px rgb(15 23 42 / 0.24), 0 8px 18px -12px rgb(15 23 42 / 0.16);
 	--shadow-2xl: 0 24px 60px -18px rgb(15 23 42 / 0.24), 0 8px 20px -10px rgb(15 23 42 / 0.14);
-	--background: oklch(1 0 0);
+	--background: oklch(0.984 0.003 247);
 	--fg: oklch(0.145 0 0);
 	--primary: oklch(0.205 0 0);
 	--primary-fg: oklch(0.985 0 0);
@@ -53,14 +53,14 @@
 	--skin-raised-shadow: var(--shadow-sm);
 	--skin-raised-backdrop: none;
 	--skin-raised-bg-image: linear-gradient(to bottom, color-mix(in oklch, white 95%, transparent), color-mix(in oklch, var(--fg) 1%, transparent));
-	--skin-floating-bg: color-mix(in oklch, var(--background) 94%, var(--fg));
+	--skin-floating-bg: oklch(0.992 0.002 247 / 92%);
 	--skin-floating-fg: var(--fg);
-	--skin-floating-border: var(--border);
+	--skin-floating-border: color-mix(in oklch, var(--border) 84%, var(--fg));
 	--skin-floating-border-width: 1px;
 	--skin-floating-border-style: solid;
-	--skin-floating-shadow: var(--shadow-xl);
-	--skin-floating-backdrop: blur(16px) saturate(1.08);
-	--skin-floating-bg-image: none;
+	--skin-floating-shadow: inset 0 1px 0 rgb(255 255 255 / 0.78), 0 24px 54px -22px rgb(15 23 42 / 0.42), 0 8px 20px -14px rgb(15 23 42 / 0.28);
+	--skin-floating-backdrop: blur(18px) saturate(1.12);
+	--skin-floating-bg-image: linear-gradient(to bottom, rgb(255 255 255 / 0.62), rgb(255 255 255 / 0.16));
 	--skin-overlay-bg: color-mix(in oklch, var(--background) 95%, var(--fg));
 	--skin-overlay-fg: var(--fg);
 	--skin-overlay-border: var(--border);
@@ -124,6 +124,10 @@
 	--ring: oklch(0.556 0 0);
 	--skin-raised-bg: color-mix(in oklch, var(--background) 94%, var(--fg));
 	--skin-raised-bg-image: linear-gradient(to bottom, color-mix(in oklch, white 5%, transparent), color-mix(in oklch, black 2%, transparent));
+	--skin-floating-bg: color-mix(in oklch, var(--background) 86%, var(--fg));
+	--skin-floating-border: color-mix(in oklch, var(--border) 72%, var(--fg));
+	--skin-floating-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 30px 68px -30px rgb(0 0 0 / 0.82), 0 12px 24px -18px rgb(0 0 0 / 0.72);
+	--skin-floating-bg-image: linear-gradient(to bottom, rgb(255 255 255 / 0.06), transparent 48%);
 }
 
 @theme inline {

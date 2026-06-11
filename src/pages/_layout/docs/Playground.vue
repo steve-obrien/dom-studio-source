@@ -159,7 +159,7 @@ const previewClasses = computed(() => {
 	if (isMobilePresentation.value) {
 		return 'flex min-h-80 min-w-0 items-center justify-center overflow-hidden p-4 sm:p-8';
 	}
-	return 'flex min-h-80 items-center justify-center overflow-auto p-10';
+	return 'flex max-h-[38rem] min-h-80 min-w-0 items-start justify-center overflow-auto p-10';
 });
 </script>
 
@@ -170,7 +170,7 @@ const previewClasses = computed(() => {
 			<p v-if="description" class="mt-0.5 text-sm text-muted-fg">{{ description }}</p>
 		</figcaption>
 
-		<div class="grid max-h-[38rem] w-full min-w-0 grid-cols-1 items-stretch bg-gradient-to-br from-secondary/40 via-background to-secondary/30 lg:grid-cols-[minmax(0,1fr)_18rem]">
+		<div class="grid w-full min-w-0 grid-cols-1 items-stretch overflow-hidden bg-gradient-to-br from-secondary/40 via-background to-secondary/30 lg:grid-cols-[minmax(0,1fr)_18rem]">
 			<div :class="previewClasses">
 				<MobilePreview v-if="isMobilePresentation" :title="title">
 					<!-- SFC mode: render the playground SFC; it owns the data + slots. -->

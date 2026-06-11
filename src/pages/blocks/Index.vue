@@ -1,5 +1,6 @@
 <script setup>
 import { RouterLink } from 'vue-router';
+import { computed, ref } from 'vue';
 import DomStudioLayout from '../_layout/DomStudioLayout.vue';
 import DocPage from '../_layout/DocPage.vue';
 import DocSection from '../_layout/DocSection.vue';
@@ -7,6 +8,24 @@ import { getBlockCategories, getBlockRecords } from './blockRegistry.js';
 
 const blockRecords = getBlockRecords();
 const blockCategories = getBlockCategories();
+const searchQuery = ref('');
+
+const filteredBlockRecords = computed(() => {
+	const query = searchQuery.value.trim().toLowerCase();
+	if (!query) return blockRecords;
+
+	return blockRecords.filter((block) => blockSearchText(block).includes(query));
+});
+
+function blockSearchText(block) {
+	return [
+		block.label,
+		block.categoryLabel,
+		block.summary,
+		block.tag,
+		block.sourcePath,
+	].join(' ').toLowerCase();
+}
 </script>
 
 <template>
@@ -22,7 +41,8 @@ const blockCategories = getBlockCategories();
 					<section
 						v-for="category in blockCategories"
 						:key="category.name"
-						class="rounded-lg border border-border skin-raised p-4"
+						:id="category.id"
+						class="scroll-mt-24 rounded-lg border border-border skin-raised p-4"
 					>
 						<div class="flex items-start justify-between gap-3">
 							<div>
@@ -51,9 +71,24 @@ const blockCategories = getBlockCategories();
 			</DocSection>
 
 			<DocSection eyebrow="Library" title="All blocks">
+				<div class="flex flex-col gap-3 rounded-lg border border-border bg-background p-3 sm:flex-row sm:items-center sm:justify-between">
+					<label class="block min-w-0 flex-1">
+						<span class="sr-only">Search blocks</span>
+						<input
+							v-model="searchQuery"
+							type="search"
+							placeholder="Search blocks..."
+							class="h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-fg outline-none transition placeholder:text-muted-fg focus:border-primary/50 focus:ring-2 focus:ring-ring/25"
+						>
+					</label>
+					<p class="text-sm text-muted-fg">
+						{{ filteredBlockRecords.length }} of {{ blockRecords.length }}
+					</p>
+				</div>
+
 				<div class="grid gap-3">
 					<RouterLink
-						v-for="block in blockRecords"
+						v-for="block in filteredBlockRecords"
 						:key="block.id"
 						:to="block.route"
 						class="group rounded-lg border border-border skin-raised p-4 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
@@ -68,7 +103,7 @@ const blockCategories = getBlockCategories();
 								<div class="flex flex-wrap items-center gap-2">
 									<h2 class="text-base font-semibold text-fg">{{ block.label }}</h2>
 									<span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-fg">
-										{{ block.category }}
+										{{ block.categoryLabel }}
 									</span>
 								</div>
 								<p class="mt-1 text-sm leading-6 text-muted-fg">{{ block.summary }}</p>
@@ -83,6 +118,11 @@ const blockCategories = getBlockCategories();
 							</span>
 						</div>
 					</RouterLink>
+
+					<div v-if="!filteredBlockRecords.length" class="rounded-lg border border-dashed border-border p-6 text-center">
+						<p class="text-sm font-medium text-fg">No blocks found</p>
+						<p class="mt-1 text-sm text-muted-fg">Try a category, workflow, tag, or source path.</p>
+					</div>
 				</div>
 			</DocSection>
 		</DocPage>

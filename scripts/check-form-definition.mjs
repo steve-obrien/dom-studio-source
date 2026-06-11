@@ -6,6 +6,7 @@ import {
 	normalizeFormNode,
 	registerFormType,
 } from '../src/pages/forms/form/formDefinition.js';
+import { schemaToChildren } from '../src/pages/forms/form/schemaAdapter.js';
 
 function fieldByName(children, name) {
 	return children.find((child) => child.props?.name === name);
@@ -34,6 +35,42 @@ assert.deepEqual(fieldByName(keyed, 'name'), {
 	},
 });
 assert.equal(fieldByName(keyed, 'email').component, 'DomEmailInput');
+
+const schemaChildren = schemaToChildren({
+	children: {
+		business: {
+			label: 'Business',
+			type: 'string',
+			placeholder: 'Enter your business name',
+			required: true,
+		},
+		website: {
+			label: 'Website',
+			type: 'text',
+			placeholder: 'Enter your website URL',
+			required: true,
+		},
+	},
+});
+
+assert.equal(schemaChildren.length, 2);
+assert.equal(fieldByName(schemaChildren, 'business').component, 'DomTextInput');
+assert.deepEqual(fieldByName(schemaChildren, 'website').props, {
+	label: 'Website',
+	placeholder: 'Enter your website URL',
+	required: true,
+	name: 'website',
+});
+
+const keyedSchemaChildren = schemaToChildren({
+	business: {
+		label: 'Business',
+		type: 'string',
+	},
+});
+
+assert.equal(keyedSchemaChildren.length, 1);
+assert.equal(keyedSchemaChildren[0].props.name, 'business');
 
 const objectNode = normalizeFormNode({
 	type: 'DomForm',

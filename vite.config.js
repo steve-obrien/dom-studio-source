@@ -4,7 +4,10 @@ import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
 import templateEditorTailwindServer from './src/pages/experiments/template-editor/tailwindServer.js';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+	define: {
+		__DOM_STUDIO_SOURCE_ROOT__: JSON.stringify(command === 'serve' ? process.cwd() : ''),
+	},
 	plugins: [
 		templateEditorTailwindServer(),
 		vue({
@@ -28,4 +31,4 @@ export default defineConfig({
 	server: {
 		host: true,
 	},
-});
+}));

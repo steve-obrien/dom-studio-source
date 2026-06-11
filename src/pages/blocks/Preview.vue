@@ -2,15 +2,16 @@
 import { computed, defineAsyncComponent, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useTheme } from '../../composable/useTheme';
+import { getBlockRecordByPath } from './blockRegistry.js';
 
-const exampleModules = import.meta.glob('./*/examples/*.vue');
+const exampleModules = import.meta.glob('./**/examples/*.vue');
 const route = useRoute();
 const { initTheme } = useTheme();
 
 const previewComponent = computed(() => {
-	const slug = String(route.params.slug || '');
+	const record = getBlockRecordByPath(route.params.blockPath);
 	const example = String(route.params.example || '');
-	const loader = exampleModules[`./${slug}/examples/${example}.vue`];
+	const loader = record ? exampleModules[`./${record.blockPath}/examples/${example}.vue`] : null;
 	return loader ? defineAsyncComponent(loader) : null;
 });
 

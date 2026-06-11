@@ -11,6 +11,8 @@ import Actions from './examples/Actions.vue';
 import ActionsSrc from './examples/Actions.vue?raw';
 import NestedActions from './examples/NestedActions.vue';
 import NestedActionsSrc from './examples/NestedActions.vue?raw';
+import IconWindowMenu from './examples/IconWindowMenu.vue';
+import IconWindowMenuSrc from './examples/IconWindowMenu.vue?raw';
 import RichItems from './examples/RichItems.vue';
 import RichItemsSrc from './examples/RichItems.vue?raw';
 import MenuItemMarkup from './examples/MenuItemMarkup.vue';
@@ -55,6 +57,16 @@ const items = [
 					description="Menu items can include children. Hover, ArrowRight, Enter, or Space opens the submenu; ArrowLeft or Esc returns to the parent."
 				>
 					<NestedActions />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Icon menu">
+				<Example
+					:source="IconWindowMenuSrc"
+					filename="IconWindowMenu.vue"
+					description="Use the item-row slot to add leading icons, shortcuts, disabled rows, and icon-bearing submenus while keeping DomMenu keyboard behaviour."
+				>
+					<IconWindowMenu />
 				</Example>
 			</DocSection>
 

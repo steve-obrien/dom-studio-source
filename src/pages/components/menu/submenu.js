@@ -1,10 +1,11 @@
-export const SUBMENU_CLOSE_DELAY = 650;
+export const SUBMENU_CLOSE_DELAY = 220;
+export const SUBMENU_OVERLAP = 8;
 
 export function submenuOptions() {
 	return {
 		placement: 'right',
 		align: 'start',
-		offset: 4,
+		offset: -SUBMENU_OVERLAP,
 		padding: 8,
 		mode: 'viewport',
 		flip: true,

@@ -20,6 +20,7 @@ import DomUrlInput from '../url-input/DomUrlInput.vue';
 import { formFieldProviderKey, normalizeErrors } from '../field/useField.js';
 import { deletePathValue, forms, getPathValue, setPathValue } from './formApi.js';
 import { formNodeDefaultValue, normalizeFormChildren, normalizeFormNode } from './formDefinition.js';
+import { schemaToChildren } from './schemaAdapter.js';
 
 const DomJsonInput = defineAsyncComponent(() => import('../json-input/DomJsonInput.vue'));
 const DomJsonListInput = defineAsyncComponent(() => import('../json-list-input/DomJsonListInput.vue'));
@@ -308,6 +309,14 @@ DomFormComponent = defineComponent({
 				description: 'Server/studio-style field definitions to render when slot children are not supplied. Accepts an array or keyed object.',
 			},
 		},
+		schema: {
+			type: [Array, Object],
+			default: null,
+			_edit: {
+				component: 'DomJsonInput',
+				description: 'Schema source used to generate children. Accepts JSON Schema, Zod-like schemas, native form nodes, arrays, or keyed objects.',
+			},
+		},
 		validateOnSubmit: {
 			type: Boolean,
 			default: true,
@@ -454,8 +463,18 @@ DomFormComponent = defineComponent({
 			emitSchemaChange();
 		}
 
+		function hasChildDefinitions(children) {
+			if (!children) return false;
+			if (Array.isArray(children)) return children.length > 0;
+			if (typeof children === 'object') return Object.keys(children).length > 0;
+			return false;
+		}
+
 		function syncChildren() {
-			schemaChildren.splice(0, schemaChildren.length, ...snapshot(normalizeFormChildren(props.children || [])));
+			const nextChildren = hasChildDefinitions(props.children)
+				? normalizeFormChildren(props.children)
+				: schemaToChildren(props.schema);
+			schemaChildren.splice(0, schemaChildren.length, ...snapshot(nextChildren));
 		}
 
 		function getChildren() {
@@ -745,7 +764,7 @@ DomFormComponent = defineComponent({
 			}
 		}, { immediate: true });
 
-		watch(() => props.children, syncChildren, { deep: true, immediate: true });
+		watch([() => props.children, () => props.schema], syncChildren, { deep: true, immediate: true });
 
 		watch(() => props.name, (nextName, previousName) => {
 			if (previousName && forms[previousName] === provider) delete forms[previousName];
