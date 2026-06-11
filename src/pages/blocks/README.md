@@ -1,24 +1,26 @@
 # Block Discovery Convention
 
-Blocks are auto-discovered from one folder level below `src/pages/blocks`.
+Blocks are auto-discovered anywhere below `src/pages/blocks` using the folder path that ends with `Index.vue`.
 
 Required:
 
 ```text
-src/pages/blocks/{block-slug}/Index.vue
+src/pages/blocks/{category-path}/{block-slug}/Index.vue
 ```
+
+`{category-path}` may contain one or more nested folders such as `operations/sales` or `content-management/navigation`.
 
 The display name is always derived from `{block-slug}`. Do not declare a separate name.
 
 Examples are auto-discovered from:
 
 ```text
-src/pages/blocks/{block-slug}/examples/*.vue
+src/pages/blocks/{category-path}/{block-slug}/examples/*.vue
 ```
 
 `blockRegistry.js` counts those example files automatically for block index metadata. Example files are optional, but when present they should stay runnable and focused on one product scenario each.
 
-Optional metadata lives in `src/pages/blocks/{block-slug}/block.meta.js` and must default-export an object:
+Optional metadata lives in `src/pages/blocks/{category-path}/{block-slug}/block.meta.js` and must default-export an object:
 
 ```js
 export default {
@@ -48,8 +50,8 @@ If `block.meta.js` is omitted, the block is still discovered with fallback value
 
 Generation AI instructions:
 
-- Create `src/pages/blocks/{block-slug}/Index.vue`.
-- Put runnable examples in `src/pages/blocks/{block-slug}/examples/*.vue`.
+- Create `src/pages/blocks/{category-path}/{block-slug}/Index.vue`.
+- Put runnable examples in `src/pages/blocks/{category-path}/{block-slug}/examples/*.vue`.
 - Add `block.meta.js` next to `Index.vue` only when you need to override the fallback metadata.
 - Add `categoryDescription` only when the default category copy needs a more specific explanation for that block family.
 - Use the folder slug as the only source of the block name.
