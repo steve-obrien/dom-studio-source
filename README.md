@@ -17,6 +17,10 @@ import '@getdom/studio/headless';
 import '@getdom/studio/style.css';
 ```
 
+The package root exports the same Vue surface as `@getdom/studio/vue`, so
+`import { DomButton } from '@getdom/studio'` also works when you want a shorter
+import path.
+
 Headless primitives use the `dom-*` custom element prefix:
 
 ```html
