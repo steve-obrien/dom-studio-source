@@ -57,6 +57,8 @@ Generation AI instructions:
 
 ## Block Notes And Future Recommendations
 
+This section is intentionally curated rather than exhaustive. Use `src/pages/blocks/*/block.meta.js` and `blockRegistry.js` as the source of truth for the current block catalog; add notes here only when a block needs extra implementation context or concrete follow-on component ideas.
+
 ### Document Signing
 
 `src/pages/blocks/document-signing` adds a copy/paste document signing packet builder for preparing contracts, agreements, consent forms, offer letters, and compliance documents. It is intended for HR onboarding, sales contract workflows, legal operations, marketplaces, fintech applications, and internal tools where users need to choose documents, manage signers, place required fields, configure delivery rules, satisfy send checks, and preserve an audit history.
