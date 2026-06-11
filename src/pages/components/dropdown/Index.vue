@@ -16,6 +16,10 @@ import Basic from './examples/Basic.vue';
 import BasicSrc from './examples/Basic.vue?raw';
 import Rich from './examples/Rich.vue';
 import RichSrc from './examples/Rich.vue?raw';
+import WorkspaceSwitcher from './examples/WorkspaceSwitcher.vue';
+import WorkspaceSwitcherSrc from './examples/WorkspaceSwitcher.vue?raw';
+import StatusMenu from './examples/StatusMenu.vue';
+import StatusMenuSrc from './examples/StatusMenu.vue?raw';
 import Actions from './examples/Actions.vue';
 import ActionsSrc from './examples/Actions.vue?raw';
 import TreePanel from './examples/TreePanel.vue';
@@ -59,6 +63,26 @@ const playgroundItems = [
 					description="The #trigger and #item slots accept any markup — avatars, descriptions, badges."
 				>
 					<Rich />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Workspace switcher">
+				<Example
+					:source="WorkspaceSwitcherSrc"
+					filename="WorkspaceSwitcher.vue"
+					description="Use rich dropdown rows for workspace, account, team, and organization switchers."
+				>
+					<WorkspaceSwitcher />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Status menu">
+				<Example
+					:source="StatusMenuSrc"
+					filename="StatusMenu.vue"
+					description="Dropdown menus are best for actions. Use rich rows, shortcuts, selected state, and severity tone when the menu changes workflow state."
+				>
+					<StatusMenu />
 				</Example>
 			</DocSection>
 

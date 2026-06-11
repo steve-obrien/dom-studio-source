@@ -11,6 +11,7 @@ import DomNativeSelect from '../native-select/DomNativeSelect.vue';
 import DomNumberInput from '../number-input/DomNumberInput.vue';
 import DomPasswordInput from '../password-input/DomPasswordInput.vue';
 import DomRadioGroup from '../radio-group/DomRadioGroup.vue';
+import DomSelect from '../select/DomSelect.vue';
 import DomSelectInput from '../select-input/DomSelectInput.vue';
 import DomTagCombobox from '../tag-combobox/DomTagCombobox.vue';
 import DomTextInput from '../text-input/DomTextInput.vue';
@@ -39,6 +40,7 @@ const formComponents = {
 	DomNumberInput,
 	DomPasswordInput,
 	DomRadioGroup,
+	DomSelect,
 	DomSelectInput,
 	DomTagCombobox,
 	DomTextInput,

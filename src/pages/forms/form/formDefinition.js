@@ -39,6 +39,7 @@ export const typeByComponent = {
 	DomNumberInput: 'number',
 	DomPasswordInput: 'string',
 	DomRadioGroup: 'string',
+	DomSelect: 'string',
 	DomSelectInput: 'string',
 	DomTagCombobox: 'array',
 	DomTextInput: 'string',

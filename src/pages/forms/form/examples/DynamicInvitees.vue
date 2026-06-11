@@ -19,7 +19,7 @@ const children = ref([
 		},
 	},
 	{
-		component: 'DomNativeSelect',
+		component: 'DomSelect',
 		props: {
 			name: 'role',
 			label: 'Invitee role',

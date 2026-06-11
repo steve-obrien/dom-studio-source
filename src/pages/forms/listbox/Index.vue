@@ -9,6 +9,8 @@ import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
 import { DomListbox } from '../../lib/vue';
 import Plan from './examples/Plan.vue';
 import PlanSrc from './examples/Plan.vue?raw';
+import AccessLevel from './examples/AccessLevel.vue';
+import AccessLevelSrc from './examples/AccessLevel.vue?raw';
 
 const options = [
 	{ value: 'small', label: 'Small' },
@@ -36,6 +38,16 @@ const options = [
 					description="The option slot can render richer labels while v-model remains the option value."
 				>
 					<Plan />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Rich access options">
+				<Example
+					:source="AccessLevelSrc"
+					filename="AccessLevel.vue"
+					description="Use listboxes for visible rich choices where each option benefits from badges, descriptions, or risk context."
+				>
+					<AccessLevel />
 				</Example>
 			</DocSection>
 

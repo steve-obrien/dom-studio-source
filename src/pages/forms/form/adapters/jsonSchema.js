@@ -128,7 +128,7 @@ function jsonSchemaComponentFor(schema, path, options) {
 	const override = field.component || plain.component;
 
 	if (override) return override;
-	if (values) return 'DomNativeSelect';
+	if (values) return 'DomSelect';
 	if (type === 'array') return 'DomJsonListInput';
 	if (format === 'email') return 'DomEmailInput';
 	if (format === 'uri' || format === 'url') return 'DomUrlInput';

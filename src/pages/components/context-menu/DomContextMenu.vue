@@ -51,6 +51,7 @@ const emit = defineEmits(['open', 'select']);
 const panelId = `dom-context-menu-${useId()}`;
 const trigger = ref(null);
 const panel = ref(null);
+const mounted = ref(false);
 let scrollLocked = false;
 
 function lockScroll() {
@@ -131,7 +132,9 @@ function onKeydown(event) {
 	close();
 }
 
-onMounted(() => {
+onMounted(async () => {
+	mounted.value = true;
+	await nextTick();
 	panel.value?.addEventListener('keydown', onKeydown);
 	document.addEventListener('pointerdown', onDocumentPointerDown, true);
 	document.addEventListener('contextmenu', onDocumentContextMenu, true);
@@ -157,7 +160,7 @@ defineExpose({
 	<div ref="trigger" class="contents" @contextmenu="onTriggerContextMenu">
 		<slot />
 	</div>
-	<Teleport to="body">
+	<Teleport v-if="mounted" to="body">
 		<div
 			:id="panelId"
 			ref="panel"

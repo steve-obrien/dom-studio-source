@@ -26,6 +26,9 @@ const props = [
 	{ name: 'text', type: 'string', default: '—', description: 'Tooltip content.' },
 	{ name: 'placement', type: "'top' | 'bottom' | 'left' | 'right'", default: "'top'", description: 'Position relative to the trigger.' },
 	{ name: 'delay', type: 'number', default: '120', description: 'Show delay in ms.' },
+	{ name: 'offset', type: 'number', default: '6', description: 'Gap in pixels between trigger and tooltip.' },
+	{ name: 'collisionPadding', type: 'number', default: '8', description: 'Viewport padding used when the tooltip flips or shifts.' },
+	{ name: 'floatingMode', type: "'viewport' | 'anchor'", default: "'viewport'", description: 'Shared floating positioning mode.' },
 ];
 </script>
 

@@ -23,7 +23,7 @@ const children = [
 		},
 	},
 	{
-		component: 'DomNativeSelect',
+		component: 'DomSelect',
 		props: {
 			name: 'status',
 			label: 'Status',

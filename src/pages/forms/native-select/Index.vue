@@ -7,6 +7,7 @@ import Playground from '../../_layout/docs/Playground.vue';
 import ComponentProps from '../../_layout/docs/ComponentProps.vue';
 import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
 import { DomNativeSelect } from '../../lib/vue';
+import { RouterLink } from 'vue-router';
 
 import Workspace from './examples/Workspace.vue';
 import WorkspaceSrc from './examples/Workspace.vue?raw';
@@ -27,7 +28,7 @@ const options = [
 					:inspect="DomNativeSelect"
 					:initial="{ label: 'Workspace', description: 'Choose where this should be saved.', modelValue: 'design', options }"
 					title="Native select playground"
-					description="Use this when you want browser-native select behaviour with library styling."
+					description="Use this only when browser-native select behaviour is specifically valuable. Prefer DomSelect for rich app option rendering."
 				/>
 			</DocSection>
 
@@ -39,6 +40,20 @@ const options = [
 				>
 					<Workspace />
 				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Guidance" title="Prefer rich app selects">
+				<p class="text-sm leading-6 text-muted-fg">
+					Most application UIs should use <code class="text-fg">DomSelect</code>, <code class="text-fg">DomListbox</code>, or
+					<code class="text-fg">DomCombobox</code> so options can show descriptions, status, avatars, counts, and metadata.
+					Use native select for platform picker behaviour, extreme compatibility needs, or very plain settings.
+				</p>
+				<RouterLink
+					to="/forms/select"
+					class="mt-4 inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-fg transition hover:opacity-90"
+				>
+					View DomSelect
+				</RouterLink>
 			</DocSection>
 
 			<DocSection title="Reference">

@@ -65,6 +65,9 @@ const manualPropTypes = {
 	DomListbox: {
 		options: 'Array<DomOption>',
 	},
+	DomSelect: {
+		options: 'Array<DomOption>',
+	},
 	DomCombobox: {
 		options: 'Array<DomOption>',
 	},

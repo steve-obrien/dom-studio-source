@@ -1,4 +1,6 @@
 export { default as DomButton } from '../../components/button/DomButton.vue';
+export { default as DomIconButton } from '../../components/icon-button/DomIconButton.vue';
+export { default as DomToolbar } from '../../components/toolbar/DomToolbar.vue';
 export { default as DomDropdown } from '../../components/dropdown/DomDropdown.vue';
 export { default as DomDialog } from '../../components/dialog/DomDialog.vue';
 export { default as DomDialogStack } from '../../components/dialog/DomDialogStack.vue';
@@ -39,6 +41,11 @@ export { useDialogs } from '../../components/dialog/useDialogs.js';
 
 // Visual primitives
 export { default as DomCard } from '../../visual/card/DomCard.vue';
+export { default as DomBadge } from '../../visual/badge/DomBadge.vue';
+export { default as DomStatusPill } from '../../visual/status-pill/DomStatusPill.vue';
+export { default as DomAvatar } from '../../visual/avatar/DomAvatar.vue';
+export { default as DomAvatarStack } from '../../visual/avatar-stack/DomAvatarStack.vue';
+export { default as DomEmptyState } from '../../visual/empty-state/DomEmptyState.vue';
 
 // Form primitives
 export { default as DomToggle } from '../../forms/toggle/DomToggle.vue';
@@ -47,6 +54,7 @@ export { default as DomToggleButtonGroup } from '../../forms/toggle-button-group
 export { default as DomCheckbox } from '../../forms/checkbox/DomCheckbox.vue';
 export { default as DomRadioGroup } from '../../forms/radio-group/DomRadioGroup.vue';
 export { default as DomListbox } from '../../forms/listbox/DomListbox.vue';
+export { default as DomSelect } from '../../forms/select/DomSelect.vue';
 export { default as DomCombobox } from '../../forms/combobox/DomCombobox.vue';
 export { default as DomAutocomplete } from '../../forms/autocomplete/DomAutocomplete.vue';
 export { default as DomTagCombobox } from '../../forms/tag-combobox/DomTagCombobox.vue';

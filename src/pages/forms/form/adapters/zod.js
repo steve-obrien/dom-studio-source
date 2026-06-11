@@ -160,7 +160,7 @@ function componentFor(schema, path, options) {
 	const override = fieldOptions(options, path, path.split('.').pop(), schema).component || plain.component;
 
 	if (override) return override;
-	if (values) return 'DomNativeSelect';
+	if (values) return 'DomSelect';
 	if (format === 'email') return 'DomEmailInput';
 	if (format === 'url') return 'DomUrlInput';
 	if (/number|bigint|int|float|double/.test(type)) return 'DomNumberInput';

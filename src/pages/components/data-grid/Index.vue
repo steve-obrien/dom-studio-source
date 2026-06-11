@@ -54,9 +54,6 @@ async function loadAccounts(query) {
 						<code class="text-fg">query-change</code> to request a SQL-backed resource.
 					</p>
 					<p>
-						You spend millions on serverless databases and your data warehouses and AI.  But really everyone just wants Excel.....
-					</p>
-					<p>
 						Column definitions are the contract. A date column gets a date-range filter, numeric columns get min/max, boolean columns get a yes/no segmented control, and select columns can render known options from the resource schema.
 					</p>
 				</div>

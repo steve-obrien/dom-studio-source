@@ -342,6 +342,70 @@ export interface DomButtonProps {
 }
 export declare const DomButton: DomComponent<DomButtonProps>;
 
+export interface DomIconButtonProps {
+	/**
+	 * Element to render. Use 'a' or 'RouterLink' for navigational icon controls.
+	 */
+	as?: string;
+	/**
+	 * Accessible label for screen readers.
+	 */
+	label?: string;
+	/**
+	 * Fallback SVG path data when no icon slot is provided.
+	 */
+	icon?: string;
+	/**
+	 * Visual role.
+	 */
+	variant?: "ghost" | "secondary" | "primary" | "danger";
+	/**
+	 * Hit area size.
+	 */
+	size?: "sm" | "md" | "lg";
+	/**
+	 * Show active/selected state.
+	 */
+	active?: boolean;
+	/**
+	 * Show a loading spinner and block interaction.
+	 */
+	loading?: boolean;
+	/**
+	 * Disable interaction.
+	 */
+	disabled?: boolean;
+}
+export declare const DomIconButton: DomComponent<DomIconButtonProps>;
+
+export interface DomToolbarProps {
+	/**
+	 * Element to render.
+	 */
+	as?: string;
+	/**
+	 * Accessible toolbar label.
+	 */
+	label?: string;
+	/**
+	 * Toolbar direction.
+	 */
+	orientation?: "horizontal" | "vertical";
+	/**
+	 * Control alignment.
+	 */
+	align?: "start" | "center" | "end" | "between";
+	/**
+	 * Allow controls to wrap on narrow screens.
+	 */
+	wrap?: boolean;
+	/**
+	 * Use inset skin instead of control skin.
+	 */
+	inset?: boolean;
+}
+export declare const DomToolbar: DomComponent<DomToolbarProps>;
+
 export interface DomDropdownProps {
 	/**
 	 * Menu items shown when the dropdown opens.
@@ -447,6 +511,18 @@ export interface DomTooltipProps {
 	 * Open delay in milliseconds — stops flicker when sweeping the cursor across.
 	 */
 	delay?: number;
+	/**
+	 * Gap in pixels between the trigger and tooltip.
+	 */
+	offset?: number;
+	/**
+	 * Viewport padding used when the tooltip flips or shifts.
+	 */
+	collisionPadding?: number;
+	/**
+	 * viewport keeps the tooltip inside the browser; anchor keeps it attached while scrolling.
+	 */
+	floatingMode?: "viewport" | "anchor";
 }
 export declare const DomTooltip: DomComponent<DomTooltipProps>;
 
@@ -860,6 +936,130 @@ export interface DomCardProps {
 	interactive?: boolean;
 }
 export declare const DomCard: DomComponent<DomCardProps>;
+
+export interface DomBadgeProps {
+	/**
+	 * Element to render. Use 'RouterLink' or 'button' through wrappers when interaction is needed.
+	 */
+	as?: string;
+	/**
+	 * Fallback text when no default slot is provided.
+	 */
+	label?: string;
+	/**
+	 * Semantic colour treatment.
+	 */
+	tone?: "neutral" | "primary" | "success" | "warning" | "danger" | "info";
+	/**
+	 * Visual weight.
+	 */
+	variant?: "soft" | "solid" | "outline";
+	/**
+	 * Badge density.
+	 */
+	size?: "sm" | "md" | "lg";
+}
+export declare const DomBadge: DomComponent<DomBadgeProps>;
+
+export interface DomStatusPillProps {
+	/**
+	 * Semantic status tone.
+	 */
+	tone?: "neutral" | "primary" | "success" | "warning" | "danger" | "info";
+	/**
+	 * Fallback label when no default slot is provided.
+	 */
+	label?: string;
+	/**
+	 * Pill density.
+	 */
+	size?: "sm" | "md" | "lg";
+	/**
+	 * Visual weight.
+	 */
+	variant?: "soft" | "solid" | "outline";
+	/**
+	 * Show a leading state dot.
+	 */
+	dot?: boolean;
+	/**
+	 * Animate the dot for live or active states.
+	 */
+	pulse?: boolean;
+}
+export declare const DomStatusPill: DomComponent<DomStatusPillProps>;
+
+export interface DomAvatarProps {
+	/**
+	 * Image URL.
+	 */
+	src?: string;
+	/**
+	 * Image alt text. Leave empty when adjacent text already names the person or object.
+	 */
+	alt?: string;
+	/**
+	 * Name used to generate fallback initials.
+	 */
+	name?: string;
+	/**
+	 * Explicit fallback initials.
+	 */
+	initials?: string;
+	/**
+	 * Avatar size.
+	 */
+	size?: "xs" | "sm" | "md" | "lg" | "xl";
+	/**
+	 * Avatar shape.
+	 */
+	shape?: "circle" | "rounded" | "square";
+}
+export declare const DomAvatar: DomComponent<DomAvatarProps>;
+
+export interface DomAvatarStackProps {
+	/**
+	 * People, teams, or workspace records.
+	 */
+	items?: Array<unknown>;
+	/**
+	 * Maximum avatars to show before the overflow count.
+	 */
+	max?: number;
+	/**
+	 * Avatar size.
+	 */
+	size?: "xs" | "sm" | "md" | "lg";
+	/**
+	 * Accessible label for the stack.
+	 */
+	label?: string;
+}
+export declare const DomAvatarStack: DomComponent<DomAvatarStackProps>;
+
+export interface DomEmptyStateProps {
+	/**
+	 * Primary empty-state message.
+	 */
+	title?: string;
+	/**
+	 * Supporting copy.
+	 */
+	description?: string;
+	/**
+	 * SVG path data for the default 24x24 line icon.
+	 */
+	icon?: string;
+	/**
+	 * Content alignment.
+	 */
+	align?: "left" | "center";
+	/**
+	 * Spacing scale.
+	 */
+	size?: "sm" | "md" | "lg";
+}
+export declare const DomEmptyState: DomComponent<DomEmptyStateProps>;
 
 export interface DomToggleProps {
 	/**
@@ -1288,6 +1488,90 @@ export interface DomListboxProps {
 	orientation?: "vertical" | "horizontal";
 }
 export declare const DomListbox: DomComponent<DomListboxProps>;
+
+export interface DomSelectProps {
+	/**
+	 * Selected option value.
+	 */
+	modelValue?: string | number;
+	/**
+	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
+	 */
+	id?: string;
+	/**
+	 * Local field name. Parent forms derive the full field path and native HTML name from the form hierarchy.
+	 */
+	name?: string;
+	/**
+	 * Visible field label.
+	 */
+	label?: string;
+	/**
+	 * Optional helper copy below the field.
+	 */
+	description?: string;
+	/**
+	 * Text shown when no option is selected.
+	 */
+	placeholder?: string;
+	/**
+	 * Mark the field as required.
+	 */
+	required?: boolean;
+	/**
+	 * Disable field interaction.
+	 */
+	disabled?: boolean;
+	/**
+	 * Show the value but prevent editing.
+	 */
+	readOnly?: boolean;
+	/**
+	 * Mark the field invalid.
+	 */
+	invalid?: boolean;
+	/**
+	 * Validation errors for this field.
+	 */
+	errors?: Array<unknown> | Record<string, unknown> | string;
+	/**
+	 * Show or hide the field.
+	 */
+	visible?: boolean;
+	/**
+	 * Validators attached to this field. Use functions in Vue code, or serializable records such as { name: "minLength", props: { min: 2 } } in generated schemas.
+	 */
+	validators?: Array<unknown>;
+	/**
+	 * Run validators when the field loses focus.
+	 */
+	validateOnBlur?: boolean;
+	/**
+	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 */
+	chrome?: "field" | false;
+	/**
+	 * Available options. Use the option slot for rich rows.
+	 */
+	options: Array<DomOption>;
+	/**
+	 * Preferred side before collision handling.
+	 */
+	placement?: "bottom" | "top" | "right" | "left";
+	/**
+	 * Horizontal panel alignment.
+	 */
+	align?: "left" | "right";
+	/**
+	 * viewport keeps the list inside the browser; anchor keeps it attached while scrolling.
+	 */
+	floatingMode?: "viewport" | "anchor";
+	/**
+	 * Tailwind width utility for the floating listbox.
+	 */
+	width?: string;
+}
+export declare const DomSelect: DomComponent<DomSelectProps>;
 
 export interface DomComboboxProps {
 	/**

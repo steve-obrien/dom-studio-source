@@ -7,7 +7,7 @@ defineOptions({
 	__doc: {
 		name: 'Native select',
 		tag: '<DomNativeSelect>',
-		description: 'A styled native select box that keeps browser behaviour while matching the DOM Studio form surface.',
+		description: 'A styled native select for cases where browser-native picker behaviour is intentionally preferred.',
 		events: [
 			{ name: 'update:modelValue', payload: 'string', description: 'Fired when the selected option changes.' },
 		],

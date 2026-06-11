@@ -29,7 +29,7 @@ function toCssLength(value) {
 			class="grid min-h-screen transition-[grid-template-columns] duration-300 ease-out"
 			:style="{ gridTemplateColumns: `${sidebarWidth} minmax(0, 1fr)` }"
 		>
-			<aside class="flex min-h-screen min-w-0 flex-col border-r border-border bg-secondary/30">
+			<aside class="flex min-h-screen min-w-0 flex-col border-r border-border bg-secondary">
 				<slot name="sidebar" />
 			</aside>
 

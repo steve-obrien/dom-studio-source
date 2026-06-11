@@ -153,7 +153,8 @@ defineOptions({
 	__doc: {
 		name: 'Data grid',
 		tag: '<DomDataGrid>',
-		description: 'A dense spreadsheet-like grid for database records, with typed column filters, sorting, row selection, and a server-query friendly API.',
+		description: `A dense spreadsheet-like grid for database records, with typed column filters, sorting, row selection, and a server-query friendly API.
+		We talk about databases, rendering pipelines, virtual DOMs, and scalable app architecture. But really, they just want Excel.`,
 		icon: 'M4 5h16v14H4V5Zm0 4h16M4 13h16M9 5v14M15 5v14',
 		events: [
 			{ name: 'update:filters', payload: 'Record<string, DataGridFilter>', description: 'Fired when a column filter is applied or cleared.' },

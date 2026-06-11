@@ -305,7 +305,7 @@ export function ensurePopoverPanelStyles() {
 	margin: 0;
 	overflow: visible;
 }
-[popover].dom-popover-pandom:not(:popover-open),
+[popover].dom-popover-panel:not(:popover-open),
 [popover].dom-dropdown-menu:not(:popover-open) {
 	display: none;
 }
