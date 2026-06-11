@@ -7,7 +7,7 @@ defineOptions({
 	__doc: {
 		name: 'Dialog schema form',
 		tag: '<DomDialogSchemaForm>',
-		description: 'Internal renderer used by dialogForm(schema) to resolve an DomForm children schema from a programmatic dialog.',
+		description: 'Internal renderer used by dialogForm(schema) to resolve a DomForm children schema from a programmatic dialog.',
 		events: [
 			{ name: 'resolve', payload: 'Record<string, unknown>', description: 'Emitted with validated form values.' },
 			{ name: 'dismiss', description: 'Emitted when the form is cancelled.' },

@@ -60,7 +60,7 @@ async function openSchemaForm() {
 			email: 'maya@example.com',
 		},
 		title: 'Schema-defined invite',
-		description: 'The dialog renders an DomForm from a programmatic children schema.',
+		description: 'The dialog renders a DomForm from a programmatic children schema.',
 		confirmText: 'Create invite',
 	});
 	lastResult.value = result?.email

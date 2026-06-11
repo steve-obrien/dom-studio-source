@@ -90,7 +90,7 @@ export function useDialogs(defaults = {}) {
 	}
 
 	/**
-	 * Show a custom component dialog or render an DomForm from a children schema.
+	 * Show a custom component dialog or render a DomForm from a children schema.
 	 *
 	 * Component forms:
 	 * `dialogForm(InviteForm, { defaultEmail }, { title: 'Invite teammate' })`.
