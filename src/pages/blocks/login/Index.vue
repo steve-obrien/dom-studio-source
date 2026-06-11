@@ -31,7 +31,7 @@ import LoginPanelSrc from './examples/LoginPanel.vue?raw';
 					:source="LoginPanelSrc"
 					filename="LoginPanel.vue"
 					title="Editable login template"
-					description="A compact template editor for documentation examples: rendered preview, Monaco source, and selected-node properties."
+					description="Adjust the login panel copy, fields, and supporting side panel while keeping the rendered preview, source, and selected-node properties in sync."
 				/>
 			</DocSection>
 		</DocPage>
