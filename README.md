@@ -32,6 +32,12 @@ Headless primitives use the `dom-*` custom element prefix:
 
 The published package exports the Vue layer, headless primitives, styles, and AI context files. Block implementations remain in this repository's source tree for direct reuse and adaptation rather than as a versioned import surface.
 
+## Block Routing
+
+Block pages are auto-discovered from nested folders under `src/pages/blocks`, so the folder path is the canonical route. For example, `src/pages/blocks/operations/scheduling/resource-scheduler/Index.vue` becomes `/blocks/operations/scheduling/resource-scheduler`.
+
+The router also preserves legacy flat block URLs such as `/blocks/resource-scheduler` by redirecting them to the nested route. That means category reorganisation does not require manual redirect entries for existing block pages.
+
 ## LLMs
 
 Point agents at [`public/llms.txt`](public/llms.txt), install the local [`SKILL.md`](SKILL.md) instructions, or use [`public/skills.sh`](public/skills.sh) when you want them to prefer DOM Studio primitives, blocks, theme tokens, and Studio specs.
