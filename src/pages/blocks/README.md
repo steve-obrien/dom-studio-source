@@ -10,6 +10,14 @@ src/pages/blocks/{block-slug}/Index.vue
 
 The display name is always derived from `{block-slug}`. Do not declare a separate name.
 
+Examples are auto-discovered from:
+
+```text
+src/pages/blocks/{block-slug}/examples/*.vue
+```
+
+`blockRegistry.js` counts those example files automatically for block index metadata. Example files are optional, but when present they should stay runnable and focused on one product scenario each.
+
 Optional metadata lives in `src/pages/blocks/{block-slug}/block.meta.js` and must default-export an object:
 
 ```js
@@ -33,6 +41,7 @@ If `block.meta.js` is omitted, the block is still discovered with fallback value
 - `icon`: the default block icon
 - `tag`: empty
 - `order`: `1000`
+- `exampleCount`: derived from `examples/*.vue`
 
 Generation AI instructions:
 
