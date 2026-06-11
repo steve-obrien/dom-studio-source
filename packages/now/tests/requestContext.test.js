@@ -107,6 +107,48 @@ describe('request context', () => {
 		})
 	})
 
+	it('generates a request id when the header is missing', async () => {
+		const context = createRequestContext()
+		const middleware = context.middleware()
+		const req = {
+			get() {
+				return undefined
+			}
+		}
+
+		await new Promise((resolve, reject) => {
+			middleware(req, {}, async (error) => {
+				if (error) return reject(error)
+
+				const requestId = context.get('requestId')
+
+				expect(typeof requestId).toBe('string')
+				expect(requestId.length).toBeGreaterThan(0)
+				resolve()
+			})
+		})
+	})
+
+	it('skips request id injection when includeRequestId is false', async () => {
+		const context = createRequestContext()
+		const middleware = context.middleware({ includeRequestId: false })
+		const req = {
+			get() {
+				return undefined
+			}
+		}
+
+		await new Promise((resolve, reject) => {
+			middleware(req, {}, async (error) => {
+				if (error) return reject(error)
+
+				expect(context.has('requestId')).toBe(false)
+				expect(context.get('requestId')).toBeUndefined()
+				resolve()
+			})
+		})
+	})
+
 	it('throws when setting without an active context', () => {
 		const context = createRequestContext()
 
