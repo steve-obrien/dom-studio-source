@@ -38,6 +38,8 @@ When consuming the published package, those agent context files are available at
 
 This project is configured as `UNLICENSED` by default. That keeps the door open for selling full source access or issuing a commercial source license without accidentally granting open-source rights.
 
+See [`LICENSE.md`](LICENSE.md) for the repository-level commercial source notice. The package metadata stays `UNLICENSED` until a customer-facing commercial license is attached.
+
 ## Development
 
 ```sh
