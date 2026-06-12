@@ -1,10 +1,17 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import DomStudioLayout from '../_layout/DomStudioLayout.vue';
 import DocPage from '../_layout/DocPage.vue';
 import DocSection from '../_layout/DocSection.vue';
 import CodeBlock from '../_layout/CodeBlock.vue';
 import { DomPopover } from '../lib/vue';
+import CssComponentEditor from '../experiments/css-button-creator/components/CssComponentEditor.vue';
+import {
+	createCssComponentStyle,
+	cssStyleValues,
+	parseBackdropValue,
+	replaceCssComponentStyle,
+} from '../experiments/css-button-creator/lib/styleModel.js';
 
 const tokenPairs = [
 	{
@@ -293,14 +300,14 @@ const skinTokenDefaults = {
 		bgImage: 'linear-gradient(to bottom, color-mix(in oklch, white 7%, transparent), color-mix(in oklch, var(--fg) 1%, transparent))',
 	},
 	floating: {
-		bg: 'color-mix(in oklch, var(--background) 94%, var(--fg))',
+		bg: 'oklch(0.992 0.002 247 / 92%)',
 		fg: 'var(--fg)',
-		border: 'var(--border)',
+		border: 'color-mix(in oklch, var(--border) 84%, var(--fg))',
 		borderWidth: '1px',
 		borderStyle: 'solid',
-		shadow: 'var(--shadow-xl)',
-		backdrop: 'blur(16px) saturate(1.08)',
-		bgImage: 'none',
+		shadow: 'inset 0 1px 0 rgb(255 255 255 / 0.78), 0 24px 54px -22px rgb(15 23 42 / 0.42), 0 8px 20px -14px rgb(15 23 42 / 0.28)',
+		backdrop: 'blur(18px) saturate(1.12)',
+		bgImage: 'linear-gradient(to bottom, rgb(255 255 255 / 0.62), rgb(255 255 255 / 0.16))',
 	},
 	overlay: {
 		bg: 'color-mix(in oklch, var(--background) 95%, var(--fg))',
@@ -353,6 +360,63 @@ const editableSkinTokens = skinLevels.flatMap((level) => skinPropertyDefinitions
 
 const skinBorderStyleOptions = ['none', 'solid', 'dashed', 'dotted', 'double'];
 
+const skinShadowLayerDefaults = {
+	base: [],
+	raised: [
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 8, x: 0, y: 8, blur: 18, spread: -10 },
+	],
+	floating: [
+		{ kind: 'inset', color: 'rgb(255 255 255)', alpha: 78, x: 0, y: 1, blur: 0, spread: 0 },
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 42, x: 0, y: 24, blur: 54, spread: -22 },
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 28, x: 0, y: 8, blur: 20, spread: -14 },
+	],
+	overlay: [
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 36, x: 0, y: 32, blur: 80, spread: -30 },
+	],
+	inset: [
+		{ kind: 'inset', color: 'rgb(15 23 42)', alpha: 4, x: 0, y: 1, blur: 2, spread: 0 },
+	],
+	control: [
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 5, x: 0, y: 1, blur: 2, spread: 0 },
+	],
+	action: [
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 10, x: 0, y: 2, blur: 8, spread: -2 },
+	],
+};
+
+const skinBackgroundFillDefaults = {
+	base: [],
+	raised: [
+		{
+			kind: 'linear',
+			gradientAngle: 180,
+			gradientFrom: 'color-mix(in oklch, white 7%, transparent)',
+			gradientTo: 'color-mix(in oklch, var(--fg) 1%, transparent)',
+		},
+	],
+	floating: [
+		{
+			kind: 'linear',
+			gradientAngle: 180,
+			gradientFrom: 'rgb(255 255 255)',
+			gradientFromAlpha: 62,
+			gradientTo: 'rgb(255 255 255)',
+			gradientToAlpha: 16,
+		},
+	],
+	overlay: [],
+	inset: [],
+	control: [],
+	action: [
+		{
+			kind: 'linear',
+			gradientAngle: 180,
+			gradientFrom: 'color-mix(in oklch, white 10%, transparent)',
+			gradientTo: 'transparent',
+		},
+	],
+};
+
 const editorTokenGroups = [
 	{
 		label: 'Canvas',
@@ -401,6 +465,36 @@ function createSkinDefaults() {
 		level.name,
 		{ ...skinTokenDefaults[level.name] },
 	]));
+}
+
+function createSkinStyleStates(skins = createSkinDefaults()) {
+	return Object.fromEntries(skinLevels.map((level) => [
+		level.name,
+		createSkinStyleState(level.name, skins[level.name]),
+	]));
+}
+
+function createSkinStyleState(levelName, values = {}) {
+	const defaults = skinTokenDefaults[levelName];
+	const borderWidth = Number.parseFloat(values.borderWidth ?? defaults.borderWidth);
+	return createCssComponentStyle({
+		surface: {
+			bg: values.bg ?? defaults.bg,
+			fg: values.fg ?? defaults.fg,
+		},
+		border: {
+			enabled: (values.borderStyle ?? defaults.borderStyle) !== 'none' && borderWidth > 0,
+			color: values.border ?? defaults.border,
+			width: Number.isFinite(borderWidth) ? borderWidth : 0,
+			style: values.borderStyle ?? defaults.borderStyle,
+		},
+		backdrop: parseBackdropValue(values.backdrop ?? defaults.backdrop),
+		background: {
+			enabled: (values.bgImage ?? defaults.bgImage) !== 'none',
+			fills: skinBackgroundFillDefaults[levelName],
+		},
+		shadows: skinShadowLayerDefaults[levelName],
+	});
 }
 
 function getThemeEditorState() {
@@ -457,9 +551,10 @@ const themeCode = `:root {
 \t--skin-raised-fg: var(--fg);
 \t--skin-raised-shadow: var(--shadow-sm);
 \t--skin-raised-bg-image: linear-gradient(to bottom, color-mix(in oklch, white 7%, transparent), color-mix(in oklch, var(--fg) 1%, transparent));
-\t--skin-floating-bg: color-mix(in oklch, var(--background) 94%, var(--fg));
-\t--skin-floating-shadow: 0 24px 64px -26px rgb(15 23 42 / 0.42);
-\t--skin-floating-backdrop: blur(20px) saturate(1.16);
+\t--skin-floating-bg: oklch(0.992 0.002 247 / 92%);
+\t--skin-floating-shadow: inset 0 1px 0 rgb(255 255 255 / 0.78), 0 24px 54px -22px rgb(15 23 42 / 0.42), 0 8px 20px -14px rgb(15 23 42 / 0.28);
+\t--skin-floating-backdrop: blur(18px) saturate(1.12);
+\t--skin-floating-bg-image: linear-gradient(to bottom, rgb(255 255 255 / 0.62), rgb(255 255 255 / 0.16));
 }`;
 
 const usageCode = `<button class="skin-action rounded-full px-4 py-2">
@@ -480,6 +575,7 @@ const themeEditorState = getThemeEditorState();
 const tokenHexValues = reactive(themeEditorState.colors);
 const appearanceValues = reactive(themeEditorState.appearance);
 const skinValues = reactive(themeEditorState.skins);
+const skinStyleStates = reactive(createSkinStyleStates(themeEditorState.skins));
 const activeMode = ref('light');
 const activeTokenName = ref('--primary');
 const aiThemePrompt = ref('');
@@ -531,12 +627,50 @@ function skinTokenName(levelName, property) {
 	return `--skin-${levelName}-${property.suffix}`;
 }
 
+function skinCssVariables(levelName) {
+	return Object.fromEntries(skinPropertyDefinitions.map((property) => [
+		property.key,
+		skinTokenName(levelName, property),
+	]));
+}
+
 function skinValue(levelName, property) {
 	return skinValues[levelName]?.[property.key] ?? skinTokenDefaults[levelName][property.key];
 }
 
 function skinCssValue(levelName, property) {
 	return normalizeSkinValue(property, skinValue(levelName, property)) || skinTokenDefaults[levelName][property.key];
+}
+
+function syncSkinStyleBuilders() {
+	for (const level of skinLevels) {
+		Object.assign(skinValues[level.name], cssStyleValues(skinStyleStates[level.name]));
+	}
+	applyActiveTheme();
+}
+
+function resetSkinStyleBuilders() {
+	for (const level of skinLevels) {
+		replaceCssComponentStyle(skinStyleStates[level.name], createSkinStyleState(level.name, skinTokenDefaults[level.name]));
+	}
+	syncSkinStyleBuilders();
+}
+
+function updateSkinStyleStateFromValues(levelName, values = {}) {
+	const style = skinStyleStates[levelName];
+	const defaults = skinTokenDefaults[levelName];
+	if ('bg' in values) style.surface.bg = values.bg || defaults.bg;
+	if ('fg' in values) style.surface.fg = values.fg || defaults.fg;
+	if ('border' in values || 'borderWidth' in values || 'borderStyle' in values) {
+		const borderWidth = Number.parseFloat(values.borderWidth ?? style.border.width);
+		style.border.color = values.border || style.border.color;
+		style.border.width = Number.isFinite(borderWidth) ? borderWidth : style.border.width;
+		style.border.style = values.borderStyle || style.border.style;
+		style.border.enabled = style.border.style !== 'none' && style.border.width > 0;
+	}
+	if ('backdrop' in values) {
+		Object.assign(style.backdrop, parseBackdropValue(values.backdrop || defaults.backdrop));
+	}
 }
 
 function skinPreviewStyle(level) {
@@ -583,6 +717,7 @@ function resetColorTokens() {
 			skinValues[level.name][property.key] = skinTokenDefaults[level.name][property.key];
 		}
 	}
+	resetSkinStyleBuilders();
 	activeTokenName.value = '--primary';
 	activeMode.value = originalTheme;
 	clearAppliedTheme();
@@ -617,6 +752,8 @@ function clearAppliedTheme() {
 	}
 }
 
+watch(skinStyleStates, syncSkinStyleBuilders, { deep: true, immediate: true });
+
 function hydrateAppearanceFromDocument() {
 	if (typeof document === 'undefined') return;
 	const styles = getComputedStyle(document.documentElement);
@@ -626,9 +763,12 @@ function hydrateAppearanceFromDocument() {
 		appearanceValues[token.name] = normalizeAppearanceValue(token, value);
 	}
 	for (const token of editableSkinTokens) {
+		if (isBuilderOwnedSkinToken(token.property)) continue;
 		const value = styles.getPropertyValue(token.name).trim();
 		if (!value) continue;
-		skinValues[token.level][token.property.key] = normalizeSkinValue(token.property, value) || skinTokenDefaults[token.level][token.property.key];
+		updateSkinStyleStateFromValues(token.level, {
+			[token.property.key]: normalizeSkinValue(token.property, value) || skinTokenDefaults[token.level][token.property.key],
+		});
 	}
 }
 
@@ -829,11 +969,14 @@ function applyThemePayload(theme) {
 	const skins = theme.skins || {};
 	for (const level of skinLevels) {
 		const source = skins[level.name] || {};
+		const values = {};
 		for (const property of skinPropertyDefinitions) {
+			if (isBuilderOwnedSkinToken(property)) continue;
 			const value = source[property.key];
 			if (value == null) continue;
-			skinValues[level.name][property.key] = normalizeSkinValue(property, value) || skinTokenDefaults[level.name][property.key];
+			values[property.key] = normalizeSkinValue(property, value) || skinTokenDefaults[level.name][property.key];
 		}
+		updateSkinStyleStateFromValues(level.name, values);
 	}
 	for (const mode of themeModes) {
 		const source = theme[mode.value] || {};
@@ -844,6 +987,10 @@ function applyThemePayload(theme) {
 		}
 	}
 	applyActiveTheme();
+}
+
+function isBuilderOwnedSkinToken(property) {
+	return property.key === 'shadow' || property.key === 'bgImage';
 }
 
 function normalizeAppearanceValue(token, value) {
@@ -1429,46 +1576,12 @@ onBeforeUnmount(() => {
 									<p class="mt-1 text-xs opacity-75">{{ level.className }}</p>
 								</div>
 								<p class="mt-3 text-xs leading-5 text-muted-fg">{{ level.use }}</p>
-								<div class="mt-3 grid gap-2">
-									<label
-										v-for="property in skinPropertyDefinitions"
-										:key="property.key"
-										class="block rounded-lg border border-border skin-raised p-2"
-									>
-										<span class="flex items-start justify-between gap-2">
-											<span class="min-w-0">
-												<span class="block text-xs font-semibold text-fg">{{ property.label }}</span>
-												<span class="mt-0.5 block truncate font-mono text-[11px] text-muted-fg">{{ skinTokenName(level.name, property) }}</span>
-											</span>
-											<span class="max-w-[7rem] text-right text-[11px] leading-4 text-muted-fg">{{ property.use }}</span>
-										</span>
-										<select
-											v-if="property.options"
-											class="mt-2 h-9 w-full rounded-md border border-input bg-background px-2 text-xs text-fg outline-none focus:border-ring"
-											:value="skinValue(level.name, property)"
-											:aria-label="`${level.label} ${property.label}`"
-											@change="updateSkinToken(level.name, property, $event.target.value)"
-										>
-											<option v-for="option in property.options" :key="option" :value="option">{{ option }}</option>
-										</select>
-										<textarea
-											v-else-if="property.multiline"
-											rows="2"
-											class="mt-2 min-h-16 w-full rounded-md border border-input bg-background px-2 py-2 font-mono text-xs text-fg outline-none focus:border-ring"
-											:value="skinValue(level.name, property)"
-											:aria-label="`${level.label} ${property.label}`"
-											@input="updateSkinToken(level.name, property, $event.target.value)"
-										></textarea>
-										<input
-											v-else
-											type="text"
-											class="mt-2 h-9 w-full rounded-md border border-input bg-background px-2 font-mono text-xs text-fg outline-none focus:border-ring"
-											:value="skinValue(level.name, property)"
-											:aria-label="`${level.label} ${property.label}`"
-											@input="updateSkinToken(level.name, property, $event.target.value)"
-										>
-									</label>
-								</div>
+								<CssComponentEditor
+									class="mt-3"
+									:style="skinStyleStates[level.name]"
+									:variables="skinCssVariables(level.name)"
+									:title="level.label"
+								/>
 							</article>
 						</div>
 					</section>

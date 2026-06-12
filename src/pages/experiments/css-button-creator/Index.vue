@@ -1,14 +1,23 @@
 <script setup>
 import { computed, reactive, ref, watch } from 'vue';
 import {
-	DomButton as ElButton,
-	DomColorInput as ElColorInput,
-	DomNativeSelect as ElNativeSelect,
-	DomPopover as ElPopover,
-	DomRangeInput as ElRangeInput,
-	DomTextInput as ElTextInput,
-	DomTextareaInput as ElTextareaInput,
+	DomButton,
+	DomTextInput,
+	DomTextareaInput,
 } from '../../lib/vue';
+import { colorToHexAlpha } from '../../lib/css/color.js';
+import ControlIconButton from './components/ControlIconButton.vue';
+import CssStyleControls from './components/CssStyleControls.vue';
+import StyleControlShowcase from './components/StyleControlShowcase.vue';
+import {
+	createButtonState,
+	createFill,
+	createFillLayers,
+	createShadow,
+	enabledShadows,
+	fillListToCss,
+	shadowListToCss,
+} from './lib/styleModel.js';
 
 const activeState = ref('base');
 const previewInteraction = ref(null);
@@ -31,35 +40,19 @@ const stateLabels = {
 const sectionOpen = reactive({
 	states: true,
 	content: true,
-	background: true,
-	typography: true,
-	layout: true,
-	border: true,
-	shadows: true,
+	styles: false,
 	import: false,
 	ai: false,
 	css: true,
 	tailwind: false,
 });
 
-const fillTypeOptions = [
-	{ label: 'Solid', value: 'solid' },
-	{ label: 'Linear gradient', value: 'linear' },
-	{ label: 'Radial gradient', value: 'radial' },
-];
-
-const shadowKindOptions = [
-	{ label: 'Drop shadow', value: 'drop' },
-	{ label: 'Inner shadow', value: 'inset' },
-	{ label: 'Ring', value: 'ring' },
-];
-
 const baseButton = reactive(createButtonState());
 const hoverButton = reactive(createButtonState({
 	background: {
-		solid: '#2f6f64',
-		gradientFrom: '#134e4a',
-		gradientTo: '#5eead4',
+		fills: [
+			{ kind: 'solid', color: '#2f6f64' },
+		],
 	},
 	border: { color: '#255b52' },
 }));
@@ -69,17 +62,17 @@ const activeButton = reactive(createButtonState({
 		paddingY: 11,
 	},
 	background: {
-		solid: '#0f3f3a',
-		gradientFrom: '#0f3f3a',
-		gradientTo: '#14b8a6',
+		fills: [
+			{ kind: 'solid', color: '#0f3f3a' },
+		],
 	},
 	border: { color: '#134e4a' },
 }));
 const focusButton = reactive(createButtonState({
 	background: {
-		solid: '#171717',
-		gradientFrom: '#171717',
-		gradientTo: '#4f46e5',
+		fills: [
+			{ kind: 'solid', color: '#171717' },
+		],
 	},
 	border: { color: '#6366f1' },
 }));
@@ -114,22 +107,22 @@ const themePresets = [
 	{
 		name: 'Aurora mint',
 		base: {
-			background: { mode: 'linear', gradientFrom: '#0f172a', gradientTo: '#14b8a6', gradientAngle: 135 },
+			background: { fills: [{ kind: 'linear', gradientFrom: '#0f172a', gradientTo: '#14b8a6', gradientAngle: 135 }] },
 			typography: { textColor: '#f8fafc' },
 			border: { color: '#2dd4bf' },
 		},
 		hover: {
-			background: { mode: 'linear', gradientFrom: '#134e4a', gradientTo: '#67e8f9', gradientAngle: 135 },
+			background: { fills: [{ kind: 'linear', gradientFrom: '#134e4a', gradientTo: '#67e8f9', gradientAngle: 135 }] },
 			typography: { textColor: '#ffffff' },
 			border: { color: '#5eead4' },
 		},
 		active: {
-			background: { mode: 'linear', gradientFrom: '#042f2e', gradientTo: '#0f766e', gradientAngle: 145 },
+			background: { fills: [{ kind: 'linear', gradientFrom: '#042f2e', gradientTo: '#0f766e', gradientAngle: 145 }] },
 			typography: { textColor: '#ecfeff' },
 			border: { color: '#0f766e' },
 		},
 		focus: {
-			background: { mode: 'linear', gradientFrom: '#0f172a', gradientTo: '#14b8a6', gradientAngle: 135 },
+			background: { fills: [{ kind: 'linear', gradientFrom: '#0f172a', gradientTo: '#14b8a6', gradientAngle: 135 }] },
 			typography: { textColor: '#ffffff' },
 			border: { color: '#67e8f9' },
 		},
@@ -154,22 +147,22 @@ const themePresets = [
 	{
 		name: 'Studio ink',
 		base: {
-			background: { mode: 'solid', solid: '#111827' },
+			background: { fills: [{ kind: 'solid', color: '#111827' }] },
 			typography: { textColor: '#f9fafb' },
 			border: { color: '#374151' },
 		},
 		hover: {
-			background: { mode: 'solid', solid: '#312e81' },
+			background: { fills: [{ kind: 'solid', color: '#312e81' }] },
 			typography: { textColor: '#ffffff' },
 			border: { color: '#6366f1' },
 		},
 		active: {
-			background: { mode: 'solid', solid: '#1e1b4b' },
+			background: { fills: [{ kind: 'solid', color: '#1e1b4b' }] },
 			typography: { textColor: '#e0e7ff' },
 			border: { color: '#4f46e5' },
 		},
 		focus: {
-			background: { mode: 'solid', solid: '#111827' },
+			background: { fills: [{ kind: 'solid', color: '#111827' }] },
 			typography: { textColor: '#ffffff' },
 			border: { color: '#818cf8' },
 		},
@@ -206,98 +199,6 @@ watch(cssOutput, (value) => {
 	if (!isEditingCss.value) cssEditor.value = value;
 }, { immediate: true });
 
-function createButtonState(overrides = {}) {
-	return {
-		label: 'Save changes',
-		typography: {
-			enabled: true,
-			open: true,
-			textColor: '#ffffff',
-			fontSize: 15,
-			fontWeight: 650,
-			...overrides.typography,
-		},
-		layout: {
-			enabled: true,
-			open: true,
-			paddingX: 22,
-			paddingY: 12,
-			radius: 999,
-			...overrides.layout,
-		},
-		background: {
-			enabled: true,
-			open: true,
-			blendMode: 'normal',
-			fills: createFillLayers(overrides.background),
-		},
-		border: {
-			enabled: true,
-			open: true,
-			width: 1,
-			color: '#171717',
-			...overrides.border,
-		},
-	};
-}
-
-function createFillLayers(background = {}) {
-	if (Array.isArray(background.fills) && background.fills.length) {
-		return background.fills.map((fill, index) => createFill({ ...fill, open: index === 0 }));
-	}
-	return [createFill(legacyBackgroundToFill(background))];
-}
-
-function legacyBackgroundToFill(background = {}) {
-	return {
-		kind: background.mode || 'solid',
-		color: background.solid || '#171717',
-		alpha: background.alpha ?? 100,
-		gradientFrom: background.gradientFrom || background.solid || '#171717',
-		gradientFromAlpha: background.gradientFromAlpha ?? 100,
-		gradientTo: background.gradientTo || '#4f46e5',
-		gradientToAlpha: background.gradientToAlpha ?? 100,
-		gradientAngle: background.gradientAngle ?? 135,
-		gradientFromStop: background.gradientFromStop ?? 0,
-		gradientToStop: background.gradientToStop ?? 100,
-	};
-}
-
-function createFill(overrides = {}) {
-	return {
-		enabled: true,
-		open: true,
-		kind: 'solid',
-		color: '#171717',
-		alpha: 100,
-		gradientFrom: '#171717',
-		gradientFromAlpha: 100,
-		gradientTo: '#4f46e5',
-		gradientToAlpha: 100,
-		gradientAngle: 135,
-		gradientFromStop: 0,
-		gradientToStop: 100,
-		...overrides,
-		id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`,
-	};
-}
-
-function createShadow(overrides = {}) {
-	return {
-		enabled: true,
-		open: true,
-		kind: 'drop',
-		color: '#000000',
-		alpha: 20,
-		x: 0,
-		y: 8,
-		blur: 18,
-		spread: -6,
-		...overrides,
-		id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`,
-	};
-}
-
 function buttonStyle(button, shadowList) {
 	const style = { lineHeight: 1 };
 
@@ -311,7 +212,7 @@ function buttonStyle(button, shadowList) {
 		style.borderRadius = `${button.layout.radius}px`;
 	}
 	style.border = button.border.enabled
-		? `${button.border.width}px solid ${button.border.color}`
+		? `${button.border.width}px ${button.border.style || 'solid'} ${button.border.color}`
 		: '0 solid transparent';
 	style.background = button.background.enabled ? fillListToCss(button.background.fills) : 'transparent';
 	style.boxShadow = shadowListToCss(shadowList);
@@ -320,108 +221,8 @@ function buttonStyle(button, shadowList) {
 	return style;
 }
 
-function enabledShadows(shadowList) {
-	return shadowList.filter((shadow) => shadow.enabled);
-}
-
-function shadowListToCss(shadowList) {
-	const visibleShadows = enabledShadows(shadowList);
-	if (!visibleShadows.length) return 'none';
-	return visibleShadows.map((shadow) => shadowToCss(shadow)).join(', ');
-}
-
-function enabledFills(fillList) {
-	return fillList.filter((fill) => fill.enabled);
-}
-
-function fillListToCss(fillList) {
-	const visibleFills = enabledFills(fillList);
-	if (!visibleFills.length) return 'transparent';
-	return visibleFills.map((fill) => fillToCss(fill)).join(', ');
-}
-
-function fillToCss(fill) {
-	if (fill.kind === 'linear') {
-		return `linear-gradient(${fill.gradientAngle}deg, ${hexToRgba(fill.gradientFrom, fill.gradientFromAlpha)} ${fill.gradientFromStop}%, ${hexToRgba(fill.gradientTo, fill.gradientToAlpha)} ${fill.gradientToStop}%)`;
-	}
-	if (fill.kind === 'radial') {
-		return `radial-gradient(circle at 50% 45%, ${hexToRgba(fill.gradientFrom, fill.gradientFromAlpha)} ${fill.gradientFromStop}%, ${hexToRgba(fill.gradientTo, fill.gradientToAlpha)} ${fill.gradientToStop}%)`;
-	}
-	return hexToRgba(fill.color, fill.alpha);
-}
-
-function shadowToCss(shadow) {
-	const color = hexToRgba(shadow.color, shadow.alpha);
-	if (shadow.kind === 'ring') return `0 0 0 ${shadow.spread}px ${color}`;
-	return `${shadow.kind === 'inset' ? 'inset ' : ''}${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px ${color}`;
-}
-
 function backgroundToCss(background) {
-	return fillListToCss(background.fills || createFillLayers(background));
-}
-
-function hexToRgba(hex, alpha) {
-	const normalized = hex.replace('#', '').trim();
-	const full = normalized.length === 3
-		? normalized.split('').map((char) => `${char}${char}`).join('')
-		: normalized.padEnd(6, '0').slice(0, 6);
-	const value = Number.parseInt(full, 16);
-	const r = (value >> 16) & 255;
-	const g = (value >> 8) & 255;
-	const b = value & 255;
-	return `rgba(${r}, ${g}, ${b}, ${Number(alpha / 100).toFixed(2)})`;
-}
-
-function addShadow(targetState = activeState.value) {
-	shadows[targetState].forEach((shadow) => {
-		shadow.open = false;
-	});
-	shadows[targetState].push(createShadow());
-}
-
-function duplicateShadow(index) {
-	currentShadows.value.splice(index + 1, 0, createShadow({ ...currentShadows.value[index], open: true }));
-}
-
-function removeShadow(index) {
-	currentShadows.value.splice(index, 1);
-}
-
-function addFill() {
-	currentButton.value.background.fills.forEach((fill) => {
-		fill.open = false;
-	});
-	currentButton.value.background.fills.unshift(createFill({ kind: 'linear' }));
-}
-
-function duplicateFill(index) {
-	currentButton.value.background.fills.splice(index + 1, 0, createFill({ ...currentButton.value.background.fills[index], open: true }));
-}
-
-function removeFill(index) {
-	currentButton.value.background.fills.splice(index, 1);
-}
-
-function closeOtherLayerPopovers(activeId) {
-	if (typeof document === 'undefined') return;
-	globalThis.requestAnimationFrame?.(() => {
-		document.querySelectorAll('element-popover[data-layer-popover-id]').forEach((popover) => {
-			if (popover.dataset.layerPopoverId === activeId) return;
-			closeLayerPopoverElement(popover);
-		});
-	});
-}
-
-function closeAllLayerPopovers() {
-	if (typeof document === 'undefined') return;
-	document.querySelectorAll('element-popover[data-layer-popover-id]').forEach(closeLayerPopoverElement);
-}
-
-function closeLayerPopoverElement(popover) {
-	popover.open = false;
-	popover.removeAttribute('open');
-	popover.querySelector('.el-popover-panel')?.hidePopover?.();
-	popover.querySelector('[aria-expanded="true"]')?.setAttribute('aria-expanded', 'false');
+	return fillListToCss(background.fills);
 }
 
 function copyBaseToState() {
@@ -436,9 +237,19 @@ function setActiveState(state) {
 
 function resetButton() {
 	Object.assign(baseButton, createButtonState());
-	Object.assign(hoverButton, createButtonState({ background: { solid: '#2f6f64', gradientFrom: '#134e4a', gradientTo: '#5eead4' }, border: { color: '#255b52' } }));
-	Object.assign(activeButton, createButtonState({ layout: { paddingX: 21, paddingY: 11 }, background: { solid: '#0f3f3a' }, border: { color: '#134e4a' } }));
-	Object.assign(focusButton, createButtonState({ border: { color: '#6366f1' } }));
+	Object.assign(hoverButton, createButtonState({
+		background: { fills: [{ kind: 'solid', color: '#2f6f64' }] },
+		border: { color: '#255b52' },
+	}));
+	Object.assign(activeButton, createButtonState({
+		layout: { paddingX: 21, paddingY: 11 },
+		background: { fills: [{ kind: 'solid', color: '#0f3f3a' }] },
+		border: { color: '#134e4a' },
+	}));
+	Object.assign(focusButton, createButtonState({
+		background: { fills: [{ kind: 'solid', color: '#171717' }] },
+		border: { color: '#6366f1' },
+	}));
 	shadows.base.splice(0, shadows.base.length,
 		createShadow({ kind: 'drop', color: '#000000', alpha: 22, x: 0, y: 12, blur: 26, spread: -10 }),
 		createShadow({ kind: 'ring', color: '#ffffff', alpha: 12, spread: 1, open: false }),
@@ -504,7 +315,7 @@ function cssRulesFor(state) {
 		'justify-content: center;',
 		'line-height: 1;',
 	];
-	if (button.border.enabled) rules.push(`border: ${button.border.width}px solid ${button.border.color};`);
+	if (button.border.enabled) rules.push(`border: ${button.border.width}px ${button.border.style || 'solid'} ${button.border.color};`);
 	if (button.layout.enabled) {
 		rules.push(`border-radius: ${button.layout.radius}px;`);
 		rules.push(`padding: ${button.layout.paddingY}px ${button.layout.paddingX}px;`);
@@ -532,6 +343,7 @@ function tailwindRulesFor(state, prefix = '') {
 	const rules = [];
 	if (button.border.enabled) {
 		rules.push(`${prefix}border-[${button.border.width}px]`);
+		if (button.border.style && button.border.style !== 'solid') rules.push(`${prefix}border-${button.border.style}`);
 		rules.push(`${prefix}border-[${button.border.color}]`);
 	}
 	if (button.layout.enabled) {
@@ -675,7 +487,7 @@ function parseStyleSource(source, state = activeState.value) {
 		parsed.fills = [...(parsed.fills || []), parseFillLayer(declarations['background-color'])];
 	}
 	if (declarations.color) {
-		parsed.typography = { ...(parsed.typography || {}), textColor: colorToHexAlpha(declarations.color).hex };
+		parsed.typography = { ...(parsed.typography || {}), textColor: colorToHexAlpha(declarations.color).color };
 	}
 	if (declarations['font-size']) {
 		parsed.typography = { ...(parsed.typography || {}), fontSize: parseNumber(declarations['font-size']) || targetButton.typography.fontSize };
@@ -739,11 +551,11 @@ function parseTailwindClasses(source) {
 		if (utility === 'px') parsed.layout = { ...(parsed.layout || {}), paddingX: parseNumber(value) };
 		if (utility === 'py') parsed.layout = { ...(parsed.layout || {}), paddingY: parseNumber(value) };
 		if (utility === 'border') {
-			if (value.includes('#') || value.startsWith('rgb')) parsed.border = { ...(parsed.border || {}), color: colorToHexAlpha(value).hex };
+			if (isCssColorValue(value)) parsed.border = { ...(parsed.border || {}), color: colorToHexAlpha(value).color };
 			else parsed.border = { ...(parsed.border || {}), width: parseNumber(value) };
 		}
 		if (utility === 'text') {
-			if (value.includes('#') || value.startsWith('rgb')) parsed.typography = { ...(parsed.typography || {}), textColor: colorToHexAlpha(value).hex };
+			if (isCssColorValue(value)) parsed.typography = { ...(parsed.typography || {}), textColor: colorToHexAlpha(value).color };
 			else parsed.typography = { ...(parsed.typography || {}), fontSize: parseNumber(value) };
 		}
 		if (utility === 'font') parsed.typography = { ...(parsed.typography || {}), fontWeight: parseNumber(value) };
@@ -763,9 +575,9 @@ function parseFillLayer(layer) {
 		return {
 			kind: 'linear',
 			gradientAngle: parseNumber(trimmed.match(/(-?\d+(?:\.\d+)?)deg/)?.[1]) ?? 135,
-			gradientFrom: colors[0]?.hex || '#171717',
+			gradientFrom: colors[0]?.color || '#171717',
 			gradientFromAlpha: colors[0]?.alpha ?? 100,
-			gradientTo: colors[1]?.hex || '#4f46e5',
+			gradientTo: colors[1]?.color || '#4f46e5',
 			gradientToAlpha: colors[1]?.alpha ?? 100,
 			gradientFromStop: colors[0]?.stop ?? 0,
 			gradientToStop: colors[1]?.stop ?? 100,
@@ -775,20 +587,20 @@ function parseFillLayer(layer) {
 		const colors = parseGradientColors(trimmed);
 		return {
 			kind: 'radial',
-			gradientFrom: colors[0]?.hex || '#171717',
+			gradientFrom: colors[0]?.color || '#171717',
 			gradientFromAlpha: colors[0]?.alpha ?? 100,
-			gradientTo: colors[1]?.hex || '#4f46e5',
+			gradientTo: colors[1]?.color || '#4f46e5',
 			gradientToAlpha: colors[1]?.alpha ?? 100,
 			gradientFromStop: colors[0]?.stop ?? 0,
 			gradientToStop: colors[1]?.stop ?? 100,
 		};
 	}
 	const color = colorToHexAlpha(trimmed);
-	return { kind: 'solid', color: color.hex, alpha: color.alpha };
+	return { kind: 'solid', color: color.color, alpha: color.alpha };
 }
 
 function parseGradientColors(value) {
-	return [...value.matchAll(/(rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}|transparent)(?:\s+(-?\d+(?:\.\d+)?)%)?/g)]
+	return [...value.matchAll(/(oklch\([^)]+\)|rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}|transparent)(?:\s+(-?\d+(?:\.\d+)?)%)?/g)]
 		.map((match) => ({ ...colorToHexAlpha(match[1]), stop: match[2] === undefined ? undefined : Number(match[2]) }))
 		.slice(0, 2);
 }
@@ -802,22 +614,24 @@ function parsePadding(value, parsed) {
 }
 
 function parseBorder(value, targetButton = currentButton.value) {
-	const colorMatch = value.match(/(rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}|transparent)/);
+	const colorMatch = value.match(/(oklch\([^)]+\)|rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}|transparent)/);
+	const styleMatch = value.match(/\b(none|solid|dashed|dotted|double)\b/i);
 	return {
 		width: parseNumber(value) ?? 1,
-		color: colorMatch ? colorToHexAlpha(colorMatch[1]).hex : targetButton.border.color,
+		style: styleMatch?.[1]?.toLowerCase() || targetButton.border.style || 'solid',
+		color: colorMatch ? colorToHexAlpha(colorMatch[1]).color : targetButton.border.color,
 	};
 }
 
 function parseShadowList(value) {
 	return splitCssList(value).map((layer) => {
-		const colorMatch = layer.match(/(rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}|transparent)/);
-		const color = colorMatch ? colorToHexAlpha(colorMatch[1]) : { hex: '#000000', alpha: 20 };
-		const numbers = layer.replace(/rgba?\([^)]+\)/g, '').match(/-?\d+(?:\.\d+)?(?:px)?/g)?.map(parseNumber) || [];
+		const colorMatch = layer.match(/(oklch\([^)]+\)|rgba?\([^)]+\)|#[0-9a-fA-F]{3,8}|transparent)/);
+		const color = colorMatch ? colorToHexAlpha(colorMatch[1]) : { color: '#000000', alpha: 20 };
+		const numbers = layer.replace(/oklch\([^)]+\)|rgba?\([^)]+\)/g, '').match(/-?\d+(?:\.\d+)?(?:px)?/g)?.map(parseNumber) || [];
 		const spread = numbers[3] ?? 0;
 		return {
 			kind: layer.includes('inset') ? 'inset' : (numbers[0] === 0 && numbers[1] === 0 && numbers[2] === 0 && spread > 0 ? 'ring' : 'drop'),
-			color: color.hex,
+			color: color.color,
 			alpha: color.alpha,
 			x: numbers[0] ?? 0,
 			y: numbers[1] ?? 8,
@@ -845,28 +659,8 @@ function splitCssList(value) {
 	return items;
 }
 
-function colorToHexAlpha(value) {
-	const trimmed = value.trim();
-	if (trimmed === 'transparent') return { hex: '#000000', alpha: 0 };
-	if (trimmed.startsWith('#')) {
-		const normalized = trimmed.replace('#', '');
-		const hex = normalized.length === 3
-			? normalized.split('').map((char) => `${char}${char}`).join('')
-			: normalized.slice(0, 6).padEnd(6, '0');
-		const alpha = normalized.length === 8 ? Math.round((Number.parseInt(normalized.slice(6, 8), 16) / 255) * 100) : 100;
-		return { hex: `#${hex}`, alpha };
-	}
-	const rgba = trimmed.match(/rgba?\(([^)]+)\)/);
-	if (rgba) {
-		const channels = rgba[1].split(',').map((part) => part.trim());
-		const [r, g, b] = channels.map((channel) => Math.max(0, Math.min(255, Number.parseFloat(channel))));
-		const alpha = channels[3] === undefined ? 100 : Math.round(Math.max(0, Math.min(1, Number.parseFloat(channels[3]))) * 100);
-		return {
-			hex: `#${[r, g, b].map((channel) => Math.round(channel).toString(16).padStart(2, '0')).join('')}`,
-			alpha,
-		};
-	}
-	return { hex: trimmed, alpha: 100 };
+function isCssColorValue(value) {
+	return /^(#|rgb|oklch|transparent)/i.test(value);
 }
 
 function parseNumber(value) {
@@ -886,12 +680,6 @@ async function copyOutput(target, value) {
 		copiedTarget.value = 'blocked';
 	}
 }
-
-function shadowTitle(shadow) {
-	if (shadow.kind === 'ring') return 'Ring';
-	if (shadow.kind === 'inset') return 'Inner shadow';
-	return 'Drop shadow';
-}
 </script>
 
 <template>
@@ -906,8 +694,8 @@ function shadowTitle(shadow) {
 					</p>
 				</div>
 				<div class="flex flex-wrap items-center gap-2">
-					<ElButton variant="secondary" size="sm" type="button" @click="copyBaseToState">Copy base to state</ElButton>
-					<ElButton variant="ghost" size="sm" type="button" @click="resetButton">Reset</ElButton>
+					<DomButton variant="secondary" size="sm" type="button" @click="copyBaseToState">Copy base to state</DomButton>
+					<DomButton variant="ghost" size="sm" type="button" @click="resetButton">Reset</DomButton>
 				</div>
 			</header>
 
@@ -942,13 +730,25 @@ function shadowTitle(shadow) {
 
 					<section class="rounded-lg border border-border skin-raised text-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
+							<button type="button" class="min-w-0 text-left" @click="sectionOpen.styles = !sectionOpen.styles">
+								<span class="block truncate text-sm font-semibold">Styles</span>
+							</button>
+							<ControlIconButton :icon="sectionOpen.styles ? 'minus' : 'plus'" :label="sectionOpen.styles ? 'Collapse styles' : 'Expand styles'" @click="sectionOpen.styles = !sectionOpen.styles" />
+						</div>
+						<div v-if="sectionOpen.styles" class="border-t border-border p-3">
+							<StyleControlShowcase />
+						</div>
+					</section>
+
+					<section class="rounded-lg border border-border skin-raised text-fg">
+						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.css = !sectionOpen.css">
 								<span class="block truncate text-sm font-semibold">CSS</span>
 							</button>
 							<div class="flex items-center gap-1">
-								<ElButton size="sm" variant="secondary" type="button" @click.stop="copyOutput('css', cssOutput)">
+								<DomButton size="sm" variant="secondary" type="button" @click.stop="copyOutput('css', cssOutput)">
 									{{ copiedTarget === 'css' ? 'Copied' : 'Copy CSS' }}
-								</ElButton>
+								</DomButton>
 								<button type="button" class="icon-button" :aria-label="sectionOpen.css ? 'Collapse CSS' : 'Expand CSS'" @click="sectionOpen.css = !sectionOpen.css">{{ sectionOpen.css ? '-' : '+' }}</button>
 							</div>
 						</div>
@@ -974,7 +774,7 @@ function shadowTitle(shadow) {
 								<span class="block truncate text-sm font-semibold">Import styles</span>
 							</button>
 							<div class="flex items-center gap-1">
-								<ElButton size="sm" variant="secondary" type="button" @click.stop="applyImportedStyles">Apply</ElButton>
+								<DomButton size="sm" variant="secondary" type="button" @click.stop="applyImportedStyles">Apply</DomButton>
 								<button type="button" class="icon-button" :aria-label="sectionOpen.import ? 'Collapse import styles' : 'Expand import styles'" @click="sectionOpen.import = !sectionOpen.import">{{ sectionOpen.import ? '-' : '+' }}</button>
 							</div>
 						</div>
@@ -1010,9 +810,9 @@ function shadowTitle(shadow) {
 								<span class="block truncate text-sm font-semibold">Tailwind</span>
 							</button>
 							<div class="flex items-center gap-1">
-								<ElButton size="sm" variant="secondary" type="button" @click.stop="copyOutput('tailwind', tailwindOutput)">
+								<DomButton size="sm" variant="secondary" type="button" @click.stop="copyOutput('tailwind', tailwindOutput)">
 									{{ copiedTarget === 'tailwind' ? 'Copied' : 'Copy classes' }}
-								</ElButton>
+								</DomButton>
 								<button type="button" class="icon-button" :aria-label="sectionOpen.tailwind ? 'Collapse Tailwind' : 'Expand Tailwind'" @click="sectionOpen.tailwind = !sectionOpen.tailwind">{{ sectionOpen.tailwind ? '-' : '+' }}</button>
 							</div>
 						</div>
@@ -1052,223 +852,11 @@ function shadowTitle(shadow) {
 							<button type="button" class="icon-button" :aria-label="sectionOpen.content ? 'Collapse content' : 'Expand content'" @click="sectionOpen.content = !sectionOpen.content">{{ sectionOpen.content ? '-' : '+' }}</button>
 						</div>
 						<div v-if="sectionOpen.content" class="border-t border-border p-3">
-							<ElTextInput v-model="currentButton.label" label="Label" />
+							<DomTextInput v-model="currentButton.label" label="Label" />
 						</div>
 					</section>
 
-					<section class="order-6 rounded-lg border border-border skin-raised text-fg" :class="!currentButton.background.enabled && 'opacity-60'">
-						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
-							<button type="button" class="min-w-0 text-left" @click="sectionOpen.background = !sectionOpen.background">
-								<span class="block truncate text-sm font-semibold">Fill</span>
-								<span class="block text-xs text-muted-fg">{{ enabledFills(currentButton.background.fills).length }} of {{ currentButton.background.fills.length }} visible</span>
-							</button>
-							<div class="flex items-center gap-1">
-								<ElButton size="sm" type="button" @click.stop="addFill">Add</ElButton>
-								<button type="button" class="icon-button" :aria-label="currentButton.background.enabled ? 'Hide background' : 'Show background'" @click="currentButton.background.enabled = !currentButton.background.enabled">
-									<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-										<path v-if="currentButton.background.enabled" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-										<path v-if="currentButton.background.enabled" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.8" />
-										<path v-else d="M3 3l18 18M10.6 10.6A3 3 0 0 0 13.4 13.4M7.1 7.8C4.1 9.4 2.5 12 2.5 12s3.5 6 9.5 6c1.6 0 3-.4 4.2-1M19.1 15.1c1.6-1.4 2.4-3.1 2.4-3.1s-3.5-6-9.5-6c-.8 0-1.6.1-2.3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-								</button>
-								<button type="button" class="icon-button" :aria-label="sectionOpen.background ? 'Collapse background' : 'Expand background'" @click="sectionOpen.background = !sectionOpen.background">{{ sectionOpen.background ? '-' : '+' }}</button>
-							</div>
-						</div>
-							<div v-if="sectionOpen.background" class="divide-y divide-border border-t border-border">
-								<article v-for="(fill, index) in currentButton.background.fills" :key="fill.id" class="px-3 py-2" :class="!fill.enabled && 'opacity-60'">
-									<div class="grid grid-cols-[1fr_auto] items-center gap-2">
-										<ElPopover :data-layer-popover-id="fill.id" position="start-bottom" width="w-[22rem] max-w-[calc(100vw-2rem)]" padding="p-0" :collision-padding="12" @open="closeOtherLayerPopovers(fill.id)">
-											<template #trigger>
-												<button type="button" class="grid w-full min-w-0 grid-cols-[auto_1fr] items-center gap-2 rounded-md text-left transition hover:bg-secondary/60" @pointerdown.capture="closeAllLayerPopovers">
-													<span class="h-5 w-5 rounded border border-border" :style="{ background: fillToCss(fill) }" />
-														<span class="min-w-0">
-															<span class="block truncate text-sm font-medium">{{ fill.kind === 'solid' ? 'Solid' : fill.kind === 'linear' ? 'Linear gradient' : 'Radial gradient' }}</span>
-														</span>
-													</button>
-												</template>
-												<div>
-													<div class="border-b border-border px-3 py-2">
-														<p class="truncate text-sm font-semibold">Fill {{ index + 1 }}</p>
-													</div>
-													<div class="grid gap-3 p-3 sm:grid-cols-2">
-													<ElNativeSelect v-model="fill.kind" label="Type" :options="fillTypeOptions" placeholder="" />
-													<template v-if="fill.kind === 'solid'">
-														<ElColorInput v-model="fill.color" label="Colour" />
-														<ElRangeInput v-model="fill.alpha" label="Alpha" :min="0" :max="100" suffix="%" />
-													</template>
-													<template v-else>
-														<ElColorInput v-model="fill.gradientFrom" label="From" />
-														<ElRangeInput v-model="fill.gradientFromAlpha" label="From alpha" :min="0" :max="100" suffix="%" />
-														<ElColorInput v-model="fill.gradientTo" label="To" />
-														<ElRangeInput v-model="fill.gradientToAlpha" label="To alpha" :min="0" :max="100" suffix="%" />
-														<ElRangeInput v-if="fill.kind === 'linear'" v-model="fill.gradientAngle" label="Angle" :min="0" :max="360" suffix="deg" />
-														<ElRangeInput v-model="fill.gradientFromStop" label="From stop" :min="0" :max="100" suffix="%" />
-														<ElRangeInput v-model="fill.gradientToStop" label="To stop" :min="0" :max="100" suffix="%" />
-													</template>
-												</div>
-											</div>
-										</ElPopover>
-										<div class="flex items-center gap-1">
-											<button type="button" class="icon-button" aria-label="Duplicate fill" @click="duplicateFill(index)">
-												<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-													<path d="M8 8h10v10H8V8Z" stroke="currentColor" stroke-width="1.8" />
-													<path d="M6 16H4V4h12v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-												</svg>
-											</button>
-											<button type="button" class="icon-button" :aria-label="fill.enabled ? 'Hide fill' : 'Show fill'" @click="fill.enabled = !fill.enabled">
-												<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-													<path v-if="fill.enabled" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-													<path v-if="fill.enabled" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.8" />
-													<path v-else d="M3 3l18 18M10.6 10.6A3 3 0 0 0 13.4 13.4M7.1 7.8C4.1 9.4 2.5 12 2.5 12s3.5 6 9.5 6c1.6 0 3-.4 4.2-1M19.1 15.1c1.6-1.4 2.4-3.1 2.4-3.1s-3.5-6-9.5-6c-.8 0-1.6.1-2.3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-												</svg>
-											</button>
-											<button type="button" class="icon-button" aria-label="Remove fill" @click="removeFill(index)">
-												<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-													<path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
-												</svg>
-											</button>
-										</div>
-									</div>
-								</article>
-							</div>
-					</section>
-
-					<section class="order-4 rounded-lg border border-border skin-raised text-fg" :class="!currentButton.typography.enabled && 'opacity-60'">
-						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
-							<button type="button" class="min-w-0 text-left" @click="sectionOpen.typography = !sectionOpen.typography">
-								<span class="block truncate text-sm font-semibold">Typography</span>
-							</button>
-							<div class="flex items-center gap-1">
-								<button type="button" class="icon-button" :aria-label="currentButton.typography.enabled ? 'Hide typography' : 'Show typography'" @click="currentButton.typography.enabled = !currentButton.typography.enabled">
-									<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-										<path v-if="currentButton.typography.enabled" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-										<path v-if="currentButton.typography.enabled" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.8" />
-										<path v-else d="M3 3l18 18M10.6 10.6A3 3 0 0 0 13.4 13.4M7.1 7.8C4.1 9.4 2.5 12 2.5 12s3.5 6 9.5 6c1.6 0 3-.4 4.2-1M19.1 15.1c1.6-1.4 2.4-3.1 2.4-3.1s-3.5-6-9.5-6c-.8 0-1.6.1-2.3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-								</button>
-								<button type="button" class="icon-button" :aria-label="sectionOpen.typography ? 'Collapse typography' : 'Expand typography'" @click="sectionOpen.typography = !sectionOpen.typography">{{ sectionOpen.typography ? '-' : '+' }}</button>
-							</div>
-						</div>
-						<div v-if="sectionOpen.typography" class="border-t border-border p-3">
-							<div class="grid gap-3 sm:grid-cols-2">
-								<ElColorInput v-model="currentButton.typography.textColor" label="Text colour" />
-								<ElRangeInput v-model="currentButton.typography.fontSize" label="Font size" :min="11" :max="26" suffix="px" />
-								<ElRangeInput v-model="currentButton.typography.fontWeight" label="Font weight" :min="300" :max="900" :step="50" />
-							</div>
-						</div>
-					</section>
-
-					<section class="order-3 rounded-lg border border-border skin-raised text-fg" :class="!currentButton.layout.enabled && 'opacity-60'">
-						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
-							<button type="button" class="min-w-0 text-left" @click="sectionOpen.layout = !sectionOpen.layout">
-								<span class="block truncate text-sm font-semibold">Layout</span>
-							</button>
-							<div class="flex items-center gap-1">
-								<button type="button" class="icon-button" :aria-label="currentButton.layout.enabled ? 'Hide layout' : 'Show layout'" @click="currentButton.layout.enabled = !currentButton.layout.enabled">
-									<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-										<path v-if="currentButton.layout.enabled" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-										<path v-if="currentButton.layout.enabled" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.8" />
-										<path v-else d="M3 3l18 18M10.6 10.6A3 3 0 0 0 13.4 13.4M7.1 7.8C4.1 9.4 2.5 12 2.5 12s3.5 6 9.5 6c1.6 0 3-.4 4.2-1M19.1 15.1c1.6-1.4 2.4-3.1 2.4-3.1s-3.5-6-9.5-6c-.8 0-1.6.1-2.3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-								</button>
-								<button type="button" class="icon-button" :aria-label="sectionOpen.layout ? 'Collapse layout' : 'Expand layout'" @click="sectionOpen.layout = !sectionOpen.layout">{{ sectionOpen.layout ? '-' : '+' }}</button>
-							</div>
-						</div>
-						<div v-if="sectionOpen.layout" class="border-t border-border p-3">
-							<div class="grid gap-3 sm:grid-cols-2">
-								<ElRangeInput v-model="currentButton.layout.paddingX" label="Padding X" :min="8" :max="56" suffix="px" />
-								<ElRangeInput v-model="currentButton.layout.paddingY" label="Padding Y" :min="6" :max="28" suffix="px" />
-								<ElRangeInput v-model="currentButton.layout.radius" label="Radius" :min="0" :max="999" suffix="px" />
-							</div>
-						</div>
-					</section>
-
-					<section class="order-5 rounded-lg border border-border skin-raised text-fg" :class="!currentButton.border.enabled && 'opacity-60'">
-						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
-							<button type="button" class="min-w-0 text-left" @click="sectionOpen.border = !sectionOpen.border">
-								<span class="block truncate text-sm font-semibold">Border</span>
-							</button>
-							<div class="flex items-center gap-1">
-								<button type="button" class="icon-button" :aria-label="currentButton.border.enabled ? 'Hide border' : 'Show border'" @click="currentButton.border.enabled = !currentButton.border.enabled">
-									<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-										<path v-if="currentButton.border.enabled" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-										<path v-if="currentButton.border.enabled" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.8" />
-										<path v-else d="M3 3l18 18M10.6 10.6A3 3 0 0 0 13.4 13.4M7.1 7.8C4.1 9.4 2.5 12 2.5 12s3.5 6 9.5 6c1.6 0 3-.4 4.2-1M19.1 15.1c1.6-1.4 2.4-3.1 2.4-3.1s-3.5-6-9.5-6c-.8 0-1.6.1-2.3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-								</button>
-								<button type="button" class="icon-button" :aria-label="sectionOpen.border ? 'Collapse border' : 'Expand border'" @click="sectionOpen.border = !sectionOpen.border">{{ sectionOpen.border ? '-' : '+' }}</button>
-							</div>
-						</div>
-						<div v-if="sectionOpen.border" class="border-t border-border p-3">
-							<div class="grid gap-3 sm:grid-cols-2">
-								<ElRangeInput v-model="currentButton.border.width" label="Width" :min="0" :max="6" suffix="px" />
-								<ElColorInput v-model="currentButton.border.color" label="Colour" />
-							</div>
-						</div>
-					</section>
-
-					<section class="order-7 rounded-lg border border-border skin-raised text-fg">
-						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
-							<button type="button" class="min-w-0 text-left" @click="sectionOpen.shadows = !sectionOpen.shadows">
-								<span class="block truncate text-sm font-semibold">{{ stateLabels[activeState] }} box shadows</span>
-								<span class="block text-xs text-muted-fg">{{ enabledCurrentShadows.length }} of {{ currentShadows.length }} visible</span>
-							</button>
-							<div class="flex items-center gap-1">
-								<ElButton size="sm" type="button" @click.stop="addShadow()">Add</ElButton>
-								<button type="button" class="icon-button" :aria-label="sectionOpen.shadows ? 'Collapse shadows' : 'Expand shadows'" @click="sectionOpen.shadows = !sectionOpen.shadows">{{ sectionOpen.shadows ? '-' : '+' }}</button>
-							</div>
-						</div>
-							<div v-if="sectionOpen.shadows" class="divide-y divide-border border-t border-border">
-								<article v-for="(shadow, index) in currentShadows" :key="shadow.id" class="px-3 py-2" :class="!shadow.enabled && 'opacity-60'">
-									<div class="grid grid-cols-[1fr_auto] items-center gap-2">
-										<ElPopover :data-layer-popover-id="shadow.id" position="start-bottom" width="w-[22rem] max-w-[calc(100vw-2rem)]" padding="p-0" :collision-padding="12" @open="closeOtherLayerPopovers(shadow.id)">
-											<template #trigger>
-												<button type="button" class="w-full min-w-0 rounded-md text-left transition hover:bg-secondary/60" @pointerdown.capture="closeAllLayerPopovers">
-													<span class="flex min-w-0 items-center gap-2">
-														<span class="font-mono text-[11px] text-muted-fg">{{ index + 1 }}</span>
-														<span class="truncate text-sm font-medium">{{ shadowTitle(shadow) }}</span>
-													</span>
-												</button>
-											</template>
-											<div>
-												<div class="border-b border-border px-3 py-2">
-													<p class="truncate text-sm font-semibold">{{ shadowTitle(shadow) }}</p>
-												</div>
-												<div class="grid gap-3 p-3 sm:grid-cols-2">
-													<ElNativeSelect v-model="shadow.kind" label="Type" :options="shadowKindOptions" placeholder="" />
-													<ElColorInput v-model="shadow.color" label="Colour" />
-													<ElRangeInput v-model="shadow.alpha" label="Alpha" :min="0" :max="100" suffix="%" />
-													<ElRangeInput v-model="shadow.x" label="Horizontal" :min="-80" :max="80" suffix="px" :disabled="shadow.kind === 'ring'" />
-													<ElRangeInput v-model="shadow.y" label="Vertical" :min="-80" :max="80" suffix="px" :disabled="shadow.kind === 'ring'" />
-													<ElRangeInput v-model="shadow.blur" label="Blur" :min="0" :max="120" suffix="px" :disabled="shadow.kind === 'ring'" />
-													<ElRangeInput v-model="shadow.spread" label="Spread" :min="-80" :max="80" suffix="px" />
-												</div>
-											</div>
-										</ElPopover>
-										<div class="flex items-center gap-1">
-											<button type="button" class="icon-button" aria-label="Duplicate shadow" @click="duplicateShadow(index)">
-												<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-													<path d="M8 8h10v10H8V8Z" stroke="currentColor" stroke-width="1.8" />
-													<path d="M6 16H4V4h12v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-												</svg>
-											</button>
-											<button type="button" class="icon-button" :aria-label="shadow.enabled ? 'Hide shadow' : 'Show shadow'" @click="shadow.enabled = !shadow.enabled">
-												<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-													<path v-if="shadow.enabled" d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-													<path v-if="shadow.enabled" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.8" />
-													<path v-else d="M3 3l18 18M10.6 10.6A3 3 0 0 0 13.4 13.4M7.1 7.8C4.1 9.4 2.5 12 2.5 12s3.5 6 9.5 6c1.6 0 3-.4 4.2-1M19.1 15.1c1.6-1.4 2.4-3.1 2.4-3.1s-3.5-6-9.5-6c-.8 0-1.6.1-2.3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-												</svg>
-											</button>
-											<button type="button" class="icon-button" aria-label="Remove shadow" @click="removeShadow(index)">
-												<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-													<path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
-												</svg>
-											</button>
-										</div>
-									</div>
-								</article>
-							</div>
-					</section>
+					<CssStyleControls :button="currentButton" :shadows="currentShadows" :state-label="stateLabels[activeState]" />
 
 					<section class="order-8 rounded-lg border border-border skin-raised text-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
@@ -1276,19 +864,19 @@ function shadowTitle(shadow) {
 								<span class="block truncate text-sm font-semibold">AI theme request</span>
 							</button>
 							<div class="flex items-center gap-1">
-								<ElButton size="sm" variant="secondary" type="button" @click.stop="applyThemePreset">Try</ElButton>
+								<DomButton size="sm" variant="secondary" type="button" @click.stop="applyThemePreset">Try</DomButton>
 								<button type="button" class="icon-button" :aria-label="sectionOpen.ai ? 'Collapse AI theme request' : 'Expand AI theme request'" @click="sectionOpen.ai = !sectionOpen.ai">{{ sectionOpen.ai ? '-' : '+' }}</button>
 							</div>
 						</div>
 						<div v-if="sectionOpen.ai" class="space-y-3 border-t border-border p-3">
-							<ElTextareaInput v-model="aiThemeIntent" label="Request" :rows="3" />
+							<DomTextareaInput v-model="aiThemeIntent" label="Request" :rows="3" />
 							<div class="flex flex-wrap items-center gap-2">
-								<ElButton size="sm" type="button" @click="copyOutput('ai-theme', aiThemeRequest)">
+								<DomButton size="sm" type="button" @click="copyOutput('ai-theme', aiThemeRequest)">
 									{{ copiedTarget === 'ai-theme' ? 'Copied' : 'Copy AI prompt' }}
-								</ElButton>
-								<ElButton size="sm" variant="secondary" type="button" @click="copyOutput('theme-json', JSON.stringify(themeSnapshot(), null, 2))">
+								</DomButton>
+								<DomButton size="sm" variant="secondary" type="button" @click="copyOutput('theme-json', JSON.stringify(themeSnapshot(), null, 2))">
 									{{ copiedTarget === 'theme-json' ? 'Copied' : 'Copy theme JSON' }}
-								</ElButton>
+								</DomButton>
 							</div>
 							<pre class="max-h-44 overflow-auto rounded-md border border-border bg-background p-3 text-[11px] leading-5"><code>{{ aiThemeRequest }}</code></pre>
 						</div>

@@ -31,7 +31,7 @@ const accent = ref('#0ea5e9');
 	<DomStudioLayout>
 		<DocPage
 			name="Color input"
-			tagline="Native colour picker paired with a hex text field — both bound to the same value."
+			tagline="A compact colour swatch that opens the native colour picker."
 			tag="<DomColorInput>"
 		>
 			<DocSection eyebrow="Playground" title="Try every prop live">
@@ -39,7 +39,7 @@ const accent = ref('#0ea5e9');
 					:inspect="DomColorInput"
 					:initial="{ label: 'Brand colour', description: 'Used for accents and links.', modelValue: '#3b82f6' }"
 					title="Color input playground"
-					description="Edit props in the inspector — picker and hex field share the same value."
+					description="Edit props in the inspector — the swatch stays bound to the same colour value."
 				/>
 			</DocSection>
 
