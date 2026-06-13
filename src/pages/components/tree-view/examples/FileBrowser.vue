@@ -148,7 +148,7 @@ function findItem(items, value) {
 				@context-menu="openContextMenu"
 			/>
 		</DomContextMenu>
-		<p class="mt-3 text-xs text-muted-fg">Selected path: <code class="text-fg">{{ selected }}</code></p>
-		<p class="mt-1 text-xs text-muted-fg">Last context action: <code class="text-fg">{{ lastAction }}</code></p>
+		<p class="mt-3 text-xs text-muted-fg">Selected path: <code class="text-canvas-fg">{{ selected }}</code></p>
+		<p class="mt-1 text-xs text-muted-fg">Last context action: <code class="text-canvas-fg">{{ lastAction }}</code></p>
 	</div>
 </template>

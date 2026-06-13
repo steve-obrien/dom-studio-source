@@ -173,8 +173,8 @@ function inviteMember() {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-wrap items-start justify-between gap-4">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Workspace access</p>
@@ -190,24 +190,24 @@ function inviteMember() {
 			</div>
 
 			<div class="mt-5 grid gap-3 md:grid-cols-4">
-				<div class="rounded-xl border border-border bg-background p-3">
+				<div class="rounded-xl border border-border bg-canvas p-3">
 					<p class="text-xs font-medium text-muted-fg">Paid seats</p>
 					<p class="mt-1 text-2xl font-semibold tracking-tight">{{ usedSeats }}/{{ seatLimit }}</p>
 					<div class="mt-3 h-2 rounded-full bg-secondary">
 						<div class="h-full rounded-full bg-primary" :style="{ width: `${seatPercent}%` }"></div>
 					</div>
 				</div>
-				<div class="rounded-xl border border-border bg-background p-3">
+				<div class="rounded-xl border border-border bg-canvas p-3">
 					<p class="text-xs font-medium text-muted-fg">Active members</p>
 					<p class="mt-1 text-2xl font-semibold tracking-tight">{{ activeCount }}</p>
 					<p class="mt-2 text-xs text-muted-fg">Across 4 teams</p>
 				</div>
-				<div class="rounded-xl border border-border bg-background p-3">
+				<div class="rounded-xl border border-border bg-canvas p-3">
 					<p class="text-xs font-medium text-muted-fg">Pending invites</p>
 					<p class="mt-1 text-2xl font-semibold tracking-tight">{{ pendingInviteCount }}</p>
 					<p class="mt-2 text-xs text-muted-fg">Expires after 7 days</p>
 				</div>
-				<div class="rounded-xl border border-border bg-background p-3">
+				<div class="rounded-xl border border-border bg-canvas p-3">
 					<p class="text-xs font-medium text-muted-fg">Access review</p>
 					<p class="mt-1 text-2xl font-semibold tracking-tight">{{ riskCount }}</p>
 					<p class="mt-2 text-xs text-muted-fg">Members need attention</p>
@@ -221,13 +221,13 @@ function inviteMember() {
 					<template #members>
 						<div class="mb-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_11rem]">
 							<DomTextInput v-model="search" label="Search members" placeholder="Name, email, role, or team" />
-							<div class="rounded-xl border border-border bg-background px-3 py-2">
+							<div class="rounded-xl border border-border bg-canvas px-3 py-2">
 								<DomToggle v-model="showOnlyRisk" label="Needs review" />
 							</div>
 						</div>
 
 						<div class="overflow-hidden rounded-xl border border-border">
-							<div class="hidden grid-cols-[minmax(15rem,1.4fr)_9rem_8rem_9rem_6rem] gap-3 border-b border-border skin-raised px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg lg:grid">
+							<div class="hidden grid-cols-[minmax(15rem,1.4fr)_9rem_8rem_9rem_6rem] gap-3 border-b border-border skin-card px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg lg:grid">
 								<span>Member</span>
 								<span>Role</span>
 								<span>Status</span>
@@ -277,7 +277,7 @@ function inviteMember() {
 									<DomNativeSelect v-model="inviteForm.role" label="Role" :options="roleOptions" />
 									<label class="block text-sm">
 										<span class="font-medium">Message</span>
-										<textarea v-model="inviteForm.message" class="dom-input mt-2 min-h-24 w-full resize-none" />
+										<textarea v-model="inviteForm.message" class="skin-input mt-2 min-h-24 w-full resize-none" />
 									</label>
 									<DomButton class="w-full" @click="inviteMember">Send invite</DomButton>
 								</div>
@@ -287,7 +287,7 @@ function inviteMember() {
 								<div
 									v-for="invite in invites"
 									:key="invite.id"
-									class="rounded-xl border border-border bg-background p-4"
+									class="rounded-xl border border-border bg-canvas p-4"
 								>
 									<div class="flex flex-wrap items-start justify-between gap-3">
 										<div class="min-w-0">
@@ -314,7 +314,7 @@ function inviteMember() {
 								<div
 									v-for="policy in accessPolicies"
 									:key="policy.label"
-									class="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-border bg-background p-4"
+									class="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-border bg-canvas p-4"
 								>
 									<div class="max-w-xl">
 										<p class="font-semibold">{{ policy.label }}</p>
@@ -343,7 +343,7 @@ function inviteMember() {
 				</DomTabs>
 			</main>
 
-			<aside class="space-y-4 skin-raised p-4 sm:p-6">
+			<aside class="space-y-4 skin-card p-4 sm:p-6">
 				<DomCard padding="sm">
 					<div class="flex items-start justify-between gap-3">
 						<div>
@@ -375,11 +375,11 @@ function inviteMember() {
 				<DomCard padding="sm">
 					<h4 class="text-sm font-semibold">Review queue</h4>
 					<div class="mt-3 space-y-3">
-						<div class="rounded-xl border border-border bg-background p-3">
+						<div class="rounded-xl border border-border bg-canvas p-3">
 							<p class="text-sm font-semibold">MFA missing</p>
 							<p class="mt-1 text-xs leading-5 text-muted-fg">Jon Bell can view reports without a second factor.</p>
 						</div>
-						<div class="rounded-xl border border-border bg-background p-3">
+						<div class="rounded-xl border border-border bg-canvas p-3">
 							<p class="text-sm font-semibold">Inactive billing user</p>
 							<p class="mt-1 text-xs leading-5 text-muted-fg">Nadia Stone has not signed in for 41 days.</p>
 						</div>

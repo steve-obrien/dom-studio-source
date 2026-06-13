@@ -166,9 +166,9 @@ function deltaClass(delta) {
 </script>
 
 <template>
-	<section class="min-h-screen bg-background text-fg">
-		<div class="mx-auto flex w-full max-w-7xl flex-col overflow-hidden border-x border-border bg-background shadow-2xl shadow-black/10">
-			<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<section class="min-h-screen bg-canvas text-canvas-fg">
+		<div class="mx-auto flex w-full max-w-7xl flex-col overflow-hidden border-x border-border bg-canvas shadow-2xl shadow-black/10">
+			<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 				<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 					<div class="min-w-0">
 						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Product analytics</p>
@@ -214,7 +214,7 @@ function deltaClass(delta) {
 			</header>
 
 			<div class="grid min-h-[48rem] lg:grid-cols-[17rem_minmax(0,1fr)_22rem]">
-				<aside class="border-b border-border skin-raised lg:border-b-0 lg:border-r">
+				<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
 					<div class="border-b border-border px-4 py-4">
 						<div class="flex items-center justify-between gap-3">
 							<h2 class="text-sm font-semibold">Saved funnels</h2>
@@ -230,10 +230,10 @@ function deltaClass(delta) {
 							:class="selectedFunnelId === funnel.id ? 'bg-secondary text-secondary-fg' : 'text-muted-fg'"
 							@click="selectFunnel(funnel)"
 						>
-							<span class="block truncate text-sm font-semibold text-fg">{{ funnel.name }}</span>
+							<span class="block truncate text-sm font-semibold text-canvas-fg">{{ funnel.name }}</span>
 							<span class="mt-1 flex items-center justify-between gap-3 text-xs">
 								<span>{{ funnel.team }} / {{ funnel.updated }}</span>
-								<strong class="text-fg">{{ funnel.rate }}%</strong>
+								<strong class="text-canvas-fg">{{ funnel.rate }}%</strong>
 							</span>
 						</button>
 					</nav>
@@ -291,7 +291,7 @@ function deltaClass(delta) {
 								:key="step.id"
 								type="button"
 								class="min-w-0 rounded-lg border p-4 text-left transition hover:border-ring"
-								:class="selectedStepId === step.id ? 'border-primary bg-primary/10' : 'border-border bg-background'"
+								:class="selectedStepId === step.id ? 'border-primary bg-primary/10' : 'border-border bg-canvas'"
 								@click="selectStep(step)"
 							>
 								<span class="flex items-start justify-between gap-3">
@@ -382,10 +382,10 @@ function deltaClass(delta) {
 							</div>
 						</div>
 
-						<aside class="border-t border-border skin-raised p-4 xl:border-l xl:border-t-0">
+						<aside class="border-t border-border skin-card p-4 xl:border-l xl:border-t-0">
 							<h2 class="text-sm font-semibold">Segment comparison</h2>
 							<div class="mt-4 grid gap-3">
-								<div v-for="segment in segments" :key="segment.name" class="rounded-lg border border-border bg-background p-3">
+								<div v-for="segment in segments" :key="segment.name" class="rounded-lg border border-border bg-canvas p-3">
 									<div class="flex items-start justify-between gap-3">
 										<div class="min-w-0">
 											<p class="truncate text-sm font-semibold">{{ segment.name }}</p>
@@ -403,14 +403,14 @@ function deltaClass(delta) {
 					</section>
 				</main>
 
-				<aside class="border-t border-border skin-raised lg:border-l lg:border-t-0">
+				<aside class="border-t border-border skin-card lg:border-l lg:border-t-0">
 					<div class="p-4">
 						<DomTabs v-model="activeTab" :tabs="insightTabs">
 							<template #insights>
 								<section>
 									<h2 class="text-sm font-semibold">Generated insights</h2>
 									<div class="mt-4 grid gap-3">
-										<article v-for="annotation in annotations" :key="annotation.step" class="rounded-lg border border-border bg-background p-3">
+										<article v-for="annotation in annotations" :key="annotation.step" class="rounded-lg border border-border bg-canvas p-3">
 											<div class="flex items-start justify-between gap-3">
 												<h3 class="text-sm font-semibold">{{ annotation.step }}</h3>
 												<span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ annotation.impact }}</span>
@@ -424,7 +424,7 @@ function deltaClass(delta) {
 								<section>
 									<h2 class="text-sm font-semibold">Cohort actions</h2>
 									<div class="mt-4 grid gap-3">
-										<article v-for="cohort in cohorts" :key="cohort.name" class="rounded-lg border border-border bg-background p-3">
+										<article v-for="cohort in cohorts" :key="cohort.name" class="rounded-lg border border-border bg-canvas p-3">
 											<h3 class="text-sm font-semibold">{{ cohort.name }}</h3>
 											<p class="mt-1 text-xs text-muted-fg">{{ cohort.size }}</p>
 											<DomButton class="mt-3 w-full" size="sm" variant="secondary">{{ cohort.action }}</DomButton>
@@ -446,7 +446,7 @@ function deltaClass(delta) {
 				</div>
 				<label class="block">
 					<span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Insight note</span>
-					<textarea class="mt-2 min-h-32 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">Investigate the setup template screen because this step has the highest drop-off in the current funnel.</textarea>
+					<textarea class="mt-2 min-h-32 w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">Investigate the setup template screen because this step has the highest drop-off in the current funnel.</textarea>
 				</label>
 				<div class="rounded-lg bg-secondary p-3 text-sm leading-6 text-muted-fg">
 					This will save the funnel definition, active range, segment comparison, selected step, and note.

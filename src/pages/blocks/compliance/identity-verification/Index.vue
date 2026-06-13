@@ -84,16 +84,16 @@ import IdentityVerificationFlowSrc from './examples/IdentityVerificationFlow.vue
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Provider handoff</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Provider handoff</h3>
 						<p class="mt-2">Create a server-side provider session, pass only the client token to the browser, and persist provider evidence IDs after each upload or liveness step.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Review safety</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Review safety</h3>
 						<p class="mt-2">Store consent, reviewer comments, decision reasons, and risk check versions so approvals and rejections can be audited later.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include document camera capture, provider session adapters, rejection reason templates, re-verification reminders, and manual review queues.</p>
 					</div>
 				</div>

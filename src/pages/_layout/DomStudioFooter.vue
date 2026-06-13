@@ -11,14 +11,14 @@ import BrandMark from './BrandMark.vue';
 				<span>© {{ new Date().getFullYear() }} DOM Studio</span>
 			</div>
 			<div class="flex max-w-full flex-wrap items-center gap-x-5 gap-y-2">
-				<RouterLink to="/" class="hover:text-fg">Overview</RouterLink>
-				<RouterLink to="/ai" class="hover:text-fg">AI</RouterLink>
-				<RouterLink to="/theming" class="hover:text-fg">Theming</RouterLink>
-				<RouterLink to="/components/button" class="hover:text-fg">Components</RouterLink>
-				<RouterLink to="/visual/card" class="hover:text-fg">Visual</RouterLink>
-				<RouterLink to="/blocks" class="hover:text-fg">Blocks</RouterLink>
-				<RouterLink to="/pricing" class="hover:text-fg">Pricing</RouterLink>
-				<a href="https://github.com/steve-obrien/getdom-studio" target="_blank" rel="noopener" class="hover:text-fg">GitHub</a>
+				<RouterLink to="/" class="hover:text-canvas-fg">Overview</RouterLink>
+				<RouterLink to="/ai" class="hover:text-canvas-fg">AI</RouterLink>
+				<RouterLink to="/theming" class="hover:text-canvas-fg">Theming</RouterLink>
+				<RouterLink to="/components/button" class="hover:text-canvas-fg">Components</RouterLink>
+				<RouterLink to="/visual/card" class="hover:text-canvas-fg">Visual</RouterLink>
+				<RouterLink to="/blocks" class="hover:text-canvas-fg">Blocks</RouterLink>
+				<RouterLink to="/pricing" class="hover:text-canvas-fg">Pricing</RouterLink>
+				<a href="https://github.com/steve-obrien/getdom-studio" target="_blank" rel="noopener" class="hover:text-canvas-fg">GitHub</a>
 			</div>
 		</div>
 	</footer>

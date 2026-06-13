@@ -71,16 +71,16 @@ import FunnelAnalyticsExplorerSrc from './examples/FunnelAnalyticsExplorer.vue?r
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Event catalog</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Event catalog</h3>
 						<p class="mt-2">Keep event labels, property types, deprecated events, and compatible filters server-owned so teams cannot create broken funnel definitions.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Query behavior</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Query behavior</h3>
 						<p class="mt-2">Return sampled results quickly, include freshness and sampling warnings, then let heavier cohort exports run as asynchronous jobs.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Good follow-ups include reusable event pickers, cohort builders, annotation overlays, query warnings, and audience sync job monitors.</p>
 					</div>
 				</div>

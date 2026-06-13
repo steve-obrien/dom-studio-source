@@ -108,8 +108,8 @@ function money(value) {
 </script>
 
 <template>
-	<div class="w-full max-w-7xl overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full max-w-7xl overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Checkout review</p>
@@ -118,7 +118,7 @@ function money(value) {
 						Review fulfilment, payment, discount, risk checks, and the final amount before authorizing payment.
 					</p>
 				</div>
-				<div class="grid gap-1 rounded-2xl border border-border bg-background px-4 py-3 text-sm">
+				<div class="grid gap-1 rounded-2xl border border-border bg-canvas px-4 py-3 text-sm">
 					<span class="font-semibold">{{ orderStatusLabel }}</span>
 					<span class="text-muted-fg">Quote expires in {{ inventoryHoldMinutes }} minutes</span>
 				</div>
@@ -142,7 +142,7 @@ function money(value) {
 						<div
 							v-for="item in cartItems"
 							:key="item.id"
-							class="grid gap-3 bg-background p-4 sm:grid-cols-[minmax(0,1fr)_8rem_auto]"
+							class="grid gap-3 bg-canvas p-4 sm:grid-cols-[minmax(0,1fr)_8rem_auto]"
 						>
 							<div class="min-w-0">
 								<div class="flex flex-wrap items-center gap-2">
@@ -196,7 +196,7 @@ function money(value) {
 						</div>
 					</div>
 
-					<aside class="rounded-2xl border border-border bg-background p-4">
+					<aside class="rounded-2xl border border-border bg-canvas p-4">
 						<h4 class="font-semibold tracking-tight">Checkout checks</h4>
 						<div class="mt-4 grid gap-3">
 							<div v-for="check in readyChecks" :key="check.label" class="flex items-start gap-3 text-sm">
@@ -207,7 +207,7 @@ function money(value) {
 									{{ check.passed ? 'OK' : '!' }}
 								</span>
 								<span class="min-w-0">
-									<span class="block font-medium text-fg">{{ check.label }}</span>
+									<span class="block font-medium text-canvas-fg">{{ check.label }}</span>
 									<span class="mt-0.5 block leading-5 text-muted-fg">{{ check.detail }}</span>
 								</span>
 							</div>
@@ -216,7 +216,7 @@ function money(value) {
 				</section>
 			</main>
 
-			<aside class="grid content-start skin-raised">
+			<aside class="grid content-start skin-card">
 				<section class="border-b border-border p-4 sm:p-6">
 					<div class="flex items-start justify-between gap-3">
 						<div>
@@ -247,7 +247,7 @@ function money(value) {
 						</div>
 					</div>
 
-					<div class="mt-5 rounded-2xl border border-border bg-background p-4 text-sm leading-6">
+					<div class="mt-5 rounded-2xl border border-border bg-canvas p-4 text-sm leading-6">
 						<p class="font-semibold">{{ selectedShipping.label }}</p>
 						<p class="mt-1 text-muted-fg">{{ selectedShipping.detail }}</p>
 						<p class="mt-3 font-semibold">{{ selectedPayment.label }}</p>
@@ -267,7 +267,7 @@ function money(value) {
 
 				<section class="border-b border-border p-4 sm:p-6">
 					<h4 class="font-semibold tracking-tight">Ship to</h4>
-					<div class="mt-3 rounded-2xl bg-background p-4 text-sm leading-6">
+					<div class="mt-3 rounded-2xl bg-canvas p-4 text-sm leading-6">
 						<p class="font-semibold">Alex Morgan</p>
 						<p class="mt-1 text-muted-fg">14 Market Street, London W1F 8ZA</p>
 						<p class="mt-1 text-muted-fg">alex@example.com</p>

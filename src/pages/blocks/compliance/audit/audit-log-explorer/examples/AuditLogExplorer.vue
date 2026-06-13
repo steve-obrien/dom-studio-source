@@ -234,8 +234,8 @@ function outcomeClasses(outcome) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div class="min-w-0">
 					<p class="text-xs font-semibold uppercase text-muted-fg">Enterprise security</p>
@@ -264,15 +264,15 @@ function outcomeClasses(outcome) {
 			</div>
 
 			<div class="mt-5 grid gap-3 sm:grid-cols-3">
-				<div class="rounded-2xl border border-border bg-background p-4">
+				<div class="rounded-2xl border border-border bg-canvas p-4">
 					<p class="text-xs font-medium text-muted-fg">Matching events</p>
 					<p class="mt-2 text-2xl font-semibold">{{ filteredEvents.length }}</p>
 				</div>
-				<div class="rounded-2xl border border-border bg-background p-4">
+				<div class="rounded-2xl border border-border bg-canvas p-4">
 					<p class="text-xs font-medium text-muted-fg">Success rate</p>
 					<p class="mt-2 text-2xl font-semibold">{{ successRate }}%</p>
 				</div>
-				<div class="rounded-2xl border border-border bg-background p-4">
+				<div class="rounded-2xl border border-border bg-canvas p-4">
 					<p class="text-xs font-medium text-muted-fg">High risk</p>
 					<p class="mt-2 text-2xl font-semibold">{{ highRiskCount }}</p>
 				</div>
@@ -308,7 +308,7 @@ function outcomeClasses(outcome) {
 						<tr class="cursor-pointer transition hover:bg-secondary/50" @click="toggleEvent(event)">
 							<td class="px-4 py-4 sm:px-6">
 								<div class="flex min-w-0 items-start gap-3">
-									<span class="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl border border-border bg-background text-muted-fg">
+									<span class="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl border border-border bg-canvas text-muted-fg">
 										<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 											<path d="M7 4h10v16H7V4Zm3 5h4M10 13h4M10 17h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
 										</svg>
@@ -349,7 +349,7 @@ function outcomeClasses(outcome) {
 						<tr v-if="expandedEvent?.id === event.id" class="bg-secondary/35">
 							<td colspan="6" class="px-4 py-4 sm:px-6">
 								<div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-									<div class="rounded-2xl border border-border bg-background p-4">
+									<div class="rounded-2xl border border-border bg-canvas p-4">
 										<div class="flex flex-wrap items-center justify-between gap-3">
 											<div>
 												<p class="text-xs font-semibold uppercase text-muted-fg">Event metadata</p>
@@ -370,7 +370,7 @@ function outcomeClasses(outcome) {
 											</div>
 										</div>
 									</div>
-									<div class="rounded-2xl border border-border bg-background p-4">
+									<div class="rounded-2xl border border-border bg-canvas p-4">
 										<p class="text-xs font-semibold uppercase text-muted-fg">Request context</p>
 										<dl class="mt-3 space-y-2 text-sm">
 											<div class="flex justify-between gap-3">

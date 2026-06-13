@@ -134,8 +134,8 @@ function queueLaunch() {
 </script>
 
 <template>
-	<section class="min-h-screen bg-background text-fg">
-		<div class="mx-auto flex w-full max-w-7xl flex-col border-x border-border bg-background shadow-2xl shadow-black/10">
+	<section class="min-h-screen bg-canvas text-canvas-fg">
+		<div class="mx-auto flex w-full max-w-7xl flex-col border-x border-border bg-canvas shadow-2xl shadow-black/10">
 			<header class="border-b border-border px-4 py-4 sm:px-6">
 				<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 					<div class="min-w-0">
@@ -151,7 +151,7 @@ function queueLaunch() {
 			</header>
 
 			<div class="grid min-h-[45rem] lg:grid-cols-[18rem_minmax(0,1fr)_21rem]">
-				<aside class="border-b border-border skin-raised lg:border-b-0 lg:border-r">
+				<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
 					<div class="border-b border-border px-4 py-4">
 						<div class="flex items-center justify-between gap-3">
 							<h2 class="text-sm font-semibold">Campaigns</h2>
@@ -169,10 +169,10 @@ function queueLaunch() {
 						>
 							<span class="flex items-start justify-between gap-3">
 								<span class="min-w-0">
-									<span class="block truncate text-sm font-semibold text-fg">{{ campaign.name }}</span>
+									<span class="block truncate text-sm font-semibold text-canvas-fg">{{ campaign.name }}</span>
 									<span class="mt-1 block text-xs">{{ campaign.owner }} / {{ campaign.updated }}</span>
 								</span>
-								<span class="rounded-full bg-background px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ campaign.status }}</span>
+								<span class="rounded-full bg-canvas px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ campaign.status }}</span>
 							</span>
 							<span class="mt-3 flex items-center justify-between border-t border-border pt-3 text-xs">
 								<span>{{ campaign.reach.toLocaleString() }} reach</span>
@@ -192,11 +192,11 @@ function queueLaunch() {
 							<div class="grid gap-3 sm:grid-cols-2">
 								<label class="block">
 									<span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Send date</span>
-									<input v-model="sendDate" type="date" class="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
+									<input v-model="sendDate" type="date" class="mt-1 block w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
 								</label>
 								<label class="block">
 									<span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Send time</span>
-									<input v-model="sendTime" type="time" class="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
+									<input v-model="sendTime" type="time" class="mt-1 block w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
 								</label>
 							</div>
 						</div>
@@ -209,18 +209,18 @@ function queueLaunch() {
 									<div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_12rem]">
 										<label class="block">
 											<span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Subject</span>
-											<input v-model="subject" class="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
+											<input v-model="subject" class="mt-1 block w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
 											<span class="mt-1 block text-xs text-muted-fg">{{ subject.length }} / 64 recommended characters</span>
 										</label>
 										<label class="block">
 											<span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">CTA</span>
-											<input v-model="cta" class="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
+											<input v-model="cta" class="mt-1 block w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
 										</label>
 									</div>
 
 									<label class="block">
 										<span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Preheader</span>
-										<input v-model="preheader" class="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
+										<input v-model="preheader" class="mt-1 block w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
 									</label>
 
 									<div>
@@ -247,7 +247,7 @@ function queueLaunch() {
 												</template>
 											</DomPopover>
 										</div>
-										<textarea id="campaign-body" v-model="body" rows="7" class="mt-2 block w-full resize-none rounded-lg border border-input bg-background px-3 py-3 text-sm leading-6 outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
+										<textarea id="campaign-body" v-model="body" rows="7" class="mt-2 block w-full resize-none rounded-lg border border-input bg-canvas px-3 py-3 text-sm leading-6 outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
 									</div>
 								</div>
 							</template>
@@ -286,7 +286,7 @@ function queueLaunch() {
 											</span>
 											<span class="flex items-center gap-3 justify-self-start sm:justify-self-end">
 												<span class="text-sm font-semibold">{{ Math.abs(segment.count).toLocaleString() }}</span>
-												<span class="grid size-5 place-items-center rounded border" :class="audienceSegments.includes(segment.name) ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-background'">
+												<span class="grid size-5 place-items-center rounded border" :class="audienceSegments.includes(segment.name) ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-canvas'">
 													<span v-if="audienceSegments.includes(segment.name)" class="text-[10px] font-bold">OK</span>
 												</span>
 											</span>
@@ -313,7 +313,7 @@ function queueLaunch() {
 										>
 											<span class="flex items-center justify-between gap-3">
 												<span class="text-sm font-semibold">{{ channel.name }}</span>
-												<span class="rounded-full bg-background px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ channel.size }}</span>
+												<span class="rounded-full bg-canvas px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ channel.size }}</span>
 											</span>
 											<span class="text-xs leading-5 text-muted-fg">{{ channel.detail }}</span>
 										</button>
@@ -329,7 +329,7 @@ function queueLaunch() {
 														:key="channel.name"
 														type="button"
 														class="rounded-full border px-3 py-1 text-xs font-semibold transition"
-														:class="selectedChannels.includes(channel.name) ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-background text-muted-fg'"
+														:class="selectedChannels.includes(channel.name) ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-canvas text-muted-fg'"
 														@click="toggleChannel(channel.name)"
 													>
 														{{ channel.name }}
@@ -338,7 +338,7 @@ function queueLaunch() {
 											</div>
 										</div>
 										<div class="p-4 sm:p-6">
-											<div class="mx-auto max-w-lg rounded-lg border border-border bg-background shadow-lg">
+											<div class="mx-auto max-w-lg rounded-lg border border-border bg-canvas shadow-lg">
 												<div class="border-b border-border px-5 py-4">
 													<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">{{ activeCampaign.owner }}</p>
 													<h2 class="mt-2 text-xl font-semibold tracking-tight">{{ subject }}</h2>
@@ -358,7 +358,7 @@ function queueLaunch() {
 					</div>
 				</main>
 
-				<aside class="border-t border-border skin-raised lg:border-l lg:border-t-0">
+				<aside class="border-t border-border skin-card lg:border-l lg:border-t-0">
 					<div class="border-b border-border px-4 py-4">
 						<div class="flex items-center justify-between gap-3">
 							<div>
@@ -366,7 +366,7 @@ function queueLaunch() {
 								<p class="mt-1 text-xs text-muted-fg">{{ launchState }}</p>
 							</div>
 							<DomTooltip text="Score combines content, audience, channel, schedule, and measurement readiness." placement="left">
-								<span class="grid size-11 place-items-center rounded-full border border-border bg-background text-sm font-semibold">{{ readinessScore }}</span>
+								<span class="grid size-11 place-items-center rounded-full border border-border bg-canvas text-sm font-semibold">{{ readinessScore }}</span>
 							</DomTooltip>
 						</div>
 						<div class="mt-4 h-2 overflow-hidden rounded-full bg-secondary">

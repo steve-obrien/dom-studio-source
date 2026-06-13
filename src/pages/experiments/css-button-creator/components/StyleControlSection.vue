@@ -28,7 +28,7 @@ function toggleOpen() {
 </script>
 
 <template>
-	<section class="rounded-lg border border-border skin-raised text-fg" :class="muted && 'opacity-60'">
+	<section class="rounded-lg border border-border skin-card text-canvas-fg" :class="muted && 'opacity-60'">
 		<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 			<button type="button" class="min-w-0 text-left" @click="toggleOpen">
 				<span class="block truncate text-sm font-semibold">{{ title }}</span>

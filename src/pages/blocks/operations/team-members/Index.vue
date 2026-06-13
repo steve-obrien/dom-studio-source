@@ -80,16 +80,16 @@ import TeamAccessConsoleSrc from './examples/TeamAccessConsole.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Access rules</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Access rules</h3>
 						<p class="mt-2">Keep role capabilities server-owned. The UI should render descriptions from your policy model, but the API must enforce every permission change.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Billing impact</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Billing impact</h3>
 						<p class="mt-2">Connect the seat meter to billing rules so upgrades, pending invites, guest seats, and inactive users are counted exactly the way your plan does.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">A reusable permission matrix, SCIM directory sync panel, owner-transfer dialog, and bulk member actions would extend this block for larger teams.</p>
 					</div>
 				</div>

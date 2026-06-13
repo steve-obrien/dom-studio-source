@@ -55,7 +55,7 @@ const actions = [
 				<template #trailing>
 					<button
 						type="button"
-						class="grid size-10 place-items-center rounded-full bg-secondary text-fg active:scale-95"
+						class="grid size-10 place-items-center rounded-full bg-secondary text-canvas-fg active:scale-95"
 						aria-label="More actions"
 						@click="sheetOpen = true"
 					>
@@ -82,7 +82,7 @@ const actions = [
 				/>
 			</div>
 
-			<div class="overflow-hidden rounded-[1.5rem] border border-border bg-background">
+			<div class="overflow-hidden rounded-[1.5rem] border border-border bg-canvas">
 				<DomAppListItem
 					v-for="task in filteredTasks"
 					:key="task.label"
@@ -99,7 +99,7 @@ const actions = [
 				</DomAppListItem>
 			</div>
 
-			<div class="overflow-hidden rounded-[1.5rem] border border-border bg-background">
+			<div class="overflow-hidden rounded-[1.5rem] border border-border bg-canvas">
 				<DomAppListItem label="Push notifications" description="Demo row using an existing DOM Studio toggle.">
 					<template #trailing>
 						<DomToggle v-model="notifications" aria-label="Push notifications" />
@@ -123,7 +123,7 @@ const actions = [
 </template>
 
 <style scoped>
-.mobile-task-search :deep(.dom-input) {
+.mobile-task-search :deep(.skin-input) {
 	height: 3rem;
 	border-radius: 1rem;
 	background: color-mix(in oklch, var(--secondary) 80%, transparent);

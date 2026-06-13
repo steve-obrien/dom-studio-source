@@ -15,7 +15,7 @@ const selected = ref('');
 	<div class="flex flex-col items-center gap-3">
 		<DomDropdown :items="items" label="Account ▾" @select="(v) => selected = v" />
 		<p class="text-xs text-muted-fg">
-			Selected: <code class="text-fg">{{ selected || '—' }}</code>
+			Selected: <code class="text-canvas-fg">{{ selected || '—' }}</code>
 		</p>
 	</div>
 </template>

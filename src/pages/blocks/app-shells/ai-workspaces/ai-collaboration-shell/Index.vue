@@ -77,16 +77,16 @@ import AiCollaborationShellSrc from './examples/AiCollaborationShell.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Context boundary</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Context boundary</h3>
 						<p class="mt-2">Show which sources the assistant can use, which sources are stale, and which require human confirmation before generation.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Decision states</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Decision states</h3>
 						<p class="mt-2">Model suggestions should move through proposed, edited, approved, applied, rejected, and reverted states.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include shared cursors, prompt traces, source diffs, branchable plans, and batch approval controls.</p>
 					</div>
 				</div>

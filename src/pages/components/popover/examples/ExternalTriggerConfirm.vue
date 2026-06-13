@@ -18,7 +18,7 @@ function remove(row) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-2xl border border-border bg-background">
+	<div class="w-full overflow-hidden rounded-2xl border border-border bg-canvas">
 		<table class="w-full text-left text-sm">
 			<thead class="bg-secondary/70 text-xs uppercase tracking-wider text-muted-fg">
 				<tr>
@@ -30,7 +30,7 @@ function remove(row) {
 			</thead>
 			<tbody class="divide-y divide-border">
 				<tr v-for="row in rows" :key="row.id">
-					<td class="px-4 py-3 font-medium text-fg">{{ row.name }}</td>
+					<td class="px-4 py-3 font-medium text-canvas-fg">{{ row.name }}</td>
 					<td class="px-4 py-3 text-muted-fg">{{ row.email }}</td>
 					<td class="px-4 py-3 text-muted-fg">{{ row.role }}</td>
 					<td class="px-4 py-3 text-right">
@@ -50,7 +50,7 @@ function remove(row) {
 						>
 							<div class="space-y-3">
 								<div class="space-y-1">
-									<p class="font-medium text-fg">Delete {{ row.name }}?</p>
+									<p class="font-medium text-canvas-fg">Delete {{ row.name }}?</p>
 									<p class="text-sm leading-5 text-muted-fg">
 										This removes the row from the local table. The trigger button lives outside the popover.
 									</p>

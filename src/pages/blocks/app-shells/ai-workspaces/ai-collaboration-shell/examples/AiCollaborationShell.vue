@@ -147,13 +147,13 @@ function sourceClass(state) {
 function workstreamClass(workstream) {
 	return workstream.id === selectedWorkstream.value.id
 		? 'border-primary/60 bg-primary/5'
-		: 'border-border bg-background hover:border-primary/40';
+		: 'border-border bg-canvas hover:border-primary/40';
 }
 </script>
 
 <template>
-	<div class="min-h-screen bg-background text-fg">
-		<header class="border-b border-border skin-raised">
+	<div class="min-h-screen bg-canvas text-canvas-fg">
+		<header class="border-b border-border skin-card">
 			<div class="flex flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
 				<div class="min-w-0">
 					<p class="text-xs font-semibold uppercase text-muted-fg">AI workspace</p>
@@ -174,7 +174,7 @@ function workstreamClass(workstream) {
 						<DomNativeSelect v-model="selectedAgent" :options="agentOptions" class="w-full" />
 					</label>
 					<DomTooltip text="Allows low-risk accepted suggestions to become draft changes automatically.">
-						<label class="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium">
+						<label class="inline-flex items-center gap-2 rounded-full border border-border bg-canvas px-3 py-2 text-sm font-medium">
 							<DomToggle v-model="autonomyEnabled" />
 							Autonomy
 						</label>
@@ -191,15 +191,15 @@ function workstreamClass(workstream) {
 
 		<section class="border-b border-border bg-secondary/40 px-4 py-3">
 			<div class="grid gap-3 sm:grid-cols-3">
-				<div class="rounded-lg border border-border bg-background px-4 py-3">
+				<div class="rounded-lg border border-border bg-canvas px-4 py-3">
 					<p class="text-xs font-medium text-muted-fg">Accepted suggestions</p>
 					<p class="mt-1 text-2xl font-semibold">{{ acceptedSuggestions }}/{{ suggestionDrafts.length }}</p>
 				</div>
-				<div class="rounded-lg border border-border bg-background px-4 py-3">
+				<div class="rounded-lg border border-border bg-canvas px-4 py-3">
 					<p class="text-xs font-medium text-muted-fg">Context health</p>
 					<p class="mt-1 text-2xl font-semibold">{{ contextHealth }}</p>
 				</div>
-				<div class="rounded-lg border border-border bg-background px-4 py-3">
+				<div class="rounded-lg border border-border bg-canvas px-4 py-3">
 					<p class="text-xs font-medium text-muted-fg">Approvals waiting</p>
 					<p class="mt-1 text-2xl font-semibold">{{ waitingApprovals }}</p>
 				</div>
@@ -207,7 +207,7 @@ function workstreamClass(workstream) {
 		</section>
 
 		<main class="space-y-4 p-4">
-			<section class="rounded-xl border border-border bg-background">
+			<section class="rounded-xl border border-border bg-canvas">
 				<div class="grid gap-0 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
 					<div class="border-b border-border p-4 xl:border-b-0 xl:border-r">
 						<div class="flex items-center justify-between gap-3">
@@ -269,7 +269,7 @@ function workstreamClass(workstream) {
 										<div
 											v-for="source in contextSources"
 											:key="source.id"
-											class="rounded-lg border border-border bg-background p-3"
+											class="rounded-lg border border-border bg-canvas p-3"
 										>
 											<div class="flex items-start justify-between gap-3">
 												<div>
@@ -289,7 +289,7 @@ function workstreamClass(workstream) {
 										<article
 											v-for="suggestion in suggestionDrafts"
 											:key="suggestion.id"
-											class="flex min-h-64 flex-col rounded-lg border border-border bg-background p-4"
+											class="flex min-h-64 flex-col rounded-lg border border-border bg-canvas p-4"
 										>
 											<div class="flex items-start justify-between gap-3">
 												<div>
@@ -323,7 +323,7 @@ function workstreamClass(workstream) {
 										<div
 											v-for="approval in approvals"
 											:key="approval.id"
-											class="rounded-lg border border-border bg-background p-4"
+											class="rounded-lg border border-border bg-canvas p-4"
 										>
 											<div class="flex items-start justify-between gap-3">
 												<div>
@@ -345,7 +345,7 @@ function workstreamClass(workstream) {
 			</section>
 
 			<section class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_24rem]">
-				<div class="rounded-xl border border-border bg-background p-4">
+				<div class="rounded-xl border border-border bg-canvas p-4">
 					<div class="flex flex-wrap items-center justify-between gap-3">
 						<div>
 							<h4 class="font-semibold">Collaboration timeline</h4>
@@ -369,7 +369,7 @@ function workstreamClass(workstream) {
 					</div>
 				</div>
 
-				<div class="rounded-xl border border-border bg-background p-4">
+				<div class="rounded-xl border border-border bg-canvas p-4">
 					<h4 class="font-semibold">Decision contract</h4>
 					<div class="mt-4 space-y-3 text-sm">
 						<div class="flex items-center justify-between gap-3">

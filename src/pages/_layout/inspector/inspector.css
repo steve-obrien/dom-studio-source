@@ -37,7 +37,7 @@
 	z-index: 10;
 	background: var(--primary);
 	border-radius: 2px;
-	box-shadow: 0 0 0 1px color-mix(in oklch, var(--background) 80%, transparent), 0 0 0 3px color-mix(in oklch, var(--primary) 25%, transparent);
+	box-shadow: 0 0 0 1px color-mix(in oklch, var(--canvas) 80%, transparent), 0 0 0 3px color-mix(in oklch, var(--primary) 25%, transparent);
 }
 .dom-drop-indicator--inside {
 	background: transparent;

@@ -40,6 +40,7 @@ function defaultEditorForProp(def) {
 	const t = def?.type ?? def;
 	const types = Array.isArray(t) ? t : [t];
 	if (types.includes(Boolean)) return 'DomToggle';
+	if (types.includes(String)) return 'DomTextInput';
 	if (types.includes(Number)) return 'DomNumberInput';
 	if (types.includes(Array) || types.includes(Object) || types.includes(Function)) return null;
 	return 'DomTextInput';

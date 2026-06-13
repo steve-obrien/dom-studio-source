@@ -50,7 +50,7 @@ function onMove(dir) {
 		<div v-if="showHeader" class="flex items-center justify-between border-b border-border px-4 py-3">
 			<div>
 				<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Inspector</p>
-				<p class="text-sm font-medium text-fg">Live properties</p>
+				<p class="text-sm font-medium text-canvas-fg">Live properties</p>
 			</div>
 			<button
 				v-if="showPick"
@@ -58,7 +58,7 @@ function onMove(dir) {
 				class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 transition"
 				:class="ctx.pickMode
 					? 'bg-primary text-primary-fg ring-ring'
-					: 'bg-background text-muted-fg ring-border hover:bg-secondary'"
+					: 'bg-canvas text-muted-fg ring-border hover:bg-secondary'"
 				:title="ctx.pickMode ? 'Click selects · turn off to interact' : 'Clicks pass through · turn on to select'"
 				@click="togglePick"
 			>
@@ -77,7 +77,7 @@ function onMove(dir) {
 						type="button"
 						class="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left text-xs transition"
 						:class="ctx.selectedId === node.id
-							? 'bg-primary/10 text-fg'
+							? 'bg-primary/10 text-canvas-fg'
 							: 'text-muted-fg hover:bg-secondary'"
 						:style="{ paddingLeft: 8 + depth * 14 + 'px' }"
 						@click="select(node.id)"
@@ -96,7 +96,7 @@ function onMove(dir) {
 				<div class="mb-4 flex items-start justify-between gap-3">
 					<div>
 						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Selected</p>
-						<p class="text-base font-semibold tracking-tight text-fg">{{ selected.label }}</p>
+						<p class="text-base font-semibold tracking-tight text-canvas-fg">{{ selected.label }}</p>
 					</div>
 				</div>
 
@@ -117,9 +117,9 @@ function onMove(dir) {
 				<div v-if="enableActions && !isRoot" class="mt-6 space-y-2 border-t border-border pt-4">
 					<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Actions</p>
 					<div class="flex flex-wrap gap-1.5">
-						<button class="rounded-md bg-background px-2.5 py-1 text-xs font-medium text-muted-fg ring-1 ring-border hover:bg-secondary" @click="onMove(-1)">↑ Up</button>
-						<button class="rounded-md bg-background px-2.5 py-1 text-xs font-medium text-muted-fg ring-1 ring-border hover:bg-secondary" @click="onMove(1)">↓ Down</button>
-						<button class="rounded-md bg-background px-2.5 py-1 text-xs font-medium text-muted-fg ring-1 ring-border hover:bg-secondary" @click="onDuplicate">⧉ Duplicate</button>
+						<button class="rounded-md bg-canvas px-2.5 py-1 text-xs font-medium text-muted-fg ring-1 ring-border hover:bg-secondary" @click="onMove(-1)">↑ Up</button>
+						<button class="rounded-md bg-canvas px-2.5 py-1 text-xs font-medium text-muted-fg ring-1 ring-border hover:bg-secondary" @click="onMove(1)">↓ Down</button>
+						<button class="rounded-md bg-canvas px-2.5 py-1 text-xs font-medium text-muted-fg ring-1 ring-border hover:bg-secondary" @click="onDuplicate">⧉ Duplicate</button>
 						<button class="rounded-md bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive ring-1 ring-destructive/30 hover:bg-destructive/15 dark:text-destructive" @click="onDelete">✕ Delete</button>
 					</div>
 				</div>

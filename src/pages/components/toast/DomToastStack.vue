@@ -40,7 +40,7 @@ const props = defineProps({
 	position: {
 		type: String,
 		default: 'top-right',
-		_edit: { options: ['top-right', 'top-left', 'bottom-right', 'bottom-left'], description: 'Viewport corner.' },
+		_edit: { options: ['top-right', 'top-center', 'top-left', 'bottom-right', 'bottom-center', 'bottom-left'], description: 'Viewport placement.' },
 	},
 	duration: {
 		type: Number,
@@ -209,8 +209,10 @@ function onToastAction(toast, payload) {
 		class="fixed z-[80] grid w-[min(92vw,22rem)] gap-2"
 		:class="{
 			'top-4 right-4': position === 'top-right',
+			'top-4 left-1/2 -translate-x-1/2': position === 'top-center',
 			'top-4 left-4': position === 'top-left',
 			'bottom-4 right-4': position === 'bottom-right',
+			'bottom-4 left-1/2 -translate-x-1/2': position === 'bottom-center',
 			'bottom-4 left-4': position === 'bottom-left',
 		}"
 	>
@@ -227,7 +229,7 @@ function onToastAction(toast, payload) {
 				<div class="toast-shell-inner">
 					<div
 						:role="toast.tone === 'danger' ? 'alert' : 'status'"
-						class="skin-floating overflow-hidden rounded-2xl p-4"
+						class="skin-popover overflow-hidden rounded-2xl p-4"
 						:class="[
 							toneClass(toast.tone),
 							toast.motion === 'entering' && 'toast-entering',

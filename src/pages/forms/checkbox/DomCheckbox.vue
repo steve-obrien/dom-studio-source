@@ -61,7 +61,7 @@ watch(field.value, (value) => {
 			@blur="field.onBlur"
 			/>
 			<span v-if="chrome !== 'none'" class="grid gap-0.5">
-				<span v-if="label" :id="labelId" class="text-sm font-medium text-fg">{{ label }}</span>
+				<span v-if="label" :id="labelId" class="text-sm font-medium text-canvas-fg">{{ label }}</span>
 				<span v-if="description" :id="field.descriptionId.value" class="text-xs text-muted-fg">{{ description }}</span>
 				<span v-if="field.errors.value.length" :id="field.errorId.value" class="text-xs text-destructive">{{ field.errors.value[0].message || field.errors.value[0] }}</span>
 			</span>

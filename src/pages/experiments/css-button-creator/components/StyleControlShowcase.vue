@@ -202,8 +202,8 @@ function formatObject(value) {
 
 <template>
 	<div class="grid gap-4 2xl:grid-cols-2">
-		<section class="rounded-lg border border-border skin-raised p-3 text-fg 2xl:col-span-2">
-			<div class="mb-3 grid min-h-36 place-items-center rounded-lg border border-border bg-[linear-gradient(135deg,var(--background),var(--secondary))] p-6">
+		<section class="rounded-lg border border-border skin-card p-3 text-canvas-fg 2xl:col-span-2">
+			<div class="mb-3 grid min-h-36 place-items-center rounded-lg border border-border bg-[linear-gradient(135deg,var(--canvas),var(--secondary))] p-6">
 				<div class="button-preview" :style="stylesEditorDemo.styles">Results</div>
 			</div>
 			<div class="grid gap-3 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
@@ -214,15 +214,15 @@ function formatObject(value) {
 					title="Mapped result"
 				/>
 				<div class="grid content-start gap-3">
-					<div class="rounded-lg border border-border bg-background p-3">
+					<div class="rounded-lg border border-border bg-canvas p-3">
 						<p class="text-sm font-semibold">v-model API</p>
 						<pre class="mt-2 max-h-60 overflow-auto whitespace-pre-wrap text-[11px] leading-5"><code>{{ stylesEditorApiCode }}</code></pre>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-3">
+					<div class="rounded-lg border border-border bg-canvas p-3">
 						<p class="text-sm font-semibold">Useable styles</p>
 						<pre class="mt-2 max-h-44 overflow-auto whitespace-pre-wrap text-[11px] leading-5"><code>{{ formatObject(stylesEditorDemo.styles) }}</code></pre>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-3">
+					<div class="rounded-lg border border-border bg-canvas p-3">
 						<p class="text-sm font-semibold">Resulting variables</p>
 						<pre class="mt-2 max-h-44 overflow-auto whitespace-pre-wrap text-[11px] leading-5"><code>{{ formatObject(stylesEditorDemo.vars) }}</code></pre>
 					</div>
@@ -230,8 +230,8 @@ function formatObject(value) {
 			</div>
 		</section>
 
-		<section class="rounded-lg border border-border skin-raised p-3 text-fg 2xl:col-span-2">
-			<div class="mb-3 grid min-h-36 place-items-center rounded-lg border border-border bg-[linear-gradient(135deg,var(--background),var(--secondary))] p-6">
+		<section class="rounded-lg border border-border skin-card p-3 text-canvas-fg 2xl:col-span-2">
+			<div class="mb-3 grid min-h-36 place-items-center rounded-lg border border-border bg-[linear-gradient(135deg,var(--canvas),var(--secondary))] p-6">
 				<button type="button" class="button-preview" :style="componentButtonPreviewStyle">Button component</button>
 			</div>
 			<div class="grid gap-3 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
@@ -241,11 +241,11 @@ function formatObject(value) {
 					title="Button"
 				/>
 				<div class="grid content-start gap-3">
-					<div class="rounded-lg border border-border bg-background p-3">
+					<div class="rounded-lg border border-border bg-canvas p-3">
 						<p class="text-sm font-semibold">Component API</p>
 						<pre class="mt-2 max-h-56 overflow-auto whitespace-pre-wrap text-[11px] leading-5"><code>{{ componentApiCode }}</code></pre>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-3">
+					<div class="rounded-lg border border-border bg-canvas p-3">
 						<p class="text-sm font-semibold">Variable output</p>
 						<pre class="mt-2 max-h-56 overflow-auto whitespace-pre-wrap text-[11px] leading-5"><code>{{ formatCssVariableBlock(componentButtonCssVariables) }}</code></pre>
 					</div>
@@ -253,20 +253,20 @@ function formatObject(value) {
 			</div>
 		</section>
 
-		<section class="rounded-lg border border-border skin-raised p-3 text-fg">
+		<section class="rounded-lg border border-border skin-card p-3 text-canvas-fg">
 			<div class="mb-3 h-28 rounded-lg border border-border" :style="backgroundPreviewStyle"></div>
 			<CssBackgroundControl v-model="backgroundOpen.control" :background="backgroundDemo" title="Background" />
 		</section>
 
-		<section class="rounded-lg border border-border skin-raised p-3 text-fg">
-			<div class="mb-3 grid h-28 place-items-center rounded-lg border border-border bg-background">
+		<section class="rounded-lg border border-border skin-card p-3 text-canvas-fg">
+			<div class="mb-3 grid h-28 place-items-center rounded-lg border border-border bg-canvas">
 				<div class="h-14 w-28 rounded-lg bg-secondary" :style="shadowPreviewStyle"></div>
 			</div>
 			<CssBoxShadowControl v-model="shadowOpen.control" :shadows="shadowDemo" title="Box shadows" />
 		</section>
 
-		<section class="rounded-lg border border-border skin-raised p-3 text-fg 2xl:col-span-2">
-			<div class="mb-3 grid min-h-36 place-items-center rounded-lg border border-border bg-[linear-gradient(135deg,var(--background),var(--secondary))] p-6">
+		<section class="rounded-lg border border-border skin-card p-3 text-canvas-fg 2xl:col-span-2">
+			<div class="mb-3 grid min-h-36 place-items-center rounded-lg border border-border bg-[linear-gradient(135deg,var(--canvas),var(--secondary))] p-6">
 				<button type="button" class="button-preview" :style="fullButtonStyle">{{ fullButton.label }}</button>
 			</div>
 			<div class="grid gap-3 xl:grid-cols-2">

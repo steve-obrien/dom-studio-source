@@ -1,6 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { DomButton, DomCheckbox, DomDialog, DomNativeSelect, DomTabs, DomTextInput, DomTooltip } from '@getdom/studio/vue';
+import { DomBadge, DomButton, DomCheckbox, DomDialog, DomListbox, DomStatusPill, DomTabs, DomTextInput, DomTooltip } from '@getdom/studio/vue';
+import AssetPreviewArtwork from '../components/AssetPreviewArtwork.vue';
+import AssetTile from '../components/AssetTile.vue';
+import SelectedAssetChip from '../components/SelectedAssetChip.vue';
 
 const collectionTabs = [
 	{ key: 'all', label: 'All' },
@@ -11,16 +14,16 @@ const collectionTabs = [
 ];
 
 const typeOptions = [
-	{ label: 'All file types', value: 'all' },
-	{ label: 'Images', value: 'image' },
-	{ label: 'Video', value: 'video' },
-	{ label: 'Documents', value: 'document' },
+	{ label: 'All file types', value: 'all', description: 'Images, videos, docs', count: 8, icon: 'M5 5h14v14H5V5Zm3 9 2.5-3 2 2.5 1.5-2 3 4H8Zm8-5.5h.01' },
+	{ label: 'Images', value: 'image', description: 'Product and brand visuals', count: 6, icon: 'M5 5h14v14H5V5Zm3 9 2.5-3 2 2.5 1.5-2 3 4H8Zm8-5.5h.01' },
+	{ label: 'Video', value: 'video', description: 'Clips and motion assets', count: 1, icon: 'M5 6h10v12H5V6Zm10 4 5-3v10l-5-3' },
+	{ label: 'Documents', value: 'document', description: 'SVG, PDF, and packs', count: 1, icon: 'M7 4h7l4 4v12H7V4Zm7 0v5h5M10 13h5M10 17h4' },
 ];
 
 const sortOptions = [
-	{ label: 'Recently updated', value: 'recent' },
-	{ label: 'Most used', value: 'usage' },
-	{ label: 'Largest files', value: 'size' },
+	{ label: 'Recently updated', value: 'recent', description: 'Best for active publishing work', metric: 'Default' },
+	{ label: 'Most used', value: 'usage', description: 'Promote proven approved assets', metric: 'Usage' },
+	{ label: 'Largest files', value: 'size', description: 'Find heavy assets before insert', metric: 'Weight' },
 ];
 
 const assets = [
@@ -37,6 +40,8 @@ const assets = [
 		updatedAt: '8 minutes ago',
 		usage: 12,
 		status: 'Approved',
+		review: 'Alt text and license verified',
+		placement: 'Hero',
 		alt: 'Dashboard screen showing project health metrics and tasks.',
 		license: 'Company owned',
 		accent: 'from-cyan-200 via-sky-300 to-indigo-500',
@@ -55,6 +60,8 @@ const assets = [
 		updatedAt: 'Today 09:42',
 		usage: 8,
 		status: 'Approved',
+		review: 'Ready for production pages',
+		placement: 'Checkout',
 		alt: 'Payment review card with order total and shipping address.',
 		license: 'Company owned',
 		accent: 'from-emerald-200 via-teal-300 to-slate-700',
@@ -73,6 +80,8 @@ const assets = [
 		updatedAt: 'Yesterday',
 		usage: 19,
 		status: 'Approved',
+		review: 'Campaign license active',
+		placement: 'Launch',
 		alt: 'Colorful campaign artwork with layered product cards.',
 		license: 'Licensed through 2027',
 		accent: 'from-rose-300 via-orange-200 to-yellow-300',
@@ -91,6 +100,8 @@ const assets = [
 		updatedAt: 'Jun 10',
 		usage: 5,
 		status: 'Needs caption',
+		review: 'Caption file required',
+		placement: 'Video',
 		alt: 'Video thumbnail for a founder product announcement.',
 		license: 'Company owned',
 		accent: 'from-zinc-800 via-stone-600 to-amber-300',
@@ -109,6 +120,8 @@ const assets = [
 		updatedAt: 'Jun 08',
 		usage: 26,
 		status: 'Approved',
+		review: 'Partner terms confirmed',
+		placement: 'Brand',
 		alt: 'Approved partner logo package for co-marketing pages.',
 		license: 'Partner approved',
 		accent: 'from-neutral-100 via-lime-200 to-emerald-500',
@@ -127,6 +140,8 @@ const assets = [
 		updatedAt: 'Jun 07',
 		usage: 14,
 		status: 'Approved',
+		review: 'Customer quote approved',
+		placement: 'Social',
 		alt: 'Square customer quote graphic for social proof sections.',
 		license: 'Customer approved',
 		accent: 'from-fuchsia-200 via-pink-300 to-red-500',
@@ -145,6 +160,8 @@ const assets = [
 		updatedAt: 'Jun 06',
 		usage: 2,
 		status: 'Review',
+		review: 'Missing accessibility description',
+		placement: 'Profile',
 		alt: '',
 		license: 'Pending review',
 		accent: 'from-violet-200 via-indigo-200 to-cyan-500',
@@ -163,6 +180,8 @@ const assets = [
 		updatedAt: 'Jun 05',
 		usage: 7,
 		status: 'Approved',
+		review: 'Safe for onboarding flows',
+		placement: 'Empty state',
 		alt: 'Empty project state with a simple upload prompt.',
 		license: 'Company owned',
 		accent: 'from-sky-100 via-white to-emerald-300',
@@ -214,6 +233,7 @@ const selectedSize = computed(() => {
 	return total >= 1000 ? `${(total / 1000).toFixed(1)} MB` : `${total} KB`;
 });
 const insertReady = computed(() => selectedAssets.value.length > 0 && approvedSelectedCount.value === selectedAssets.value.length);
+const reviewIssueCount = computed(() => selectedAssets.value.length - approvedSelectedCount.value);
 const trayStatus = computed(() => {
 	if (!selectedAssets.value.length) return 'Select media to insert';
 	if (!insertReady.value) return 'Selection needs review';
@@ -240,31 +260,28 @@ function clearSelection() {
 	inserted.value = false;
 }
 
+function removeAsset(asset) {
+	selectedAssetIds.value = selectedAssetIds.value.filter((id) => id !== asset.id);
+	inserted.value = false;
+}
+
 function insertAssets() {
 	if (!insertReady.value) return;
 	inserted.value = true;
 }
 
-function typeLabel(type) {
+function statusTone(status) {
 	return {
-		image: 'Image',
-		video: 'Video',
-		document: 'Doc',
-	}[type] || type;
-}
-
-function statusClasses(status) {
-	return {
-		Approved: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-		Review: 'bg-warning/15 text-warning',
-		'Needs caption': 'bg-sky-500/15 text-sky-700 dark:text-sky-300',
-	}[status] || 'bg-secondary text-muted-fg';
+		Approved: 'success',
+		Review: 'warning',
+		'Needs caption': 'info',
+	}[status] || 'neutral';
 }
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-5">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-5">
 			<div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
 				<div class="max-w-2xl">
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Content library</p>
@@ -273,10 +290,35 @@ function statusClasses(status) {
 						Browse approved visuals, preview metadata, and insert selected assets into the current product surface.
 					</p>
 				</div>
-				<div class="grid gap-2 sm:grid-cols-[minmax(12rem,1fr)_10rem_10rem] xl:w-[42rem]">
+				<div class="grid gap-2 sm:grid-cols-[minmax(12rem,1fr)_minmax(11rem,0.55fr)_minmax(11rem,0.55fr)] xl:w-[47rem]">
 					<DomTextInput v-model="searchQuery" label="Search assets" placeholder="Search title, owner, or alt text" />
-					<DomNativeSelect v-model="selectedType" label="Type" :options="typeOptions" />
-					<DomNativeSelect v-model="selectedSort" label="Sort" :options="sortOptions" />
+					<DomListbox v-model="selectedType" label="Type" :options="typeOptions">
+						<template #option="{ option }">
+							<span class="flex min-w-0 items-center gap-2">
+								<span class="grid size-8 shrink-0 place-items-center rounded-lg bg-canvas/70">
+									<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
+										<path :d="option.icon" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+									</svg>
+								</span>
+								<span class="min-w-0 flex-1">
+									<span class="block truncate font-semibold">{{ option.label }}</span>
+									<span class="block truncate text-[11px] opacity-75">{{ option.description }}</span>
+								</span>
+								<span class="rounded-full bg-canvas/70 px-2 py-0.5 text-[11px]">{{ option.count }}</span>
+							</span>
+						</template>
+					</DomListbox>
+					<DomListbox v-model="selectedSort" label="Sort" :options="sortOptions">
+						<template #option="{ option }">
+							<span class="flex min-w-0 items-center justify-between gap-3">
+								<span class="min-w-0">
+									<span class="block truncate font-semibold">{{ option.label }}</span>
+									<span class="block truncate text-[11px] opacity-75">{{ option.description }}</span>
+								</span>
+								<span class="rounded-full bg-canvas/70 px-2 py-0.5 text-[11px]">{{ option.metric }}</span>
+							</span>
+						</template>
+					</DomListbox>
 				</div>
 			</div>
 		</header>
@@ -312,90 +354,42 @@ function statusClasses(status) {
 
 		<main class="bg-secondary/35 p-3 pb-28 sm:p-5 sm:pb-28">
 			<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-				<article
+				<AssetTile
 					v-for="asset in filteredAssets"
 					:key="asset.id"
-					class="group overflow-hidden rounded-2xl border bg-background shadow-sm transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg"
-					:class="selectedAssetIds.includes(asset.id) ? 'border-primary/70 ring-2 ring-primary/15' : 'border-border'"
-				>
-					<button type="button" class="block w-full text-left" @click="openPreview(asset)">
-						<div class="relative aspect-[4/3] overflow-hidden">
-							<div class="absolute inset-0 bg-gradient-to-br" :class="asset.accent"></div>
-							<div class="absolute inset-x-6 top-6 h-20 shadow-2xl shadow-black/15" :class="asset.shape"></div>
-							<div class="absolute bottom-4 left-4 right-4 rounded-xl border border-white/50 bg-white/55 p-3 text-slate-950 shadow-lg backdrop-blur">
-								<div class="h-2 w-2/3 rounded-full bg-slate-900/70"></div>
-								<div class="mt-2 h-2 w-1/2 rounded-full bg-slate-900/30"></div>
-								<div class="mt-3 grid grid-cols-3 gap-1.5">
-									<span class="h-8 rounded-lg bg-white/70"></span>
-									<span class="h-8 rounded-lg bg-white/45"></span>
-									<span class="h-8 rounded-lg bg-white/30"></span>
-								</div>
-							</div>
-							<span class="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
-								{{ typeLabel(asset.type) }}
-							</span>
-							<span class="absolute right-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-semibold" :class="statusClasses(asset.status)">
-								{{ asset.status }}
-							</span>
-						</div>
-					</button>
-
-					<div class="space-y-3 p-3">
-						<div class="flex items-start justify-between gap-3">
-							<div class="min-w-0">
-								<h4 class="truncate text-sm font-semibold">{{ asset.title }}</h4>
-								<p class="mt-1 truncate text-xs text-muted-fg">{{ asset.collectionLabel }} / {{ asset.dimensions }}</p>
-							</div>
-							<button
-								type="button"
-								class="grid size-8 shrink-0 place-items-center rounded-full border transition"
-								:class="selectedAssetIds.includes(asset.id) ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-background text-muted-fg hover:text-fg'"
-								:aria-label="selectedAssetIds.includes(asset.id) ? `Remove ${asset.title}` : `Select ${asset.title}`"
-								@click="toggleAsset(asset)"
-							>
-								<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
-									<path v-if="selectedAssetIds.includes(asset.id)" d="m6 12 4 4 8-8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
-									<path v-else d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
-								</svg>
-							</button>
-						</div>
-						<div class="flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted-fg">
-							<span class="rounded-full bg-secondary px-2 py-1">{{ asset.size }}</span>
-							<span class="rounded-full bg-secondary px-2 py-1">{{ asset.usage }} uses</span>
-							<span class="rounded-full bg-secondary px-2 py-1">{{ asset.updatedAt }}</span>
-						</div>
-					</div>
-				</article>
+					:asset="asset"
+					:selected="selectedAssetIds.includes(asset.id)"
+					@preview="openPreview"
+					@toggle="toggleAsset"
+				/>
 			</div>
 
-			<div v-if="!filteredAssets.length" class="rounded-2xl border border-dashed border-border bg-background p-8 text-center">
+			<div v-if="!filteredAssets.length" class="rounded-2xl border border-dashed border-border bg-canvas p-8 text-center">
 				<p class="font-semibold">No assets match these filters</p>
 				<p class="mt-2 text-sm text-muted-fg">Try another collection, turn off approved-only, or clear the search query.</p>
 			</div>
 		</main>
 
-		<div class="sticky bottom-0 z-10 border-t border-border bg-background/95 px-4 py-3 shadow-2xl shadow-black/15 backdrop-blur sm:px-5">
+		<div class="sticky bottom-0 z-10 border-t border-border bg-canvas/95 px-4 py-3 shadow-2xl shadow-black/15 backdrop-blur sm:px-5">
 			<div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
 				<div class="min-w-0">
-					<p class="text-sm font-semibold">{{ trayStatus }}</p>
+					<div class="flex flex-wrap items-center gap-2">
+						<p class="text-sm font-semibold">{{ trayStatus }}</p>
+						<DomStatusPill v-if="reviewIssueCount" tone="warning" size="sm">{{ reviewIssueCount }} issue{{ reviewIssueCount === 1 ? '' : 's' }}</DomStatusPill>
+						<DomBadge v-else-if="selectedAssets.length" tone="success" size="sm" variant="outline">Publish safe</DomBadge>
+					</div>
 					<p class="mt-1 text-xs text-muted-fg">
 						{{ selectedAssets.length }} selected / {{ approvedSelectedCount }} approved / {{ selectedSize }} total
 					</p>
 				</div>
 				<div class="flex min-w-0 flex-1 gap-2 overflow-x-auto lg:justify-center">
-					<button
+					<SelectedAssetChip
 						v-for="asset in selectedAssets"
 						:key="asset.id"
-						type="button"
-						class="flex min-w-44 items-center gap-2 rounded-xl border border-border bg-secondary/70 p-2 text-left"
-						@click="openPreview(asset)"
-					>
-						<span class="size-10 shrink-0 rounded-lg bg-gradient-to-br" :class="asset.accent"></span>
-						<span class="min-w-0">
-							<span class="block truncate text-xs font-semibold">{{ asset.title }}</span>
-							<span class="mt-0.5 block text-[11px] text-muted-fg">{{ asset.status }}</span>
-						</span>
-					</button>
+						:asset="asset"
+						@preview="openPreview"
+						@remove="removeAsset"
+					/>
 				</div>
 				<div class="flex flex-wrap items-center gap-2">
 					<DomButton variant="secondary" :disabled="!selectedAssets.length" @click="clearSelection">Clear</DomButton>
@@ -408,14 +402,7 @@ function statusClasses(status) {
 
 		<DomDialog v-model="previewOpen" :title="previewAsset.title" description="Review metadata before inserting this asset.">
 			<div class="space-y-4">
-				<div class="relative aspect-[4/3] overflow-hidden rounded-2xl">
-					<div class="absolute inset-0 bg-gradient-to-br" :class="previewAsset.accent"></div>
-					<div class="absolute inset-x-8 top-8 h-24 shadow-2xl shadow-black/15" :class="previewAsset.shape"></div>
-					<div class="absolute bottom-5 left-5 right-5 rounded-xl border border-white/50 bg-white/55 p-3 text-slate-950 shadow-lg backdrop-blur">
-						<div class="h-2 w-2/3 rounded-full bg-slate-900/70"></div>
-						<div class="mt-2 h-2 w-1/2 rounded-full bg-slate-900/30"></div>
-					</div>
-				</div>
+				<AssetPreviewArtwork :asset="previewAsset" size="dialog" />
 				<dl class="grid gap-3 text-sm sm:grid-cols-2">
 					<div>
 						<dt class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Owner</dt>
@@ -433,10 +420,20 @@ function statusClasses(status) {
 						<dt class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Usage</dt>
 						<dd class="mt-1 font-medium">{{ previewAsset.usage }} placements</dd>
 					</div>
+					<div>
+						<dt class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Review</dt>
+						<dd class="mt-1 flex items-center gap-2 font-medium">
+							<DomStatusPill :tone="statusTone(previewAsset.status)" size="sm">{{ previewAsset.status }}</DomStatusPill>
+						</dd>
+					</div>
 				</dl>
 				<div class="rounded-2xl bg-secondary/70 p-3 text-sm leading-6">
 					<p class="font-semibold">Alt text</p>
 					<p class="mt-1 text-muted-fg">{{ previewAsset.alt || 'Missing alt text. Require a description before publishing this asset.' }}</p>
+				</div>
+				<div class="rounded-2xl border border-border bg-canvas p-3 text-sm leading-6">
+					<p class="font-semibold">Review signal</p>
+					<p class="mt-1 text-muted-fg">{{ previewAsset.review }}</p>
 				</div>
 			</div>
 			<template #footer>

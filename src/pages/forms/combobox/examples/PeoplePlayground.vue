@@ -41,6 +41,6 @@ defineExpose({ data });
 				</div>
 			</template>
 		</DomCombobox>
-		<p class="text-xs text-muted-fg">Selected value: <code class="text-fg">{{ data.modelValue || '—' }}</code></p>
+		<p class="text-xs text-muted-fg">Selected value: <code class="text-canvas-fg">{{ data.modelValue || '—' }}</code></p>
 	</div>
 </template>

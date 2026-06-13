@@ -1,4 +1,53 @@
-# Block Discovery Convention
+# Block Discovery And Authoring Guide
+
+Blocks are copyable product surfaces. A good block should feel like a real screen from a real app, not a loose component demo. It should show how DOM Studio primitives compose into a complete workflow with realistic data, clear states, and enough interaction that a team can judge whether the pattern belongs in their product.
+
+## What Good Blocks Do
+
+- Start with the user job: make the workflow obvious from the first screen.
+- Use realistic product density: dashboards, admin tools, editors, queues, and workspaces should feel useful to repeat users, not like marketing pages.
+- Compose existing DOM Studio components first. Reach for headless-backed components such as drawers, dialogs, tabs, menus, popovers, command palettes, splitters, forms, and tree views before inventing local behavior.
+- Keep examples runnable and copyable. The `examples/*.vue` file should own the demo state and interaction so copying the file still works.
+- Include meaningful interactions: selection, filtering, editing, opening overlays, changing tabs, applying actions, or updating local state.
+- Show important states directly in the UI: loading, empty, active, selected, warning, success, review, disabled, and destructive states when they matter.
+- Use local helper components only when they make the block easier to copy or understand. Put them in `components/` and document them with code blocks.
+- Avoid global CSS changes. Prefer scoped styles, utility classes, component props, and local CSS variables.
+- Keep content domain-specific. Labels, row data, timestamps, statuses, and helper copy should sound like the product area the block represents.
+
+## Documentation Expectations
+
+Each block page should usually include:
+
+- A `DocPage` with a concise tagline and useful tag.
+- A primary `DocSection` containing an `Example` wired to the raw source with `?raw`.
+- An `Integration` section explaining where the block fits and what to replace.
+- A `Data` section showing the recommended payload shape.
+- A `Customization` section calling out practical extension points.
+- A `Local components` section when the block has helper SFCs in `components/`.
+
+Always pass the raw example source into `Example`:
+
+```vue
+<script setup>
+import Example from '../../../../_layout/docs/Example.vue';
+import MyBlock from './examples/MyBlock.vue';
+import MyBlockSrc from './examples/MyBlock.vue?raw';
+</script>
+
+<template>
+	<Example
+		:source="MyBlockSrc"
+		filename="MyBlock.vue"
+		description="Use this for..."
+	>
+		<MyBlock />
+	</Example>
+</template>
+```
+
+The shared `Example` renderer scans that source for DOM Studio `Dom*` components and automatically lists internal links to their documentation. Keep DOM Studio component imports explicit in the example file so the generated "Built with" list is accurate. If a helper component hides important dependencies, document that helper in the `Local components` section.
+
+## File Shape
 
 Blocks are auto-discovered anywhere below `src/pages/blocks` using the folder path that ends with `Index.vue`.
 
@@ -48,7 +97,7 @@ If `block.meta.js` is omitted, the block is still discovered with fallback value
 - `order`: `1000`
 - `exampleCount`: derived from `examples/*.vue`
 
-Generation AI instructions:
+## Generation Instructions
 
 - Create `src/pages/blocks/{category-path}/{block-slug}/Index.vue`.
 - Put runnable examples in `src/pages/blocks/{category-path}/{block-slug}/examples/*.vue`.
@@ -59,6 +108,10 @@ Generation AI instructions:
 - Keep the icon visually simple enough to render at `16px`.
 - Use an existing category when it fits, or introduce a new stable category with `categoryOrder`.
 - Keep `summary` to one sentence.
+- Use tabs for indentation in Vue, JavaScript, and CSS.
+- Prefer existing exported components from `@getdom/studio/vue` over bespoke controls.
+- Make the primary example interactive before adding extra explanatory sections.
+- Verify the block route and preview route after changes.
 
 ## Block Notes And Future Recommendations
 

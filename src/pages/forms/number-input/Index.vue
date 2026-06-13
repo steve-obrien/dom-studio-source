@@ -62,7 +62,7 @@ const props = [
 							:min="1"
 							:max="99"
 						/>
-						<p class="mt-3 text-xs text-muted-fg">Value: <code class="text-fg">{{ qty }}</code></p>
+						<p class="mt-3 text-xs text-muted-fg">Value: <code class="text-canvas-fg">{{ qty }}</code></p>
 					</div>
 				</Demo>
 			</DocSection>

@@ -66,16 +66,16 @@ import AppointmentBookingFlowSrc from './examples/AppointmentBookingFlow.vue?raw
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Availability</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Availability</h3>
 						<p class="mt-2">Fetch free and busy slots after type, date, and timezone change. Cache per day to keep the flow fast.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Confirmation</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Confirmation</h3>
 						<p class="mt-2">Create a temporary hold before final submit if appointments can be claimed by multiple visitors at once.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Reuse</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Reuse</h3>
 						<p class="mt-2">Keep the data shape stable so product, sales, support, and services teams can share the same booking surface.</p>
 					</div>
 				</div>

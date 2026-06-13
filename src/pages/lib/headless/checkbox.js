@@ -14,7 +14,7 @@ dom-checkbox {
 	height: 1.25rem;
 	border: 1px solid var(--border);
 	border-radius: 0.375rem;
-	background: var(--background);
+	background: var(--canvas);
 	color: var(--primary-fg);
 	cursor: pointer;
 	vertical-align: middle;

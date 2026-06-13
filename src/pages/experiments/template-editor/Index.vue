@@ -166,7 +166,7 @@ const componentStore = ref([
 		insertable: false,
 		props: [],
 		source: `<template>
-	<div class="mx-auto space-y-5 rounded-xl border border-border bg-background p-5 shadow-xl">
+	<div class="mx-auto space-y-5 rounded-xl border border-border bg-canvas p-5 shadow-xl">
 		<slot />
 	</div>
 </template>`,
@@ -179,7 +179,7 @@ const componentStore = ref([
 		insertable: true,
 		props: [],
 		source: `<template>
-	<section class="flex items-start gap-6 rounded-xl border border-border skin-raised p-6 text-fg shadow-sm">
+	<section class="flex items-start gap-6 rounded-xl border border-border skin-card p-6 text-canvas-fg shadow-sm">
 		<div class="flex min-w-0 flex-1 flex-col gap-3">
 			<slot />
 		</div>
@@ -208,7 +208,7 @@ const componentStore = ref([
 		props: [{ name: 'items', type: 'Array' }],
 	source: `<template>
 	<section class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-		<article v-for="item in items" :key="item.label" class="rounded-lg border border-border skin-raised p-4 text-fg shadow-sm">
+		<article v-for="item in items" :key="item.label" class="rounded-lg border border-border skin-card p-4 text-canvas-fg shadow-sm">
 			<p>{{ item.label }}</p>
 			<strong>{{ item.value }}</strong>
 		</article>
@@ -242,7 +242,7 @@ const props = defineProps({
 		insertable: true,
 		props: [{ name: 'tasks', type: 'Array' }],
 		source: `<template>
-	<section class="rounded-xl border border-border skin-raised p-4 text-fg shadow-sm">
+	<section class="rounded-xl border border-border skin-card p-4 text-canvas-fg shadow-sm">
 		<p>Tasks</p>
 		<article v-for="task in tasks" :key="task.title" class="border-t border-border py-2">
 			<p>{{ task.title }}</p>
@@ -279,7 +279,7 @@ const props = defineProps({
 		insertable: true,
 		props: [{ name: 'modelValue', type: 'String' }],
 		source: `<template>
-	<input class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-fg" :value="modelValue" readonly>
+	<input class="h-10 w-full rounded-md border border-input bg-canvas px-3 text-sm text-canvas-fg" :value="modelValue" readonly>
 </template>
 
 <script setup>
@@ -1802,7 +1802,7 @@ function sourceFromSelectedNode(name) {
 function blankComponentSource(name, role) {
 	const label = role === 'page' ? `${name} page` : name;
 	return `<template>
-	<section class="space-y-3 rounded-lg border border-border skin-raised p-4 text-fg shadow-sm">
+	<section class="space-y-3 rounded-lg border border-border skin-card p-4 text-canvas-fg shadow-sm">
 		<h1>${label}</h1>
 		<p>Start building visually or paste Vue template code here.</p>
 	</section>
@@ -2746,9 +2746,9 @@ function renderNode(node, ctx) {
 	if (node.type === 'element' && node.tag === 'template') return children;
 	if (node.type === 'element') return h(node.tag || 'section', common, children.length ? children : inlineContentForNode(node, scope));
 	if (node.type === 'component' && node.tag === 'MetricGrid') {
-		return h('section', common, rootData.value.metrics.map((item) => h('article', { class: 'rounded-lg border border-border skin-raised p-4 text-fg shadow-sm' }, [
+		return h('section', common, rootData.value.metrics.map((item) => h('article', { class: 'rounded-lg border border-border skin-card p-4 text-canvas-fg shadow-sm' }, [
 			h('p', { class: 'text-xs font-medium text-muted-fg' }, item.label),
-			h('strong', { class: 'mt-3 block text-2xl font-semibold text-fg' }, item.value),
+			h('strong', { class: 'mt-3 block text-2xl font-semibold text-canvas-fg' }, item.value),
 		])));
 	}
 	if (node.type === 'component' && node.tag === 'TaskList') {
@@ -2930,7 +2930,7 @@ function inlineContentForNode(node, scope) {
 
 function renderTaskListPreview(common) {
 	return [
-		h('p', { class: 'text-sm font-semibold text-fg' }, 'Tasks'),
+		h('p', { class: 'text-sm font-semibold text-canvas-fg' }, 'Tasks'),
 		h('div', { class: 'grid gap-2 rounded-md border border-dashed border-ring/60 bg-accent/40 p-2' }, [
 			h('div', { class: 'flex items-center justify-between px-1 text-[11px] font-medium uppercase tracking-[0.14em] text-accent-fg' }, [
 				h('span', 'task in tasks'),
@@ -2943,7 +2943,7 @@ function renderTaskListPreview(common) {
 				onDrop: common.onDrop,
 				onDragover: common.onDragover,
 			}, [
-				h('p', { class: 'text-sm text-fg' }, task.title),
+				h('p', { class: 'text-sm text-canvas-fg' }, task.title),
 				h('p', { class: 'text-xs text-muted-fg' }, task.owner),
 				h('p', { class: 'text-xs text-muted-fg' }, task.due),
 			])),
@@ -2981,19 +2981,19 @@ function withRepeatKey(row, nodeId, index) {
  * `class=""` attribute so users can understand what the stage is adding.
  */
 function basePreviewClassForNode(node) {
-	if (node.type === 'root') return 'min-h-full space-y-5 skin-raised';
+	if (node.type === 'root') return 'min-h-full space-y-5 skin-card';
 	if (node.type === 'element' && node.tag === 'slot') return '';
-	if (node.type === 'component' && node.tag === 'HeroPanel') return 'flex items-start gap-6 rounded-xl border border-border skin-raised p-6 text-fg shadow-sm';
-	if (node.type === 'component' && node.tag === 'TemplateFrame') return 'space-y-5 skin-raised';
+	if (node.type === 'component' && node.tag === 'HeroPanel') return 'flex items-start gap-6 rounded-xl border border-border skin-card p-6 text-canvas-fg shadow-sm';
+	if (node.type === 'component' && node.tag === 'TemplateFrame') return 'space-y-5 skin-card';
 	if (node.type === 'component' && node.tag === 'Badge') return 'inline-flex w-fit rounded bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary';
 	if (node.type === 'component' && node.tag === 'SplitPanel') return 'grid grid-cols-1 gap-5 lg:grid-cols-[1.2fr_0.8fr]';
 	if (node.type === 'component' && node.tag === 'MetricGrid') return 'grid grid-cols-1 gap-3 sm:grid-cols-3';
-	if (node.type === 'component' && node.tag === 'TaskList') return 'rounded-xl border border-border skin-raised p-4 text-fg shadow-sm';
+	if (node.type === 'component' && node.tag === 'TaskList') return 'rounded-xl border border-border skin-card p-4 text-canvas-fg shadow-sm';
 	if (node.type === 'component' && node.tag === 'ElButton') return 'inline-flex h-10 w-fit items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-fg shadow-sm';
-	if (node.type === 'component' && node.tag === 'ElTextInput') return 'h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-fg';
-	if (node.type === 'headline') return 'max-w-xl text-3xl font-semibold tracking-tight text-fg';
+	if (node.type === 'component' && node.tag === 'ElTextInput') return 'h-10 w-full rounded-md border border-input bg-canvas px-3 text-sm text-canvas-fg';
+	if (node.type === 'headline') return 'max-w-xl text-3xl font-semibold tracking-tight text-canvas-fg';
 	if (node.type === 'text' || node.type === 'paragraph') return 'max-w-lg text-sm leading-6 text-muted-fg';
-	if (node.type === 'element' && isEmptyElement(node)) return 'min-h-12 rounded-lg border border-dashed border-border bg-background/80 p-4';
+	if (node.type === 'element' && isEmptyElement(node)) return 'min-h-12 rounded-lg border border-dashed border-border bg-canvas/80 p-4';
 	return '';
 }
 
@@ -3011,16 +3011,16 @@ function isEmptyElement(node) {
 </script>
 
 <template>
-		<div class="min-h-screen bg-background text-fg">
+		<div class="min-h-screen bg-canvas text-canvas-fg">
 				<DomSplitterPanel class="h-screen min-h-screen" :start-size="280" :end-size="460" :min-start="240" :min-main="420" :min-end="360">
 				<template #start>
-					<aside class="flex h-screen min-h-0 flex-col overflow-hidden border-r border-border skin-raised text-fg">
+					<aside class="flex h-screen min-h-0 flex-col overflow-hidden border-r border-border skin-card text-canvas-fg">
 						<div class="shrink-0 border-b border-border p-4">
 							<div class="flex items-start gap-3">
 								<button
 									type="button"
-									class="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-background text-muted-fg hover:border-ring hover:bg-secondary hover:text-fg"
-									:class="isFileBrowserOpen && 'border-ring bg-secondary text-fg'"
+									class="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-canvas text-muted-fg hover:border-ring hover:bg-secondary hover:text-canvas-fg"
+									:class="isFileBrowserOpen && 'border-ring bg-secondary text-canvas-fg'"
 									:aria-pressed="isFileBrowserOpen"
 									aria-label="Open file browser"
 									title="Open file browser"
@@ -3033,13 +3033,13 @@ function isEmptyElement(node) {
 								</button>
 								<div class="min-w-0 flex-1">
 									<p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Experiment</p>
-									<h1 class="mt-1 text-sm font-semibold text-fg">Template Studio</h1>
+									<h1 class="mt-1 text-sm font-semibold text-canvas-fg">Template Studio</h1>
 									<div class="mt-3 flex flex-wrap items-center gap-1 text-xs text-muted-fg">
 										<button
 											v-for="(name, index) in componentStack"
 											:key="`${name}-${index}`"
 											type="button"
-											class="max-w-full truncate rounded px-1.5 py-1 hover:bg-secondary hover:text-fg"
+											class="max-w-full truncate rounded px-1.5 py-1 hover:bg-secondary hover:text-canvas-fg"
 											:class="index === componentStack.length - 1 && 'bg-primary text-primary-fg hover:bg-primary/90 hover:text-primary-fg'"
 											@click="openFromStack(index)"
 										>{{ name }}</button>
@@ -3064,7 +3064,7 @@ function isEmptyElement(node) {
 						>
 							<button
 								type="button"
-								class="flex h-10 shrink-0 items-center justify-between border-b border-border px-4 text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg hover:bg-secondary hover:text-fg"
+								class="flex h-10 shrink-0 items-center justify-between border-b border-border px-4 text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg hover:bg-secondary hover:text-canvas-fg"
 								:aria-expanded="sidebarPanels.components"
 								@click="toggleSidebarPanel('components')"
 							>
@@ -3081,15 +3081,15 @@ function isEmptyElement(node) {
 												:key="entry.id"
 												type="button"
 												draggable="true"
-												class="group flex h-10 items-center gap-3 rounded-md border border-border bg-background px-3 text-left transition hover:border-ring hover:bg-secondary"
+												class="group flex h-10 items-center gap-3 rounded-md border border-border bg-canvas px-3 text-left transition hover:border-ring hover:bg-secondary"
 												@dragstart="onDragStart(entry, $event)"
 												@dragend="onDragEnd"
 												@click="addToSelected(entry)"
 											>
-												<svg class="size-4 shrink-0 text-muted-fg group-hover:text-fg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+												<svg class="size-4 shrink-0 text-muted-fg group-hover:text-canvas-fg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 													<path :d="entry.icon" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
 												</svg>
-												<span class="truncate text-sm font-medium text-fg">{{ entry.label }}</span>
+												<span class="truncate text-sm font-medium text-canvas-fg">{{ entry.label }}</span>
 											</button>
 										</div>
 									</div>
@@ -3105,7 +3105,7 @@ function isEmptyElement(node) {
 														:key="entry.id"
 														type="button"
 														draggable="true"
-														class="flex h-9 min-w-0 items-center gap-2 rounded-md border border-border bg-background px-2 text-left text-xs text-fg hover:border-ring hover:bg-secondary"
+														class="flex h-9 min-w-0 items-center gap-2 rounded-md border border-border bg-canvas px-2 text-left text-xs text-canvas-fg hover:border-ring hover:bg-secondary"
 														@dragstart="onDragStart(entry, $event)"
 														@dragend="onDragEnd"
 														@click="addToSelected(entry)"
@@ -3128,7 +3128,7 @@ function isEmptyElement(node) {
 												:key="entry.id"
 												type="button"
 												draggable="true"
-												class="flex h-9 items-center gap-2 rounded-md border border-border bg-background px-2 text-xs text-fg hover:border-ring hover:bg-secondary"
+												class="flex h-9 items-center gap-2 rounded-md border border-border bg-canvas px-2 text-xs text-canvas-fg hover:border-ring hover:bg-secondary"
 												@dragstart="onDragStart(entry, $event)"
 												@dragend="onDragEnd"
 												@click="addToSelected(entry)"
@@ -3150,14 +3150,14 @@ function isEmptyElement(node) {
 						>
 							<button
 								type="button"
-								class="flex h-10 shrink-0 items-center justify-between border-b border-border px-4 text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg hover:bg-secondary hover:text-fg"
+								class="flex h-10 shrink-0 items-center justify-between border-b border-border px-4 text-left text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg hover:bg-secondary hover:text-canvas-fg"
 								:aria-expanded="sidebarPanels.layers"
 								@click="toggleSidebarPanel('layers')"
 							>
 								<span>Layers</span>
 								<span class="font-mono text-sm">{{ sidebarPanels.layers ? '-' : '+' }}</span>
 							</button>
-							<div v-show="sidebarPanels.layers" class="min-h-0 flex-1 overflow-y-auto bg-background">
+							<div v-show="sidebarPanels.layers" class="min-h-0 flex-1 overflow-y-auto bg-canvas">
 								<DomTreeView
 									:model-value="selectedLayerValue"
 									:items="layerTreeItems"
@@ -3190,8 +3190,8 @@ function isEmptyElement(node) {
 					</aside>
 				</template>
 
-					<main class="flex h-screen min-w-0 flex-col bg-background text-fg">
-						<div class="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-border skin-raised px-4 text-fg">
+					<main class="flex h-screen min-w-0 flex-col bg-canvas text-canvas-fg">
+						<div class="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-border skin-card px-4 text-canvas-fg">
 							<div class="min-w-0">
 								<p class="truncate text-sm font-semibold">{{ activeComponentName }}</p>
 								<p class="truncate text-xs text-muted-fg" :title="sourceFileTitle">{{ sourceFileLabel }}</p>
@@ -3203,7 +3203,7 @@ function isEmptyElement(node) {
 											<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
 										</svg>
 									</button>
-									<div v-if="isCreateMenuOpen" class="absolute right-0 top-10 z-40 grid w-48 gap-1 rounded-md border border-border skin-floating p-1 text-xs text-fg shadow-xl">
+									<div v-if="isCreateMenuOpen" class="absolute right-0 top-10 z-40 grid w-48 gap-1 rounded-md border border-border skin-popover p-1 text-xs text-canvas-fg shadow-xl">
 										<button type="button" class="rounded px-3 py-2 text-left hover:bg-secondary" @click="openCreateDialog('component')">New component</button>
 										<button type="button" class="rounded px-3 py-2 text-left hover:bg-secondary" @click="openCreateDialog('page')">New page</button>
 										<button v-if="selectedNode && selectedNode.type !== 'root'" type="button" class="rounded px-3 py-2 text-left hover:bg-secondary" @click="openCreateDialog('component', { fromSelection: true })">Component from selection</button>
@@ -3212,7 +3212,7 @@ function isEmptyElement(node) {
 								<div class="relative">
 									<button
 										type="button"
-										class="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-fg hover:bg-secondary hover:text-fg"
+										class="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-fg hover:bg-secondary hover:text-canvas-fg"
 										:aria-expanded="isDeveloperMenuOpen"
 										aria-label="Developer menu"
 										@click="toggleDeveloperMenu"
@@ -3223,16 +3223,16 @@ function isEmptyElement(node) {
 									</button>
 									<div
 										v-if="isDeveloperMenuOpen"
-										class="absolute right-0 top-10 z-50 flex max-h-[70vh] w-[min(32rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-md border border-border skin-floating text-fg shadow-xl"
+										class="absolute right-0 top-10 z-50 flex max-h-[70vh] w-[min(32rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-md border border-border skin-popover text-canvas-fg shadow-xl"
 									>
 										<div class="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-2">
 											<div class="min-w-0">
 												<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Developer</p>
-												<p class="truncate text-xs text-fg">{{ developerNodeSnapshot.nodeCount }} nodes in editor tree</p>
+												<p class="truncate text-xs text-canvas-fg">{{ developerNodeSnapshot.nodeCount }} nodes in editor tree</p>
 											</div>
-											<button type="button" class="rounded px-2 py-1 text-xs text-muted-fg hover:bg-secondary hover:text-fg" @click="isDeveloperMenuOpen = false">Close</button>
+											<button type="button" class="rounded px-2 py-1 text-xs text-muted-fg hover:bg-secondary hover:text-canvas-fg" @click="isDeveloperMenuOpen = false">Close</button>
 										</div>
-										<pre class="min-h-0 flex-1 overflow-auto bg-background p-3 font-mono text-[11px] leading-5 text-fg">{{ developerNodeSnapshotText }}</pre>
+										<pre class="min-h-0 flex-1 overflow-auto bg-canvas p-3 font-mono text-[11px] leading-5 text-canvas-fg">{{ developerNodeSnapshotText }}</pre>
 									</div>
 								</div>
 								<button
@@ -3295,7 +3295,7 @@ function isEmptyElement(node) {
 						</StageViewport>
 
 						<section
-							class="template-code-drawer grid shrink-0 grid-rows-[auto_auto_minmax(0,1fr)] border-t border-border skin-raised text-fg transition-[height]"
+							class="template-code-drawer grid shrink-0 grid-rows-[auto_auto_minmax(0,1fr)] border-t border-border skin-card text-canvas-fg transition-[height]"
 							:style="{ height: isCodeDrawerOpen ? `${codeDrawerHeight}px` : '3rem' }"
 						>
 							<button
@@ -3305,7 +3305,7 @@ function isEmptyElement(node) {
 								aria-label="Resize code drawer"
 								@pointerdown="beginCodeDrawerResize"
 							>
-								<span class="mx-auto block h-0.5 w-10 rounded-full bg-muted-fg/35 transition group-hover:bg-fg/50"></span>
+								<span class="mx-auto block h-0.5 w-10 rounded-full bg-muted-fg/35 transition group-hover:bg-canvas-fg/50"></span>
 							</button>
 							<div class="flex h-12 min-w-0 items-center justify-between gap-3 border-b border-border px-4">
 								<button
@@ -3314,7 +3314,7 @@ function isEmptyElement(node) {
 									:aria-expanded="isCodeDrawerOpen"
 									@click="toggleCodeDrawer"
 								>
-									<span class="flex size-6 shrink-0 items-center justify-center rounded border border-border bg-background text-muted-fg">
+									<span class="flex size-6 shrink-0 items-center justify-center rounded border border-border bg-canvas text-muted-fg">
 										<svg class="size-3.5 transition-transform" :class="isCodeDrawerOpen ? '' : 'rotate-180'" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 											<path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 										</svg>
@@ -3328,9 +3328,9 @@ function isEmptyElement(node) {
 									<p class="text-[11px]" :class="codeError ? 'text-destructive' : 'text-muted-fg'">
 										{{ codeError || (codeDirty ? 'Unsaved' : savedAt ? `${saveTarget} saved ${savedAt}` : 'Synced') }}
 									</p>
-									<button type="button" class="h-7 rounded-md border border-border px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-fg" @click="foldCode">Fold all</button>
-									<button type="button" class="h-7 rounded-md border border-border px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-fg" @click="unfoldCode">Unfold</button>
-									<button type="button" class="h-7 rounded-md border border-border px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-fg" @click="resetActiveComponent">Reset</button>
+									<button type="button" class="h-7 rounded-md border border-border px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-canvas-fg" @click="foldCode">Fold all</button>
+									<button type="button" class="h-7 rounded-md border border-border px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-canvas-fg" @click="unfoldCode">Unfold</button>
+									<button type="button" class="h-7 rounded-md border border-border px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-canvas-fg" @click="resetActiveComponent">Reset</button>
 									<button type="button" class="h-7 rounded-md bg-primary px-2 text-[11px] font-semibold text-primary-fg hover:bg-primary/90" @click="saveActiveComponent">Save</button>
 								</div>
 							</div>
@@ -3355,15 +3355,15 @@ function isEmptyElement(node) {
 					</main>
 
 					<template #end>
-						<aside class="h-screen w-full min-w-0 overflow-hidden border-l border-border skin-raised text-fg">
+						<aside class="h-screen w-full min-w-0 overflow-hidden border-l border-border skin-card text-canvas-fg">
 							<section class="h-full min-w-0 overflow-y-auto overflow-x-hidden p-4">
 						<div class="flex items-center justify-between gap-3">
 							<div>
 								<h2 class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Component</h2>
-								<p class="mt-1 text-sm font-medium text-fg">{{ activeComponentName }}</p>
+								<p class="mt-1 text-sm font-medium text-canvas-fg">{{ activeComponentName }}</p>
 							</div>
 							<div class="flex items-center gap-2">
-								<button type="button" class="h-7 rounded-md border border-border px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-fg" @click="resetActiveComponent">Reset</button>
+								<button type="button" class="h-7 rounded-md border border-border px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-canvas-fg" @click="resetActiveComponent">Reset</button>
 								<button type="button" class="h-7 rounded-md bg-primary px-2 text-[11px] font-semibold text-primary-fg hover:bg-primary/90" @click="saveActiveComponent">Save</button>
 							</div>
 						</div>
@@ -3371,23 +3371,23 @@ function isEmptyElement(node) {
 						<div class="mt-4 grid gap-3">
 							<label class="grid gap-1">
 								<span class="text-xs text-muted-fg">Selected label</span>
-								<input class="h-9 rounded-md border border-input bg-background px-3 text-sm text-fg outline-none focus:border-ring" :value="selectedNode?.label || ''" @input="updateLabel($event.target.value)">
+								<input class="h-9 rounded-md border border-input bg-canvas px-3 text-sm text-canvas-fg outline-none focus:border-ring" :value="selectedNode?.label || ''" @input="updateLabel($event.target.value)">
 							</label>
 							<label v-if="selectedNode && 'binding' in selectedNode" class="grid gap-1">
 								<span class="text-xs text-muted-fg">Data binding</span>
-								<input class="h-9 rounded-md border border-input bg-background px-3 font-mono text-xs text-fg outline-none focus:border-ring" :value="selectedNode.binding || ''" @input="updateBinding($event.target.value)">
+								<input class="h-9 rounded-md border border-input bg-canvas px-3 font-mono text-xs text-canvas-fg outline-none focus:border-ring" :value="selectedNode.binding || ''" @input="updateBinding($event.target.value)">
 							</label>
-							<div v-if="selectedData != null" class="rounded-md border border-border bg-background px-3 py-2">
+							<div v-if="selectedData != null" class="rounded-md border border-border bg-canvas px-3 py-2">
 								<p class="text-[11px] font-medium text-muted-fg">Resolved value</p>
 								<code class="mt-1 block truncate font-mono text-xs text-primary">{{ selectedData }}</code>
 							</div>
 							<label v-if="selectedNode && 'text' in selectedNode" class="grid gap-1">
 								<span class="text-xs text-muted-fg">Text</span>
-								<input class="h-9 rounded-md border border-input bg-background px-3 text-sm text-fg outline-none focus:border-ring" :value="selectedNode.text || ''" @input="updateText($event.target.value)">
+								<input class="h-9 rounded-md border border-input bg-canvas px-3 text-sm text-canvas-fg outline-none focus:border-ring" :value="selectedNode.text || ''" @input="updateText($event.target.value)">
 							</label>
 							<label v-if="selectedNode?.repeat" class="grid gap-1">
 								<span class="text-xs text-muted-fg">Repeated template</span>
-								<input class="h-9 rounded-md border border-input bg-background px-3 font-mono text-xs text-fg outline-none focus:border-ring" :value="selectedNode.repeat.source" @input="updateRepeatSource($event.target.value)">
+								<input class="h-9 rounded-md border border-input bg-canvas px-3 font-mono text-xs text-canvas-fg outline-none focus:border-ring" :value="selectedNode.repeat.source" @input="updateRepeatSource($event.target.value)">
 							</label>
 							<div v-if="selectedNode && selectedNode.type !== 'root'" class="grid gap-1">
 								<span class="text-xs text-muted-fg">Template class</span>
@@ -3404,7 +3404,7 @@ function isEmptyElement(node) {
 									/>
 								</div>
 							</div>
-							<div v-if="canPreviewSelectedStates" class="grid gap-2 rounded-md border border-border bg-background p-3">
+							<div v-if="canPreviewSelectedStates" class="grid gap-2 rounded-md border border-border bg-canvas p-3">
 								<div class="flex items-center justify-between gap-3">
 									<span class="text-xs font-medium text-muted-fg">States</span>
 									<span class="text-[11px] text-muted-fg">{{ selectedPreviewStateIds.length ? selectedPreviewStateIds.join(', ') : 'Default' }}</span>
@@ -3415,7 +3415,7 @@ function isEmptyElement(node) {
 										:key="state.id"
 										type="button"
 										class="h-8 rounded-md border px-2.5 text-xs font-medium transition"
-										:class="isSelectedPreviewStateEnabled(state.id) ? 'border-ring bg-primary text-primary-fg' : 'border-border bg-secondary/50 text-muted-fg hover:bg-secondary hover:text-fg'"
+										:class="isSelectedPreviewStateEnabled(state.id) ? 'border-ring bg-primary text-primary-fg' : 'border-border bg-secondary/50 text-muted-fg hover:bg-secondary hover:text-canvas-fg'"
 										:aria-pressed="isSelectedPreviewStateEnabled(state.id)"
 										@click="toggleSelectedPreviewState(state.id)"
 									>
@@ -3424,7 +3424,7 @@ function isEmptyElement(node) {
 								</div>
 								<label v-if="selectedPreviewStateClasses" class="grid gap-1">
 									<span class="text-[11px] text-muted-fg">Expanded classes</span>
-									<textarea class="min-h-14 resize-none rounded-md border border-input bg-background px-3 py-2 font-mono text-[11px] text-muted-fg outline-none" readonly :value="selectedPreviewStateClasses"></textarea>
+									<textarea class="min-h-14 resize-none rounded-md border border-input bg-canvas px-3 py-2 font-mono text-[11px] text-muted-fg outline-none" readonly :value="selectedPreviewStateClasses"></textarea>
 								</label>
 							</div>
 							<div v-if="selectedNode && selectedNode.type !== 'root'" class="grid gap-2">
@@ -3439,23 +3439,23 @@ function isEmptyElement(node) {
 										class="grid min-w-0 grid-cols-[minmax(4.5rem,0.35fr)_minmax(0,1fr)_auto] gap-2"
 									>
 										<input class="h-8 min-w-0 rounded-md border border-input bg-muted px-2 font-mono text-[11px] text-muted-fg outline-none" readonly :value="key">
-										<input class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-xs text-fg outline-none focus:border-ring" :value="value" @input="updateSelectedProp(key, $event.target.value)">
+										<input class="h-8 min-w-0 rounded-md border border-input bg-canvas px-2 font-mono text-xs text-canvas-fg outline-none focus:border-ring" :value="value" @input="updateSelectedProp(key, $event.target.value)">
 										<button type="button" class="h-8 rounded-md border border-border px-2 text-[11px] text-muted-fg hover:bg-destructive/10 hover:text-destructive" @click="removeSelectedAttr(key)">Remove</button>
 									</div>
 								</div>
 								<div class="grid min-w-0 grid-cols-[minmax(4.5rem,0.35fr)_minmax(0,1fr)_auto] gap-2">
-									<input v-model="newAttr.name" class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-[11px] text-fg outline-none focus:border-ring" placeholder="aria-label">
-									<input v-model="newAttr.value" class="h-8 min-w-0 rounded-md border border-input bg-background px-2 font-mono text-xs text-fg outline-none focus:border-ring" placeholder="value">
+									<input v-model="newAttr.name" class="h-8 min-w-0 rounded-md border border-input bg-canvas px-2 font-mono text-[11px] text-canvas-fg outline-none focus:border-ring" placeholder="aria-label">
+									<input v-model="newAttr.value" class="h-8 min-w-0 rounded-md border border-input bg-canvas px-2 font-mono text-xs text-canvas-fg outline-none focus:border-ring" placeholder="value">
 									<button type="button" class="h-8 rounded-md bg-secondary px-2 text-xs text-secondary-fg hover:bg-secondary/80" @click="addSelectedAttr">Add</button>
 								</div>
 							</div>
 							<label v-if="selectedBaseClass" class="grid gap-1">
 								<span class="text-xs text-muted-fg">Preview base classes</span>
-								<textarea class="min-h-16 resize-none rounded-md border border-input bg-background px-3 py-2 font-mono text-[11px] text-muted-fg outline-none" readonly :value="selectedBaseClass"></textarea>
+								<textarea class="min-h-16 resize-none rounded-md border border-input bg-canvas px-3 py-2 font-mono text-[11px] text-muted-fg outline-none" readonly :value="selectedBaseClass"></textarea>
 							</label>
 						</div>
 
-							<div v-if="selectedNode?.type === 'component'" class="mt-4 rounded-md border border-border bg-background p-3">
+							<div v-if="selectedNode?.type === 'component'" class="mt-4 rounded-md border border-border bg-canvas p-3">
 								<div class="mb-2 flex items-center justify-between">
 									<p class="text-xs font-medium text-muted-fg">Instance props</p>
 									<button type="button" class="text-[11px] text-primary hover:text-primary/80" @click="openComponent(selectedNode)">Edit {{ selectedNode.tag }}</button>
@@ -3474,14 +3474,14 @@ function isEmptyElement(node) {
 								</p>
 							</div>
 
-						<div v-if="isRootSelected" class="mt-4 rounded-md border border-border bg-background p-3">
+						<div v-if="isRootSelected" class="mt-4 rounded-md border border-border bg-canvas p-3">
 							<div class="mb-2 flex items-center justify-between">
 								<p class="text-xs font-medium text-muted-fg">Component props</p>
 								<span class="text-[11px] text-muted-fg">{{ activeComponent?.props?.length || 0 }}</span>
 							</div>
 							<div class="mb-2 grid grid-cols-[1fr_84px_auto] gap-2">
-								<input v-model="newProp.name" class="h-8 min-w-0 rounded-md border border-input bg-background px-2 text-xs text-fg outline-none focus:border-ring" placeholder="propName">
-								<select v-model="newProp.type" class="h-8 rounded-md border border-input bg-background px-2 text-xs text-fg outline-none focus:border-ring">
+								<input v-model="newProp.name" class="h-8 min-w-0 rounded-md border border-input bg-canvas px-2 text-xs text-canvas-fg outline-none focus:border-ring" placeholder="propName">
+								<select v-model="newProp.type" class="h-8 rounded-md border border-input bg-canvas px-2 text-xs text-canvas-fg outline-none focus:border-ring">
 									<option>String</option>
 									<option>Number</option>
 									<option>Boolean</option>
@@ -3501,7 +3501,7 @@ function isEmptyElement(node) {
 							</div>
 						</div>
 
-						<div v-if="isRootSelected" class="mt-4 rounded-md border border-border bg-background p-3">
+						<div v-if="isRootSelected" class="mt-4 rounded-md border border-border bg-canvas p-3">
 							<div class="mb-2 flex items-center justify-between">
 								<p class="text-xs font-medium text-muted-fg">Page root data</p>
 								<span class="text-[11px]" :class="rootDataError ? 'text-destructive' : 'text-muted-fg'">{{ rootDataError || 'Live' }}</span>
@@ -3522,25 +3522,25 @@ function isEmptyElement(node) {
 				</template>
 		</DomSplitterPanel>
 
-		<div v-if="isCreateDialogOpen" class="fixed inset-0 z-50 grid place-items-center bg-background/70 p-4 backdrop-blur-sm">
-			<form class="w-full max-w-sm rounded-lg border border-border skin-floating p-4 text-fg shadow-2xl" @submit.prevent="createComponentRecord">
+		<div v-if="isCreateDialogOpen" class="fixed inset-0 z-50 grid place-items-center bg-canvas/70 p-4 backdrop-blur-sm">
+			<form class="w-full max-w-sm rounded-lg border border-border skin-popover p-4 text-canvas-fg shadow-2xl" @submit.prevent="createComponentRecord">
 				<div class="flex items-start justify-between gap-3">
 					<div>
 						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Create</p>
-						<h2 class="mt-1 text-base font-semibold text-fg">{{ createKind === 'page' ? 'New page' : createFromSelection ? 'Component from selection' : 'New component' }}</h2>
+						<h2 class="mt-1 text-base font-semibold text-canvas-fg">{{ createKind === 'page' ? 'New page' : createFromSelection ? 'Component from selection' : 'New component' }}</h2>
 					</div>
-					<button type="button" class="rounded px-2 py-1 text-sm text-muted-fg hover:bg-secondary hover:text-fg" @click="isCreateDialogOpen = false">Close</button>
+					<button type="button" class="rounded px-2 py-1 text-sm text-muted-fg hover:bg-secondary hover:text-canvas-fg" @click="isCreateDialogOpen = false">Close</button>
 				</div>
 				<label class="mt-4 grid gap-1">
 					<span class="text-xs text-muted-fg">Name</span>
-					<input v-model="createName" class="h-9 rounded-md border border-input bg-background px-3 text-sm text-fg outline-none focus:border-ring" placeholder="HeroFeature">
+					<input v-model="createName" class="h-9 rounded-md border border-input bg-canvas px-3 text-sm text-canvas-fg outline-none focus:border-ring" placeholder="HeroFeature">
 				</label>
 				<p v-if="createNameError" class="mt-2 text-xs text-destructive">{{ createNameError }}</p>
 				<p class="mt-3 text-xs leading-5 text-muted-fg">
 					The draft opens immediately so you can build visually or paste Vue template code, then save it back into this experiment.
 				</p>
 				<div class="mt-4 flex justify-end gap-2">
-					<button type="button" class="h-8 rounded-md border border-border px-3 text-xs font-medium text-muted-fg hover:bg-secondary hover:text-fg" @click="isCreateDialogOpen = false">Cancel</button>
+					<button type="button" class="h-8 rounded-md border border-border px-3 text-xs font-medium text-muted-fg hover:bg-secondary hover:text-canvas-fg" @click="isCreateDialogOpen = false">Cancel</button>
 					<button type="submit" class="h-8 rounded-md bg-primary px-3 text-xs font-semibold text-primary-fg hover:bg-primary/90">Create</button>
 				</div>
 			</form>
@@ -3553,20 +3553,20 @@ function isEmptyElement(node) {
 	min-height: 11rem;
 }
 
-.template-class-input :deep(.dom-input) {
+.template-class-input :deep(.skin-input) {
 	border-color: var(--input);
-	background: var(--background);
-	color: var(--fg);
+	background: var(--canvas);
+	color: var(--canvas-fg);
 	outline: none;
 }
 
-.template-class-input :deep(.dom-input:focus) {
+.template-class-input :deep(.skin-input:focus) {
 	border-color: var(--ring);
 	box-shadow: none;
 }
 
 .template-class-input :deep(label) {
-	color: var(--fg);
+	color: var(--canvas-fg);
 }
 
 .template-class-input :deep(label.opacity-50) {
@@ -3623,9 +3623,9 @@ function isEmptyElement(node) {
 	gap: 0.75rem;
 	border: 1px dashed color-mix(in oklch, var(--ring) 62%, transparent);
 	border-radius: 0.5rem;
-	background: color-mix(in oklch, var(--background) 86%, var(--accent));
+	background: color-mix(in oklch, var(--canvas) 86%, var(--accent));
 	padding: 0.75rem 0.875rem;
-	color: var(--fg);
+	color: var(--canvas-fg);
 	cursor: copy;
 }
 
@@ -3656,7 +3656,7 @@ function isEmptyElement(node) {
 	background: var(--ring);
 	opacity: 0;
 	box-shadow:
-		0 0 0 2px var(--background),
+		0 0 0 2px var(--canvas),
 		0 5px 12px color-mix(in oklch, var(--ring) 32%, transparent);
 	content: "";
 	pointer-events: none;

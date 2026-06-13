@@ -103,10 +103,10 @@ defineExpose({
 			:variables="backgroundVariables"
 			:title="`${title} background layers`"
 		/>
-		<div v-if="showVariableMap" class="rounded-lg border border-border skin-raised p-3 text-fg">
+		<div v-if="showVariableMap" class="rounded-lg border border-border skin-card p-3 text-canvas-fg">
 			<p class="text-sm font-semibold">CSS variables</p>
 			<div class="mt-2 grid gap-1.5">
-				<p v-for="[name, value] in variableEntries" :key="name" class="grid gap-1 rounded-md bg-background px-2 py-1.5 font-mono text-[11px] leading-5 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)]">
+				<p v-for="[name, value] in variableEntries" :key="name" class="grid gap-1 rounded-md bg-canvas px-2 py-1.5 font-mono text-[11px] leading-5 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)]">
 					<span class="truncate text-muted-fg">{{ name }}</span>
 					<span class="truncate">{{ value }}</span>
 				</p>

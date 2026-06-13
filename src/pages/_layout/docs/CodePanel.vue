@@ -71,7 +71,7 @@ function expandPreview() {
 		>
 			<button
 				type="button"
-				class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-medium text-muted-fg hover:bg-background hover:text-fg"
+				class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-medium text-muted-fg hover:bg-canvas hover:text-canvas-fg"
 				@click="toggleCode"
 			>
 				<svg viewBox="0 0 16 16" class="size-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -86,13 +86,13 @@ function expandPreview() {
 					:target="sourceLinkTarget || undefined"
 					:rel="sourceLinkTarget ? 'noopener' : undefined"
 					:title="sourceLinkTitle"
-					class="font-mono text-[11px] text-muted-fg underline decoration-border underline-offset-4 transition hover:text-fg"
+					class="font-mono text-[11px] text-muted-fg underline decoration-border underline-offset-4 transition hover:text-canvas-fg"
 				>{{ filename }}</a>
 				<span v-else-if="filename" class="font-mono text-[11px] text-muted-fg">{{ filename }}</span>
 				<span class="font-mono text-[11px] uppercase tracking-wider text-muted-fg">{{ lang }}</span>
 				<button
 					type="button"
-					class="rounded-md px-2 py-1 font-medium text-muted-fg hover:bg-background hover:text-fg"
+					class="rounded-md px-2 py-1 font-medium text-muted-fg hover:bg-canvas hover:text-canvas-fg"
 					@click="copy"
 				>{{ copied ? 'Copied' : 'Copy' }}</button>
 			</div>
@@ -109,7 +109,7 @@ function expandPreview() {
 			<pre v-else class="overflow-auto bg-[#0b1020] p-4 text-[12.5px] leading-relaxed text-white/90"><code>{{ source }}</code></pre>
 			<div
 				v-if="isClipped"
-				class="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-linear-to-b from-transparent via-background/80 to-background"
+				class="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-linear-to-b from-transparent via-canvas/80 to-canvas"
 			></div>
 		</div>
 	</div>

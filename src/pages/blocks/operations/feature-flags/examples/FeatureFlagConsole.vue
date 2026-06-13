@@ -182,9 +182,9 @@ function metricTextClasses(tone) {
 </script>
 
 <template>
-	<div class="min-h-screen w-full bg-background text-fg">
+	<div class="min-h-screen w-full bg-canvas text-canvas-fg">
 		<div class="mx-auto flex w-full max-w-7xl flex-col gap-5 p-3 sm:p-5 lg:p-6">
-			<header class="overflow-hidden rounded-lg border border-border skin-raised shadow-lg shadow-black/5">
+			<header class="overflow-hidden rounded-lg border border-border skin-card shadow-lg shadow-black/5">
 				<div class="h-1 bg-[linear-gradient(90deg,var(--success),var(--warning),var(--primary))]"></div>
 				<div class="grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
 					<div>
@@ -205,7 +205,7 @@ function metricTextClasses(tone) {
 					<div
 						v-for="item in summaryCards"
 						:key="item.label"
-						class="bg-background/75 px-4 py-3"
+						class="bg-canvas/75 px-4 py-3"
 					>
 						<p class="text-xs text-muted-fg">{{ item.label }}</p>
 						<p class="mt-1 text-2xl font-semibold tracking-tight">{{ item.value }}</p>
@@ -215,7 +215,7 @@ function metricTextClasses(tone) {
 			</header>
 
 			<section class="grid gap-5 xl:grid-cols-[21rem_minmax(0,1fr)]">
-				<aside class="overflow-hidden rounded-lg border border-border skin-raised shadow-sm">
+				<aside class="overflow-hidden rounded-lg border border-border skin-card shadow-sm">
 					<div class="flex items-center justify-between gap-3 border-b border-border/80 p-4">
 						<div>
 							<h4 class="text-sm font-semibold">Flag inventory</h4>
@@ -259,7 +259,7 @@ function metricTextClasses(tone) {
 				</aside>
 
 				<main class="grid gap-4">
-					<section class="overflow-hidden rounded-lg border border-border skin-raised shadow-sm">
+					<section class="overflow-hidden rounded-lg border border-border skin-card shadow-sm">
 						<div class="grid lg:grid-cols-[minmax(0,1fr)_20rem]">
 							<div class="p-4 sm:p-5">
 								<div class="flex flex-wrap items-center gap-2">
@@ -326,7 +326,7 @@ function metricTextClasses(tone) {
 						</div>
 					</section>
 
-					<section class="rounded-lg border border-border skin-raised p-4 shadow-sm sm:p-5">
+					<section class="rounded-lg border border-border skin-card p-4 shadow-sm sm:p-5">
 						<DomTabs v-model="activeTab" :tabs="flagViewTabs" aria-label="Flag detail view">
 							<template #targeting>
 								<div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -367,7 +367,7 @@ function metricTextClasses(tone) {
 
 									<div class="rounded-md bg-muted/35 p-4">
 										<h5 class="text-sm font-semibold">Launch checklist</h5>
-										<div class="mt-4 divide-y divide-border/70 overflow-hidden rounded-md bg-background/75 ring-1 ring-border/70">
+										<div class="mt-4 divide-y divide-border/70 overflow-hidden rounded-md bg-canvas/75 ring-1 ring-border/70">
 											<label
 												v-for="check in selectedChecklist"
 												:key="check.label"
@@ -415,7 +415,7 @@ function metricTextClasses(tone) {
 										:key="`${item.actor}-${item.action}`"
 										class="relative border-l border-border pb-4 pl-5 text-sm last:pb-0"
 									>
-										<span class="absolute -left-[5px] top-1 size-2.5 rounded-full bg-primary ring-4 ring-background"></span>
+										<span class="absolute -left-[5px] top-1 size-2.5 rounded-full bg-primary ring-4 ring-canvas"></span>
 										<div class="flex flex-wrap items-baseline justify-between gap-2">
 											<span class="font-medium">{{ item.actor }}</span>
 											<span class="text-xs text-muted-fg">{{ item.time }}</span>

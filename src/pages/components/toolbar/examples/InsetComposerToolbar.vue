@@ -21,10 +21,10 @@ function toggle(key) {
 </script>
 
 <template>
-	<div class="w-full max-w-2xl rounded-2xl border border-border bg-background shadow-sm">
+	<div class="w-full max-w-2xl rounded-2xl border border-border bg-canvas shadow-sm">
 		<textarea
 			v-model="message"
-			class="min-h-40 w-full resize-none bg-transparent px-4 pt-4 text-sm leading-6 text-fg outline-none placeholder:text-muted-fg"
+			class="min-h-40 w-full resize-none bg-transparent px-4 pt-4 text-sm leading-6 text-canvas-fg outline-none placeholder:text-muted-fg"
 			placeholder="Write a message..."
 		></textarea>
 

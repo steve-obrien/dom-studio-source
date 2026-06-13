@@ -79,16 +79,16 @@ import ScreenAnnotationReviewSrc from './examples/ScreenAnnotationReview.vue?raw
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Coordinate model</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Coordinate model</h3>
 						<p class="mt-2">Store pin coordinates against the reviewed asset bounds, not the viewport. Convert to pixels only when rendering the current preview size.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Review lifecycle</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Review lifecycle</h3>
 						<p class="mt-2">Treat replies, assignments, resolves, reopens, and version migrations as append-only events so feedback history remains trustworthy.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include draw-to-pin creation, screenshot upload states, zoom controls, keyboard navigation, version diffing, and exportable review summaries.</p>
 					</div>
 				</div>

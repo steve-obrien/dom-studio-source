@@ -18,7 +18,7 @@ const date = ref('2026-06-18');
 
 		<p class="rounded-xl border border-border bg-secondary px-3 py-2 text-sm text-muted-fg">
 			Stored value:
-			<code class="font-mono text-fg">{{ date || 'empty' }}</code>
+			<code class="font-mono text-canvas-fg">{{ date || 'empty' }}</code>
 		</p>
 	</div>
 </template>

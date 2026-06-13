@@ -92,8 +92,8 @@ function priorityClasses(priority) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-raised px-4 py-4 sm:px-5">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-card px-4 py-4 sm:px-5">
 			<div>
 				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Support center</p>
 				<h3 class="mt-1 text-xl font-semibold tracking-tight">Ticket triage</h3>
@@ -110,17 +110,17 @@ function priorityClasses(priority) {
 		</header>
 
 		<div class="grid min-h-[42rem] lg:grid-cols-[19rem_minmax(0,1fr)_18rem]">
-			<aside class="border-b border-border skin-raised p-3 lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card p-3 lg:border-b-0 lg:border-r">
 				<div class="mb-3 grid grid-cols-3 gap-2 text-center">
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">18</p>
 						<p class="text-[11px] text-muted-fg">Open</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">4</p>
 						<p class="text-[11px] text-muted-fg">SLA</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">91%</p>
 						<p class="text-[11px] text-muted-fg">CSAT</p>
 					</div>
@@ -132,7 +132,7 @@ function priorityClasses(priority) {
 						:key="ticket.id"
 						type="button"
 						class="w-full rounded-xl border p-3 text-left transition hover:border-primary/40"
-						:class="ticket.id === selectedTicket.id ? 'border-primary/50 bg-primary/10' : 'border-border bg-background'"
+						:class="ticket.id === selectedTicket.id ? 'border-primary/50 bg-primary/10' : 'border-border bg-canvas'"
 						@click="selectedTicketId = ticket.id"
 					>
 						<div class="flex items-start justify-between gap-3">
@@ -174,7 +174,7 @@ function priorityClasses(priority) {
 						<article
 							v-for="message in selectedTicket.messages"
 							:key="`${selectedTicket.id}-${message.author}-${message.time}`"
-							class="rounded-xl border border-border bg-background p-4"
+							class="rounded-xl border border-border bg-canvas p-4"
 						>
 							<div class="flex items-start justify-between gap-3">
 								<div>
@@ -193,7 +193,7 @@ function priorityClasses(priority) {
 								<textarea
 									v-model="replyDraft"
 									rows="5"
-									class="block w-full resize-none rounded-xl border border-input bg-background p-3 text-sm leading-6 text-fg outline-none transition placeholder:text-muted-fg focus:border-primary"
+									class="block w-full resize-none rounded-xl border border-input bg-canvas p-3 text-sm leading-6 text-canvas-fg outline-none transition placeholder:text-muted-fg focus:border-primary"
 									placeholder="Write a clear, useful response..."
 								></textarea>
 								<div class="mt-3 flex flex-wrap items-center justify-between gap-3">
@@ -214,7 +214,7 @@ function priorityClasses(priority) {
 				</section>
 			</main>
 
-			<aside class="space-y-3 skin-raised p-4">
+			<aside class="space-y-3 skin-card p-4">
 				<DomCard padding="sm">
 					<div class="flex items-center gap-3">
 						<div class="grid size-10 place-items-center rounded-full bg-primary text-sm font-bold text-primary-fg">

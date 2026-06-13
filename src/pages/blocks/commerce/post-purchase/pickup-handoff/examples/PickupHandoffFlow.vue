@@ -134,10 +134,10 @@ function completeHandoff() {
 </script>
 
 <template>
-	<div class="w-full bg-secondary/40 px-3 py-5 text-fg sm:px-6 lg:px-8">
+	<div class="w-full bg-secondary/40 px-3 py-5 text-canvas-fg sm:px-6 lg:px-8">
 		<div class="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)] lg:items-start">
-			<section class="mx-auto w-full max-w-[28rem] overflow-hidden rounded-[2rem] border border-border bg-background shadow-2xl shadow-black/10">
-				<header class="skin-raised border-b border-border px-4 py-4">
+			<section class="mx-auto w-full max-w-[28rem] overflow-hidden rounded-[2rem] border border-border bg-canvas shadow-2xl shadow-black/10">
+				<header class="skin-card border-b border-border px-4 py-4">
 					<div class="flex items-start justify-between gap-3">
 						<div class="min-w-0">
 							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Pickup order</p>
@@ -167,7 +167,7 @@ function completeHandoff() {
 					<DomTabs v-model="activeTab" :tabs="tabs" />
 
 					<section v-if="activeTab === 'arrival'" class="mt-4 grid gap-4">
-						<div class="grid gap-3 rounded-2xl border border-border bg-background p-4">
+						<div class="grid gap-3 rounded-2xl border border-border bg-canvas p-4">
 							<div class="flex items-start gap-3">
 								<div class="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
 									<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
@@ -192,7 +192,7 @@ function completeHandoff() {
 							</p>
 						</div>
 
-						<div class="rounded-2xl border border-border bg-background p-4">
+						<div class="rounded-2xl border border-border bg-canvas p-4">
 							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Customer note</p>
 							<p class="mt-2 text-sm leading-6">{{ customerMessage }}</p>
 						</div>
@@ -203,7 +203,7 @@ function completeHandoff() {
 							v-for="item in items"
 							:key="item.id"
 							type="button"
-							class="grid w-full gap-3 rounded-2xl border border-border bg-background p-4 text-left transition hover:bg-secondary/60"
+							class="grid w-full gap-3 rounded-2xl border border-border bg-canvas p-4 text-left transition hover:bg-secondary/60"
 							:class="item.ready ? 'border-success/30' : 'border-warning/40'"
 							@click="toggleItemReady(item)"
 						>
@@ -224,7 +224,7 @@ function completeHandoff() {
 					</section>
 
 					<section v-else class="mt-4 grid gap-4">
-						<div class="grid gap-3 rounded-2xl border border-border bg-background p-4">
+						<div class="grid gap-3 rounded-2xl border border-border bg-canvas p-4">
 							<div class="flex items-center justify-between gap-4">
 								<div>
 									<h4 class="font-semibold">Contactless loading</h4>
@@ -263,7 +263,7 @@ function completeHandoff() {
 					</section>
 				</div>
 
-				<footer class="sticky bottom-0 border-t border-border bg-background/95 p-4 shadow-[0_-18px_45px_rgba(15,23,42,0.12)] backdrop-blur">
+				<footer class="sticky bottom-0 border-t border-border bg-canvas/95 p-4 shadow-[0_-18px_45px_rgba(15,23,42,0.12)] backdrop-blur">
 					<div v-if="lastAction" class="mb-3 rounded-xl bg-secondary/70 px-3 py-2 text-sm text-muted-fg">
 						{{ lastAction }}
 					</div>
@@ -290,8 +290,8 @@ function completeHandoff() {
 			</section>
 
 			<aside class="grid gap-4">
-				<section class="overflow-hidden rounded-3xl border border-border bg-background shadow-2xl shadow-black/10">
-					<div class="border-b border-border skin-raised p-5">
+				<section class="overflow-hidden rounded-3xl border border-border bg-canvas shadow-2xl shadow-black/10">
+					<div class="border-b border-border skin-card p-5">
 						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Handoff snapshot</p>
 						<h3 class="mt-1 text-xl font-semibold tracking-tight">Order is {{ statusLabel.toLowerCase() }}</h3>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">A companion summary for larger screens, store displays, or embedded staff workflows.</p>
@@ -314,7 +314,7 @@ function completeHandoff() {
 						</div>
 
 						<div class="grid gap-3">
-							<div v-for="check in requiredChecks" :key="`desktop-${check.label}`" class="rounded-2xl border border-border bg-background p-4">
+							<div v-for="check in requiredChecks" :key="`desktop-${check.label}`" class="rounded-2xl border border-border bg-canvas p-4">
 								<div class="flex items-start justify-between gap-3">
 									<div class="min-w-0">
 										<p class="font-semibold">{{ check.label }}</p>
@@ -332,7 +332,7 @@ function completeHandoff() {
 					</div>
 				</section>
 
-				<section class="rounded-3xl border border-border bg-background p-5 shadow-2xl shadow-black/10">
+				<section class="rounded-3xl border border-border bg-canvas p-5 shadow-2xl shadow-black/10">
 					<div class="flex items-start gap-3">
 						<div class="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
 							<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">

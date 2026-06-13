@@ -144,8 +144,8 @@ function statusClasses(status) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-raised px-4 py-4 sm:px-5">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-card px-4 py-4 sm:px-5">
 			<div>
 				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Developer console</p>
 				<h3 class="mt-1 text-xl font-semibold tracking-tight">API keys</h3>
@@ -162,17 +162,17 @@ function statusClasses(status) {
 		</header>
 
 		<div class="grid min-h-[44rem] lg:grid-cols-[18rem_minmax(0,1fr)_20rem]">
-			<aside class="border-b border-border skin-raised p-3 lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card p-3 lg:border-b-0 lg:border-r">
 				<div class="mb-3 grid grid-cols-3 gap-2 text-center">
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">12</p>
 						<p class="text-[11px] text-muted-fg">Active</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">3</p>
 						<p class="text-[11px] text-muted-fg">Expiring</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">99.9%</p>
 						<p class="text-[11px] text-muted-fg">Uptime</p>
 					</div>
@@ -184,7 +184,7 @@ function statusClasses(status) {
 						:key="key.id"
 						type="button"
 						class="w-full rounded-lg border p-3 text-left transition hover:border-primary/50"
-						:class="key.id === selectedKey.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-background'"
+						:class="key.id === selectedKey.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-canvas'"
 						@click="selectKey(key)"
 					>
 						<div class="flex items-start justify-between gap-2">
@@ -225,7 +225,7 @@ function statusClasses(status) {
 					</DomCard>
 				</section>
 
-				<section class="rounded-xl border border-border bg-background">
+				<section class="rounded-xl border border-border bg-canvas">
 					<div class="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
 						<div>
 							<h4 class="font-semibold">Credential details</h4>
@@ -242,7 +242,7 @@ function statusClasses(status) {
 					</div>
 
 					<div v-if="activeTab === 'scopes'" class="grid gap-3 p-4 md:grid-cols-3">
-						<div v-for="group in scopeGroups" :key="group.title" class="rounded-lg border border-border skin-raised p-3">
+						<div v-for="group in scopeGroups" :key="group.title" class="rounded-lg border border-border skin-card p-3">
 							<h5 class="text-sm font-semibold">{{ group.title }}</h5>
 							<div class="mt-3 space-y-3">
 								<label v-for="scope in group.scopes" :key="scope.key" class="flex gap-3">
@@ -273,16 +273,16 @@ function statusClasses(status) {
 				</section>
 
 				<section class="grid gap-3 md:grid-cols-2">
-					<div class="rounded-lg border border-border skin-raised p-4">
+					<div class="rounded-lg border border-border skin-card p-4">
 						<h4 class="font-semibold">Allowed origins</h4>
 						<div class="mt-3 space-y-2">
-							<div v-for="origin in selectedKey.origins" :key="origin" class="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2">
+							<div v-for="origin in selectedKey.origins" :key="origin" class="flex items-center justify-between gap-3 rounded-lg border border-border bg-canvas px-3 py-2">
 								<code class="truncate text-xs">{{ origin }}</code>
 								<span class="text-xs font-medium text-emerald-700 dark:text-emerald-300">Allowed</span>
 							</div>
 						</div>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
+					<div class="rounded-lg border border-border skin-card p-4">
 						<h4 class="font-semibold">Rotation checklist</h4>
 						<div class="mt-3 space-y-2 text-sm text-muted-fg">
 							<p class="flex items-center gap-2"><span class="size-2 rounded-full bg-emerald-500" /> Create replacement key</p>
@@ -293,8 +293,8 @@ function statusClasses(status) {
 				</section>
 			</main>
 
-			<aside class="border-t border-border skin-raised p-4 lg:border-l lg:border-t-0">
-				<div class="rounded-xl border border-border bg-background p-4">
+			<aside class="border-t border-border skin-card p-4 lg:border-l lg:border-t-0">
+				<div class="rounded-xl border border-border bg-canvas p-4">
 					<div class="flex items-center justify-between gap-3">
 						<div>
 							<h4 class="font-semibold">Create key</h4>
@@ -305,7 +305,7 @@ function statusClasses(status) {
 
 					<label class="mt-4 block text-sm font-medium">
 						Key name
-						<input v-model="newKeyName" class="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary" type="text">
+						<input v-model="newKeyName" class="mt-2 w-full rounded-lg border border-border bg-canvas px-3 py-2 text-sm outline-none focus:border-primary" type="text">
 					</label>
 
 					<label class="mt-4 block text-sm font-medium">
@@ -324,7 +324,7 @@ function statusClasses(status) {
 					</div>
 				</div>
 
-				<div class="mt-4 rounded-xl border border-border bg-background p-4">
+				<div class="mt-4 rounded-xl border border-border bg-canvas p-4">
 					<h4 class="font-semibold">Policy summary</h4>
 					<div class="mt-3 space-y-3 text-sm">
 						<div class="flex justify-between gap-3">

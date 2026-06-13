@@ -25,7 +25,7 @@ const current = computed(() => items.find((i) => i.value === assigned.value));
 			<div class="flex items-center gap-3">
 				<DomAvatar :src="item.avatar" :name="item.name" :initials="item.initials" size="sm" />
 				<div class="min-w-0">
-					<p class="truncate text-sm font-medium text-fg">{{ item.name }}</p>
+					<p class="truncate text-sm font-medium text-canvas-fg">{{ item.name }}</p>
 					<p class="truncate text-xs text-muted-fg">{{ item.role }}</p>
 				</div>
 			</div>

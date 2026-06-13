@@ -32,7 +32,7 @@ function payloadTokens(slot) {
 				</thead>
 				<tbody class="divide-y divide-border">
 					<tr v-for="s in info.slots" :key="s.name">
-						<td class="px-4 py-3 font-mono text-[12.5px] text-fg">#{{ s.name }}</td>
+						<td class="px-4 py-3 font-mono text-[12.5px] text-canvas-fg">#{{ s.name }}</td>
 						<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">
 							<template v-for="(token, index) in payloadTokens(s)" :key="`${s.name}:${index}`">
 								<DomPopover
@@ -43,7 +43,7 @@ function payloadTokens(slot) {
 									padding="p-0"
 								>
 									<template #trigger>
-										<span class="cursor-help text-fg underline decoration-dotted underline-offset-4">{{ token.text }}</span>
+										<span class="cursor-help text-canvas-fg underline decoration-dotted underline-offset-4">{{ token.text }}</span>
 									</template>
 									<TypeCodeBlock class="max-h-80" :code="token.definition" :definitions="token.typeDefinitions || {}" :framed="false" />
 								</DomPopover>

@@ -264,7 +264,7 @@ function splitTokens(value) {
 	<DomField v-bind="field.fieldAttrs.value" :chrome="chrome">
 		<div class="relative">
 			<div
-				class="flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-2xl border border-input bg-background px-2 py-1.5 text-sm shadow-sm transition focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 data-[invalid]:border-destructive"
+				class="flex min-h-10 w-full flex-wrap items-center gap-1.5 rounded-2xl border border-input bg-canvas px-2 py-1.5 text-sm shadow-sm transition focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20 data-[invalid]:border-destructive"
 				:data-invalid="field.invalid.value ? '' : undefined"
 				@click="inputEl?.focus()"
 			>
@@ -277,7 +277,7 @@ function splitTokens(value) {
 						<span class="truncate">{{ entry.label }}</span>
 						<button
 							type="button"
-							class="-mr-1 inline-flex size-4 items-center justify-center rounded-full text-muted-fg hover:bg-background hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+							class="-mr-1 inline-flex size-4 items-center justify-center rounded-full text-muted-fg hover:bg-canvas hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 							:aria-label="`Remove ${entry.label}`"
 							@click.stop="removeValue(entry.value)"
 							@mousedown.prevent
@@ -309,7 +309,7 @@ function splitTokens(value) {
 					<button
 						v-if="isClearable && hasTags"
 					type="button"
-					class="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+					class="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 					aria-label="Clear tags"
 					@click.stop="clearAll"
 					@mousedown.prevent
@@ -324,7 +324,7 @@ function splitTokens(value) {
 				v-if="showMenu"
 				:id="`${field.id.value}-listbox`"
 				role="listbox"
-					class="skin-floating absolute z-40 mt-2 max-h-72 w-full overflow-auto rounded-2xl p-1"
+					class="skin-popover absolute z-40 mt-2 max-h-72 w-full overflow-auto rounded-2xl p-1"
 				>
 					<li v-if="hasEmptyState" class="rounded-xl px-3 py-2 text-sm text-muted-fg">
 						{{ emptyText }}
@@ -348,7 +348,7 @@ function splitTokens(value) {
 									{{ entry.item.description || entry.item.group }}
 								</span>
 							</span>
-							<span v-if="entry.custom" class="shrink-0 rounded-full bg-background/70 px-2 py-0.5 text-[11px] text-muted-fg ring-1 ring-border">custom</span>
+							<span v-if="entry.custom" class="shrink-0 rounded-full bg-canvas/70 px-2 py-0.5 text-[11px] text-muted-fg ring-1 ring-border">custom</span>
 						</div>
 					</slot>
 				</li>

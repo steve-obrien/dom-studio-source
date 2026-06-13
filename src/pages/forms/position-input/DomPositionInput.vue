@@ -53,7 +53,7 @@ const positions = [
 				:aria-describedby="field.describedBy.value || undefined"
 				class="relative h-28 rounded-xl border border-border bg-secondary/30 p-3"
 			>
-			<div class="absolute left-1/2 top-1/2 size-12 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-background shadow-sm"></div>
+			<div class="absolute left-1/2 top-1/2 size-12 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-canvas shadow-sm"></div>
 			<button
 				v-for="position in positions"
 				:key="position.value"
@@ -63,7 +63,7 @@ const positions = [
 					position.class,
 					field.value.value === position.value
 						? 'border-primary bg-primary text-primary-fg shadow-sm'
-						: 'border-border bg-background text-muted-fg hover:border-ring hover:bg-accent',
+						: 'border-border bg-canvas text-muted-fg hover:border-ring hover:bg-accent',
 				]"
 				:title="position.label"
 				:aria-label="position.label"

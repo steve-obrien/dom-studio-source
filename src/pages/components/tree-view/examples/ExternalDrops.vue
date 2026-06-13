@@ -107,7 +107,7 @@ function cloneItems(items) {
 					:key="snippet.id"
 					type="button"
 					draggable="true"
-					class="flex h-9 items-center gap-2 rounded-lg border border-border bg-background px-3 text-left text-sm text-fg transition hover:border-ring hover:skin-raised"
+					class="flex h-9 items-center gap-2 rounded-lg border border-border bg-canvas px-3 text-left text-sm text-canvas-fg transition hover:border-ring hover:skin-card"
 					@dragstart="onPaletteDragStart(snippet, $event)"
 				>
 					<svg class="size-4 text-muted-fg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true">

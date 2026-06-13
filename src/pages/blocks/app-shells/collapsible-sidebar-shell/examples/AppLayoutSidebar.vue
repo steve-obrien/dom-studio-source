@@ -24,7 +24,7 @@ function toCssLength(value) {
 </script>
 
 <template>
-	<div class="min-h-screen bg-background text-fg">
+	<div class="min-h-screen bg-canvas text-canvas-fg">
 		<div
 			class="grid min-h-screen transition-[grid-template-columns] duration-300 ease-out"
 			:style="{ gridTemplateColumns: `${sidebarWidth} minmax(0, 1fr)` }"
@@ -33,7 +33,7 @@ function toCssLength(value) {
 				<slot name="sidebar" />
 			</aside>
 
-			<main class="min-w-0 overflow-hidden bg-background">
+			<main class="min-w-0 overflow-hidden bg-canvas">
 				<slot name="content" />
 			</main>
 		</div>

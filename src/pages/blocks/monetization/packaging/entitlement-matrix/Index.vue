@@ -95,16 +95,16 @@ import PlanEntitlementMatrixSrc from './examples/PlanEntitlementMatrix.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Billing source</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Billing source</h3>
 						<p class="mt-2">Treat prices, SKU IDs, trial policy, tax behavior, and discount eligibility as billing-provider data. The block should preview the order, not calculate final billing authority.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Runtime gating</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Runtime gating</h3>
 						<p class="mt-2">Use the same entitlement keys in server middleware, feature flags, usage meters, and UI copy so upgrades and disabled states stay consistent across the app.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include editable entitlement rows, plan version history, migration previews, discount testing, usage forecast overlays, and sales-assisted quote states.</p>
 					</div>
 				</div>

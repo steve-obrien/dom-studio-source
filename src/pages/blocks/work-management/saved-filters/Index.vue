@@ -68,16 +68,16 @@ import SavedFilterBuilderSrc from './examples/SavedFilterBuilder.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Rule evaluation</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Rule evaluation</h3>
 						<p class="mt-2">Keep the UI rule model close to your API query grammar so saved views can be reused across tables, exports, alerts, and automations.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Sharing model</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Sharing model</h3>
 						<p class="mt-2">Treat team views as shared objects with ownership, edit permissions, and audit events instead of plain local preferences.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include a reusable rule row component, nested rule groups, saved-view permissions, export actions, and alert subscriptions.</p>
 					</div>
 				</div>

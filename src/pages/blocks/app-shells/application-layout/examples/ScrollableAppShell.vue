@@ -29,13 +29,13 @@ const activity = [
 </script>
 
 <template>
-	<div class="grid h-[38rem] w-full overflow-hidden rounded-3xl border border-border bg-background shadow-2xl shadow-black/10 lg:grid-cols-[16rem_minmax(0,1fr)]">
-		<aside class="flex min-h-0 flex-col border-r border-border skin-raised">
+	<div class="grid h-[38rem] w-full overflow-hidden rounded-3xl border border-border bg-canvas shadow-2xl shadow-black/10 lg:grid-cols-[16rem_minmax(0,1fr)]">
+		<aside class="flex min-h-0 flex-col border-r border-border skin-card">
 			<div class="shrink-0 border-b border-border p-4">
 				<div class="flex items-center gap-3">
 					<span class="grid size-9 place-items-center rounded-xl bg-primary text-sm font-bold text-primary-fg">A</span>
 					<div class="min-w-0">
-						<p class="truncate text-sm font-semibold text-fg">Atlas Studio</p>
+						<p class="truncate text-sm font-semibold text-canvas-fg">Atlas Studio</p>
 						<p class="truncate text-xs text-muted-fg">Product workspace</p>
 					</div>
 				</div>
@@ -52,7 +52,7 @@ const activity = [
 					v-for="section in sections"
 					:key="section"
 					type="button"
-					class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-medium text-muted-fg transition first:bg-secondary first:text-secondary-fg hover:bg-secondary hover:text-fg"
+					class="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-medium text-muted-fg transition first:bg-secondary first:text-secondary-fg hover:bg-secondary hover:text-canvas-fg"
 				>
 					<span class="truncate">{{ section }}</span>
 					<span v-if="section === 'Tasks'" class="rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-fg">8</span>
@@ -73,11 +73,11 @@ const activity = [
 		</aside>
 
 		<main class="min-h-0 overflow-y-auto">
-			<header class="sticky top-0 z-10 border-b border-border bg-background/85 p-5 backdrop-blur">
+			<header class="sticky top-0 z-10 border-b border-border bg-canvas/85 p-5 backdrop-blur">
 				<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 					<div>
 						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Workspace</p>
-						<h3 class="mt-1 text-2xl font-semibold tracking-tight text-fg">Customer health</h3>
+						<h3 class="mt-1 text-2xl font-semibold tracking-tight text-canvas-fg">Customer health</h3>
 					</div>
 					<div class="flex flex-wrap gap-2">
 						<DomNativeSelect
@@ -98,7 +98,7 @@ const activity = [
 				<div class="grid gap-4 md:grid-cols-3">
 					<DomCard v-for="metric in ['Active accounts', 'At risk', 'Expansion']" :key="metric" padding="md">
 						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">{{ metric }}</p>
-						<p class="mt-3 text-3xl font-semibold tracking-tight text-fg">
+						<p class="mt-3 text-3xl font-semibold tracking-tight text-canvas-fg">
 							{{ metric === 'At risk' ? '12' : metric === 'Expansion' ? '$42k' : '248' }}
 						</p>
 					</DomCard>
@@ -106,14 +106,14 @@ const activity = [
 
 				<DomCard padding="none" class="overflow-hidden">
 					<div class="border-b border-border p-4">
-						<h4 class="font-semibold tracking-tight text-fg">Activity feed</h4>
+						<h4 class="font-semibold tracking-tight text-canvas-fg">Activity feed</h4>
 						<p class="mt-1 text-sm text-muted-fg">The main panel scrolls independently from the left navigation.</p>
 					</div>
 					<div class="divide-y divide-border">
 						<article v-for="item in activity" :key="item.title" class="p-4">
 							<div class="flex items-start justify-between gap-4">
 								<div>
-									<h5 class="text-sm font-semibold text-fg">{{ item.title }}</h5>
+									<h5 class="text-sm font-semibold text-canvas-fg">{{ item.title }}</h5>
 									<p class="mt-1 text-sm leading-6 text-muted-fg">{{ item.body }}</p>
 								</div>
 								<span class="shrink-0 text-xs text-muted-fg">{{ item.meta }}</span>
@@ -123,7 +123,7 @@ const activity = [
 				</DomCard>
 
 				<DomCard padding="lg">
-					<h4 class="text-lg font-semibold tracking-tight text-fg">Detail section</h4>
+					<h4 class="text-lg font-semibold tracking-tight text-canvas-fg">Detail section</h4>
 					<p class="mt-3 text-sm leading-6 text-muted-fg">
 						This lower content exists to prove the layout can keep a persistent left rail while the working area continues scrolling through detailed content, tables, forms, or editor panels.
 					</p>

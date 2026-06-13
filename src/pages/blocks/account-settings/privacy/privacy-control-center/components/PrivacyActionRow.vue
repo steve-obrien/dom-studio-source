@@ -40,7 +40,7 @@ const statusClass = {
 	<div class="flex flex-col gap-3 border-b border-border py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
 		<div class="min-w-0">
 			<div class="flex flex-wrap items-center gap-2">
-				<h5 class="font-semibold text-fg">{{ title }}</h5>
+				<h5 class="font-semibold text-canvas-fg">{{ title }}</h5>
 				<span
 					v-if="status"
 					class="rounded-full px-2 py-0.5 text-xs font-semibold"
@@ -54,7 +54,7 @@ const statusClass = {
 		<button
 			type="button"
 			class="inline-flex h-9 shrink-0 items-center justify-center rounded-md border px-3 text-sm font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-ring/40"
-			:class="destructive ? 'border-destructive/30 text-destructive hover:bg-destructive/10' : 'border-border text-fg hover:border-primary/50 hover:bg-secondary'"
+			:class="destructive ? 'border-destructive/30 text-destructive hover:bg-destructive/10' : 'border-border text-canvas-fg hover:border-primary/50 hover:bg-secondary'"
 			@click="$emit('action')"
 		>
 			{{ actionLabel }}

@@ -32,7 +32,7 @@ function toNumber(value) {
 			:min="min"
 			:max="max"
 			:step="step"
-			class="dom-input"
+			class="skin-input h-10"
 			@input="field.onInput(toNumber($event.target.value))"
 			@focus="field.onFocus"
 			@blur="field.onBlur"

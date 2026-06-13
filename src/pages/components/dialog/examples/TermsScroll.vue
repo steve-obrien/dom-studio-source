@@ -74,10 +74,10 @@ function acceptTerms() {
 		>
 			<div class="space-y-5">
 				<section v-for="section in sections" :key="section.title" class="space-y-1">
-					<h3 class="text-sm font-semibold text-fg">{{ section.title }}</h3>
+					<h3 class="text-sm font-semibold text-canvas-fg">{{ section.title }}</h3>
 					<p>{{ section.body }}</p>
 				</section>
-				<p class="border-t border-border pt-5 text-fg">
+				<p class="border-t border-border pt-5 text-canvas-fg">
 					By accepting, you confirm that you have reviewed the terms above and are authorised to agree on behalf of your workspace.
 				</p>
 			</div>

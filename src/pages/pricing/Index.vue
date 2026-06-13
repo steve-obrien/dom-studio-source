@@ -114,7 +114,7 @@ const generatedSource = [
 
 		<section class="-mt-6 pb-16 pt-10 text-center">
 			<p class="text-xs font-semibold uppercase tracking-[0.22em] text-muted-fg">Pricing</p>
-			<h1 class="mt-3 text-5xl font-bold leading-[1.05] tracking-tight text-fg sm:text-6xl">Buy the source. Own the system.</h1>
+			<h1 class="mt-3 text-5xl font-bold leading-[1.05] tracking-tight text-canvas-fg sm:text-6xl">Buy the source. Own the system.</h1>
 			<p class="mx-auto mt-5 max-w-2xl text-lg text-muted-fg">
 				Choose an Individual or Team licence. Both unlock DOM Studio source access, generated examples, and the living documentation workflow.
 			</p>
@@ -128,17 +128,17 @@ const generatedSource = [
 			<div
 				v-for="t in licences"
 				:key="t.name"
-				class="relative flex flex-col rounded-3xl border bg-background p-7 transition"
+				class="relative flex flex-col rounded-3xl border bg-canvas p-7 transition"
 				:class="t.highlight ? 'border-primary shadow-2xl shadow-black/10 ring-1 ring-ring/10' : 'border-border'"
 			>
 				<span v-if="t.highlight" class="absolute -top-3 left-7 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary-fg">Most popular</span>
 				<div>
-					<p class="text-sm font-semibold tracking-tight text-fg">{{ t.name }}</p>
+					<p class="text-sm font-semibold tracking-tight text-canvas-fg">{{ t.name }}</p>
 					<p class="mt-1 text-sm text-muted-fg">{{ t.tagline }}</p>
 				</div>
 				<div class="mt-6 flex items-baseline gap-1">
 					<span v-if="t.hasPromotion" class="mr-2 text-2xl font-semibold tracking-tight text-muted-fg line-through">£{{ t.originalPrice }}</span>
-					<span class="text-5xl font-bold tracking-tight text-fg">£{{ t.price }}</span>
+					<span class="text-5xl font-bold tracking-tight text-canvas-fg">£{{ t.price }}</span>
 					<span class="text-sm text-muted-fg">once</span>
 				</div>
 				<p v-if="t.offerLabel" class="mt-2 text-xs font-semibold uppercase tracking-wider text-success">{{ t.offerLabel }}</p>
@@ -146,7 +146,7 @@ const generatedSource = [
 				<ul class="mt-6 space-y-2.5 text-sm">
 					<li v-for="f in t.features" :key="f" class="flex items-start gap-2 text-muted-fg">
 						<svg viewBox="0 0 20 20" class="mt-0.5 size-4 shrink-0" fill="none">
-							<path d="M5 10.5l3 3 7-7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" :class="t.highlight ? 'text-fg' : 'text-success'" />
+							<path d="M5 10.5l3 3 7-7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" :class="t.highlight ? 'text-canvas-fg' : 'text-success'" />
 						</svg>
 						<span>{{ f }}</span>
 					</li>
@@ -168,7 +168,7 @@ const generatedSource = [
 			<div class="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">Source access</p>
-					<h2 class="mt-2 text-3xl font-bold tracking-tight text-fg">See the code before you bring it home.</h2>
+					<h2 class="mt-2 text-3xl font-bold tracking-tight text-canvas-fg">See the code before you bring it home.</h2>
 					<p class="mt-4 text-sm leading-relaxed text-muted-fg">
 						DOM Studio access shows the generated source that powers each component or block. It is built from DOM Studio primitives, so the code you preview is the code you can copy, edit, and document inside your own app.
 					</p>
@@ -184,7 +184,7 @@ const generatedSource = [
 						<span>Generated source</span>
 						<span>InviteDialog.vue</span>
 					</div>
-					<pre class="max-h-[30rem] overflow-auto p-5 text-[12px] leading-relaxed text-fg"><code>{{ generatedSource }}</code></pre>
+					<pre class="max-h-[30rem] overflow-auto p-5 text-[12px] leading-relaxed text-canvas-fg"><code>{{ generatedSource }}</code></pre>
 				</div>
 			</div>
 		</section>
@@ -192,11 +192,11 @@ const generatedSource = [
 		<section class="mt-24 border-t border-border pt-16">
 			<div class="mb-10 text-center">
 				<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">What's included</p>
-				<h2 class="mt-2 text-3xl font-bold tracking-tight text-fg">A component library you can fold into your product.</h2>
+				<h2 class="mt-2 text-3xl font-bold tracking-tight text-canvas-fg">A component library you can fold into your product.</h2>
 			</div>
 			<div class="grid gap-6 sm:grid-cols-2">
 				<div v-for="p in proPerks" :key="p.title" class="rounded-2xl border border-border bg-secondary/40 p-6">
-					<h3 class="text-base font-semibold tracking-tight text-fg">{{ p.title }}</h3>
+					<h3 class="text-base font-semibold tracking-tight text-canvas-fg">{{ p.title }}</h3>
 					<p class="mt-2 text-sm leading-relaxed text-muted-fg">{{ p.body }}</p>
 				</div>
 			</div>
@@ -205,7 +205,7 @@ const generatedSource = [
 		<section class="mt-24 border-t border-border pt-16">
 			<div class="mb-8 text-center">
 				<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">Compare</p>
-				<h2 class="mt-2 text-3xl font-bold tracking-tight text-fg">Choose the licence that matches how you ship.</h2>
+				<h2 class="mt-2 text-3xl font-bold tracking-tight text-canvas-fg">Choose the licence that matches how you ship.</h2>
 			</div>
 			<div class="overflow-hidden rounded-2xl border border-border">
 				<table class="w-full text-left text-sm">
@@ -218,7 +218,7 @@ const generatedSource = [
 					</thead>
 					<tbody class="divide-y divide-border">
 						<tr v-for="r in comparisonRows" :key="r.feature">
-							<td class="px-4 py-3 text-fg">{{ r.feature }}</td>
+							<td class="px-4 py-3 text-canvas-fg">{{ r.feature }}</td>
 							<td class="px-4 py-3 text-center text-muted-fg">{{ r.individual ? '✓' : '—' }}</td>
 							<td class="px-4 py-3 text-center text-muted-fg">{{ r.team ? '✓' : '—' }}</td>
 						</tr>
@@ -230,7 +230,7 @@ const generatedSource = [
 		<section class="mt-24 border-t border-border pt-16">
 			<div class="mb-8 text-center">
 				<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">FAQ</p>
-				<h2 class="mt-2 text-3xl font-bold tracking-tight text-fg">Questions, answered.</h2>
+				<h2 class="mt-2 text-3xl font-bold tracking-tight text-canvas-fg">Questions, answered.</h2>
 			</div>
 			<div class="mx-auto max-w-2xl">
 				<DomAccordion :items="faqs" />
@@ -239,7 +239,7 @@ const generatedSource = [
 
 		<section id="checkout" class="mt-24 border-t border-border pt-16 text-center">
 			<div class="mx-auto max-w-2xl rounded-3xl border border-border bg-secondary/40 p-10">
-				<h2 class="text-3xl font-bold tracking-tight text-fg">Get the source and make it yours.</h2>
+				<h2 class="text-3xl font-bold tracking-tight text-canvas-fg">Get the source and make it yours.</h2>
 				<p class="mt-3 text-muted-fg">Buy once for DOM Studio v1 access. Copy components into your app, vendor the workspace with git subtree, and keep the living docs close to the code.</p>
 				<div class="mt-6 flex flex-wrap items-center justify-center gap-3">
 					<DomButton :as="'a'" href="/api/billing/checkout?licence=individual" size="lg">Individual - £{{ individualPrice }} once</DomButton>

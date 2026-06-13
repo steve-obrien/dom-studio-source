@@ -77,16 +77,16 @@ import ModerationReviewQueueSrc from './examples/ModerationReviewQueue.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Decision safety</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Decision safety</h3>
 						<p class="mt-2">Require a reason and note for removals, suspensions, and escalations. Store immutable audit events rather than overwriting the original case state.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Policy modeling</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Policy modeling</h3>
 						<p class="mt-2">Normalize policy signals from reports, classifiers, and manual flags so moderators can compare confidence, severity, and evidence in one place.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Reusable evidence viewers, appeal review panels, macro replies, duplicate report grouping, and reviewer workload metrics would make this block stronger.</p>
 					</div>
 				</div>

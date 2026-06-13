@@ -73,16 +73,16 @@ import WebhookOperationsConsoleSrc from './examples/WebhookOperationsConsole.vue
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Delivery model</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Delivery model</h3>
 						<p class="mt-2">Store every attempt separately from the logical event so retries keep a complete audit trail.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Security</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Security</h3>
 						<p class="mt-2">Mask secrets after creation, sign payloads server-side, and show rotation state before accepting changes.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include event schema docs, endpoint health alerts, retry policy editors, and webhook test fixtures.</p>
 					</div>
 				</div>

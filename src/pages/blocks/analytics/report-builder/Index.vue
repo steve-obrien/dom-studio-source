@@ -74,16 +74,16 @@ import ReportBuilderWorkspaceSrc from './examples/ReportBuilderWorkspace.vue?raw
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Metric catalog</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Metric catalog</h3>
 						<p class="mt-2">Keep metric labels, descriptions, compatible datasets, and calculation rules server-owned so copied report definitions stay stable.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Preview safety</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Preview safety</h3>
 						<p class="mt-2">Return sampled previews quickly, then run full exports asynchronously with completion notifications and retryable job records.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Good follow-ups include reusable filter builders, chart editors, query warnings, dashboard pinning, and scheduled export monitors.</p>
 					</div>
 				</div>

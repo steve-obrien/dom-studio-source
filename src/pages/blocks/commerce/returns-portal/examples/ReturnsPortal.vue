@@ -130,8 +130,8 @@ function money(value) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Returns portal</p>
@@ -140,7 +140,7 @@ function money(value) {
 						Select items, choose a resolution, and prepare a return request with policy checks visible before submission.
 					</p>
 				</div>
-				<div class="grid gap-1 rounded-2xl border border-border bg-background px-4 py-3 text-sm">
+				<div class="grid gap-1 rounded-2xl border border-border bg-canvas px-4 py-3 text-sm">
 					<span class="font-semibold">Delivered May 28, 2026</span>
 					<span class="text-muted-fg">Return window closes Jun 27</span>
 				</div>
@@ -165,14 +165,14 @@ function money(value) {
 							v-for="item in orderItems"
 							:key="item.id"
 							type="button"
-							class="grid w-full gap-3 bg-background p-4 text-left transition hover:bg-secondary/60 sm:grid-cols-[auto_minmax(0,1fr)_auto]"
+							class="grid w-full gap-3 bg-canvas p-4 text-left transition hover:bg-secondary/60 sm:grid-cols-[auto_minmax(0,1fr)_auto]"
 							:class="selectedItemIds.includes(item.id) ? 'bg-primary/5' : ''"
 							:disabled="!item.eligible"
 							@click="toggleItem(item)"
 						>
 							<span
 								class="mt-1 grid size-5 place-items-center rounded-md border"
-								:class="selectedItemIds.includes(item.id) ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-background text-transparent'"
+								:class="selectedItemIds.includes(item.id) ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-canvas text-transparent'"
 								aria-hidden="true"
 							>
 								<svg viewBox="0 0 24 24" class="size-3.5" fill="none">
@@ -217,7 +217,7 @@ function money(value) {
 						</div>
 					</div>
 
-					<aside class="rounded-2xl border border-border bg-background p-4">
+					<aside class="rounded-2xl border border-border bg-canvas p-4">
 						<h4 class="font-semibold tracking-tight">Policy checks</h4>
 						<div class="mt-4 grid gap-3">
 							<div v-for="check in readyChecks" :key="check.label" class="flex items-start gap-3 text-sm">
@@ -234,7 +234,7 @@ function money(value) {
 				</section>
 			</main>
 
-			<aside class="grid content-start gap-0 skin-raised">
+			<aside class="grid content-start gap-0 skin-card">
 				<section class="border-b border-border p-4 sm:p-6">
 					<div class="flex items-start justify-between gap-3">
 						<div>
@@ -261,8 +261,8 @@ function money(value) {
 						</div>
 					</div>
 
-					<div class="mt-5 rounded-2xl border border-border bg-background p-4 text-sm leading-6 text-muted-fg">
-						<p class="font-semibold text-fg">{{ returnMethod }}</p>
+					<div class="mt-5 rounded-2xl border border-border bg-canvas p-4 text-sm leading-6 text-muted-fg">
+						<p class="font-semibold text-canvas-fg">{{ returnMethod }}</p>
 						<p class="mt-1">Label and instructions are generated after approval. Exchange requests reserve stock for 48 hours.</p>
 					</div>
 
@@ -277,7 +277,7 @@ function money(value) {
 				<section class="border-b border-border p-4 sm:p-6">
 					<h4 class="font-semibold tracking-tight">Selected items</h4>
 					<div class="mt-3 grid gap-2">
-						<div v-for="item in selectedItems" :key="item.id" class="rounded-xl bg-background px-3 py-2 text-sm">
+						<div v-for="item in selectedItems" :key="item.id" class="rounded-xl bg-canvas px-3 py-2 text-sm">
 							<div class="flex items-center justify-between gap-3">
 								<span class="font-medium">{{ item.name }}</span>
 								<span>{{ money(item.price) }}</span>

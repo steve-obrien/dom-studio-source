@@ -100,7 +100,7 @@ function money(value) {
 						>
 							<output
 								:id="`line-${index}-total`"
-								class="flex h-10 items-center justify-end rounded-md border border-input bg-secondary/50 px-3 text-sm font-semibold text-fg"
+								class="flex h-10 items-center justify-end rounded-md border border-input bg-secondary/50 px-3 text-sm font-semibold text-canvas-fg"
 							>
 								{{ money(lineTotal(item)) }}
 							</output>
@@ -116,7 +116,7 @@ function money(value) {
 					<span>Subtotal</span>
 					<span>{{ money(total) }}</span>
 				</div>
-				<div class="flex justify-between border-t border-border pt-3 text-lg font-semibold text-fg">
+				<div class="flex justify-between border-t border-border pt-3 text-lg font-semibold text-canvas-fg">
 					<span>Total</span>
 					<span>{{ money(total) }}</span>
 				</div>

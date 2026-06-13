@@ -213,8 +213,8 @@ function formatCurrency(value) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-lg border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<section class="border-b border-border bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/.14),transparent_34%),linear-gradient(135deg,hsl(var(--background)),hsl(var(--secondary)/.72))] px-4 py-5 sm:px-6 lg:px-7">
+	<div class="w-full overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<section class="border-b border-border bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/.14),transparent_34%),linear-gradient(135deg,hsl(var(--canvas)),hsl(var(--secondary)/.72))] px-4 py-5 sm:px-6 lg:px-7">
 			<div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
 				<div class="min-w-0">
 					<div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase text-muted-fg">
@@ -229,17 +229,17 @@ function formatCurrency(value) {
 				</div>
 
 				<div class="grid gap-2 sm:grid-cols-3 xl:min-w-[34rem]">
-					<div class="rounded-lg border border-border bg-background/82 p-3">
+					<div class="rounded-lg border border-border bg-canvas/82 p-3">
 						<p class="text-xs font-medium text-muted-fg">Week 1 average</p>
 						<p class="mt-1 text-2xl font-semibold">{{ weekOneAverage }}%</p>
 						<p class="mt-1 text-xs text-muted-fg">Target {{ activeBenchmark.weekOne }}%</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background/82 p-3">
+					<div class="rounded-lg border border-border bg-canvas/82 p-3">
 						<p class="text-xs font-medium text-muted-fg">Week 4 average</p>
 						<p class="mt-1 text-2xl font-semibold">{{ weekFourAverage }}%</p>
 						<p class="mt-1 text-xs text-muted-fg">{{ riskCohorts.length }} cohorts under target</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background/82 p-3">
+					<div class="rounded-lg border border-border bg-canvas/82 p-3">
 						<p class="text-xs font-medium text-muted-fg">Best cohort</p>
 						<p class="mt-1 text-2xl font-semibold">{{ strongestCohort.values[4] }}%</p>
 						<p class="mt-1 text-xs text-muted-fg">{{ strongestCohort.label }} from {{ strongestCohort.source }}</p>
@@ -248,7 +248,7 @@ function formatCurrency(value) {
 			</div>
 		</section>
 
-		<section class="grid gap-4 border-b border-border bg-background px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_15rem_auto] lg:items-end lg:px-7">
+		<section class="grid gap-4 border-b border-border bg-canvas px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_15rem_auto] lg:items-end lg:px-7">
 			<div class="min-w-0">
 				<p class="mb-2 text-xs font-semibold uppercase text-muted-fg">Metric family</p>
 				<DomTabs v-model="activeMetric" :tabs="metricTabs" />
@@ -280,7 +280,7 @@ function formatCurrency(value) {
 								<div class="rounded-lg border border-border bg-secondary/45 p-3">
 									<div class="flex items-center justify-between gap-2">
 										<p class="font-semibold">{{ row.label }}</p>
-										<span class="rounded-full bg-background px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ row.range }}</span>
+										<span class="rounded-full bg-canvas px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ row.range }}</span>
 									</div>
 									<p class="mt-1 truncate text-xs text-muted-fg">{{ row.source }}</p>
 									<p class="mt-2 text-xs font-medium text-muted-fg">
@@ -295,7 +295,7 @@ function formatCurrency(value) {
 								>
 									<button
 										type="button"
-										class="relative grid min-h-[4.8rem] place-items-center rounded-lg border p-2 text-center transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
+										class="relative grid min-h-[4.8rem] place-items-center rounded-lg border p-2 text-center transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-canvas"
 										:class="[
 											cell.id === selectedCell.id ? 'border-primary shadow-lg shadow-primary/15' : 'border-transparent',
 											cellTextClass(cell.rate)
@@ -320,7 +320,7 @@ function formatCurrency(value) {
 				</div>
 
 				<div class="grid gap-3 border-t border-border bg-secondary/35 p-4 sm:hidden">
-					<div v-for="row in adjustedRows" :key="`${row.id}-mobile`" class="rounded-lg border border-border bg-background p-4">
+					<div v-for="row in adjustedRows" :key="`${row.id}-mobile`" class="rounded-lg border border-border bg-canvas p-4">
 						<div class="flex items-start justify-between gap-3">
 							<div>
 								<p class="font-semibold">{{ row.label }}</p>
@@ -346,7 +346,7 @@ function formatCurrency(value) {
 			</div>
 
 			<aside class="grid content-start gap-4 bg-secondary/35 p-4 sm:p-6 lg:p-7">
-				<div class="rounded-lg border border-border bg-background p-4 shadow-sm">
+				<div class="rounded-lg border border-border bg-canvas p-4 shadow-sm">
 					<div class="flex items-start justify-between gap-3">
 						<div>
 							<p class="text-xs font-semibold uppercase text-muted-fg">Selected cell</p>
@@ -372,12 +372,12 @@ function formatCurrency(value) {
 
 					<p class="mt-4 text-sm leading-6 text-muted-fg">{{ selectedInsight }}</p>
 					<div class="mt-4 rounded-lg border border-border bg-secondary/45 p-3 text-sm leading-6">
-						<p class="font-semibold text-fg">{{ selectedRow.note }}</p>
+						<p class="font-semibold text-canvas-fg">{{ selectedRow.note }}</p>
 						<p class="mt-2 text-muted-fg">{{ selectedRow.action }}</p>
 					</div>
 				</div>
 
-				<div class="rounded-lg border border-border bg-background p-4">
+				<div class="rounded-lg border border-border bg-canvas p-4">
 					<p class="text-xs font-semibold uppercase text-muted-fg">Benchmarks</p>
 					<div class="mt-3 grid gap-3 text-sm">
 						<div class="flex items-center justify-between gap-3">
@@ -397,9 +397,9 @@ function formatCurrency(value) {
 					</div>
 				</div>
 
-				<div class="rounded-lg border border-border bg-background p-4">
+				<div class="rounded-lg border border-border bg-canvas p-4">
 					<p class="text-xs font-semibold uppercase text-muted-fg">Action payload</p>
-					<pre class="mt-3 overflow-x-auto rounded-lg bg-fg p-3 text-xs leading-5 text-background">{{ JSON.stringify(payloadPreview, null, 2) }}</pre>
+					<pre class="mt-3 overflow-x-auto rounded-lg bg-canvas-fg p-3 text-xs leading-5 text-canvas">{{ JSON.stringify(payloadPreview, null, 2) }}</pre>
 					<DomButton class="mt-4 w-full" variant="secondary">
 						Save investigation
 					</DomButton>

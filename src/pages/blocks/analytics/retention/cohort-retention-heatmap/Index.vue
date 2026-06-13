@@ -79,16 +79,16 @@ import CohortRetentionHeatmapSrc from './examples/CohortRetentionHeatmap.vue?raw
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Cohort definitions</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Cohort definitions</h3>
 						<p class="mt-2">Define cohorts server-side and freeze each row's membership. Changing cohort logic retroactively can make retention trends impossible to trust.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Action linkage</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Action linkage</h3>
 						<p class="mt-2">Let selected cells open customer lists, experiment notes, or saved filters. Retention blocks are more valuable when they lead directly to product work.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include rolling cohorts, daily granularity, annotation overlays, CSV export, customer drilldown, experiment markers, and benchmark bands by segment.</p>
 					</div>
 				</div>

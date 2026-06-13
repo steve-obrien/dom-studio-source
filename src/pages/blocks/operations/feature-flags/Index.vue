@@ -76,16 +76,16 @@ import FeatureFlagConsoleSrc from './examples/FeatureFlagConsole.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Release safety</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Release safety</h3>
 						<p class="mt-2">Write every rollout change to an audit trail and make rollback a first-class action. Production flags should never depend on client-only state.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Rule validation</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Rule validation</h3>
 						<p class="mt-2">Validate segment size, attribute names, and mutually exclusive rules before saving. Show estimated audience impact near the save action.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">A reusable rule builder, approval workflow drawer, experiment result panel, and flag dependency graph would make this block stronger for larger teams.</p>
 					</div>
 				</div>

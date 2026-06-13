@@ -125,8 +125,8 @@ function revokeSelectedSession() {
 </script>
 
 <template>
-	<div class="w-full max-w-7xl overflow-hidden rounded-lg border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-5 py-5 sm:px-7">
+	<div class="w-full max-w-7xl overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-5 py-5 sm:px-7">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Account security</p>
@@ -145,19 +145,19 @@ function revokeSelectedSession() {
 			</div>
 
 			<div class="mt-5 grid gap-3 md:grid-cols-4">
-				<div class="border-l-4 border-primary bg-background px-4 py-3">
+				<div class="border-l-4 border-primary bg-canvas px-4 py-3">
 					<p class="text-xs font-medium text-muted-fg">Active sessions</p>
 					<p class="mt-1 text-2xl font-semibold tracking-tight">{{ activeSessions.length }}</p>
 				</div>
-				<div class="border-l-4 border-warning bg-background px-4 py-3">
+				<div class="border-l-4 border-warning bg-canvas px-4 py-3">
 					<p class="text-xs font-medium text-muted-fg">Needs review</p>
 					<p class="mt-1 text-2xl font-semibold tracking-tight">{{ untrustedSessions.length }}</p>
 				</div>
-				<div class="border-l-4 border-success bg-background px-4 py-3">
+				<div class="border-l-4 border-success bg-canvas px-4 py-3">
 					<p class="text-xs font-medium text-muted-fg">Readiness checks</p>
 					<p class="mt-1 text-2xl font-semibold tracking-tight">{{ readyCheckCount }}/{{ readinessChecks.length }}</p>
 				</div>
-				<div class="border-l-4 border-border bg-background px-4 py-3">
+				<div class="border-l-4 border-border bg-canvas px-4 py-3">
 					<p class="text-xs font-medium text-muted-fg">Account owner</p>
 					<p class="mt-1 truncate text-base font-semibold">{{ account.email }}</p>
 				</div>
@@ -168,15 +168,15 @@ function revokeSelectedSession() {
 			<aside class="border-b border-border bg-secondary/35 lg:border-b-0 lg:border-r">
 				<div class="flex items-center justify-between gap-3 px-5 py-4">
 					<h4 class="text-sm font-semibold">Signed-in devices</h4>
-					<span class="rounded-full bg-background px-2 py-1 text-xs font-semibold text-muted-fg">{{ sessions.length }}</span>
+					<span class="rounded-full bg-canvas px-2 py-1 text-xs font-semibold text-muted-fg">{{ sessions.length }}</span>
 				</div>
 				<div class="grid">
 					<button
 						v-for="session in sessions"
 						:key="session.id"
 						type="button"
-						class="border-t border-border px-5 py-4 text-left transition hover:bg-background/70"
-						:class="activeSessionId === session.id ? 'bg-background' : ''"
+						class="border-t border-border px-5 py-4 text-left transition hover:bg-canvas/70"
+						:class="activeSessionId === session.id ? 'bg-canvas' : ''"
 						@click="selectSession(session.id)"
 					>
 						<div class="flex items-start justify-between gap-3">

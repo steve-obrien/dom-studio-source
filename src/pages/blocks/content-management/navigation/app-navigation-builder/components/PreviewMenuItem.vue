@@ -28,7 +28,7 @@ defineEmits(['select']);
 		<button
 			type="button"
 			class="group flex min-h-11 w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm outline-none transition hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring/50"
-			:class="selectedId === item.id ? 'bg-primary/10 text-fg' : 'text-muted-fg'"
+			:class="selectedId === item.id ? 'bg-primary/10 text-canvas-fg' : 'text-muted-fg'"
 			:style="{ paddingLeft: `${0.75 + depth * 0.8}rem` }"
 			@click="$emit('select', item.id)"
 		>
@@ -37,7 +37,7 @@ defineEmits(['select']);
 					<path :d="item.icon" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
 				</svg>
 				<span class="min-w-0">
-					<span class="block truncate font-medium text-fg">{{ item.label }}</span>
+					<span class="block truncate font-medium text-canvas-fg">{{ item.label }}</span>
 					<span class="block truncate text-xs text-muted-fg">{{ item.url }}</span>
 				</span>
 			</span>

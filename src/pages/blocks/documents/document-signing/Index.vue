@@ -88,16 +88,16 @@ import DocumentSigningPacketSrc from './examples/DocumentSigningPacket.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Field placement</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Field placement</h3>
 						<p class="mt-2">Store coordinates against a canonical PDF page size. The example uses percentages so fields stay attached while the preview scales.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Send safety</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Send safety</h3>
 						<p class="mt-2">Treat client checks as guidance only. The final send endpoint should verify signer emails, required fields, document versions, and permissions.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include a PDF page renderer, drag field handles, reusable signer rows, provider adapters, certificate evidence, and decline reason flows.</p>
 					</div>
 				</div>

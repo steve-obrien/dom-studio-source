@@ -35,7 +35,7 @@ watch(() => props.modelValue, (v) => {
 				v-for="t in tabs"
 				:key="t.key"
 				:data-tab="t.key"
-				class="rounded-full px-4 py-1.5 text-sm font-medium text-muted-fg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 data-[active]:bg-background data-[active]:text-fg data-[active]:shadow-sm"
+				class="rounded-full px-4 py-1.5 text-sm font-medium text-muted-fg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 data-[active]:bg-canvas data-[active]:text-canvas-fg data-[active]:shadow-sm"
 			>{{ t.label }}</button>
 		</div>
 		<div :class="fill ? 'mt-3 flex min-h-0 flex-1 flex-col overflow-hidden' : 'mt-6'">

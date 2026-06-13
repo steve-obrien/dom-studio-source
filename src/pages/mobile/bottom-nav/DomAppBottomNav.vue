@@ -50,14 +50,14 @@ function selectItem(item) {
 </script>
 
 <template>
-	<nav class="skin-raised px-2 py-2" aria-label="Primary">
+	<nav class="skin-card px-2 py-2" aria-label="Primary">
 		<div class="grid auto-cols-fr grid-flow-col gap-1">
 			<button
 				v-for="item in items"
 				:key="item.value"
 				type="button"
 				class="relative flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-xs font-medium text-muted-fg transition active:scale-95"
-				:class="item.value === activeValue && 'bg-secondary text-fg'"
+				:class="item.value === activeValue && 'bg-secondary text-canvas-fg'"
 				:aria-current="item.value === activeValue ? 'page' : undefined"
 				@click="selectItem(item)"
 			>

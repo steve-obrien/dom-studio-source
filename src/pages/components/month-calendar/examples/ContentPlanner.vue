@@ -67,13 +67,13 @@ function badgeClass(article) {
 						{{ articleFor(cell.value).type }}
 					</div>
 
-					<h3 class="text-sm font-bold leading-5 text-fg">
+					<h3 class="text-sm font-bold leading-5 text-canvas-fg">
 						{{ articleFor(cell.value).title }}
 					</h3>
 
 					<div class="mt-auto flex items-center justify-between border-t border-violet-100 pt-2 text-xs text-muted-fg">
-						<span>Vol: <strong class="text-fg">{{ articleFor(cell.value).volume }}</strong></span>
-						<span>Diff: <strong class="text-fg">{{ articleFor(cell.value).difficulty }}</strong></span>
+						<span>Vol: <strong class="text-canvas-fg">{{ articleFor(cell.value).volume }}</strong></span>
+						<span>Diff: <strong class="text-canvas-fg">{{ articleFor(cell.value).difficulty }}</strong></span>
 					</div>
 
 					<a

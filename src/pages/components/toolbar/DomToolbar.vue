@@ -41,12 +41,12 @@ const props = defineProps({
 	inset: {
 		type: Boolean,
 		default: false,
-		_edit: { description: 'Use inset skin instead of control skin.' },
+		_edit: { description: 'Use card skin instead of control skin.' },
 	},
 });
 
 const classes = computed(() => [
-	props.inset ? 'skin-inset' : 'skin-control',
+	props.inset ? 'skin-card' : 'skin-control',
 	'inline-flex gap-1 rounded-2xl p-1',
 	props.orientation === 'vertical' ? 'flex-col' : 'flex-row items-center',
 	props.wrap && props.orientation !== 'vertical' && 'flex-wrap',

@@ -683,12 +683,12 @@ async function copyOutput(target, value) {
 </script>
 
 <template>
-	<main class="min-h-screen bg-background text-fg xl:h-dvh xl:overflow-hidden">
+	<main class="min-h-screen bg-canvas text-canvas-fg xl:h-dvh xl:overflow-hidden">
 		<section class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8 xl:h-full xl:max-w-none">
 			<header class="flex flex-col gap-3 border-b border-border pb-4 lg:flex-row lg:items-end lg:justify-between xl:shrink-0">
 				<div class="max-w-3xl space-y-1.5">
 					<p class="text-xs font-medium uppercase tracking-wide text-muted-fg">Experiments / CSS tools</p>
-					<h1 class="text-2xl font-semibold tracking-normal text-fg sm:text-3xl">CSS button creator</h1>
+					<h1 class="text-2xl font-semibold tracking-normal text-canvas-fg sm:text-3xl">CSS button creator</h1>
 					<p class="max-w-2xl text-sm leading-6 text-muted-fg">
 						Design-tool style button CSS editor with stateful preview and generated output.
 					</p>
@@ -701,8 +701,8 @@ async function copyOutput(target, value) {
 
 			<div class="grid min-h-0 gap-4 xl:flex-1 xl:grid-cols-[minmax(0,1fr)_420px] xl:overflow-hidden">
 				<section class="min-h-0 space-y-4 focus:outline-none xl:overflow-y-auto xl:pr-1" tabindex="0" aria-label="Preview and generated code">
-					<section class="overflow-hidden rounded-lg border border-border skin-raised text-fg xl:sticky xl:top-0 xl:z-10">
-						<div class="grid min-h-[24rem] place-items-center bg-[linear-gradient(135deg,color-mix(in_oklch,var(--secondary)_82%,transparent),var(--background))] p-8 xl:min-h-[clamp(18rem,52vh,34rem)]">
+					<section class="overflow-hidden rounded-lg border border-border skin-card text-canvas-fg xl:sticky xl:top-0 xl:z-10">
+						<div class="grid min-h-[24rem] place-items-center bg-[linear-gradient(135deg,color-mix(in_oklch,var(--secondary)_82%,transparent),var(--canvas))] p-8 xl:min-h-[clamp(18rem,52vh,34rem)]">
 							<button
 								class="button-preview"
 								type="button"
@@ -728,7 +728,7 @@ async function copyOutput(target, value) {
 						</div>
 					</section>
 
-					<section class="rounded-lg border border-border skin-raised text-fg">
+					<section class="rounded-lg border border-border skin-card text-canvas-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.styles = !sectionOpen.styles">
 								<span class="block truncate text-sm font-semibold">Styles</span>
@@ -740,7 +740,7 @@ async function copyOutput(target, value) {
 						</div>
 					</section>
 
-					<section class="rounded-lg border border-border skin-raised text-fg">
+					<section class="rounded-lg border border-border skin-card text-canvas-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.css = !sectionOpen.css">
 								<span class="block truncate text-sm font-semibold">CSS</span>
@@ -759,7 +759,7 @@ async function copyOutput(target, value) {
 								spellcheck="false"
 								autocapitalize="off"
 								autocomplete="off"
-								class="block max-h-96 min-h-80 w-full resize-y overflow-auto bg-transparent p-4 font-mono text-xs leading-6 text-fg outline-none focus:ring-2 focus:ring-inset focus:ring-ring/30"
+								class="block max-h-96 min-h-80 w-full resize-y overflow-auto bg-transparent p-4 font-mono text-xs leading-6 text-canvas-fg outline-none focus:ring-2 focus:ring-inset focus:ring-ring/30"
 								@input="applyCssEditorStyles"
 								@focus="isEditingCss = true"
 								@blur="finishCssEditing"
@@ -768,7 +768,7 @@ async function copyOutput(target, value) {
 						</div>
 					</section>
 
-					<section class="rounded-lg border border-border skin-raised text-fg">
+					<section class="rounded-lg border border-border skin-card text-canvas-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.import = !sectionOpen.import">
 								<span class="block truncate text-sm font-semibold">Import styles</span>
@@ -787,7 +787,7 @@ async function copyOutput(target, value) {
 									spellcheck="false"
 									autocapitalize="off"
 									autocomplete="off"
-									class="min-h-36 w-full resize-y rounded-md border border-input bg-background px-3 py-2 font-mono text-xs leading-5 text-fg outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+									class="min-h-36 w-full resize-y rounded-md border border-input bg-canvas px-3 py-2 font-mono text-xs leading-5 text-canvas-fg outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
 								></textarea>
 							</label>
 							<button
@@ -804,7 +804,7 @@ async function copyOutput(target, value) {
 						</div>
 					</section>
 
-					<section class="rounded-lg border border-border skin-raised text-fg">
+					<section class="rounded-lg border border-border skin-card text-canvas-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.tailwind = !sectionOpen.tailwind">
 								<span class="block truncate text-sm font-semibold">Tailwind</span>
@@ -823,7 +823,7 @@ async function copyOutput(target, value) {
 				</section>
 
 				<aside class="flex min-h-0 flex-col gap-3 focus:outline-none xl:h-full xl:overflow-y-auto xl:pr-1" tabindex="0" aria-label="Button properties">
-					<section class="order-1 rounded-lg border border-border skin-raised text-fg">
+					<section class="order-1 rounded-lg border border-border skin-card text-canvas-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.states = !sectionOpen.states">
 								<span class="block truncate text-sm font-semibold">States</span>
@@ -844,7 +844,7 @@ async function copyOutput(target, value) {
 						</div>
 					</section>
 
-					<section class="order-2 rounded-lg border border-border skin-raised text-fg">
+					<section class="order-2 rounded-lg border border-border skin-card text-canvas-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.content = !sectionOpen.content">
 								<span class="block truncate text-sm font-semibold">Content</span>
@@ -858,7 +858,7 @@ async function copyOutput(target, value) {
 
 					<CssStyleControls :button="currentButton" :shadows="currentShadows" :state-label="stateLabels[activeState]" />
 
-					<section class="order-8 rounded-lg border border-border skin-raised text-fg">
+					<section class="order-8 rounded-lg border border-border skin-card text-canvas-fg">
 						<div class="grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-2">
 							<button type="button" class="min-w-0 text-left" @click="sectionOpen.ai = !sectionOpen.ai">
 								<span class="block truncate text-sm font-semibold">AI theme request</span>
@@ -878,7 +878,7 @@ async function copyOutput(target, value) {
 									{{ copiedTarget === 'theme-json' ? 'Copied' : 'Copy theme JSON' }}
 								</DomButton>
 							</div>
-							<pre class="max-h-44 overflow-auto rounded-md border border-border bg-background p-3 text-[11px] leading-5"><code>{{ aiThemeRequest }}</code></pre>
+							<pre class="max-h-44 overflow-auto rounded-md border border-border bg-canvas p-3 text-[11px] leading-5"><code>{{ aiThemeRequest }}</code></pre>
 						</div>
 					</section>
 				</aside>

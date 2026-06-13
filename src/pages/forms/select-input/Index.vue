@@ -53,7 +53,7 @@ const size = ref('md');
 							description="Three balanced sizes."
 							:options="['sm', 'md', 'lg']"
 						/>
-						<p class="mt-3 text-xs text-muted-fg">Value: <code class="text-fg">{{ size }}</code></p>
+						<p class="mt-3 text-xs text-muted-fg">Value: <code class="text-canvas-fg">{{ size }}</code></p>
 					</div>
 				</Demo>
 			</DocSection>

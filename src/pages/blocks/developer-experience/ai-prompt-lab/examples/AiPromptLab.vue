@@ -119,7 +119,7 @@ function runPrompt() {
 function caseClasses(testCase) {
 	return testCase.id === selectedCase.value.id
 		? 'border-primary/60 bg-primary/5'
-		: 'border-border bg-background hover:border-primary/40';
+		: 'border-border bg-canvas hover:border-primary/40';
 }
 
 function riskClasses(risk) {
@@ -132,8 +132,8 @@ function riskClasses(risk) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-5">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-5">
 			<div class="flex flex-wrap items-start justify-between gap-3">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">AI feature workbench</p>
@@ -172,7 +172,7 @@ function riskClasses(risk) {
 		</header>
 
 		<div class="grid min-h-[48rem] lg:grid-cols-[18rem_minmax(0,1fr)_21rem]">
-			<aside class="border-b border-border skin-raised p-3 lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card p-3 lg:border-b-0 lg:border-r">
 				<div class="flex items-center justify-between gap-3 px-1 pb-3">
 					<div>
 						<h4 class="text-sm font-semibold">Eval cases</h4>
@@ -238,7 +238,7 @@ function riskClasses(risk) {
 							Instructions
 							<textarea
 								v-model="promptDraft"
-								class="mt-2 min-h-56 w-full resize-none rounded-xl border border-border bg-background p-3 font-mono text-sm leading-6 outline-none transition focus:border-primary"
+								class="mt-2 min-h-56 w-full resize-none rounded-xl border border-border bg-canvas p-3 font-mono text-sm leading-6 outline-none transition focus:border-primary"
 								spellcheck="false"
 							/>
 						</label>
@@ -247,7 +247,7 @@ function riskClasses(risk) {
 							System guardrails
 							<textarea
 								v-model="systemGuardrails"
-								class="mt-2 min-h-28 w-full resize-none rounded-xl border border-border bg-background p-3 text-sm leading-6 outline-none transition focus:border-primary"
+								class="mt-2 min-h-28 w-full resize-none rounded-xl border border-border bg-canvas p-3 text-sm leading-6 outline-none transition focus:border-primary"
 							/>
 						</label>
 
@@ -345,8 +345,8 @@ function riskClasses(risk) {
 				</div>
 			</main>
 
-			<aside class="skin-raised p-4 lg:border-l">
-				<div class="rounded-xl border border-border bg-background p-4">
+			<aside class="skin-card p-4 lg:border-l">
+				<div class="rounded-xl border border-border bg-canvas p-4">
 					<div class="flex items-center justify-between gap-3">
 						<div>
 							<h4 class="font-semibold">Release readiness</h4>
@@ -365,7 +365,7 @@ function riskClasses(risk) {
 								class="mt-1 size-2.5 rounded-full"
 								:class="check.passed ? 'bg-emerald-500' : 'bg-warning'"
 							/>
-							<p class="text-sm leading-5" :class="check.passed ? 'text-fg' : 'text-muted-fg'">{{ check.label }}</p>
+							<p class="text-sm leading-5" :class="check.passed ? 'text-canvas-fg' : 'text-muted-fg'">{{ check.label }}</p>
 						</div>
 					</div>
 
@@ -375,7 +375,7 @@ function riskClasses(risk) {
 					</div>
 				</div>
 
-				<div class="mt-4 rounded-xl border border-border bg-background p-4">
+				<div class="mt-4 rounded-xl border border-border bg-canvas p-4">
 					<h4 class="font-semibold">Deployment target</h4>
 					<div class="mt-3 space-y-3 text-sm">
 						<div class="flex justify-between gap-3">
@@ -393,7 +393,7 @@ function riskClasses(risk) {
 					</div>
 				</div>
 
-				<div class="mt-4 rounded-xl border border-border bg-background p-4">
+				<div class="mt-4 rounded-xl border border-border bg-canvas p-4">
 					<h4 class="font-semibold">Run notes</h4>
 					<p class="mt-2 text-sm leading-6 text-muted-fg">
 						Compare this output with support policy and recent failed tickets before promoting the prompt version.

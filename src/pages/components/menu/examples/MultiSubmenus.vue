@@ -55,6 +55,6 @@ const items = [
 <template>
 	<div class="grid w-full max-w-sm gap-3">
 		<DomMenu :items="items" @select="selected = $event.value" />
-		<p class="text-xs text-muted-fg">Selected: <code class="text-fg">{{ selected }}</code></p>
+		<p class="text-xs text-muted-fg">Selected: <code class="text-canvas-fg">{{ selected }}</code></p>
 	</div>
 </template>

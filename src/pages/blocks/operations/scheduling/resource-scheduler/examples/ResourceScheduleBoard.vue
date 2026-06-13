@@ -283,9 +283,9 @@ function createHold() {
 </script>
 
 <template>
-	<section class="min-h-screen bg-[radial-gradient(circle_at_top_left,rgb(236_253_245),transparent_30%),linear-gradient(180deg,rgb(248_250_252),rgb(241_245_249))] px-3 py-4 text-fg dark:bg-[radial-gradient(circle_at_top_left,rgb(20_83_45/.45),transparent_30%),linear-gradient(180deg,rgb(15_23_42),rgb(2_6_23))] sm:px-6 lg:px-8">
-		<div class="mx-auto max-w-7xl overflow-hidden rounded-lg border border-border bg-background shadow-2xl shadow-black/10">
-			<header class="border-b border-border skin-raised px-4 py-4 sm:px-5">
+	<section class="min-h-screen bg-[radial-gradient(circle_at_top_left,rgb(236_253_245),transparent_30%),linear-gradient(180deg,rgb(248_250_252),rgb(241_245_249))] px-3 py-4 text-canvas-fg dark:bg-[radial-gradient(circle_at_top_left,rgb(20_83_45/.45),transparent_30%),linear-gradient(180deg,rgb(15_23_42),rgb(2_6_23))] sm:px-6 lg:px-8">
+		<div class="mx-auto max-w-7xl overflow-hidden rounded-lg border border-border bg-canvas shadow-2xl shadow-black/10">
+			<header class="border-b border-border skin-card px-4 py-4 sm:px-5">
 				<div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
 					<div class="min-w-0">
 						<div class="flex flex-wrap items-center gap-2">
@@ -350,7 +350,7 @@ function createHold() {
 							<DomToggle v-model="autoBalance" label="Auto-balance schedule gaps" chrome="none" />
 						</label>
 						<DomTooltip text="Utilization compares booked minutes against the available workday." placement="bottom">
-							<button type="button" class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-background px-3 text-sm font-medium text-muted-fg transition hover:text-fg">
+							<button type="button" class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-canvas px-3 text-sm font-medium text-muted-fg transition hover:text-canvas-fg">
 								How utilization works
 							</button>
 						</DomTooltip>
@@ -371,7 +371,7 @@ function createHold() {
 										<span class="block truncate text-xs text-muted-fg">{{ resource.role }}</span>
 									</span>
 								</div>
-								<span class="rounded-full bg-background px-2 py-1 text-xs font-semibold text-muted-fg">{{ resourceUtilization(resource.id) }}%</span>
+								<span class="rounded-full bg-canvas px-2 py-1 text-xs font-semibold text-muted-fg">{{ resourceUtilization(resource.id) }}%</span>
 							</div>
 						</div>
 					</div>
@@ -398,7 +398,7 @@ function createHold() {
 										<span class="block truncate font-semibold">{{ appointment.title }}</span>
 										<span class="mt-0.5 block truncate opacity-75">{{ appointment.customer }}</span>
 									</span>
-									<span class="shrink-0 rounded-full bg-background/70 px-1.5 py-0.5 font-semibold">{{ appointmentStatusFor(appointment) }}</span>
+									<span class="shrink-0 rounded-full bg-canvas/70 px-1.5 py-0.5 font-semibold">{{ appointmentStatusFor(appointment) }}</span>
 								</span>
 								<span class="mt-2 block truncate opacity-80">{{ appointment.start }}-{{ appointment.end }} / {{ appointment.location }}</span>
 							</button>
@@ -409,7 +409,7 @@ function createHold() {
 
 			<section class="border-t border-border bg-secondary/30 p-4 sm:p-5">
 				<div class="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(20rem,0.8fr)]">
-					<div class="rounded-lg border border-border bg-background p-4">
+					<div class="rounded-lg border border-border bg-canvas p-4">
 						<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 							<div class="min-w-0">
 								<p class="text-xs font-semibold uppercase text-muted-fg">Selected appointment</p>
@@ -436,7 +436,7 @@ function createHold() {
 							</div>
 							<div class="rounded-lg border border-border bg-secondary/50 p-3">
 								<p class="text-xs font-semibold uppercase text-muted-fg">Readiness</p>
-								<div class="mt-2 h-2 overflow-hidden rounded-full bg-background">
+								<div class="mt-2 h-2 overflow-hidden rounded-full bg-canvas">
 									<div class="h-full rounded-full bg-primary" :style="{ width: `${selectedAppointment.readiness}%` }" />
 								</div>
 								<p class="mt-2 text-sm font-semibold">{{ selectedAppointment.readiness }}% / {{ selectedAppointment.risk }}</p>
@@ -448,7 +448,7 @@ function createHold() {
 						</p>
 					</div>
 
-					<div class="rounded-lg border border-border bg-background p-4">
+					<div class="rounded-lg border border-border bg-canvas p-4">
 						<div class="flex items-start justify-between gap-3">
 							<div>
 								<p class="text-xs font-semibold uppercase text-muted-fg">Readiness checks</p>

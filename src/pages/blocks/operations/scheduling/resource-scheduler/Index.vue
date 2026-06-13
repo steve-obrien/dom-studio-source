@@ -86,16 +86,16 @@ import ResourceScheduleBoardSrc from './examples/ResourceScheduleBoard.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Calendar math</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Calendar math</h3>
 						<p class="mt-2">Use a date library for timezone conversion, daylight saving changes, resource working hours, and appointment collision checks. Keep pixel placement derived from normalized minutes.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Booking ownership</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Booking ownership</h3>
 						<p class="mt-2">Treat rescheduling, cancellation, and status transitions as commands with backend validation. This prevents double-booking when multiple dispatchers are active.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Drag-to-reschedule, waitlist suggestions, travel-time routing, recurring appointments, public booking links, and calendar provider sync would make this block stronger.</p>
 					</div>
 				</div>

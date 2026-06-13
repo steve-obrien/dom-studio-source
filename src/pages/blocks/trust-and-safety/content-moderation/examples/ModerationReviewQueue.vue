@@ -170,8 +170,8 @@ function noteForCase(item) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Moderation queue</p>
@@ -180,7 +180,7 @@ function noteForCase(item) {
 						Triage reported content, inspect policy signals, and apply consistent decisions with an audit trail.
 					</p>
 				</div>
-				<div class="grid grid-cols-3 divide-x divide-border overflow-hidden rounded-2xl border border-border bg-background text-center">
+				<div class="grid grid-cols-3 divide-x divide-border overflow-hidden rounded-2xl border border-border bg-canvas text-center">
 					<div v-for="stat in queueStats" :key="stat.label" class="px-4 py-3">
 						<p class="text-xl font-semibold">{{ stat.value }}</p>
 						<p class="mt-1 text-xs font-medium text-muted-fg">{{ stat.label }}</p>
@@ -190,7 +190,7 @@ function noteForCase(item) {
 		</header>
 
 		<div class="grid min-h-[760px] lg:grid-cols-[18rem_minmax(0,1fr)_22rem]">
-			<aside class="border-b border-border skin-raised lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
 				<div class="border-b border-border p-4">
 					<DomNativeSelect
 						v-model="statusFilter"
@@ -321,7 +321,7 @@ function noteForCase(item) {
 				</section>
 			</main>
 
-			<aside class="skin-raised">
+			<aside class="skin-card">
 				<section class="border-b border-border p-4 sm:p-6">
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Decision</p>
 					<div class="mt-4 grid gap-4">
@@ -333,7 +333,7 @@ function noteForCase(item) {
 							placeholder="Explain the evidence and policy basis for this decision."
 							:rows="5"
 						/>
-						<div class="grid gap-3 rounded-2xl bg-background p-4">
+						<div class="grid gap-3 rounded-2xl bg-canvas p-4">
 							<DomToggle
 								v-model="notifyAuthor"
 								label="Notify author"

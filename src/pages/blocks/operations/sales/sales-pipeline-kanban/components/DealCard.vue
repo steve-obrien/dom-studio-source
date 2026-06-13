@@ -26,14 +26,14 @@ function money(value) {
 <template>
 	<button
 		type="button"
-		class="w-full rounded-lg border bg-background p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+		class="w-full rounded-lg border bg-canvas p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
 		:class="selected ? 'border-primary ring-2 ring-primary/15' : 'border-border'"
 		:aria-pressed="selected"
 		@click="emit('select', deal)"
 	>
 		<div class="flex items-start justify-between gap-3">
 			<div class="min-w-0">
-				<p class="truncate text-sm font-semibold text-fg">{{ deal.account }}</p>
+				<p class="truncate text-sm font-semibold text-canvas-fg">{{ deal.account }}</p>
 				<p class="mt-1 truncate text-xs text-muted-fg">{{ deal.description }}</p>
 			</div>
 			<ForecastPill :tone="deal.forecastTone" :label="deal.forecast" />
@@ -41,10 +41,10 @@ function money(value) {
 
 		<div class="mt-4 flex items-end justify-between gap-3">
 			<div>
-				<p class="text-lg font-semibold text-fg">{{ money(deal.value) }}</p>
+				<p class="text-lg font-semibold text-canvas-fg">{{ money(deal.value) }}</p>
 				<p class="mt-0.5 text-xs text-muted-fg">{{ deal.closeDate }} close</p>
 			</div>
-			<div class="grid size-10 place-items-center rounded-full border border-border bg-secondary text-xs font-semibold text-fg">
+			<div class="grid size-10 place-items-center rounded-full border border-border bg-secondary text-xs font-semibold text-canvas-fg">
 				{{ deal.ownerInitials }}
 			</div>
 		</div>

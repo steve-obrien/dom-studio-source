@@ -44,7 +44,7 @@ async function queryPeople(query) {
 			</template>
 		</DomCombobox>
 		<p class="rounded-2xl border border-border bg-secondary/40 p-3 text-xs text-muted-fg">
-			Selected value: <code class="font-mono text-fg">{{ value || 'None' }}</code>
+			Selected value: <code class="font-mono text-canvas-fg">{{ value || 'None' }}</code>
 		</p>
 	</div>
 </template>

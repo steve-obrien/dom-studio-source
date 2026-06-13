@@ -33,7 +33,7 @@ const places = ref([
 </script>
 
 <template>
-	<div class="w-full max-w-xs rounded-3xl border border-border bg-background p-3 shadow-xl shadow-black/5">
+	<div class="w-full max-w-xs rounded-3xl border border-border bg-canvas p-3 shadow-xl shadow-black/5">
 		<DomTreeView
 			v-model="selected"
 			:items="places"

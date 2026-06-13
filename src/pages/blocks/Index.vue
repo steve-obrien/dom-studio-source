@@ -42,11 +42,11 @@ function blockSearchText(block) {
 						v-for="category in blockCategories"
 						:key="category.name"
 						:id="category.id"
-						class="scroll-mt-24 rounded-lg border border-border skin-raised p-4"
+						class="scroll-mt-24 rounded-lg border border-border skin-card p-4"
 					>
 						<div class="flex items-start justify-between gap-3">
 							<div>
-								<h2 class="text-base font-semibold text-fg">{{ category.name }}</h2>
+								<h2 class="text-base font-semibold text-canvas-fg">{{ category.name }}</h2>
 								<p class="mt-1 text-sm leading-6 text-muted-fg">{{ category.description }}</p>
 							</div>
 							<span class="rounded-full bg-secondary px-2 py-1 text-xs font-semibold text-muted-fg">
@@ -58,7 +58,7 @@ function blockSearchText(block) {
 								v-for="block in category.records"
 								:key="block.id"
 								:to="block.route"
-								class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-xs font-medium text-muted-fg transition hover:border-primary/40 hover:text-fg"
+								class="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas px-2.5 py-1 text-xs font-medium text-muted-fg transition hover:border-primary/40 hover:text-canvas-fg"
 							>
 								<svg viewBox="0 0 24 24" class="size-3.5 shrink-0" fill="none" aria-hidden="true">
 									<path :d="block.icon" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
@@ -71,14 +71,14 @@ function blockSearchText(block) {
 			</DocSection>
 
 			<DocSection eyebrow="Library" title="All blocks">
-				<div class="flex flex-col gap-3 rounded-lg border border-border bg-background p-3 sm:flex-row sm:items-center sm:justify-between">
+				<div class="flex flex-col gap-3 rounded-lg border border-border bg-canvas p-3 sm:flex-row sm:items-center sm:justify-between">
 					<label class="block min-w-0 flex-1">
 						<span class="sr-only">Search blocks</span>
 						<input
 							v-model="searchQuery"
 							type="search"
 							placeholder="Search blocks..."
-							class="h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-fg outline-none transition placeholder:text-muted-fg focus:border-primary/50 focus:ring-2 focus:ring-ring/25"
+							class="h-10 w-full rounded-md border border-border bg-canvas px-3 text-sm text-canvas-fg outline-none transition placeholder:text-muted-fg focus:border-primary/50 focus:ring-2 focus:ring-ring/25"
 						>
 					</label>
 					<p class="text-sm text-muted-fg">
@@ -91,17 +91,17 @@ function blockSearchText(block) {
 						v-for="block in filteredBlockRecords"
 						:key="block.id"
 						:to="block.route"
-						class="group rounded-lg border border-border skin-raised p-4 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+						class="group rounded-lg border border-border skin-card p-4 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
 					>
 						<div class="flex items-start gap-3">
-							<div class="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-secondary text-fg">
+							<div class="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-secondary text-canvas-fg">
 								<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
 									<path :d="block.icon" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
 								</svg>
 							</div>
 							<div class="min-w-0 flex-1">
 								<div class="flex flex-wrap items-center gap-2">
-									<h2 class="text-base font-semibold text-fg">{{ block.label }}</h2>
+									<h2 class="text-base font-semibold text-canvas-fg">{{ block.label }}</h2>
 									<span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-fg">
 										{{ block.categoryLabel }}
 									</span>
@@ -113,14 +113,14 @@ function blockSearchText(block) {
 									<code>{{ block.sourcePath }}</code>
 								</p>
 							</div>
-							<span class="mt-1 text-muted-fg transition group-hover:translate-x-0.5 group-hover:text-fg" aria-hidden="true">
+							<span class="mt-1 text-muted-fg transition group-hover:translate-x-0.5 group-hover:text-canvas-fg" aria-hidden="true">
 								-&gt;
 							</span>
 						</div>
 					</RouterLink>
 
 					<div v-if="!filteredBlockRecords.length" class="rounded-lg border border-dashed border-border p-6 text-center">
-						<p class="text-sm font-medium text-fg">No blocks found</p>
+						<p class="text-sm font-medium text-canvas-fg">No blocks found</p>
 						<p class="mt-1 text-sm text-muted-fg">Try a category, workflow, tag, or source path.</p>
 					</div>
 				</div>

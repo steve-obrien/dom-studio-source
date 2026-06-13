@@ -33,6 +33,7 @@ export { default as DomToastStack } from '../../components/toast/DomToastStack.v
 export { default as DomToastItem } from '../../components/toast/DomToastItem.vue';
 export { default as DomCommandPalette } from '../../components/command-palette/DomCommandPalette.vue';
 export { default as DomContextMenu } from '../../components/context-menu/DomContextMenu.vue';
+export { default as DomDataGrid } from '../../components/data-grid/DomDataGrid.vue';
 export { default as DomMonthCalendar } from '../../components/month-calendar/DomMonthCalendar.vue';
 export { monthCalendarProps } from '../../components/month-calendar/DomMonthCalendar.vue';
 export { popoverProps } from '../../components/popover/DomPopover.vue';

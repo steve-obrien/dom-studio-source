@@ -165,7 +165,7 @@ defineExpose({
 			:id="panelId"
 			ref="panel"
 			popover="manual"
-			class="dom-popover-panel skin-floating fixed rounded-2xl p-1 outline-none"
+			class="dom-popover-panel skin-popover fixed rounded-2xl p-1 outline-none"
 			:class="width"
 		>
 			<DomMenu :items="items" :skin="false" @select="onSelect">

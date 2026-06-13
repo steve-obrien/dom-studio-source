@@ -128,7 +128,7 @@ const doc = DomDialog.__doc;
 						:key="b.t"
 						class="rounded-xl border border-border bg-secondary/40 p-4"
 					>
-						<p class="text-sm font-semibold tracking-tight text-fg">{{ b.t }}</p>
+						<p class="text-sm font-semibold tracking-tight text-canvas-fg">{{ b.t }}</p>
 						<p class="mt-1 text-sm text-muted-fg">{{ b.d }}</p>
 					</div>
 				</div>

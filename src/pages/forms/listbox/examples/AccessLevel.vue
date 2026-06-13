@@ -44,6 +44,6 @@ const options = [
 				</span>
 			</template>
 		</DomListbox>
-		<p class="text-xs text-muted-fg">Selected value: <code class="text-fg">{{ access }}</code></p>
+		<p class="text-xs text-muted-fg">Selected value: <code class="text-canvas-fg">{{ access }}</code></p>
 	</div>
 </template>

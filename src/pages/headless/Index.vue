@@ -91,7 +91,7 @@ function eventSummary(cls) {
 						headless popover, dropdown, combobox, autocomplete, and tooltip controls first; drop to the low-level helper
 						only for custom surfaces.
 					</p>
-					<RouterLink to="/headless/floating" class="mt-4 inline-flex text-sm font-medium text-fg hover:underline">
+					<RouterLink to="/headless/floating" class="mt-4 inline-flex text-sm font-medium text-canvas-fg hover:underline">
 						View floating layer guide →
 					</RouterLink>
 				</div>
@@ -103,11 +103,11 @@ function eventSummary(cls) {
 						v-for="control in headlessControls"
 						:key="control.to"
 						:to="control.to"
-						class="group block rounded-2xl border border-border bg-background p-5 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+						class="group block rounded-2xl border border-border bg-canvas p-5 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
 					>
 						<div class="flex items-center justify-between">
-							<code class="text-sm font-semibold tracking-tight text-fg">&lt;{{ control.cls.__doc.name }}&gt;</code>
-							<span class="text-muted-fg transition group-hover:translate-x-0.5 group-hover:text-fg">→</span>
+							<code class="text-sm font-semibold tracking-tight text-canvas-fg">&lt;{{ control.cls.__doc.name }}&gt;</code>
+							<span class="text-muted-fg transition group-hover:translate-x-0.5 group-hover:text-canvas-fg">→</span>
 						</div>
 						<p class="mt-1.5 text-sm leading-relaxed text-muted-fg">{{ control.cls.__doc.description }}</p>
 						<dl class="mt-3 space-y-1 text-[11px] text-muted-fg">

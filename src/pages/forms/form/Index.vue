@@ -202,18 +202,18 @@ const formMethods = [
 				<div class="space-y-3 text-sm leading-6 text-muted-fg">
 					<p>
 						DomForm provides a field store to its children. Inputs with a
-						<code class="font-mono text-fg">name</code> register themselves,
+						<code class="font-mono text-canvas-fg">name</code> register themselves,
 						write into the form value, and report validation errors back to the form.
 					</p>
 					<p>
 						Root forms own the data. Subforms scope child paths, so
-						<code class="font-mono text-fg">invitees.0.email</code>
+						<code class="font-mono text-canvas-fg">invitees.0.email</code>
 						can be read, changed, and validated from the top-level form API.
 					</p>
 					<p>
-						The global <code class="font-mono text-fg">forms</code> registry
+						The global <code class="font-mono text-canvas-fg">forms</code> registry
 						is plain Vue state and integrates neatly with Pinia. A Pinia store can own
-						the model value, while <code class="font-mono text-fg">DomForm</code>
+						the model value, while <code class="font-mono text-canvas-fg">DomForm</code>
 						continues to provide field registration, validation, and path helpers.
 					</p>
 				</div>
@@ -248,7 +248,7 @@ const formMethods = [
 					</p>
 					<p class="text-sm leading-6 text-muted-fg">
 						The exported
-						<code class="font-mono text-fg">zodSchemaToChildren(schema, options)</code>
+						<code class="font-mono text-canvas-fg">zodSchemaToChildren(schema, options)</code>
 						helper is available when an app wants to inspect or store the generated
 						children before rendering.
 					</p>
@@ -268,14 +268,14 @@ const formMethods = [
 					<p class="text-sm leading-6 text-muted-fg">
 						The JSON Schema adapter reads JSON Schema objects and emits form children.
 						The JSON Schema controls the model shape and common constraints; form-only decoration can live in
-						a vendor extension such as <code class="font-mono text-fg">x-el</code>
+						a vendor extension such as <code class="font-mono text-canvas-fg">x-el</code>
 						or in external adapter options.
 					</p>
 					<p class="text-sm leading-6 text-muted-fg">
 						The exported
-						<code class="font-mono text-fg">jsonSchemaToChildren(schema, options)</code>
+						<code class="font-mono text-canvas-fg">jsonSchemaToChildren(schema, options)</code>
 						helper returns renderable children records. The current inline convention is
-						<code class="font-mono text-fg">x-el</code>, which follows JSON Schema's
+						<code class="font-mono text-canvas-fg">x-el</code>, which follows JSON Schema's
 						vendor-extension pattern: unknown keywords are annotations and should be ignored
 						by validators that do not understand them.
 					</p>
@@ -330,9 +330,9 @@ const formMethods = [
 				<div class="space-y-4">
 					<p class="text-sm leading-6 text-muted-fg">
 						Runtime validation errors belong to the form state, not the authored
-						<code class="font-mono text-fg">errors</code>
+						<code class="font-mono text-canvas-fg">errors</code>
 						prop. Use
-						<code class="font-mono text-fg">setFieldState(name, { errors })</code>
+						<code class="font-mono text-canvas-fg">setFieldState(name, { errors })</code>
 						when a server response or external process needs to mark a field invalid.
 					</p>
 					<Example
@@ -359,8 +359,8 @@ const formMethods = [
 				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						When an app already uses Pinia, keep business data in the store and bind
-						it to <code class="font-mono text-fg">DomForm</code> with
-						<code class="font-mono text-fg">v-model</code>. The named form API
+						it to <code class="font-mono text-canvas-fg">DomForm</code> with
+						<code class="font-mono text-canvas-fg">v-model</code>. The named form API
 						can still be used for validation and programmatic field updates.
 					</p>
 					<CodeBlock lang="vue" :code="piniaCode" />
@@ -401,9 +401,9 @@ const formMethods = [
 				<div class="space-y-4">
 					<p class="text-sm leading-6 text-muted-fg">
 						This example exposes its form API as
-						<code class="font-mono text-fg">window.domStudioForm</code>.
+						<code class="font-mono text-canvas-fg">window.domStudioForm</code>.
 						Try
-						<code class="font-mono text-fg">window.domStudioForm.get('reviewer.email').setValue('you@example.com')</code>
+						<code class="font-mono text-canvas-fg">window.domStudioForm.get('reviewer.email').setValue('you@example.com')</code>
 						in the console.
 					</p>
 					<Example
@@ -435,7 +435,7 @@ const formMethods = [
 						</thead>
 						<tbody class="divide-y divide-border">
 							<tr v-for="method in formMethods" :key="method.name">
-								<td class="px-4 py-3 font-mono text-[12.5px] text-fg">
+								<td class="px-4 py-3 font-mono text-[12.5px] text-canvas-fg">
 									<code>{{ method.name }}</code>
 								</td>
 								<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">{{ method.returns }}</td>

@@ -210,16 +210,16 @@ function checkClasses(status) {
 function requestClasses(request) {
 	return request.id === selectedRequest.value.id
 		? 'border-primary/60 bg-primary/5 shadow-lg shadow-primary/10'
-		: 'border-border bg-background hover:border-primary/40';
+		: 'border-border bg-canvas hover:border-primary/40';
 }
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
 		<div class="grid gap-0 lg:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]">
-			<section class="skin-raised p-4 sm:p-6">
-				<div class="mx-auto max-w-[26rem] rounded-[2rem] border border-border bg-background shadow-2xl shadow-black/15">
-					<div class="rounded-[2rem] border-8 border-fg/90 bg-background">
+			<section class="skin-card p-4 sm:p-6">
+				<div class="mx-auto max-w-[26rem] rounded-[2rem] border border-border bg-canvas shadow-2xl shadow-black/15">
+					<div class="rounded-[2rem] border-8 border-canvas-fg/90 bg-canvas">
 						<div class="mx-auto mt-2 h-1.5 w-20 rounded-full bg-muted-fg/30"></div>
 
 						<div class="px-4 pb-4 pt-5">
@@ -237,15 +237,15 @@ function requestClasses(request) {
 
 							<div class="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
 								<div class="rounded-2xl bg-secondary p-3">
-									<p class="font-semibold text-fg">{{ pendingCount }}</p>
+									<p class="font-semibold text-canvas-fg">{{ pendingCount }}</p>
 									<p class="mt-1 text-muted-fg">Pending</p>
 								</div>
 								<div class="rounded-2xl bg-secondary p-3">
-									<p class="font-semibold text-fg">{{ readyCount }}</p>
+									<p class="font-semibold text-canvas-fg">{{ readyCount }}</p>
 									<p class="mt-1 text-muted-fg">Reviewable</p>
 								</div>
 								<div class="rounded-2xl bg-secondary p-3">
-									<p class="font-semibold text-fg">17:00</p>
+									<p class="font-semibold text-canvas-fg">17:00</p>
 									<p class="mt-1 text-muted-fg">Cutoff</p>
 								</div>
 							</div>
@@ -299,7 +299,7 @@ function requestClasses(request) {
 								</div>
 							</div>
 
-							<section class="mt-4 rounded-t-[2rem] border border-border bg-background p-4 shadow-2xl shadow-black/15">
+							<section class="mt-4 rounded-t-[2rem] border border-border bg-canvas p-4 shadow-2xl shadow-black/15">
 								<div class="flex items-start justify-between gap-3">
 									<div class="min-w-0">
 										<p class="text-xs font-semibold uppercase text-muted-fg">Decision sheet</p>
@@ -326,7 +326,7 @@ function requestClasses(request) {
 
 								<button
 									type="button"
-									class="mt-4 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-semibold text-fg"
+									class="mt-4 w-full rounded-xl border border-border bg-canvas px-3 py-2 text-sm font-semibold text-canvas-fg"
 									@click="sheetExpanded = !sheetExpanded"
 								>
 									{{ sheetExpanded ? 'Hide request context' : 'Show request context' }}
@@ -386,7 +386,7 @@ function requestClasses(request) {
 					</div>
 				</div>
 
-				<div class="mt-6 rounded-2xl border border-border skin-raised p-4">
+				<div class="mt-6 rounded-2xl border border-border skin-card p-4">
 					<div class="flex items-start justify-between gap-3">
 						<div>
 							<h4 class="font-semibold">Decision guardrails</h4>

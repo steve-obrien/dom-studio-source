@@ -76,16 +76,16 @@ import AiPromptLabSrc from './examples/AiPromptLab.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Prompt versions</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Prompt versions</h3>
 						<p class="mt-2">Save every approved prompt as an immutable version with model settings, variables, eval suite, and release notes.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Eval coverage</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Eval coverage</h3>
 						<p class="mt-2">Keep regression cases close to real product failures: missing context, unsafe requests, angry customers, and ambiguous user intent.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include prompt diffing, dataset import, tool-call traces, approval gates, red-team case generation, and live A/B rollout controls.</p>
 					</div>
 				</div>

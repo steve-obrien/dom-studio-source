@@ -73,13 +73,13 @@ const overflow = computed(() => Math.max(0, props.items.length - visibleItems.va
 					:name="item.name || item.label"
 					:initials="item.initials"
 					:size="size"
-					class="ring-2 ring-background"
+					class="ring-2 ring-canvas"
 				/>
 			</slot>
 		</template>
 		<span
 			v-if="overflow"
-			class="grid shrink-0 place-items-center rounded-full bg-secondary text-xs font-semibold text-secondary-fg ring-2 ring-background"
+			class="grid shrink-0 place-items-center rounded-full bg-secondary text-xs font-semibold text-secondary-fg ring-2 ring-canvas"
 			:class="{ xs: 'size-6 text-[10px]', sm: 'size-8', md: 'size-10', lg: 'size-12' }[size] || 'size-8'"
 			:aria-label="`${overflow} more`"
 		>

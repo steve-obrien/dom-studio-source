@@ -233,20 +233,20 @@ function checkClasses(status) {
 function transactionClasses(transaction) {
 	return transaction.id === selectedTransaction.value.id
 		? 'border-primary/70 bg-primary/10 shadow-lg shadow-primary/10'
-		: 'border-border bg-background hover:border-primary/40';
+		: 'border-border bg-canvas hover:border-primary/40';
 }
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
 		<div class="grid gap-0 xl:grid-cols-[minmax(21rem,26rem)_minmax(0,1fr)]">
-			<section class="skin-raised p-4 sm:p-6">
-				<div class="mx-auto h-[780px] max-h-[84vh] min-h-[680px] max-w-[25rem] overflow-hidden rounded-[2.25rem] border border-border bg-background shadow-2xl shadow-black/15">
+			<section class="skin-card p-4 sm:p-6">
+				<div class="mx-auto h-[780px] max-h-[84vh] min-h-[680px] max-w-[25rem] overflow-hidden rounded-[2.25rem] border border-border bg-canvas shadow-2xl shadow-black/15">
 					<DomAppShell variant="app">
 						<template #top>
 							<DomAppTopBar title="Dispute charge" subtitle="Card support" large>
 								<template #leading>
-									<button type="button" class="grid size-10 place-items-center rounded-full border border-border bg-background text-muted-fg" aria-label="Back to transactions">
+									<button type="button" class="grid size-10 place-items-center rounded-full border border-border bg-canvas text-muted-fg" aria-label="Back to transactions">
 										<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
 											<path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 										</svg>
@@ -290,7 +290,7 @@ function transactionClasses(transaction) {
 								</button>
 							</section>
 
-							<section class="overflow-hidden rounded-[1.5rem] border border-border bg-background">
+							<section class="overflow-hidden rounded-[1.5rem] border border-border bg-canvas">
 								<div class="border-b border-border p-4">
 									<div class="flex items-start justify-between gap-3">
 										<div class="min-w-0">
@@ -344,7 +344,7 @@ function transactionClasses(transaction) {
 									</section>
 
 									<section v-else-if="activeTab === 'evidence'" class="mt-4 grid gap-4">
-										<div class="grid gap-3 rounded-2xl border border-border bg-background p-4">
+										<div class="grid gap-3 rounded-2xl border border-border bg-canvas p-4">
 											<div class="flex items-center justify-between gap-4">
 												<div>
 													<h4 class="font-semibold">Screenshot or receipt</h4>
@@ -370,15 +370,15 @@ function transactionClasses(transaction) {
 									</section>
 
 									<section v-else class="mt-4 grid gap-4">
-										<div class="rounded-2xl border border-border bg-fg p-4 text-background">
-											<p class="text-xs font-semibold uppercase tracking-[0.14em] text-background/60">Protection recommendation</p>
+										<div class="rounded-2xl border border-border bg-canvas-fg p-4 text-canvas">
+											<p class="text-xs font-semibold uppercase tracking-[0.14em] text-canvas/60">Protection recommendation</p>
 											<h4 class="mt-2 text-xl font-semibold">{{ reasonCode === 'unauthorized' ? 'Freeze the card now' : 'Keep monitoring this card' }}</h4>
-											<p class="mt-2 text-sm leading-6 text-background/70">
+											<p class="mt-2 text-sm leading-6 text-canvas/70">
 												{{ reasonCode === 'unauthorized' ? 'Unauthorized disputes should usually freeze spending while support reviews replacement options.' : 'This reason does not always require a card freeze, but customers can still choose it.' }}
 											</p>
 										</div>
 
-										<div class="grid gap-3 rounded-2xl border border-border bg-background p-4">
+										<div class="grid gap-3 rounded-2xl border border-border bg-canvas p-4">
 											<DomToggle
 												v-model="freezeCard"
 												label="Freeze this card"
@@ -403,7 +403,7 @@ function transactionClasses(transaction) {
 						</div>
 
 						<template #bottom>
-							<div class="border-t border-border bg-background/95 px-4 py-3 shadow-[0_-18px_45px_rgba(15,23,42,0.12)] backdrop-blur">
+							<div class="border-t border-border bg-canvas/95 px-4 py-3 shadow-[0_-18px_45px_rgba(15,23,42,0.12)] backdrop-blur">
 								<div v-if="lastAction" class="mb-3 rounded-xl bg-secondary/70 px-3 py-2 text-sm text-muted-fg">
 									{{ lastAction }}
 								</div>
@@ -421,7 +421,7 @@ function transactionClasses(transaction) {
 			</section>
 
 			<aside class="grid min-w-0 gap-5 p-4 sm:p-6 xl:border-l xl:border-border">
-				<section class="rounded-3xl border border-border bg-background p-5 shadow-xl shadow-black/5">
+				<section class="rounded-3xl border border-border bg-canvas p-5 shadow-xl shadow-black/5">
 					<div class="flex flex-wrap items-start justify-between gap-4">
 						<div class="min-w-0">
 							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Case packet</p>
@@ -455,7 +455,7 @@ function transactionClasses(transaction) {
 				</section>
 
 				<section class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,22rem)]">
-					<div class="rounded-3xl border border-border bg-background p-5">
+					<div class="rounded-3xl border border-border bg-canvas p-5">
 						<div class="flex items-center justify-between gap-3">
 							<div>
 								<h4 class="font-semibold">Readiness checks</h4>
@@ -465,7 +465,7 @@ function transactionClasses(transaction) {
 						</div>
 
 						<div class="mt-4 grid gap-3">
-							<div v-for="check in disputeChecks" :key="check.key" class="rounded-2xl border border-border bg-background p-4">
+							<div v-for="check in disputeChecks" :key="check.key" class="rounded-2xl border border-border bg-canvas p-4">
 								<div class="flex items-start justify-between gap-3">
 									<div class="min-w-0">
 										<p class="font-semibold">{{ check.label }}</p>
@@ -480,7 +480,7 @@ function transactionClasses(transaction) {
 					</div>
 
 					<div class="grid gap-3">
-						<section class="rounded-3xl border border-border bg-background p-5">
+						<section class="rounded-3xl border border-border bg-canvas p-5">
 							<h4 class="font-semibold">Timeline</h4>
 							<div class="mt-4 grid gap-4">
 								<div v-for="event in activity" :key="event.label" class="grid grid-cols-[4rem_minmax(0,1fr)] gap-3 text-sm">
@@ -500,17 +500,17 @@ function transactionClasses(transaction) {
 							</div>
 						</section>
 
-						<section class="rounded-3xl border border-border bg-fg p-5 text-background">
-							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-background/60">Route</p>
+						<section class="rounded-3xl border border-border bg-canvas-fg p-5 text-canvas">
+							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-canvas/60">Route</p>
 							<h4 class="mt-2 text-xl font-semibold">{{ supportRoute }}</h4>
-							<p class="mt-2 text-sm leading-6 text-background/70">
+							<p class="mt-2 text-sm leading-6 text-canvas/70">
 								{{ selectedReason.label }} cases should carry structured answers, evidence files, and card-control events into the support queue.
 							</p>
 						</section>
 					</div>
 				</section>
 
-				<section class="rounded-3xl border border-border bg-background p-5">
+				<section class="rounded-3xl border border-border bg-canvas p-5">
 					<div class="flex flex-wrap items-center justify-between gap-3">
 						<div>
 							<h4 class="font-semibold">Draft payload preview</h4>

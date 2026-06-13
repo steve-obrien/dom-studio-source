@@ -13,6 +13,6 @@ const options = [
 <template>
 	<div class="grid w-full max-w-md gap-3">
 		<DomRadioGroup v-model="plan" :options="options" label="Plan" />
-		<p class="text-xs text-muted-fg">Selected value: <code class="text-fg">{{ plan }}</code></p>
+		<p class="text-xs text-muted-fg">Selected value: <code class="text-canvas-fg">{{ plan }}</code></p>
 	</div>
 </template>

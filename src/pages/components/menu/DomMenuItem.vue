@@ -169,7 +169,7 @@ onBeforeUnmount(() => {
 			:aria-checked="checked == null ? null : String(checked)"
 			:aria-disabled="disabled ? 'true' : null"
 			:disabled="disabled || null"
-			class="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm text-fg outline-none transition hover:bg-secondary focus:bg-secondary aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[tone=danger]:text-destructive"
+			class="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm text-canvas-fg outline-none transition hover:bg-secondary focus:bg-secondary aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[tone=danger]:text-destructive"
 			:data-tone="tone"
 			@click="onClick"
 			@keydown="onKeydown"
@@ -183,7 +183,7 @@ onBeforeUnmount(() => {
 		v-if="open"
 		:ref="setSubmenuPanel"
 		data-dom-menu-submenu-panel
-		class="dom-popover-panel skin-floating absolute z-50 min-w-48 rounded-2xl p-1 outline-none"
+		class="dom-popover-panel skin-popover absolute z-50 min-w-48 rounded-2xl p-1 outline-none"
 		@keydown="onSubmenuKeydown"
 		@mouseenter="cancelSubmenuClose"
 		@mouseleave="maybeCloseSubmenuPanel"

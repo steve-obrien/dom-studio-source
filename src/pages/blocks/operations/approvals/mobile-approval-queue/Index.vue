@@ -80,16 +80,16 @@ import MobileApprovalQueueSrc from './examples/MobileApprovalQueue.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Mobile action safety</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Mobile action safety</h3>
 						<p class="mt-2">Require an explicit review state before approval on high-risk requests. Keep irreversible actions behind a server confirmation or one-time token.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Notification routing</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Notification routing</h3>
 						<p class="mt-2">Store deep-link targets by request id and queue filter so push notifications can open the right card while preserving the approver context.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include swipe gestures, delegated approvals, biometric re-auth, offline decision drafts, and reusable policy-check chips.</p>
 					</div>
 				</div>

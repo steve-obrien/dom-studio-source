@@ -318,7 +318,7 @@ function activityClasses(tone) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-lg border border-border bg-background text-fg shadow-2xl shadow-black/10">
+	<div class="w-full overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
 		<section class="border-b border-border bg-secondary/35 px-4 py-5 sm:px-6">
 			<div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
 				<div class="max-w-3xl">
@@ -329,15 +329,15 @@ function activityClasses(tone) {
 					</p>
 				</div>
 				<div class="grid gap-2 text-sm sm:grid-cols-3 xl:min-w-[28rem]">
-					<div class="rounded-lg border border-border bg-background/80 px-3 py-2">
+					<div class="rounded-lg border border-border bg-canvas/80 px-3 py-2">
 						<p class="text-xs text-muted-fg">Catalog</p>
 						<p class="mt-1 font-semibold">{{ connectors.length }} connectors</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background/80 px-3 py-2">
+					<div class="rounded-lg border border-border bg-canvas/80 px-3 py-2">
 						<p class="text-xs text-muted-fg">Installed</p>
 						<p class="mt-1 font-semibold">{{ installedCount }} live</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background/80 px-3 py-2">
+					<div class="rounded-lg border border-border bg-canvas/80 px-3 py-2">
 						<p class="text-xs text-muted-fg">Attention</p>
 						<p class="mt-1 font-semibold">{{ reviewCount }} review</p>
 					</div>
@@ -379,7 +379,7 @@ function activityClasses(tone) {
 					</div>
 				</div>
 
-				<div class="rounded-lg border border-border skin-raised p-4">
+				<div class="rounded-lg border border-border skin-card p-4">
 					<h4 class="font-semibold">Install readiness</h4>
 					<div class="mt-4 space-y-3 text-sm">
 						<div class="flex items-start gap-2">
@@ -417,7 +417,7 @@ function activityClasses(tone) {
 						v-for="connector in filteredConnectors"
 						:key="connector.id"
 						type="button"
-						class="group flex min-h-[17rem] flex-col rounded-lg border border-border bg-background p-4 text-left transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-black/10"
+						class="group flex min-h-[17rem] flex-col rounded-lg border border-border bg-canvas p-4 text-left transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-black/10"
 						@click="openConnector(connector)"
 					>
 						<span class="flex items-start justify-between gap-3">
@@ -449,15 +449,15 @@ function activityClasses(tone) {
 
 						<span class="mt-auto grid gap-2 pt-5 text-xs text-muted-fg sm:grid-cols-3">
 							<span class="rounded-lg bg-secondary/50 px-2.5 py-2">
-								<span class="block font-medium text-fg">{{ connector.rating }}</span>
+								<span class="block font-medium text-canvas-fg">{{ connector.rating }}</span>
 								<span>Rating</span>
 							</span>
 							<span class="rounded-lg bg-secondary/50 px-2.5 py-2">
-								<span class="block font-medium text-fg">{{ connector.installCount.toLocaleString() }}</span>
+								<span class="block font-medium text-canvas-fg">{{ connector.installCount.toLocaleString() }}</span>
 								<span>Installs</span>
 							</span>
 							<span class="rounded-lg bg-secondary/50 px-2.5 py-2">
-								<span class="block font-medium text-fg">{{ connector.health }}</span>
+								<span class="block font-medium text-canvas-fg">{{ connector.health }}</span>
 								<span>Health</span>
 							</span>
 						</span>
@@ -531,7 +531,7 @@ function activityClasses(tone) {
 									v-for="scope in selectedConnector.scopes"
 									:key="scope.key"
 									class="flex gap-3 p-3"
-									:class="scope.required ? 'bg-secondary/30' : 'bg-background'"
+									:class="scope.required ? 'bg-secondary/30' : 'bg-canvas'"
 								>
 									<input
 										type="checkbox"

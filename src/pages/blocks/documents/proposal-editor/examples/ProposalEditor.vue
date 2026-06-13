@@ -148,9 +148,9 @@ function jumpToBlocker() {
 </script>
 
 <template>
-	<div class="w-full bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,.16),transparent_34%),linear-gradient(180deg,hsl(var(--secondary)),hsl(var(--background)))] px-3 py-5 text-fg sm:px-6 lg:px-8">
-		<section class="mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-border bg-background shadow-2xl shadow-black/10">
-			<header class="border-b border-border bg-background/95 px-4 py-4 backdrop-blur sm:px-5">
+	<div class="w-full bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,.16),transparent_34%),linear-gradient(180deg,hsl(var(--secondary)),hsl(var(--canvas)))] px-3 py-5 text-canvas-fg sm:px-6 lg:px-8">
+		<section class="mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-border bg-canvas shadow-2xl shadow-black/10">
+			<header class="border-b border-border bg-canvas/95 px-4 py-4 backdrop-blur sm:px-5">
 				<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 					<div class="min-w-0">
 						<div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">
@@ -188,23 +188,23 @@ function jumpToBlocker() {
 			<div class="grid gap-0 xl:grid-cols-[minmax(0,1fr)_22rem]">
 				<main class="min-w-0 bg-secondary/35 px-3 py-4 sm:px-5 lg:px-8">
 					<div class="mx-auto max-w-4xl">
-						<div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-background/90 p-3 shadow-sm">
+						<div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-canvas/90 p-3 shadow-sm">
 							<div class="flex flex-wrap items-center gap-1.5">
 								<DomTooltip content="Bold">
-									<button type="button" class="grid size-9 place-items-center rounded-xl border border-border bg-background font-bold text-fg transition hover:bg-secondary">B</button>
+									<button type="button" class="grid size-9 place-items-center rounded-xl border border-border bg-canvas font-bold text-canvas-fg transition hover:bg-secondary">B</button>
 								</DomTooltip>
 								<DomTooltip content="Italic">
-									<button type="button" class="grid size-9 place-items-center rounded-xl border border-border bg-background italic text-fg transition hover:bg-secondary">I</button>
+									<button type="button" class="grid size-9 place-items-center rounded-xl border border-border bg-canvas italic text-canvas-fg transition hover:bg-secondary">I</button>
 								</DomTooltip>
 								<DomTooltip content="Bulleted list">
-									<button type="button" class="grid size-9 place-items-center rounded-xl border border-border bg-background text-fg transition hover:bg-secondary" aria-label="Bulleted list">
+									<button type="button" class="grid size-9 place-items-center rounded-xl border border-border bg-canvas text-canvas-fg transition hover:bg-secondary" aria-label="Bulleted list">
 										<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
 											<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
 										</svg>
 									</button>
 								</DomTooltip>
 								<DomTooltip content="Insert comment">
-									<button type="button" class="grid size-9 place-items-center rounded-xl border border-border bg-background text-fg transition hover:bg-secondary" aria-label="Insert comment">
+									<button type="button" class="grid size-9 place-items-center rounded-xl border border-border bg-canvas text-canvas-fg transition hover:bg-secondary" aria-label="Insert comment">
 										<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
 											<path d="M7 8h10M7 12h6M5 20l3-3h9a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v13Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 										</svg>
@@ -217,11 +217,11 @@ function jumpToBlocker() {
 							</div>
 						</div>
 
-						<article class="min-h-[42rem] rounded-[1.75rem] border border-border bg-background px-5 py-6 shadow-xl shadow-black/5 sm:px-10 sm:py-9">
+						<article class="min-h-[42rem] rounded-[1.75rem] border border-border bg-canvas px-5 py-6 shadow-xl shadow-black/5 sm:px-10 sm:py-9">
 							<div class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-start sm:justify-between">
 								<div class="min-w-0">
 									<p class="text-sm font-semibold uppercase tracking-[0.16em] text-primary">{{ clientName }}</p>
-									<h2 class="mt-2 text-3xl font-semibold tracking-tight text-fg sm:text-4xl">{{ documentTitle }}</h2>
+									<h2 class="mt-2 text-3xl font-semibold tracking-tight text-canvas-fg sm:text-4xl">{{ documentTitle }}</h2>
 									<p class="mt-3 max-w-2xl text-sm leading-6 text-muted-fg">Prepared by DOM implementation team for launch planning, migration support, and success enablement.</p>
 								</div>
 								<div class="rounded-2xl border border-border bg-secondary/50 p-3 text-sm">
@@ -237,7 +237,7 @@ function jumpToBlocker() {
 										:key="section.id"
 										type="button"
 										class="rounded-2xl border px-3 py-3 text-left transition"
-										:class="section.id === activeSectionId ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-background hover:bg-secondary'"
+										:class="section.id === activeSectionId ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-canvas hover:bg-secondary'"
 										@click="activeSectionId = section.id"
 									>
 										<span class="block text-sm font-semibold">{{ section.title }}</span>
@@ -290,7 +290,7 @@ function jumpToBlocker() {
 													{{ comment.open ? 'Open' : 'Resolved' }}
 												</button>
 											</div>
-											<p class="mt-3 text-sm leading-6 text-fg">{{ comment.body }}</p>
+											<p class="mt-3 text-sm leading-6 text-canvas-fg">{{ comment.body }}</p>
 										</div>
 									</div>
 								</section>
@@ -299,7 +299,7 @@ function jumpToBlocker() {
 					</div>
 				</main>
 
-				<aside class="border-t border-border bg-background p-4 xl:border-l xl:border-t-0 xl:p-5">
+				<aside class="border-t border-border bg-canvas p-4 xl:border-l xl:border-t-0 xl:p-5">
 					<div class="sticky top-4 grid gap-4">
 						<section class="rounded-2xl border border-border p-4">
 							<div class="flex items-center justify-between gap-4">
@@ -314,7 +314,7 @@ function jumpToBlocker() {
 							</div>
 							<div class="mt-4 grid gap-2">
 								<div v-for="gate in approvalGates" :key="gate.label" class="flex items-start gap-3 rounded-xl bg-secondary/55 p-3">
-									<span class="mt-0.5 grid size-5 place-items-center rounded-full" :class="gate.complete ? 'bg-success text-background' : 'bg-warning/20 text-warning'">
+									<span class="mt-0.5 grid size-5 place-items-center rounded-full" :class="gate.complete ? 'bg-success text-canvas' : 'bg-warning/20 text-warning'">
 										<svg v-if="gate.complete" viewBox="0 0 24 24" class="size-3.5" fill="none" aria-hidden="true">
 											<path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 										</svg>

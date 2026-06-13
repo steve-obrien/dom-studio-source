@@ -33,10 +33,10 @@ const items = [
 <template>
 	<div class="w-full max-w-lg space-y-3">
 		<DomContextMenu :items="items" @select="selected = $event.value">
-			<div class="overflow-hidden rounded-2xl border border-border bg-background text-sm shadow-sm">
-				<div class="grid grid-cols-[1fr_auto] gap-4 border-b border-border skin-raised px-4 py-3 backdrop-blur">
+			<div class="overflow-hidden rounded-2xl border border-border bg-canvas text-sm shadow-sm">
+				<div class="grid grid-cols-[1fr_auto] gap-4 border-b border-border skin-card px-4 py-3 backdrop-blur">
 					<div>
-						<p class="font-medium text-fg">Quarterly plan</p>
+						<p class="font-medium text-canvas-fg">Quarterly plan</p>
 						<p class="mt-1 text-xs text-muted-fg">Right click this row to open nested actions.</p>
 					</div>
 					<span class="self-start rounded-full bg-success/15 px-2.5 py-1 text-xs font-medium text-success">Live</span>
@@ -44,20 +44,20 @@ const items = [
 				<div class="grid gap-2 p-4 text-muted-fg sm:grid-cols-3">
 					<div>
 						<p class="text-xs uppercase tracking-[0.14em]">Owner</p>
-						<p class="mt-1 text-fg">Maya Patel</p>
+						<p class="mt-1 text-canvas-fg">Maya Patel</p>
 					</div>
 					<div>
 						<p class="text-xs uppercase tracking-[0.14em]">Status</p>
-						<p class="mt-1 text-fg">In review</p>
+						<p class="mt-1 text-canvas-fg">In review</p>
 					</div>
 					<div>
 						<p class="text-xs uppercase tracking-[0.14em]">Updated</p>
-						<p class="mt-1 text-fg">Today</p>
+						<p class="mt-1 text-canvas-fg">Today</p>
 					</div>
 				</div>
 			</div>
 		</DomContextMenu>
 
-		<p class="text-xs text-muted-fg">Selected: <code class="text-fg">{{ selected }}</code></p>
+		<p class="text-xs text-muted-fg">Selected: <code class="text-canvas-fg">{{ selected }}</code></p>
 	</div>
 </template>

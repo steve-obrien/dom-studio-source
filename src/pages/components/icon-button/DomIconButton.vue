@@ -61,15 +61,15 @@ const props = defineProps({
 const attrs = useAttrs();
 
 const variants = {
-	ghost: 'text-muted-fg hover:bg-secondary hover:text-fg',
+	ghost: 'text-muted-fg hover:bg-secondary hover:text-canvas-fg',
 	secondary: 'skin-control hover:brightness-[0.98]',
 	primary: 'skin-action hover:opacity-90',
 	danger: 'text-destructive hover:bg-destructive/10',
 };
 
 const activeVariants = {
-	ghost: 'bg-secondary text-fg shadow-sm ring-1 ring-border/70',
-	secondary: 'bg-background text-fg shadow-sm ring-1 ring-ring/30',
+	ghost: 'bg-secondary text-canvas-fg shadow-sm ring-1 ring-border/70',
+	secondary: 'bg-canvas text-canvas-fg shadow-sm ring-1 ring-ring/30',
 	primary: 'skin-action shadow-sm ring-2 ring-ring/40',
 	danger: 'bg-destructive/15 text-destructive shadow-sm ring-1 ring-destructive/20',
 };
@@ -82,7 +82,7 @@ const sizes = {
 
 const classes = computed(() => [
 	'inline-grid shrink-0 place-items-center rounded-full outline-none transition active:scale-95',
-	'focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+	'focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
 	props.active
 		? activeVariants[props.variant] || activeVariants.ghost
 		: variants[props.variant] || variants.ghost,

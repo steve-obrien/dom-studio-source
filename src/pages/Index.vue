@@ -213,16 +213,16 @@ function runCommand({ value }) {
 
 <template>
 	<DomStudioLayout>
-		<div class="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-background">
+		<div class="relative left-1/2 w-screen -translate-x-1/2 overflow-hidden bg-canvas">
 			<section class="border-b border-border">
 				<div class="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 lg:px-8">
 					<div class="max-w-4xl">
 						<div class="flex flex-wrap items-center gap-3 text-sm font-medium text-muted-fg">
-							<BrandMark class="size-12 text-fg" title="DOM Studio" />
-							<span class="text-base font-semibold text-fg">DOM Studio</span>
+							<BrandMark class="size-12 text-canvas-fg" title="DOM Studio" />
+							<span class="text-base font-semibold text-canvas-fg">DOM Studio</span>
 							<span class="rounded-full border border-border bg-secondary px-3 py-1">Source-owned UI system</span>
 						</div>
-						<h1 class="mt-6 max-w-5xl text-4xl font-bold leading-[1.05] text-fg sm:text-5xl lg:text-6xl">
+						<h1 class="mt-6 max-w-5xl text-4xl font-bold leading-[1.05] text-canvas-fg sm:text-5xl lg:text-6xl">
 							Build real app UI from primitives that already know the hard parts.
 						</h1>
 						<p class="mt-6 max-w-3xl text-lg leading-8 text-muted-fg">
@@ -237,7 +237,7 @@ function runCommand({ value }) {
 						</div>
 					</div>
 
-					<div class="mt-10 overflow-hidden rounded-[1.75rem] border border-border skin-raised text-fg shadow-2xl shadow-black/10">
+					<div class="mt-10 overflow-hidden rounded-[1.75rem] border border-border skin-card text-canvas-fg shadow-2xl shadow-black/10">
 						<div class="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-secondary/45 px-4 py-3">
 							<div class="flex min-w-0 items-center gap-3">
 								<div class="flex items-center gap-1.5" aria-hidden="true">
@@ -245,7 +245,7 @@ function runCommand({ value }) {
 									<span class="size-2.5 rounded-full bg-amber-400"></span>
 									<span class="size-2.5 rounded-full bg-emerald-400"></span>
 								</div>
-								<p class="truncate text-sm font-semibold text-fg">Studio workspace / launch-flow.vue</p>
+								<p class="truncate text-sm font-semibold text-canvas-fg">Studio workspace / launch-flow.vue</p>
 							</div>
 							<div class="flex items-center gap-2">
 								<DomDropdown :items="dropdownItems" align="right" label="Docs" width="min-w-48" />
@@ -254,9 +254,9 @@ function runCommand({ value }) {
 						</div>
 
 						<div class="grid min-h-[34rem] lg:grid-cols-[15rem_minmax(0,1fr)_18rem]">
-							<aside class="border-b border-border bg-background/80 p-4 lg:border-b-0 lg:border-r">
+							<aside class="border-b border-border bg-canvas/80 p-4 lg:border-b-0 lg:border-r">
 								<div class="flex items-center justify-between">
-									<p class="text-sm font-semibold text-fg">Library map</p>
+									<p class="text-sm font-semibold text-canvas-fg">Library map</p>
 									<span class="rounded-full bg-success/15 px-2 py-1 text-xs font-medium text-success">live</span>
 								</div>
 								<nav class="mt-4 grid gap-2">
@@ -264,7 +264,7 @@ function runCommand({ value }) {
 										v-for="item in workspaceNav"
 										:key="item.label"
 										to="/components/button"
-										class="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-muted-fg transition hover:bg-secondary hover:text-fg"
+										class="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-muted-fg transition hover:bg-secondary hover:text-canvas-fg"
 									>
 										<span class="flex min-w-0 items-center gap-2">
 											<span class="size-2 rounded-full" :class="item.tone"></span>
@@ -275,7 +275,7 @@ function runCommand({ value }) {
 								</nav>
 								<div class="mt-6 rounded-2xl border border-border bg-secondary/40 p-3">
 									<p class="text-xs font-medium text-muted-fg">Agent context</p>
-									<p class="mt-2 text-sm font-semibold text-fg">Props, examples, slots, events, keyboard behavior, and source paths stay attached.</p>
+									<p class="mt-2 text-sm font-semibold text-canvas-fg">Props, examples, slots, events, keyboard behavior, and source paths stay attached.</p>
 								</div>
 							</aside>
 
@@ -283,21 +283,21 @@ function runCommand({ value }) {
 								<DomTabs v-model="showcaseTab" :tabs="heroTabs">
 									<template #product>
 										<div class="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-											<div class="overflow-hidden rounded-2xl border border-border bg-background">
+											<div class="overflow-hidden rounded-2xl border border-border bg-canvas">
 												<div class="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
 													<div>
-														<p class="text-sm font-semibold text-fg">Revenue operations</p>
+														<p class="text-sm font-semibold text-canvas-fg">Revenue operations</p>
 														<p class="mt-1 text-sm text-muted-fg">A block-level dashboard built from the same primitives.</p>
 													</div>
 													<DomPopover label="Inspect" position="bottom-end" width="w-72">
-														<p class="font-semibold text-fg">Inspector metadata</p>
+														<p class="font-semibold text-canvas-fg">Inspector metadata</p>
 														<p class="mt-2 text-sm leading-6 text-muted-fg">Every visible primitive can expose prop controls, slots, examples, and source hints.</p>
 													</DomPopover>
 												</div>
 												<div class="grid grid-cols-3 divide-x divide-border border-b border-border">
 													<div v-for="metric in metrics" :key="metric.label" class="min-h-28 p-4">
 														<p class="text-xs text-muted-fg">{{ metric.label }}</p>
-														<p class="mt-2 text-xl font-semibold text-fg">{{ metric.value }}</p>
+														<p class="mt-2 text-xl font-semibold text-canvas-fg">{{ metric.value }}</p>
 														<p class="mt-1 text-xs leading-5 text-muted-fg">{{ metric.detail }}</p>
 													</div>
 												</div>
@@ -307,10 +307,10 @@ function runCommand({ value }) {
 											</div>
 
 											<div class="grid gap-4">
-												<div class="rounded-2xl border border-border bg-background p-4">
+												<div class="rounded-2xl border border-border bg-canvas p-4">
 													<div class="flex items-start justify-between gap-3">
 														<div>
-															<p class="text-sm font-semibold text-fg">Interaction stack</p>
+															<p class="text-sm font-semibold text-canvas-fg">Interaction stack</p>
 															<p class="mt-1 text-sm text-muted-fg">Menu, popover, tabs, toast, and links are active here.</p>
 														</div>
 														<span class="rounded-full bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">wired</span>
@@ -321,8 +321,8 @@ function runCommand({ value }) {
 														<DomButton as="router-link" to="/components/dialog" size="sm" variant="secondary">Dialog docs</DomButton>
 													</div>
 												</div>
-												<div class="rounded-2xl border border-border bg-background p-4">
-													<p class="text-sm font-semibold text-fg">Component mix</p>
+												<div class="rounded-2xl border border-border bg-canvas p-4">
+													<p class="text-sm font-semibold text-canvas-fg">Component mix</p>
 													<div class="mt-4 grid gap-2">
 														<div v-for="name in ['DomTreeView', 'DomTabs', 'DomPopover', 'DomToastStack']" :key="name" class="flex items-center justify-between rounded-xl bg-secondary/50 px-3 py-2 text-sm">
 															<span class="font-mono text-xs text-muted-fg">{{ name }}</span>
@@ -336,16 +336,16 @@ function runCommand({ value }) {
 
 									<template #forms>
 										<div class="grid gap-4 xl:grid-cols-2">
-											<div class="rounded-2xl border border-border bg-background p-4">
-												<p class="text-sm font-semibold text-fg">Schema-ready form controls</p>
+											<div class="rounded-2xl border border-border bg-canvas p-4">
+												<p class="text-sm font-semibold text-canvas-fg">Schema-ready form controls</p>
 												<div class="mt-4 grid gap-4">
 													<DomTagCombobox v-model="tokenStack" :options="tagOptions" label="Component stack" clearable />
 													<DomCombobox v-model="selectedPrimitive" :options="primitiveOptions" label="Primary primitive" />
 													<DomDatePicker v-model="releaseDate" label="Release date" />
 												</div>
 											</div>
-											<div class="rounded-2xl border border-border bg-background p-4">
-												<p class="text-sm font-semibold text-fg">Theme controls</p>
+											<div class="rounded-2xl border border-border bg-canvas p-4">
+												<p class="text-sm font-semibold text-canvas-fg">Theme controls</p>
 												<div class="mt-4 grid gap-4">
 													<DomRadioGroup v-model="density" :options="densityOptions" label="Density" orientation="horizontal" />
 													<DomRangeInput v-model="radius" label="Radius" :min="4" :max="24" suffix="px" />
@@ -357,8 +357,8 @@ function runCommand({ value }) {
 
 									<template #headless>
 										<div class="grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
-											<div class="rounded-2xl border border-border bg-background p-4">
-												<p class="text-sm font-semibold text-fg">Layer tree</p>
+											<div class="rounded-2xl border border-border bg-canvas p-4">
+												<p class="text-sm font-semibold text-canvas-fg">Layer tree</p>
 												<DomTreeView
 													v-model="activeLayer"
 													:items="treeItems"
@@ -377,15 +377,15 @@ function runCommand({ value }) {
 								</DomTabs>
 							</section>
 
-							<aside class="bg-background/80 p-4">
-								<p class="text-sm font-semibold text-fg">Inspector</p>
+							<aside class="bg-canvas/80 p-4">
+								<p class="text-sm font-semibold text-canvas-fg">Inspector</p>
 								<div class="mt-4 grid gap-4">
 									<DomCombobox v-model="selectedPrimitive" :options="primitiveOptions" label="Primitive" />
 									<DomRangeInput v-model="radius" label="Radius" :min="4" :max="24" suffix="px" />
 									<DomToggle v-model="motion" label="Motion" />
 								</div>
 								<div class="mt-6 rounded-2xl border border-border bg-secondary/35 p-4">
-									<p class="text-sm font-semibold text-fg">Selected layer</p>
+									<p class="text-sm font-semibold text-canvas-fg">Selected layer</p>
 									<p class="mt-2 font-mono text-xs text-muted-fg">{{ activeLayer }}</p>
 									<p class="mt-3 text-sm leading-6 text-muted-fg">Tree state, props, and generated markup are connected instead of hidden in docs prose.</p>
 								</div>
@@ -400,7 +400,7 @@ function runCommand({ value }) {
 					<div class="flex flex-wrap items-end justify-between gap-6">
 						<div class="max-w-3xl">
 							<p class="text-sm font-semibold text-muted-fg">More than a component shelf</p>
-							<h2 class="mt-2 text-3xl font-bold leading-tight text-fg sm:text-4xl">The library covers the product surfaces teams actually ship.</h2>
+							<h2 class="mt-2 text-3xl font-bold leading-tight text-canvas-fg sm:text-4xl">The library covers the product surfaces teams actually ship.</h2>
 						</div>
 						<DomButton as="router-link" to="/components/playground" variant="secondary">Open playground</DomButton>
 					</div>
@@ -410,23 +410,23 @@ function runCommand({ value }) {
 							v-for="group in libraryGroups"
 							:key="group.title"
 							:to="group.to"
-							class="group flex min-h-80 flex-col rounded-2xl border border-border bg-background p-5 transition hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-xl"
+							class="group flex min-h-80 flex-col rounded-2xl border border-border bg-canvas p-5 transition hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-xl"
 						>
 							<span class="w-fit rounded-full border px-3 py-1 text-xs font-semibold" :class="group.accent">{{ group.title }}</span>
 							<p class="mt-5 text-sm leading-6 text-muted-fg">{{ group.description }}</p>
 							<div class="mt-auto grid gap-2 pt-6">
-								<span v-for="item in group.items" :key="item" class="rounded-xl bg-secondary/60 px-3 py-2 text-sm font-medium text-fg">{{ item }}</span>
+								<span v-for="item in group.items" :key="item" class="rounded-xl bg-secondary/60 px-3 py-2 text-sm font-medium text-canvas-fg">{{ item }}</span>
 							</div>
 						</RouterLink>
 					</div>
 				</div>
 			</section>
 
-			<section class="border-b border-border bg-background">
+			<section class="border-b border-border bg-canvas">
 				<div class="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
 					<div>
 						<p class="text-sm font-semibold text-muted-fg">Try the pieces together</p>
-						<h2 class="mt-2 text-3xl font-bold leading-tight text-fg sm:text-4xl">A homepage should prove the kit works.</h2>
+						<h2 class="mt-2 text-3xl font-bold leading-tight text-canvas-fg sm:text-4xl">A homepage should prove the kit works.</h2>
 						<p class="mt-4 text-base leading-8 text-muted-fg">
 							This page is using the actual primitives: command palette, toast stack, dropdown, popover, tabs, tree view, combobox, tag combobox, radio group, range input, toggle, date picker, tooltip, and accordion.
 						</p>
@@ -438,14 +438,14 @@ function runCommand({ value }) {
 					</div>
 
 					<div class="grid gap-4 md:grid-cols-2">
-						<div class="rounded-2xl border border-border skin-raised p-5">
-							<p class="text-sm font-semibold text-fg">Answers without leaving the page</p>
+						<div class="rounded-2xl border border-border skin-card p-5">
+							<p class="text-sm font-semibold text-canvas-fg">Answers without leaving the page</p>
 							<div class="mt-4">
 								<DomAccordion :items="accordionItems" />
 							</div>
 						</div>
-						<div class="rounded-2xl border border-border skin-raised p-5">
-							<p class="text-sm font-semibold text-fg">Source path</p>
+						<div class="rounded-2xl border border-border skin-card p-5">
+							<p class="text-sm font-semibold text-canvas-fg">Source path</p>
 							<div class="mt-4 overflow-hidden rounded-2xl border border-border bg-[#0b0f14]">
 								<pre class="overflow-x-auto p-4 text-sm leading-7 text-slate-100"><code v-for="line in codeLines.slice(0, 3)" :key="line" class="block">{{ line }}</code></pre>
 							</div>
@@ -455,12 +455,12 @@ function runCommand({ value }) {
 				</div>
 			</section>
 
-			<section class="bg-background">
+			<section class="bg-canvas">
 				<div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
 					<div class="flex flex-wrap items-end justify-between gap-6">
 						<div>
 							<p class="text-sm font-semibold text-muted-fg">Library wall</p>
-							<h2 class="mt-2 text-3xl font-bold leading-tight text-fg sm:text-4xl">Start anywhere, then keep going.</h2>
+							<h2 class="mt-2 text-3xl font-bold leading-tight text-canvas-fg sm:text-4xl">Start anywhere, then keep going.</h2>
 						</div>
 						<DomButton as="router-link" to="/pricing" size="lg">Get source access</DomButton>
 					</div>
@@ -469,12 +469,12 @@ function runCommand({ value }) {
 							v-for="component in componentCloud"
 							:key="component.tag"
 							:to="component.to"
-							class="group flex min-h-24 flex-col justify-between rounded-xl border border-border skin-raised p-4 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
+							class="group flex min-h-24 flex-col justify-between rounded-xl border border-border skin-card p-4 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg"
 						>
-							<span class="text-sm font-semibold text-fg">{{ component.name }}</span>
+							<span class="text-sm font-semibold text-canvas-fg">{{ component.name }}</span>
 							<span class="mt-3 flex items-center justify-between gap-3">
 								<code class="truncate text-xs text-muted-fg">&lt;{{ component.tag }}&gt;</code>
-								<span class="shrink-0 text-sm text-muted-fg transition group-hover:translate-x-0.5 group-hover:text-fg">-&gt;</span>
+								<span class="shrink-0 text-sm text-muted-fg transition group-hover:translate-x-0.5 group-hover:text-canvas-fg">-&gt;</span>
 							</span>
 						</RouterLink>
 					</div>

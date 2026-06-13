@@ -51,7 +51,7 @@ const active = 'select-none active:bg-[linear-gradient(rgb(0_0_0/6%)_0_0)] activ
 const variants = {
 	primary: 'skin-action hover:opacity-90',
 	secondary: 'skin-control hover:brightness-[0.98]',
-	ghost: 'text-fg hover:bg-secondary hover:text-secondary-fg',
+	ghost: 'text-canvas-fg hover:bg-secondary hover:text-secondary-fg',
 	danger: 'skin-control text-destructive hover:brightness-[0.98]',
 };
 const sizes = {
@@ -63,7 +63,7 @@ const sizes = {
 const classes = computed(() => [
 	active,
 	'inline-flex items-center cursor-pointer justify-center gap-2 rounded-full font-medium tracking-tight transition',
-	'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+	'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
 	variants[props.variant] || variants.primary,
 	sizes[props.size] || sizes.md,
 	(props.disabled || props.loading) && 'opacity-50 pointer-events-none',

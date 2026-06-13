@@ -21,11 +21,11 @@ const props = defineProps({
 });
 
 const toneClass = computed(() => ({
-	neutral: 'border-border bg-secondary text-fg',
+	neutral: 'border-border bg-secondary text-canvas-fg',
 	success: 'border-success/30 bg-success/10 text-success',
 	warning: 'border-warning/30 bg-warning/10 text-warning',
 	destructive: 'border-destructive/30 bg-destructive/10 text-destructive',
-}[props.tone] || 'border-border bg-secondary text-fg'));
+}[props.tone] || 'border-border bg-secondary text-canvas-fg'));
 </script>
 
 <template>

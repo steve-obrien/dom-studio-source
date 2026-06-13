@@ -29,7 +29,7 @@ function onChange(event) {
 			<p class="text-xs font-semibold uppercase tracking-wider text-muted-fg">Change log</p>
 			<ul class="mt-2 space-y-1 text-xs text-muted-fg">
 				<li v-for="entry in log" :key="`${entry.field}-${entry.at}-${entry.value}`">
-					<span class="text-fg">{{ entry.field }}</span>: {{ entry.value || 'empty' }} at {{ entry.at }}
+					<span class="text-canvas-fg">{{ entry.field }}</span>: {{ entry.value || 'empty' }} at {{ entry.at }}
 				</li>
 				<li v-if="!log.length">Change a field to see events.</li>
 			</ul>

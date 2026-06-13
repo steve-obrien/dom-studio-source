@@ -94,10 +94,10 @@ function toggle(key) {
 			</DomTooltip>
 		</DomToolbar>
 
-		<div class="rounded-2xl border border-border bg-background p-4 text-sm shadow-sm">
+		<div class="rounded-2xl border border-border bg-canvas p-4 text-sm shadow-sm">
 			<p class="mb-2 text-xs font-medium uppercase text-muted-fg">{{ block }}</p>
 			<p
-				class="text-base leading-7 text-fg"
+				class="text-base leading-7 text-canvas-fg"
 				:class="{
 					'font-bold': active.bold,
 					'italic': active.italic,

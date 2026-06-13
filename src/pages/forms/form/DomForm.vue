@@ -124,6 +124,14 @@ function jsonListSchemaForNode(node) {
 	};
 }
 
+function renderedComponentProps(props = {}) {
+	const {
+		default: _schemaDefault,
+		...renderedProps
+	} = props;
+	return renderedProps;
+}
+
 function normalizeFieldState(state = {}) {
 	const errors = normalizeErrors(state.errors);
 	const hasValidationSignal = (
@@ -203,7 +211,7 @@ const RenderNode = defineComponent({
 			const component = componentName === 'DomForm' ? DomFormComponent : formComponents[componentName] || componentName;
 			const children = (node.children || []).map((child, index) => h(RenderNode, { node: child, key: child.id || index }));
 			const nodeProps = {
-				...(node.props || {}),
+				...renderedComponentProps(node.props),
 				...(componentName === 'DomForm' ? {
 					type: node.type,
 					items: node.items,
@@ -819,7 +827,7 @@ DomFormComponent = defineComponent({
 			return h('button', {
 				type: 'button',
 				class: [
-					'grid place-items-center rounded-md text-muted-fg hover:bg-secondary hover:text-fg',
+					'grid place-items-center rounded-md text-muted-fg hover:bg-secondary hover:text-canvas-fg',
 					props.compact ? 'size-6' : 'size-7',
 				],
 				title,
@@ -853,7 +861,7 @@ DomFormComponent = defineComponent({
 			return h('div', {
 				key: rowIndex,
 				class: [
-					'rounded-lg border border-border bg-background',
+					'rounded-lg border border-border bg-canvas',
 					props.compact ? 'space-y-1.5 p-1.5' : 'space-y-2 p-2',
 				],
 			}, [
@@ -886,7 +894,7 @@ DomFormComponent = defineComponent({
 					h('button', {
 						type: 'button',
 						class: [
-							'flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-background text-xs font-medium text-muted-fg hover:border-primary/40 hover:text-fg',
+							'flex w-full items-center justify-center gap-1 rounded-lg border border-dashed border-border bg-canvas text-xs font-medium text-muted-fg hover:border-primary/40 hover:text-canvas-fg',
 							props.compact ? 'py-1.5' : 'py-2',
 						],
 						onClick: addArrayRow,

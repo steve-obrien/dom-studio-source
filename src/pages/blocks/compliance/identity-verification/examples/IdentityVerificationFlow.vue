@@ -199,8 +199,8 @@ function toneClasses(tone) {
 </script>
 
 <template>
-	<div class="w-full max-w-7xl overflow-hidden rounded-lg border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-5 py-5 sm:px-7">
+	<div class="w-full max-w-7xl overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-5 py-5 sm:px-7">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Identity verification</p>
@@ -229,7 +229,7 @@ function toneClasses(tone) {
 					<p class="text-2xl font-semibold tracking-tight">{{ completionPercent }}%</p>
 					<p class="text-xs text-muted-fg">{{ readyCheckCount }} of {{ readinessChecks.length }} checks</p>
 				</div>
-				<div class="mt-3 h-2 overflow-hidden rounded-full bg-background">
+				<div class="mt-3 h-2 overflow-hidden rounded-full bg-canvas">
 					<div class="h-full rounded-full bg-primary" :style="{ width: completionWidth }"></div>
 				</div>
 			</div>
@@ -256,14 +256,14 @@ function toneClasses(tone) {
 						v-for="(step, index) in steps"
 						:key="step.id"
 						type="button"
-						class="border-t border-border px-5 py-4 text-left transition hover:bg-background/70"
-						:class="activeStepId === step.id ? 'bg-background' : ''"
+						class="border-t border-border px-5 py-4 text-left transition hover:bg-canvas/70"
+						:class="activeStepId === step.id ? 'bg-canvas' : ''"
 						@click="selectStep(step.id)"
 					>
 						<div class="flex items-start gap-3">
 							<span
 								class="grid size-7 shrink-0 place-items-center rounded-full border text-xs font-semibold"
-								:class="stepIsComplete(step.id) ? 'border-success/30 bg-success/15 text-success' : activeStepId === step.id ? 'border-primary/40 bg-primary/15 text-primary' : 'border-border bg-background text-muted-fg'"
+								:class="stepIsComplete(step.id) ? 'border-success/30 bg-success/15 text-success' : activeStepId === step.id ? 'border-primary/40 bg-primary/15 text-primary' : 'border-border bg-canvas text-muted-fg'"
 							>
 								{{ stepIsComplete(step.id) ? 'OK' : index + 1 }}
 							</span>
@@ -275,7 +275,7 @@ function toneClasses(tone) {
 					</button>
 				</nav>
 				<div class="border-t border-border px-5 py-4 text-xs leading-5 text-muted-fg">
-					<p class="font-semibold text-fg">Packet ID ver_2048</p>
+					<p class="font-semibold text-canvas-fg">Packet ID ver_2048</p>
 					<p class="mt-1">Provider session expires in 42 minutes.</p>
 				</div>
 			</aside>
@@ -318,7 +318,7 @@ function toneClasses(tone) {
 								:key="method.value"
 								type="button"
 								class="rounded-full px-3 py-1.5 transition"
-								:class="captureMethod === method.value ? 'bg-background text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
+								:class="captureMethod === method.value ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'"
 								@click="captureMethod = method.value"
 							>
 								{{ method.label }}
@@ -333,7 +333,7 @@ function toneClasses(tone) {
 								:key="document.id"
 								type="button"
 								class="grid w-full gap-2 border-t border-border px-4 py-4 text-left first:border-t-0 transition hover:bg-secondary/40 sm:grid-cols-[minmax(0,1fr)_auto]"
-								:class="selectedDocumentId === document.id ? 'bg-secondary/50' : 'bg-background'"
+								:class="selectedDocumentId === document.id ? 'bg-secondary/50' : 'bg-canvas'"
 								@click="selectDocument(document.id)"
 							>
 								<span class="min-w-0">
@@ -356,7 +356,7 @@ function toneClasses(tone) {
 						<div class="border border-border bg-secondary/30 p-4">
 							<p class="text-sm font-semibold">{{ selectedDocument.name }}</p>
 							<p class="mt-2 text-sm leading-6 text-muted-fg">{{ selectedDocument.detail }}</p>
-							<div class="mt-4 grid min-h-36 place-items-center border border-dashed border-border bg-background p-4 text-center">
+							<div class="mt-4 grid min-h-36 place-items-center border border-dashed border-border bg-canvas p-4 text-center">
 								<div>
 									<p class="text-sm font-semibold">{{ captureMethods.find((method) => method.value === captureMethod)?.label }} evidence</p>
 									<p class="mt-1 text-xs leading-5 text-muted-fg">Connect this action to secure upload, camera capture, or a provider-hosted session.</p>
@@ -489,7 +489,7 @@ function toneClasses(tone) {
 							<h4 class="text-sm font-semibold">Applicant packet</h4>
 							<p class="mt-1 text-xs leading-5 text-muted-fg">Live summary for resume, review, and support handoff.</p>
 						</div>
-						<span class="rounded-full bg-background px-2 py-1 text-xs font-semibold text-muted-fg">KYC</span>
+						<span class="rounded-full bg-canvas px-2 py-1 text-xs font-semibold text-muted-fg">KYC</span>
 					</div>
 					<div class="mt-4 space-y-3 text-sm">
 						<div class="flex items-center justify-between gap-3">
@@ -518,7 +518,7 @@ function toneClasses(tone) {
 							v-for="document in documents"
 							:key="document.id"
 							type="button"
-							class="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-3 text-left transition hover:border-primary/40"
+							class="flex items-center justify-between gap-3 rounded-lg border border-border bg-canvas px-3 py-3 text-left transition hover:border-primary/40"
 							@click="selectDocument(document.id)"
 						>
 							<span class="min-w-0">

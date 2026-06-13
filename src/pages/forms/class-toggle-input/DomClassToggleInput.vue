@@ -262,7 +262,7 @@ function onPaste(event) {
 				:aria-expanded="showMenu"
 				:aria-controls="`${field.id.value}-listbox`"
 				:placeholder="placeholder"
-				class="dom-input h-9 rounded-md font-mono text-sm"
+				class="skin-input h-9 rounded-md font-mono text-sm"
 				@focus="onFocus"
 				@blur="onBlur"
 				@keydown="onKeydown"
@@ -273,7 +273,7 @@ function onPaste(event) {
 				v-if="showMenu"
 				:id="`${field.id.value}-listbox`"
 				role="listbox"
-				class="skin-floating absolute z-40 mt-2 max-h-72 w-full overflow-auto rounded-2xl p-1"
+				class="skin-popover absolute z-40 mt-2 max-h-72 w-full overflow-auto rounded-2xl p-1"
 			>
 				<li v-if="hasEmptyState" class="rounded-xl px-3 py-2 text-sm text-muted-fg">
 					{{ emptyText }}
@@ -298,7 +298,7 @@ function onPaste(event) {
 				<label
 					v-for="item in knownItems"
 					:key="classKey(item.value)"
-					class="inline-flex min-w-0 items-center gap-1.5 font-mono text-sm text-fg"
+					class="inline-flex min-w-0 items-center gap-1.5 font-mono text-sm text-canvas-fg"
 					:class="item.enabled ? '' : 'opacity-50'"
 				>
 					<input

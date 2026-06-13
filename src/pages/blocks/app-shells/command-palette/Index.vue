@@ -67,16 +67,16 @@ import CommandPaletteShellSrc from './examples/CommandPaletteShell.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Command source</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Command source</h3>
 						<p class="mt-2">Merge static route commands with server-side records and recent entities, then filter by permissions before rendering.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Action routing</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Action routing</h3>
 						<p class="mt-2">Normalize command actions into route, modal, drawer, copy, and async job handlers so selection remains predictable.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include grouped command sections, remote search loading states, command aliases, and admin-managed shortcuts.</p>
 					</div>
 				</div>

@@ -46,7 +46,7 @@ function sortRecords(a, b) {
 <template>
 	<section v-if="related.length" class="space-y-4">
 		<div>
-			<h2 class="text-2xl font-semibold tracking-tight text-fg">Related components</h2>
+			<h2 class="text-2xl font-semibold tracking-tight text-canvas-fg">Related components</h2>
 			<p class="mt-2 text-sm leading-6 text-muted-fg">
 				Generated from sibling component files that share this documentation route.
 			</p>
@@ -61,7 +61,7 @@ function sortRecords(a, b) {
 		>
 			<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3">
 				<span class="min-w-0">
-					<span class="block truncate text-sm font-semibold text-fg">{{ record.label }}</span>
+					<span class="block truncate text-sm font-semibold text-canvas-fg">{{ record.label }}</span>
 					<span v-if="record.doc.description" class="mt-1 block text-sm leading-5 text-muted-fg">
 						{{ record.doc.description }}
 					</span>
@@ -70,7 +70,7 @@ function sortRecords(a, b) {
 			</summary>
 			<div class="space-y-6 border-t border-border p-4">
 				<div v-if="record.doc.tag" class="text-sm text-muted-fg">
-					<code class="font-mono text-fg">{{ record.doc.tag }}</code>
+					<code class="font-mono text-canvas-fg">{{ record.doc.tag }}</code>
 				</div>
 				<ComponentProps :component="record.component" />
 				<ComponentSlots :component="record.component" />

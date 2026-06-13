@@ -14,7 +14,7 @@ const open = ref(false);
 	>
 		<p class="text-sm text-muted-fg">There is no undo. Type the project name to confirm.</p>
 		<input
-			class="mt-3 h-10 w-full rounded-full border border-border bg-background px-4 text-sm"
+			class="mt-3 h-10 w-full rounded-full border border-border bg-canvas px-4 text-sm"
 			placeholder="my-project"
 		/>
 		<template #footer>

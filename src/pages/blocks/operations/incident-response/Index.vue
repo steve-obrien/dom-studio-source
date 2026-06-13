@@ -76,16 +76,16 @@ import IncidentCommandCenterSrc from './examples/IncidentCommandCenter.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Incident model</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Incident model</h3>
 						<p class="mt-2">Separate incident state from service health. Monitoring updates can change service rows while commanders keep narrative updates deliberate and reviewed.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Communication safety</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Communication safety</h3>
 						<p class="mt-2">Require audience, next-update timing, and approval status before publishing public updates or broad customer notifications.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Good follow-ups include status-page channel pickers, PagerDuty/Opsgenie sync, postmortem templates, SLA impact calculators, and runbook launchers.</p>
 					</div>
 				</div>

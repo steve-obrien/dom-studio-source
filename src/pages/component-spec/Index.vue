@@ -266,7 +266,7 @@ const editFields = [
 		>
 			<DocSection eyebrow="Purpose" title="One contract, multiple consumers">
 				<div class="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
 						<p class="text-sm leading-6 text-muted-fg">
 							A component should be discoverable from its folder, then decorated by inspecting the Vue component. The docs site, sidebar, generated pages, Studio palette, and future component database should all be able to use the same shape.
 						</p>
@@ -279,12 +279,12 @@ const editFields = [
 						</p>
 					</div>
 					<div class="rounded-3xl border border-border bg-secondary/50 p-6">
-						<h3 class="font-semibold tracking-tight text-fg">Adding a component</h3>
+						<h3 class="font-semibold tracking-tight text-canvas-fg">Adding a component</h3>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">
-							Put a <code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">Dom*.vue</code> file under
-							<code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">components</code>,
-							<code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">forms</code>, or
-							<code class="rounded bg-background px-1.5 py-0.5 font-mono text-xs">visual</code>.
+							Put a <code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">Dom*.vue</code> file under
+							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">components</code>,
+							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">forms</code>, or
+							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">visual</code>.
 							It should appear in the generated docs and Studio automatically unless hidden.
 						</p>
 					</div>
@@ -294,17 +294,17 @@ const editFields = [
 			<DocSection eyebrow="Auto-documenter" title="Take the docs engine with the components">
 				<div class="grid gap-4 lg:grid-cols-[1fr_1fr]">
 					<div class="space-y-4">
-						<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
-							<h3 class="font-semibold tracking-tight text-fg">Optional when adopting DOM Studio</h3>
+						<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
+							<h3 class="font-semibold tracking-tight text-canvas-fg">Optional when adopting DOM Studio</h3>
 							<p class="mt-2 text-sm leading-6 text-muted-fg">
 								When someone copies, vendors, or builds on the components, they can also bring the auto-documenter. It turns local Vue component metadata into living docs inside their own app, so the component library does not need a separate Storybook-style setup to stay inspectable.
 							</p>
 						</div>
 						<div class="overflow-hidden rounded-2xl border border-border">
 							<table class="w-full text-left text-sm">
-								<tbody class="divide-y divide-border bg-background">
+								<tbody class="divide-y divide-border bg-canvas">
 									<tr v-for="row in autoDocumenterParts" :key="row[0]">
-										<td class="px-4 py-3 font-medium text-fg">{{ row[0] }}</td>
+										<td class="px-4 py-3 font-medium text-canvas-fg">{{ row[0] }}</td>
 										<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
 									</tr>
 								</tbody>
@@ -318,40 +318,40 @@ const editFields = [
 			<DocSection eyebrow="Progressive docs" title="Start plain, then refine">
 				<div class="grid gap-4 lg:grid-cols-[1fr_1fr]">
 					<div class="space-y-4">
-						<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
-							<h3 class="font-semibold tracking-tight text-fg">The happy path</h3>
+						<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
+							<h3 class="font-semibold tracking-tight text-canvas-fg">The happy path</h3>
 							<p class="mt-2 text-sm leading-6 text-muted-fg">
 								The core workflow is deliberately light. Focus on making the component first. Once it lands in a discovered folder, it shows up in the docs automatically. Later, when the generated page reveals what needs better naming, examples, or inspector controls, add only the metadata or custom page you actually need.
 							</p>
 						</div>
 						<div class="overflow-hidden rounded-2xl border border-border">
 							<table class="w-full text-left text-sm">
-								<tbody class="divide-y divide-border bg-background">
+								<tbody class="divide-y divide-border bg-canvas">
 									<tr v-for="row in progressiveSteps" :key="row[0]">
-										<td class="px-4 py-3 font-medium text-fg">{{ row[0] }}</td>
+										<td class="px-4 py-3 font-medium text-canvas-fg">{{ row[0] }}</td>
 										<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
 									</tr>
 								</tbody>
 							</table>
 						</div>
-						<div class="overflow-hidden rounded-2xl border border-border bg-background">
+						<div class="overflow-hidden rounded-2xl border border-border bg-canvas">
 							<div class="border-b border-border bg-secondary/50 px-4 py-3">
 								<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-fg">Generated inspector</p>
 								<div class="mt-1 flex items-center justify-between gap-3">
-									<h3 class="text-sm font-semibold text-fg">Status pill</h3>
-									<span class="rounded-full border border-border bg-background px-2 py-0.5 text-[11px] text-muted-fg">Auto</span>
+									<h3 class="text-sm font-semibold text-canvas-fg">Status pill</h3>
+									<span class="rounded-full border border-border bg-canvas px-2 py-0.5 text-[11px] text-muted-fg">Auto</span>
 								</div>
 							</div>
 							<div class="space-y-4 p-4">
 								<div v-for="field in generatedInspectorFields" :key="field.name" class="space-y-2">
 									<div class="flex items-start justify-between gap-3">
 										<div>
-											<label class="block text-sm font-medium text-fg">{{ field.name }}</label>
+											<label class="block text-sm font-medium text-canvas-fg">{{ field.name }}</label>
 											<p class="mt-0.5 text-xs text-muted-fg">{{ field.type }} / {{ field.control }}</p>
 										</div>
 										<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-[11px] text-muted-fg">default</code>
 									</div>
-									<div class="rounded-lg border border-input skin-raised px-3 py-2 font-mono text-sm text-fg">{{ field.value }}</div>
+									<div class="rounded-lg border border-input skin-card px-3 py-2 font-mono text-sm text-canvas-fg">{{ field.value }}</div>
 									<p class="text-xs leading-5 text-muted-fg">{{ field.note }}</p>
 								</div>
 							</div>
@@ -373,9 +373,9 @@ const editFields = [
 								<th class="px-4 py-3 font-semibold">Why it matters</th>
 							</tr>
 						</thead>
-						<tbody class="divide-y divide-border bg-background">
+						<tbody class="divide-y divide-border bg-canvas">
 							<tr v-for="row in adoptionSteps" :key="row[0]">
-								<td class="px-4 py-3 font-medium text-fg">{{ row[0] }}</td>
+								<td class="px-4 py-3 font-medium text-canvas-fg">{{ row[0] }}</td>
 								<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
 							</tr>
 						</tbody>
@@ -385,7 +385,7 @@ const editFields = [
 
 			<DocSection eyebrow="Discovery" title="Component row">
 				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
 						<p class="text-sm leading-6 text-muted-fg">
 							The component row is intentionally plain. It is the database-like record of what exists and where it lives. It does not decide labels, props, visibility, icons, or Studio behaviour.
 						</p>
@@ -396,7 +396,7 @@ const editFields = [
 
 			<DocSection eyebrow="Inspection" title="Decorated component row">
 				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
 						<p class="text-sm leading-6 text-muted-fg">
 							The decorated row is created by inspecting the loaded Vue component. This is the shape consumers usually want when rendering docs, navigation, or Studio UI.
 						</p>
@@ -414,9 +414,9 @@ const editFields = [
 								<th class="px-4 py-3 font-semibold">Current meaning</th>
 							</tr>
 						</thead>
-						<tbody class="divide-y divide-border bg-background">
+						<tbody class="divide-y divide-border bg-canvas">
 							<tr v-for="row in docFields" :key="row[0]">
-								<td class="px-4 py-3 font-mono text-xs text-fg">{{ row[0] }}</td>
+								<td class="px-4 py-3 font-mono text-xs text-canvas-fg">{{ row[0] }}</td>
 								<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
 							</tr>
 						</tbody>
@@ -428,7 +428,7 @@ const editFields = [
 			<DocSection eyebrow="Inspector" title="Current prop _edit contract">
 				<div class="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
 					<div class="space-y-4">
-						<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+						<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
 							<p class="text-sm leading-6 text-muted-fg">
 								<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">_edit</code>
 								lives on Vue prop definitions. Studio's inspector reads it to choose the editor component and pass editor-specific props. This is not required for ordinary app usage.
@@ -436,9 +436,9 @@ const editFields = [
 						</div>
 						<div class="overflow-hidden rounded-2xl border border-border">
 							<table class="w-full text-left text-sm">
-								<tbody class="divide-y divide-border bg-background">
+								<tbody class="divide-y divide-border bg-canvas">
 									<tr v-for="row in editFields" :key="row[0]">
-										<td class="px-4 py-3 font-mono text-xs text-fg">{{ row[0] }}</td>
+										<td class="px-4 py-3 font-mono text-xs text-canvas-fg">{{ row[0] }}</td>
 										<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
 									</tr>
 								</tbody>
@@ -451,7 +451,7 @@ const editFields = [
 
 			<DocSection eyebrow="Studio" title="Studio renderer spec">
 				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
 						<p class="text-sm leading-6 text-muted-fg">
 							The Studio renderer spec is a saved UI tree. It references components by name and stores props and children. It is not the same thing as the component row, but it depends on the component registry being able to resolve names back to components.
 						</p>
@@ -469,9 +469,9 @@ const editFields = [
 								<th class="px-4 py-3 font-semibold">Responsibility</th>
 							</tr>
 						</thead>
-						<tbody class="divide-y divide-border bg-background">
+						<tbody class="divide-y divide-border bg-canvas">
 							<tr v-for="row in currentRules" :key="row[0]">
-								<td class="px-4 py-3 font-medium text-fg">{{ row[0] }}</td>
+								<td class="px-4 py-3 font-medium text-canvas-fg">{{ row[0] }}</td>
 								<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
 							</tr>
 						</tbody>
@@ -481,7 +481,7 @@ const editFields = [
 
 			<DocSection eyebrow="Convention" title="Folder shape">
 				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
 						<p class="text-sm leading-6 text-muted-fg">
 							A custom docs page is optional. If there is no
 							<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">Index.vue</code>,

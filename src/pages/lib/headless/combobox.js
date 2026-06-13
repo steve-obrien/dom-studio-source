@@ -3,6 +3,14 @@ import {
 	applyFloatingPosition,
 	autoUpdateFloating,
 } from './floating.js';
+import {
+	beginFloatingEffectEnter,
+	beginFloatingEffectLeave,
+	clearFloatingEffectTimer,
+	hasFloatingEffect,
+	prepareFloatingEffect,
+	resetFloatingEffectState,
+} from './floating-effect.js';
 
 // <dom-combobox value="">
 //   <input slot="input" />
@@ -109,6 +117,8 @@ export class ComboBase extends DomElementBase {
 
 	disconnectedCallback() {
 		this._setOpen(false);
+		clearFloatingEffectTimer(this._list);
+		this._finishListClose();
 		this._mutationObserver?.disconnect();
 		this._mutationObserver = null;
 		this._wiredList?.removeEventListener('mousedown', this._onListPointerDown);
@@ -142,6 +152,7 @@ export class ComboBase extends DomElementBase {
 		this._wiredList = this._list;
 		this._list.id = this._list.id || `${id}-list`;
 		this._list.setAttribute('role', 'listbox');
+		prepareFloatingEffect(this._list);
 		this._list.hidden = !this._open;
 		this._input.setAttribute('aria-controls', this._list.id);
 		this._list.addEventListener('mousedown', this._onListPointerDown);
@@ -211,6 +222,29 @@ export class ComboBase extends DomElementBase {
 		this._unbindFloating = null;
 	}
 
+	_finishListClose(list = this._list) {
+		if (!list) return;
+		list.hidden = true;
+		resetFloatingEffectState(list);
+	}
+
+	_showList() {
+		const list = this._list;
+		list.hidden = false;
+		if (!hasFloatingEffect(list)) return;
+		beginFloatingEffectEnter(list, {
+			shouldContinue: () => this._open && this._list === list,
+		});
+	}
+
+	_hideList() {
+		const list = this._list;
+		beginFloatingEffectLeave(list, {
+			shouldContinue: () => !this._open && this._list === list,
+			finish: () => this._finishListClose(list),
+		});
+	}
+
 	_setOpen(open) {
 		if (!this._ensureList()) return;
 		if (open === this._open && this._list.hidden === !open) {
@@ -218,7 +252,8 @@ export class ComboBase extends DomElementBase {
 			return;
 		}
 		this._open = open;
-		this._list.hidden = !open;
+		if (open) this._showList();
+		else this._hideList();
 		this._input.setAttribute('aria-expanded', String(open));
 		this._toggle?.setAttribute('aria-expanded', String(open));
 		this.setBoolAttr('open', open);

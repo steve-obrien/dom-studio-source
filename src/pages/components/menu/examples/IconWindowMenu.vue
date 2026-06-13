@@ -134,6 +134,6 @@ const items = [
 			</template>
 		</DomMenu>
 
-		<p class="text-xs text-muted-fg">Selected: <code class="text-fg">{{ selected }}</code></p>
+		<p class="text-xs text-muted-fg">Selected: <code class="text-canvas-fg">{{ selected }}</code></p>
 	</div>
 </template>

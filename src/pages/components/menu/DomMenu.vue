@@ -232,7 +232,7 @@ onBeforeUnmount(() => {
 		ref="root"
 		:orientation="orientation"
 		class="block w-full"
-		:class="skin ? 'skin-floating rounded-2xl p-1' : ''"
+		:class="skin ? 'skin-popover rounded-2xl p-1' : ''"
 	>
 		<slot v-if="!hasItemPropRows" />
 		<template v-for="(item, index) in items" v-else :key="valueOf(item) || index">
@@ -253,7 +253,7 @@ onBeforeUnmount(() => {
 					:aria-checked="item?.checked == null ? null : String(item.checked)"
 					:aria-disabled="item?.disabled ? 'true' : null"
 					:disabled="item?.disabled || null"
-					class="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm text-fg outline-none transition hover:bg-secondary focus:bg-secondary aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[tone=danger]:text-destructive"
+					class="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm text-canvas-fg outline-none transition hover:bg-secondary focus:bg-secondary aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[tone=danger]:text-destructive"
 					:data-tone="item?.tone || null"
 					@keydown="onItemKeydown($event, item)"
 				>
@@ -278,7 +278,7 @@ onBeforeUnmount(() => {
 		v-if="openPath"
 		:ref="setSubmenuPanel"
 		data-dom-menu-submenu-panel
-		class="dom-popover-panel skin-floating absolute z-50 min-w-40 rounded-2xl p-1 outline-none"
+		class="dom-popover-panel skin-popover absolute z-50 min-w-40 rounded-2xl p-1 outline-none"
 		@keydown="onSubmenuKeydown($event, { value: openPath })"
 		@mouseenter="cancelSubmenuClose"
 		@mouseleave="maybeCloseSubmenuPanel"

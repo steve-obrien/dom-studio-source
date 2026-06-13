@@ -83,16 +83,16 @@ import AuditLogExplorerSrc from './examples/AuditLogExplorer.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Event integrity</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Event integrity</h3>
 						<p class="mt-2">Append audit records from trusted backend services. Avoid client-authored audit details for security-sensitive actions.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Large datasets</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Large datasets</h3>
 						<p class="mt-2">Move search, severity filters, and date windows to your API. Keep the table stable while cursor pages stream in.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Good follow-ups include saved investigations, SIEM forwarding, export job history, diff viewers, and alert rule creation from a selected event.</p>
 					</div>
 				</div>

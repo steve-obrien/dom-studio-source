@@ -135,8 +135,8 @@ function toneClass(tone) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-lg border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Changelog publisher</p>
@@ -159,14 +159,14 @@ function toneClass(tone) {
 		</header>
 
 		<div class="grid min-h-[46rem] lg:grid-cols-[17rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)_22rem]">
-			<aside class="border-b border-border skin-raised lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
 				<div class="flex gap-2 overflow-x-auto p-3 lg:grid">
 					<button
 						v-for="release in releases"
 						:key="release.id"
 						type="button"
-						class="min-w-64 rounded-lg px-3 py-3 text-left transition hover:bg-background lg:min-w-0"
-						:class="selectedReleaseId === release.id ? 'bg-background shadow-sm ring-1 ring-border' : ''"
+						class="min-w-64 rounded-lg px-3 py-3 text-left transition hover:bg-canvas lg:min-w-0"
+						:class="selectedReleaseId === release.id ? 'bg-canvas shadow-sm ring-1 ring-border' : ''"
 						@click="selectRelease(release)"
 					>
 						<div class="flex items-start justify-between gap-3">
@@ -206,7 +206,7 @@ function toneClass(tone) {
 									<span class="pb-1 text-xs font-medium text-muted-fg">{{ channelCount }} channels</span>
 								</div>
 							</div>
-							<div class="h-2 overflow-hidden rounded-full bg-background">
+							<div class="h-2 overflow-hidden rounded-full bg-canvas">
 								<div class="h-full rounded-full bg-primary" :style="{ width: `${readiness}%` }"></div>
 							</div>
 							<p class="text-xs font-medium text-muted-fg">State: {{ publishState }}</p>
@@ -236,7 +236,7 @@ function toneClass(tone) {
 							>
 								<span
 									class="mt-1 grid size-5 place-items-center rounded border text-xs font-bold"
-									:class="item.included ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-background text-muted-fg'"
+									:class="item.included ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-canvas text-muted-fg'"
 									aria-hidden="true"
 								>
 									<span v-if="item.included" class="size-2 rounded-full bg-current"></span>
@@ -252,7 +252,7 @@ function toneClass(tone) {
 						</div>
 					</div>
 
-					<div class="border-t border-border skin-raised p-4 lg:border-l lg:border-t-0">
+					<div class="border-t border-border skin-card p-4 lg:border-l lg:border-t-0">
 						<div class="grid gap-4">
 							<DomNativeSelect v-model="audience" label="Audience" :options="['All workspaces', 'Scale and Enterprise', 'Developers', 'Beta customers']" />
 							<DomNativeSelect v-model="owner" label="Review owner" :options="['Product marketing', 'Lifecycle', 'Docs', 'Customer success']" />
@@ -277,7 +277,7 @@ function toneClass(tone) {
 								:key="tab.id"
 								type="button"
 								class="rounded-full px-3 py-1 text-xs font-semibold transition"
-								:class="activePreview === tab.id ? 'bg-background text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
+								:class="activePreview === tab.id ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'"
 								@click="activePreview = tab.id"
 							>
 								{{ tab.label }}
@@ -312,11 +312,11 @@ function toneClass(tone) {
 				</section>
 			</main>
 
-			<aside class="skin-raised">
+			<aside class="skin-card">
 				<section class="border-b border-border p-4">
 					<h4 class="text-sm font-semibold">Channels</h4>
 					<div class="mt-4 grid gap-3">
-						<div v-for="channel in channels" :key="channel.id" class="rounded-lg border border-border bg-background p-3">
+						<div v-for="channel in channels" :key="channel.id" class="rounded-lg border border-border bg-canvas p-3">
 							<DomCheckbox v-model="channel.enabled" :label="channel.label" :description="channel.detail" />
 							<p class="mt-3 text-xs font-medium text-muted-fg">Owner: {{ channel.owner }}</p>
 						</div>
@@ -325,7 +325,7 @@ function toneClass(tone) {
 
 				<section class="border-b border-border p-4">
 					<h4 class="text-sm font-semibold">Publish checks</h4>
-					<div class="mt-4 divide-y divide-border rounded-lg border border-border bg-background">
+					<div class="mt-4 divide-y divide-border rounded-lg border border-border bg-canvas">
 						<div v-for="check in completionChecks" :key="check.label" class="grid grid-cols-[auto_minmax(0,1fr)] gap-3 px-3 py-3">
 							<span
 								class="mt-0.5 grid size-5 place-items-center rounded-full text-xs font-bold"

@@ -135,7 +135,7 @@ defineExpose({
 			</button>
 			<header v-if="title || $slots.header" class="flex shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-4">
 				<slot name="header">
-						<h2 v-if="title" :id="titleId" class="text-base font-semibold tracking-tight text-fg">{{ title }}</h2>
+						<h2 v-if="title" :id="titleId" class="text-base font-semibold tracking-tight text-canvas-fg">{{ title }}</h2>
 				</slot>
 				<button
 					data-close

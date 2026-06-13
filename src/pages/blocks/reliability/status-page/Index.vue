@@ -81,16 +81,16 @@ import StatusPageCenterSrc from './examples/StatusPageCenter.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Health model</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Health model</h3>
 						<p class="mt-2">Separate component health from incidents. Automated checks can update service rows while humans author customer-facing incident updates deliberately.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Subscriber flow</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Subscriber flow</h3>
 						<p class="mt-2">Confirm email ownership before saving alert preferences, and expose unsubscribe tokens from every notification channel.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Good follow-ups include uptime sparklines, component detail pages, Atom/RSS feeds, webhook signing, and incident update approval workflows.</p>
 					</div>
 				</div>

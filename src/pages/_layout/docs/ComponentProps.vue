@@ -60,7 +60,7 @@ function hoverCodeForProp(prop) {
 			:key="group.name"
 			class="relative rounded-2xl border border-border"
 		>
-			<div class="border-b border-border bg-background px-4 py-3">
+			<div class="border-b border-border bg-canvas px-4 py-3">
 				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">{{ group.name }}</p>
 			</div>
 			<table class="w-full text-left text-sm">
@@ -76,7 +76,7 @@ function hoverCodeForProp(prop) {
 				<tbody class="divide-y divide-border">
 					<template v-for="p in group.props" :key="p.name">
 						<tr>
-							<td class="px-4 py-3 font-mono text-[12.5px] text-fg">
+							<td class="px-4 py-3 font-mono text-[12.5px] text-canvas-fg">
 								<DomPopover
 									v-if="hoverCodeForProp(p)"
 									trigger="hover-click"
@@ -107,7 +107,7 @@ function hoverCodeForProp(prop) {
 										padding="p-0"
 									>
 										<template #trigger>
-											<span class="cursor-help text-fg underline decoration-dotted underline-offset-4">{{ token.text }}</span>
+											<span class="cursor-help text-canvas-fg underline decoration-dotted underline-offset-4">{{ token.text }}</span>
 										</template>
 										<TypeCodeBlock class="max-h-80" :code="token.definition" :definitions="token.definitions" :framed="false" />
 									</DomPopover>

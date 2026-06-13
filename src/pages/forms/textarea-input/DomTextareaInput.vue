@@ -8,7 +8,7 @@ const props = defineProps({
 	rows: { type: Number, default: 3 },
 });
 const emit = defineEmits(['update:modelValue']);
-const field = useField(props, emit, { idPrefix: 'dom-textarea-input' });
+const field = useField(props, emit, { idPrefix: 'dom-multiline-input' });
 </script>
 
 <template>
@@ -26,7 +26,7 @@ const field = useField(props, emit, { idPrefix: 'dom-textarea-input' });
 			:aria-describedby="field.describedBy.value || undefined"
 			:aria-errormessage="field.errorId.value || undefined"
 			:data-invalid="field.invalid.value ? '' : undefined"
-			class="dom-textarea"
+			class="skin-input"
 			@input="field.onInput($event.target.value)"
 			@focus="field.onFocus"
 			@blur="field.onBlur"

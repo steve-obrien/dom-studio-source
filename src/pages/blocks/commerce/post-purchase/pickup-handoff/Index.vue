@@ -81,16 +81,16 @@ import PickupHandoffFlowSrc from './examples/PickupHandoffFlow.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Verification rules</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Verification rules</h3>
 						<p class="mt-2">Keep the UI optimistic, but complete handoff only after the backend validates pickup code, order state, restricted-item checks, and pickup window rules.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Exception handling</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Exception handling</h3>
 						<p class="mt-2">Represent substitutions, missing items, ID checks, and late arrivals as explicit blockers with clear customer copy and staff-owned resolution events.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include QR scanning, geofence arrival, staff assignment, proof photo capture, partial handoff, and realtime kitchen or warehouse status.</p>
 					</div>
 				</div>

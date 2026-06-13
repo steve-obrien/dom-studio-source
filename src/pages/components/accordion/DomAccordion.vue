@@ -18,11 +18,11 @@ onMounted(async () => { await import('../../lib/headless/accordion.js'); });
 </script>
 
 <template>
-	<dom-accordion :multiple="multiple || null" class="block divide-y divide-border rounded-2xl border border-border bg-background w-full">
+	<dom-accordion :multiple="multiple || null" class="block divide-y divide-border rounded-2xl border border-border bg-canvas w-full">
 		<dom-accordion-item v-for="(item, i) in items" :key="i" class="block">
 			<button
 				slot="header"
-				class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-fg outline-none transition hover:bg-secondary focus-visible:bg-secondary"
+				class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-canvas-fg outline-none transition hover:bg-secondary focus-visible:bg-secondary"
 			>
 				<span>{{ item.title }}</span>
 				<svg viewBox="0 0 20 20" class="size-4 transition aria-expanded-rotate" fill="none">

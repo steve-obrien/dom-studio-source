@@ -246,10 +246,10 @@ onMounted(() => {
 </script>
 
 <template>
-	<div class="dom-studio flex min-h-0 flex-1 overflow-hidden bg-background">
+	<div class="dom-studio flex min-h-0 flex-1 overflow-hidden bg-canvas">
 		<div class="relative grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[240px_1fr_360px]">
 			<!-- Left rail ----------------------------------------------------- -->
-			<aside class="relative z-10 flex min-h-0 flex-col border-r border-border skin-raised text-fg">
+			<aside class="relative z-10 flex min-h-0 flex-col border-r border-border skin-card text-canvas-fg">
 				<div class="border-b border-border p-2">
 					<button
 						type="button"
@@ -265,7 +265,7 @@ onMounted(() => {
 
 				<div class="flex-1"></div>
 
-				<div class="max-h-[46%] overflow-hidden border-t border-border bg-background/50">
+				<div class="max-h-[46%] overflow-hidden border-t border-border bg-canvas/50">
 					<div class="flex items-center justify-between px-3 py-2">
 						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Layers</p>
 						<span class="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-fg">{{ nodes.length }}</span>
@@ -276,7 +276,7 @@ onMounted(() => {
 								type="button"
 								class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition"
 								:class="state.selectedId === node.id
-									? 'bg-primary/10 text-fg ring-1 ring-primary/20'
+									? 'bg-primary/10 text-canvas-fg ring-1 ring-primary/20'
 									: 'text-muted-fg hover:bg-secondary hover:text-secondary-fg'"
 								:style="{ paddingLeft: 8 + depth * 14 + 'px' }"
 								@click="select(node.id)"
@@ -294,7 +294,7 @@ onMounted(() => {
 			<!-- Webflow-style component drawer ------------------------------- -->
 			<div
 				v-if="showPalette"
-				class="absolute bottom-3 left-3 top-3 z-30 w-[20rem] overflow-hidden rounded-2xl border border-border skin-floating text-fg shadow-2xl shadow-black/20 ring-1 ring-border/60 lg:left-[252px]"
+				class="absolute bottom-3 left-3 top-3 z-30 w-[20rem] overflow-hidden rounded-2xl border border-border skin-popover text-canvas-fg shadow-2xl shadow-black/20 ring-1 ring-border/60 lg:left-[252px]"
 			>
 				<div class="flex items-center justify-between border-b border-border px-4 py-3">
 					<div>
@@ -318,7 +318,7 @@ onMounted(() => {
 			<!-- Stage -------------------------------------------------------- -->
 			<div
 				ref="stageEl"
-				class="dom-stage relative min-h-0 overflow-auto bg-[radial-gradient(circle_at_top_left,color-mix(in_oklch,var(--primary)_10%,transparent),transparent_24rem),linear-gradient(135deg,color-mix(in_oklch,var(--secondary)_70%,transparent),var(--background),color-mix(in_oklch,var(--secondary)_55%,transparent))] p-8"
+				class="dom-stage relative min-h-0 overflow-auto bg-[radial-gradient(circle_at_top_left,color-mix(in_oklch,var(--primary)_10%,transparent),transparent_24rem),linear-gradient(135deg,color-mix(in_oklch,var(--secondary)_70%,transparent),var(--canvas),color-mix(in_oklch,var(--secondary)_55%,transparent))] p-8"
 				:class="state.pickMode && 'dom-pick-mode'"
 				@dragover="onDragOver"
 				@dragleave="onDragLeave"
@@ -351,7 +351,7 @@ onMounted(() => {
 			</div>
 
 			<!-- Right rail --------------------------------------------------- -->
-			<aside class="flex min-h-0 flex-col border-l border-border skin-raised text-fg">
+			<aside class="flex min-h-0 flex-col border-l border-border skin-card text-canvas-fg">
 				<div class="border-b border-border p-2">
 					<div class="flex items-center gap-1">
 						<button
@@ -371,7 +371,7 @@ onMounted(() => {
 							class="inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md px-2 text-xs font-medium ring-1 transition"
 							:class="state.pickMode
 								? 'bg-secondary text-secondary-fg ring-border'
-								: 'bg-background text-muted-fg ring-border hover:bg-secondary'"
+								: 'bg-canvas text-muted-fg ring-border hover:bg-secondary'"
 							:title="state.pickMode ? 'Click selects - turn off to interact' : 'Clicks pass through - turn on to select'"
 							@click="togglePick"
 						>
@@ -435,7 +435,7 @@ onMounted(() => {
 
 					<div v-else class="space-y-3 p-3">
 						<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">DomRenderer preview</p>
-						<div class="rounded-xl border border-border bg-background p-5">
+						<div class="rounded-xl border border-border bg-canvas p-5">
 							<DomRenderer :spec="serializedSpec" />
 						</div>
 						<details class="rounded-xl border border-border bg-secondary/50 p-3">

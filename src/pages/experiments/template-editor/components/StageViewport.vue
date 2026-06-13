@@ -84,8 +84,8 @@ const stageSrcdoc = computed(() => `<!doctype html>
 			body {
 				overflow: auto;
 				overscroll-behavior: contain;
-				background: var(--background, #fff);
-				color: var(--fg, #111827);
+				background: var(--canvas, #fff);
+				color: var(--canvas-fg, #111827);
 			}
 		</style>
 	</head>
@@ -408,25 +408,25 @@ defineExpose({ focus, postFrameMessage });
 </script>
 
 <template>
-	<section class="flex min-h-0 flex-1 flex-col bg-background text-fg">
-		<div class="flex min-h-12 shrink-0 items-center justify-between gap-3 border-b border-border skin-raised px-3 text-fg">
+	<section class="flex min-h-0 flex-1 flex-col bg-canvas text-canvas-fg">
+		<div class="flex min-h-12 shrink-0 items-center justify-between gap-3 border-b border-border skin-card px-3 text-canvas-fg">
 			<div class="flex min-w-0 items-center gap-2">
-				<div class="flex rounded-md border border-border bg-background p-0.5">
+				<div class="flex rounded-md border border-border bg-canvas p-0.5">
 					<button
 						v-for="option in viewportOptions"
 						:key="option.id"
 						type="button"
-						class="h-7 rounded px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-fg"
-						:class="viewportMode === option.id && 'bg-secondary text-fg'"
+						class="h-7 rounded px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-canvas-fg"
+						:class="viewportMode === option.id && 'bg-secondary text-canvas-fg'"
 						@click="setViewport(option.id)"
 					>
 						{{ option.label }}
 					</button>
 				</div>
-				<div class="flex items-center rounded-md border border-border bg-background">
-					<button type="button" class="flex h-8 w-8 items-center justify-center text-muted-fg hover:bg-secondary hover:text-fg" title="Zoom out" @click="stepZoom(-1)">-</button>
+				<div class="flex items-center rounded-md border border-border bg-canvas">
+					<button type="button" class="flex h-8 w-8 items-center justify-center text-muted-fg hover:bg-secondary hover:text-canvas-fg" title="Zoom out" @click="stepZoom(-1)">-</button>
 					<span class="w-12 text-center text-[11px] font-medium text-muted-fg">{{ zoomLabel }}</span>
-					<button type="button" class="flex h-8 w-8 items-center justify-center text-muted-fg hover:bg-secondary hover:text-fg" title="Zoom in" @click="stepZoom(1)">+</button>
+					<button type="button" class="flex h-8 w-8 items-center justify-center text-muted-fg hover:bg-secondary hover:text-canvas-fg" title="Zoom in" @click="stepZoom(1)">+</button>
 				</div>
 				<span class="hidden text-[11px] text-muted-fg sm:inline">{{ activeViewport.width }} x {{ activeViewport.height }}</span>
 			</div>
@@ -455,7 +455,7 @@ defineExpose({ focus, postFrameMessage });
 				<iframe
 					:key="stageFrameKey"
 					ref="stageFrameEl"
-					class="block overflow-hidden border border-border bg-background shadow-sm"
+					class="block overflow-hidden border border-border bg-canvas shadow-sm"
 					:srcdoc="stageSrcdoc"
 					:style="frameStyle"
 					title="Template editor stage"

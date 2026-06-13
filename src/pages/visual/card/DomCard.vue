@@ -5,7 +5,7 @@ defineOptions({
 	__doc: {
 		name: 'Card',
 		tag: '<DomCard>',
-		description: 'A visual-only frame for grouped content, styled by the skin-raised theme recipe.',
+		description: 'A visual-only frame for grouped content, styled by the skin-card theme recipe.',
 		slots: [
 			{ name: '(default)', description: 'Card content.' },
 		],
@@ -41,7 +41,7 @@ const paddingClasses = {
 };
 
 const classes = computed(() => [
-	'relative w-full overflow-hidden rounded-2xl skin-raised',
+	'relative w-full overflow-hidden rounded-2xl skin-card',
 	props.interactive && 'transition duration-200 hover:-translate-y-0.5 hover:border-primary/30',
 	paddingClasses[props.padding] ?? paddingClasses.md,
 ]);

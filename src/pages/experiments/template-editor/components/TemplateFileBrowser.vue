@@ -83,7 +83,7 @@ function collectOpenValues(item, values = []) {
 </script>
 
 <template>
-	<section class="flex h-full min-h-0 flex-col skin-raised text-fg">
+	<section class="flex h-full min-h-0 flex-col skin-card text-canvas-fg">
 		<header class="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
 			<div class="min-w-0">
 				<p class="truncate text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Files</p>
@@ -91,7 +91,7 @@ function collectOpenValues(item, values = []) {
 			<div class="flex shrink-0 items-center gap-1">
 				<button
 					type="button"
-					class="grid size-8 place-items-center rounded-md text-muted-fg hover:bg-secondary hover:text-fg"
+					class="grid size-8 place-items-center rounded-md text-muted-fg hover:bg-secondary hover:text-canvas-fg"
 					aria-label="Refresh files"
 					title="Refresh files"
 					:disabled="loading"
@@ -103,7 +103,7 @@ function collectOpenValues(item, values = []) {
 				</button>
 				<button
 					type="button"
-					class="grid size-8 place-items-center rounded-md text-muted-fg hover:bg-secondary hover:text-fg"
+					class="grid size-8 place-items-center rounded-md text-muted-fg hover:bg-secondary hover:text-canvas-fg"
 					aria-label="Close file browser"
 					title="Close file browser"
 					@click="emit('close')"
@@ -119,7 +119,7 @@ function collectOpenValues(item, values = []) {
 			{{ error }}
 		</div>
 
-		<div class="min-h-0 flex-1 overflow-y-auto bg-background p-2">
+		<div class="min-h-0 flex-1 overflow-y-auto bg-canvas p-2">
 			<div v-if="loading && !treeItems.length" class="px-2 py-3 text-xs text-muted-fg">Loading files...</div>
 			<DomTreeView
 				v-else-if="treeItems.length"

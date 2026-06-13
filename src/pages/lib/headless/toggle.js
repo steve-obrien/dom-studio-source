@@ -41,7 +41,7 @@ dom-toggle::after {
 	width: 1.25rem;
 	height: 1.25rem;
 	border-radius: 9999px;
-	background: var(--skin-raised-bg);
+	background: var(--canvas);
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 	transform: translateY(-50%);
 	transition: transform 150ms ease;

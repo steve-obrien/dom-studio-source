@@ -92,15 +92,15 @@ function onAction({ action, item }) {
 
 		<div class="rounded-2xl border border-border bg-secondary/40 p-4">
 			<div class="mb-3 flex items-center justify-between">
-				<p class="text-sm font-medium text-fg">Stage</p>
+				<p class="text-sm font-medium text-canvas-fg">Stage</p>
 				<p class="text-xs text-muted-fg">Selected: <code>{{ selected }}</code></p>
 			</div>
-			<div class="space-y-3 rounded-xl border border-border bg-background p-4">
+			<div class="space-y-3 rounded-xl border border-border bg-canvas p-4">
 				<div class="w-full rounded-xl border border-border p-4 text-left transition hover:border-ring" :class="selected === 'hero' && 'ring-2 ring-ring/40'" @click="selectFromStage('hero')">
 					<p class="text-xs font-medium uppercase tracking-wide text-muted-fg">Hero group</p>
 					<button type="button" class="mt-3 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-fg" :class="selected === 'hero-title' && 'ring-2 ring-ring/50'" @click.stop="selectFromStage('hero-title')">Headline layer</button>
 				</div>
-				<button type="button" class="rounded-xl border border-border skin-raised p-4 text-sm transition hover:border-ring" :class="selected === 'hero-card' && 'ring-2 ring-ring/40'" @click="selectFromStage('hero-card')">
+				<button type="button" class="rounded-xl border border-border skin-card p-4 text-sm transition hover:border-ring" :class="selected === 'hero-card' && 'ring-2 ring-ring/40'" @click="selectFromStage('hero-card')">
 					Feature card layer
 				</button>
 			</div>

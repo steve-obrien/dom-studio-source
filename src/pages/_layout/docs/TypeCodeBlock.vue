@@ -92,10 +92,10 @@ function tokenClass(token) {
 
 <template>
 	<div
-		class="dom-code overflow-auto rounded-lg skin-floating"
+		class="dom-code overflow-auto rounded-lg skin-popover"
 		:class="framed ? 'border border-border' : ''"
 	>
-		<pre class="overflow-auto rounded-lg skin-floating p-4 text-[12.5px] leading-relaxed text-fg"><code><template v-for="(line, rowIndex) in lines" :key="rowIndex"><template v-for="(token, tokenIndex) in line" :key="`${rowIndex}:${tokenIndex}`"><DomPopover
+		<pre class="overflow-auto rounded-lg skin-popover p-4 text-[12.5px] leading-relaxed text-canvas-fg"><code><template v-for="(line, rowIndex) in lines" :key="rowIndex"><template v-for="(token, tokenIndex) in line" :key="`${rowIndex}:${tokenIndex}`"><DomPopover
 						v-if="token.definition"
 						trigger="hover-click"
 						position="bottom-start"

@@ -79,16 +79,16 @@ import CustomerActivityFeedSrc from './examples/CustomerActivityFeed.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Event ingestion</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Event ingestion</h3>
 						<p class="mt-2">Use an append-only event model and denormalize display fields at write time. Timeline reads should stay fast, stable, and easy to paginate.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Action routing</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Action routing</h3>
 						<p class="mt-2">Map each event type to allowed actions from the server so users only see task, campaign, ticket, or playbook actions they can perform.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include infinite scroll, saved filters, account mentions, event deduping, AI summaries, and bidirectional CRM sync.</p>
 					</div>
 				</div>

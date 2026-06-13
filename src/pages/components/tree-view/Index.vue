@@ -171,17 +171,17 @@ function applyDropToRows(rows, { item, target, position }) {
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
 						DomTreeView emits intent: selection, toggles, actions, lazy-load requests, and reorder results. For small local trees, use
-						<code class="text-fg">v-model:items</code>. For a larger editor, keep the real source of truth in Pinia and decide in the store whether a drop is allowed, persisted, or transformed.
+						<code class="text-canvas-fg">v-model:items</code>. For a larger editor, keep the real source of truth in Pinia and decide in the store whether a drop is allowed, persisted, or transformed.
 					</p>
 					<p>
-						When a valid drag hovers over a collapsed branch, the branch opens after <code class="text-fg">dragExpandDelay</code>. This matches file explorers and layers panels where users pause over a folder/group before dropping inside nested content.
+						When a valid drag hovers over a collapsed branch, the branch opens after <code class="text-canvas-fg">dragExpandDelay</code>. This matches file explorers and layers panels where users pause over a folder/group before dropping inside nested content.
 					</p>
 					<p>
-						Context menus follow the same pattern: TreeView emits a generic <code class="text-fg">context-menu</code> intent with <code class="text-fg">kind</code>, <code class="text-fg">item</code>, and <code class="text-fg">node</code>. Your app can pass that payload to <code class="text-fg">DomContextMenu</code> and decide whether a folder, file, DOM node, layer, or empty tree space should receive different actions.
+						Context menus follow the same pattern: TreeView emits a generic <code class="text-canvas-fg">context-menu</code> intent with <code class="text-canvas-fg">kind</code>, <code class="text-canvas-fg">item</code>, and <code class="text-canvas-fg">node</code>. Your app can pass that payload to <code class="text-canvas-fg">DomContextMenu</code> and decide whether a folder, file, DOM node, layer, or empty tree space should receive different actions.
 					</p>
 					<p>
 						The generic tree helpers are exported separately so a store can flatten visible rows, build an id index, and move nested items without mounting the component. A normalized store can still use the same event shape, then implement its own move operation against
-						<code class="text-fg">byId</code> and child id arrays.
+						<code class="text-canvas-fg">byId</code> and child id arrays.
 					</p>
 				</div>
 				<CodeBlock class="mt-5" :code="storeCode" lang="js" />
@@ -190,14 +190,14 @@ function applyDropToRows(rows, { item, target, position }) {
 			<DocSection eyebrow="Utilities" title="Tree helpers">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						The tree utilities are plain functions exported from <code class="text-fg">@getdom/studio/vue</code>. They are deliberately separate from the component so a Pinia store, editor engine, or server sync layer can use the same rules without mounting a TreeView.
+						The tree utilities are plain functions exported from <code class="text-canvas-fg">@getdom/studio/vue</code>. They are deliberately separate from the component so a Pinia store, editor engine, or server sync layer can use the same rules without mounting a TreeView.
 					</p>
 					<p>
 						Use these helpers when your source data is a nested array. If your app keeps a normalized store, use the same event shape from TreeView and apply the change inside the store instead.
 					</p>
 				</div>
 
-				<div class="mt-5 overflow-hidden rounded-2xl border border-border bg-background text-sm">
+				<div class="mt-5 overflow-hidden rounded-2xl border border-border bg-canvas text-sm">
 					<div class="hidden grid-cols-[minmax(13rem,0.9fr)_1.5fr] gap-4 border-b border-border bg-secondary/60 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-fg md:grid">
 						<span>Function</span>
 						<span>Use</span>
@@ -206,7 +206,7 @@ function applyDropToRows(rows, { item, target, position }) {
 					v-for="utility in utilityRows"
 					:key="utility.name"
 					class="grid gap-2 border-b border-border px-4 py-3 last:border-b-0 md:grid-cols-[minmax(13rem,0.9fr)_1.5fr] md:gap-4">
-						<code class="text-fg">{{ utility.name }}</code>
+						<code class="text-canvas-fg">{{ utility.name }}</code>
 						<p class="leading-6 text-muted-fg">{{ utility.description }}</p>
 					</div>
 				</div>

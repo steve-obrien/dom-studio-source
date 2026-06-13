@@ -87,12 +87,15 @@ const isMounted = ref(false);
 const teleportTarget = shallowRef(null);
 const field = useField(props, emit, { idPrefix: 'dom-select' });
 
-const optionList = computed(() => props.options.map((option) => normalizeOption(option, { stringifyValue: true })).filter(Boolean));
+const optionList = computed(() => props.options.map((option) => normalizeOption(option, {
+	stringifyValue: true,
+	allowEmptyValue: true,
+})).filter(Boolean));
 const selectedOption = computed(() => optionList.value.find((option) => String(option.value) === String(field.value.value)) || null);
 const selectedLabel = computed(() => selectedOption.value?.label ?? '');
 const selectedValue = computed(() => String(field.value.value ?? ''));
 const triggerClasses = computed(() => [
-	'dom-input flex h-auto min-h-10 cursor-pointer items-center justify-between gap-3 rounded-full py-2 pr-3 text-left',
+	'skin-input flex h-auto min-h-10 cursor-pointer items-center justify-between gap-3 rounded-full py-2 pr-3 text-left',
 	(field.disabled.value || field.readOnly.value) && 'cursor-not-allowed opacity-60',
 	field.invalid.value && 'border-destructive focus:border-destructive focus:ring-destructive/25',
 ]);
@@ -169,7 +172,7 @@ function close() {
 						:label="selectedLabel"
 						:placeholder="placeholder"
 					>
-						<span :class="selectedOption ? 'text-fg' : 'text-muted-fg'">
+						<span :class="selectedOption ? 'text-canvas-fg' : 'text-muted-fg'">
 							{{ selectedOption ? selectedLabel : placeholder }}
 						</span>
 					</slot>
@@ -185,7 +188,7 @@ function close() {
 					:value="selectedValue"
 					data-composite-panel="true"
 					data-haspopup="listbox"
-					class="dom-dropdown-menu dom-floating-transition skin-floating z-50 max-h-[min(18rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"
+					class="dom-dropdown-menu dom-floating-transition skin-popover z-50 max-h-[min(18rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"
 					:class="width"
 				>
 					<button
@@ -195,7 +198,7 @@ function close() {
 						type="button"
 						:data-value="option.value"
 						:disabled="option.disabled || undefined"
-						class="block w-full cursor-pointer rounded-xl px-3 py-2 text-left text-sm text-fg outline-none transition hover:bg-accent focus:bg-accent aria-selected:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+						class="block w-full cursor-pointer rounded-xl px-3 py-2 text-left text-sm text-canvas-fg outline-none transition hover:bg-accent focus:bg-accent aria-selected:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						<slot name="option" :option="option" :index="index" :selected="String(option.value) === selectedValue">
 							<span class="block font-medium">{{ option.label }}</span>

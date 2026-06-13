@@ -14,6 +14,8 @@ import RichWorkspace from './examples/RichWorkspace.vue';
 import RichWorkspaceSrc from './examples/RichWorkspace.vue?raw';
 import PlanSelect from './examples/PlanSelect.vue';
 import PlanSelectSrc from './examples/PlanSelect.vue?raw';
+import OptionalAssignment from './examples/OptionalAssignment.vue';
+import OptionalAssignmentSrc from './examples/OptionalAssignment.vue?raw';
 
 const doc = DomSelect.__doc;
 const options = [
@@ -52,6 +54,16 @@ const options = [
 					description="Use a rich select for plan, workspace, role, provider, template, and project pickers instead of a native select."
 				>
 					<PlanSelect />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Optional value">
+				<Example
+					:source="OptionalAssignmentSrc"
+					filename="OptionalAssignment.vue"
+					description="Include an option with value '' when the field should support an explicit unset state."
+				>
+					<OptionalAssignment />
 				</Example>
 			</DocSection>
 

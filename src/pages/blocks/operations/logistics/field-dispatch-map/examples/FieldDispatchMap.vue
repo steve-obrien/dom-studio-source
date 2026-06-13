@@ -243,7 +243,7 @@ function assignSelectedStop() {
 </script>
 
 <template>
-	<section class="min-h-screen bg-background text-fg">
+	<section class="min-h-screen bg-canvas text-canvas-fg">
 		<div class="mx-auto flex w-full max-w-7xl flex-col gap-5 p-4 sm:p-6 lg:p-8">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
 				<div class="max-w-3xl">
@@ -253,28 +253,28 @@ function assignSelectedStop() {
 							{{ blockedStops }} blocked
 						</DispatchStatusPill>
 					</div>
-					<h1 class="mt-4 text-2xl font-semibold text-fg sm:text-3xl">Field dispatch map</h1>
+					<h1 class="mt-4 text-2xl font-semibold text-canvas-fg sm:text-3xl">Field dispatch map</h1>
 					<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">
 						Balance active technicians, unassigned stops, route risk, and customer delivery windows from a map-first operations surface.
 					</p>
 				</div>
-				<div class="grid grid-cols-3 gap-2 rounded-lg border border-border skin-raised p-2 text-center">
-					<div class="rounded-md bg-background px-3 py-2">
-						<p class="text-lg font-semibold text-fg">{{ filteredRoutes.length }}</p>
+				<div class="grid grid-cols-3 gap-2 rounded-lg border border-border skin-card p-2 text-center">
+					<div class="rounded-md bg-canvas px-3 py-2">
+						<p class="text-lg font-semibold text-canvas-fg">{{ filteredRoutes.length }}</p>
 						<p class="text-xs text-muted-fg">routes</p>
 					</div>
-					<div class="rounded-md bg-background px-3 py-2">
-						<p class="text-lg font-semibold text-fg">{{ unassignedStops }}</p>
+					<div class="rounded-md bg-canvas px-3 py-2">
+						<p class="text-lg font-semibold text-canvas-fg">{{ unassignedStops }}</p>
 						<p class="text-xs text-muted-fg">unassigned</p>
 					</div>
-					<div class="rounded-md bg-background px-3 py-2">
-						<p class="text-lg font-semibold text-fg">{{ readyStops }}</p>
+					<div class="rounded-md bg-canvas px-3 py-2">
+						<p class="text-lg font-semibold text-canvas-fg">{{ readyStops }}</p>
 						<p class="text-xs text-muted-fg">ready</p>
 					</div>
 				</div>
 			</div>
 
-			<div class="grid gap-3 rounded-lg border border-border skin-floating p-3 lg:grid-cols-[minmax(16rem,20rem)_1fr_auto] lg:items-end">
+			<div class="grid gap-3 rounded-lg border border-border skin-popover p-3 lg:grid-cols-[minmax(16rem,20rem)_1fr_auto] lg:items-end">
 				<DomListbox
 					v-model="selectedRegion"
 					:options="regions"
@@ -287,7 +287,7 @@ function assignSelectedStop() {
 								<span class="block truncate font-medium">{{ option.label }}</span>
 								<span class="block truncate text-xs text-muted-fg">{{ option.description }}</span>
 							</span>
-							<span class="shrink-0 rounded-full bg-background px-2 py-1 text-[11px] text-muted-fg ring-1 ring-border">{{ option.count }}</span>
+							<span class="shrink-0 rounded-full bg-canvas px-2 py-1 text-[11px] text-muted-fg ring-1 ring-border">{{ option.count }}</span>
 						</span>
 					</template>
 				</DomListbox>
@@ -306,14 +306,14 @@ function assignSelectedStop() {
 								<span class="block truncate font-medium">{{ custom ? `Add ${item.label}` : item.label }}</span>
 								<span class="block truncate text-xs text-muted-fg">{{ item.description }}</span>
 							</span>
-							<span class="shrink-0 rounded-full bg-background px-2 py-0.5 text-[11px] text-muted-fg ring-1 ring-border">{{ item.group }}</span>
+							<span class="shrink-0 rounded-full bg-canvas px-2 py-0.5 text-[11px] text-muted-fg ring-1 ring-border">{{ item.group }}</span>
 						</div>
 					</template>
 					<template #tag="{ label, remove }">
 						<span class="truncate">{{ label }}</span>
 						<button
 							type="button"
-							class="-mr-1 inline-flex size-4 items-center justify-center rounded-full text-muted-fg hover:bg-background hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+							class="-mr-1 inline-flex size-4 items-center justify-center rounded-full text-muted-fg hover:bg-canvas hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 							:aria-label="`Remove ${label}`"
 							@click.stop="remove"
 							@mousedown.prevent
@@ -335,13 +335,13 @@ function assignSelectedStop() {
 			</div>
 
 			<div class="grid gap-4 xl:grid-cols-[1fr_22rem]">
-				<div class="overflow-hidden rounded-lg border border-border skin-raised">
+				<div class="overflow-hidden rounded-lg border border-border skin-card">
 					<div class="relative min-h-[31rem] overflow-hidden bg-secondary">
 						<div class="absolute inset-0 opacity-70" aria-hidden="true">
-							<div class="absolute left-1/2 top-0 h-full w-14 -translate-x-1/2 rotate-12 bg-background/70"></div>
-							<div class="absolute left-[14%] top-1/2 h-12 w-[90%] -translate-y-1/2 -rotate-6 bg-background/70"></div>
-							<div class="absolute left-[8%] top-[19%] h-9 w-[68%] rotate-3 bg-background/60"></div>
-							<div class="absolute left-[20%] top-[72%] h-10 w-[62%] -rotate-12 bg-background/60"></div>
+							<div class="absolute left-1/2 top-0 h-full w-14 -translate-x-1/2 rotate-12 bg-canvas/70"></div>
+							<div class="absolute left-[14%] top-1/2 h-12 w-[90%] -translate-y-1/2 -rotate-6 bg-canvas/70"></div>
+							<div class="absolute left-[8%] top-[19%] h-9 w-[68%] rotate-3 bg-canvas/60"></div>
+							<div class="absolute left-[20%] top-[72%] h-10 w-[62%] -rotate-12 bg-canvas/60"></div>
 							<div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgb(255_255_255/0.72),transparent_24%),radial-gradient(circle_at_76%_68%,rgb(255_255_255/0.6),transparent_20%)]"></div>
 						</div>
 
@@ -349,7 +349,7 @@ function assignSelectedStop() {
 							<DomTooltip text="Center on active route" placement="bottom">
 								<button
 									type="button"
-									class="grid size-10 place-items-center rounded-full border border-border bg-background text-fg shadow-sm transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+									class="grid size-10 place-items-center rounded-full border border-border bg-canvas text-canvas-fg shadow-sm transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 									aria-label="Center on active route"
 								>
 									<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
@@ -360,7 +360,7 @@ function assignSelectedStop() {
 							<DomTooltip text="Show route density" placement="bottom">
 								<button
 									type="button"
-									class="grid size-10 place-items-center rounded-full border border-border bg-background text-fg shadow-sm transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+									class="grid size-10 place-items-center rounded-full border border-border bg-canvas text-canvas-fg shadow-sm transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 									aria-label="Show route density"
 								>
 									<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
@@ -370,9 +370,9 @@ function assignSelectedStop() {
 							</DomTooltip>
 						</div>
 
-						<div class="absolute right-4 top-4 z-30 max-w-[15rem] rounded-lg border border-border bg-background/95 p-3 shadow-sm backdrop-blur">
+						<div class="absolute right-4 top-4 z-30 max-w-[15rem] rounded-lg border border-border bg-canvas/95 p-3 shadow-sm backdrop-blur">
 							<p class="text-xs font-medium uppercase text-muted-fg">Dispatch note</p>
-							<p class="mt-1 text-sm leading-5 text-fg">{{ assignmentNotice }}</p>
+							<p class="mt-1 text-sm leading-5 text-canvas-fg">{{ assignmentNotice }}</p>
 						</div>
 
 						<RouteMarker
@@ -390,7 +390,7 @@ function assignSelectedStop() {
 							v-for="stop in filteredStops"
 							:key="stop.id"
 							type="button"
-							class="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background p-1 shadow-sm transition hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+							class="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-canvas p-1 shadow-sm transition hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
 							:class="[
 								stop.status === 'Blocked' ? 'bg-destructive' : stop.status === 'Watch' ? 'bg-warning' : 'bg-success',
 								stop.id === selectedStopId ? 'size-5 ring-4 ring-ring/30' : 'size-4',
@@ -401,16 +401,16 @@ function assignSelectedStop() {
 						></button>
 					</div>
 
-					<div class="grid gap-3 border-t border-border bg-background p-3 md:grid-cols-3">
+					<div class="grid gap-3 border-t border-border bg-canvas p-3 md:grid-cols-3">
 						<div
 							v-for="route in filteredRoutes"
 							:key="route.id"
 							class="rounded-lg border border-border p-3"
-							:class="route.id === selectedRouteId ? 'bg-secondary ring-2 ring-ring/20' : 'bg-background'"
+							:class="route.id === selectedRouteId ? 'bg-secondary ring-2 ring-ring/20' : 'bg-canvas'"
 						>
 							<div class="flex items-start justify-between gap-3">
 								<div>
-									<p class="text-sm font-semibold text-fg">{{ route.name }}</p>
+									<p class="text-sm font-semibold text-canvas-fg">{{ route.name }}</p>
 									<p class="mt-1 text-xs text-muted-fg">{{ route.vehicle }} / {{ route.role }}</p>
 								</div>
 								<DispatchStatusPill :tone="route.statusTone">{{ route.statusLabel }}</DispatchStatusPill>
@@ -426,30 +426,30 @@ function assignSelectedStop() {
 					</div>
 				</div>
 
-				<aside class="grid gap-4 rounded-lg border border-border skin-raised p-4 xl:self-start">
+				<aside class="grid gap-4 rounded-lg border border-border skin-card p-4 xl:self-start">
 					<div>
 						<p class="text-xs font-medium uppercase text-muted-fg">Selected route</p>
-						<h2 class="mt-2 text-xl font-semibold text-fg">{{ selectedRoute?.name }}</h2>
+						<h2 class="mt-2 text-xl font-semibold text-canvas-fg">{{ selectedRoute?.name }}</h2>
 						<p class="mt-1 text-sm text-muted-fg">{{ selectedRoute?.nextStop }} next / ETA {{ selectedRoute?.eta }}</p>
 					</div>
 
 					<div class="grid gap-2 rounded-lg bg-secondary p-3">
 						<div class="flex items-center justify-between gap-3 text-sm">
 							<span class="text-muted-fg">Coverage</span>
-							<span class="text-right font-medium text-fg">{{ selectedRouteSkills }}</span>
+							<span class="text-right font-medium text-canvas-fg">{{ selectedRouteSkills }}</span>
 						</div>
 						<div class="flex items-center justify-between gap-3 text-sm">
 							<span class="text-muted-fg">Vehicle</span>
-							<span class="font-medium text-fg">{{ selectedRoute?.vehicle }}</span>
+							<span class="font-medium text-canvas-fg">{{ selectedRoute?.vehicle }}</span>
 						</div>
 						<div class="flex items-center justify-between gap-3 text-sm">
 							<span class="text-muted-fg">Load</span>
-							<span class="font-medium text-fg">{{ selectedRoute?.capacity }}%</span>
+							<span class="font-medium text-canvas-fg">{{ selectedRoute?.capacity }}%</span>
 						</div>
 					</div>
 
 					<div class="rounded-lg border border-border p-3">
-						<p class="text-sm font-semibold text-fg">{{ selectedStop?.customer }}</p>
+						<p class="text-sm font-semibold text-canvas-fg">{{ selectedStop?.customer }}</p>
 						<p class="mt-1 text-xs text-muted-fg">{{ selectedStop?.address }}</p>
 						<div class="mt-3 flex flex-wrap gap-1.5">
 							<span
@@ -472,17 +472,17 @@ function assignSelectedStop() {
 						</DomButton>
 					</div>
 
-					<div class="rounded-lg border border-border bg-background p-3">
+					<div class="rounded-lg border border-border bg-canvas p-3">
 						<p class="text-xs font-medium uppercase text-muted-fg">Command payload</p>
-						<pre class="mt-2 overflow-auto rounded-md bg-secondary p-3 text-xs leading-5 text-fg">{{ JSON.stringify(dispatchPayload, null, 2) }}</pre>
+						<pre class="mt-2 overflow-auto rounded-md bg-secondary p-3 text-xs leading-5 text-canvas-fg">{{ JSON.stringify(dispatchPayload, null, 2) }}</pre>
 					</div>
 				</aside>
 			</div>
 
-			<div class="grid gap-3 rounded-lg border border-border skin-floating p-3">
+			<div class="grid gap-3 rounded-lg border border-border skin-popover p-3">
 				<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 					<div>
-						<h2 class="text-base font-semibold text-fg">Stop manifest</h2>
+						<h2 class="text-base font-semibold text-canvas-fg">Stop manifest</h2>
 						<p class="text-sm text-muted-fg">Select a stop from the route queue or the map pins.</p>
 					</div>
 					<DispatchStatusPill tone="neutral">{{ filteredStops.length }} visible stops</DispatchStatusPill>

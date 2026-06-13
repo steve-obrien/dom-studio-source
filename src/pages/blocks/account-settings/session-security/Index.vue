@@ -79,16 +79,16 @@ import DeviceSecurityCenterSrc from './examples/DeviceSecurityCenter.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Session safety</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Session safety</h3>
 						<p class="mt-2">Never trust client-selected session state alone. Revoke by server session ID and handle current-session revocation with a clear redirect path.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Risk signals</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Risk signals</h3>
 						<p class="mt-2">Calculate risk from device fingerprint, impossible travel, IP reputation, MFA result, and recent failed attempts on the backend.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include reusable re-auth dialogs, passkey setup flows, trusted-device naming, security event filters, and exportable audit logs.</p>
 					</div>
 				</div>

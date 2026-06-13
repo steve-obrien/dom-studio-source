@@ -75,16 +75,16 @@ import BulkActionReviewConsoleSrc from './examples/BulkActionReviewConsole.vue?r
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Safety checks</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Safety checks</h3>
 						<p class="mt-2">Keep irreversible actions behind server-side policy checks, required reasons, dry runs, and approval states.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Job handling</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Job handling</h3>
 						<p class="mt-2">Run execution through a background queue so progress, partial failure, retry, and cancellation states are visible.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include reusable selection toolbars, job progress timelines, approval routing, and rollback previews.</p>
 					</div>
 				</div>

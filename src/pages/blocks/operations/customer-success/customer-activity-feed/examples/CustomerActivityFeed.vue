@@ -254,10 +254,10 @@ function eventIconPath(type) {
 </script>
 
 <template>
-	<div class="w-full bg-secondary/40 p-3 text-fg sm:p-5 lg:p-8">
+	<div class="w-full bg-secondary/40 p-3 text-canvas-fg sm:p-5 lg:p-8">
 		<div class="mx-auto grid max-w-7xl gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
-			<section class="min-w-0 overflow-hidden rounded-lg border border-border bg-background shadow-2xl shadow-black/10">
-				<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+			<section class="min-w-0 overflow-hidden rounded-lg border border-border bg-canvas shadow-2xl shadow-black/10">
+				<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 					<div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-end">
 						<div>
 							<div class="flex flex-wrap items-center gap-2">
@@ -323,7 +323,7 @@ function eventIconPath(type) {
 							>
 								<button
 									type="button"
-									class="absolute left-0 top-4 z-10 grid size-10 place-items-center rounded-full border border-border bg-background text-muted-fg shadow-sm transition hover:border-primary/40 hover:text-primary"
+									class="absolute left-0 top-4 z-10 grid size-10 place-items-center rounded-full border border-border bg-canvas text-muted-fg shadow-sm transition hover:border-primary/40 hover:text-primary"
 									:class="expandedEventId === event.id ? 'border-primary/40 text-primary' : ''"
 									@click="toggleEvent(event)"
 								>
@@ -333,7 +333,7 @@ function eventIconPath(type) {
 									<span class="sr-only">Toggle {{ event.title }}</span>
 								</button>
 
-								<div class="rounded-lg border border-border bg-background p-4 transition hover:border-primary/30">
+								<div class="rounded-lg border border-border bg-canvas p-4 transition hover:border-primary/30">
 									<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 										<div class="min-w-0">
 											<div class="flex flex-wrap items-center gap-2">
@@ -389,7 +389,7 @@ function eventIconPath(type) {
 					</div>
 
 					<aside class="grid content-start gap-4 bg-secondary/30 p-4 sm:p-6">
-						<div class="rounded-lg border border-border bg-background p-4">
+						<div class="rounded-lg border border-border bg-canvas p-4">
 							<div class="flex items-start justify-between gap-3">
 								<div>
 									<p class="text-xs font-semibold uppercase text-muted-fg">Next best action</p>
@@ -421,7 +421,7 @@ function eventIconPath(type) {
 							</DomButton>
 						</div>
 
-						<div class="rounded-lg border border-border bg-background p-4">
+						<div class="rounded-lg border border-border bg-canvas p-4">
 							<div class="flex items-center justify-between gap-3">
 								<div>
 									<p class="text-xs font-semibold uppercase text-muted-fg">Internal notes</p>
@@ -438,7 +438,7 @@ function eventIconPath(type) {
 							/>
 						</div>
 
-						<div v-if="expandedEvent" class="rounded-lg border border-border bg-background p-4">
+						<div v-if="expandedEvent" class="rounded-lg border border-border bg-canvas p-4">
 							<p class="text-xs font-semibold uppercase text-muted-fg">Focused event</p>
 							<h4 class="mt-2 font-semibold">{{ expandedEvent.title }}</h4>
 							<p class="mt-2 text-sm leading-6 text-muted-fg">{{ expandedEvent.impact }}</p>
@@ -457,7 +457,7 @@ function eventIconPath(type) {
 			</section>
 
 			<aside class="grid content-start gap-4">
-				<section class="rounded-lg border border-border bg-background p-4 shadow-xl shadow-black/5 lg:sticky lg:top-4">
+				<section class="rounded-lg border border-border bg-canvas p-4 shadow-xl shadow-black/5 lg:sticky lg:top-4">
 					<div class="flex items-start gap-3">
 						<div class="grid size-11 place-items-center rounded-lg bg-success/15 text-success">
 							<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">

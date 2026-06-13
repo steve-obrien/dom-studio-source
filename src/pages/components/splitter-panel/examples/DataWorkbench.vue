@@ -11,13 +11,13 @@ const details = ref(260);
 		<DomSplitterPanel
 			v-model:start-size="side"
 			v-model:end-size="details"
-			class="h-[340px] min-w-[820px] overflow-hidden rounded-xl border border-border bg-background text-sm shadow-sm"
+			class="h-[340px] min-w-[820px] overflow-hidden rounded-xl border border-border bg-canvas text-sm shadow-sm"
 			:min-start="180"
 			:min-main="260"
 			:min-end="220"
 		>
 			<template #start>
-				<aside class="h-full skin-raised p-4">
+				<aside class="h-full skin-card p-4">
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Sources</p>
 					<div class="mt-4 space-y-2">
 						<div class="rounded-md bg-secondary px-3 py-2 font-medium text-secondary-fg">projects</div>
@@ -36,7 +36,7 @@ const details = ref(260);
 							<th class="border-b border-border py-2">Status</th>
 						</tr>
 					</thead>
-					<tbody class="text-fg">
+					<tbody class="text-canvas-fg">
 						<tr>
 							<td class="border-b border-border py-3">Launch OS</td>
 							<td class="border-b border-border py-3">Product</td>
@@ -57,9 +57,9 @@ const details = ref(260);
 			</main>
 
 			<template #end>
-				<aside class="h-full skin-raised p-4">
+				<aside class="h-full skin-card p-4">
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Row details</p>
-					<h3 class="mt-4 font-semibold text-fg">Launch OS</h3>
+					<h3 class="mt-4 font-semibold text-canvas-fg">Launch OS</h3>
 					<p class="mt-2 leading-6 text-muted-fg">Resizable detail panes work well for database browsers, API explorers, and admin tools.</p>
 				</aside>
 			</template>

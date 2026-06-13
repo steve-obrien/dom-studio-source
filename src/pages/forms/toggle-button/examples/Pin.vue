@@ -14,6 +14,6 @@ const pinned = ref(false);
 			unpressed-label="Pin item"
 			description="Use this for compact boolean actions that should read like buttons."
 		/>
-		<p class="text-xs text-muted-fg">Pinned: <code class="text-fg">{{ pinned }}</code></p>
+		<p class="text-xs text-muted-fg">Pinned: <code class="text-canvas-fg">{{ pinned }}</code></p>
 	</div>
 </template>

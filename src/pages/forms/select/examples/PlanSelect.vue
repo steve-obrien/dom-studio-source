@@ -23,7 +23,7 @@ const plans = [
 						<span class="mt-1 block text-xs leading-5 text-muted-fg">{{ option.description }}</span>
 						<DomBadge class="mt-2" size="sm" tone="neutral">{{ option.badge }}</DomBadge>
 					</span>
-					<span class="shrink-0 text-sm font-semibold text-fg">{{ option.price }}</span>
+					<span class="shrink-0 text-sm font-semibold text-canvas-fg">{{ option.price }}</span>
 				</span>
 			</template>
 		</DomSelect>

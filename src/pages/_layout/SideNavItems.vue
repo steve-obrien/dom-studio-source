@@ -37,7 +37,7 @@ function isBranchOpen(item) {
 function linkClass(item) {
 	return isItemActive(item)
 		? 'bg-secondary text-secondary-fg'
-		: 'text-muted-fg hover:bg-secondary hover:text-fg';
+		: 'text-muted-fg hover:bg-secondary hover:text-canvas-fg';
 }
 
 function linkSizeClass() {

@@ -81,16 +81,16 @@ import ChangelogPublisherSrc from './examples/ChangelogPublisher.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Channel rendering</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Channel rendering</h3>
 						<p class="mt-2">Derive email, in-app, and public changelog previews from the same structured entry so copy changes do not drift across surfaces.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Release governance</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Release governance</h3>
 						<p class="mt-2">Block publish actions when legal, docs, support, analytics, localization, or beta-access checks are required but incomplete.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include reusable channel preview components, translation review, feature-to-changelog sync, announcement analytics, and rollback controls.</p>
 					</div>
 				</div>

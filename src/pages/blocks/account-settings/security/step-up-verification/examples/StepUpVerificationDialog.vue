@@ -137,10 +137,10 @@ function actionStatus(action) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-lg border border-border bg-background text-fg shadow-2xl shadow-black/10">
+	<div class="w-full overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
 		<section class="grid min-h-[680px] gap-0 lg:grid-cols-[minmax(0,1fr)_24rem]">
 			<div class="flex min-w-0 flex-col border-b border-border lg:border-b-0 lg:border-r">
-				<header class="skin-raised px-5 py-5 sm:px-7">
+				<header class="skin-card px-5 py-5 sm:px-7">
 					<div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
 						<div class="max-w-2xl">
 							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Step-up security</p>
@@ -161,7 +161,7 @@ function actionStatus(action) {
 						<div
 							v-for="action in sensitiveActions"
 							:key="action.id"
-							class="rounded-lg border border-border bg-background p-4 transition"
+							class="rounded-lg border border-border bg-canvas p-4 transition"
 							:class="activeActionId === action.id ? 'shadow-lg shadow-black/10 ring-2 ring-primary/20' : 'hover:bg-secondary/30'"
 						>
 							<div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -199,7 +199,7 @@ function actionStatus(action) {
 					</div>
 
 					<aside class="space-y-4">
-						<div class="rounded-lg border border-border skin-raised p-4">
+						<div class="rounded-lg border border-border skin-card p-4">
 							<div class="flex items-start justify-between gap-3">
 								<div>
 									<h4 class="font-semibold">Current challenge</h4>
@@ -260,7 +260,7 @@ function actionStatus(action) {
 			</div>
 
 			<aside class="bg-secondary/35 p-5 sm:p-7">
-				<div class="mx-auto max-w-md rounded-lg border border-border bg-background p-5 shadow-xl shadow-black/10">
+				<div class="mx-auto max-w-md rounded-lg border border-border bg-canvas p-5 shadow-xl shadow-black/10">
 					<div class="flex items-start justify-between gap-3">
 						<div>
 							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Preview state</p>
@@ -278,7 +278,7 @@ function actionStatus(action) {
 						<DomToggle v-model="rememberDevice" label="Remember this trusted device" />
 						<p class="text-xs leading-5 text-muted-fg">Device remembering should still be controlled by server risk policy and recent account activity.</p>
 					</div>
-					<pre class="mt-5 max-h-56 overflow-auto rounded-lg bg-fg p-4 text-xs leading-5 text-background">{{ challengePayloadJson }}</pre>
+					<pre class="mt-5 max-h-56 overflow-auto rounded-lg bg-canvas-fg p-4 text-xs leading-5 text-canvas">{{ challengePayloadJson }}</pre>
 				</div>
 			</aside>
 		</section>

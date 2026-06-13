@@ -23,7 +23,7 @@ const socialProviders = [
 </script>
 
 <template>
-	<div class="grid w-full max-w-4xl overflow-hidden rounded-3xl border border-border bg-background shadow-2xl shadow-black/10 md:grid-cols-[0.9fr_1.1fr]">
+	<div class="grid w-full max-w-4xl overflow-hidden rounded-3xl border border-border bg-canvas shadow-2xl shadow-black/10 md:grid-cols-[0.9fr_1.1fr]">
 		<section class="hidden bg-primary p-8 text-primary-fg md:flex md:flex-col md:justify-between">
 			<div>
 				<span class="grid size-10 place-items-center rounded-2xl bg-primary-fg/15 text-sm font-bold">E</span>
@@ -51,7 +51,7 @@ const socialProviders = [
 						v-for="provider in socialProviders"
 						:key="provider.label"
 						type="button"
-						class="flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-background text-sm font-medium text-fg transition hover:bg-secondary hover:text-secondary-fg"
+						class="flex h-10 items-center justify-center gap-2 rounded-lg border border-border bg-canvas text-sm font-medium text-canvas-fg transition hover:bg-secondary hover:text-secondary-fg"
 					>
 						<span class="grid size-5 place-items-center rounded bg-secondary text-[10px] font-semibold">{{ provider.mark }}</span>
 						{{ provider.label }}
@@ -81,7 +81,7 @@ const socialProviders = [
 
 					<div class="flex items-center justify-between gap-4">
 						<DomCheckbox v-model="remember" label="Remember me" />
-						<a href="#" class="text-sm font-medium text-fg hover:underline">Forgot password?</a>
+						<a href="#" class="text-sm font-medium text-canvas-fg hover:underline">Forgot password?</a>
 					</div>
 
 					<DomButton class="w-full" size="lg">Sign in</DomButton>
@@ -89,7 +89,7 @@ const socialProviders = [
 
 				<p class="mt-6 text-center text-sm text-muted-fg">
 					New here?
-					<a href="#" class="font-medium text-fg hover:underline">Create an account</a>
+					<a href="#" class="font-medium text-canvas-fg hover:underline">Create an account</a>
 				</p>
 			</div>
 		</DomCard>

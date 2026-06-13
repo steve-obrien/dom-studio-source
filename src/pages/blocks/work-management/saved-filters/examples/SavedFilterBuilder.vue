@@ -178,8 +178,8 @@ function statusClasses(status) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-raised px-4 py-4 sm:px-5">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-card px-4 py-4 sm:px-5">
 			<div>
 				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Workspace views</p>
 				<h3 class="mt-1 text-xl font-semibold tracking-tight">Saved filters</h3>
@@ -196,17 +196,17 @@ function statusClasses(status) {
 		</header>
 
 		<div class="grid min-h-[44rem] lg:grid-cols-[18rem_minmax(0,1fr)_18rem]">
-			<aside class="border-b border-border skin-raised p-3 lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card p-3 lg:border-b-0 lg:border-r">
 				<div class="mb-3 grid grid-cols-3 gap-2 text-center">
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">18</p>
 						<p class="text-[11px] text-muted-fg">Views</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">6</p>
 						<p class="text-[11px] text-muted-fg">Shared</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">3</p>
 						<p class="text-[11px] text-muted-fg">Drafts</p>
 					</div>
@@ -218,7 +218,7 @@ function statusClasses(status) {
 						:key="view.id"
 						type="button"
 						class="w-full rounded-lg border p-3 text-left transition hover:border-primary/50"
-						:class="view.id === selectedView.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-background'"
+						:class="view.id === selectedView.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-canvas'"
 						@click="selectView(view)"
 					>
 						<div class="flex items-start justify-between gap-2">
@@ -283,7 +283,7 @@ function statusClasses(status) {
 						<div
 							v-for="(rule, index) in rules"
 							:key="rule.id"
-							class="grid gap-3 bg-background p-3 sm:grid-cols-[2rem_minmax(0,1fr)_8rem_8rem_auto] sm:items-center"
+							class="grid gap-3 bg-canvas p-3 sm:grid-cols-[2rem_minmax(0,1fr)_8rem_8rem_auto] sm:items-center"
 						>
 							<div class="grid size-8 place-items-center rounded-full bg-secondary text-xs font-semibold text-muted-fg">
 								{{ index + 1 }}
@@ -303,7 +303,7 @@ function statusClasses(status) {
 							/>
 							<button
 								type="button"
-								class="inline-flex size-9 items-center justify-center rounded-lg text-muted-fg transition hover:bg-secondary hover:text-fg disabled:opacity-40"
+								class="inline-flex size-9 items-center justify-center rounded-lg text-muted-fg transition hover:bg-secondary hover:text-canvas-fg disabled:opacity-40"
 								:disabled="rules.length === 1"
 								aria-label="Remove rule"
 								@click="removeRule(rule.id)"
@@ -363,7 +363,7 @@ function statusClasses(status) {
 				</section>
 			</main>
 
-			<aside class="border-t border-border skin-raised p-4 lg:border-l lg:border-t-0">
+			<aside class="border-t border-border skin-card p-4 lg:border-l lg:border-t-0">
 				<div class="space-y-5">
 					<section>
 						<h4 class="font-semibold">View settings</h4>
@@ -401,15 +401,15 @@ function statusClasses(status) {
 					<section class="border-t border-border pt-5">
 						<h4 class="font-semibold">Share targets</h4>
 						<div class="mt-3 space-y-2">
-							<div class="flex items-center justify-between gap-3 rounded-lg bg-background px-3 py-2 text-sm">
+							<div class="flex items-center justify-between gap-3 rounded-lg bg-canvas px-3 py-2 text-sm">
 								<span>Sales workspace</span>
 								<span class="text-xs font-medium text-emerald-700 dark:text-emerald-300">Synced</span>
 							</div>
-							<div class="flex items-center justify-between gap-3 rounded-lg bg-background px-3 py-2 text-sm">
+							<div class="flex items-center justify-between gap-3 rounded-lg bg-canvas px-3 py-2 text-sm">
 								<span>Success review</span>
 								<span class="text-xs font-medium text-muted-fg">Digest</span>
 							</div>
-							<div class="flex items-center justify-between gap-3 rounded-lg bg-background px-3 py-2 text-sm">
+							<div class="flex items-center justify-between gap-3 rounded-lg bg-canvas px-3 py-2 text-sm">
 								<span>Weekly export</span>
 								<span class="text-xs font-medium text-warning">Needs auth</span>
 							</div>

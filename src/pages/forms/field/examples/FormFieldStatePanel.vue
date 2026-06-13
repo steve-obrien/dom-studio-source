@@ -57,9 +57,9 @@ function errorMessage(error) {
 
 				<div class="flex items-center justify-between rounded-md border border-border bg-secondary/35 px-3 py-2">
 					<div class="text-xs text-muted-fg">
-						<span class="font-medium text-fg">{{ state.fieldCount }}</span> fields,
-						<span class="font-medium text-fg">{{ state.errorCount }}</span> errors,
-						<span class="font-medium text-fg">{{ state.validation }}</span> validation
+						<span class="font-medium text-canvas-fg">{{ state.fieldCount }}</span> fields,
+						<span class="font-medium text-canvas-fg">{{ state.errorCount }}</span> errors,
+						<span class="font-medium text-canvas-fg">{{ state.validation }}</span> validation
 					</div>
 					<DomButton type="button" size="sm" @click="form.validate()">
 						Validate
@@ -71,11 +71,11 @@ function errorMessage(error) {
 				<div
 					v-for="item in inspectedFields"
 					:key="item.name"
-					class="rounded-lg border border-border bg-background p-3"
+					class="rounded-lg border border-border bg-canvas p-3"
 				>
 					<div class="flex items-start justify-between gap-3">
 						<div>
-							<h3 class="text-sm font-semibold text-fg">{{ item.label }}</h3>
+							<h3 class="text-sm font-semibold text-canvas-fg">{{ item.label }}</h3>
 							<p class="mt-1 font-mono text-[11px] text-muted-fg">
 								{{ fieldSnapshot(form, item.name)?.path }}
 							</p>
@@ -91,19 +91,19 @@ function errorMessage(error) {
 					<dl class="mt-3 grid gap-2 text-xs sm:grid-cols-2">
 						<div>
 							<dt class="font-medium text-muted-fg">Value</dt>
-							<dd class="mt-0.5 truncate font-mono text-fg">
+							<dd class="mt-0.5 truncate font-mono text-canvas-fg">
 								{{ JSON.stringify(fieldSnapshot(form, item.name)?.value) }}
 							</dd>
 						</div>
 						<div>
 							<dt class="font-medium text-muted-fg">HTML name</dt>
-							<dd class="mt-0.5 truncate font-mono text-fg">
+							<dd class="mt-0.5 truncate font-mono text-canvas-fg">
 								{{ fieldSnapshot(form, item.name)?.htmlName }}
 							</dd>
 						</div>
 						<div>
 							<dt class="font-medium text-muted-fg">HTML id</dt>
-							<dd class="mt-0.5 truncate font-mono text-fg">
+							<dd class="mt-0.5 truncate font-mono text-canvas-fg">
 								{{ fieldSnapshot(form, item.name)?.htmlId }}
 							</dd>
 						</div>

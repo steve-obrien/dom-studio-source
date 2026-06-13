@@ -172,8 +172,8 @@ function checkClass(status) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Operations control</p>
@@ -238,7 +238,7 @@ function checkClass(status) {
 						<textarea
 							id="reason"
 							v-model="reason"
-							class="mt-2 min-h-24 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+							class="mt-2 min-h-24 w-full rounded-xl border border-border bg-canvas px-3 py-2 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
 							placeholder="Describe why this batch change is needed."
 						></textarea>
 					</div>
@@ -313,7 +313,7 @@ function checkClass(status) {
 				</section>
 			</main>
 
-			<aside class="border-t border-border skin-raised xl:border-l xl:border-t-0">
+			<aside class="border-t border-border skin-card xl:border-l xl:border-t-0">
 				<div class="border-b border-border px-4 py-5">
 					<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Readiness</p>
 					<h4 class="mt-1 text-lg font-semibold">Safety checks</h4>
@@ -321,7 +321,7 @@ function checkClass(status) {
 						<div
 							v-for="check in safetyChecks"
 							:key="check.label"
-							class="rounded-xl border border-border bg-background p-3"
+							class="rounded-xl border border-border bg-canvas p-3"
 						>
 							<div class="flex items-start justify-between gap-3">
 								<p class="text-sm font-semibold">{{ check.label }}</p>
@@ -337,7 +337,7 @@ function checkClass(status) {
 				<div class="border-b border-border px-4 py-5">
 					<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Execution</p>
 					<h4 class="mt-1 text-lg font-semibold">{{ dryRun ? 'Generate preview' : 'Queue job' }}</h4>
-					<div class="mt-4 rounded-xl border border-border bg-background p-4 text-sm">
+					<div class="mt-4 rounded-xl border border-border bg-canvas p-4 text-sm">
 						<div class="flex justify-between gap-4">
 							<span class="text-muted-fg">Action</span>
 							<span class="font-medium">{{ actionRecord.label }}</span>

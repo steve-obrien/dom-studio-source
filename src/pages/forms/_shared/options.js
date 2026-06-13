@@ -6,14 +6,14 @@ export function booleanProp(value, defaultValue = false) {
 }
 
 export function normalizeOption(option, options = {}) {
-	const { stringifyValue = false } = options;
+	const { stringifyValue = false, allowEmptyValue = false } = options;
 	if (option == null) return null;
 	if (typeof option === 'string' || typeof option === 'number') {
 		const value = stringifyValue ? String(option) : option;
 		return { value, label: String(option) };
 	}
 	const rawValue = option.value ?? option.label;
-	if (rawValue == null || rawValue === '') return null;
+	if (rawValue == null || (!allowEmptyValue && rawValue === '')) return null;
 	const value = stringifyValue ? String(rawValue) : rawValue;
 	return {
 		...option,

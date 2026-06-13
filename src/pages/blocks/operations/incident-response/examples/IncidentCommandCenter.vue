@@ -172,8 +172,8 @@ function statusClasses(status) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Reliability operations</p>
@@ -195,7 +195,7 @@ function statusClasses(status) {
 		</header>
 
 		<div class="grid min-h-[46rem] lg:grid-cols-[19rem_minmax(0,1fr)_22rem]">
-			<aside class="border-b border-border skin-raised lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
 				<div class="grid grid-cols-3 border-b border-border text-center text-sm">
 					<div class="px-3 py-3">
 						<p class="text-xs text-muted-fg">Open</p>
@@ -219,7 +219,7 @@ function statusClasses(status) {
 							:key="incident.id"
 							type="button"
 							class="w-full rounded-xl border p-3 text-left transition hover:border-primary/50"
-							:class="incident.id === selectedIncident.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-background'"
+							:class="incident.id === selectedIncident.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-canvas'"
 							@click="selectIncident(incident)"
 						>
 							<div class="flex items-start justify-between gap-3">
@@ -353,7 +353,7 @@ function statusClasses(status) {
 				</section>
 			</main>
 
-			<aside class="border-t border-border skin-raised lg:border-l lg:border-t-0">
+			<aside class="border-t border-border skin-card lg:border-l lg:border-t-0">
 				<section class="border-b border-border px-4 py-5">
 					<h5 class="font-semibold tracking-tight">Status update</h5>
 					<p class="mt-2 text-sm leading-6 text-muted-fg">Prepare the next incident update with audience, cadence, and approval controls.</p>

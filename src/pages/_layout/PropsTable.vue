@@ -20,7 +20,7 @@ defineProps({
 				</thead>
 				<tbody class="divide-y divide-border">
 					<tr v-for="r in rows" :key="r.name">
-						<td class="px-4 py-3 font-mono text-[12.5px] text-fg">{{ r.name }}</td>
+						<td class="px-4 py-3 font-mono text-[12.5px] text-canvas-fg">{{ r.name }}</td>
 						<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">{{ r.type }}</td>
 						<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">{{ r.default || '—' }}</td>
 						<td class="px-4 py-3 text-muted-fg">{{ r.description }}</td>

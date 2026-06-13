@@ -150,7 +150,7 @@ watch(field.value, (value) => {
 					<button
 						type="button"
 						class="rounded-md px-2.5 py-1 text-xs font-medium transition"
-						:class="mode === 'fields' ? 'bg-background text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
+						:class="mode === 'fields' ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'"
 						:aria-pressed="mode === 'fields'"
 						@click="mode = 'fields'"
 					>
@@ -159,7 +159,7 @@ watch(field.value, (value) => {
 					<button
 						type="button"
 						class="rounded-md px-2.5 py-1 text-xs font-medium transition"
-						:class="mode === 'json' ? 'bg-background text-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
+						:class="mode === 'json' ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'"
 						:aria-pressed="mode === 'json'"
 						@click="mode = 'json'"
 					>

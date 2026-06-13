@@ -11,7 +11,7 @@ defineProps({
 		<div class="min-w-0 space-y-4">
 			<div class="space-y-2">
 				<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">{{ eyebrow }}</p>
-				<h2 class="text-2xl font-semibold tracking-tight text-fg">{{ title }}</h2>
+				<h2 class="text-2xl font-semibold tracking-tight text-canvas-fg">{{ title }}</h2>
 				<p class="max-w-2xl text-sm leading-6 text-muted-fg">{{ description }}</p>
 			</div>
 			<slot name="notes" />

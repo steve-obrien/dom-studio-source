@@ -329,7 +329,7 @@ defineExpose({
 		<div
 			:id="field.id.value"
 			role="group"
-			class="skin-raised w-full rounded-2xl p-3 data-[invalid]:border-destructive"
+			class="skin-card w-full rounded-2xl p-3 data-[invalid]:border-destructive"
 			:aria-label="label || undefined"
 			:aria-describedby="field.describedBy.value || undefined"
 			:aria-invalid="field.invalid.value || undefined"
@@ -340,7 +340,7 @@ defineExpose({
 				<div class="flex items-center gap-1">
 					<button
 						type="button"
-						class="grid size-8 place-items-center rounded-lg text-muted-fg transition hover:bg-secondary hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-40"
+						class="grid size-8 place-items-center rounded-lg text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-40"
 						:disabled="field.disabled.value"
 						aria-label="Previous year"
 						@click="moveYear(-1)"
@@ -353,7 +353,7 @@ defineExpose({
 					</button>
 					<button
 						type="button"
-						class="grid size-8 place-items-center rounded-lg text-muted-fg transition hover:bg-secondary hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-40"
+						class="grid size-8 place-items-center rounded-lg text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-40"
 						:disabled="field.disabled.value"
 						aria-label="Previous month"
 						@click="moveMonth(-1)"
@@ -366,12 +366,12 @@ defineExpose({
 					</button>
 				</div>
 
-				<p :id="`${field.id.value}-month`" class="min-w-0 truncate text-sm font-semibold tracking-tight text-fg">{{ monthLabel }}</p>
+				<p :id="`${field.id.value}-month`" class="min-w-0 truncate text-sm font-semibold tracking-tight text-canvas-fg">{{ monthLabel }}</p>
 
 				<div class="flex items-center gap-1">
 					<button
 						type="button"
-						class="grid size-8 place-items-center rounded-lg text-muted-fg transition hover:bg-secondary hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-40"
+						class="grid size-8 place-items-center rounded-lg text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-40"
 						:disabled="field.disabled.value"
 						aria-label="Next month"
 						@click="moveMonth(1)"
@@ -384,7 +384,7 @@ defineExpose({
 					</button>
 					<button
 						type="button"
-						class="grid size-8 place-items-center rounded-lg text-muted-fg transition hover:bg-secondary hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-40"
+						class="grid size-8 place-items-center rounded-lg text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-40"
 						:disabled="field.disabled.value"
 						aria-label="Next year"
 						@click="moveYear(1)"
@@ -420,7 +420,7 @@ defineExpose({
 					:class="[
 						cell.hidden && 'invisible',
 						!cell.hidden && !cell.currentMonth && 'text-muted-fg/60 hover:bg-secondary/60',
-						cell.currentMonth && !cell.selected && 'text-fg hover:bg-secondary',
+						cell.currentMonth && !cell.selected && 'text-canvas-fg hover:bg-secondary',
 						cell.today && !cell.selected && 'ring-1 ring-border',
 						cell.selected && 'bg-primary text-primary-fg shadow-sm hover:bg-primary',
 					]"

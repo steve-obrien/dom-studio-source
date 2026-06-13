@@ -150,15 +150,15 @@ function handleReceiptAction(action) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
 		<div class="grid gap-0 lg:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)]">
-			<section class="skin-raised p-4 sm:p-6">
-				<div class="mx-auto h-[780px] max-h-[82vh] min-h-[680px] max-w-[25rem] overflow-hidden rounded-[2.25rem] border border-border bg-background shadow-2xl shadow-black/15">
+			<section class="skin-card p-4 sm:p-6">
+				<div class="mx-auto h-[780px] max-h-[82vh] min-h-[680px] max-w-[25rem] overflow-hidden rounded-[2.25rem] border border-border bg-canvas shadow-2xl shadow-black/15">
 					<DomAppShell variant="app">
 						<template #top>
 							<DomAppTopBar title="New expense" subtitle="Receipt capture" large>
 								<template #leading>
-									<button type="button" class="grid size-10 place-items-center rounded-full border border-border bg-background text-muted-fg" aria-label="Close expense">
+									<button type="button" class="grid size-10 place-items-center rounded-full border border-border bg-canvas text-muted-fg" aria-label="Close expense">
 										<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
 											<path d="m15 6-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 										</svg>
@@ -175,27 +175,27 @@ function handleReceiptAction(action) {
 						</template>
 
 						<div class="space-y-4 px-4 py-4 pb-28">
-							<section class="overflow-hidden rounded-[1.75rem] border border-border bg-fg text-background shadow-lg shadow-black/10">
+							<section class="overflow-hidden rounded-[1.75rem] border border-border bg-canvas-fg text-canvas shadow-lg shadow-black/10">
 								<div class="relative min-h-56 p-4">
-									<div class="absolute inset-4 rounded-2xl border border-background/20 bg-[linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,.04))]"></div>
+									<div class="absolute inset-4 rounded-2xl border border-canvas/20 bg-[linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,.04))]"></div>
 									<div class="relative grid gap-4">
 										<div class="flex items-start justify-between gap-4">
 											<div>
-												<p class="text-xs font-semibold uppercase tracking-[0.16em] text-background/55">Receipt</p>
+												<p class="text-xs font-semibold uppercase tracking-[0.16em] text-canvas/55">Receipt</p>
 												<h3 class="mt-1 text-xl font-semibold">Northstar Coffee</h3>
 											</div>
-											<span class="rounded-full bg-background/15 px-3 py-1 text-xs font-semibold">{{ selectedReceiptAction }}</span>
+											<span class="rounded-full bg-canvas/15 px-3 py-1 text-xs font-semibold">{{ selectedReceiptAction }}</span>
 										</div>
-										<div class="grid gap-2 rounded-2xl bg-background/10 p-3 text-xs">
+										<div class="grid gap-2 rounded-2xl bg-canvas/10 p-3 text-xs">
 											<div v-for="row in extractionRows" :key="row.label" class="flex items-center justify-between gap-3">
-												<span class="text-background/60">{{ row.label }}</span>
+												<span class="text-canvas/60">{{ row.label }}</span>
 												<span class="font-medium">{{ row.value }}</span>
 											</div>
 										</div>
 										<div class="flex items-center justify-between gap-3">
 											<div>
 												<p class="text-3xl font-semibold tracking-tight">{{ formatMoney(numericAmount) }}</p>
-												<p class="mt-1 text-xs text-background/60">OCR confidence 91%</p>
+												<p class="mt-1 text-xs text-canvas/60">OCR confidence 91%</p>
 											</div>
 											<DomButton size="sm" variant="secondary" @click="sheetOpen = true">{{ receiptAttached ? 'Receipt' : 'Attach' }}</DomButton>
 										</div>
@@ -203,7 +203,7 @@ function handleReceiptAction(action) {
 								</div>
 							</section>
 
-							<section class="overflow-hidden rounded-[1.5rem] border border-border bg-background">
+							<section class="overflow-hidden rounded-[1.5rem] border border-border bg-canvas">
 								<DomAppListItem label="Status" description="Finance can audit receipt, card match, and policy output." :meta="readinessLabel">
 									<template #icon>
 										<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
@@ -220,7 +220,7 @@ function handleReceiptAction(action) {
 								</DomAppListItem>
 							</section>
 
-							<section class="grid gap-4 rounded-[1.5rem] border border-border bg-background p-4">
+							<section class="grid gap-4 rounded-[1.5rem] border border-border bg-canvas p-4">
 								<div class="grid grid-cols-2 gap-3">
 									<DomTextInput v-model="merchant" label="Merchant" />
 									<DomTextInput v-model="amount" label="Amount" inputmode="decimal" />
@@ -236,7 +236,7 @@ function handleReceiptAction(action) {
 								<DomTextareaInput v-model="notes" label="Memo" :rows="3" placeholder="Add client, attendee, or business purpose details." />
 							</section>
 
-							<section class="rounded-[1.5rem] border border-border bg-background p-4">
+							<section class="rounded-[1.5rem] border border-border bg-canvas p-4">
 								<div class="flex items-center justify-between gap-3">
 									<div>
 										<h4 class="font-semibold tracking-tight">Policy checks</h4>
@@ -266,7 +266,7 @@ function handleReceiptAction(action) {
 						</div>
 
 						<template #bottom>
-							<div class="border-t border-border bg-background/95 px-4 py-3 backdrop-blur">
+							<div class="border-t border-border bg-canvas/95 px-4 py-3 backdrop-blur">
 								<div class="flex items-center justify-between gap-3">
 									<div class="min-w-0">
 										<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">{{ readinessLabel }}</p>
@@ -304,21 +304,21 @@ function handleReceiptAction(action) {
 				</div>
 
 				<div class="grid gap-3 sm:grid-cols-3">
-					<div class="rounded-2xl border border-border bg-background p-4">
+					<div class="rounded-2xl border border-border bg-canvas p-4">
 						<p class="text-2xl font-semibold">{{ formatMoney(numericAmount) }}</p>
 						<p class="mt-1 text-xs font-medium text-muted-fg">Detected total</p>
 					</div>
-					<div class="rounded-2xl border border-border bg-background p-4">
+					<div class="rounded-2xl border border-border bg-canvas p-4">
 						<p class="text-2xl font-semibold">{{ warningChecks.length }}</p>
 						<p class="mt-1 text-xs font-medium text-muted-fg">Warnings</p>
 					</div>
-					<div class="rounded-2xl border border-border bg-background p-4">
+					<div class="rounded-2xl border border-border bg-canvas p-4">
 						<p class="text-2xl font-semibold">{{ blockingChecks.length }}</p>
 						<p class="mt-1 text-xs font-medium text-muted-fg">Blockers</p>
 					</div>
 				</div>
 
-				<div class="rounded-2xl border border-border bg-background p-4">
+				<div class="rounded-2xl border border-border bg-canvas p-4">
 					<div class="flex items-center justify-between gap-3">
 						<div>
 							<h4 class="font-semibold tracking-tight">Extracted fields</h4>
@@ -340,7 +340,7 @@ function handleReceiptAction(action) {
 				</div>
 
 				<div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-					<div class="rounded-2xl border border-border bg-background p-4">
+					<div class="rounded-2xl border border-border bg-canvas p-4">
 						<h4 class="font-semibold tracking-tight">Integration activity</h4>
 						<div class="mt-4 space-y-4">
 							<div v-for="item in activity" :key="item.label" class="grid grid-cols-[3rem_minmax(0,1fr)] gap-3">
@@ -353,9 +353,9 @@ function handleReceiptAction(action) {
 						</div>
 					</div>
 
-					<div class="rounded-2xl border border-border bg-fg p-4 text-background">
+					<div class="rounded-2xl border border-border bg-canvas-fg p-4 text-canvas">
 						<h4 class="font-semibold tracking-tight">Draft payload</h4>
-						<pre class="mt-3 max-h-72 overflow-auto rounded-xl bg-background/10 p-3 text-[11px] leading-5 text-background/80">{{ expensePayloadJson }}</pre>
+						<pre class="mt-3 max-h-72 overflow-auto rounded-xl bg-canvas/10 p-3 text-[11px] leading-5 text-canvas/80">{{ expensePayloadJson }}</pre>
 					</div>
 				</div>
 			</aside>

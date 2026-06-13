@@ -224,8 +224,8 @@ function confidenceClass(score) {
 </script>
 
 <template>
-	<section class="min-h-screen bg-background text-fg">
-		<div class="mx-auto flex w-full max-w-7xl flex-col border-x border-border bg-background shadow-2xl shadow-black/10">
+	<section class="min-h-screen bg-canvas text-canvas-fg">
+		<div class="mx-auto flex w-full max-w-7xl flex-col border-x border-border bg-canvas shadow-2xl shadow-black/10">
 			<header class="border-b border-border px-4 py-4 sm:px-6">
 				<div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
 					<div class="min-w-0">
@@ -245,15 +245,15 @@ function confidenceClass(score) {
 				</div>
 
 				<div class="mt-5 grid gap-3 sm:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised px-4 py-3">
+					<div class="rounded-lg border border-border skin-card px-4 py-3">
 						<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Committed work</p>
 						<p class="mt-2 text-2xl font-semibold">{{ committedCount }}</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised px-4 py-3">
+					<div class="rounded-lg border border-border skin-card px-4 py-3">
 						<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Customer signals</p>
 						<p class="mt-2 text-2xl font-semibold">{{ customerSignalCount }}</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised px-4 py-3">
+					<div class="rounded-lg border border-border skin-card px-4 py-3">
 						<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Avg confidence</p>
 						<p class="mt-2 text-2xl font-semibold">{{ averageConfidence }}%</p>
 					</div>
@@ -262,7 +262,7 @@ function confidenceClass(score) {
 
 			<main class="min-w-0">
 					<div class="border-b border-border px-4 py-4 sm:px-6">
-						<label class="flex max-w-xs items-center justify-between gap-3 rounded-full border border-border bg-background px-3 py-2 text-sm">
+						<label class="flex max-w-xs items-center justify-between gap-3 rounded-full border border-border bg-canvas px-3 py-2 text-sm">
 							<span class="text-muted-fg">Dependency layer</span>
 							<DomToggle v-model="showDependencies" aria-label="Show dependencies" />
 						</label>
@@ -292,7 +292,7 @@ function confidenceClass(score) {
 													:key="initiative.id"
 													type="button"
 													class="min-h-[8.5rem] rounded-lg border p-3 text-left transition hover:border-primary/50 hover:shadow-md"
-													:class="selectedInitiativeId === initiative.id ? 'border-primary/60 bg-primary/5 shadow-md' : 'border-border bg-background'"
+													:class="selectedInitiativeId === initiative.id ? 'border-primary/60 bg-primary/5 shadow-md' : 'border-border bg-canvas'"
 													:style="initiativeStyle(initiative)"
 													@click="selectInitiative(initiative)"
 												>
@@ -325,7 +325,7 @@ function confidenceClass(score) {
 										v-for="initiative in riskItems"
 										:key="initiative.id"
 										type="button"
-										class="rounded-lg border border-border bg-background p-4 text-left transition hover:border-primary/50"
+										class="rounded-lg border border-border bg-canvas p-4 text-left transition hover:border-primary/50"
 										@click="selectInitiative(initiative)"
 									>
 										<div class="flex items-start justify-between gap-3">
@@ -345,7 +345,7 @@ function confidenceClass(score) {
 
 							<template #updates>
 								<div class="grid gap-3 md:grid-cols-4">
-									<div v-for="event in updates" :key="`${event.label}-${event.time}`" class="rounded-lg border border-border skin-raised p-4">
+									<div v-for="event in updates" :key="`${event.label}-${event.time}`" class="rounded-lg border border-border skin-card p-4">
 										<p class="text-sm font-semibold">{{ event.label }}</p>
 										<p class="mt-2 text-xs text-muted-fg">{{ event.actor }} / {{ event.time }}</p>
 									</div>
@@ -399,7 +399,7 @@ function confidenceClass(score) {
 						</div>
 					</div>
 
-					<aside class="border-t border-border skin-raised p-4 sm:p-6 lg:border-l lg:border-t-0">
+					<aside class="border-t border-border skin-card p-4 sm:p-6 lg:border-l lg:border-t-0">
 						<h2 class="text-sm font-semibold">Planning controls</h2>
 						<div class="mt-4 grid gap-3">
 							<label class="block">
@@ -440,7 +440,7 @@ function confidenceClass(score) {
 							</label>
 						</div>
 
-						<div class="mt-5 rounded-lg border border-border bg-background p-3">
+						<div class="mt-5 rounded-lg border border-border bg-canvas p-3">
 							<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Decision summary</p>
 							<p class="mt-2 text-sm leading-6">{{ selectedInitiative.title }} is {{ selectedStatus.toLowerCase() }} with {{ launchReadiness }}% readiness and {{ selectedInitiative.dependencies.length }} dependency item{{ selectedInitiative.dependencies.length === 1 ? '' : 's' }}.</p>
 						</div>

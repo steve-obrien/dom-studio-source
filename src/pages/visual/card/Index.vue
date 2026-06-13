@@ -24,12 +24,12 @@ const doc = DomCard.__doc;
 					:inspect="DomCard"
 					:initial="{ padding: 'md', interactive: false }"
 					title="Card playground"
-					description="Cards are visual-only: skin-raised provides the material recipe and spacing, while your markup decides the content."
+					description="Cards are visual-only: skin-card provides the material recipe and spacing, while your markup decides the content."
 				>
 					<div class="space-y-2">
 						<p class="text-lg font-semibold tracking-tight">Skin card</p>
 						<p class="max-w-sm text-sm leading-6 text-muted-fg">
-							This primitive uses skin-raised, so borders, shadows, gradients, and glass effects come from theme tokens.
+							This primitive uses skin-card, so borders, shadows, gradients, and glass effects come from theme tokens.
 						</p>
 					</div>
 				</Playground>

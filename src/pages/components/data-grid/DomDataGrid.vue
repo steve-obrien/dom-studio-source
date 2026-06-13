@@ -763,13 +763,13 @@ function rowDensityClass() {
 
 <template>
 	<section
-		class="dom-data-grid overflow-hidden rounded-lg border border-border bg-background text-fg shadow-sm"
+		class="dom-data-grid overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-sm"
 		:aria-labelledby="titleId"
 	>
 		<header v-if="toolbar" class="border-b border-border bg-secondary/35 px-3 py-3">
 			<div class="flex flex-wrap items-center gap-3">
 				<div class="min-w-0 flex-1">
-					<h2 :id="titleId" class="truncate text-sm font-semibold tracking-tight text-fg">{{ title }}</h2>
+					<h2 :id="titleId" class="truncate text-sm font-semibold tracking-tight text-canvas-fg">{{ title }}</h2>
 					<p class="mt-0.5 text-xs text-muted-fg">
 						{{ shownRowCount }} of {{ totalRowCount }} {{ resourceLabel }}
 						<span v-if="remote">from resource API</span>
@@ -784,7 +784,7 @@ function rowDensityClass() {
 					<input
 						:value="internalSearch"
 						type="search"
-						class="dom-input h-9 rounded-md pl-9"
+						class="skin-input h-9 rounded-md pl-9"
 						placeholder="Search rows"
 						@input="updateSearch($event.target.value)"
 					/>
@@ -860,11 +860,11 @@ function rowDensityClass() {
 						</th>
 					</tr>
 
-					<tr class="bg-background text-muted-fg">
+					<tr class="bg-canvas text-muted-fg">
 						<th
 							v-if="selectable"
 							class="border-b border-r border-border px-2 text-center"
-							:class="stickyHeader && 'sticky z-20 bg-background/95 backdrop-blur'"
+							:class="stickyHeader && 'sticky z-20 bg-canvas/95 backdrop-blur'"
 							:style="stickyHeader ? { top: headerOffset } : null"
 						>
 							<input
@@ -879,7 +879,7 @@ function rowDensityClass() {
 						<th
 							v-if="showRowNumbers"
 							class="border-b border-r border-border px-2 text-center font-semibold"
-							:class="stickyHeader && 'sticky z-20 bg-background/95 backdrop-blur'"
+							:class="stickyHeader && 'sticky z-20 bg-canvas/95 backdrop-blur'"
 							:style="stickyHeader ? { top: headerOffset } : null"
 						>
 							#
@@ -890,13 +890,13 @@ function rowDensityClass() {
 							scope="col"
 							class="border-b border-r border-border px-0 text-left align-middle last:border-r-0"
 							:aria-sort="ariaSort(column)"
-							:class="stickyHeader && 'sticky z-20 bg-background/95 backdrop-blur'"
+							:class="stickyHeader && 'sticky z-20 bg-canvas/95 backdrop-blur'"
 							:style="stickyHeader ? { top: headerOffset } : null"
 						>
 							<div class="flex min-w-0 items-center gap-1 px-2 py-1.5">
 								<button
 									type="button"
-									class="flex min-w-0 flex-1 items-center gap-1.5 rounded-md px-1.5 py-1 text-left font-semibold text-fg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+									class="flex min-w-0 flex-1 items-center gap-1.5 rounded-md px-1.5 py-1 text-left font-semibold text-canvas-fg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 									:class="column.sortable ? 'hover:bg-secondary' : 'cursor-default'"
 									:disabled="!column.sortable"
 									@click="toggleSort(column)"
@@ -952,7 +952,7 @@ function rowDensityClass() {
 											class="relative grid size-7 shrink-0 place-items-center rounded-md border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 											:class="activeFilters[column.key]
 												? 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300'
-												: 'border-transparent text-muted-fg hover:border-border hover:bg-secondary hover:text-fg'"
+												: 'border-transparent text-muted-fg hover:border-border hover:bg-secondary hover:text-canvas-fg'"
 											:aria-label="`Filter ${column.label}`"
 										>
 											<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -968,29 +968,29 @@ function rowDensityClass() {
 									<template #default="{ close }">
 										<div v-if="filterDrafts[column.key]" class="grid gap-4 p-4 text-sm">
 											<div>
-												<p class="font-semibold text-fg">Filter {{ column.label }}</p>
+												<p class="font-semibold text-canvas-fg">Filter {{ column.label }}</p>
 												<p class="mt-0.5 text-xs text-muted-fg">Column type: {{ column.type }}</p>
 											</div>
 
 											<div v-if="column.type === 'number' || column.type === 'currency'" class="grid grid-cols-2 gap-3">
 												<label class="grid gap-1.5">
 													<span class="text-xs font-medium text-muted-fg">Minimum</span>
-													<input v-model="filterDrafts[column.key].min" type="number" class="dom-input h-9 rounded-md" placeholder="Any" />
+													<input v-model="filterDrafts[column.key].min" type="number" class="skin-input h-9 rounded-md" placeholder="Any" />
 												</label>
 												<label class="grid gap-1.5">
 													<span class="text-xs font-medium text-muted-fg">Maximum</span>
-													<input v-model="filterDrafts[column.key].max" type="number" class="dom-input h-9 rounded-md" placeholder="Any" />
+													<input v-model="filterDrafts[column.key].max" type="number" class="skin-input h-9 rounded-md" placeholder="Any" />
 												</label>
 											</div>
 
 											<div v-else-if="column.type === 'date'" class="grid grid-cols-2 gap-3">
 												<label class="grid gap-1.5">
 													<span class="text-xs font-medium text-muted-fg">From</span>
-													<input v-model="filterDrafts[column.key].start" type="date" class="dom-input h-9 rounded-md" />
+													<input v-model="filterDrafts[column.key].start" type="date" class="skin-input h-9 rounded-md" />
 												</label>
 												<label class="grid gap-1.5">
 													<span class="text-xs font-medium text-muted-fg">To</span>
-													<input v-model="filterDrafts[column.key].end" type="date" class="dom-input h-9 rounded-md" />
+													<input v-model="filterDrafts[column.key].end" type="date" class="skin-input h-9 rounded-md" />
 												</label>
 											</div>
 
@@ -1000,7 +1000,7 @@ function rowDensityClass() {
 													:key="option.label"
 													type="button"
 													class="h-8 rounded px-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-													:class="filterDrafts[column.key].value === option.value ? 'bg-background text-fg shadow-xs' : 'text-muted-fg hover:text-fg'"
+													:class="filterDrafts[column.key].value === option.value ? 'bg-canvas text-canvas-fg shadow-xs' : 'text-muted-fg hover:text-canvas-fg'"
 													@click="setDraftBoolean(column, option.value)"
 												>
 													{{ option.label }}
@@ -1009,7 +1009,7 @@ function rowDensityClass() {
 
 											<div v-else-if="column.type === 'select'" class="grid gap-2">
 												<p class="text-xs font-medium text-muted-fg">Values</p>
-												<div class="max-h-52 overflow-y-auto rounded-md border border-border bg-background p-1">
+												<div class="max-h-52 overflow-y-auto rounded-md border border-border bg-canvas p-1">
 													<label
 														v-for="option in optionRecords(column)"
 														:key="String(option.value)"
@@ -1030,7 +1030,7 @@ function rowDensityClass() {
 											<div v-else class="grid gap-3">
 												<label class="grid gap-1.5">
 													<span class="text-xs font-medium text-muted-fg">Match</span>
-													<select v-model="filterDrafts[column.key].operator" class="dom-input h-9 rounded-md">
+													<select v-model="filterDrafts[column.key].operator" class="skin-input h-9 rounded-md">
 														<option value="contains">Contains</option>
 														<option value="equals">Equals</option>
 														<option value="starts">Starts with</option>
@@ -1038,14 +1038,14 @@ function rowDensityClass() {
 												</label>
 												<label class="grid gap-1.5">
 													<span class="text-xs font-medium text-muted-fg">Value</span>
-													<input v-model="filterDrafts[column.key].value" type="text" class="dom-input h-9 rounded-md" placeholder="Search this column" />
+													<input v-model="filterDrafts[column.key].value" type="text" class="skin-input h-9 rounded-md" placeholder="Search this column" />
 												</label>
 											</div>
 
 											<div class="flex items-center justify-between gap-2 border-t border-border pt-3">
 												<button
 													type="button"
-													class="inline-flex h-9 items-center rounded-md px-3 text-xs font-semibold text-muted-fg transition hover:bg-secondary hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+													class="inline-flex h-9 items-center rounded-md px-3 text-xs font-semibold text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 													@click="clearColumnFilter(column); close();"
 												>
 													Clear
@@ -1081,7 +1081,7 @@ function rowDensityClass() {
 						<tr
 							v-for="(row, rowIndex) in displayRows"
 							:key="rowKey(row, rowIndex)"
-							class="group bg-background transition hover:bg-secondary/45"
+							class="group bg-canvas transition hover:bg-secondary/45"
 							:class="rowSelected(row, rowIndex) && 'bg-sky-500/5'"
 							:aria-selected="rowSelected(row, rowIndex) || undefined"
 							@click="emit('row-click', { row, index: rowIndex })"

@@ -88,8 +88,8 @@ onBeforeUnmount(saveScroll);
 		</div>
 		<div class="mt-8 rounded-2xl border border-border bg-gradient-to-br from-secondary to-transparent p-4">
 			<p class="text-xs font-semibold uppercase tracking-wider text-muted-fg">Pro</p>
-			<p class="mt-1 text-sm font-medium text-fg">Get every blueprint, template &amp; pre-built app.</p>
-			<RouterLink to="/pricing" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-fg hover:underline">
+			<p class="mt-1 text-sm font-medium text-canvas-fg">Get every blueprint, template &amp; pre-built app.</p>
+			<RouterLink to="/pricing" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-canvas-fg hover:underline">
 				View pricing →
 			</RouterLink>
 		</div>

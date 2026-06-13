@@ -61,7 +61,7 @@ const className = computed(() => classes.value.join(' '));
 				<p class="text-sm font-medium">Preview block</p>
 				<p class="mt-1 text-xs opacity-70">Selected classes are joined into one class string.</p>
 			</div>
-			<code class="block rounded-xl bg-background p-3 font-mono text-xs text-muted-fg ring-1 ring-border">
+			<code class="block rounded-xl bg-canvas p-3 font-mono text-xs text-muted-fg ring-1 ring-border">
 				class="{{ className }}"
 			</code>
 		</div>

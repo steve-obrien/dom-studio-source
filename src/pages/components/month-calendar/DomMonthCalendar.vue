@@ -404,13 +404,13 @@ function onDayClick(cell, event) {
 			class="min-w-0"
 		>
 			<header class="mb-4 flex flex-wrap items-end justify-between gap-3">
-				<h2 :id="month.id" class="text-3xl font-bold tracking-tight text-fg">{{ month.label }}</h2>
+				<h2 :id="month.id" class="text-3xl font-bold tracking-tight text-canvas-fg">{{ month.label }}</h2>
 				<div class="text-sm font-medium text-muted-fg">
 					<slot name="month-header" :month="month" />
 				</div>
 			</header>
 
-			<div class="overflow-x-auto rounded-2xl border border-border bg-background">
+			<div class="overflow-x-auto rounded-2xl border border-border bg-canvas">
 				<div
 					role="grid"
 					:aria-labelledby="month.id"
@@ -457,7 +457,7 @@ function onDayClick(cell, event) {
 								cell.column > 0 && 'md:border-l md:border-border',
 								cell.hidden && 'pointer-events-none bg-secondary/20 text-transparent',
 								!cell.hidden && cell.muted && 'bg-secondary/20 text-muted-fg/55',
-								!cell.hidden && !cell.muted && 'text-fg',
+								!cell.hidden && !cell.muted && 'text-canvas-fg',
 								clickable && !cell.disabled && 'cursor-pointer hover:bg-secondary/50 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50',
 								clickable && cell.disabled && 'cursor-not-allowed opacity-55',
 								!clickable && 'cursor-default',

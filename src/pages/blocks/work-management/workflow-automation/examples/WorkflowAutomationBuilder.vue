@@ -255,8 +255,8 @@ function statusClasses(status) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Automation workspace</p>
@@ -295,7 +295,7 @@ function statusClasses(status) {
 		</header>
 
 		<div class="grid min-h-[50rem] lg:grid-cols-[18rem_minmax(0,1fr)_21rem]">
-			<aside class="border-b border-border skin-raised lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
 				<div class="border-b border-border p-3">
 					<DomNativeSelect v-model="selectedStatus" :options="statusOptions" class="w-full" />
 				</div>
@@ -448,7 +448,7 @@ function statusClasses(status) {
 				</section>
 			</main>
 
-			<aside class="skin-raised p-4 lg:border-l">
+			<aside class="skin-card p-4 lg:border-l">
 				<section class="border-b border-border pb-4">
 					<div class="flex items-center justify-between gap-3">
 						<div>
@@ -487,7 +487,7 @@ function statusClasses(status) {
 				<section class="py-4">
 					<DomTabs v-model="activeTab" :tabs="tabs" />
 					<div v-if="activeTab === 'test'" class="pt-4">
-						<div class="rounded-xl border border-border bg-background p-4">
+						<div class="rounded-xl border border-border bg-canvas p-4">
 							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Last dry run</p>
 							<p class="mt-3 text-sm leading-6">{{ testMessage }}</p>
 							<div class="mt-4 grid grid-cols-3 divide-x divide-border text-center text-xs">

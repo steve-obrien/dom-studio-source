@@ -68,16 +68,16 @@ import CustomerImportMapperSrc from './examples/CustomerImportMapper.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Upload parsing</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Upload parsing</h3>
 						<p class="mt-2">Keep file parsing outside the component. Feed it normalized columns, previews, and row-level errors so the UI remains portable.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Validation model</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Validation model</h3>
 						<p class="mt-2">Separate warnings from blockers. Let teams import valid rows while exporting rejected rows for correction when your product allows it.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">A reusable file dropzone, async job timeline, and saved mapping presets would make this block even faster to integrate.</p>
 					</div>
 				</div>

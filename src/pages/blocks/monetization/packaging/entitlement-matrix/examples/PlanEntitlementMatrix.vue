@@ -215,11 +215,11 @@ function cellLabel(value) {
 }
 
 function cellClasses(value, planId) {
-	if (planId === selectedPlan.value.id) return 'bg-primary/5 text-fg';
+	if (planId === selectedPlan.value.id) return 'bg-primary/5 text-canvas-fg';
 	if (value === true) return 'bg-success/10 text-success';
 	if (value === false) return 'text-muted-fg';
 	if (value === 'Add-on') return 'bg-warning/10 text-warning';
-	return 'text-fg';
+	return 'text-canvas-fg';
 }
 
 function checkIcon(value) {
@@ -230,8 +230,8 @@ function checkIcon(value) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-5 sm:px-6">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-5 sm:px-6">
 			<div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
 				<div class="max-w-3xl">
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Revenue packaging</p>
@@ -243,7 +243,7 @@ function checkIcon(value) {
 
 				<div class="grid gap-3 sm:grid-cols-[minmax(10rem,12rem)_auto_auto] sm:items-center">
 					<DomNativeSelect v-model="selectedSegment" :options="segmentOptions" />
-					<label class="flex items-center justify-between gap-3 rounded-full border border-border bg-background px-3 py-2 text-sm">
+					<label class="flex items-center justify-between gap-3 rounded-full border border-border bg-canvas px-3 py-2 text-sm">
 						<span class="font-medium">{{ cadenceLabel }}</span>
 						<DomToggle v-model="annualBilling" aria-label="Use annual billing" />
 					</label>
@@ -264,7 +264,7 @@ function checkIcon(value) {
 					:key="plan.id"
 					type="button"
 					class="group relative overflow-hidden rounded-2xl border p-4 text-left transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-lg hover:shadow-black/5"
-					:class="plan.id === selectedPlan.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-background'"
+					:class="plan.id === selectedPlan.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-canvas'"
 					@click="selectPlan(plan.id)"
 				>
 					<div class="absolute inset-x-0 top-0 h-1" :class="plan.accent"></div>
@@ -287,7 +287,7 @@ function checkIcon(value) {
 						<span>Show in matrix</span>
 						<span
 							class="grid size-5 place-items-center rounded-full border"
-							:class="visiblePlanIds.includes(plan.id) ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-background text-muted-fg'"
+							:class="visiblePlanIds.includes(plan.id) ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-canvas text-muted-fg'"
 							@click.stop="toggleVisiblePlan(plan.id)"
 						>
 							<svg v-if="visiblePlanIds.includes(plan.id)" class="size-3" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -298,7 +298,7 @@ function checkIcon(value) {
 				</button>
 			</div>
 
-			<aside class="border-t border-border skin-raised p-4 sm:p-6 lg:border-l lg:border-t-0">
+			<aside class="border-t border-border skin-card p-4 sm:p-6 lg:border-l lg:border-t-0">
 				<div class="flex items-start justify-between gap-4">
 					<div>
 						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Checkout preview</p>
@@ -307,7 +307,7 @@ function checkIcon(value) {
 					<span class="rounded-full bg-success/15 px-3 py-1 text-xs font-semibold text-success">Ready</span>
 				</div>
 
-				<div class="mt-5 rounded-2xl border border-border bg-background p-4">
+				<div class="mt-5 rounded-2xl border border-border bg-canvas p-4">
 					<div class="flex items-center justify-between gap-4">
 						<span class="text-sm text-muted-fg">Plan price</span>
 						<span class="font-semibold">{{ formatCurrency(selectedPlanPrice) }}</span>
@@ -324,7 +324,7 @@ function checkIcon(value) {
 					</div>
 				</div>
 
-				<label class="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-border bg-background p-4">
+				<label class="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-border bg-canvas p-4">
 					<span>
 						<span class="block text-sm font-semibold">Include common add-ons</span>
 						<span class="mt-1 block text-xs leading-5 text-muted-fg">Preview seats and SSO as checkout line items.</span>
@@ -333,7 +333,7 @@ function checkIcon(value) {
 				</label>
 
 				<div class="mt-4 space-y-3">
-					<div v-for="check in readinessChecks" :key="check.label" class="flex gap-3 rounded-2xl border border-border bg-background p-3">
+					<div v-for="check in readinessChecks" :key="check.label" class="flex gap-3 rounded-2xl border border-border bg-canvas p-3">
 						<span
 							class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full text-xs font-bold"
 							:class="check.complete ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'"
@@ -358,7 +358,7 @@ function checkIcon(value) {
 						:key="plan.id"
 						type="button"
 						class="rounded-full border px-3 py-1.5 font-semibold transition"
-						:class="visiblePlanIds.includes(plan.id) ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border bg-background text-muted-fg'"
+						:class="visiblePlanIds.includes(plan.id) ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border bg-canvas text-muted-fg'"
 						@click="toggleVisiblePlan(plan.id)"
 					>
 						{{ plan.name }}
@@ -372,11 +372,11 @@ function checkIcon(value) {
 			<table class="w-full min-w-[58rem] border-separate border-spacing-0 text-sm">
 				<thead>
 					<tr>
-						<th class="sticky left-0 z-20 w-[22rem] border-b border-r border-border bg-background px-6 py-4 text-left font-semibold">Entitlement</th>
+						<th class="sticky left-0 z-20 w-[22rem] border-b border-r border-border bg-canvas px-6 py-4 text-left font-semibold">Entitlement</th>
 						<th
 							v-for="plan in visiblePlans"
 							:key="plan.id"
-							class="sticky top-0 z-10 min-w-48 border-b border-border bg-background px-5 py-4 text-left"
+							class="sticky top-0 z-10 min-w-48 border-b border-border bg-canvas px-5 py-4 text-left"
 						>
 							<div class="flex items-start justify-between gap-3">
 								<div>
@@ -400,7 +400,7 @@ function checkIcon(value) {
 						</td>
 					</tr>
 					<tr v-for="feature in group.features" :key="feature.key" class="group">
-						<th class="sticky left-0 z-10 border-b border-r border-border bg-background px-6 py-4 text-left align-top">
+						<th class="sticky left-0 z-10 border-b border-r border-border bg-canvas px-6 py-4 text-left align-top">
 							<div class="flex items-start gap-3">
 								<DomTooltip :text="feature.detail">
 									<span class="mt-0.5 grid size-6 place-items-center rounded-full bg-secondary text-xs font-semibold text-muted-fg">?</span>
@@ -434,7 +434,7 @@ function checkIcon(value) {
 			<article
 				v-for="plan in visiblePlans"
 				:key="`mobile-${plan.id}`"
-				class="overflow-hidden rounded-2xl border border-border bg-background"
+				class="overflow-hidden rounded-2xl border border-border bg-canvas"
 			>
 				<div class="flex items-start justify-between gap-4 border-b border-border p-4">
 					<div>
@@ -462,13 +462,13 @@ function checkIcon(value) {
 			</article>
 		</section>
 
-		<footer class="grid gap-4 border-t border-border skin-raised p-4 sm:p-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
+		<footer class="grid gap-4 border-t border-border skin-card p-4 sm:p-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
 			<div>
 				<p class="text-sm font-semibold">Checkout payload</p>
 				<p class="mt-1 text-sm text-muted-fg">Use this preview to wire the block into your product catalog, entitlement service, and billing session endpoint.</p>
-				<pre class="mt-4 max-h-56 overflow-auto rounded-2xl border border-border bg-fg p-4 text-xs leading-5 text-background"><code>{{ checkoutPayloadJson }}</code></pre>
+				<pre class="mt-4 max-h-56 overflow-auto rounded-2xl border border-border bg-canvas-fg p-4 text-xs leading-5 text-canvas"><code>{{ checkoutPayloadJson }}</code></pre>
 			</div>
-			<div class="grid content-start gap-3 rounded-2xl border border-border bg-background p-4">
+			<div class="grid content-start gap-3 rounded-2xl border border-border bg-canvas p-4">
 				<p class="text-sm font-semibold">Recommended follow-up</p>
 				<p class="text-sm leading-6 text-muted-fg">Add row editing only after plan versions, audit approvals, and entitlement keys are stable. Most teams should publish through a guarded backend workflow.</p>
 				<DomButton class="mt-2 w-full">Publish package draft</DomButton>

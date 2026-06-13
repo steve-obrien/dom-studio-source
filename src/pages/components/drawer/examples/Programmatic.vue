@@ -13,8 +13,8 @@ const drawerRef = ref(null);
 	</div>
 	<DomDrawer ref="drawerRef" title="Via template ref">
 		<p class="p-4 text-sm text-muted-fg">
-			Call <code class="text-fg">open()</code>, <code class="text-fg">close()</code>, or
-			<code class="text-fg">toggle()</code> on the component ref — or bind <code class="text-fg">v-model</code> from script.
+			Call <code class="text-canvas-fg">open()</code>, <code class="text-canvas-fg">close()</code>, or
+			<code class="text-canvas-fg">toggle()</code> on the component ref — or bind <code class="text-canvas-fg">v-model</code> from script.
 		</p>
 	</DomDrawer>
 </template>

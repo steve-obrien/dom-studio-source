@@ -83,12 +83,12 @@ onMounted(() => {
 
 <template>
 	<div
-		class="min-h-screen bg-background text-fg"
+		class="min-h-screen bg-canvas text-canvas-fg"
 		:class="showSidebar && 'md:fixed md:inset-0 md:overflow-hidden'"
 	>
-		<header class="sticky top-0 z-30 border-b border-border/60 bg-background/80 backdrop-blur">
+		<header class="sticky top-0 z-30 border-b border-border/60 bg-canvas/80 backdrop-blur">
 			<div class="mx-auto flex h-16 w-full min-w-0 items-center justify-between gap-3 px-4 sm:px-6">
-				<RouterLink to="/" class="flex min-w-0 items-center gap-2 text-fg">
+				<RouterLink to="/" class="flex min-w-0 items-center gap-2 text-canvas-fg">
 					<BrandLockup show-badge />
 				</RouterLink>
 				<nav class="hidden min-w-0 items-center gap-1 text-sm md:flex">
@@ -99,7 +99,7 @@ onMounted(() => {
 						class="rounded-full px-3 py-1.5 font-medium transition"
 						:class="isTopLinkActive(l)
 							? 'bg-primary text-primary-fg'
-							: 'text-muted-fg hover:text-fg'"
+							: 'text-muted-fg hover:text-canvas-fg'"
 					>{{ l.label }}</RouterLink>
 					<div class="ml-2">
 						<ThemeToggle />
@@ -110,7 +110,7 @@ onMounted(() => {
 					<ThemeToggle />
 					<button
 						type="button"
-						class="grid size-9 place-items-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+						class="grid size-9 place-items-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
 						:aria-expanded="mobileMenuOpen"
 						aria-controls="mobile-site-menu"
 						:aria-label="mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'"
@@ -148,7 +148,7 @@ onMounted(() => {
 			<div
 				v-if="mobileMenuOpen"
 				id="mobile-site-menu"
-				class="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border/60 bg-background/95 shadow-lg backdrop-blur md:hidden"
+				class="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border/60 bg-canvas/95 shadow-lg backdrop-blur md:hidden"
 			>
 				<nav class="grid gap-1 px-4 py-3 text-sm">
 					<RouterLink
@@ -158,7 +158,7 @@ onMounted(() => {
 						class="rounded-lg px-3 py-2 font-medium transition"
 						:class="isTopLinkActive(l)
 							? 'bg-primary text-primary-fg'
-							: 'text-muted-fg hover:bg-secondary hover:text-fg'"
+							: 'text-muted-fg hover:bg-secondary hover:text-canvas-fg'"
 					>{{ l.label }}</RouterLink>
 				</nav>
 				<div v-if="showSidebar" class="border-t border-border/60 px-4 py-4">

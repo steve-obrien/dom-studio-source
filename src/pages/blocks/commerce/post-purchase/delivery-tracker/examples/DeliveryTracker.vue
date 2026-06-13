@@ -112,10 +112,10 @@ function resolveIssue() {
 </script>
 
 <template>
-	<div class="w-full bg-secondary/40 px-3 py-4 text-fg sm:px-6 lg:px-8">
+	<div class="w-full bg-secondary/40 px-3 py-4 text-canvas-fg sm:px-6 lg:px-8">
 		<div class="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[minmax(0,1fr)_21rem]">
-			<section class="overflow-hidden rounded-lg border border-border bg-background shadow-2xl shadow-black/10">
-				<header class="skin-raised border-b border-border px-4 py-4 sm:px-5">
+			<section class="overflow-hidden rounded-lg border border-border bg-canvas shadow-2xl shadow-black/10">
+				<header class="skin-card border-b border-border px-4 py-4 sm:px-5">
 					<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 						<div>
 							<p class="text-xs font-semibold uppercase text-muted-fg">Live delivery</p>
@@ -124,7 +124,7 @@ function resolveIssue() {
 								Track the courier, confirm drop-off instructions, and resolve delivery blockers before the next stop.
 							</p>
 						</div>
-						<div class="grid min-w-36 gap-1 rounded-lg border border-border bg-background px-3 py-2 text-sm">
+						<div class="grid min-w-36 gap-1 rounded-lg border border-border bg-canvas px-3 py-2 text-sm">
 							<span class="font-semibold">{{ activeStep.eta }}</span>
 							<span class="text-muted-fg">{{ activeStep.courierDistance }}</span>
 						</div>
@@ -133,11 +133,11 @@ function resolveIssue() {
 
 				<div class="grid gap-4 p-4 sm:p-5">
 					<div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_17rem]">
-						<section class="overflow-hidden rounded-lg border border-border bg-background">
+						<section class="overflow-hidden rounded-lg border border-border bg-canvas">
 							<div class="relative min-h-[300px] bg-[linear-gradient(135deg,rgb(240_253_250),rgb(239_246_255)_45%,rgb(248_250_252))] p-4 dark:bg-[linear-gradient(135deg,rgb(15_23_42),rgb(22_78_99)_55%,rgb(15_23_42))]">
 								<div class="absolute left-8 top-8 h-20 w-32 rounded-lg border border-primary/25 bg-primary/10" />
-								<div class="absolute right-8 top-14 h-24 w-28 rounded-lg border border-border bg-background/60" />
-								<div class="absolute bottom-8 left-10 h-24 w-40 rounded-lg border border-border bg-background/70" />
+								<div class="absolute right-8 top-14 h-24 w-28 rounded-lg border border-border bg-canvas/60" />
+								<div class="absolute bottom-8 left-10 h-24 w-40 rounded-lg border border-border bg-canvas/70" />
 								<div class="absolute bottom-12 right-10 h-20 w-28 rounded-lg border border-success/30 bg-success/10" />
 								<svg class="absolute inset-0 h-full w-full" viewBox="0 0 640 340" fill="none" aria-hidden="true">
 									<path d="M72 255C154 232 170 156 250 166C342 178 326 76 430 86C504 93 536 130 572 95" stroke="currentColor" stroke-width="16" stroke-linecap="round" class="text-border" />
@@ -149,21 +149,21 @@ function resolveIssue() {
 										class="text-primary"
 										:stroke-dasharray="`${progressPercent * 8} 800`"
 									/>
-									<circle cx="72" cy="255" r="18" class="fill-background stroke-primary" stroke-width="8" />
-									<circle cx="430" cy="86" r="18" class="fill-background stroke-primary" stroke-width="8" />
-									<circle cx="572" cy="95" r="20" class="fill-success stroke-background" stroke-width="8" />
+									<circle cx="72" cy="255" r="18" class="fill-canvas stroke-primary" stroke-width="8" />
+									<circle cx="430" cy="86" r="18" class="fill-canvas stroke-primary" stroke-width="8" />
+									<circle cx="572" cy="95" r="20" class="fill-success stroke-canvas" stroke-width="8" />
 								</svg>
 								<div class="relative flex h-[268px] flex-col justify-between">
 									<div class="flex items-start justify-between gap-3">
-										<div class="rounded-lg border border-border bg-background/90 px-3 py-2 text-sm shadow-sm backdrop-blur">
+										<div class="rounded-lg border border-border bg-canvas/90 px-3 py-2 text-sm shadow-sm backdrop-blur">
 											<p class="font-semibold">{{ activeStep.label }}</p>
 											<p class="mt-1 text-muted-fg">{{ routeLabel }}</p>
 										</div>
-										<span class="rounded-full bg-background/90 px-3 py-1 text-xs font-semibold text-muted-fg shadow-sm">
+										<span class="rounded-full bg-canvas/90 px-3 py-1 text-xs font-semibold text-muted-fg shadow-sm">
 											{{ completedCount }} / {{ statusSteps.length }}
 										</span>
 									</div>
-									<div class="rounded-lg border border-border bg-background/90 p-3 shadow-sm backdrop-blur">
+									<div class="rounded-lg border border-border bg-canvas/90 p-3 shadow-sm backdrop-blur">
 										<div class="flex items-start gap-3">
 											<div class="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-primary-fg">
 												<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
@@ -188,7 +188,7 @@ function resolveIssue() {
 									:key="step.key"
 									type="button"
 									class="flex items-center gap-3 rounded-lg border px-3 py-2 text-left text-sm transition hover:border-primary/50"
-									:class="index === activeStepIndex ? 'border-primary bg-primary/10' : 'border-border bg-background'"
+									:class="index === activeStepIndex ? 'border-primary bg-primary/10' : 'border-border bg-canvas'"
 									@click="setStep(index)"
 								>
 									<span
@@ -231,7 +231,7 @@ function resolveIssue() {
 											class="grid size-7 place-items-center rounded-full border text-xs font-bold"
 											:class="{
 												'border-primary bg-primary text-primary-fg': index <= activeStepIndex,
-												'border-border bg-background text-muted-fg': index > activeStepIndex,
+												'border-border bg-canvas text-muted-fg': index > activeStepIndex,
 											}"
 										>
 											<svg v-if="index < activeStepIndex" viewBox="0 0 24 24" class="size-3.5" fill="none" aria-hidden="true">
@@ -255,13 +255,13 @@ function resolveIssue() {
 						<DomCard padding="lg">
 							<p class="text-xs font-semibold uppercase text-muted-fg">Order contents</p>
 							<div class="mt-4 grid gap-3">
-								<div v-for="item in orderItems" :key="item.name" class="rounded-lg border border-border bg-background p-3">
+								<div v-for="item in orderItems" :key="item.name" class="rounded-lg border border-border bg-canvas p-3">
 									<p class="font-semibold">{{ item.name }}</p>
 									<p class="mt-1 text-sm text-muted-fg">{{ item.detail }}</p>
 								</div>
 							</div>
 							<div class="mt-4 rounded-lg bg-secondary/70 p-3 text-sm leading-6 text-muted-fg">
-								<p class="font-semibold text-fg">Delivery address</p>
+								<p class="font-semibold text-canvas-fg">Delivery address</p>
 								<p>71 Great Portland Street, London W1W 7LR</p>
 							</div>
 						</DomCard>
@@ -321,7 +321,7 @@ function resolveIssue() {
 							<div
 								v-for="check in readinessChecks"
 								:key="check.label"
-								class="flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-3 py-2"
+								class="flex items-center justify-between gap-3 rounded-lg border border-border bg-canvas px-3 py-2"
 							>
 								<span class="text-muted-fg">{{ check.label }}</span>
 								<span :class="check.passed ? 'text-success' : 'text-warning'" class="font-semibold">
@@ -340,7 +340,7 @@ function resolveIssue() {
 					<div class="mt-4 grid gap-3 text-sm">
 						<div v-for="event in supportEvents" :key="event.label" class="flex items-start justify-between gap-3">
 							<p class="leading-6 text-muted-fg">{{ event.label }}</p>
-							<span class="shrink-0 font-semibold text-fg">{{ event.time }}</span>
+							<span class="shrink-0 font-semibold text-canvas-fg">{{ event.time }}</span>
 						</div>
 					</div>
 				</DomCard>

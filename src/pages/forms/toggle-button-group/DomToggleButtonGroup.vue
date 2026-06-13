@@ -145,7 +145,7 @@ function onKeydown(event, index, option) {
 				type="button"
 				:aria-pressed="String(selected(option))"
 				:disabled="field.disabled.value || option?.disabled || undefined"
-				class="inline-flex items-center justify-center gap-2 rounded-xl font-medium text-muted-fg outline-none transition hover:text-fg focus-visible:ring-2 focus-visible:ring-ring/50 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:bg-background aria-pressed:text-fg aria-pressed:shadow-sm"
+				class="inline-flex items-center justify-center gap-2 rounded-xl font-medium text-muted-fg outline-none transition hover:text-canvas-fg focus-visible:ring-2 focus-visible:ring-ring/50 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:bg-canvas aria-pressed:text-canvas-fg aria-pressed:shadow-sm"
 				:class="sizeClass"
 				@click="selectOption(option)"
 				@keydown="onKeydown($event, index, option)"

@@ -55,33 +55,33 @@ const props = defineProps({
 const toneClasses = {
 	neutral: {
 		soft: 'bg-secondary text-secondary-fg ring-border',
-		solid: 'bg-fg text-background ring-transparent',
-		outline: 'bg-background text-fg ring-border',
+		solid: 'bg-canvas-fg text-canvas ring-transparent',
+		outline: 'bg-canvas text-canvas-fg ring-border',
 	},
 	primary: {
 		soft: 'bg-primary/10 text-primary ring-primary/15',
 		solid: 'bg-primary text-primary-fg ring-transparent',
-		outline: 'bg-background text-primary ring-primary/30',
+		outline: 'bg-canvas text-primary ring-primary/30',
 	},
 	success: {
 		soft: 'bg-success/15 text-success ring-success/20',
 		solid: 'bg-success text-success-fg ring-transparent',
-		outline: 'bg-background text-success ring-success/30',
+		outline: 'bg-canvas text-success ring-success/30',
 	},
 	warning: {
 		soft: 'bg-warning/20 text-warning-fg ring-warning/30',
 		solid: 'bg-warning text-warning-fg ring-transparent',
-		outline: 'bg-background text-warning-fg ring-warning/40',
+		outline: 'bg-canvas text-warning-fg ring-warning/40',
 	},
 	danger: {
 		soft: 'bg-destructive/15 text-destructive ring-destructive/20',
 		solid: 'bg-destructive text-destructive-fg ring-transparent',
-		outline: 'bg-background text-destructive ring-destructive/30',
+		outline: 'bg-canvas text-destructive ring-destructive/30',
 	},
 	info: {
-		soft: 'bg-primary/10 text-fg ring-primary/15',
+		soft: 'bg-primary/10 text-canvas-fg ring-primary/15',
 		solid: 'bg-primary text-primary-fg ring-transparent',
-		outline: 'bg-background text-fg ring-primary/30',
+		outline: 'bg-canvas text-canvas-fg ring-primary/30',
 	},
 };
 

@@ -16,9 +16,9 @@ import {
 const tokenPairs = [
 	{
 		name: 'Background',
-		bg: '--background',
-		fg: '--fg',
-		utilities: 'bg-background text-fg',
+		bg: '--canvas',
+		fg: '--canvas-fg',
+		utilities: 'bg-canvas text-canvas-fg',
 		use: 'The app canvas and ordinary page text.',
 	},
 	{
@@ -85,7 +85,7 @@ const utilityTokens = [
 	{
 		name: 'Input',
 		token: '--input',
-		utility: 'border-input bg-background',
+		utility: 'border-input bg-canvas',
 		use: 'Input borders and control tracks that should read as editable.',
 	},
 	{
@@ -103,8 +103,8 @@ const themeModes = [
 
 const themeTokenDefaults = {
 	light: {
-		'--background': 'oklch(1 0 0)',
-		'--fg': 'oklch(0.145 0 0)',
+		'--canvas': 'oklch(1 0 0)',
+		'--canvas-fg': 'oklch(0.145 0 0)',
 		'--primary': 'oklch(0.205 0 0)',
 		'--primary-fg': 'oklch(0.985 0 0)',
 		'--secondary': 'oklch(0.97 0 0)',
@@ -124,8 +124,8 @@ const themeTokenDefaults = {
 		'--ring': 'oklch(0.708 0 0)',
 	},
 	dark: {
-		'--background': 'oklch(0.145 0 0)',
-		'--fg': 'oklch(0.985 0 0)',
+		'--canvas': 'oklch(0.145 0 0)',
+		'--canvas-fg': 'oklch(0.985 0 0)',
 		'--primary': 'oklch(0.922 0 0)',
 		'--primary-fg': 'oklch(0.205 0 0)',
 		'--secondary': 'oklch(0.269 0 0)',
@@ -173,21 +173,15 @@ const editableAppearanceTokens = appearanceTokenGroups.flatMap((group) => group.
 
 const skinLevels = [
 	{
-		name: 'base',
-		label: 'Base',
-		className: 'skin-base',
-		use: 'The page canvas and ordinary application background.',
-	},
-	{
-		name: 'raised',
-		label: 'Raised',
-		className: 'skin-raised',
+		name: 'card',
+		label: 'Card',
+		className: 'skin-card',
 		use: 'Cards, panels, calendars, and grouped content.',
 	},
 	{
-		name: 'floating',
-		label: 'Floating',
-		className: 'skin-floating',
+		name: 'popover',
+		label: 'Popover',
+		className: 'skin-popover',
 		use: 'Dropdowns, popovers, combobox menus, and context menus.',
 	},
 	{
@@ -197,10 +191,10 @@ const skinLevels = [
 		use: 'Dialogs, drawers, command palettes, and action sheets.',
 	},
 	{
-		name: 'inset',
-		label: 'Inset',
-		className: 'skin-inset',
-		use: 'Inputs, textareas, and editable recessed controls.',
+		name: 'input',
+		label: 'Input',
+		className: 'skin-input',
+		use: 'Inputs, textareas, selects, and editable controls.',
 	},
 	{
 		name: 'control',
@@ -279,39 +273,29 @@ const skinPropertyDefinitions = [
 ];
 
 const skinTokenDefaults = {
-	base: {
-		bg: 'var(--background)',
-		fg: 'var(--fg)',
-		border: 'transparent',
-		borderWidth: '0px',
-		borderStyle: 'solid',
-		shadow: 'none',
-		backdrop: 'none',
-		bgImage: 'none',
-	},
-	raised: {
-		bg: 'color-mix(in oklch, var(--background) 98.5%, var(--fg))',
-		fg: 'var(--fg)',
+	card: {
+		bg: 'var(--canvas)',
+		fg: 'var(--canvas-fg)',
 		border: 'var(--border)',
 		borderWidth: '1px',
 		borderStyle: 'solid',
-		shadow: 'var(--shadow-sm)',
+		shadow: 'var(--shadow-xs)',
 		backdrop: 'none',
-		bgImage: 'linear-gradient(to bottom, color-mix(in oklch, white 7%, transparent), color-mix(in oklch, var(--fg) 1%, transparent))',
+		bgImage: 'none',
 	},
-	floating: {
-		bg: 'oklch(0.992 0.002 247 / 92%)',
-		fg: 'var(--fg)',
-		border: 'color-mix(in oklch, var(--border) 84%, var(--fg))',
+	popover: {
+		bg: 'var(--canvas)',
+		fg: 'var(--canvas-fg)',
+		border: 'var(--border)',
 		borderWidth: '1px',
 		borderStyle: 'solid',
-		shadow: 'inset 0 1px 0 rgb(255 255 255 / 0.78), 0 24px 54px -22px rgb(15 23 42 / 0.42), 0 8px 20px -14px rgb(15 23 42 / 0.28)',
-		backdrop: 'blur(18px) saturate(1.12)',
-		bgImage: 'linear-gradient(to bottom, rgb(255 255 255 / 0.62), rgb(255 255 255 / 0.16))',
+		shadow: 'var(--shadow-lg)',
+		backdrop: 'none',
+		bgImage: 'none',
 	},
 	overlay: {
-		bg: 'color-mix(in oklch, var(--background) 95%, var(--fg))',
-		fg: 'var(--fg)',
+		bg: 'var(--canvas)',
+		fg: 'var(--canvas-fg)',
 		border: 'var(--border)',
 		borderWidth: '1px',
 		borderStyle: 'solid',
@@ -319,9 +303,9 @@ const skinTokenDefaults = {
 		backdrop: 'blur(20px) saturate(1.12)',
 		bgImage: 'none',
 	},
-	inset: {
-		bg: 'color-mix(in oklch, var(--background) 98%, var(--fg))',
-		fg: 'var(--fg)',
+	input: {
+		bg: 'var(--canvas)',
+		fg: 'var(--canvas-fg)',
 		border: 'var(--input)',
 		borderWidth: '1px',
 		borderStyle: 'solid',
@@ -361,51 +345,33 @@ const editableSkinTokens = skinLevels.flatMap((level) => skinPropertyDefinitions
 const skinBorderStyleOptions = ['none', 'solid', 'dashed', 'dotted', 'double'];
 
 const skinShadowLayerDefaults = {
-	base: [],
-	raised: [
-		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 8, x: 0, y: 8, blur: 18, spread: -10 },
+	card: [
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 4, x: 0, y: 1, blur: 1, spread: 0 },
 	],
-	floating: [
-		{ kind: 'inset', color: 'rgb(255 255 255)', alpha: 78, x: 0, y: 1, blur: 0, spread: 0 },
-		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 42, x: 0, y: 24, blur: 54, spread: -22 },
-		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 28, x: 0, y: 8, blur: 20, spread: -14 },
+	popover: [
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 16, x: 0, y: 8, blur: 20, spread: -6 },
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 8, x: 0, y: 2, blur: 6, spread: -2 },
 	],
 	overlay: [
-		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 36, x: 0, y: 32, blur: 80, spread: -30 },
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 24, x: 0, y: 24, blur: 60, spread: -18 },
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 14, x: 0, y: 8, blur: 20, spread: -10 },
 	],
-	inset: [
+	input: [
 		{ kind: 'inset', color: 'rgb(15 23 42)', alpha: 4, x: 0, y: 1, blur: 2, spread: 0 },
 	],
 	control: [
-		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 5, x: 0, y: 1, blur: 2, spread: 0 },
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 4, x: 0, y: 1, blur: 1, spread: 0 },
 	],
 	action: [
-		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 10, x: 0, y: 2, blur: 8, spread: -2 },
+		{ kind: 'drop', color: 'rgb(15 23 42)', alpha: 6, x: 0, y: 1, blur: 2, spread: 0 },
 	],
 };
 
 const skinBackgroundFillDefaults = {
-	base: [],
-	raised: [
-		{
-			kind: 'linear',
-			gradientAngle: 180,
-			gradientFrom: 'color-mix(in oklch, white 7%, transparent)',
-			gradientTo: 'color-mix(in oklch, var(--fg) 1%, transparent)',
-		},
-	],
-	floating: [
-		{
-			kind: 'linear',
-			gradientAngle: 180,
-			gradientFrom: 'rgb(255 255 255)',
-			gradientFromAlpha: 62,
-			gradientTo: 'rgb(255 255 255)',
-			gradientToAlpha: 16,
-		},
-	],
+	card: [],
+	popover: [],
 	overlay: [],
-	inset: [],
+	input: [],
 	control: [],
 	action: [
 		{
@@ -422,8 +388,8 @@ const editorTokenGroups = [
 		label: 'Canvas',
 		description: 'Page background and ordinary text.',
 		tokens: [
-			{ label: 'Background', role: 'Bg', name: '--background' },
-			{ label: 'Fg', role: 'Fg', name: '--fg' },
+			{ label: 'Background', role: 'Bg', name: '--canvas' },
+			{ label: 'Fg', role: 'Fg', name: '--canvas-fg' },
 		],
 	},
 	...tokenPairs.slice(1).map((pair) => ({
@@ -497,6 +463,11 @@ function createSkinStyleState(levelName, values = {}) {
 	});
 }
 
+const defaultSkinStyleValues = Object.fromEntries(skinLevels.map((level) => [
+	level.name,
+	cssStyleValues(createSkinStyleState(level.name, skinTokenDefaults[level.name])),
+]));
+
 function getThemeEditorState() {
 	const state = typeof window === 'undefined'
 		? createThemeEditorState()
@@ -523,11 +494,11 @@ function getThemeEditorState() {
 }
 
 const decisionRows = [
-	['Page background', 'skin-base', 'Use once at layout level when the canvas should come from the theme recipe.'],
-	['Card or panel', 'skin-raised', 'Use for grouped content that needs the standard raised material.'],
-	['Popover or menu', 'skin-floating', 'Use for layers attached to a trigger.'],
+	['Page canvas', 'bg-canvas text-canvas-fg', 'Use for the actual app canvas; it is driven directly by --canvas and --canvas-fg.'],
+	['Card or panel', 'skin-card', 'Use for grouped content that needs the standard card material.'],
+	['Popover or menu', 'skin-popover', 'Use for layers attached to a trigger.'],
 	['Dialog or drawer', 'skin-overlay', 'Use for modal and app-level overlay panels.'],
-	['Input chrome', 'skin-inset', 'Use for recessed editable controls.'],
+	['Input chrome', 'skin-input', 'Use for editable controls and select-like triggers.'],
 	['Primary button', 'skin-action', 'Use for high-emphasis commands.'],
 	['Secondary button', 'skin-control', 'Use for quiet controls and neutral triggers.'],
 	['Menu item hover', 'hover:bg-accent hover:text-accent-fg', 'Use accent for temporary interaction states.'],
@@ -539,33 +510,32 @@ const decisionRows = [
 ];
 
 const themeCode = `:root {
-\t--background: oklch(1 0 0);
-\t--fg: oklch(0.145 0 0);
+\t--radius: 0.625rem;
+\t--canvas: oklch(0.984 0.003 247);
+\t--canvas-fg: oklch(0.145 0 0);
 \t--primary: oklch(0.205 0 0);
 \t--primary-fg: oklch(0.985 0 0);
-\t--success: oklch(0.627 0.194 149.214);
+\t--secondary: oklch(0.97 0 0);
+\t--secondary-fg: oklch(0.205 0 0);
+\t--success: oklch(0.57 0.794 149.350);
 \t--success-fg: oklch(0.985 0 0);
-\t--warning: oklch(0.84 0.16 84);
+\t--warning: oklch(0.7 0.2 84);
 \t--warning-fg: oklch(0.28 0.07 46);
-\t--skin-raised-bg: color-mix(in oklch, var(--background) 98.5%, var(--fg));
-\t--skin-raised-fg: var(--fg);
-\t--skin-raised-shadow: var(--shadow-sm);
-\t--skin-raised-bg-image: linear-gradient(to bottom, color-mix(in oklch, white 7%, transparent), color-mix(in oklch, var(--fg) 1%, transparent));
-\t--skin-floating-bg: oklch(0.992 0.002 247 / 92%);
-\t--skin-floating-shadow: inset 0 1px 0 rgb(255 255 255 / 0.78), 0 24px 54px -22px rgb(15 23 42 / 0.42), 0 8px 20px -14px rgb(15 23 42 / 0.28);
-\t--skin-floating-backdrop: blur(18px) saturate(1.12);
-\t--skin-floating-bg-image: linear-gradient(to bottom, rgb(255 255 255 / 0.62), rgb(255 255 255 / 0.16));
+}
+
+:root {
+\t--skin-popover-bg: color-mix(in oklch, var(--canvas) 88%, transparent);
 }`;
 
 const usageCode = `<button class="skin-action rounded-full px-4 py-2">
 \tSave changes
 </button>
 
-<div class="skin-raised rounded-2xl p-4">
+<div class="skin-card rounded-2xl p-4">
 \t<p class="text-sm text-muted-fg">Use secondary text inside a card.</p>
 </div>
 
-<div class="skin-floating rounded-2xl p-2">
+<div class="skin-popover rounded-2xl p-2">
 \t<button class="rounded-xl px-3 py-2 hover:bg-accent hover:text-accent-fg">
 \t\tOpen project
 \t</button>
@@ -594,8 +564,9 @@ const appearanceCode = computed(() => editableAppearanceTokens
 	.map((token) => `\t${token.name}: ${appearanceCssValue(token.name)};`)
 	.join('\n'));
 const skinCode = computed(() => skinLevels.map((level) => skinPropertyDefinitions
+	.filter((property) => isSkinTokenOverride(level.name, property))
 	.map((property) => `\t${skinTokenName(level.name, property)}: ${skinCssValue(level.name, property)};`)
-	.join('\n')).join('\n'));
+	.join('\n')).filter(Boolean).join('\n'));
 const themeEditorCode = computed(() => [
 	`:root {\n${appearanceCode.value}\n${skinCode.value ? `\n${skinCode.value}` : ''}\n}`,
 	...themeModes.map((mode) => `${mode.selector} {\n${editableColorTokens
@@ -642,6 +613,12 @@ function skinCssValue(levelName, property) {
 	return normalizeSkinValue(property, skinValue(levelName, property)) || skinTokenDefaults[levelName][property.key];
 }
 
+function isSkinTokenOverride(levelName, property) {
+	const value = skinCssValue(levelName, property);
+	return value !== skinTokenDefaults[levelName][property.key]
+		&& value !== defaultSkinStyleValues[levelName]?.[property.key];
+}
+
 function syncSkinStyleBuilders() {
 	for (const level of skinLevels) {
 		Object.assign(skinValues[level.name], cssStyleValues(skinStyleStates[level.name]));
@@ -652,8 +629,9 @@ function syncSkinStyleBuilders() {
 function resetSkinStyleBuilders() {
 	for (const level of skinLevels) {
 		replaceCssComponentStyle(skinStyleStates[level.name], createSkinStyleState(level.name, skinTokenDefaults[level.name]));
+		Object.assign(skinValues[level.name], skinTokenDefaults[level.name]);
 	}
-	syncSkinStyleBuilders();
+	applyActiveTheme();
 }
 
 function updateSkinStyleStateFromValues(levelName, values = {}) {
@@ -674,7 +652,7 @@ function updateSkinStyleStateFromValues(levelName, values = {}) {
 }
 
 function skinPreviewStyle(level) {
-	return Object.fromEntries(skinPropertyDefinitions.map((property) => [
+	return Object.fromEntries(skinPropertyDefinitions.filter((property) => isSkinTokenOverride(level.name, property)).map((property) => [
 		skinTokenName(level.name, property),
 		skinCssValue(level.name, property),
 	]));
@@ -732,7 +710,11 @@ function applyActiveTheme() {
 		document.documentElement.style.setProperty(token.name, appearanceCssValue(token.name));
 	}
 	for (const token of editableSkinTokens) {
-		document.documentElement.style.setProperty(token.name, skinCssValue(token.level, token.property));
+		if (isSkinTokenOverride(token.level, token.property)) {
+			document.documentElement.style.setProperty(token.name, skinCssValue(token.level, token.property));
+		} else {
+			document.documentElement.style.removeProperty(token.name);
+		}
 	}
 	for (const token of editableColorTokens) {
 		document.documentElement.style.setProperty(token.name, hexToOklch(tokenHexValues[activeMode.value][token.name]));
@@ -752,7 +734,7 @@ function clearAppliedTheme() {
 	}
 }
 
-watch(skinStyleStates, syncSkinStyleBuilders, { deep: true, immediate: true });
+watch(skinStyleStates, syncSkinStyleBuilders, { deep: true });
 
 function hydrateAppearanceFromDocument() {
 	if (typeof document === 'undefined') return;
@@ -1039,8 +1021,8 @@ function createLocalTheme(prompt = '') {
 		appearance: createLocalAppearance(prompt),
 		skins: createLocalSkins(prompt),
 		light: {
-			'--background': hslToHex(hue, 34, 98),
-			'--fg': hslToHex(hue, 26, 10),
+			'--canvas': hslToHex(hue, 34, 98),
+			'--canvas-fg': hslToHex(hue, 26, 10),
 			'--primary': hslToHex(hue, primarySaturation, primaryLightness),
 			'--primary-fg': contrastText(hue, primarySaturation, primaryLightness),
 			'--secondary': hslToHex(hue, 38, 93),
@@ -1060,8 +1042,8 @@ function createLocalTheme(prompt = '') {
 			'--ring': hslToHex(hue, primarySaturation, Math.min(primaryLightness + 12, 58)),
 		},
 		dark: {
-			'--background': hslToHex(hue, 26, 8),
-			'--fg': hslToHex(hue, 20, 96),
+			'--canvas': hslToHex(hue, 26, 8),
+			'--canvas-fg': hslToHex(hue, 20, 96),
 			'--primary': hslToHex(hue, primarySaturation, bold ? 68 : 72),
 			'--primary-fg': hslToHex(hue, 28, 9),
 			'--secondary': hslToHex(hue, 22, 18),
@@ -1113,7 +1095,7 @@ function createLocalSkins(prompt = '') {
 			: whacky
 				? `0 0 0 1px color-mix(in oklch, var(--primary) 24%, transparent), 0 18px 50px -20px rgb(${shadowColor} / 0.38)`
 				: 'var(--shadow-sm)';
-	const floatingShadow = flat
+	const popoverShadow = flat
 		? 'var(--shadow-sm)'
 		: glass
 			? `0 1px 0 color-mix(in oklch, white 55%, transparent) inset, 0 -1px 0 color-mix(in oklch, black 12%, transparent) inset, 0 24px 64px -26px rgb(${shadowColor} / 0.42)`
@@ -1122,45 +1104,39 @@ function createLocalSkins(prompt = '') {
 				: 'var(--shadow-xl)';
 
 	return {
-		base: {
-			...skinTokenDefaults.base,
-			bgImage: whacky
-				? 'radial-gradient(circle at top left, color-mix(in oklch, var(--primary) 18%, transparent), transparent 34%), radial-gradient(circle at bottom right, color-mix(in oklch, var(--accent) 18%, transparent), transparent 40%)'
-				: 'none',
-		},
-		raised: {
-			...skinTokenDefaults.raised,
+		card: {
+			...skinTokenDefaults.card,
 			bg: glass
-				? 'color-mix(in oklch, var(--background) 76%, transparent)'
-				: skinTokenDefaults.raised.bg,
+				? 'color-mix(in oklch, var(--canvas) 76%, transparent)'
+				: skinTokenDefaults.card.bg,
 			border: softBorder,
 			shadow: liftedShadow,
 			backdrop: glass ? 'blur(18px) saturate(1.16)' : 'none',
 			bgImage: softGradient,
 		},
-		floating: {
-			...skinTokenDefaults.floating,
+		popover: {
+			...skinTokenDefaults.popover,
 			bg: glass
-				? 'color-mix(in oklch, var(--background) 72%, transparent)'
-				: skinTokenDefaults.floating.bg,
+				? 'color-mix(in oklch, var(--canvas) 72%, transparent)'
+				: skinTokenDefaults.popover.bg,
 			border: softBorder,
-			shadow: floatingShadow,
-			backdrop: glass ? 'blur(22px) saturate(1.2)' : skinTokenDefaults.floating.backdrop,
+			shadow: popoverShadow,
+			backdrop: glass ? 'blur(22px) saturate(1.2)' : skinTokenDefaults.popover.backdrop,
 			bgImage: softGradient,
 		},
 		overlay: {
 			...skinTokenDefaults.overlay,
 			bg: glass
-				? 'color-mix(in oklch, var(--background) 74%, transparent)'
+				? 'color-mix(in oklch, var(--canvas) 74%, transparent)'
 				: skinTokenDefaults.overlay.bg,
 			border: softBorder,
-			shadow: flat ? 'var(--shadow-md)' : floatingShadow,
+			shadow: flat ? 'var(--shadow-md)' : popoverShadow,
 			backdrop: glass ? 'blur(26px) saturate(1.22)' : skinTokenDefaults.overlay.backdrop,
 			bgImage: softGradient,
 		},
-		inset: {
-			...skinTokenDefaults.inset,
-			shadow: flat ? 'none' : skinTokenDefaults.inset.shadow,
+		input: {
+			...skinTokenDefaults.input,
+			shadow: flat ? 'none' : skinTokenDefaults.input.shadow,
 		},
 		control: {
 			...skinTokenDefaults.control,
@@ -1332,7 +1308,7 @@ onBeforeUnmount(() => {
 		>
 			<DocSection eyebrow="Model" title="Colour and fg pairs">
 				<div class="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-					<div class="rounded-3xl border border-border skin-raised p-6 text-fg shadow-xl shadow-black/5">
+					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg shadow-xl shadow-black/5">
 						<p class="text-sm leading-6 text-muted-fg">
 							Use the base token when you are painting a background. Use the matching
 							<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">*-fg</code>
@@ -1344,27 +1320,27 @@ onBeforeUnmount(() => {
 								<p class="mt-2 text-lg font-semibold">bg-primary</p>
 								<p class="mt-1 text-sm opacity-80">text-primary-fg</p>
 							</div>
-							<div class="rounded-2xl border border-border bg-secondary p-4 text-fg">
+							<div class="rounded-2xl border border-border bg-secondary p-4 text-canvas-fg">
 								<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Quiet panel</p>
 								<p class="mt-2 text-lg font-semibold">bg-secondary</p>
-								<p class="mt-1 text-sm text-muted-fg">text-secondary-fg or text-fg</p>
+								<p class="mt-1 text-sm text-muted-fg">text-secondary-fg or text-canvas-fg</p>
 							</div>
 						</div>
 					</div>
 					<div class="rounded-3xl border border-border bg-secondary/50 p-6">
-						<p class="text-sm font-semibold text-fg">Token naming convention</p>
+						<p class="text-sm font-semibold text-canvas-fg">Token naming convention</p>
 						<dl class="mt-4 space-y-3 text-sm">
-							<div class="rounded-2xl border border-border bg-background p-3">
+							<div class="rounded-2xl border border-border bg-canvas p-3">
 								<dt class="font-mono text-xs text-muted-fg">Bg token</dt>
-								<dd class="mt-1 font-mono text-fg">DOM Studio --primary</dd>
+								<dd class="mt-1 font-mono text-canvas-fg">DOM Studio --primary</dd>
 							</div>
-							<div class="rounded-2xl border border-border bg-background p-3">
+							<div class="rounded-2xl border border-border bg-canvas p-3">
 								<dt class="font-mono text-xs text-muted-fg">Fg token</dt>
-								<dd class="mt-1 font-mono text-fg">DOM Studio --primary-fg</dd>
+								<dd class="mt-1 font-mono text-canvas-fg">DOM Studio --primary-fg</dd>
 							</div>
-							<div class="rounded-2xl border border-border bg-background p-3">
+							<div class="rounded-2xl border border-border bg-canvas p-3">
 								<dt class="font-mono text-xs text-muted-fg">Added pairs</dt>
-								<dd class="mt-1 font-mono text-fg">primary, secondary, muted, accent, status</dd>
+								<dd class="mt-1 font-mono text-canvas-fg">primary, secondary, muted, accent, status</dd>
 							</div>
 						</dl>
 					</div>
@@ -1372,11 +1348,11 @@ onBeforeUnmount(() => {
 			</DocSection>
 
 			<DocSection eyebrow="At a glance" title="Read the theme as product UI">
-				<div class="overflow-hidden rounded-3xl border border-border bg-background shadow-2xl shadow-black/5">
-					<div class="border-b border-border skin-raised px-5 py-4">
+				<div class="overflow-hidden rounded-3xl border border-border bg-canvas shadow-2xl shadow-black/5">
+					<div class="border-b border-border skin-card px-5 py-4">
 						<div class="flex flex-wrap items-center justify-between gap-3">
 							<div>
-								<p class="text-sm font-semibold text-fg">Project dashboard</p>
+								<p class="text-sm font-semibold text-canvas-fg">Project dashboard</p>
 								<p class="text-xs text-muted-fg">Example composition using only semantic tokens.</p>
 							</div>
 							<div class="flex items-center gap-2">
@@ -1387,7 +1363,7 @@ onBeforeUnmount(() => {
 					</div>
 					<div class="grid gap-4 p-5 lg:grid-cols-[1fr_18rem]">
 						<div class="space-y-4">
-							<div class="rounded-2xl border border-border skin-raised p-4 text-fg">
+							<div class="rounded-2xl border border-border skin-card p-4 text-canvas-fg">
 								<div class="flex items-start justify-between gap-4">
 									<div>
 										<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Revenue</p>
@@ -1401,7 +1377,7 @@ onBeforeUnmount(() => {
 							</div>
 							<div class="grid gap-4 sm:grid-cols-2">
 								<div class="rounded-2xl border border-border bg-secondary/70 p-4">
-									<p class="text-sm font-medium text-fg">Quiet panel</p>
+									<p class="text-sm font-medium text-canvas-fg">Quiet panel</p>
 									<p class="mt-1 text-sm text-muted-fg">Secondary skins group nearby controls without demanding attention.</p>
 								</div>
 								<div class="rounded-2xl border border-warning/40 bg-warning/15 p-4 text-warning">
@@ -1410,7 +1386,7 @@ onBeforeUnmount(() => {
 								</div>
 							</div>
 						</div>
-						<div class="space-y-3 rounded-2xl border border-border skin-floating p-3 text-fg shadow-xl shadow-black/10">
+						<div class="space-y-3 rounded-2xl border border-border skin-popover p-3 text-canvas-fg shadow-xl shadow-black/10">
 							<p class="px-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Command menu</p>
 							<button class="block w-full rounded-xl bg-accent px-3 py-2 text-left text-sm font-medium text-accent-fg">Open project</button>
 							<button class="block w-full rounded-xl px-3 py-2 text-left text-sm text-muted-fg hover:bg-accent hover:text-accent-fg">Invite teammate</button>
@@ -1421,20 +1397,20 @@ onBeforeUnmount(() => {
 			</DocSection>
 
 			<DocSection eyebrow="Editor" title="Tune CSS variable colours">
-				<div class="space-y-4 rounded-2xl border border-border skin-raised p-4 text-fg">
+				<div class="space-y-4 rounded-2xl border border-border skin-card p-4 text-canvas-fg">
 					<div class="flex flex-wrap items-start justify-between gap-3">
 						<div>
-							<p class="text-sm font-semibold text-fg">{{ activeToken.label }} - {{ activeMode }}</p>
+							<p class="text-sm font-semibold text-canvas-fg">{{ activeToken.label }} - {{ activeMode }}</p>
 							<p class="font-mono text-xs text-muted-fg">{{ activeToken.name }}: {{ activeTokenValue }}</p>
 						</div>
 						<div class="flex flex-wrap items-center gap-2">
-							<div class="inline-flex rounded-full border border-border bg-background p-1">
+							<div class="inline-flex rounded-full border border-border bg-canvas p-1">
 								<button
 									v-for="mode in themeModes"
 									:key="mode.value"
 									type="button"
 									class="rounded-full px-3 py-1.5 text-sm font-medium transition-colors"
-									:class="activeMode === mode.value ? 'bg-primary text-primary-fg shadow-sm' : 'text-muted-fg hover:text-fg'"
+									:class="activeMode === mode.value ? 'bg-primary text-primary-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'"
 									@click="setEditorMode(mode.value)"
 								>
 									Preview {{ mode.label }}
@@ -1442,7 +1418,7 @@ onBeforeUnmount(() => {
 							</div>
 							<button
 								type="button"
-								class="rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-secondary"
+								class="rounded-full border border-border bg-canvas px-4 py-2 text-sm font-medium text-canvas-fg transition-colors hover:bg-secondary"
 								@click="resetColorTokens"
 							>
 								Reset
@@ -1456,12 +1432,12 @@ onBeforeUnmount(() => {
 								id="theme-ai-prompt"
 								v-model="aiThemePrompt"
 								type="text"
-								class="h-10 min-w-0 rounded-lg border border-input bg-background px-3 text-sm text-fg outline-none transition-colors focus:border-ring"
+								class="h-10 min-w-0 rounded-lg border border-input bg-canvas px-3 text-sm text-canvas-fg outline-none transition-colors focus:border-ring"
 								placeholder="brand color is yellow and big and bold"
 							>
 							<button
 								type="button"
-								class="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-secondary"
+								class="rounded-lg border border-border bg-canvas px-4 py-2 text-sm font-medium text-canvas-fg transition-colors hover:bg-secondary"
 								@click="generateRandomTheme"
 							>
 								Random mix
@@ -1476,7 +1452,7 @@ onBeforeUnmount(() => {
 							</button>
 							<button
 								type="button"
-								class="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-secondary disabled:pointer-events-none disabled:opacity-50"
+								class="rounded-lg border border-border bg-canvas px-4 py-2 text-sm font-medium text-canvas-fg transition-colors hover:bg-secondary disabled:pointer-events-none disabled:opacity-50"
 								:disabled="!hasGeneratedTheme"
 								@click="downloadThemeCss"
 							>
@@ -1492,21 +1468,21 @@ onBeforeUnmount(() => {
 						<section
 							v-for="group in appearanceTokenGroups"
 							:key="group.label"
-							class="rounded-2xl border border-border skin-raised p-4 text-fg"
+							class="rounded-2xl border border-border skin-card p-4 text-canvas-fg"
 						>
 							<div>
-								<p class="text-sm font-semibold text-fg">{{ group.label }}</p>
+								<p class="text-sm font-semibold text-canvas-fg">{{ group.label }}</p>
 								<p class="mt-1 text-sm text-muted-fg">{{ group.description }}</p>
 							</div>
 							<div class="mt-4 space-y-4">
 								<label
 									v-for="token in group.tokens"
 									:key="token.name"
-									class="block rounded-xl border border-border bg-background p-3"
+									class="block rounded-xl border border-border bg-canvas p-3"
 								>
 									<span class="flex items-start justify-between gap-3">
 										<span class="min-w-0">
-											<span class="block text-sm font-medium text-fg">{{ token.label }}</span>
+											<span class="block text-sm font-medium text-canvas-fg">{{ token.label }}</span>
 											<span class="mt-0.5 block font-mono text-xs text-muted-fg">{{ token.name }}: {{ appearanceDisplayValue(token) }}</span>
 										</span>
 										<span
@@ -1529,7 +1505,7 @@ onBeforeUnmount(() => {
 									<input
 										v-else
 										type="color"
-										class="mt-3 h-10 w-full cursor-pointer rounded-lg border border-border bg-background p-1"
+										class="mt-3 h-10 w-full cursor-pointer rounded-lg border border-border bg-canvas p-1"
 										:value="appearanceValues[token.name]"
 										:aria-label="token.label"
 										@input="updateAppearanceToken(token, $event.target.value)"
@@ -1538,14 +1514,14 @@ onBeforeUnmount(() => {
 								</label>
 							</div>
 						</section>
-						<div class="rounded-2xl border border-border skin-raised p-4 text-fg">
+						<div class="rounded-2xl border border-border skin-card p-4 text-canvas-fg">
 							<div>
-								<p class="text-sm font-semibold text-fg">Shape preview</p>
+								<p class="text-sm font-semibold text-canvas-fg">Shape preview</p>
 								<p class="mt-1 text-sm text-muted-fg">Radius is still global because it affects every rounded utility.</p>
 							</div>
 							<div class="mt-4 space-y-4">
-								<div class="border border-border bg-background p-4" :style="appearancePreviewStyle()">
-									<p class="text-sm font-semibold text-fg">Rounded frame</p>
+								<div class="border border-border bg-canvas p-4" :style="appearancePreviewStyle()">
+									<p class="text-sm font-semibold text-canvas-fg">Rounded frame</p>
 									<p class="mt-1 text-sm text-muted-fg">Uses the same radius scale as components.</p>
 								</div>
 								<div class="grid grid-cols-3 gap-2">
@@ -1556,16 +1532,16 @@ onBeforeUnmount(() => {
 							</div>
 						</div>
 					</div>
-					<section class="rounded-2xl border border-border skin-raised p-4 text-fg">
+					<section class="rounded-2xl border border-border skin-card p-4 text-canvas-fg">
 						<div>
-							<p class="text-sm font-semibold text-fg">Skin recipes</p>
+							<p class="text-sm font-semibold text-canvas-fg">Skin recipes</p>
 							<p class="mt-1 text-sm text-muted-fg">These Tailwind-like utilities carry material, border, shadow, blur, and gradient from variables.</p>
 						</div>
 						<div class="mt-4 grid gap-4 2xl:grid-cols-2">
 							<article
 								v-for="level in skinLevels"
 								:key="level.name"
-								class="rounded-xl border border-border bg-background p-3"
+								class="rounded-xl border border-border bg-canvas p-3"
 							>
 								<div
 									class="min-h-24 rounded-xl p-4"
@@ -1591,18 +1567,18 @@ onBeforeUnmount(() => {
 					<div
 						v-for="mode in themeModes"
 						:key="mode.value"
-						class="relative rounded-2xl border border-border skin-raised text-fg"
+						class="relative rounded-2xl border border-border skin-card text-canvas-fg"
 						:data-theme="mode.value"
 						:style="themeColumnStyle(mode.value)"
 					>
 						<div class="flex items-center justify-between gap-3 border-b border-border bg-secondary/45 px-4 py-3">
 							<div>
-								<p class="text-sm font-semibold text-fg">{{ mode.label }} mode</p>
+								<p class="text-sm font-semibold text-canvas-fg">{{ mode.label }} mode</p>
 								<p class="text-xs text-muted-fg">{{ mode.selector }}</p>
 							</div>
 							<button
 								type="button"
-								class="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-fg transition-colors hover:bg-secondary"
+								class="rounded-full border border-border bg-canvas px-3 py-1.5 text-xs font-medium text-canvas-fg transition-colors hover:bg-secondary"
 								@click="setEditorMode(mode.value)"
 							>
 								Preview
@@ -1613,7 +1589,7 @@ onBeforeUnmount(() => {
 								<div class="bg-secondary/30 px-4 py-3">
 									<div class="flex items-center justify-between gap-3">
 										<div class="min-w-0">
-											<p class="truncate text-sm font-semibold text-fg">{{ group.label }}</p>
+											<p class="truncate text-sm font-semibold text-canvas-fg">{{ group.label }}</p>
 											<p class="mt-0.5 line-clamp-2 text-xs text-muted-fg">{{ group.description }}</p>
 										</div>
 										<DomPopover
@@ -1644,7 +1620,7 @@ onBeforeUnmount(() => {
 													<label
 														v-for="token in groupPairTokens(group)"
 														:key="token.name"
-														class="relative grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-lg border border-border bg-background px-2.5 py-2 transition-colors hover:border-ring"
+														class="relative grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-lg border border-border bg-canvas px-2.5 py-2 transition-colors hover:border-ring"
 													>
 														<span
 															class="size-6 rounded-md border border-border shadow-sm"
@@ -1689,7 +1665,7 @@ onBeforeUnmount(() => {
 										<span class="min-w-0 flex-1">
 											<span class="flex flex-wrap items-center gap-2">
 												<span class="truncate text-sm font-medium">{{ token.label }}</span>
-												<span class="rounded-full bg-background/70 px-2 py-0.5 text-[11px] font-medium text-muted-fg ring-1 ring-border">{{ token.role }}</span>
+												<span class="rounded-full bg-canvas/70 px-2 py-0.5 text-[11px] font-medium text-muted-fg ring-1 ring-border">{{ token.role }}</span>
 											</span>
 											<span class="mt-0.5 block truncate font-mono text-xs opacity-70">{{ token.name }}: {{ tokenOklch(mode.value, token.name) }}</span>
 										</span>
@@ -1717,7 +1693,7 @@ onBeforeUnmount(() => {
 					<article
 						v-for="pair in tokenPairs"
 						:key="pair.name"
-						class="overflow-hidden rounded-2xl border border-border skin-raised text-fg"
+						class="overflow-hidden rounded-2xl border border-border skin-card text-canvas-fg"
 					>
 						<div class="flex min-h-28 items-end p-4" :style="swatchStyle(pair)">
 							<div>
@@ -1731,7 +1707,7 @@ onBeforeUnmount(() => {
 								<div class="flex items-center justify-between gap-3">
 									<span class="text-muted-fg">Bg</span>
 									<label class="relative flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-secondary">
-										<code class="font-mono text-fg">{{ pair.bg }}</code>
+										<code class="font-mono text-canvas-fg">{{ pair.bg }}</code>
 										<span
 											class="size-3 rounded-full ring-1 ring-border"
 											:style="variableSwatchStyle(pair.bg)"
@@ -1749,7 +1725,7 @@ onBeforeUnmount(() => {
 								<div class="flex items-center justify-between gap-3">
 									<span class="text-muted-fg">Fg</span>
 									<label class="relative flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-secondary">
-										<code class="font-mono text-fg">{{ pair.fg }}</code>
+										<code class="font-mono text-canvas-fg">{{ pair.fg }}</code>
 										<span
 											class="size-3 rounded-full ring-1 ring-border"
 											:style="variableSwatchStyle(pair.fg)"
@@ -1773,7 +1749,7 @@ onBeforeUnmount(() => {
 					<article
 						v-for="token in utilityTokens"
 						:key="token.name"
-						class="rounded-2xl border border-border skin-raised p-4 text-fg"
+						class="rounded-2xl border border-border skin-card p-4 text-canvas-fg"
 					>
 						<div class="flex items-center gap-3">
 							<span class="size-10 rounded-xl ring-1 ring-border" :style="utilitySwatchStyle(token)"></span>
@@ -1798,9 +1774,9 @@ onBeforeUnmount(() => {
 								<th class="px-4 py-3 font-semibold">Rule of thumb</th>
 							</tr>
 						</thead>
-						<tbody class="divide-y divide-border bg-background">
+						<tbody class="divide-y divide-border bg-canvas">
 							<tr v-for="row in decisionRows" :key="row[0]">
-								<td class="px-4 py-3 font-medium text-fg">{{ row[0] }}</td>
+								<td class="px-4 py-3 font-medium text-canvas-fg">{{ row[0] }}</td>
 								<td class="px-4 py-3"><code class="font-mono text-xs text-muted-fg">{{ row[1] }}</code></td>
 								<td class="px-4 py-3 text-muted-fg">{{ row[2] }}</td>
 							</tr>

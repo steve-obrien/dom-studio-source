@@ -369,7 +369,7 @@ const htmlEntries = [
 		icon: '▢',
 		accepts: 'children',
 		defaults: {
-			props: { class: 'flex flex-col gap-3 rounded-2xl border border-border bg-background p-6' },
+			props: { class: 'flex flex-col gap-3 rounded-2xl border border-border bg-canvas p-6' },
 		},
 	},
 	{
@@ -389,7 +389,7 @@ const htmlEntries = [
 		icon: 'H',
 		accepts: 'children',
 		defaults: {
-			props: { class: 'text-2xl font-bold tracking-tight text-fg' },
+			props: { class: 'text-2xl font-bold tracking-tight text-canvas-fg' },
 			children: [{ id: null, text: 'Heading' }],
 		},
 	},

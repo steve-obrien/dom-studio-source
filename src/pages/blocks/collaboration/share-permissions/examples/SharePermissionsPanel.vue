@@ -214,8 +214,8 @@ function policyClasses(status) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-raised px-4 py-4 sm:px-5">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-card px-4 py-4 sm:px-5">
 			<div>
 				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Object sharing</p>
 				<h3 class="mt-1 text-xl font-semibold tracking-tight">Share permissions</h3>
@@ -232,17 +232,17 @@ function policyClasses(status) {
 		</header>
 
 		<div class="grid min-h-[45rem] lg:grid-cols-[18rem_minmax(0,1fr)_19rem]">
-			<aside class="border-b border-border skin-raised p-3 lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card p-3 lg:border-b-0 lg:border-r">
 				<div class="mb-3 grid grid-cols-3 gap-2 text-center">
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">{{ activeCollaborators }}</p>
 						<p class="text-[11px] text-muted-fg">Active</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">{{ pendingInvites.length }}</p>
 						<p class="text-[11px] text-muted-fg">Invites</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">{{ accessScore }}</p>
 						<p class="text-[11px] text-muted-fg">Safety</p>
 					</div>
@@ -254,7 +254,7 @@ function policyClasses(status) {
 						:key="resource.id"
 						type="button"
 						class="w-full rounded-lg border p-3 text-left transition hover:border-primary/50"
-						:class="resource.id === selectedResource.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-background'"
+						:class="resource.id === selectedResource.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-canvas'"
 						@click="selectResource(resource)"
 					>
 						<div class="flex items-start justify-between gap-2">
@@ -428,12 +428,12 @@ function policyClasses(status) {
 				</section>
 			</main>
 
-			<aside class="border-t border-border skin-raised p-4 lg:border-l lg:border-t-0">
+			<aside class="border-t border-border skin-card p-4 lg:border-l lg:border-t-0">
 				<div class="space-y-5">
 					<section>
 						<div class="flex items-center justify-between gap-3">
 							<h4 class="font-semibold">Safety review</h4>
-							<span class="rounded-full bg-background px-2 py-0.5 text-xs font-semibold text-muted-fg">{{ accessScore }}%</span>
+							<span class="rounded-full bg-canvas px-2 py-0.5 text-xs font-semibold text-muted-fg">{{ accessScore }}%</span>
 						</div>
 						<div class="mt-3 h-2 rounded-full bg-secondary">
 							<div class="h-full rounded-full bg-primary" :style="{ width: `${accessScore}%` }" />

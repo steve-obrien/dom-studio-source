@@ -58,7 +58,7 @@ const classes = computed(() => [
 	<div :class="classes">
 		<div :class="align === 'left' ? 'items-start' : 'items-center'" class="flex flex-col">
 			<slot name="icon">
-				<div class="grid size-11 place-items-center rounded-2xl bg-background text-muted-fg ring-1 ring-border">
+				<div class="grid size-11 place-items-center rounded-2xl bg-canvas text-muted-fg ring-1 ring-border">
 					<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
 						<path :d="icon" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
 					</svg>
@@ -66,7 +66,7 @@ const classes = computed(() => [
 			</slot>
 			<div class="mt-4 max-w-md">
 				<slot name="title">
-					<h3 class="text-base font-semibold tracking-tight text-fg">{{ title }}</h3>
+					<h3 class="text-base font-semibold tracking-tight text-canvas-fg">{{ title }}</h3>
 				</slot>
 				<slot name="description">
 					<p class="mt-2 text-sm leading-6 text-muted-fg">{{ description }}</p>

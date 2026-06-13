@@ -28,8 +28,8 @@ const doc = DomToolbar.__doc;
 					title="Toolbar playground"
 					description="Use DomToolbar to group icon buttons, dropdowns, toggles, filters, and overflow menus."
 				>
-					<button class="rounded-xl px-3 py-2 text-sm font-medium text-fg transition hover:bg-secondary">One</button>
-					<button class="rounded-xl px-3 py-2 text-sm font-medium text-fg transition hover:bg-secondary">Two</button>
+					<button class="rounded-xl px-3 py-2 text-sm font-medium text-canvas-fg transition hover:bg-secondary">One</button>
+					<button class="rounded-xl px-3 py-2 text-sm font-medium text-canvas-fg transition hover:bg-secondary">Two</button>
 				</Playground>
 			</DocSection>
 

@@ -32,7 +32,7 @@ const contacts = [
 				<span class="truncate">{{ item.description ? item.label : value }}</span>
 				<button
 					type="button"
-					class="-mr-1 inline-flex size-4 items-center justify-center rounded-full text-muted-fg hover:bg-background hover:text-fg"
+					class="-mr-1 inline-flex size-4 items-center justify-center rounded-full text-muted-fg hover:bg-canvas hover:text-canvas-fg"
 					:aria-label="`Remove ${value}`"
 					@click.stop="remove"
 					@mousedown.prevent
@@ -45,7 +45,7 @@ const contacts = [
 		</DomTagCombobox>
 
 		<div class="rounded-2xl border border-border bg-secondary/40 p-4 text-sm">
-			<p class="font-medium text-fg">Recipients</p>
+			<p class="font-medium text-canvas-fg">Recipients</p>
 			<p class="mt-1 break-all font-mono text-xs text-muted-fg">{{ recipients.join(', ') || 'None' }}</p>
 		</div>
 	</div>

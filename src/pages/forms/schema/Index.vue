@@ -192,7 +192,7 @@ const relationships = [
 							href="https://form.io/form-json-schema-vs-submission/"
 							target="_blank"
 							rel="noreferrer"
-							class="font-medium text-fg underline underline-offset-4"
+							class="font-medium text-canvas-fg underline underline-offset-4"
 						>Form.io's schema/submission model</a>:
 						the definition and the submitted values are related, but they should not be
 						stored as one thing.
@@ -200,7 +200,7 @@ const relationships = [
 					<p>
 						DOM Studio uses a typed form definition as the practical authoring format. It can
 						normalize to renderable
-						<code class="font-mono text-fg">children</code>
+						<code class="font-mono text-canvas-fg">children</code>
 						and project toward JSON Schema when a portable data contract is needed.
 					</p>
 				</div>
@@ -209,7 +209,7 @@ const relationships = [
 			<DocSection eyebrow="Example" title="Definition and values">
 				<div class="grid gap-4 lg:grid-cols-2">
 					<div class="space-y-3">
-						<h3 class="text-sm font-semibold text-fg">Form definition</h3>
+						<h3 class="text-sm font-semibold text-canvas-fg">Form definition</h3>
 						<p class="text-sm leading-6 text-muted-fg">
 							The definition records the data type first. A component can be inferred from
 							that type, or overridden when the default renderer is not specific enough.
@@ -217,7 +217,7 @@ const relationships = [
 						<CodeBlock lang="js" :code="formSchemaCode" />
 					</div>
 					<div class="space-y-3">
-						<h3 class="text-sm font-semibold text-fg">Form data</h3>
+						<h3 class="text-sm font-semibold text-canvas-fg">Form data</h3>
 						<p class="text-sm leading-6 text-muted-fg">
 							The model only contains the values keyed by field names.
 						</p>
@@ -231,16 +231,16 @@ const relationships = [
 					<div class="space-y-4 text-sm leading-6 text-muted-fg">
 						<p>
 							Keyed
-							<code class="font-mono text-fg">properties</code>
+							<code class="font-mono text-canvas-fg">properties</code>
 							match JSON Schema's object shape and avoid repeating the field name inside
 							every child. During normalization, those keys become
-							<code class="font-mono text-fg">props.name</code>.
+							<code class="font-mono text-canvas-fg">props.name</code>.
 						</p>
 						<p>
 							The canonical render shape keeps both
-							<code class="font-mono text-fg">type</code>
+							<code class="font-mono text-canvas-fg">type</code>
 							and
-							<code class="font-mono text-fg">component</code>.
+							<code class="font-mono text-canvas-fg">component</code>.
 							The type describes the data. The component describes the editor currently
 							used to manage that data.
 						</p>
@@ -273,7 +273,7 @@ const relationships = [
 						<p>
 							When a pure JSON Schema needs form-specific information, use a vendor
 							extension such as
-							<code class="font-mono text-fg">x-el</code>.
+							<code class="font-mono text-canvas-fg">x-el</code>.
 							JSON Schema validators can ignore unknown extension keys, while DOM Studio
 							adapters can read them to choose components, placeholders, option labels,
 							inspector hints, and other UI-only details.
@@ -300,7 +300,7 @@ const relationships = [
 						</thead>
 						<tbody class="divide-y divide-border">
 							<tr v-for="row in relationships" :key="row.name">
-								<td class="px-4 py-3 font-medium text-fg">{{ row.name }}</td>
+								<td class="px-4 py-3 font-medium text-canvas-fg">{{ row.name }}</td>
 								<td class="px-4 py-3 text-muted-fg">{{ row.description }}</td>
 								<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">{{ row.example }}</td>
 							</tr>
@@ -343,9 +343,9 @@ const relationships = [
 				<div class="space-y-4 text-sm leading-6 text-muted-fg">
 					<p>
 						Right now, DOM Studio concentrates on the frontend contract:
-						<code class="font-mono text-fg">DomForm</code>
+						<code class="font-mono text-canvas-fg">DomForm</code>
 						normalizes typed definitions into renderable children and stores user input in
-						<code class="font-mono text-fg">v-model</code>.
+						<code class="font-mono text-canvas-fg">v-model</code>.
 					</p>
 					<p>
 						The next layer can add storage metadata without changing that core relationship.

@@ -71,16 +71,16 @@ import RoadmapTimelineSrc from './examples/RoadmapTimeline.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Timeline math</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Timeline math</h3>
 						<p class="mt-2">Store dates as real timestamps, then map them to quarter columns in the UI. Keep the grid derived so fiscal calendar changes do not corrupt roadmap data.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Decision history</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Decision history</h3>
 						<p class="mt-2">Treat status, confidence, and launch-window changes as auditable planning decisions with actor, reason, and customer visibility fields.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include drag-to-reschedule, dependency connectors, customer-visible roadmap mode, capacity overlays, Jira or Linear sync, and release note handoff.</p>
 					</div>
 				</div>

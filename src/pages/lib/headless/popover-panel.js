@@ -3,14 +3,13 @@ import {
 	applyFloatingPosition,
 	autoUpdateFloating,
 } from './floating.js';
-
-const leaveTimers = new WeakMap();
-const leaveDuration = 820;
-const transitionClasses = ['dom-floating-transition'];
-
-function hasFloatingTransition(panel) {
-	return transitionClasses.some((className) => panel?.classList.contains(className));
-}
+import {
+	beginFloatingEffectEnter,
+	beginFloatingEffectLeave,
+	hasFloatingEffect,
+	prepareFloatingEffect,
+	resetFloatingEffectState,
+} from './floating-effect.js';
 
 /** Wire a panel for the native Popover API (top layer + light dismiss). */
 export function preparePopoverPanel(panel, trigger) {
@@ -20,6 +19,7 @@ export function preparePopoverPanel(panel, trigger) {
 	if (!panel.hasAttribute('popover')) {
 		panel.setAttribute('popover', 'auto');
 	}
+	prepareFloatingEffect(panel);
 	trigger?.setAttribute('aria-controls', panel.id);
 }
 
@@ -36,57 +36,43 @@ function sideOf(placement = 'bottom') {
 /** Show a popover panel and anchor it under `trigger` (re-run after top-layer promotion). */
 export function openPopoverPanel(panel, trigger, options = {}, afterPlace) {
 	if (!panel) return;
-	const pendingClose = leaveTimers.get(panel);
-	if (pendingClose) {
-		clearTimeout(pendingClose);
-		leaveTimers.delete(panel);
-	}
 	delete panel.dataset.leaving;
 	delete panel.dataset.skipLeave;
 	panel.dataset.side = sideOf(options.placement);
 	panel.dataset.placement = options.placement || 'bottom';
-	panel.dataset.entering = 'from';
 	const place = () => {
 		if (trigger) positionPopoverPanel(panel, trigger, { ...options, animatePlacement: true });
 		afterPlace?.();
 	};
-	if (!isPopoverOpen(panel)) panel.showPopover?.();
-	place();
-	requestAnimationFrame(() => {
-		place();
-		panel.dataset.entering = 'to';
-		const finish = () => {
-			if (panel.dataset.entering === 'to') delete panel.dataset.entering;
-			panel.removeEventListener('transitionend', finish);
-		};
-		panel.addEventListener('transitionend', finish);
-		setTimeout(finish, 320);
+	const animated = beginFloatingEffectEnter(panel, {
+		beforeMeasure: () => {
+			if (!isPopoverOpen(panel)) panel.showPopover?.();
+			place();
+		},
+		beforeFrame: place,
+		delayFrames: 1,
+		shouldContinue: () => isPopoverOpen(panel),
 	});
+	if (!animated) {
+		if (!isPopoverOpen(panel)) panel.showPopover?.();
+		place();
+	}
 }
 
 function finishClose(panel) {
-	leaveTimers.delete(panel);
 	panel.dataset.skipLeave = 'true';
 	if (isPopoverOpen(panel)) panel.hidePopover?.();
 	delete panel.dataset.skipLeave;
-	delete panel.dataset.leaving;
+	resetFloatingEffectState(panel);
 }
 
 export function closePopoverPanel(panel, { immediate = false } = {}) {
 	if (!panel) return;
-	delete panel.dataset.entering;
-	const pendingClose = leaveTimers.get(panel);
-	if (pendingClose) clearTimeout(pendingClose);
-	if (immediate || !isPopoverOpen(panel) || !hasFloatingTransition(panel)) {
-		finishClose(panel);
-		return;
-	}
-	panel.dataset.leaving = 'from';
-	panel.getBoundingClientRect();
-	requestAnimationFrame(() => {
-		if (panel.dataset.leaving === 'from') panel.dataset.leaving = 'to';
+	beginFloatingEffectLeave(panel, {
+		immediate: immediate || !isPopoverOpen(panel),
+		finish: () => finishClose(panel),
+		shouldContinue: () => isPopoverOpen(panel),
 	});
-	leaveTimers.set(panel, setTimeout(() => finishClose(panel), leaveDuration));
 }
 
 export function isPopoverOpen(panel) {
@@ -160,7 +146,7 @@ export function bindPopoverToggle(panel, handler) {
 		if (
 			e.newState === 'closed'
 			&& panel.dataset.skipLeave !== 'true'
-			&& hasFloatingTransition(panel)
+			&& hasFloatingEffect(panel)
 			&& isPopoverOpen(panel)
 		) {
 			e.preventDefault();

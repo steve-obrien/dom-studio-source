@@ -162,8 +162,8 @@ function barClasses(point) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-lg border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
 				<div>
 					<div class="flex flex-wrap items-center gap-2">
@@ -210,10 +210,10 @@ function barClasses(point) {
 		</section>
 
 		<div class="grid min-h-[48rem] lg:grid-cols-[18rem_minmax(0,1fr)] xl:grid-cols-[18rem_minmax(0,1fr)_21rem]">
-			<aside class="border-b border-border skin-raised lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
 				<div class="p-3">
 					<p class="px-2 pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Component health</p>
-					<div class="divide-y divide-border rounded-lg border border-border bg-background">
+					<div class="divide-y divide-border rounded-lg border border-border bg-canvas">
 						<button
 							v-for="service in visibleServices"
 							:key="service.id"
@@ -323,7 +323,7 @@ function barClasses(point) {
 
 								<ol class="relative space-y-4 border-l border-border pl-5">
 									<li v-for="update in activeIncident.updates" :key="`${activeIncident.id}-${update.time}`" class="relative">
-										<span class="absolute -left-[1.65rem] top-1.5 size-3 rounded-full border-2 border-background" :class="dotClasses(update.state === 'Resolved' ? 'Operational' : 'Degraded')"></span>
+										<span class="absolute -left-[1.65rem] top-1.5 size-3 rounded-full border-2 border-canvas" :class="dotClasses(update.state === 'Resolved' ? 'Operational' : 'Degraded')"></span>
 										<div class="flex flex-wrap items-center gap-2">
 											<p class="text-sm font-semibold">{{ update.state }}</p>
 											<p class="text-xs text-muted-fg">{{ update.time }}</p>
@@ -380,7 +380,7 @@ function barClasses(point) {
 				</section>
 			</main>
 
-			<aside class="skin-raised p-4">
+			<aside class="skin-card p-4">
 				<div class="grid gap-5">
 					<section>
 						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Current incident</p>

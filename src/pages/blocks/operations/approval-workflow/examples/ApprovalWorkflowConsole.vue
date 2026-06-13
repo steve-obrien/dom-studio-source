@@ -195,8 +195,8 @@ function statusClasses(status) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Approval workspace</p>
@@ -218,7 +218,7 @@ function statusClasses(status) {
 		</header>
 
 		<div class="grid min-h-[46rem] lg:grid-cols-[18rem_minmax(0,1fr)_22rem]">
-			<aside class="border-b border-border skin-raised lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
 				<div class="grid grid-cols-3 divide-x divide-border border-b border-border text-center">
 					<div class="px-2 py-3">
 						<p class="text-lg font-semibold">8</p>
@@ -368,7 +368,7 @@ function statusClasses(status) {
 				</section>
 			</main>
 
-			<aside class="skin-raised p-4 sm:p-5">
+			<aside class="skin-card p-4 sm:p-5">
 				<div class="sticky top-4 grid gap-5">
 					<section>
 						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Decision</p>
@@ -380,7 +380,7 @@ function statusClasses(status) {
 								placeholder="Summarize what changed, why it is safe, or what needs to be fixed."
 								:rows="5"
 							/>
-							<div class="grid gap-3 rounded-2xl bg-background p-4">
+							<div class="grid gap-3 rounded-2xl bg-canvas p-4">
 								<DomToggle
 									v-model="notifyRequester"
 									label="Notify requester"
@@ -395,7 +395,7 @@ function statusClasses(status) {
 						</div>
 					</section>
 
-					<section class="rounded-2xl border border-border bg-background p-4">
+					<section class="rounded-2xl border border-border bg-canvas p-4">
 						<p class="text-sm font-semibold">Safety summary</p>
 						<div class="mt-3 space-y-3 text-sm">
 							<div class="flex items-center justify-between gap-3">

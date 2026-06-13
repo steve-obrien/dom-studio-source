@@ -159,9 +159,9 @@ function confidenceClasses(confidence) {
 </script>
 
 <template>
-	<div class="min-h-screen w-full bg-background text-fg">
+	<div class="min-h-screen w-full bg-canvas text-canvas-fg">
 		<div class="mx-auto flex w-full max-w-7xl flex-col gap-4 p-3 sm:p-4 lg:p-6">
-			<header class="rounded-2xl border border-border skin-raised p-4 shadow-xl shadow-black/5">
+			<header class="rounded-2xl border border-border skin-card p-4 shadow-xl shadow-black/5">
 				<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 					<div>
 						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Product planning</p>
@@ -183,22 +183,22 @@ function confidenceClasses(confidence) {
 				</div>
 
 				<div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-					<div class="rounded-xl border border-border bg-background p-3">
+					<div class="rounded-xl border border-border bg-canvas p-3">
 						<p class="text-xs text-muted-fg">Planned effort</p>
 						<p class="mt-1 text-2xl font-semibold">{{ totalEstimate }} pts</p>
 						<p class="mt-1 text-xs text-muted-fg">24 point team capacity</p>
 					</div>
-					<div class="rounded-xl border border-border bg-background p-3">
+					<div class="rounded-xl border border-border bg-canvas p-3">
 						<p class="text-xs text-muted-fg">Release blockers</p>
 						<p class="mt-1 text-2xl font-semibold">{{ blockedIssues.length }}</p>
 						<p class="mt-1 text-xs text-muted-fg">Resolve before sprint close</p>
 					</div>
-					<div class="rounded-xl border border-border bg-background p-3">
+					<div class="rounded-xl border border-border bg-canvas p-3">
 						<p class="text-xs text-muted-fg">Ready for QA</p>
 						<p class="mt-1 text-2xl font-semibold">{{ reviewIssues.length }}</p>
 						<p class="mt-1 text-xs text-muted-fg">Waiting on validation</p>
 					</div>
-					<div class="rounded-xl border border-border bg-background p-3">
+					<div class="rounded-xl border border-border bg-canvas p-3">
 						<p class="text-xs text-muted-fg">Scope health</p>
 						<p class="mt-1 text-2xl font-semibold">92%</p>
 						<p class="mt-1 text-xs text-muted-fg">Based on estimate confidence</p>
@@ -209,9 +209,9 @@ function confidenceClasses(confidence) {
 			<div class="flex flex-wrap items-center justify-between gap-3">
 				<DomToggleButtonGroup v-model="activeView" :options="viewOptions" aria-label="Planning view" />
 				<div class="flex flex-wrap gap-2 text-xs text-muted-fg">
-					<span class="rounded-full border border-border bg-background px-2.5 py-1">6 issues</span>
-					<span class="rounded-full border border-border bg-background px-2.5 py-1">3 owners</span>
-					<span class="rounded-full border border-border bg-background px-2.5 py-1">Next release: Jun 20</span>
+					<span class="rounded-full border border-border bg-canvas px-2.5 py-1">6 issues</span>
+					<span class="rounded-full border border-border bg-canvas px-2.5 py-1">3 owners</span>
+					<span class="rounded-full border border-border bg-canvas px-2.5 py-1">Next release: Jun 20</span>
 				</div>
 			</div>
 
@@ -220,7 +220,7 @@ function confidenceClasses(confidence) {
 					<section
 						v-for="lane in lanes"
 						:key="lane.key"
-						class="min-w-0 rounded-2xl border border-border skin-raised p-3"
+						class="min-w-0 rounded-2xl border border-border skin-card p-3"
 					>
 						<div class="mb-3 flex items-start justify-between gap-3">
 							<div>
@@ -237,7 +237,7 @@ function confidenceClasses(confidence) {
 								v-for="issue in issuesForLane(lane.key)"
 								:key="issue.id"
 								type="button"
-								class="w-full rounded-xl border bg-background p-3 text-left transition hover:border-primary/40 hover:shadow-md"
+								class="w-full rounded-xl border bg-canvas p-3 text-left transition hover:border-primary/40 hover:shadow-md"
 								:class="issue.id === selectedIssue.id ? 'border-primary/60 ring-2 ring-primary/10' : 'border-border'"
 								@click="selectIssue(issue)"
 							>
@@ -274,7 +274,7 @@ function confidenceClasses(confidence) {
 							:key="lane.key"
 							#[lane.key]
 						>
-							<div class="space-y-3 rounded-2xl border border-border skin-raised p-3">
+							<div class="space-y-3 rounded-2xl border border-border skin-card p-3">
 								<div class="flex items-start justify-between gap-3">
 									<div>
 										<h4 class="text-sm font-semibold">{{ selectedLane.label }}</h4>
@@ -288,7 +288,7 @@ function confidenceClasses(confidence) {
 									v-for="issue in issuesForLane(lane.key)"
 									:key="issue.id"
 									type="button"
-									class="w-full rounded-xl border bg-background p-3 text-left transition hover:border-primary/40"
+									class="w-full rounded-xl border bg-canvas p-3 text-left transition hover:border-primary/40"
 									:class="issue.id === selectedIssue.id ? 'border-primary/60 ring-2 ring-primary/10' : 'border-border'"
 									@click="selectIssue(issue)"
 								>

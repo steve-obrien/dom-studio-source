@@ -10,8 +10,8 @@ const messages = [
 </script>
 
 <template>
-	<div class="grid w-full overflow-hidden rounded-3xl border border-border bg-background shadow-2xl shadow-black/10 lg:grid-cols-[12rem_20rem_1fr]">
-		<aside class="hidden border-r border-border skin-raised p-3 lg:block">
+	<div class="grid w-full overflow-hidden rounded-3xl border border-border bg-canvas shadow-2xl shadow-black/10 lg:grid-cols-[12rem_20rem_1fr]">
+		<aside class="hidden border-r border-border skin-card p-3 lg:block">
 			<DomButton class="w-full justify-start">
 				<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 					<path d="M4 20h16M5 16l10.5-10.5 3 3L8 19H5v-3Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
@@ -31,7 +31,7 @@ const messages = [
 		</aside>
 
 		<section class="border-r border-border">
-			<header class="border-b border-border skin-raised p-4 backdrop-blur">
+			<header class="border-b border-border skin-card p-4 backdrop-blur">
 				<div class="flex items-center justify-between gap-3">
 					<h3 class="font-semibold tracking-tight">Inbox</h3>
 					<DomNativeSelect
@@ -45,7 +45,7 @@ const messages = [
 				<button
 					v-for="message in messages"
 					:key="message.subject"
-					class="block w-full bg-background p-4 text-left transition first:bg-secondary/60 hover:bg-secondary"
+					class="block w-full bg-canvas p-4 text-left transition first:bg-secondary/60 hover:bg-secondary"
 				>
 					<div class="flex items-start justify-between gap-3">
 						<p class="text-sm font-semibold">{{ message.from }}</p>

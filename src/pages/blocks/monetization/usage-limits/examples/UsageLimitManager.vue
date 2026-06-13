@@ -109,8 +109,8 @@ function statusClass(status) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Revenue operations</p>
@@ -132,7 +132,7 @@ function statusClass(status) {
 		</header>
 
 		<div class="grid min-h-[46rem] lg:grid-cols-[19rem_minmax(0,1fr)_21rem]">
-			<aside class="border-b border-border skin-raised lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
 				<div class="grid grid-cols-2 border-b border-border text-sm">
 					<div class="px-4 py-3">
 						<p class="text-xs text-muted-fg">Customers</p>
@@ -152,7 +152,7 @@ function statusClass(status) {
 							:key="meter.id"
 							type="button"
 							class="w-full rounded-xl border p-3 text-left transition hover:border-primary/50"
-							:class="meter.id === selectedMeter.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-background'"
+							:class="meter.id === selectedMeter.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-canvas'"
 							@click="selectMeter(meter)"
 						>
 							<div class="flex items-start justify-between gap-3">
@@ -288,7 +288,7 @@ function statusClass(status) {
 								<p class="text-sm font-medium">Grace period</p>
 								<p class="text-xs text-muted-fg">Applies only to grace and billable policies.</p>
 							</div>
-							<select v-model.number="graceHours" class="rounded-lg border border-border bg-background px-3 py-2 text-sm">
+							<select v-model.number="graceHours" class="rounded-lg border border-border bg-canvas px-3 py-2 text-sm">
 								<option :value="0">None</option>
 								<option :value="12">12 hours</option>
 								<option :value="24">24 hours</option>
@@ -320,7 +320,7 @@ function statusClass(status) {
 								<p>{{ exception.meter }} limit</p>
 								<p class="text-xs text-muted-fg">{{ exception.limit }} until {{ exception.expires }}</p>
 							</div>
-							<button type="button" class="justify-self-start rounded-lg px-2 py-1 text-sm font-medium text-muted-fg hover:bg-secondary hover:text-fg md:justify-self-end">
+							<button type="button" class="justify-self-start rounded-lg px-2 py-1 text-sm font-medium text-muted-fg hover:bg-secondary hover:text-canvas-fg md:justify-self-end">
 								Inspect
 							</button>
 						</div>
@@ -328,14 +328,14 @@ function statusClass(status) {
 				</section>
 			</main>
 
-			<aside class="border-t border-border skin-raised lg:border-l lg:border-t-0">
+			<aside class="border-t border-border skin-card lg:border-l lg:border-t-0">
 				<div class="border-b border-border px-4 py-5">
 					<p class="text-sm font-semibold text-muted-fg">Change summary</p>
 					<p class="mt-2 text-xl font-semibold tracking-tight">{{ saveSummary }}</p>
 					<p class="mt-2 text-sm leading-6 text-muted-fg">
 						Alert at {{ softLimit }}%, grace for {{ graceHours }} hours, then enforce the selected overage policy.
 					</p>
-					<div class="mt-4 rounded-xl border border-border bg-background p-3">
+					<div class="mt-4 rounded-xl border border-border bg-canvas p-3">
 						<div class="flex items-start justify-between gap-4">
 							<div>
 								<p class="text-sm font-medium">Approval status</p>

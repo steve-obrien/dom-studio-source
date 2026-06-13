@@ -23,7 +23,7 @@ import { DomButton, DomCard } from '../../../lib/vue';
 					<img
 						src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=96&h=96&q=80"
 						alt=""
-						class="size-12 rounded-full object-cover ring-2 ring-background"
+						class="size-12 rounded-full object-cover ring-2 ring-canvas"
 					>
 					<div>
 						<p class="font-semibold">Avery Stone</p>

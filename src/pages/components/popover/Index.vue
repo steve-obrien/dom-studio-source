@@ -114,9 +114,9 @@ const slotApiExample = `<DomPopover :trigger-id="triggerId(row)" v-slot="{ close
 			</DocSection>
 
 			<DocSection eyebrow="API" title="Closing from content">
-				<div class="rounded-2xl border border-border bg-background p-5 text-sm text-muted-fg">
+				<div class="rounded-2xl border border-border bg-canvas p-5 text-sm text-muted-fg">
 					<p>
-						The default slot is scoped with <code class="text-fg">open</code>, <code class="text-fg">close</code>, and <code class="text-fg">toggle</code>.
+						The default slot is scoped with <code class="text-canvas-fg">open</code>, <code class="text-canvas-fg">close</code>, and <code class="text-canvas-fg">toggle</code>.
 						This is useful for confirmation popovers, menus, and external triggers because the content can control its own popover.
 					</p>
 					<div class="mt-4">

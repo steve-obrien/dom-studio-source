@@ -31,8 +31,8 @@ defineProps({
 <template>
 	<div
 		data-dom-app-shell
-		class="relative isolate flex h-full min-h-0 w-full flex-col overflow-hidden overscroll-none bg-background text-fg"
-		:class="variant === 'card' && 'skin-raised rounded-[2rem]'"
+		class="relative isolate flex h-full min-h-0 w-full flex-col overflow-hidden overscroll-none bg-canvas text-canvas-fg"
+		:class="variant === 'card' && 'skin-card rounded-[2rem]'"
 		style="--dom-mobile-safe-top: env(safe-area-inset-top, 0px); --dom-mobile-safe-bottom: env(safe-area-inset-bottom, 0px);"
 	>
 		<div v-if="$slots.top" class="shrink-0 pt-[var(--dom-mobile-safe-top)]">

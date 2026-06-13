@@ -44,7 +44,7 @@ defineProps({
 
 <template>
 	<header
-		class="skin-raised px-4"
+		class="skin-card px-4"
 		:class="[!border && 'border-0', large ? 'py-4' : 'py-3']"
 	>
 		<div class="flex min-h-11 items-center gap-3">
@@ -54,7 +54,7 @@ defineProps({
 			<div class="min-w-0 flex-1">
 				<h1
 					v-if="title"
-					class="truncate font-semibold tracking-tight text-fg"
+					class="truncate font-semibold tracking-tight text-canvas-fg"
 					:class="large ? 'text-2xl' : 'text-base'"
 				>{{ title }}</h1>
 				<p v-if="subtitle" class="truncate text-xs text-muted-fg">{{ subtitle }}</p>

@@ -19,7 +19,7 @@ const inactiveClasses = ref(['bg-white', 'rounded-xl']);
 		/>
 		<div class="rounded-2xl border border-border bg-secondary/40 p-3 text-xs">
 			<p class="text-muted-fg">Enabled class string</p>
-			<code class="mt-1 block break-all font-mono text-fg">{{ classes || 'None' }}</code>
+			<code class="mt-1 block break-all font-mono text-canvas-fg">{{ classes || 'None' }}</code>
 		</div>
 	</div>
 </template>

@@ -65,16 +65,16 @@ import SupportTicketWorkspaceSrc from './examples/SupportTicketWorkspace.vue?raw
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Queue logic</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Queue logic</h3>
 						<p class="mt-2">Keep sort and filter state outside the block when tickets come from server pagination.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Reply workflow</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Reply workflow</h3>
 						<p class="mt-2">Swap the textarea for your rich text editor if you support templates, variables, or attachments.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Mobile behavior</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Mobile behavior</h3>
 						<p class="mt-2">The queue stacks above the detail view on small screens, keeping the selected ticket visible first.</p>
 					</div>
 				</div>

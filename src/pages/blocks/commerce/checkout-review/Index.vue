@@ -79,16 +79,16 @@ import CheckoutReviewSrc from './examples/CheckoutReview.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Payment safety</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Payment safety</h3>
 						<p class="mt-2">Disable final purchase until inventory, tax, payment, and terms checks pass. Use idempotency keys so retries cannot create duplicate orders.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Pricing accuracy</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Pricing accuracy</h3>
 						<p class="mt-2">Treat displayed totals as a server quote. Refresh totals whenever shipping, address, promo, quantity, or payment method changes.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Reusable address selectors, payment method pickers, split shipment rows, subscription add-ons, wallet buttons, and tax explanation panels would make this block stronger.</p>
 					</div>
 				</div>

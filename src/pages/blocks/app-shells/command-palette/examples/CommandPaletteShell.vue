@@ -81,9 +81,9 @@ function onCommandSelect(event) {
 </script>
 
 <template>
-	<div class="min-h-[42rem] w-full overflow-hidden rounded-lg border border-border bg-background text-fg shadow-2xl shadow-black/10">
+	<div class="min-h-[42rem] w-full overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
 		<div class="grid min-h-[42rem] lg:grid-cols-[15rem_minmax(0,1fr)]">
-			<aside class="hidden border-r border-border skin-raised lg:flex lg:flex-col">
+			<aside class="hidden border-r border-border skin-card lg:flex lg:flex-col">
 				<div class="border-b border-border p-4">
 					<div class="flex items-center gap-3">
 						<span
@@ -120,7 +120,7 @@ function onCommandSelect(event) {
 									:class="item.accent"
 								>{{ item.initials }}</span>
 								<div class="min-w-0 flex-1">
-									<p class="truncate text-sm font-medium text-fg">{{ item.label }}</p>
+									<p class="truncate text-sm font-medium text-canvas-fg">{{ item.label }}</p>
 									<p class="truncate text-xs text-muted-fg">{{ item.detail }}</p>
 								</div>
 								<span
@@ -142,7 +142,7 @@ function onCommandSelect(event) {
 						v-for="section in sections"
 						:key="section.label"
 						type="button"
-						class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium text-muted-fg transition first:bg-secondary first:text-secondary-fg hover:bg-secondary hover:text-fg"
+						class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm font-medium text-muted-fg transition first:bg-secondary first:text-secondary-fg hover:bg-secondary hover:text-canvas-fg"
 					>
 						<span>{{ section.label }}</span>
 						<span class="text-xs">{{ section.count }}</span>
@@ -162,11 +162,11 @@ function onCommandSelect(event) {
 			</aside>
 
 			<main class="min-w-0">
-				<header class="border-b border-border bg-background/90 p-4 backdrop-blur sm:p-5">
+				<header class="border-b border-border bg-canvas/90 p-4 backdrop-blur sm:p-5">
 					<div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 						<div>
 							<p class="text-xs font-semibold uppercase text-muted-fg">Global launcher</p>
-							<h2 class="mt-1 text-2xl font-semibold text-fg">Command palette workspace</h2>
+							<h2 class="mt-1 text-2xl font-semibold text-canvas-fg">Command palette workspace</h2>
 						</div>
 						<div class="flex flex-wrap items-center gap-2">
 							<DomToggle v-model="showExperimental" label="Labs actions" />
@@ -183,15 +183,15 @@ function onCommandSelect(event) {
 
 				<div class="grid gap-4 p-4 sm:p-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
 					<section class="space-y-4">
-						<div class="rounded-lg border border-border skin-raised p-4">
+						<div class="rounded-lg border border-border skin-card p-4">
 							<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 								<div>
-									<h3 class="text-lg font-semibold text-fg">Quick entry point</h3>
+									<h3 class="text-lg font-semibold text-canvas-fg">Quick entry point</h3>
 									<p class="mt-1 text-sm leading-6 text-muted-fg">Expose global navigation without making every destination permanent sidebar chrome.</p>
 								</div>
 								<DomButton @click="paletteOpen = true">Open palette</DomButton>
 							</div>
-							<div class="mt-4 rounded-lg border border-border bg-background p-3">
+							<div class="mt-4 rounded-lg border border-border bg-canvas p-3">
 								<div class="flex items-center gap-3">
 									<svg class="size-5 shrink-0 text-muted-fg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 										<path d="M11 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm4.5 10.5L20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
@@ -219,14 +219,14 @@ function onCommandSelect(event) {
 										v-for="item in recentItems"
 										:key="item.label"
 										type="button"
-										class="rounded-lg border border-border bg-background p-4 text-left transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
+										class="rounded-lg border border-border bg-canvas p-4 text-left transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
 										@click="openAction(item.label === 'Northstar Labs' ? 'customer-northstar' : item.label === 'Trial rescue sequence' ? 'automation-trial' : 'report-activation')"
 									>
 										<span class="flex items-center gap-2 text-xs font-semibold text-muted-fg">
 											<span class="size-2 rounded-full" :class="item.accent"></span>
 											{{ item.type }}
 										</span>
-										<span class="mt-3 block text-sm font-semibold text-fg">{{ item.label }}</span>
+										<span class="mt-3 block text-sm font-semibold text-canvas-fg">{{ item.label }}</span>
 										<span class="mt-1 block text-xs text-muted-fg">{{ item.status }}</span>
 									</button>
 								</div>
@@ -238,19 +238,19 @@ function onCommandSelect(event) {
 										v-for="action in suggestedActions"
 										:key="action.value"
 										type="button"
-										class="rounded-lg border border-border bg-background p-4 text-left transition hover:border-primary/50 hover:bg-secondary"
+										class="rounded-lg border border-border bg-canvas p-4 text-left transition hover:border-primary/50 hover:bg-secondary"
 										@click="openAction(action.value)"
 									>
-										<span class="text-sm font-semibold text-fg">{{ action.label }}</span>
+										<span class="text-sm font-semibold text-canvas-fg">{{ action.label }}</span>
 										<span class="mt-2 block text-sm leading-6 text-muted-fg">{{ action.detail }}</span>
 									</button>
 								</div>
 							</template>
 
 							<template #routing>
-								<div class="rounded-lg border border-border bg-background p-4">
+								<div class="rounded-lg border border-border bg-canvas p-4">
 									<p class="text-xs font-semibold uppercase text-muted-fg">Selection handler</p>
-									<p class="mt-2 text-lg font-semibold text-fg">{{ resultSummary }}</p>
+									<p class="mt-2 text-lg font-semibold text-canvas-fg">{{ resultSummary }}</p>
 									<p class="mt-2 text-sm leading-6 text-muted-fg">
 										In production, map this value to router navigation, dialog launchers, async jobs, or copy-to-clipboard actions.
 									</p>
@@ -260,26 +260,26 @@ function onCommandSelect(event) {
 					</section>
 
 					<aside class="space-y-4">
-						<section class="rounded-lg border border-border skin-raised p-4">
-							<h3 class="text-sm font-semibold text-fg">Command coverage</h3>
+						<section class="rounded-lg border border-border skin-card p-4">
+							<h3 class="text-sm font-semibold text-canvas-fg">Command coverage</h3>
 							<div class="mt-4 space-y-3">
 								<div class="flex items-center justify-between text-sm">
 									<span class="text-muted-fg">Navigation</span>
-									<span class="font-semibold text-fg">4 commands</span>
+									<span class="font-semibold text-canvas-fg">4 commands</span>
 								</div>
 								<div class="h-2 overflow-hidden rounded-full bg-secondary">
 									<div class="h-full w-[82%] rounded-full bg-primary"></div>
 								</div>
 								<div class="flex items-center justify-between text-sm">
 									<span class="text-muted-fg">Records</span>
-									<span class="font-semibold text-fg">2 recent</span>
+									<span class="font-semibold text-canvas-fg">2 recent</span>
 								</div>
 								<div class="h-2 overflow-hidden rounded-full bg-secondary">
 									<div class="h-full w-[58%] rounded-full bg-emerald-500"></div>
 								</div>
 								<div class="flex items-center justify-between text-sm">
 									<span class="text-muted-fg">Actions</span>
-									<span class="font-semibold text-fg">3 ready</span>
+									<span class="font-semibold text-canvas-fg">3 ready</span>
 								</div>
 								<div class="h-2 overflow-hidden rounded-full bg-secondary">
 									<div class="h-full w-[70%] rounded-full bg-sky-500"></div>
@@ -287,9 +287,9 @@ function onCommandSelect(event) {
 							</div>
 						</section>
 
-						<section class="rounded-lg border border-border bg-background p-4">
+						<section class="rounded-lg border border-border bg-canvas p-4">
 							<p class="text-xs font-semibold uppercase text-muted-fg">Last selected</p>
-							<h3 class="mt-2 text-lg font-semibold text-fg">{{ commandResult.label }}</h3>
+							<h3 class="mt-2 text-lg font-semibold text-canvas-fg">{{ commandResult.label }}</h3>
 							<p class="mt-2 text-sm leading-6 text-muted-fg">{{ commandResult.description }}</p>
 							<div class="mt-4 flex flex-wrap gap-2">
 								<span class="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-fg">Route-safe</span>

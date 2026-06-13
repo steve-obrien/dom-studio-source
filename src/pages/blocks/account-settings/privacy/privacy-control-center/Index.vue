@@ -83,16 +83,16 @@ import PrivacySignalSrc from './components/PrivacySignal.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Policy ownership</h3>
+					<div class="border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Policy ownership</h3>
 						<p class="mt-2">Drive labels, descriptions, and disabled states from your privacy policy service so legal copy and UI state stay aligned.</p>
 					</div>
-					<div class="border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Sensitive actions</h3>
+					<div class="border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Sensitive actions</h3>
 						<p class="mt-2">Data export, deletion, and profiling reset should create backend jobs with email confirmation and rate limiting.</p>
 					</div>
-					<div class="border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include consent history, regional policy variants, download expiry states, delegated admin review, and reusable privacy rows.</p>
 					</div>
 				</div>

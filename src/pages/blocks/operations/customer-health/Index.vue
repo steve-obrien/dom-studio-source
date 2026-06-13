@@ -81,16 +81,16 @@ import CustomerHealthWorkspaceSrc from './examples/CustomerHealthWorkspace.vue?r
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Scoring model</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Scoring model</h3>
 						<p class="mt-2">Expose both the score and its drivers. Operators need the reason behind a health change more than a decorative number.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Action workflow</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Action workflow</h3>
 						<p class="mt-2">Treat tasks as synced records with owners, due dates, completion state, and CRM notes rather than local UI-only checkboxes.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include reusable health score badges, account timeline filters, renewal forecast charts, playbook templates, and CRM sync status components.</p>
 					</div>
 				</div>

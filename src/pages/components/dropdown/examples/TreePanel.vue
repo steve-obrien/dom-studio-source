@@ -105,7 +105,7 @@ function chooseSection({ value }) {
 			</template>
 		</DomDropdown>
 		<p class="text-xs text-muted-fg">
-			Destination: <code class="text-fg">{{ selectedSection?.label }}</code>
+			Destination: <code class="text-canvas-fg">{{ selectedSection?.label }}</code>
 		</p>
 	</div>
 </template>

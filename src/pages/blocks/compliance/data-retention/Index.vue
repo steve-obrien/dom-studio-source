@@ -73,16 +73,16 @@ import DataRetentionPolicyCenterSrc from './examples/DataRetentionPolicyCenter.v
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Deletion previews</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Deletion previews</h3>
 						<p class="mt-2">Calculate affected records on the server. Treat client totals as preview-only until a signed policy version is created.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Legal holds</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Legal holds</h3>
 						<p class="mt-2">Model holds independently from retention rules so litigation, abuse, fraud, or billing investigations can block deletion safely.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Good follow-ups include reusable policy diff viewers, approval routing, DPA export summaries, and deletion job monitors.</p>
 					</div>
 				</div>

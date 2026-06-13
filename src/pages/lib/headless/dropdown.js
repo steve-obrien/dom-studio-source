@@ -82,6 +82,8 @@ export class DomDropdownElement extends DomElementBase {
 		this._onCompositeKey = this._onCompositeKey.bind(this);
 		this._itemClickHandlers = [];
 		this._scrollLocked = false;
+		this._dismissOff = null;
+		this._dismissBindFrame = 0;
 	}
 
 	_positionOpts() {
@@ -142,6 +144,7 @@ export class DomDropdownElement extends DomElementBase {
 			this._menu.classList.add('dom-dropdown-menu');
 		}
 		preparePopoverPanel(this._menu, this._trigger);
+		this._menu.setAttribute('popover', 'manual');
 		this._unbindToggle?.();
 		this._unbindToggle = bindPopoverToggle(this._menu, (open) => this._syncOpen(open, true));
 	}
@@ -159,6 +162,12 @@ export class DomDropdownElement extends DomElementBase {
 	}
 
 	_focusFirstCompositeElement() {
+		const preferredSelector = [
+			'[data-autofocus]',
+			'[autofocus]',
+			'[tabindex="0"]',
+			'[aria-selected="true"]',
+		].join(',');
 		const selector = [
 			'button:not([disabled])',
 			'[href]',
@@ -167,7 +176,9 @@ export class DomDropdownElement extends DomElementBase {
 			'textarea:not([disabled])',
 			'[tabindex]:not([tabindex="-1"])',
 		].join(',');
-		requestAnimationFrame(() => this._menu?.querySelector(selector)?.focus());
+		const findFocusable = (query) => Array.from(this._menu?.querySelectorAll(query) || [])
+			.find((element) => element.tabIndex >= 0 && element.getAttribute('aria-disabled') !== 'true');
+		requestAnimationFrame(() => (findFocusable(preferredSelector) || findFocusable(selector))?.focus());
 	}
 
 	_setupMenuInteractions() {
@@ -203,6 +214,40 @@ export class DomDropdownElement extends DomElementBase {
 		positionPopoverPanel(this._menu, this._trigger, this._positionOpts());
 	}
 
+	_bindDismiss() {
+		this._unbindDismiss();
+		this._dismissBindFrame = requestAnimationFrame(() => {
+			const isInside = (event) => {
+				const path = event.composedPath?.() || [];
+				return path.includes(this._menu) || path.includes(this._trigger);
+			};
+			const onPointerDown = (event) => {
+				if (!isPopoverOpen(this._menu) || isInside(event)) return;
+				this._syncOpen(false, false);
+			};
+			const onKeydown = (event) => {
+				if (event.key !== 'Escape' || !isPopoverOpen(this._menu)) return;
+				event.preventDefault();
+				this._syncOpen(false, false);
+			};
+			document.addEventListener('pointerdown', onPointerDown, true);
+			document.addEventListener('keydown', onKeydown, true);
+			this._dismissOff = () => {
+				document.removeEventListener('pointerdown', onPointerDown, true);
+				document.removeEventListener('keydown', onKeydown, true);
+			};
+		});
+	}
+
+	_unbindDismiss() {
+		if (this._dismissBindFrame) {
+			cancelAnimationFrame(this._dismissBindFrame);
+			this._dismissBindFrame = 0;
+		}
+		this._dismissOff?.();
+		this._dismissOff = null;
+	}
+
 	_syncOpen(next, fromPopover = false) {
 		if (!this._ensureMenu()) return;
 		if (next && this._open) {
@@ -220,8 +265,10 @@ export class DomDropdownElement extends DomElementBase {
 			this._bindReflow();
 			this._setupMenuInteractions();
 			this._syncScrollLock(true);
+			this._bindDismiss();
 		} else {
 			this._unbindReflow();
+			this._unbindDismiss();
 			this._teardownMenuInteractions();
 			this._syncScrollLock(false);
 			if (!fromPopover) closePopoverPanel(this._menu);
@@ -280,6 +327,7 @@ export class DomDropdownElement extends DomElementBase {
 		this._unbindToggle?.();
 		this._unbindToggle = null;
 		this._unbindReflow();
+		this._unbindDismiss();
 		this._syncScrollLock(false);
 		super.disconnectedCallback();
 	}

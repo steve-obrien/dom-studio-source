@@ -79,16 +79,16 @@ import ExpenseCaptureFlowSrc from './examples/ExpenseCaptureFlow.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Receipt pipeline</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Receipt pipeline</h3>
 						<p class="mt-2">Treat upload, OCR, duplicate detection, and transaction matching as asynchronous jobs. Show confidence and missing fields without making the user wait for every enrichment step.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Policy checks</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Policy checks</h3>
 						<p class="mt-2">Return structured checks with severity, message, and blocking status. This lets the same rule engine serve mobile capture, manager approval, and finance audit screens.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include attendee split entry, mileage capture, duplicate receipt review, receipt crop tools, manager approval cards, and accounting export status.</p>
 					</div>
 				</div>

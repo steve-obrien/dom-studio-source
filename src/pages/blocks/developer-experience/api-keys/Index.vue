@@ -67,16 +67,16 @@ import ApiKeyManagementConsoleSrc from './examples/ApiKeyManagementConsole.vue?r
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Secret handling</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Secret handling</h3>
 						<p class="mt-2">Show a full secret only once after creation. Use masked prefixes for every later render.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Scope model</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Scope model</h3>
 						<p class="mt-2">Treat scopes as backend policy, not just UI state. Keep destructive scopes behind additional confirmation.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include reusable secret reveal, IP allowlist editor, webhook tester, and key rotation dialogs.</p>
 					</div>
 				</div>

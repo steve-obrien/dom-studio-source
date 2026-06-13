@@ -833,18 +833,18 @@ defineExpose({
 
 <template>
 	<div
-		class="template-monaco-editor relative h-full min-h-0 overflow-hidden skin-raised text-fg"
+		class="template-monaco-editor relative h-full min-h-0 overflow-hidden skin-card text-canvas-fg"
 		:data-code-drop-state="dropActive ? (dropAllowed ? 'allowed' : 'blocked') : null"
 	>
 		<div v-show="!loadError" ref="mountEl" class="h-full min-h-0"></div>
 		<textarea
 			v-if="loadError"
-			class="block h-full min-h-0 w-full resize-none skin-raised p-3 font-mono text-[12.5px] leading-relaxed text-fg outline-none placeholder:text-muted-fg"
+			class="block h-full min-h-0 w-full resize-none skin-card p-3 font-mono text-[12.5px] leading-relaxed text-canvas-fg outline-none placeholder:text-muted-fg"
 			spellcheck="false"
 			:value="modelValue"
 			@input="$emit('update:modelValue', $event.target.value)"
 		></textarea>
-		<div v-if="loading && !loadError" class="absolute inset-0 grid place-items-center skin-raised text-xs text-muted-fg">
+		<div v-if="loading && !loadError" class="absolute inset-0 grid place-items-center skin-card text-xs text-muted-fg">
 			Loading Monaco...
 		</div>
 	</div>
@@ -854,13 +854,13 @@ defineExpose({
 .template-monaco-editor :deep(.monaco-editor),
 .template-monaco-editor :deep(.monaco-editor-background),
 .template-monaco-editor :deep(.monaco-editor .margin) {
-	background-color: var(--skin-raised-bg) !important;
+	background-color: var(--canvas) !important;
 }
 
 .template-monaco-editor :deep(.monaco-editor),
 .template-monaco-editor :deep(.monaco-editor .monaco-editor-background),
 .template-monaco-editor :deep(.monaco-editor .inputarea.ime-input) {
-	color: var(--fg);
+	color: var(--canvas-fg);
 }
 
 .template-monaco-editor :deep(.line-numbers) {

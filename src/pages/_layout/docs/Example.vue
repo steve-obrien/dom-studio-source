@@ -2,6 +2,7 @@
 import { computed, useSlots } from 'vue';
 import { useRoute } from 'vue-router';
 import CodePanel from './CodePanel.vue';
+import { getComponentUsage } from './componentUsage';
 import IframePreview from './IframePreview.vue';
 import MobilePreview from './MobilePreview.vue';
 
@@ -47,6 +48,7 @@ const slots = useSlots();
 const hasProperties = computed(() => Boolean(slots.properties));
 const isIframePresentation = computed(() => props.presentation === 'iframe');
 const isMobilePresentation = computed(() => props.presentation === 'mobile');
+const componentUsage = computed(() => route.path.startsWith('/blocks') ? getComponentUsage(props.source) : []);
 const resolvedSourcePath = computed(() => props.sourcePath || sourcePathFromRoute());
 const previewClasses = computed(() => {
 	if (isMobilePresentation.value) {
@@ -73,9 +75,9 @@ function sourcePathFromRoute() {
 </script>
 
 <template>
-	<figure class="my-6 min-w-0 overflow-hidden rounded-2xl border border-border bg-background">
+	<figure class="my-6 min-w-0 overflow-hidden rounded-2xl border border-border bg-canvas">
 		<figcaption v-if="title || description" class="border-b border-border bg-secondary/40 px-5 py-3">
-			<p v-if="title" class="text-sm font-semibold tracking-tight text-fg">{{ title }}</p>
+			<p v-if="title" class="text-sm font-semibold tracking-tight text-canvas-fg">{{ title }}</p>
 			<p v-if="description" class="mt-0.5 text-sm text-muted-fg">{{ description }}</p>
 		</figcaption>
 
@@ -92,7 +94,7 @@ function sourcePathFromRoute() {
 
 		<div
 			:class="hasProperties
-				? 'grid min-h-[200px] grid-cols-1 items-stretch bg-background md:grid-cols-[minmax(0,1fr)_18rem]'
+				? 'grid min-h-[200px] grid-cols-1 items-stretch bg-canvas md:grid-cols-[minmax(0,1fr)_18rem]'
 				: 'block'"
 		>
 			<div :class="previewClasses">
@@ -119,15 +121,31 @@ function sourcePathFromRoute() {
 
 			<aside
 				v-if="hasProperties"
-				class="min-h-0 border-t border-border skin-raised text-fg md:border-l md:border-t-0"
+				class="min-h-0 border-t border-border skin-card text-canvas-fg md:border-l md:border-t-0"
 			>
-				<div class="sticky top-0 z-10 border-b border-border skin-raised px-4 py-3">
+				<div class="sticky top-0 z-10 border-b border-border skin-card px-4 py-3">
 					<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">{{ props.propertiesTitle }}</p>
 				</div>
 				<div class="max-h-72 space-y-4 overflow-y-auto p-4 md:max-h-[32rem]">
 					<slot name="properties" />
 				</div>
 			</aside>
+		</div>
+
+		<div v-if="componentUsage.length" class="border-t border-border bg-secondary/20 px-5 py-3">
+			<div class="flex flex-wrap items-center gap-2">
+				<p class="mr-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Built with</p>
+				<RouterLink
+					v-for="component in componentUsage"
+					:key="component.id"
+					:to="component.route"
+					:aria-label="`${component.exportName} documentation in ${component.sectionLabel}`"
+					class="inline-flex items-center gap-1.5 rounded-full border border-border bg-canvas px-2.5 py-1 text-xs font-medium text-canvas-fg transition hover:border-primary/50 hover:text-primary"
+				>
+					<span>{{ component.exportName }}</span>
+					<span class="text-[10px] font-normal text-muted-fg">{{ component.sectionLabel }}</span>
+				</RouterLink>
+			</div>
 		</div>
 
 		<CodePanel

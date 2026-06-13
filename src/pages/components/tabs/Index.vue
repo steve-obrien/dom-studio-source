@@ -74,13 +74,13 @@ const keys = [
 					<div class="w-full max-w-md">
 						<DomTabs v-model="active" :tabs="tabs">
 							<template #overview>
-								<div class="rounded-xl border border-border bg-background p-5 text-sm text-muted-fg">Overview content. Tabs preserve focus and announce panel changes to assistive tech.</div>
+								<div class="rounded-xl border border-border bg-canvas p-5 text-sm text-muted-fg">Overview content. Tabs preserve focus and announce panel changes to assistive tech.</div>
 							</template>
 							<template #pricing>
-								<div class="rounded-xl border border-border bg-background p-5 text-sm text-muted-fg">Pricing content. Use the arrow keys to move between tabs.</div>
+								<div class="rounded-xl border border-border bg-canvas p-5 text-sm text-muted-fg">Pricing content. Use the arrow keys to move between tabs.</div>
 							</template>
 							<template #changelog>
-								<div class="rounded-xl border border-border bg-background p-5 text-sm text-muted-fg">Changelog content. Each panel is keyboard-reachable.</div>
+								<div class="rounded-xl border border-border bg-canvas p-5 text-sm text-muted-fg">Changelog content. Each panel is keyboard-reachable.</div>
 							</template>
 						</DomTabs>
 					</div>
@@ -102,7 +102,7 @@ const keys = [
 			<DocSection title="Keyboard">
 				<ul class="space-y-2 rounded-2xl border border-border bg-secondary/40 p-5 text-sm">
 					<li v-for="row in keys" :key="row.k" class="flex items-start gap-4">
-						<kbd class="rounded bg-background px-2 py-0.5 font-mono text-xs ring-1 ring-border">{{ row.k }}</kbd>
+						<kbd class="rounded bg-canvas px-2 py-0.5 font-mono text-xs ring-1 ring-border">{{ row.k }}</kbd>
 						<span class="text-muted-fg">{{ row.d }}</span>
 					</li>
 				</ul>

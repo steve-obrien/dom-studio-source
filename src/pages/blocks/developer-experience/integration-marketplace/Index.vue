@@ -77,16 +77,16 @@ import IntegrationMarketplaceSrc from './examples/IntegrationMarketplace.vue?raw
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Connection flows</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Connection flows</h3>
 						<p class="mt-2">Route each connector to the correct install method from the dialog: OAuth redirect, embedded consent, API key entry, reconnect, or admin-approved installation.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Catalog quality</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Catalog quality</h3>
 						<p class="mt-2">Store provider capability tags, install counts, setup time, review state, and health in your catalog so search and recommendations stay useful.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include reusable provider icons, OAuth callback states, field mapping steps, compare mode, install-request approvals, and error remediation checklists.</p>
 					</div>
 				</div>

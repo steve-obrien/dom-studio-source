@@ -175,7 +175,7 @@ onMounted(async () => {
 			:class="width"
 		>
 			<div
-				class="dom-popover-card skin-floating relative rounded-lg text-left text-sm"
+				class="dom-popover-card skin-popover relative rounded-lg text-left text-sm"
 				:class="padding"
 			>
 				<svg v-if="arrow" class="dom-popover-arrow" aria-hidden="true" viewBox="0 0 16 8">
@@ -198,21 +198,21 @@ onMounted(async () => {
 	width: 16px;
 	height: 8px;
 	overflow: visible;
-	fill: var(--skin-floating-bg);
-	stroke: var(--skin-floating-border);
+	fill: var(--skin-bg, var(--canvas));
+	stroke: var(--skin-border, var(--border));
 	stroke-width: 1;
 	stroke-linejoin: round;
 	pointer-events: none;
 }
 
 .dom-popover-arrow-fill {
-	fill: var(--skin-floating-bg);
+	fill: var(--skin-bg, var(--canvas));
 	stroke: none;
 }
 
 .dom-popover-arrow-stroke {
 	fill: none;
-	stroke: var(--skin-floating-border);
+	stroke: var(--skin-border, var(--border));
 	stroke-width: 1;
 	stroke-linecap: round;
 	stroke-linejoin: round;

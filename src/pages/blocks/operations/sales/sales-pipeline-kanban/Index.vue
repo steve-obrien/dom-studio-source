@@ -98,16 +98,16 @@ import ForecastPillSrc from './components/ForecastPill.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Transition rules</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Transition rules</h3>
 						<p class="mt-2">Gate stage changes with server-side exit criteria. Proposal and commit stages usually need pricing approval, legal state, primary buyer, and close date checks.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Forecast quality</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Forecast quality</h3>
 						<p class="mt-2">Separate seller-entered probability from model-generated health scores. Store overrides and reason codes so revenue leaders can inspect forecast drift.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful next steps include drag-to-stage, activity sync, stale-deal nudges, quote PDF generation, mutual action plans, renewal pipelines, and reusable kanban column helpers.</p>
 					</div>
 				</div>

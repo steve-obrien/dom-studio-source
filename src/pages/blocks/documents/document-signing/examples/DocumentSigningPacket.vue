@@ -135,7 +135,7 @@ function addSigner() {
 		name: 'New signer',
 		email: '',
 		role: 'Legal reviewer',
-		color: 'bg-secondary text-fg',
+		color: 'bg-secondary text-canvas-fg',
 		order: signers.value.length + 1,
 		required: true,
 		identityCheck: false,
@@ -169,8 +169,8 @@ function statusClass(status) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-lg border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
 				<div class="min-w-0">
 					<div class="flex flex-wrap items-center gap-2">
@@ -224,13 +224,13 @@ function statusClass(status) {
 		</section>
 
 		<div class="grid min-h-[52rem] lg:grid-cols-[18rem_minmax(0,1fr)] xl:grid-cols-[18rem_minmax(0,1fr)_22rem]">
-			<aside class="border-b border-border skin-raised lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
 				<div class="border-b border-border p-3">
 					<div class="flex items-center justify-between gap-3 px-2 pb-2">
 						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Documents</p>
 						<span class="text-xs text-muted-fg">{{ documents.length }}</span>
 					</div>
-					<div class="divide-y divide-border rounded-lg border border-border bg-background">
+					<div class="divide-y divide-border rounded-lg border border-border bg-canvas">
 						<button
 							v-for="document in documents"
 							:key="document.id"
@@ -262,7 +262,7 @@ function statusClass(status) {
 							v-for="signer in signers"
 							:key="signer.id"
 							type="button"
-							class="rounded-lg border border-border bg-background p-3 text-left transition hover:border-primary/40"
+							class="rounded-lg border border-border bg-canvas p-3 text-left transition hover:border-primary/40"
 							:class="selectedSignerId === signer.id ? 'ring-2 ring-primary/25' : ''"
 							@click="selectedSignerId = signer.id"
 						>
@@ -344,7 +344,7 @@ function statusClass(status) {
 									:key="field.id"
 									type="button"
 									class="absolute min-w-28 rounded-md border border-current bg-white/95 px-2 py-1 text-left text-xs font-semibold shadow-lg transition hover:-translate-y-0.5"
-									:class="signers.find((signer) => signer.id === field.signerId)?.color || 'text-fg'"
+									:class="signers.find((signer) => signer.id === field.signerId)?.color || 'text-canvas-fg'"
 									:style="{ left: `${field.x}%`, top: `${field.y}%`, transform: 'translate(-10%, -50%)' }"
 									@click="selectedSignerId = field.signerId"
 								>
@@ -379,7 +379,7 @@ function statusClass(status) {
 				</section>
 			</main>
 
-			<aside class="min-w-0 skin-raised p-4 sm:p-5">
+			<aside class="min-w-0 skin-card p-4 sm:p-5">
 				<DomTabs v-model="activeTab" :tabs="tabs">
 					<template #details>
 						<div class="grid gap-4">
@@ -390,7 +390,7 @@ function statusClass(status) {
 							<DomTextInput v-model="selectedSigner.name" label="Signer name" />
 							<DomEmailInput v-model="selectedSigner.email" label="Signer email" />
 							<DomNativeSelect v-model="selectedSigner.role" label="Signer role" :options="signerRoleOptions" />
-							<div class="grid gap-3 rounded-lg border border-border bg-background p-3">
+							<div class="grid gap-3 rounded-lg border border-border bg-canvas p-3">
 								<DomCheckbox v-model="selectedSigner.required" label="Required signer" description="Packet cannot complete without this signer." />
 								<DomCheckbox v-model="selectedSigner.identityCheck" label="Require identity check" description="Ask the provider to verify this signer." />
 								<DomCheckbox v-model="declineRequiresReason" label="Require decline reason" description="Capture useful audit evidence when a signer declines." />
@@ -406,7 +406,7 @@ function statusClass(status) {
 								<h4 class="text-base font-semibold">Send checks</h4>
 								<p class="mt-1 text-sm leading-6 text-muted-fg">Block sending until required signature evidence is ready.</p>
 							</div>
-							<div class="overflow-hidden rounded-lg border border-border bg-background">
+							<div class="overflow-hidden rounded-lg border border-border bg-canvas">
 								<div
 									v-for="check in readyChecks"
 									:key="check.label"
@@ -420,7 +420,7 @@ function statusClass(status) {
 							</div>
 							<div class="rounded-lg border border-border bg-primary/10 p-4">
 								<p class="text-sm font-semibold">Readiness {{ readinessScore }}%</p>
-								<div class="mt-3 h-2 overflow-hidden rounded-full bg-background">
+								<div class="mt-3 h-2 overflow-hidden rounded-full bg-canvas">
 									<div class="h-full rounded-full bg-primary transition-all" :style="{ width: `${readinessScore}%` }"></div>
 								</div>
 								<p class="mt-3 text-xs leading-5 text-muted-fg">{{ readyCount }} of {{ readyChecks.length }} checks are passing.</p>
@@ -436,13 +436,13 @@ function statusClass(status) {
 							</div>
 							<div class="relative grid gap-4 before:absolute before:left-2 before:top-2 before:h-[calc(100%-1rem)] before:w-px before:bg-border">
 								<div v-for="event in activity" :key="event.id" class="relative grid gap-1 pl-7">
-									<span class="absolute left-0 top-1.5 size-4 rounded-full border-2 border-background bg-primary"></span>
+									<span class="absolute left-0 top-1.5 size-4 rounded-full border-2 border-canvas bg-primary"></span>
 									<p class="text-sm font-semibold">{{ event.action }}</p>
 									<p class="text-xs text-muted-fg">{{ event.actor }} / {{ event.time }}</p>
 								</div>
 							</div>
-							<p v-if="lastAction" class="rounded-lg border border-border bg-background p-3 text-xs font-semibold text-muted-fg">
-								Last action: <span class="text-fg">{{ lastAction }}</span>
+							<p v-if="lastAction" class="rounded-lg border border-border bg-canvas p-3 text-xs font-semibold text-muted-fg">
+								Last action: <span class="text-canvas-fg">{{ lastAction }}</span>
 							</p>
 						</div>
 					</template>

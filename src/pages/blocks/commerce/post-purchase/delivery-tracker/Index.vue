@@ -82,16 +82,16 @@ import DeliveryTrackerSrc from './examples/DeliveryTracker.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Realtime updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Realtime updates</h3>
 						<p class="mt-2">Use carrier webhooks or a realtime stream for raw events, then map them into stable customer states so the view does not flicker between noisy courier scans.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Exception rules</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Exception rules</h3>
 						<p class="mt-2">Represent each blocker as an action with a due time, owner, resolution payload, and backend validation result. This keeps support tooling and customer UI aligned.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Reusable route maps, carrier adapters, proof-of-delivery capture, pickup-point selection, and reschedule dialogs would make this block stronger.</p>
 					</div>
 				</div>

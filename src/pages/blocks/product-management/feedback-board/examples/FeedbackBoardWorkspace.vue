@@ -135,8 +135,8 @@ function statusClass(status) {
 </script>
 
 <template>
-	<section class="min-h-screen bg-background text-fg">
-		<div class="mx-auto flex w-full max-w-7xl flex-col border-x border-border bg-background shadow-2xl shadow-black/10">
+	<section class="min-h-screen bg-canvas text-canvas-fg">
+		<div class="mx-auto flex w-full max-w-7xl flex-col border-x border-border bg-canvas shadow-2xl shadow-black/10">
 			<header class="border-b border-border px-4 py-4 sm:px-6">
 				<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 					<div class="min-w-0">
@@ -152,7 +152,7 @@ function statusClass(status) {
 			</header>
 
 			<div class="grid min-h-[46rem] lg:grid-cols-[18rem_minmax(0,1fr)_22rem]">
-				<aside class="border-b border-border skin-raised lg:border-b-0 lg:border-r">
+				<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
 					<div class="border-b border-border px-4 py-4">
 						<div class="flex items-center justify-between gap-3">
 							<h2 class="text-sm font-semibold">Demand segments</h2>
@@ -168,8 +168,8 @@ function statusClass(status) {
 							:class="selectedSegment === segment.value ? 'bg-secondary text-secondary-fg' : 'text-muted-fg'"
 							@click="selectedSegment = segment.value"
 						>
-							<span class="font-medium text-fg">{{ segment.label }}</span>
-							<span class="rounded-full bg-background px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ segment.count }}</span>
+							<span class="font-medium text-canvas-fg">{{ segment.label }}</span>
+							<span class="rounded-full bg-canvas px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ segment.count }}</span>
 						</button>
 					</nav>
 					<div class="border-t border-border p-4">
@@ -219,7 +219,7 @@ function statusClass(status) {
 									:key="request.id"
 									type="button"
 									class="rounded-xl border p-4 text-left transition hover:border-primary/50"
-									:class="selectedRequestId === request.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-background'"
+									:class="selectedRequestId === request.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-canvas'"
 									@click="selectRequest(request)"
 								>
 									<span class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -265,7 +265,7 @@ function statusClass(status) {
 					</div>
 				</main>
 
-				<aside class="border-t border-border skin-raised lg:border-l lg:border-t-0">
+				<aside class="border-t border-border skin-card lg:border-l lg:border-t-0">
 					<div class="border-b border-border px-4 py-4">
 						<h2 class="text-sm font-semibold">Decision panel</h2>
 						<p class="mt-1 text-sm leading-6 text-muted-fg">{{ selectedRequest.title }}</p>
@@ -320,7 +320,7 @@ function statusClass(status) {
 							<DomTextareaInput v-model="updateNote" class="mt-2" rows="5" />
 						</label>
 
-						<div class="rounded-xl border border-border bg-background p-3">
+						<div class="rounded-xl border border-border bg-canvas p-3">
 							<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Ready to publish</p>
 							<p class="mt-2 text-sm leading-6">{{ publishSummary }}</p>
 						</div>

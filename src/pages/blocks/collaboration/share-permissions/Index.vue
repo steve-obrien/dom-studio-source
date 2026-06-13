@@ -74,16 +74,16 @@ import SharePermissionsPanelSrc from './examples/SharePermissionsPanel.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Permission model</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Permission model</h3>
 						<p class="mt-2">Keep direct, inherited, group, and link-based access visibly distinct. Users need to know where a permission came from before they can safely change it.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Safety checks</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Safety checks</h3>
 						<p class="mt-2">Run server-side checks before broadening access, then show specific warnings for external collaborators, sensitive fields, compliance rules, and public links.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include reusable role badges, group pickers, approval request flows, access expiry controls, and a permission diff preview before saving.</p>
 					</div>
 				</div>

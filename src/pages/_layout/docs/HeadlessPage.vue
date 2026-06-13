@@ -39,7 +39,7 @@ const doc = computed(() => props.element?.__doc || {});
 			<ComponentKeyboard :component="element" />
 
 			<DocSection eyebrow="Related" title="See also">
-				<RouterLink to="/headless" class="inline-flex items-center gap-1 text-sm font-medium text-fg hover:underline">
+				<RouterLink to="/headless" class="inline-flex items-center gap-1 text-sm font-medium text-canvas-fg hover:underline">
 					← Headless overview
 				</RouterLink>
 			</DocSection>

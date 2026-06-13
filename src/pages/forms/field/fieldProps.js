@@ -62,7 +62,7 @@ export const fieldProps = {
 	}),
 	errors: fieldProp({
 		type: [Array, Object, String],
-		default: () => ({}),
+		default: () => [],
 		_edit: { 
 			component: 'DomJsonListInput', 
 			description: 'Validation errors for this field.', 

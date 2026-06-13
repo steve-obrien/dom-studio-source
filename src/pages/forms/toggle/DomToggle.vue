@@ -78,7 +78,7 @@ function toggleFromLabel() {
 			:class="field.disabled.value ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'"
 			@click="toggleFromLabel"
 		>
-			<span v-if="label" :id="labelId" class="text-sm text-fg">{{ label }}</span>
+			<span v-if="label" :id="labelId" class="text-sm text-canvas-fg">{{ label }}</span>
 			<span v-if="description" :id="field.descriptionId.value" class="text-xs text-muted-fg">{{ description }}</span>
 			<span v-if="field.errors.value.length" :id="field.errorId.value" class="text-xs text-destructive">{{ field.errors.value[0].message || field.errors.value[0] }}</span>
 		</span>

@@ -61,7 +61,7 @@ const props = [
 							description="Shown publicly on your profile."
 							placeholder="DOM Studio"
 						/>
-						<p class="mt-3 text-xs text-muted-fg">Value: <code class="text-fg">{{ name }}</code></p>
+						<p class="mt-3 text-xs text-muted-fg">Value: <code class="text-canvas-fg">{{ name }}</code></p>
 					</div>
 				</Demo>
 			</DocSection>

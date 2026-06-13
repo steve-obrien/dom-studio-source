@@ -102,8 +102,8 @@ async function mountEditor() {
 		const lang = await languageExtension(props.lang);
 		const theme = cm.EditorView.theme({
 			'&': {
-				backgroundColor: 'var(--background)',
-				color: 'var(--fg)',
+				backgroundColor: 'var(--canvas)',
+				color: 'var(--canvas-fg)',
 				fontSize: '12.5px',
 				borderRadius: '0.75rem',
 				outline: 'none',
@@ -184,7 +184,7 @@ onBeforeUnmount(() => {
 				<span v-if="required" class="text-destructive">*</span>
 			</label>
 		</template>
-		<div class="overflow-hidden rounded-xl border border-input bg-background focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 data-[invalid]:border-destructive data-[invalid]:focus-within:border-destructive data-[invalid]:focus-within:ring-destructive/25" :data-invalid="field.invalid.value ? '' : undefined">
+		<div class="overflow-hidden rounded-xl border border-input bg-canvas focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 data-[invalid]:border-destructive data-[invalid]:focus-within:border-destructive data-[invalid]:focus-within:ring-destructive/25" :data-invalid="field.invalid.value ? '' : undefined">
 			<div v-show="enhanced" ref="mountEl"></div>
 			<textarea
 				v-if="!enhanced"
@@ -192,7 +192,7 @@ onBeforeUnmount(() => {
 				v-bind="field.inputAttrs.value"
 				:rows="rows"
 				spellcheck="false"
-				class="block min-h-40 w-full resize-y bg-background p-3 font-mono text-[12.5px] leading-relaxed text-fg outline-none placeholder:text-muted-fg disabled:opacity-50"
+				class="block min-h-40 w-full resize-y bg-canvas p-3 font-mono text-[12.5px] leading-relaxed text-canvas-fg outline-none placeholder:text-muted-fg disabled:opacity-50"
 				@input="update($event.target.value)"
 				@focus="field.onFocus"
 				@blur="field.onBlur"

@@ -818,9 +818,9 @@ onBeforeUnmount(cancelDragExpand);
 	<div
 		role="tree"
 		:id="treeId"
-		class="w-full text-sm text-fg"
+		class="w-full text-sm text-canvas-fg"
 		:class="[
-			chrome ? 'skin-raised rounded-2xl p-1' : '',
+			chrome ? 'skin-card rounded-2xl p-1' : '',
 		]"
 		:aria-label="label"
 		:aria-describedby="draggable ? `${treeId}-instructions` : undefined"
@@ -849,11 +849,11 @@ onBeforeUnmount(cancelDragExpand);
 				class="group relative flex min-w-0 cursor-pointer items-center rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50 aria-selected:bg-primary aria-selected:text-primary-fg"
 				:class="[
 					density === 'comfortable' ? 'min-h-4' : 'min-h-6',
-					variant === 'finder' ? 'hover:bg-fg/80 hover:text-background aria-selected:bg-accent aria-selected:text-accent-fg' : 'hover:bg-secondary',
+					variant === 'finder' ? 'hover:bg-canvas-fg/80 hover:text-canvas aria-selected:bg-accent aria-selected:text-accent-fg' : 'hover:bg-secondary',
 					dropClass(node, 'inside'),
 					isDropPosition(node, 'before') ? 'before:opacity-100' : '',
 					isDropPosition(node, 'after') ? 'after:opacity-100' : '',
-					String(hoveredValue) === String(node.value) && String(selectedValue) !== String(node.value) ? 'bg-secondary text-fg' : '',
+					String(hoveredValue) === String(node.value) && String(selectedValue) !== String(node.value) ? 'bg-secondary text-canvas-fg' : '',
 					'before:pointer-events-none before:absolute before:inset-x-2 before:top-0 before:h-0.5 before:rounded-full before:bg-ring before:opacity-0 after:pointer-events-none after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-ring after:opacity-0',
 				]"
 				:style="{ paddingLeft: `${(node.depth - 1) * 1.25}rem` }"
@@ -912,7 +912,7 @@ onBeforeUnmount(cancelDragExpand);
 							v-for="action in rowActions(node.item)"
 							:key="action.value || action.label"
 							type="button"
-							class="grid size-6 cursor-pointer place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 group-aria-selected:text-primary-fg/80 group-aria-selected:hover:bg-primary-fg/15"
+							class="grid size-6 cursor-pointer place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 group-aria-selected:text-primary-fg/80 group-aria-selected:hover:bg-primary-fg/15"
 							:aria-label="action.label || action.value || 'Tree item action'"
 							:title="action.label || action.value || 'Tree item action'"
 							:disabled="action.disabled || undefined"

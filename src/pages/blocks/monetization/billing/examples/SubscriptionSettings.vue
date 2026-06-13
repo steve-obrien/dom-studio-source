@@ -52,8 +52,8 @@ function usageWidth(item) {
 </script>
 
 <template>
-	<div class="w-full max-w-6xl overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-5 py-5 sm:px-7">
+	<div class="w-full max-w-6xl overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-5 py-5 sm:px-7">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Billing</p>
@@ -133,7 +133,7 @@ function usageWidth(item) {
 							<div>{{ invoice.amount }}</div>
 							<div class="flex items-center justify-between gap-3 sm:justify-end">
 								<span class="rounded-full bg-success/15 px-2 py-0.5 text-xs font-semibold text-success">{{ invoice.status }}</span>
-								<button type="button" class="rounded-lg px-2 py-1 text-sm font-medium text-muted-fg hover:bg-secondary hover:text-fg">PDF</button>
+								<button type="button" class="rounded-lg px-2 py-1 text-sm font-medium text-muted-fg hover:bg-secondary hover:text-canvas-fg">PDF</button>
 							</div>
 						</div>
 					</div>
@@ -147,7 +147,7 @@ function usageWidth(item) {
 					<p class="mt-2 text-sm leading-6 text-muted-fg">Growth plan, 14 active seats, billed to the card ending 4242.</p>
 					<div class="mt-5 rounded-2xl border border-border bg-secondary/50 p-4">
 						<div class="flex items-center gap-3">
-							<span class="grid size-10 shrink-0 place-items-center rounded-xl bg-background text-sm font-bold">V</span>
+							<span class="grid size-10 shrink-0 place-items-center rounded-xl bg-canvas text-sm font-bold">V</span>
 							<div class="min-w-0">
 								<p class="truncate text-sm font-semibold">Visa ending 4242</p>
 								<p class="text-xs text-muted-fg">Expires 08 / 28</p>

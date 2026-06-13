@@ -44,8 +44,8 @@ const options = [
 
 			<DocSection eyebrow="Guidance" title="Prefer rich app selects">
 				<p class="text-sm leading-6 text-muted-fg">
-					Most application UIs should use <code class="text-fg">DomSelect</code>, <code class="text-fg">DomListbox</code>, or
-					<code class="text-fg">DomCombobox</code> so options can show descriptions, status, avatars, counts, and metadata.
+					Most application UIs should use <code class="text-canvas-fg">DomSelect</code>, <code class="text-canvas-fg">DomListbox</code>, or
+					<code class="text-canvas-fg">DomCombobox</code> so options can show descriptions, status, avatars, counts, and metadata.
 					Use native select for platform picker behaviour, extreme compatibility needs, or very plain settings.
 				</p>
 				<RouterLink

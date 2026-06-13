@@ -37,12 +37,12 @@ onMounted(() => {
 </script>
 
 <template>
-	<div class="overflow-hidden rounded-2xl border border-border bg-background">
+	<div class="overflow-hidden rounded-2xl border border-border bg-canvas">
 		<div class="flex items-center justify-between border-b border-border bg-secondary/40 px-4 py-2">
 			<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">{{ title }}</p>
 			<button
 				type="button"
-				class="rounded-full px-2.5 py-1 text-[11px] font-medium text-muted-fg ring-1 ring-border hover:bg-background hover:text-fg"
+				class="rounded-full px-2.5 py-1 text-[11px] font-medium text-muted-fg ring-1 ring-border hover:bg-canvas hover:text-canvas-fg"
 				@click="reset"
 			>Reset</button>
 		</div>
@@ -50,12 +50,12 @@ onMounted(() => {
 		<div class="grid grid-cols-1 lg:grid-cols-[1fr_320px]">
 			<div
 				ref="stageEl"
-				class="dom-stage relative flex items-center justify-center bg-gradient-to-br from-secondary/40 via-background to-secondary/30 p-10"
+				class="dom-stage relative flex items-center justify-center bg-gradient-to-br from-secondary/40 via-canvas to-secondary/30 p-10"
 				:class="[stageClass, state.pickMode && 'dom-pick-mode']"
 			>
 				<StageNode :node="tree" />
 			</div>
-			<div class="border-border lg:border-l lg:border-t-0 border-t bg-background">
+			<div class="border-border lg:border-l lg:border-t-0 border-t bg-canvas">
 				<InspectorPanel :tree="tree" />
 			</div>
 		</div>

@@ -167,8 +167,8 @@ function scoreBarClass(score) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Customer health</p>
@@ -189,14 +189,14 @@ function scoreBarClass(score) {
 		</header>
 
 		<div class="grid xl:grid-cols-[16rem_minmax(0,1fr)_22rem]">
-			<aside class="border-b border-border skin-raised xl:border-b-0 xl:border-r">
+			<aside class="border-b border-border skin-card xl:border-b-0 xl:border-r">
 				<div class="flex gap-2 overflow-x-auto p-3 xl:grid xl:gap-1">
 					<button
 						v-for="account in accounts"
 						:key="account.id"
 						type="button"
-						class="min-w-56 rounded-2xl px-3 py-3 text-left transition hover:bg-background xl:min-w-0"
-						:class="selectedAccountId === account.id ? 'bg-background shadow-sm ring-1 ring-border' : ''"
+						class="min-w-56 rounded-2xl px-3 py-3 text-left transition hover:bg-canvas xl:min-w-0"
+						:class="selectedAccountId === account.id ? 'bg-canvas shadow-sm ring-1 ring-border' : ''"
 						@click="selectedAccountId = account.id"
 					>
 						<div class="flex items-start justify-between gap-3">
@@ -244,7 +244,7 @@ function scoreBarClass(score) {
 					</div>
 
 					<div class="mt-6 grid divide-y divide-border overflow-hidden rounded-2xl border border-border sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">
-						<div v-for="metric in summaryMetrics" :key="metric.label" class="bg-background p-4">
+						<div v-for="metric in summaryMetrics" :key="metric.label" class="bg-canvas p-4">
 							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">{{ metric.label }}</p>
 							<p class="mt-2 text-lg font-semibold">{{ metric.value }}</p>
 							<p class="mt-1 text-sm leading-6 text-muted-fg">{{ metric.detail }}</p>
@@ -263,7 +263,7 @@ function scoreBarClass(score) {
 							:key="tab.id"
 							type="button"
 							class="rounded-full px-3 py-1.5 text-sm font-medium transition"
-							:class="selectedTab === tab.id ? 'bg-primary text-primary-fg' : 'bg-secondary text-muted-fg hover:text-fg'"
+							:class="selectedTab === tab.id ? 'bg-primary text-primary-fg' : 'bg-secondary text-muted-fg hover:text-canvas-fg'"
 							@click="selectedTab = tab.id"
 						>
 							{{ tab.label }}
@@ -280,7 +280,7 @@ function scoreBarClass(score) {
 						<DomCheckbox v-model="showOnlyRisks" label="Risks only" />
 					</div>
 					<div class="mt-4 divide-y divide-border overflow-hidden rounded-2xl border border-border">
-						<div v-for="driver in visibleDrivers" :key="driver.label" class="grid gap-3 bg-background p-4 sm:grid-cols-[auto_minmax(0,1fr)]">
+						<div v-for="driver in visibleDrivers" :key="driver.label" class="grid gap-3 bg-canvas p-4 sm:grid-cols-[auto_minmax(0,1fr)]">
 							<span class="mt-1 size-3 rounded-full" :class="scoreBarClass(driver.tone === 'success' ? 90 : driver.tone === 'warning' ? 72 : 42)"></span>
 							<span>
 								<span class="block font-semibold">{{ driver.label }}</span>
@@ -307,7 +307,7 @@ function scoreBarClass(score) {
 				<section v-else class="p-4 sm:p-6">
 					<h4 class="font-semibold tracking-tight">Expansion and save opportunities</h4>
 					<div class="mt-4 divide-y divide-border overflow-hidden rounded-2xl border border-border">
-						<div v-for="opportunity in selectedAccount.opportunities" :key="opportunity.label" class="flex flex-wrap items-center justify-between gap-3 bg-background p-4">
+						<div v-for="opportunity in selectedAccount.opportunities" :key="opportunity.label" class="flex flex-wrap items-center justify-between gap-3 bg-canvas p-4">
 							<span>
 								<span class="block font-semibold">{{ opportunity.label }}</span>
 								<span class="mt-1 block text-sm text-muted-fg">Confidence: {{ opportunity.confidence }}</span>
@@ -318,7 +318,7 @@ function scoreBarClass(score) {
 				</section>
 			</main>
 
-			<aside class="grid content-start skin-raised">
+			<aside class="grid content-start skin-card">
 				<section class="border-b border-border p-4 sm:p-6">
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Next best action</p>
 					<h4 class="mt-1 text-lg font-semibold">Launch {{ playbook.toLowerCase() }}</h4>
@@ -335,7 +335,7 @@ function scoreBarClass(score) {
 						<h4 class="font-semibold tracking-tight">Readiness</h4>
 						<span class="text-sm font-semibold">{{ readiness }}%</span>
 					</div>
-					<div class="mt-3 h-2 overflow-hidden rounded-full bg-background">
+					<div class="mt-3 h-2 overflow-hidden rounded-full bg-canvas">
 						<div class="h-full rounded-full bg-primary" :style="{ width: `${readiness}%` }"></div>
 					</div>
 					<div class="mt-4 grid gap-3">

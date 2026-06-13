@@ -57,7 +57,7 @@ async function submit() {
 <template>
 	<DomStudioLayout>
 		<section class="mx-auto flex min-h-[calc(100vh-13rem)] w-full max-w-5xl items-center py-8">
-			<div class="grid w-full overflow-hidden rounded-3xl border border-border bg-background shadow-2xl shadow-black/10 md:grid-cols-[0.9fr_1.1fr]">
+			<div class="grid w-full overflow-hidden rounded-3xl border border-border bg-canvas shadow-2xl shadow-black/10 md:grid-cols-[0.9fr_1.1fr]">
 				<div class="hidden bg-primary p-8 text-primary-fg md:flex md:flex-col md:justify-between">
 					<div>
 						<div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary-fg/70">
@@ -79,20 +79,20 @@ async function submit() {
 				<div v-if="isLoggedIn" class="p-6 sm:p-10">
 					<div class="mx-auto max-w-sm">
 						<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">Account</p>
-						<h2 class="mt-2 text-3xl font-bold tracking-tight text-fg">You are already logged in</h2>
+						<h2 class="mt-2 text-3xl font-bold tracking-tight text-canvas-fg">You are already logged in</h2>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">
-							You are signed in as <span class="font-medium text-fg">{{ user.email }}</span>.
+							You are signed in as <span class="font-medium text-canvas-fg">{{ user.email }}</span>.
 						</p>
 
 						<div class="mt-8 space-y-4">
 							<div v-if="needsPurchase" class="rounded-2xl border border-border bg-secondary/40 p-4">
-								<p class="text-sm font-semibold text-fg">Finish unlocking lifetime access</p>
+								<p class="text-sm font-semibold text-canvas-fg">Finish unlocking lifetime access</p>
 								<p class="mt-1 text-sm leading-6 text-muted-fg">
 									Your account is ready. Continue to payment to unlock DOM Studio source access.
 								</p>
 							</div>
 							<div v-else-if="hasSourceAccess" class="rounded-2xl border border-success/30 bg-success/10 p-4">
-								<p class="text-sm font-semibold text-fg">Source access is active</p>
+								<p class="text-sm font-semibold text-canvas-fg">Source access is active</p>
 								<p class="mt-1 text-sm leading-6 text-muted-fg">
 									Your lifetime access is already linked to this account.
 								</p>
@@ -111,11 +111,11 @@ async function submit() {
 				<form v-else class="p-6 sm:p-10" @submit.prevent="submit">
 					<div class="mx-auto max-w-sm">
 						<div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">
-							<span class="text-fg">Create account</span>
+							<span class="text-canvas-fg">Create account</span>
 							<span aria-hidden="true">→</span>
 							<span>Payment</span>
 						</div>
-						<h2 class="mt-2 text-3xl font-bold tracking-tight text-fg">Create your account</h2>
+						<h2 class="mt-2 text-3xl font-bold tracking-tight text-canvas-fg">Create your account</h2>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">
 							Your lifetime access will be linked to this email after payment.
 						</p>
@@ -153,7 +153,7 @@ async function submit() {
 
 						<p class="mt-6 text-center text-sm text-muted-fg">
 							Already have an account?
-							<RouterLink class="font-medium text-fg hover:underline" :to="{ path: '/auth/sign-in', query: { from: returnTo, licence } }">Sign in</RouterLink>
+							<RouterLink class="font-medium text-canvas-fg hover:underline" :to="{ path: '/auth/sign-in', query: { from: returnTo, licence } }">Sign in</RouterLink>
 						</p>
 					</div>
 				</form>

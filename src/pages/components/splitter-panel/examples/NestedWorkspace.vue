@@ -12,14 +12,14 @@ const preview = ref(250);
 		<DomSplitterPanel
 			v-model:start-size="files"
 			v-model:end-size="inspector"
-			class="h-[420px] min-w-[860px] overflow-hidden rounded-xl border border-border bg-background text-sm shadow-sm"
+			class="h-[420px] min-w-[860px] overflow-hidden rounded-xl border border-border bg-canvas text-sm shadow-sm"
 			:min-start="180"
 			:min-main="320"
 			:min-end="220"
 			handle-class="transition hover:bg-border/70 focus-visible:bg-ring/35 data-[dragging=true]:bg-ring/30"
 		>
 			<template #start>
-				<aside class="flex h-full flex-col skin-raised">
+				<aside class="flex h-full flex-col skin-card">
 					<header class="border-b border-border px-4 py-3">
 						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Workspace</p>
 					</header>
@@ -42,28 +42,28 @@ const preview = ref(250);
 			>
 				<template #start>
 					<main class="h-full min-w-0 overflow-auto p-5">
-						<div class="h-full rounded-lg border border-border bg-background p-5 shadow-sm">
+						<div class="h-full rounded-lg border border-border bg-canvas p-5 shadow-sm">
 							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Preview</p>
-							<h3 class="mt-3 text-xl font-semibold text-fg">Nested splitters</h3>
+							<h3 class="mt-3 text-xl font-semibold text-canvas-fg">Nested splitters</h3>
 							<p class="mt-2 max-w-md leading-6 text-muted-fg">
 								The center workspace uses a vertical splitter while the surrounding shell keeps horizontal resize handles.
 							</p>
 							<div class="mt-5 grid grid-cols-2 gap-3">
-								<div class="rounded-md border border-border skin-raised p-3">
+								<div class="rounded-md border border-border skin-card p-3">
 									<p class="text-xs text-muted-fg">Viewport</p>
-									<strong class="mt-1 block text-fg">Desktop</strong>
+									<strong class="mt-1 block text-canvas-fg">Desktop</strong>
 								</div>
-								<div class="rounded-md border border-border skin-raised p-3">
+								<div class="rounded-md border border-border skin-card p-3">
 									<p class="text-xs text-muted-fg">State</p>
-									<strong class="mt-1 block text-fg">Draft</strong>
+									<strong class="mt-1 block text-canvas-fg">Draft</strong>
 								</div>
 							</div>
 						</div>
 					</main>
 				</template>
 
-				<section class="h-full overflow-auto border-t border-border bg-background p-4 font-mono text-xs leading-6 text-muted-fg">
-					<p class="text-fg">build: preview updated</p>
+				<section class="h-full overflow-auto border-t border-border bg-canvas p-4 font-mono text-xs leading-6 text-muted-fg">
+					<p class="text-canvas-fg">build: preview updated</p>
 					<p>layout: vertical splitter resized</p>
 					<p>sync: persisted panel sizes</p>
 					<p>status: ready</p>
@@ -71,15 +71,15 @@ const preview = ref(250);
 			</DomSplitterPanel>
 
 			<template #end>
-				<aside class="h-full overflow-auto skin-raised p-4">
+				<aside class="h-full overflow-auto skin-card p-4">
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Inspector</p>
 					<div class="mt-4 space-y-3">
 						<label class="block text-xs font-medium text-muted-fg">Width</label>
-						<div class="rounded-md border border-border bg-background px-3 py-2 text-fg">fluid</div>
+						<div class="rounded-md border border-border bg-canvas px-3 py-2 text-canvas-fg">fluid</div>
 						<label class="block text-xs font-medium text-muted-fg">Height</label>
-						<div class="rounded-md border border-border bg-background px-3 py-2 text-fg">split</div>
+						<div class="rounded-md border border-border bg-canvas px-3 py-2 text-canvas-fg">split</div>
 						<label class="block text-xs font-medium text-muted-fg">Handle</label>
-						<div class="rounded-md border border-border bg-background px-3 py-2 text-fg">transparent</div>
+						<div class="rounded-md border border-border bg-canvas px-3 py-2 text-canvas-fg">transparent</div>
 					</div>
 				</aside>
 			</template>

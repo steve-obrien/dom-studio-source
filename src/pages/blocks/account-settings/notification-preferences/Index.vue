@@ -82,16 +82,16 @@ import NotificationPreferenceCenterSrc from './examples/NotificationPreferenceCe
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Preference model</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Preference model</h3>
 						<p class="mt-2">Store user overrides separately from workspace defaults so admins can change defaults without erasing personal choices.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Required alerts</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Required alerts</h3>
 						<p class="mt-2">Disable controls only for legally or operationally required notifications, and explain the reason in supporting copy.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include reusable channel toggles, notification preview emails, per-project overrides, and unsubscribe token handling.</p>
 					</div>
 				</div>

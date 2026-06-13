@@ -88,16 +88,16 @@ import FieldDispatchMapSrc from './examples/FieldDispatchMap.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Map provider</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Map provider</h3>
 						<p class="mt-2">The example uses a CSS map-like canvas so it stays portable. In production, bind route and stop coordinates to your map SDK and keep marker controls keyboard accessible.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Dispatch commands</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Dispatch commands</h3>
 						<p class="mt-2">Treat assignment, reorder, hold, cancel, and message actions as auditable commands. Return validation errors for capacity, territory, customer window, and vehicle mismatch.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include drag-to-assign stops, route simulation, live driver GPS, traffic overlays, customer SMS status, proof-of-delivery uploads, and offline dispatch mode.</p>
 					</div>
 				</div>

@@ -154,7 +154,7 @@ defineExpose({
 		<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
 			<div
 				:id="menuId"
-				class="dom-dropdown-menu dom-floating-transition skin-floating rounded-2xl p-1"
+				class="dom-dropdown-menu dom-floating-transition skin-popover rounded-2xl p-1"
 				:class="width"
 				:data-composite-panel="$slots.panel ? 'true' : null"
 				:data-haspopup="$slots.panel ? panelType : null"

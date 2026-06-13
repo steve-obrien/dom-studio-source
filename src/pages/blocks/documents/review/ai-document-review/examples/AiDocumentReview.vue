@@ -197,7 +197,7 @@ function suggestionClasses(suggestion) {
 	if (suggestion.id === activeSuggestion.value.id) return 'border-primary/70 bg-primary/10 shadow-lg shadow-primary/10';
 	if (suggestion.state === 'accepted') return 'border-emerald-500/40 bg-emerald-500/10';
 	if (suggestion.state === 'dismissed') return 'border-border bg-secondary/60 opacity-70';
-	return 'border-border bg-background hover:border-primary/40';
+	return 'border-border bg-canvas hover:border-primary/40';
 }
 
 function severityClasses(severity) {
@@ -218,8 +218,8 @@ function stateClasses(state) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-[2rem] border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border bg-background/95 px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-[2rem] border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border bg-canvas/95 px-4 py-4 sm:px-6">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 				<div class="min-w-0">
 					<div class="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">
@@ -232,15 +232,15 @@ function stateClasses(state) {
 
 				<div class="grid grid-cols-3 gap-2 text-center text-xs sm:min-w-[24rem]">
 					<div class="rounded-2xl bg-secondary p-3">
-						<p class="text-lg font-semibold text-fg">{{ pendingSuggestions.length }}</p>
+						<p class="text-lg font-semibold text-canvas-fg">{{ pendingSuggestions.length }}</p>
 						<p class="mt-1 text-muted-fg">Pending</p>
 					</div>
 					<div class="rounded-2xl bg-secondary p-3">
-						<p class="text-lg font-semibold text-fg">{{ acceptedSuggestions.length }}</p>
+						<p class="text-lg font-semibold text-canvas-fg">{{ acceptedSuggestions.length }}</p>
 						<p class="mt-1 text-muted-fg">Accepted</p>
 					</div>
 					<div class="rounded-2xl bg-secondary p-3">
-						<p class="text-lg font-semibold text-fg">{{ reviewProgress }}%</p>
+						<p class="text-lg font-semibold text-canvas-fg">{{ reviewProgress }}%</p>
 						<p class="mt-1 text-muted-fg">Reviewed</p>
 					</div>
 				</div>
@@ -248,9 +248,9 @@ function stateClasses(state) {
 		</header>
 
 		<section class="grid min-h-[46rem] gap-0 xl:grid-cols-[minmax(0,1fr)_24rem]">
-			<main class="min-w-0 bg-[linear-gradient(180deg,hsl(var(--secondary)/.65),hsl(var(--background)))] px-3 py-5 sm:px-6 lg:px-8">
+			<main class="min-w-0 bg-[linear-gradient(180deg,hsl(var(--secondary)/.65),hsl(var(--canvas)))] px-3 py-5 sm:px-6 lg:px-8">
 				<div class="mx-auto max-w-4xl">
-					<div class="mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-background/90 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+					<div class="mb-4 flex flex-col gap-3 rounded-2xl border border-border bg-canvas/90 p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
 						<div class="min-w-0">
 							<p class="text-sm font-semibold">Northstar Labs contract packet</p>
 							<p class="mt-1 text-xs text-muted-fg">Version 12. Legal policy pack matched against customer-facing copy.</p>
@@ -269,7 +269,7 @@ function stateClasses(state) {
 						</div>
 					</div>
 
-					<article class="rounded-[1.75rem] border border-border bg-background px-5 py-7 shadow-xl shadow-black/5 sm:px-10 sm:py-9">
+					<article class="rounded-[1.75rem] border border-border bg-canvas px-5 py-7 shadow-xl shadow-black/5 sm:px-10 sm:py-9">
 						<div class="mb-8 border-b border-border pb-6">
 							<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">Customer agreement</p>
 							<h4 class="mt-3 text-3xl font-semibold tracking-tight">Security and launch addendum</h4>
@@ -289,7 +289,7 @@ function stateClasses(state) {
 											<h5 class="text-lg font-semibold">{{ section.title }}</h5>
 											<span class="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-fg">{{ section.status }}</span>
 										</div>
-										<p class="mt-3 text-base leading-8 text-fg/90">{{ section.body }}</p>
+										<p class="mt-3 text-base leading-8 text-canvas-fg/90">{{ section.body }}</p>
 										<div v-if="sectionSuggestions(section.id).length" class="mt-4 flex flex-wrap gap-2">
 											<button
 												v-for="suggestion in sectionSuggestions(section.id)"
@@ -299,7 +299,7 @@ function stateClasses(state) {
 												:class="suggestionClasses(suggestion)"
 												@click="setActiveSuggestion(suggestion)"
 											>
-												<span class="grid size-5 place-items-center rounded-full bg-background">{{ suggestion.number }}</span>
+												<span class="grid size-5 place-items-center rounded-full bg-canvas">{{ suggestion.number }}</span>
 												<span>{{ suggestion.label }}</span>
 											</button>
 										</div>
@@ -311,7 +311,7 @@ function stateClasses(state) {
 				</div>
 			</main>
 
-			<aside class="border-t border-border bg-background p-4 xl:border-l xl:border-t-0 xl:p-5">
+			<aside class="border-t border-border bg-canvas p-4 xl:border-l xl:border-t-0 xl:p-5">
 				<div class="sticky top-4 space-y-4">
 					<div class="overflow-x-auto pb-1">
 						<DomTabs v-model="activeTab" :tabs="reviewTabs">
@@ -348,7 +348,7 @@ function stateClasses(state) {
 						</button>
 					</div>
 
-					<div class="rounded-[1.5rem] border border-border bg-background p-4 shadow-lg shadow-black/5">
+					<div class="rounded-[1.5rem] border border-border bg-canvas p-4 shadow-lg shadow-black/5">
 						<div class="flex items-start justify-between gap-3">
 							<div>
 								<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Active suggestion</p>

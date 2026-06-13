@@ -158,7 +158,7 @@ watch(() => props.modelValue, setOpen);
 				</button>
 				<div class="skin-overlay overflow-hidden rounded-[1.75rem]">
 					<div v-if="title || description" class="border-b border-border px-5 py-4 text-center">
-						<h2 v-if="title" :id="titleId" class="text-sm font-semibold text-fg">{{ title }}</h2>
+						<h2 v-if="title" :id="titleId" class="text-sm font-semibold text-canvas-fg">{{ title }}</h2>
 						<p v-if="description" class="mt-1 text-xs leading-5 text-muted-fg">{{ description }}</p>
 					</div>
 					<div>
@@ -167,7 +167,7 @@ watch(() => props.modelValue, setOpen);
 							:key="action.value || action.label"
 							type="button"
 							class="block min-h-14 w-full border-b border-border px-5 py-3 text-center transition last:border-b-0 hover:bg-secondary/70 active:bg-secondary"
-							:class="action.variant === 'danger' ? 'text-destructive' : 'text-fg'"
+							:class="action.variant === 'danger' ? 'text-destructive' : 'text-canvas-fg'"
 							@click="selectAction(action)"
 						>
 							<span class="block text-sm font-medium">{{ action.label }}</span>

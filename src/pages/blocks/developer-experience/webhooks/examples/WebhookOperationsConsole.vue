@@ -162,8 +162,8 @@ function deliveryClasses(status) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-raised px-4 py-4 sm:px-5">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-card px-4 py-4 sm:px-5">
 			<div>
 				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Developer operations</p>
 				<h3 class="mt-1 text-xl font-semibold tracking-tight">Webhooks</h3>
@@ -180,17 +180,17 @@ function deliveryClasses(status) {
 		</header>
 
 		<div class="grid min-h-[45rem] lg:grid-cols-[18rem_minmax(0,1fr)_19rem]">
-			<aside class="border-b border-border skin-raised p-3 lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card p-3 lg:border-b-0 lg:border-r">
 				<div class="mb-3 grid grid-cols-3 gap-2 text-center">
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">8</p>
 						<p class="text-[11px] text-muted-fg">Endpoints</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">42k</p>
 						<p class="text-[11px] text-muted-fg">Events</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-2">
+					<div class="rounded-lg border border-border bg-canvas p-2">
 						<p class="text-lg font-semibold">99.1%</p>
 						<p class="text-[11px] text-muted-fg">Success</p>
 					</div>
@@ -202,7 +202,7 @@ function deliveryClasses(status) {
 						:key="endpoint.id"
 						type="button"
 						class="w-full rounded-lg border p-3 text-left transition hover:border-primary/50"
-						:class="endpoint.id === selectedEndpoint.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-background'"
+						:class="endpoint.id === selectedEndpoint.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-canvas'"
 						@click="selectEndpoint(endpoint)"
 					>
 						<div class="flex items-start justify-between gap-2">
@@ -243,7 +243,7 @@ function deliveryClasses(status) {
 					</DomCard>
 				</section>
 
-				<section class="rounded-xl border border-border bg-background">
+				<section class="rounded-xl border border-border bg-canvas">
 					<div class="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
 						<div>
 							<h4 class="font-semibold">Endpoint configuration</h4>
@@ -265,7 +265,7 @@ function deliveryClasses(status) {
 					</div>
 
 					<div v-if="activeTab === 'events'" class="grid gap-3 p-4 md:grid-cols-3">
-						<div v-for="group in eventGroups" :key="group.title" class="rounded-lg border border-border skin-raised p-3">
+						<div v-for="group in eventGroups" :key="group.title" class="rounded-lg border border-border skin-card p-3">
 							<h5 class="text-sm font-semibold">{{ group.title }}</h5>
 							<div class="mt-3 space-y-3">
 								<label v-for="event in group.events" :key="event.key" class="flex gap-3">
@@ -294,7 +294,7 @@ function deliveryClasses(status) {
 									:key="filter"
 									type="button"
 									class="rounded-full px-3 py-1 text-xs font-semibold transition"
-									:class="deliveryFilter === filter ? 'bg-primary text-primary-fg' : 'bg-secondary text-muted-fg hover:text-fg'"
+									:class="deliveryFilter === filter ? 'bg-primary text-primary-fg' : 'bg-secondary text-muted-fg hover:text-canvas-fg'"
 									@click="deliveryFilter = filter"
 								>
 									{{ filter }}
@@ -322,9 +322,9 @@ function deliveryClasses(status) {
 					</div>
 
 					<div v-else class="grid gap-3 p-4 md:grid-cols-[minmax(0,1fr)_16rem]">
-						<div class="rounded-lg border border-border skin-raised p-4">
+						<div class="rounded-lg border border-border skin-card p-4">
 							<p class="text-sm font-semibold">Signing secret</p>
-							<div class="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-background p-3">
+							<div class="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-canvas p-3">
 								<code class="min-w-0 flex-1 truncate text-xs">{{ visibleSecret }}</code>
 								<DomButton variant="ghost" size="sm" @click="showSecret = !showSecret">
 									{{ showSecret ? 'Hide' : 'Reveal' }}
@@ -332,7 +332,7 @@ function deliveryClasses(status) {
 							</div>
 							<p class="mt-3 text-xs leading-5 text-muted-fg">Reveal secrets only to authorized admins and log every rotation.</p>
 						</div>
-						<div class="rounded-lg border border-border skin-raised p-4">
+						<div class="rounded-lg border border-border skin-card p-4">
 							<DomToggle v-model="sendTestEvent" label="Send a test event after saving" />
 							<p class="mt-3 text-xs leading-5 text-muted-fg">Use a synthetic payload to confirm DNS, TLS, signature, and response handling.</p>
 						</div>
@@ -340,8 +340,8 @@ function deliveryClasses(status) {
 				</section>
 			</main>
 
-			<aside class="space-y-3 border-t border-border skin-raised p-4 lg:border-l lg:border-t-0">
-				<section class="rounded-xl border border-border bg-background p-4">
+			<aside class="space-y-3 border-t border-border skin-card p-4 lg:border-l lg:border-t-0">
+				<section class="rounded-xl border border-border bg-canvas p-4">
 					<p class="text-sm font-semibold">Readiness</p>
 					<div class="mt-3 space-y-3">
 						<div class="flex items-center justify-between gap-3 text-sm">
@@ -359,7 +359,7 @@ function deliveryClasses(status) {
 					</div>
 				</section>
 
-				<section class="rounded-xl border border-border bg-background p-4">
+				<section class="rounded-xl border border-border bg-canvas p-4">
 					<p class="text-sm font-semibold">Launch checklist</p>
 					<div class="mt-3 space-y-2">
 						<label class="flex items-center gap-2 text-sm">
@@ -377,7 +377,7 @@ function deliveryClasses(status) {
 					</div>
 				</section>
 
-				<section class="rounded-xl border border-border bg-background p-4">
+				<section class="rounded-xl border border-border bg-canvas p-4">
 					<p class="text-sm font-semibold">Activity</p>
 					<div class="mt-3 space-y-3 text-sm">
 						<div>

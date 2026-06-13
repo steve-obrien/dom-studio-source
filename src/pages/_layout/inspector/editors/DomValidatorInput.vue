@@ -170,7 +170,7 @@ function prettify(value) {
 			<div
 				v-for="(validator, rowIndex) in rows"
 				:key="rowIndex"
-				class="rounded-lg border border-border bg-background p-2"
+				class="rounded-lg border border-border bg-canvas p-2"
 			>
 				<div class="flex items-start justify-between gap-2">
 					<div class="min-w-0">
@@ -178,8 +178,8 @@ function prettify(value) {
 						<p class="truncate text-xs text-muted-fg">{{ definitionFor(validator).description }}</p>
 					</div>
 					<div class="flex shrink-0 items-center gap-1">
-						<button type="button" class="h-7 rounded-md px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-fg" title="Move up" :aria-label="`Move validator ${rowIndex + 1} up`" @click="move(rowIndex, -1)">Up</button>
-						<button type="button" class="h-7 rounded-md px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-fg" title="Move down" :aria-label="`Move validator ${rowIndex + 1} down`" @click="move(rowIndex, 1)">Down</button>
+						<button type="button" class="h-7 rounded-md px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-canvas-fg" title="Move up" :aria-label="`Move validator ${rowIndex + 1} up`" @click="move(rowIndex, -1)">Up</button>
+						<button type="button" class="h-7 rounded-md px-2 text-[11px] font-medium text-muted-fg hover:bg-secondary hover:text-canvas-fg" title="Move down" :aria-label="`Move validator ${rowIndex + 1} down`" @click="move(rowIndex, 1)">Down</button>
 						<button type="button" class="h-7 rounded-md px-2 text-[11px] font-medium text-destructive hover:bg-destructive/10" title="Remove" :aria-label="`Remove validator ${rowIndex + 1}`" @click="remove(rowIndex)">Remove</button>
 					</div>
 				</div>
@@ -188,7 +188,7 @@ function prettify(value) {
 					<span class="mb-1 block text-[11px] font-medium text-muted-fg">Type</span>
 					<select
 						:value="selectedType(validator)"
-						class="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-fg outline-none focus:ring-2 focus:ring-ring/40"
+						class="h-8 w-full rounded-md border border-border bg-canvas px-2 text-xs text-canvas-fg outline-none focus:ring-2 focus:ring-ring/40"
 						@change="changeType(rowIndex, $event.target.value)"
 					>
 						<option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option>
@@ -200,7 +200,7 @@ function prettify(value) {
 					<input
 						:value="validator.name || ''"
 						placeholder="serverUnique"
-						class="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-fg outline-none focus:ring-2 focus:ring-ring/40"
+						class="h-8 w-full rounded-md border border-border bg-canvas px-2 text-xs text-canvas-fg outline-none focus:ring-2 focus:ring-ring/40"
 						@input="setName(rowIndex, $event.target.value)"
 					/>
 				</label>
@@ -229,7 +229,7 @@ function prettify(value) {
 					<input
 						:value="validator.message || ''"
 						placeholder="Optional error message"
-						class="h-8 w-full rounded-md border border-border bg-background px-2 text-xs text-fg outline-none focus:ring-2 focus:ring-ring/40"
+						class="h-8 w-full rounded-md border border-border bg-canvas px-2 text-xs text-canvas-fg outline-none focus:ring-2 focus:ring-ring/40"
 						@input="setMessage(rowIndex, $event.target.value)"
 					/>
 				</label>
@@ -241,7 +241,7 @@ function prettify(value) {
 
 			<button
 				type="button"
-				class="flex w-full items-center justify-center rounded-lg border border-dashed border-border bg-background py-2 text-xs font-medium text-muted-fg hover:border-primary/40 hover:text-fg"
+				class="flex w-full items-center justify-center rounded-lg border border-dashed border-border bg-canvas py-2 text-xs font-medium text-muted-fg hover:border-primary/40 hover:text-canvas-fg"
 				@click="add"
 			>
 				Add validator

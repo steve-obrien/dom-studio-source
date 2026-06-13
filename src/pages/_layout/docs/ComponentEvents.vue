@@ -37,7 +37,7 @@ function payloadTokens(event) {
 				<tbody class="divide-y divide-border">
 					<template v-for="e in info.events" :key="e.name">
 						<tr>
-							<td class="px-4 py-3 font-mono text-[12.5px] text-fg">{{ prefix }}{{ e.name }}</td>
+							<td class="px-4 py-3 font-mono text-[12.5px] text-canvas-fg">{{ prefix }}{{ e.name }}</td>
 							<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">
 								<template v-for="(token, index) in payloadTokens(e)" :key="`${e.name}:${index}`">
 									<DomPopover
@@ -48,7 +48,7 @@ function payloadTokens(event) {
 										padding="p-0"
 									>
 										<template #trigger>
-											<span class="cursor-help text-fg underline decoration-dotted underline-offset-4">{{ token.text }}</span>
+											<span class="cursor-help text-canvas-fg underline decoration-dotted underline-offset-4">{{ token.text }}</span>
 										</template>
 										<TypeCodeBlock class="max-h-80" :code="token.definition" :definitions="token.typeDefinitions || {}" :framed="false" />
 									</DomPopover>

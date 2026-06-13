@@ -119,7 +119,7 @@ function serializeNodes(nodes, depth = 0) {
 
 <template>
 	<div
-		class="dom-code overflow-auto rounded-2xl border border-border bg-background"
+		class="dom-code overflow-auto rounded-2xl border border-border bg-canvas"
 		:style="codeStyle"
 	>
 		<div v-if="highlighted" class="dom-shiki" v-html="highlighted"></div>

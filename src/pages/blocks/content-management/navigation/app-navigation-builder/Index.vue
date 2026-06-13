@@ -85,16 +85,16 @@ import PreviewMenuItemSrc from './components/PreviewMenuItem.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Tree persistence</h3>
+					<div class="border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Tree persistence</h3>
 						<p class="mt-2">Use stable item IDs and store parent IDs plus sibling sort orders. Treat drag/drop as intent, then validate the move server-side.</p>
 					</div>
-					<div class="border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Audience rules</h3>
+					<div class="border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Audience rules</h3>
 						<p class="mt-2">Do not rely on menu hiding for authorization. Hidden links improve UX, but protected routes and APIs still need policy enforcement.</p>
 					</div>
-					<div class="border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include icon pickers, scheduled publishes, localization, route health checks, bulk audience edits, and reusable navigation preview rows.</p>
 					</div>
 				</div>

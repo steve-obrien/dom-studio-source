@@ -81,16 +81,16 @@ import CampaignComposerSrc from './examples/CampaignComposer.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Audience logic</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Audience logic</h3>
 						<p class="mt-2">Evaluate segment membership, exclusions, subscription consent, and frequency caps on the server. The UI should preview reach and explain policy blockers.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Preview fidelity</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Preview fidelity</h3>
 						<p class="mt-2">Render real email, push, and in-app previews with personalization data, locale fallbacks, dark mode, and truncation warnings before sending.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Good follow-ups include reusable audience rule builders, template token pickers, A/B test variants, holdout groups, approval gates, and send job monitors.</p>
 					</div>
 				</div>

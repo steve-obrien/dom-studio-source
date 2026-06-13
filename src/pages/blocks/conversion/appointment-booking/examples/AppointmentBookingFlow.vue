@@ -247,7 +247,7 @@ function slotButtonClasses(slot) {
 		return 'border-primary bg-primary text-primary-fg shadow-sm';
 	}
 	if (slot.status === 'available') {
-		return 'border-border bg-background text-fg hover:border-primary/50 hover:bg-secondary/60';
+		return 'border-border bg-canvas text-canvas-fg hover:border-primary/50 hover:bg-secondary/60';
 	}
 	return 'cursor-not-allowed border-border bg-secondary/70 text-muted-fg opacity-70';
 }
@@ -269,9 +269,9 @@ function confirmBooking() {
 </script>
 
 <template>
-	<section class="mx-auto flex min-h-screen w-full max-w-6xl items-center justify-center bg-background p-4 text-fg sm:p-6">
-		<div class="w-full overflow-hidden rounded-lg border border-border bg-background shadow-xl">
-			<header class="border-b border-border skin-raised px-5 py-5 sm:px-6">
+	<section class="mx-auto flex min-h-screen w-full max-w-6xl items-center justify-center bg-canvas p-4 text-canvas-fg sm:p-6">
+		<div class="w-full overflow-hidden rounded-lg border border-border bg-canvas shadow-xl">
+			<header class="border-b border-border skin-card px-5 py-5 sm:px-6">
 				<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 					<div>
 						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Scheduling</p>
@@ -280,7 +280,7 @@ function confirmBooking() {
 							Select a meeting type, compare live availability, and complete the booking once the required details are ready.
 						</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background px-4 py-3 text-sm">
+					<div class="rounded-lg border border-border bg-canvas px-4 py-3 text-sm">
 						<p class="font-semibold">{{ selectedMeetingType?.host || 'Host assigned after type' }}</p>
 						<p class="mt-1 text-muted-fg">
 							{{ selectedMeetingType ? `${selectedMeetingType.duration} minute appointment` : 'Choose an appointment type' }}
@@ -295,8 +295,8 @@ function confirmBooking() {
 							class="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition"
 							:class="[
 								index === activeStep && 'border-primary bg-primary text-primary-fg',
-								index < activeStep && 'border-border bg-secondary text-fg',
-								index > activeStep && 'border-border bg-background text-muted-fg',
+								index < activeStep && 'border-border bg-secondary text-canvas-fg',
+								index > activeStep && 'border-border bg-canvas text-muted-fg',
 								index <= activeStep ? 'hover:border-primary/50' : 'cursor-default opacity-70',
 							]"
 							:disabled="index > activeStep || activeStep === 3"
@@ -321,7 +321,7 @@ function confirmBooking() {
 									:key="type.id"
 									type="button"
 									class="min-h-44 rounded-lg border p-4 text-left transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-									:class="type.id === selectedMeetingTypeId ? 'border-primary bg-primary text-primary-fg shadow-md' : 'border-border bg-background'"
+									:class="type.id === selectedMeetingTypeId ? 'border-primary bg-primary text-primary-fg shadow-md' : 'border-border bg-canvas'"
 									@click="selectMeetingType(type.id)"
 								>
 									<div class="flex items-start justify-between gap-3">
@@ -341,7 +341,7 @@ function confirmBooking() {
 							</div>
 
 							<div v-else-if="activeStep === 1" class="grid gap-5 xl:grid-cols-[minmax(20rem,1fr)_18rem]">
-								<section class="min-w-0 rounded-lg border border-border bg-background p-4">
+								<section class="min-w-0 rounded-lg border border-border bg-canvas p-4">
 									<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 										<div>
 											<h4 class="font-semibold tracking-tight">Choose a date</h4>
@@ -372,7 +372,7 @@ function confirmBooking() {
 									</div>
 								</section>
 
-								<section class="rounded-lg border border-border bg-background p-4">
+								<section class="rounded-lg border border-border bg-canvas p-4">
 									<div class="flex items-start justify-between gap-3">
 										<div>
 											<h4 class="font-semibold tracking-tight">Available times</h4>
@@ -405,7 +405,7 @@ function confirmBooking() {
 							</div>
 
 							<div v-else-if="activeStep === 2" class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]">
-								<section class="rounded-lg border border-border bg-background p-4">
+								<section class="rounded-lg border border-border bg-canvas p-4">
 									<div class="grid gap-4 md:grid-cols-2">
 										<DomTextInput v-model="attendee.name" label="Your name" autocomplete="name" placeholder="Full name" />
 										<DomEmailInput v-model="attendee.email" label="Work email" />
@@ -415,7 +415,7 @@ function confirmBooking() {
 											class="rounded-lg border border-dashed border-border bg-secondary/60 p-3 text-left text-sm transition hover:border-primary/50 hover:bg-secondary"
 											@click="setExampleDetails"
 										>
-											<span class="font-semibold text-fg">Use sample invitee</span>
+											<span class="font-semibold text-canvas-fg">Use sample invitee</span>
 											<span class="mt-1 block leading-6 text-muted-fg">Alex Morgan, alex@example.com</span>
 										</button>
 										<DomTextareaInput
@@ -428,7 +428,7 @@ function confirmBooking() {
 									</div>
 								</section>
 
-								<section class="rounded-lg border border-border bg-background p-4">
+								<section class="rounded-lg border border-border bg-canvas p-4">
 									<h4 class="font-semibold tracking-tight">Ready to book</h4>
 									<div class="mt-4 grid gap-3 text-sm">
 										<div class="rounded-lg border border-border bg-secondary/50 p-3">
@@ -448,7 +448,7 @@ function confirmBooking() {
 								</section>
 							</div>
 
-							<div v-else class="mx-auto max-w-2xl rounded-lg border border-border bg-background p-5 text-center">
+							<div v-else class="mx-auto max-w-2xl rounded-lg border border-border bg-canvas p-5 text-center">
 								<div class="mx-auto grid size-12 place-items-center rounded-full bg-success/15 text-success">
 									<svg viewBox="0 0 24 24" class="size-6" fill="none" aria-hidden="true">
 										<path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -466,7 +466,7 @@ function confirmBooking() {
 				</main>
 
 				<aside class="border-t border-border bg-secondary/35 p-5 lg:border-l lg:border-t-0">
-					<div class="rounded-lg border border-border bg-background p-4">
+					<div class="rounded-lg border border-border bg-canvas p-4">
 						<div class="flex items-start gap-3">
 							<div class="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
 								<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
@@ -495,7 +495,7 @@ function confirmBooking() {
 									<button
 										v-if="selectedMeetingType"
 										type="button"
-										class="rounded-md px-2 py-1 text-xs font-semibold text-muted-fg transition hover:bg-background hover:text-fg"
+										class="rounded-md px-2 py-1 text-xs font-semibold text-muted-fg transition hover:bg-canvas hover:text-canvas-fg"
 										@click="editTime"
 									>
 										Edit
@@ -512,7 +512,7 @@ function confirmBooking() {
 									<button
 										v-if="canContinueFromTime"
 										type="button"
-										class="rounded-md px-2 py-1 text-xs font-semibold text-muted-fg transition hover:bg-background hover:text-fg"
+										class="rounded-md px-2 py-1 text-xs font-semibold text-muted-fg transition hover:bg-canvas hover:text-canvas-fg"
 										@click="editDetails"
 									>
 										Edit

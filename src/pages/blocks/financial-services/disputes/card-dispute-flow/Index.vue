@@ -82,16 +82,16 @@ import CardDisputeFlowSrc from './examples/CardDisputeFlow.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Eligibility service</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Eligibility service</h3>
 						<p class="mt-2">Calculate deadlines, provisional credit, card-network reason codes, and merchant-contact requirements in a backend service that the UI mirrors.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Evidence mapping</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Evidence mapping</h3>
 						<p class="mt-2">Normalize evidence into typed records such as receipt, cancellation proof, merchant conversation, tracking, and screenshot so operations teams can package cases quickly.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include file upload thumbnails, card replacement shipping, live chat escalation, network reason-code mapping, and support-agent case review variants.</p>
 					</div>
 				</div>

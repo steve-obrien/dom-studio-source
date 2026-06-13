@@ -84,16 +84,16 @@ import ProposalEditorSrc from './examples/ProposalEditor.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Autosave model</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Autosave model</h3>
 						<p class="mt-2">Save section deltas instead of the full document when possible. This keeps collaboration, undo history, and conflict handling easier to reason about.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Review anchors</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Review anchors</h3>
 						<p class="mt-2">Attach comments to stable section IDs and optional text ranges. Recompute display positions after reorder, insert, or export operations.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include rich text marks, presence cursors, compare versions, reusable approval gates, export progress, and reusable comment threads.</p>
 					</div>
 				</div>

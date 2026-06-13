@@ -31,14 +31,14 @@ const current = computed(() => statuses.find((item) => item.value === status.val
 						</span>
 						<span class="mt-1 block text-xs leading-5 text-muted-fg">{{ item.description }}</span>
 					</span>
-					<kbd class="rounded-md border border-border bg-background px-1.5 py-0.5 text-[11px] font-medium text-muted-fg">
+					<kbd class="rounded-md border border-border bg-canvas px-1.5 py-0.5 text-[11px] font-medium text-muted-fg">
 						{{ item.shortcut }}
 					</kbd>
 				</span>
 			</template>
 		</DomDropdown>
 		<p class="text-xs text-muted-fg">
-			Dropdowns are for actions. Use <code class="text-fg">DomSelect</code> when the selection is a form value.
+			Dropdowns are for actions. Use <code class="text-canvas-fg">DomSelect</code> when the selection is a form value.
 		</p>
 	</div>
 </template>

@@ -130,7 +130,7 @@ watch(field.value, syncInputFromModel);
 				ref="inputEl"
 				slot="input"
 				type="text"
-				class="dom-input rounded-full px-4 focus:ring-ring/60"
+				class="skin-input h-10 rounded-full px-4 focus:ring-ring/60"
 				:class="isLoading ? 'pr-10' : ''"
 				@focus="field.onFocus"
 				@blur="field.onBlur"
@@ -142,7 +142,7 @@ watch(field.value, syncInputFromModel);
 			<Teleport to="body" :disabled="!isMounted">
 				<ul
 					:id="listId"
-					class="skin-floating z-50 max-h-[min(15rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"
+					class="dom-floating-transition skin-popover z-50 max-h-[min(15rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"
 				>
 					<li
 						v-for="(option, index) in items"

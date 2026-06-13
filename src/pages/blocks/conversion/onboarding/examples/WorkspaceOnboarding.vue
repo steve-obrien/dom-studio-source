@@ -55,9 +55,9 @@ function goNext() {
 </script>
 
 <template>
-	<div class="w-full max-w-5xl mx-auto overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
+	<div class="w-full max-w-5xl mx-auto overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
 		<div class="grid min-h-[38rem] lg:grid-cols-[18rem_1fr]">
-			<aside class="border-b border-border skin-raised p-5 lg:border-b-0 lg:border-r">
+			<aside class="border-b border-border skin-card p-5 lg:border-b-0 lg:border-r">
 				<div class="flex items-center gap-3">
 					<span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-primary text-sm font-bold text-primary-fg">NS</span>
 					<div class="min-w-0">
@@ -83,7 +83,7 @@ function goNext() {
 						>
 							<span
 								class="grid size-7 shrink-0 place-items-center rounded-full border text-xs font-semibold"
-								:class="index <= step ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-background text-muted-fg'"
+								:class="index <= step ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-canvas text-muted-fg'"
 							>
 								{{ index + 1 }}
 							</span>
@@ -110,7 +110,7 @@ function goNext() {
 								<span class="text-sm font-medium">Workspace name</span>
 								<input
 									v-model="workspaceName"
-									class="mt-2 block w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none transition placeholder:text-muted-fg focus:border-ring focus:ring-2 focus:ring-ring/20"
+									class="mt-2 block w-full rounded-xl border border-input bg-canvas px-3 py-2.5 text-sm outline-none transition placeholder:text-muted-fg focus:border-ring focus:ring-2 focus:ring-ring/20"
 									placeholder="Acme customer portal"
 								/>
 							</label>
@@ -123,7 +123,7 @@ function goNext() {
 										:key="plan.value"
 										type="button"
 										class="rounded-2xl border p-4 text-left transition hover:border-ring"
-										:class="selectedPlan === plan.value ? 'border-primary bg-primary/10' : 'border-border bg-background'"
+										:class="selectedPlan === plan.value ? 'border-primary bg-primary/10' : 'border-border bg-canvas'"
 										@click="selectedPlan = plan.value"
 									>
 										<span class="flex items-center justify-between gap-3">
@@ -149,7 +149,7 @@ function goNext() {
 								:key="goal"
 								type="button"
 								class="flex items-center justify-between gap-3 rounded-2xl border p-4 text-left transition hover:border-ring"
-								:class="selectedGoals.includes(goal) ? 'border-primary bg-primary/10' : 'border-border bg-background'"
+								:class="selectedGoals.includes(goal) ? 'border-primary bg-primary/10' : 'border-border bg-canvas'"
 								@click="toggleGoal(goal)"
 							>
 								<span class="font-medium">{{ goal }}</span>
@@ -173,7 +173,7 @@ function goNext() {
 								<input
 									v-model="inviteEmail"
 									type="email"
-									class="block w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none transition placeholder:text-muted-fg focus:border-ring focus:ring-2 focus:ring-ring/20"
+									class="block w-full rounded-xl border border-input bg-canvas px-3 py-2.5 text-sm outline-none transition placeholder:text-muted-fg focus:border-ring focus:ring-2 focus:ring-ring/20"
 									placeholder="teammate@example.com"
 								/>
 							</label>
@@ -186,7 +186,7 @@ function goNext() {
 									<p class="truncate text-sm font-medium">{{ invite }}</p>
 									<p class="text-xs text-muted-fg">Editor access</p>
 								</div>
-								<button type="button" class="rounded-lg px-2 py-1 text-sm text-muted-fg hover:bg-secondary hover:text-fg" @click="removeInvite(invite)">Remove</button>
+								<button type="button" class="rounded-lg px-2 py-1 text-sm text-muted-fg hover:bg-secondary hover:text-canvas-fg" @click="removeInvite(invite)">Remove</button>
 							</div>
 						</div>
 					</div>

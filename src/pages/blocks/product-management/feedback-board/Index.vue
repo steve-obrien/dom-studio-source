@@ -75,16 +75,16 @@ import FeedbackBoardWorkspaceSrc from './examples/FeedbackBoardWorkspace.vue?raw
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Demand quality</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Demand quality</h3>
 						<p class="mt-2">Store both raw votes and account-weighted demand so consumer volume does not hide strategic customer value.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Roadmap hygiene</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Roadmap hygiene</h3>
 						<p class="mt-2">Treat status changes as auditable decisions with owners, reasons, customer visibility, and notification behavior.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include duplicate request merging, changelog publishing, customer impact scoring, and Jira or Linear sync.</p>
 					</div>
 				</div>

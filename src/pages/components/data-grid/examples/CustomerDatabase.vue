@@ -107,21 +107,21 @@ const queryPreview = computed(() => JSON.stringify(lastQuery.value || {
 			@query-change="lastQuery = $event"
 		>
 			<template #toolbar-actions>
-				<div class="hidden items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs font-medium text-muted-fg lg:flex">
+				<div class="hidden items-center gap-2 rounded-md border border-border bg-canvas px-2.5 py-1.5 text-xs font-medium text-muted-fg lg:flex">
 					<span class="size-2 rounded-full bg-emerald-500"></span>
 					SQL-ready query state
 				</div>
 			</template>
 		</DomDataGrid>
 
-		<div class="mt-4 grid gap-3 rounded-lg border border-border bg-background p-4 text-sm lg:grid-cols-[minmax(0,1fr)_20rem]">
+		<div class="mt-4 grid gap-3 rounded-lg border border-border bg-canvas p-4 text-sm lg:grid-cols-[minmax(0,1fr)_20rem]">
 			<div>
-				<p class="font-semibold text-fg">Resource API shape</p>
+				<p class="font-semibold text-canvas-fg">Resource API shape</p>
 				<p class="mt-1 leading-6 text-muted-fg">
-					The grid can filter locally today, but the same <code class="text-fg">query-change</code> payload can be sent to a resource endpoint for SQL-backed search, where, order, and pagination later.
+					The grid can filter locally today, but the same <code class="text-canvas-fg">query-change</code> payload can be sent to a resource endpoint for SQL-backed search, where, order, and pagination later.
 				</p>
 			</div>
-			<pre class="max-h-48 overflow-auto rounded-md border border-border bg-secondary/40 p-3 text-xs leading-5 text-fg">{{ queryPreview }}</pre>
+			<pre class="max-h-48 overflow-auto rounded-md border border-border bg-secondary/40 p-3 text-xs leading-5 text-canvas-fg">{{ queryPreview }}</pre>
 		</div>
 	</div>
 </template>

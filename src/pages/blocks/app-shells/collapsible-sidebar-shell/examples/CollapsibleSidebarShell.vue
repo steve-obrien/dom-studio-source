@@ -71,7 +71,7 @@ function navButtonClass(item) {
 	return [
 		'group flex h-9 items-center rounded-md text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
 		collapsed.value ? 'mx-auto w-9 justify-center' : 'w-full gap-2 px-2 text-left',
-		active ? 'bg-secondary text-fg' : 'text-muted-fg hover:bg-secondary hover:text-fg',
+		active ? 'bg-secondary text-canvas-fg' : 'text-muted-fg hover:bg-secondary hover:text-canvas-fg',
 	];
 }
 
@@ -116,7 +116,7 @@ function saveIntegration() {
 	<AppLayoutSidebar :collapsed="collapsed">
 		<template #sidebar>
 			<div class="flex h-16 items-center border-b border-border px-3" :class="collapsed ? 'justify-center' : 'gap-3'">
-				<span class="grid size-8 shrink-0 place-items-center rounded-md bg-fg text-sm font-bold text-background">F</span>
+				<span class="grid size-8 shrink-0 place-items-center rounded-md bg-canvas-fg text-sm font-bold text-canvas">F</span>
 				<div v-if="!collapsed" class="min-w-0">
 					<p class="truncate text-sm font-semibold">Flex SEO Agent</p>
 					<p class="truncate text-xs text-muted-fg">by Flex Digital</p>
@@ -129,7 +129,7 @@ function saveIntegration() {
 					class="flex h-11 w-full items-center rounded-md text-left transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 					:class="collapsed ? 'justify-center' : 'gap-3 px-2'"
 				>
-					<span class="grid size-8 shrink-0 place-items-center rounded-md bg-fg text-sm font-bold text-background">F</span>
+					<span class="grid size-8 shrink-0 place-items-center rounded-md bg-canvas-fg text-sm font-bold text-canvas">F</span>
 					<span v-if="!collapsed" class="min-w-0 flex-1">
 						<span class="block truncate text-sm font-semibold">Flex Digital</span>
 						<span class="block truncate text-xs text-muted-fg">https://flex-digital.net</span>
@@ -175,7 +175,7 @@ function saveIntegration() {
 				<DomTooltip :text="collapsed ? 'Flex Digital workspace' : 'Current workspace'" placement="right">
 					<button
 						type="button"
-						class="flex h-9 w-full items-center rounded-md text-sm text-muted-fg transition hover:bg-secondary hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+						class="flex h-9 w-full items-center rounded-md text-sm text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 						:class="collapsed ? 'justify-center' : 'gap-2 px-2 text-left'"
 						:aria-label="collapsed ? 'Flex Digital workspace' : undefined"
 					>
@@ -190,7 +190,7 @@ function saveIntegration() {
 					class="flex h-10 w-full items-center rounded-md text-sm transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 					:class="collapsed ? 'justify-center' : 'gap-2 px-2 text-left'"
 				>
-					<span class="grid size-8 shrink-0 place-items-center rounded-md bg-secondary text-xs font-semibold text-fg">S</span>
+					<span class="grid size-8 shrink-0 place-items-center rounded-md bg-secondary text-xs font-semibold text-canvas-fg">S</span>
 					<span v-if="!collapsed" class="min-w-0 flex-1 truncate">Steve</span>
 					<svg v-if="!collapsed" class="size-4 shrink-0 text-muted-fg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 						<path d="m8 10 4-4 4 4m0 4-4 4-4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
@@ -203,7 +203,7 @@ function saveIntegration() {
 			<header class="flex h-16 items-center justify-between border-b border-border px-4">
 				<button
 					type="button"
-					class="grid size-8 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+					class="grid size-8 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 					:aria-label="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
 					:title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
 					@click="toggleSidebar"
@@ -234,7 +234,7 @@ function saveIntegration() {
 						<article
 							v-for="stat in stats"
 							:key="stat.label"
-							class="rounded-md border border-border bg-background p-5 shadow-sm"
+							class="rounded-md border border-border bg-canvas p-5 shadow-sm"
 						>
 							<svg class="size-5" :class="stat.color" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 								<path :d="stat.icon" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
@@ -255,7 +255,7 @@ function saveIntegration() {
 								<article
 									v-for="item in plannerItems"
 									:key="item.id"
-									class="flex flex-col gap-4 rounded-md border border-border bg-background p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+									class="flex flex-col gap-4 rounded-md border border-border bg-canvas p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
 								>
 									<div class="min-w-0">
 										<p class="text-xs font-semibold uppercase text-muted-fg">{{ item.date }} - {{ item.type }}</p>
@@ -279,7 +279,7 @@ function saveIntegration() {
 						</section>
 
 						<aside class="space-y-4">
-							<section class="rounded-md border border-border bg-background p-4 shadow-sm">
+							<section class="rounded-md border border-border bg-canvas p-4 shadow-sm">
 								<div class="flex items-start justify-between gap-3">
 									<div>
 										<h2 class="text-lg font-semibold">Team access</h2>
@@ -304,7 +304,7 @@ function saveIntegration() {
 									<div
 										v-for="member in teamMembers"
 										:key="member.id"
-										class="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-3 py-2"
+										class="flex items-center justify-between gap-3 rounded-md border border-border bg-canvas px-3 py-2"
 										:class="member.state === 'pending' && 'border-dashed'"
 									>
 										<div class="min-w-0">
@@ -314,7 +314,7 @@ function saveIntegration() {
 										<button
 											v-if="member.id !== 'steve'"
 											type="button"
-											class="grid size-8 shrink-0 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+											class="grid size-8 shrink-0 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 											:aria-label="`Remove ${member.name}`"
 											@click="removeMember(member)"
 										>
@@ -329,7 +329,7 @@ function saveIntegration() {
 								</div>
 							</section>
 
-							<section class="rounded-md border border-border bg-background p-4 shadow-sm">
+							<section class="rounded-md border border-border bg-canvas p-4 shadow-sm">
 								<h2 class="text-lg font-semibold">Publishing integration</h2>
 								<p class="mt-1 text-sm text-muted-fg">One integration per website. Webhook supports publish and update events now.</p>
 								<div class="mt-4 space-y-3">

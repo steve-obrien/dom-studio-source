@@ -72,16 +72,16 @@ import WorkflowAutomationBuilderSrc from './examples/WorkflowAutomationBuilder.v
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Event schema</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Event schema</h3>
 						<p class="mt-2">Drive trigger, condition, and variable menus from a typed event catalog so published rules stay valid after schema changes.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Dry runs</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Dry runs</h3>
 						<p class="mt-2">Run samples through backend evaluation before publishing. Show matched records, skipped actions, throttles, and missing permissions.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include reusable condition rows, action connectors, branch logic, approvals, and execution observability.</p>
 					</div>
 				</div>

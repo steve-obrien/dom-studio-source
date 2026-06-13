@@ -50,8 +50,8 @@ async function loadAccounts(query) {
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
 						The component filters client-side by default so it works immediately with local rows. Set
-						<code class="text-fg">remote</code> when the grid should render API results exactly as supplied and use
-						<code class="text-fg">query-change</code> to request a SQL-backed resource.
+						<code class="text-canvas-fg">remote</code> when the grid should render API results exactly as supplied and use
+						<code class="text-canvas-fg">query-change</code> to request a SQL-backed resource.
 					</p>
 					<p>
 						Column definitions are the contract. A date column gets a date-range filter, numeric columns get min/max, boolean columns get a yes/no segmented control, and select columns can render known options from the resource schema.

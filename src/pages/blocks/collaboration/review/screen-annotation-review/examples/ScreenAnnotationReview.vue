@@ -147,8 +147,8 @@ function toggleResolved() {
 </script>
 
 <template>
-	<div class="w-full max-w-7xl overflow-hidden rounded-lg border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full max-w-7xl overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Collaborative review</p>
@@ -158,15 +158,15 @@ function toggleResolved() {
 					</p>
 				</div>
 				<div class="grid grid-cols-3 gap-2 text-center sm:min-w-[25rem]">
-					<div class="rounded-lg border border-border bg-background px-3 py-2">
+					<div class="rounded-lg border border-border bg-canvas px-3 py-2">
 						<p class="text-xs text-muted-fg">Open</p>
 						<p class="mt-1 text-lg font-semibold">{{ openCount }}</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background px-3 py-2">
+					<div class="rounded-lg border border-border bg-canvas px-3 py-2">
 						<p class="text-xs text-muted-fg">Resolved</p>
 						<p class="mt-1 text-lg font-semibold">{{ resolvedCount }}</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background px-3 py-2">
+					<div class="rounded-lg border border-border bg-canvas px-3 py-2">
 						<p class="text-xs text-muted-fg">Status</p>
 						<p class="mt-1 truncate text-sm font-semibold">{{ reviewStatus }}</p>
 					</div>
@@ -200,7 +200,7 @@ function toggleResolved() {
 
 				<section class="bg-secondary/35 p-4 sm:p-6">
 					<div
-						class="relative mx-auto overflow-hidden rounded-lg border border-border bg-background shadow-xl shadow-black/10"
+						class="relative mx-auto overflow-hidden rounded-lg border border-border bg-canvas shadow-xl shadow-black/10"
 						:class="compactPreview ? 'max-w-3xl' : 'max-w-5xl'"
 					>
 						<div class="flex items-center justify-between border-b border-border px-4 py-3">
@@ -285,7 +285,7 @@ function toggleResolved() {
 								type="button"
 								class="absolute grid h-8 w-8 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 text-xs font-bold shadow-lg transition hover:scale-105"
 								:class="[
-									selectedId === annotation.id ? 'border-primary bg-primary text-primary-fg ring-4 ring-primary/20' : annotation.status === 'resolved' ? 'border-success bg-success text-success-fg' : 'border-background bg-warning text-warning-fg',
+									selectedId === annotation.id ? 'border-primary bg-primary text-primary-fg ring-4 ring-primary/20' : annotation.status === 'resolved' ? 'border-success bg-success text-success-fg' : 'border-canvas bg-warning text-warning-fg',
 								]"
 								:style="{ left: `${annotation.x}%`, top: `${annotation.y}%` }"
 								@click="selectAnnotation(annotation.id)"
@@ -302,7 +302,7 @@ function toggleResolved() {
 						:key="annotation.id"
 						type="button"
 						class="rounded-lg border border-border p-3 text-left transition hover:bg-secondary/60"
-						:class="selectedId === annotation.id ? 'bg-secondary ring-2 ring-primary/20' : 'bg-background'"
+						:class="selectedId === annotation.id ? 'bg-secondary ring-2 ring-primary/20' : 'bg-canvas'"
 						@click="selectAnnotation(annotation.id)"
 					>
 						<div class="flex items-center justify-between gap-3">
@@ -320,7 +320,7 @@ function toggleResolved() {
 				</section>
 			</main>
 
-			<aside class="min-w-0 bg-background">
+			<aside class="min-w-0 bg-canvas">
 				<div class="border-b border-border px-4 py-4 sm:px-5">
 					<div class="flex items-start justify-between gap-3">
 						<div>

@@ -73,6 +73,6 @@ const current = computed(() => workspaces.find((item) => item.value === workspac
 			</template>
 		</DomSelect>
 
-		<p class="text-xs text-muted-fg">Selected value: <code class="text-fg">{{ workspace }}</code></p>
+		<p class="text-xs text-muted-fg">Selected value: <code class="text-canvas-fg">{{ workspace }}</code></p>
 	</div>
 </template>

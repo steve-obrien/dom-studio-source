@@ -69,7 +69,7 @@ const handledProblems = [
 					</p>
 					<ul class="mt-4 grid gap-2 text-sm text-muted-fg md:grid-cols-2">
 						<li v-for="problem in handledProblems" :key="problem" class="flex gap-2">
-							<span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-fg"></span>
+							<span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-canvas-fg"></span>
 							<span>{{ problem }}</span>
 						</li>
 					</ul>
@@ -114,16 +114,16 @@ const handledProblems = [
 
 			<DocSection eyebrow="Contract" title="CSS hooks">
 				<div class="grid gap-4 text-sm text-muted-fg md:grid-cols-2">
-					<div class="rounded-xl border border-border bg-background p-4">
-						<p class="font-semibold text-fg">Attributes</p>
+					<div class="rounded-xl border border-border bg-canvas p-4">
+						<p class="font-semibold text-canvas-fg">Attributes</p>
 						<p class="mt-2">
 							<code>data-placement</code>, <code>data-side</code>, <code>data-align</code>,
 							<code>data-floating-mode</code>, <code>data-flipped</code>, <code>data-collision-*</code>,
 							and <code>data-overflow-*</code> let CSS react to the resolved placement.
 						</p>
 					</div>
-					<div class="rounded-xl border border-border bg-background p-4">
-						<p class="font-semibold text-fg">Variables</p>
+					<div class="rounded-xl border border-border bg-canvas p-4">
+						<p class="font-semibold text-canvas-fg">Variables</p>
 						<p class="mt-2">
 							<code>--dom-floating-available-width</code>, <code>--dom-floating-available-height</code>,
 							<code>--dom-popover-arrow-x</code>, and <code>--dom-popover-arrow-y</code> power scroll limits

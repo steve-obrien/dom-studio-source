@@ -10,8 +10,8 @@ const messages = [
 </script>
 
 <template>
-	<div class="grid w-full overflow-hidden rounded-3xl border border-border bg-background shadow-2xl shadow-black/10 md:grid-cols-[15rem_1fr]">
-		<aside class="hidden border-r border-border skin-raised p-3 md:block">
+	<div class="grid w-full overflow-hidden rounded-3xl border border-border bg-canvas shadow-2xl shadow-black/10 md:grid-cols-[15rem_1fr]">
+		<aside class="hidden border-r border-border skin-card p-3 md:block">
 			<DomButton variant="secondary" class="w-full justify-start">
 				<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 					<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
@@ -30,7 +30,7 @@ const messages = [
 		</aside>
 
 		<section class="flex min-h-[34rem] flex-col">
-			<header class="flex items-center justify-between border-b border-border skin-raised px-5 py-4 backdrop-blur">
+			<header class="flex items-center justify-between border-b border-border skin-card px-5 py-4 backdrop-blur">
 				<div>
 					<p class="text-sm font-semibold">DOM Studio Assistant</p>
 					<p class="text-xs text-muted-fg">Application UI block</p>
@@ -55,11 +55,11 @@ const messages = [
 				</div>
 			</div>
 
-			<footer class="border-t border-border skin-raised p-4">
-				<div class="rounded-2xl border border-input bg-background p-2 shadow-sm">
+			<footer class="border-t border-border skin-card p-4">
+				<div class="rounded-2xl border border-input bg-canvas p-2 shadow-sm">
 					<textarea
 						rows="3"
-						class="block w-full resize-none bg-transparent px-2 py-2 text-sm text-fg outline-none placeholder:text-muted-fg"
+						class="block w-full resize-none bg-transparent px-2 py-2 text-sm text-canvas-fg outline-none placeholder:text-muted-fg"
 						placeholder="Ask anything..."
 					></textarea>
 					<div class="flex items-center justify-between">

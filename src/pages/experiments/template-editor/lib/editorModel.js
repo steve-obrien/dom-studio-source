@@ -854,7 +854,7 @@ function cleanPastedEditorClasses(value) {
 		'ring-2',
 		'ring-ring',
 		'ring-offset-2',
-		'ring-offset-background',
+		'ring-offset-canvas',
 		'template-drop-after',
 	]);
 	return value

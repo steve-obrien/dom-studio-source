@@ -88,8 +88,8 @@ function removeRecipient(recipient) {
 </script>
 
 <template>
-	<section class="min-h-screen bg-background text-fg">
-		<div class="mx-auto flex w-full max-w-7xl flex-col border-x border-border bg-background shadow-2xl shadow-black/10">
+	<section class="min-h-screen bg-canvas text-canvas-fg">
+		<div class="mx-auto flex w-full max-w-7xl flex-col border-x border-border bg-canvas shadow-2xl shadow-black/10">
 			<header class="border-b border-border px-4 py-4 sm:px-6">
 				<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 					<div class="min-w-0">
@@ -105,7 +105,7 @@ function removeRecipient(recipient) {
 			</header>
 
 			<div class="grid min-h-[44rem] lg:grid-cols-[17rem_minmax(0,1fr)_21rem]">
-				<aside class="border-b border-border skin-raised lg:border-b-0 lg:border-r">
+				<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
 					<div class="border-b border-border px-4 py-4">
 						<div class="flex items-center justify-between gap-3">
 							<h2 class="text-sm font-semibold">Saved reports</h2>
@@ -123,10 +123,10 @@ function removeRecipient(recipient) {
 						>
 							<span class="flex items-start justify-between gap-3">
 								<span class="min-w-0">
-									<span class="block truncate text-sm font-semibold text-fg">{{ report.name }}</span>
+									<span class="block truncate text-sm font-semibold text-canvas-fg">{{ report.name }}</span>
 									<span class="mt-1 block text-xs">{{ report.owner }} / {{ report.updated }}</span>
 								</span>
-								<span class="rounded-full bg-background px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ report.status }}</span>
+								<span class="rounded-full bg-canvas px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ report.status }}</span>
 							</span>
 						</button>
 					</nav>
@@ -142,19 +142,19 @@ function removeRecipient(recipient) {
 							<div class="grid gap-3 sm:grid-cols-3">
 								<label class="block">
 									<span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Dataset</span>
-									<select v-model="dataset" class="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">
+									<select v-model="dataset" class="mt-1 block w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">
 										<option v-for="item in datasets" :key="item">{{ item }}</option>
 									</select>
 								</label>
 								<label class="block">
 									<span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Range</span>
-									<select v-model="dateRange" class="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">
+									<select v-model="dateRange" class="mt-1 block w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">
 										<option v-for="item in dateRanges" :key="item">{{ item }}</option>
 									</select>
 								</label>
 								<label class="block">
 									<span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Breakdown</span>
-									<select v-model="selectedBreakdown" class="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">
+									<select v-model="selectedBreakdown" class="mt-1 block w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">
 										<option v-for="item in breakdowns" :key="item">{{ item }}</option>
 									</select>
 								</label>
@@ -174,7 +174,7 @@ function removeRecipient(recipient) {
 									:key="metric.label"
 									type="button"
 									class="rounded-lg border px-3 py-3 text-left transition hover:border-ring"
-									:class="selectedMetrics.includes(metric.label) ? 'border-primary bg-primary/10' : 'border-border bg-background'"
+									:class="selectedMetrics.includes(metric.label) ? 'border-primary bg-primary/10' : 'border-border bg-canvas'"
 									@click="toggleMetric(metric.label)"
 								>
 									<span class="flex items-start justify-between gap-3">
@@ -200,7 +200,7 @@ function removeRecipient(recipient) {
 										:key="type"
 										type="button"
 										class="rounded-md px-3 py-1.5 text-xs font-semibold transition"
-										:class="chartType === type ? 'bg-primary text-primary-fg' : 'text-muted-fg hover:bg-secondary hover:text-fg'"
+										:class="chartType === type ? 'bg-primary text-primary-fg' : 'text-muted-fg hover:bg-secondary hover:text-canvas-fg'"
 										@click="chartType = type"
 									>
 										{{ type }}
@@ -223,7 +223,7 @@ function removeRecipient(recipient) {
 										:key="row.segment"
 										type="button"
 										class="grid w-full grid-cols-[6.5rem_1fr_4rem] items-center gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-secondary"
-										:class="selectedRows.includes(row.segment) ? 'text-fg' : 'text-muted-fg opacity-60'"
+										:class="selectedRows.includes(row.segment) ? 'text-canvas-fg' : 'text-muted-fg opacity-60'"
 										@click="toggleRow(row.segment)"
 									>
 										<span class="truncate text-sm font-medium">{{ row.segment }}</span>
@@ -259,7 +259,7 @@ function removeRecipient(recipient) {
 					</div>
 				</main>
 
-				<aside class="border-t border-border skin-raised lg:border-l lg:border-t-0">
+				<aside class="border-t border-border skin-card lg:border-l lg:border-t-0">
 					<section class="border-b border-border p-4">
 						<div class="flex items-center justify-between gap-3">
 							<h2 class="text-sm font-semibold">Readiness</h2>
@@ -280,14 +280,14 @@ function removeRecipient(recipient) {
 						<div class="mt-4 grid gap-3">
 							<label class="block">
 								<span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Visibility</span>
-								<select v-model="visibility" class="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">
+								<select v-model="visibility" class="mt-1 block w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">
 									<option v-for="item in visibilityOptions" :key="item">{{ item }}</option>
 								</select>
 							</label>
 							<form class="flex gap-2" @submit.prevent="addRecipient">
 								<label class="min-w-0 flex-1">
 									<span class="sr-only">Recipient email</span>
-									<input v-model="recipientInput" type="email" class="block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-fg focus:border-ring focus:ring-2 focus:ring-ring/20" placeholder="person@example.com" />
+									<input v-model="recipientInput" type="email" class="block w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none placeholder:text-muted-fg focus:border-ring focus:ring-2 focus:ring-ring/20" placeholder="person@example.com" />
 								</label>
 								<DomButton type="submit" variant="secondary">Add</DomButton>
 							</form>
@@ -304,13 +304,13 @@ function removeRecipient(recipient) {
 						<div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
 							<label class="block">
 								<span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Cadence</span>
-								<select v-model="cadence" class="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">
+								<select v-model="cadence" class="mt-1 block w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">
 									<option v-for="item in cadences" :key="item">{{ item }}</option>
 								</select>
 							</label>
 							<label class="block">
 								<span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Format</span>
-								<select v-model="exportFormat" class="mt-1 block w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">
+								<select v-model="exportFormat" class="mt-1 block w-full rounded-lg border border-input bg-canvas px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20">
 									<option v-for="item in exportFormats" :key="item">{{ item }}</option>
 								</select>
 							</label>

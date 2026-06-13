@@ -39,7 +39,7 @@ const cardSpec = {
 	id: 'card',
 	label: 'Card',
 	component: 'div',
-	props: { class: 'skin-raised flex w-[320px] flex-col items-start gap-4 rounded-3xl p-7' },
+	props: { class: 'skin-card flex w-[320px] flex-col items-start gap-4 rounded-3xl p-7' },
 	schema: [],
 	children: [
 		{
@@ -56,7 +56,7 @@ const cardSpec = {
 			id: 'title',
 			label: 'Title',
 			component: 'h3',
-			props: { class: 'text-2xl font-bold tracking-tight text-fg' },
+			props: { class: 'text-2xl font-bold tracking-tight text-canvas-fg' },
 			text: 'Pro',
 			schema: [
 				{ key: 'text', label: 'Text', type: 'string', target: 'text' },
@@ -91,7 +91,7 @@ const specCode = `const cardSpec = {
   id: 'card',
   label: 'Card',
   component: 'div',
-  props: { class: 'rounded-3xl border bg-background p-7 …' },
+  props: { class: 'rounded-3xl border bg-canvas p-7 …' },
   children: [
     {
       id: 'title',
@@ -171,7 +171,7 @@ const spec = {
 			<DocSection eyebrow="Studio" title="Build full layouts with the Studio">
 				<div class="rounded-2xl border border-border bg-gradient-to-br from-secondary to-transparent p-6">
 					<p class="text-sm leading-relaxed text-muted-fg">
-						The dedicated <strong class="text-fg">Studio</strong> page gives you a full-width canvas with a palette of every component,
+						The dedicated <strong class="text-canvas-fg">Studio</strong> page gives you a full-width canvas with a palette of every component,
 						drag-and-drop with drop indicators, a Data / HTML / Renderer tab bar, and lossless round-trip through
 						<code class="rounded bg-secondary px-1 py-0.5 text-[12px] font-mono ring-1 ring-border">&lt;DomRenderer&gt;</code>.
 					</p>
@@ -200,7 +200,7 @@ const spec = {
 						{ name: 'select', desc: 'Pill group of options.' },
 						{ name: 'color', desc: 'Native color picker plus hex input.' },
 					]" :key="f.name" class="rounded-xl border border-border bg-secondary/40 p-4">
-						<code class="text-sm font-semibold text-fg">{{ f.name }}</code>
+						<code class="text-sm font-semibold text-canvas-fg">{{ f.name }}</code>
 						<p class="mt-1 text-sm text-muted-fg">{{ f.desc }}</p>
 					</div>
 				</div>

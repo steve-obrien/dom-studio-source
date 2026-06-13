@@ -20,7 +20,7 @@ function onSelect(event) {
 	<div class="grid gap-3">
 		<div class="flex flex-wrap items-center gap-2">
 			<DomButton variant="secondary" @click="open = true">Open command palette (Cmd+K)</DomButton>
-			<p class="text-xs text-muted-fg">Selected: <code class="text-fg">{{ selected }}</code></p>
+			<p class="text-xs text-muted-fg">Selected: <code class="text-canvas-fg">{{ selected }}</code></p>
 		</div>
 		<DomCommandPalette v-model="open" :commands="commands" @select="onSelect" />
 	</div>

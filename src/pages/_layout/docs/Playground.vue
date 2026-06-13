@@ -164,13 +164,13 @@ const previewClasses = computed(() => {
 </script>
 
 <template>
-	<figure class="my-6 min-w-0 overflow-hidden rounded-2xl border border-border bg-background">
+	<figure class="my-6 min-w-0 overflow-hidden rounded-2xl border border-border bg-canvas">
 		<figcaption v-if="title || description" class="border-b border-border bg-secondary/40 px-5 py-3">
-			<p v-if="title" class="text-sm font-semibold tracking-tight text-fg">{{ title }}</p>
+			<p v-if="title" class="text-sm font-semibold tracking-tight text-canvas-fg">{{ title }}</p>
 			<p v-if="description" class="mt-0.5 text-sm text-muted-fg">{{ description }}</p>
 		</figcaption>
 
-		<div class="grid w-full min-w-0 grid-cols-1 items-stretch overflow-hidden bg-gradient-to-br from-secondary/40 via-background to-secondary/30 lg:grid-cols-[minmax(0,1fr)_18rem]">
+		<div class="grid w-full min-w-0 grid-cols-1 items-stretch overflow-hidden bg-gradient-to-br from-secondary/40 via-canvas to-secondary/30 lg:grid-cols-[minmax(0,1fr)_18rem]">
 			<div :class="previewClasses">
 				<MobilePreview v-if="isMobilePresentation" :title="title">
 					<!-- SFC mode: render the playground SFC; it owns the data + slots. -->
@@ -182,8 +182,8 @@ const previewClasses = computed(() => {
 						@update:modelValue="onUpdateModelValue"
 					>
 						<template #top>
-							<div class="border-b border-border skin-raised px-4 py-3">
-								<p class="text-sm font-semibold text-fg">Preview</p>
+							<div class="border-b border-border skin-card px-4 py-3">
+								<p class="text-sm font-semibold text-canvas-fg">Preview</p>
 								<p class="text-xs text-muted-fg">Mobile component</p>
 							</div>
 						</template>
@@ -192,13 +192,13 @@ const previewClasses = computed(() => {
 								<p class="text-xs font-medium uppercase tracking-[0.16em] opacity-80">Sample</p>
 								<p class="mt-2 text-xl font-semibold">Scrollable app content</p>
 							</div>
-							<div class="rounded-[1.5rem] border border-border skin-raised p-4">
-								<p class="text-sm font-medium text-fg">Card content</p>
+							<div class="rounded-[1.5rem] border border-border skin-card p-4">
+								<p class="text-sm font-medium text-canvas-fg">Card content</p>
 								<p class="mt-1 text-xs leading-5 text-muted-fg">The shell keeps top and bottom chrome pinned while this area scrolls.</p>
 							</div>
 						</div>
 						<template #bottom>
-							<div class="border-t border-border skin-raised px-4 py-3 text-center text-xs font-medium text-muted-fg">Bottom chrome</div>
+							<div class="border-t border-border skin-card px-4 py-3 text-center text-xs font-medium text-muted-fg">Bottom chrome</div>
 						</template>
 					</component>
 					<DomAppShell v-else>
@@ -259,8 +259,8 @@ const previewClasses = computed(() => {
 				</template>
 			</div>
 
-			<aside class="min-h-0 border-t border-border bg-background/70 text-left backdrop-blur lg:border-l lg:border-t-0">
-				<div class="sticky top-0 z-10 border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
+			<aside class="min-h-0 border-t border-border bg-canvas/70 text-left backdrop-blur lg:border-l lg:border-t-0">
+				<div class="sticky top-0 z-10 border-b border-border bg-canvas/90 px-4 py-3 backdrop-blur">
 					<p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-fg">Properties</p>
 				</div>
 				<div class="max-h-72 space-y-4 overflow-y-auto p-4 lg:max-h-[34rem]">
@@ -291,8 +291,8 @@ const previewClasses = computed(() => {
 				type="button"
 				class="rounded-md px-2.5 py-1 text-xs font-medium transition"
 				:class="tab === t.key
-					? 'bg-background text-fg shadow-sm ring-1 ring-border'
-					: 'text-muted-fg hover:bg-background hover:text-fg'"
+					? 'bg-canvas text-canvas-fg shadow-sm ring-1 ring-border'
+					: 'text-muted-fg hover:bg-canvas hover:text-canvas-fg'"
 				@click="tab = t.key"
 			>{{ t.label }}</button>
 		</div>

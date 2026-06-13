@@ -83,16 +83,16 @@ import AiDocumentReviewSrc from './examples/AiDocumentReview.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Patch discipline</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Patch discipline</h3>
 						<p class="mt-2">Apply accepted suggestions as targeted patches against section versions. Reject stale suggestions when the underlying section has changed.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Review evidence</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Review evidence</h3>
 						<p class="mt-2">Store confidence, prompt version, reviewer, action, and final text. This keeps AI-assisted changes explainable during customer, legal, and compliance review.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include multi-reviewer approval, redline export, live collaboration, suggestion grouping, prompt feedback, and side-by-side version compare.</p>
 					</div>
 				</div>

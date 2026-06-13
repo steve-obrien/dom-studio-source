@@ -76,16 +76,16 @@ import ReferralProgramSrc from './examples/ReferralProgram.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Reward rules</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Reward rules</h3>
 						<p class="mt-2">Keep qualification windows, duplicate-account checks, refund clawbacks, and payout timing in backend policy so customers see clear but enforceable progress.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Share tracking</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Share tracking</h3>
 						<p class="mt-2">Store channel, campaign, UTM values, referral code version, and invite source with each share so growth teams can measure what actually converts.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include fraud review states, leaderboard variants, reward payout history, multi-sided marketplace rewards, and lifecycle email previews.</p>
 					</div>
 				</div>

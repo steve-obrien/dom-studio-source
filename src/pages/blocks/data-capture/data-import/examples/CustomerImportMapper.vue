@@ -155,8 +155,8 @@ function rowStatusClasses(status) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-4 py-4 sm:px-6">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
 			<div class="flex flex-wrap items-start justify-between gap-4">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Data import</p>
@@ -175,7 +175,7 @@ function rowStatusClasses(status) {
 				<div
 					v-for="step in uploadSteps"
 					:key="step.label"
-					class="rounded-xl border border-border bg-background p-3"
+					class="rounded-xl border border-border bg-canvas p-3"
 				>
 					<div class="flex items-center justify-between gap-3">
 						<p class="text-sm font-semibold">{{ step.label }}</p>
@@ -194,7 +194,7 @@ function rowStatusClasses(status) {
 							<div
 								v-for="field in targetFields"
 								:key="field.key"
-								class="grid gap-3 rounded-xl border border-border bg-background p-4 md:grid-cols-[minmax(0,1fr)_16rem]"
+								class="grid gap-3 rounded-xl border border-border bg-canvas p-4 md:grid-cols-[minmax(0,1fr)_16rem]"
 							>
 								<div class="min-w-0">
 									<div class="flex flex-wrap items-center gap-2">
@@ -217,7 +217,7 @@ function rowStatusClasses(status) {
 						<div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
 							<div class="overflow-x-auto rounded-xl border border-border">
 								<div class="min-w-[42rem]">
-									<div class="grid grid-cols-[1.2fr_1.4fr_1fr_1fr_6rem] gap-3 border-b border-border skin-raised px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">
+									<div class="grid grid-cols-[1.2fr_1.4fr_1fr_1fr_6rem] gap-3 border-b border-border skin-card px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">
 										<span>Company</span>
 										<span>Email</span>
 										<span>Stage</span>
@@ -264,7 +264,7 @@ function rowStatusClasses(status) {
 				</DomTabs>
 			</main>
 
-			<aside class="space-y-4 skin-raised p-4 sm:p-6">
+			<aside class="space-y-4 skin-card p-4 sm:p-6">
 				<DomCard padding="sm">
 					<div class="flex items-center justify-between gap-3">
 						<div>
@@ -285,15 +285,15 @@ function rowStatusClasses(status) {
 				</DomCard>
 
 				<div class="grid grid-cols-3 gap-2 text-center">
-					<div class="rounded-xl border border-border bg-background p-3">
+					<div class="rounded-xl border border-border bg-canvas p-3">
 						<p class="text-lg font-semibold">{{ mappedRequiredCount }}/{{ requiredCount }}</p>
 						<p class="text-[11px] text-muted-fg">Required</p>
 					</div>
-					<div class="rounded-xl border border-border bg-background p-3">
+					<div class="rounded-xl border border-border bg-canvas p-3">
 						<p class="text-lg font-semibold">52</p>
 						<p class="text-[11px] text-muted-fg">Warnings</p>
 					</div>
-					<div class="rounded-xl border border-border bg-background p-3">
+					<div class="rounded-xl border border-border bg-canvas p-3">
 						<p class="text-lg font-semibold">16</p>
 						<p class="text-[11px] text-muted-fg">Blocked</p>
 					</div>
@@ -305,7 +305,7 @@ function rowStatusClasses(status) {
 						<div
 							v-for="issue in validationIssues"
 							:key="issue.title"
-							class="rounded-xl border border-border bg-background p-3"
+							class="rounded-xl border border-border bg-canvas p-3"
 						>
 							<div class="flex items-start justify-between gap-3">
 								<p class="text-sm font-semibold">{{ issue.title }}</p>

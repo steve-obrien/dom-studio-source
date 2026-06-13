@@ -73,9 +73,9 @@ const zoomItems = [
 		</DomToolbar>
 
 		<div class="rounded-2xl border border-border bg-secondary/30 p-4 text-sm text-muted-fg">
-			Active tool: <code class="text-fg">{{ activeTool }}</code>
+			Active tool: <code class="text-canvas-fg">{{ activeTool }}</code>
 			<span aria-hidden="true"> / </span>
-			Zoom: <code class="text-fg">{{ zoom }}</code>
+			Zoom: <code class="text-canvas-fg">{{ zoom }}</code>
 		</div>
 	</div>
 </template>

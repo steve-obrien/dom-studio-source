@@ -72,16 +72,16 @@ import ReturnsPortalSrc from './examples/ReturnsPortal.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Eligibility rules</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Eligibility rules</h3>
 						<p class="mt-2">Keep customer-facing policy messages close to each line item so shoppers know why an item can or cannot be selected.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Refund accuracy</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Refund accuracy</h3>
 						<p class="mt-2">Treat the visible refund amount as an estimate until taxes, discounts, duties, restocking fees, and inspection outcomes are calculated server-side.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Future updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
 						<p class="mt-2">Useful follow-ups include reusable order item rows, label download states, exchange inventory pickers, carrier pickup scheduling, and photo evidence uploads.</p>
 					</div>
 				</div>

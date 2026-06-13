@@ -779,9 +779,9 @@ export interface DomToastStackProps {
 	 */
 	toasts?: Array<ToastOptions & { id: string }>;
 	/**
-	 * Viewport corner.
+	 * Viewport placement.
 	 */
-	position?: "top-right" | "top-left" | "bottom-right" | "bottom-left";
+	position?: "top-right" | "top-center" | "top-left" | "bottom-right" | "bottom-center" | "bottom-left";
 	/**
 	 * Default auto-dismiss delay in milliseconds. Set to 0 to keep toasts until manually dismissed.
 	 */

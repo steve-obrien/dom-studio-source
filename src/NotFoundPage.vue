@@ -3,7 +3,7 @@ import { RouterLink } from 'vue-router';
 </script>
 
 <template>
-	<main class="grid min-h-screen place-items-center bg-background px-6 text-fg">
+	<main class="grid min-h-screen place-items-center bg-canvas px-6 text-canvas-fg">
 		<section class="w-full max-w-xl space-y-6 text-center">
 			<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">404</p>
 			<h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">Page not found</h1>
@@ -12,7 +12,7 @@ import { RouterLink } from 'vue-router';
 			</p>
 			<RouterLink
 				to="/"
-				class="inline-flex rounded-full border border-border bg-secondary px-4 py-2 text-sm font-medium text-fg transition-colors hover:text-muted-fg"
+				class="inline-flex rounded-full border border-border bg-secondary px-4 py-2 text-sm font-medium text-canvas-fg transition-colors hover:text-muted-fg"
 			>
 				Back to DOM Studio
 			</RouterLink>

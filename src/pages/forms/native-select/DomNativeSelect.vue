@@ -49,7 +49,7 @@ const field = useField(props, emit, { idPrefix: 'dom-native-select' });
 		<div class="relative">
 			<select
 				v-bind="field.inputAttrs.value"
-				class="dom-input appearance-none pr-10"
+				class="skin-input h-10 appearance-none pr-10"
 				@change="field.onInput($event.target.value)"
 				@focus="field.onFocus"
 				@blur="field.onBlur"

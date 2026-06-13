@@ -23,7 +23,7 @@ const name = computed(() => props.element?.__doc?.name);
 				</thead>
 				<tbody class="divide-y divide-border">
 					<tr v-for="a in attrs" :key="a.name">
-						<td class="px-4 py-3 font-mono text-[12.5px] text-fg">{{ a.name }}</td>
+						<td class="px-4 py-3 font-mono text-[12.5px] text-canvas-fg">{{ a.name }}</td>
 						<td class="px-4 py-3 font-mono text-[12.5px] text-muted-fg">{{ a.type || '—' }}</td>
 						<td class="px-4 py-3 text-muted-fg">{{ a.description || '—' }}</td>
 					</tr>

@@ -68,7 +68,7 @@ const legalHolds = [
 ];
 
 const deletionPreview = [
-	{ label: 'Eligible records', value: '18,420', tone: 'text-fg' },
+	{ label: 'Eligible records', value: '18,420', tone: 'text-canvas-fg' },
 	{ label: 'Blocked by holds', value: '240', tone: 'text-warning' },
 	{ label: 'Archived first', value: '12,960', tone: 'text-primary' },
 	{ label: 'First job window', value: 'Jun 17', tone: 'text-success' },
@@ -100,8 +100,8 @@ function selectClass(id) {
 </script>
 
 <template>
-	<div class="w-full max-w-7xl overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-5 py-5 sm:px-7">
+	<div class="w-full max-w-7xl overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-5 py-5 sm:px-7">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Compliance</p>
@@ -122,7 +122,7 @@ function selectClass(id) {
 				<div class="px-5 py-4">
 					<div class="flex items-center justify-between gap-3">
 						<h4 class="text-sm font-semibold">Data classes</h4>
-						<span class="rounded-full bg-background px-2 py-1 text-xs font-semibold text-muted-fg">{{ dataClasses.length }}</span>
+						<span class="rounded-full bg-canvas px-2 py-1 text-xs font-semibold text-muted-fg">{{ dataClasses.length }}</span>
 					</div>
 				</div>
 				<div class="grid">
@@ -130,8 +130,8 @@ function selectClass(id) {
 						v-for="item in dataClasses"
 						:key="item.id"
 						type="button"
-						class="border-t border-border px-5 py-4 text-left transition hover:bg-background/70"
-						:class="selectedClassId === item.id ? 'bg-background' : ''"
+						class="border-t border-border px-5 py-4 text-left transition hover:bg-canvas/70"
+						:class="selectedClassId === item.id ? 'bg-canvas' : ''"
 						@click="selectClass(item.id)"
 					>
 						<div class="flex items-start justify-between gap-3">
@@ -230,7 +230,7 @@ function selectClass(id) {
 								:key="action.value"
 								type="button"
 								class="rounded-xl border border-border px-3 py-3 text-left text-sm transition hover:border-primary/50"
-								:class="selectedAction === action.value ? 'bg-primary/10 text-primary ring-1 ring-primary/25' : 'bg-background'"
+								:class="selectedAction === action.value ? 'bg-primary/10 text-primary ring-1 ring-primary/25' : 'bg-canvas'"
 								@click="selectedAction = action.value"
 							>
 								<span class="font-semibold">{{ action.label }}</span>
@@ -256,7 +256,7 @@ function selectClass(id) {
 
 					<div class="rounded-2xl bg-secondary/60 p-4">
 						<p class="text-sm font-semibold">Policy readiness</p>
-						<div class="mt-4 h-2 overflow-hidden rounded-full bg-background">
+						<div class="mt-4 h-2 overflow-hidden rounded-full bg-canvas">
 							<div class="h-full rounded-full bg-primary" :style="{ width: scoreWidth }"></div>
 						</div>
 						<p class="mt-3 text-2xl font-semibold">{{ policyScore }}%</p>
@@ -288,7 +288,7 @@ function selectClass(id) {
 						<DomButton variant="secondary" size="sm">Add hold</DomButton>
 					</div>
 					<div class="mt-4 grid gap-3">
-						<div v-for="hold in legalHolds" :key="hold.name" class="rounded-2xl bg-background p-4">
+						<div v-for="hold in legalHolds" :key="hold.name" class="rounded-2xl bg-canvas p-4">
 							<div class="flex items-start justify-between gap-3">
 								<p class="text-sm font-semibold">{{ hold.name }}</p>
 								<span class="rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-semibold text-warning">{{ hold.expires }}</span>

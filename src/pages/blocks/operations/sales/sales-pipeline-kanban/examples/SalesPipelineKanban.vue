@@ -285,8 +285,8 @@ function saveReview() {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-lg border border-border bg-background text-fg shadow-xl shadow-black/10">
-		<header class="border-b border-border skin-raised">
+	<div class="w-full overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-xl shadow-black/10">
+		<header class="border-b border-border skin-card">
 			<div class="grid gap-5 p-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:p-6">
 				<div class="min-w-0">
 					<div class="flex flex-wrap items-center gap-2">
@@ -297,7 +297,7 @@ function saveReview() {
 						</span>
 						<div>
 							<p class="text-xs font-semibold uppercase text-muted-fg">Revenue operations</p>
-							<h2 class="text-2xl font-semibold text-fg">Enterprise pipeline</h2>
+							<h2 class="text-2xl font-semibold text-canvas-fg">Enterprise pipeline</h2>
 						</div>
 					</div>
 					<p class="mt-3 max-w-3xl text-sm leading-6 text-muted-fg">
@@ -306,15 +306,15 @@ function saveReview() {
 				</div>
 
 				<div class="grid grid-cols-3 gap-2 text-sm sm:min-w-[28rem]">
-					<div class="rounded-lg border border-border bg-background p-3">
+					<div class="rounded-lg border border-border bg-canvas p-3">
 						<p class="text-xs text-muted-fg">Pipeline</p>
 						<p class="mt-1 font-semibold">{{ money(openPipelineValue) }}</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-3">
+					<div class="rounded-lg border border-border bg-canvas p-3">
 						<p class="text-xs text-muted-fg">Weighted</p>
 						<p class="mt-1 font-semibold">{{ money(weightedForecastValue) }}</p>
 					</div>
-					<div class="rounded-lg border border-border bg-background p-3">
+					<div class="rounded-lg border border-border bg-canvas p-3">
 						<p class="text-xs text-muted-fg">Commit</p>
 						<p class="mt-1 font-semibold">{{ money(commitValue) }}</p>
 					</div>
@@ -397,7 +397,7 @@ function saveReview() {
 							v-for="deal in activeMobileStage.deals"
 							:key="deal.id"
 							type="button"
-							class="rounded-lg border border-border bg-background p-4 text-left shadow-sm"
+							class="rounded-lg border border-border bg-canvas p-4 text-left shadow-sm"
 							@click="openReview(deal)"
 						>
 							<div class="flex items-start justify-between gap-3">
@@ -420,7 +420,7 @@ function saveReview() {
 			</section>
 
 			<section class="grid gap-4 border-t border-border bg-secondary/30 p-4 lg:grid-cols-[minmax(0,1fr)_18rem_minmax(20rem,24rem)] lg:p-6">
-				<div class="rounded-lg border border-border bg-background p-4">
+				<div class="rounded-lg border border-border bg-canvas p-4">
 					<div class="flex items-start justify-between gap-3">
 						<div>
 							<p class="text-xs font-semibold uppercase text-muted-fg">Selected deal</p>
@@ -452,7 +452,7 @@ function saveReview() {
 						<DomButton size="sm" @click="reviewOpen = true">Review deal</DomButton>
 						<DomButton size="sm" variant="secondary">Log activity</DomButton>
 						<DomTooltip text="Export the current forecast payload" placement="top">
-							<button type="button" class="grid size-9 place-items-center rounded-lg border border-border bg-background text-muted-fg hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40" aria-label="Export forecast payload">
+							<button type="button" class="grid size-9 place-items-center rounded-lg border border-border bg-canvas text-muted-fg hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40" aria-label="Export forecast payload">
 								<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
 									<path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
 								</svg>
@@ -462,7 +462,7 @@ function saveReview() {
 					<p v-if="lastSavedAt" class="mt-3 text-xs text-success">{{ lastSavedAt }}</p>
 				</div>
 
-				<div class="rounded-lg border border-border bg-background p-4">
+				<div class="rounded-lg border border-border bg-canvas p-4">
 					<div class="flex items-center justify-between gap-3">
 						<div>
 							<h3 class="font-semibold">Forecast health</h3>
@@ -486,7 +486,7 @@ function saveReview() {
 					</div>
 				</div>
 
-				<div class="rounded-lg border border-border bg-background p-4">
+				<div class="rounded-lg border border-border bg-canvas p-4">
 					<h3 class="font-semibold">Command payload</h3>
 					<p class="mt-1 text-sm text-muted-fg">Use this shape for save, transition, or forecast export commands.</p>
 					<pre class="mt-4 max-h-80 overflow-auto rounded-lg bg-secondary p-3 text-xs leading-5 text-muted-fg">{{ payloadJson }}</pre>

@@ -49,7 +49,7 @@ function onChange(event) {
 							aria-hidden="true"
 						>
 							<span
-								class="absolute left-0.5 top-0.5 size-4 rounded-full skin-raised shadow-sm transition"
+								class="absolute left-0.5 top-0.5 size-4 rounded-full skin-card shadow-sm transition"
 								:class="liveMode ? 'translate-x-4' : 'translate-x-0'"
 							></span>
 						</span>
@@ -62,7 +62,7 @@ function onChange(event) {
 							aria-hidden="true"
 						>
 							<span
-								class="absolute left-0.5 top-0.5 size-4 rounded-full skin-raised shadow-sm transition"
+								class="absolute left-0.5 top-0.5 size-4 rounded-full skin-card shadow-sm transition"
 								:class="compactSidebar ? 'translate-x-4' : 'translate-x-0'"
 							></span>
 						</span>
@@ -84,6 +84,6 @@ function onChange(event) {
 			</MenuItem>
 		</DomMenu>
 
-		<p class="text-xs text-muted-fg">Selected: <code class="text-fg">{{ selected }}</code></p>
+		<p class="text-xs text-muted-fg">Selected: <code class="text-canvas-fg">{{ selected }}</code></p>
 	</div>
 </template>

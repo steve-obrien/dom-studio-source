@@ -23,9 +23,9 @@ const metrics = [
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
 		<div class="grid min-h-[34rem] md:grid-cols-[15rem_1fr]">
-			<aside class="hidden border-r border-border skin-raised p-4 text-fg md:block">
+			<aside class="hidden border-r border-border skin-card p-4 text-canvas-fg md:block">
 				<div class="flex items-center gap-2 px-2">
 					<span class="grid size-8 place-items-center rounded-xl bg-primary text-xs font-bold text-primary-fg">E</span>
 					<span class="font-semibold tracking-tight">DOM Studio CRM</span>
@@ -45,7 +45,7 @@ const metrics = [
 			</aside>
 
 			<main class="min-w-0">
-				<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-raised px-5 py-4 backdrop-blur">
+				<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-card px-5 py-4 backdrop-blur">
 					<div>
 						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Dashboard</p>
 						<h3 class="mt-1 text-xl font-semibold tracking-tight">Good morning, Alex</h3>

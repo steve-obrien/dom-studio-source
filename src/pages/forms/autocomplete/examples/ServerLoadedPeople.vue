@@ -48,7 +48,7 @@ async function queryPeople(query) {
 			</template>
 		</DomAutocomplete>
 		<p class="rounded-2xl border border-border bg-secondary/40 p-3 text-xs text-muted-fg">
-			Text value: <code class="font-mono text-fg">{{ value || 'Empty' }}</code>
+			Text value: <code class="font-mono text-canvas-fg">{{ value || 'Empty' }}</code>
 		</p>
 	</div>
 </template>

@@ -43,7 +43,7 @@ useHead().setLdJson('blog-jsonld', {
 	<DomStudioLayout>
 		<section class="border-b border-border pb-10">
 			<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">Blog</p>
-			<h1 class="mt-3 text-4xl font-bold tracking-tight text-fg sm:text-5xl">Notes on building interfaces people can keep owning.</h1>
+			<h1 class="mt-3 text-4xl font-bold tracking-tight text-canvas-fg sm:text-5xl">Notes on building interfaces people can keep owning.</h1>
 			<p class="mt-4 max-w-2xl text-base leading-relaxed text-muted-fg">
 				Practical writing on component systems, AI-editable UI, and the small decisions that make product surfaces feel steady.
 			</p>
@@ -64,13 +64,13 @@ useHead().setLdJson('blog-jsonld', {
 						<span>{{ formatArticleDate(featuredArticle.published_at || featuredArticle.source_created_at) }}</span>
 						<span v-for="tag in featuredArticle.tags" :key="tag" class="rounded-full border border-border px-2 py-0.5">{{ tag }}</span>
 					</div>
-					<h2 class="mt-4 text-3xl font-bold leading-tight tracking-tight text-fg transition group-hover:text-muted-fg sm:text-4xl">
+					<h2 class="mt-4 text-3xl font-bold leading-tight tracking-tight text-canvas-fg transition group-hover:text-muted-fg sm:text-4xl">
 						{{ featuredArticle.title }}
 					</h2>
 					<p v-if="featuredArticle.meta_description" class="mt-4 max-w-2xl text-base leading-relaxed text-muted-fg">
 						{{ featuredArticle.meta_description }}
 					</p>
-					<span class="mt-6 inline-flex text-sm font-semibold text-fg">Read article →</span>
+					<span class="mt-6 inline-flex text-sm font-semibold text-canvas-fg">Read article →</span>
 				</div>
 				<img
 					v-if="featuredArticle.image_url"
@@ -97,7 +97,7 @@ useHead().setLdJson('blog-jsonld', {
 						<span>{{ formatArticleDate(article.published_at || article.source_created_at) }}</span>
 						<span v-for="tag in article.tags" :key="tag" class="rounded-full border border-border px-2 py-0.5">{{ tag }}</span>
 					</div>
-					<h2 class="mt-3 text-xl font-semibold leading-tight tracking-tight text-fg transition group-hover:text-muted-fg">
+					<h2 class="mt-3 text-xl font-semibold leading-tight tracking-tight text-canvas-fg transition group-hover:text-muted-fg">
 						{{ article.title }}
 					</h2>
 					<p v-if="article.meta_description" class="mt-3 text-sm leading-relaxed text-muted-fg">

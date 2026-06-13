@@ -63,16 +63,16 @@ import SprintPlanningBoardSrc from './examples/SprintPlanningBoard.vue?raw';
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Board updates</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Board updates</h3>
 						<p class="mt-2">Move cards with your drag-and-drop library or keep explicit status buttons for audit-heavy teams.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Capacity rules</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Capacity rules</h3>
 						<p class="mt-2">Calculate story points, engineering days, or weighted effort on the server when multiple teams plan together.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-raised p-4">
-						<h3 class="font-semibold text-fg">Mobile behavior</h3>
+					<div class="rounded-lg border border-border skin-card p-4">
+						<h3 class="font-semibold text-canvas-fg">Mobile behavior</h3>
 						<p class="mt-2">The board switches to tabs so users can review one lane at a time without horizontal scrolling.</p>
 					</div>
 				</div>

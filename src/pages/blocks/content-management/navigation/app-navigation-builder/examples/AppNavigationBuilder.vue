@@ -264,8 +264,8 @@ function statusTone(value) {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-5 py-5 sm:px-7">
+	<div class="w-full overflow-hidden border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-5 py-5 sm:px-7">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div class="min-w-0">
 					<p class="text-xs font-semibold uppercase text-muted-fg">Navigation CMS</p>
@@ -327,7 +327,7 @@ function statusTone(value) {
 					<template #item="{ item, selected }">
 						<span class="flex min-w-0 flex-1 items-center justify-between gap-3">
 							<span class="min-w-0">
-								<span class="block truncate text-sm font-semibold" :class="selected ? 'text-fg' : 'text-muted-fg'">{{ item.label }}</span>
+								<span class="block truncate text-sm font-semibold" :class="selected ? 'text-canvas-fg' : 'text-muted-fg'">{{ item.label }}</span>
 								<span class="mt-0.5 block truncate text-xs text-muted-fg">{{ item.url }}</span>
 							</span>
 							<span
@@ -346,7 +346,7 @@ function statusTone(value) {
 				</DomTreeView>
 
 				<div class="mt-4 border border-dashed border-border bg-secondary/40 p-4 text-sm leading-6 text-muted-fg">
-					<p class="font-medium text-fg">Selected path</p>
+					<p class="font-medium text-canvas-fg">Selected path</p>
 					<p class="mt-1">{{ selectedPath }}</p>
 				</div>
 			</section>
@@ -399,7 +399,7 @@ function statusTone(value) {
 										<span class="block font-semibold">{{ option.label }}</span>
 										<span class="mt-0.5 block text-xs leading-5 opacity-80">{{ option.description }}</span>
 									</span>
-									<span class="rounded-full bg-background/80 px-2 py-0.5 text-[11px] font-semibold">{{ option.count }}</span>
+									<span class="rounded-full bg-canvas/80 px-2 py-0.5 text-[11px] font-semibold">{{ option.count }}</span>
 								</span>
 							</template>
 						</DomListbox>
@@ -459,7 +459,7 @@ function statusTone(value) {
 					</div>
 				</div>
 
-				<aside class="skin-raised p-4 sm:p-5">
+				<aside class="skin-card p-4 sm:p-5">
 					<div class="flex items-start justify-between gap-3">
 						<div>
 							<h4 class="font-semibold">Live preview</h4>
@@ -477,7 +477,7 @@ function statusTone(value) {
 					/>
 
 					<div
-						class="mt-4 overflow-hidden border border-border bg-background shadow-lg"
+						class="mt-4 overflow-hidden border border-border bg-canvas shadow-lg"
 						:class="previewMode === 'mobile' ? 'mx-auto max-w-[18rem] rounded-lg p-2' : 'rounded-lg'"
 					>
 						<div class="border-b border-border px-4 py-3">
@@ -500,7 +500,7 @@ function statusTone(value) {
 						</nav>
 					</div>
 
-					<div class="mt-4 rounded-lg border border-border bg-background p-4">
+					<div class="mt-4 rounded-lg border border-border bg-canvas p-4">
 						<p class="text-sm font-semibold">Draft payload</p>
 						<pre class="mt-3 max-h-64 overflow-auto rounded-md bg-secondary p-3 text-xs leading-5 text-muted-fg">{{ JSON.stringify(publishPayload, null, 2) }}</pre>
 					</div>
@@ -515,11 +515,11 @@ function statusTone(value) {
 		>
 			<div class="space-y-3 text-sm leading-6 text-muted-fg">
 				<p>
-					This draft contains <strong class="text-fg">{{ changedIds.length }}</strong> changed item{{ changedIds.length === 1 ? '' : 's' }} across
-					<strong class="text-fg">{{ totalItemCount }}</strong> navigation records.
+					This draft contains <strong class="text-canvas-fg">{{ changedIds.length }}</strong> changed item{{ changedIds.length === 1 ? '' : 's' }} across
+					<strong class="text-canvas-fg">{{ totalItemCount }}</strong> navigation records.
 				</p>
 				<div class="rounded-lg border border-border bg-secondary/50 p-3">
-					<p class="font-semibold text-fg">Backend checks to run</p>
+					<p class="font-semibold text-canvas-fg">Backend checks to run</p>
 					<ul class="mt-2 list-disc space-y-1 pl-5">
 						<li>Validate every route and parent ID.</li>
 						<li>Confirm feature flags exist in the current workspace.</li>

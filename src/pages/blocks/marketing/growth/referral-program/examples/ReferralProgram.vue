@@ -169,9 +169,9 @@ function money(value) {
 </script>
 
 <template>
-	<div class="w-full bg-[radial-gradient(circle_at_top_left,rgb(219_234_254),transparent_34%),linear-gradient(135deg,rgb(248_250_252),rgb(240_253_250))] px-3 py-4 text-fg dark:bg-[radial-gradient(circle_at_top_left,rgb(30_64_175),transparent_32%),linear-gradient(135deg,rgb(15_23_42),rgb(6_78_59))] sm:px-6 lg:px-8">
+	<div class="w-full bg-[radial-gradient(circle_at_top_left,rgb(219_234_254),transparent_34%),linear-gradient(135deg,rgb(248_250_252),rgb(240_253_250))] px-3 py-4 text-canvas-fg dark:bg-[radial-gradient(circle_at_top_left,rgb(30_64_175),transparent_32%),linear-gradient(135deg,rgb(15_23_42),rgb(6_78_59))] sm:px-6 lg:px-8">
 		<section class="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[minmax(0,1fr)_23rem]">
-			<div class="overflow-hidden rounded-lg border border-border bg-background shadow-2xl shadow-black/10">
+			<div class="overflow-hidden rounded-lg border border-border bg-canvas shadow-2xl shadow-black/10">
 				<header class="relative overflow-hidden border-b border-border p-5 sm:p-7">
 					<div class="absolute inset-y-0 right-0 hidden w-1/2 bg-[linear-gradient(135deg,transparent,rgb(14_165_233_/_0.12))] sm:block" aria-hidden="true" />
 					<div class="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -182,7 +182,7 @@ function money(value) {
 								Share your personal invite link, track every friend from invite to paid conversion, and unlock the next reward tier.
 							</p>
 						</div>
-						<div class="grid w-full gap-2 rounded-lg border border-border bg-background/90 p-4 shadow-sm backdrop-blur sm:max-w-xs">
+						<div class="grid w-full gap-2 rounded-lg border border-border bg-canvas/90 p-4 shadow-sm backdrop-blur sm:max-w-xs">
 							<div class="flex items-center justify-between gap-3">
 								<span class="text-sm text-muted-fg">Lifetime rewards</span>
 								<span class="text-2xl font-semibold">{{ money(lifetimeReward) }}</span>
@@ -206,7 +206,7 @@ function money(value) {
 							:class="qualifiedCount >= milestone.count ? 'border-primary bg-primary/10' : 'border-border bg-secondary/50'"
 						>
 							<div class="flex items-center justify-between gap-3">
-								<span class="grid size-9 place-items-center rounded-full bg-background text-sm font-bold">
+								<span class="grid size-9 place-items-center rounded-full bg-canvas text-sm font-bold">
 									{{ milestone.count }}
 								</span>
 								<span class="text-xs font-semibold uppercase text-muted-fg">Refs</span>
@@ -217,7 +217,7 @@ function money(value) {
 					</section>
 
 					<section class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
-						<div class="rounded-lg border border-border bg-background p-4 sm:p-5">
+						<div class="rounded-lg border border-border bg-canvas p-4 sm:p-5">
 							<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 								<div>
 									<p class="text-xs font-semibold uppercase text-muted-fg">Share invite</p>
@@ -233,7 +233,7 @@ function money(value) {
 								<DomNativeSelect v-model="selectedChannel" label="Invite channel" :options="channelOptions" />
 								<DomNativeSelect v-model="selectedReward" label="Reward type" :options="rewardOptions" />
 								<label class="grid gap-1 text-sm">
-									<span class="font-medium text-fg">Invite link</span>
+									<span class="font-medium text-canvas-fg">Invite link</span>
 									<span class="flex min-w-0 items-center gap-2 rounded-lg border border-border bg-secondary/60 px-3 py-2">
 										<span class="truncate text-muted-fg">{{ inviteUrl }}</span>
 									</span>
@@ -249,7 +249,7 @@ function money(value) {
 							</div>
 						</div>
 
-						<aside class="rounded-lg border border-border bg-background p-4 sm:p-5">
+						<aside class="rounded-lg border border-border bg-canvas p-4 sm:p-5">
 							<p class="text-xs font-semibold uppercase text-muted-fg">Reward policy</p>
 							<h4 class="mt-1 text-lg font-semibold">{{ reward.label }}</h4>
 							<p class="mt-2 text-sm leading-6 text-muted-fg">{{ reward.detail }}</p>
@@ -271,7 +271,7 @@ function money(value) {
 			</div>
 
 			<aside class="grid content-start gap-4">
-				<section class="rounded-lg border border-border bg-background p-4 shadow-xl shadow-black/10 sm:p-5">
+				<section class="rounded-lg border border-border bg-canvas p-4 shadow-xl shadow-black/10 sm:p-5">
 					<div class="flex items-start justify-between gap-3">
 						<div>
 							<p class="text-xs font-semibold uppercase text-muted-fg">Referral status</p>
@@ -288,7 +288,7 @@ function money(value) {
 						<article
 							v-for="referral in filteredReferrals"
 							:key="referral.id"
-							class="rounded-lg border border-border bg-background p-3"
+							class="rounded-lg border border-border bg-canvas p-3"
 						>
 							<div class="flex items-start justify-between gap-3">
 								<div class="min-w-0">
@@ -310,7 +310,7 @@ function money(value) {
 					</div>
 				</section>
 
-				<section class="rounded-lg border border-border bg-background p-4 shadow-xl shadow-black/10 sm:p-5">
+				<section class="rounded-lg border border-border bg-canvas p-4 shadow-xl shadow-black/10 sm:p-5">
 					<p class="text-xs font-semibold uppercase text-muted-fg">Growth readout</p>
 					<div class="mt-4 grid gap-3 text-sm">
 						<div class="flex items-center justify-between gap-3">
@@ -327,7 +327,7 @@ function money(value) {
 						</div>
 					</div>
 					<div class="mt-4 rounded-lg bg-secondary/70 p-3 text-sm leading-6 text-muted-fg">
-						<p class="font-semibold text-fg">Qualification rule</p>
+						<p class="font-semibold text-canvas-fg">Qualification rule</p>
 						<p>Reward posts after the referred workspace pays its first invoice and passes duplicate-account review.</p>
 					</div>
 				</section>

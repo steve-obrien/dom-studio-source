@@ -19,7 +19,7 @@ const principles = [
 	},
 	{
 		title: 'Use semantic tokens',
-		body: 'Token utilities such as skin-raised, text-muted-fg, border-border, bg-primary, bg-success, and bg-warning keep generated screens on-theme.',
+		body: 'Token utilities such as skin-card, text-muted-fg, border-border, bg-primary, bg-success, and bg-warning keep generated screens on-theme.',
 	},
 	{
 		title: 'Keep Studio as a second path',
@@ -174,13 +174,13 @@ const promptCode = `When building with DOM Studio:
 		>
 			<DocSection eyebrow="Goal" title="Make the best path the easiest path">
 				<div class="grid gap-4 md:grid-cols-2">
-					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
 						<h3 class="text-lg font-semibold tracking-tight">For LLM-built apps</h3>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">
 							DOM Studio gives AI a compact set of reliable choices: accessible primitives for behaviour, visual components for surfaces, and blocks for complete application patterns.
 						</p>
 					</div>
-					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
 						<h3 class="text-lg font-semibold tracking-tight">For human follow-through</h3>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">
 							The output should be easy to read, easy to change, and when needed, easy to round-trip through Studio as a named tree of components, props, and children.
@@ -191,7 +191,7 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Principles" title="What AI should learn from DOM Studio">
 				<div class="grid gap-4 md:grid-cols-2">
-					<article v-for="principle in principles" :key="principle.title" class="rounded-2xl border border-border skin-raised p-5 text-fg">
+					<article v-for="principle in principles" :key="principle.title" class="rounded-2xl border border-border skin-card p-5 text-canvas-fg">
 						<h3 class="font-semibold tracking-tight">{{ principle.title }}</h3>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">{{ principle.body }}</p>
 					</article>
@@ -207,9 +207,9 @@ const promptCode = `When building with DOM Studio:
 								<th class="px-4 py-3 font-semibold">Why it helps</th>
 							</tr>
 						</thead>
-						<tbody class="divide-y divide-border bg-background">
+						<tbody class="divide-y divide-border bg-canvas">
 							<tr v-for="row in llmContract" :key="row[0]">
-								<td class="px-4 py-3 font-medium text-fg">{{ row[0] }}</td>
+								<td class="px-4 py-3 font-medium text-canvas-fg">{{ row[0] }}</td>
 								<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
 							</tr>
 						</tbody>
@@ -219,7 +219,7 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Terse context" title="A small docs file beats a long sales page">
 				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
 						<h3 class="text-lg font-semibold tracking-tight">What /llms.txt is for</h3>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">
 							The AI-facing documentation should be short, direct, and practical. It should name the components, explain the house style, and tell an agent which patterns to prefer.
@@ -234,7 +234,7 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Editable output" title="Prefer Studio specs for AI-authored UI">
 				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
 						<h3 class="text-lg font-semibold tracking-tight">Why specs beat raw markup</h3>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">
 							Specs preserve the intent behind the UI. A card is still a card, a password field is still a password field, and each layer has a stable identity for later editing.
@@ -251,7 +251,7 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Studio metadata" title="_edit is for Studio, not the main AI contract">
 				<div class="grid gap-4 lg:grid-cols-2">
-					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
 						<p class="text-sm leading-6 text-muted-fg">
 							The <code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">_edit</code> blocks are mostly for Studio. They tell the inspector which editor to render for a prop.
 						</p>
@@ -265,7 +265,7 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Component folders" title="Component metadata lives with the component">
 				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border skin-raised p-6 text-fg">
+					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
 						<h3 class="text-lg font-semibold tracking-tight">Discovery convention</h3>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">
 							Each component can live beside its docs page and examples. A component manager discovers folders and paths, then the inspector reads Vue props and the component's
@@ -281,7 +281,7 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Roadmap" title="What to add next">
 				<div class="grid gap-4 md:grid-cols-2">
-					<article v-for="item in additions" :key="item.title" class="rounded-2xl border border-border skin-raised p-5 text-fg">
+					<article v-for="item in additions" :key="item.title" class="rounded-2xl border border-border skin-card p-5 text-canvas-fg">
 						<h3 class="font-semibold tracking-tight">{{ item.title }}</h3>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">{{ item.body }}</p>
 					</article>
@@ -290,7 +290,7 @@ const promptCode = `When building with DOM Studio:
 
 			<DocSection eyebrow="Future examples" title="AI-specific UI patterns">
 				<div class="grid gap-4 md:grid-cols-2">
-					<article v-for="item in futureAiPages" :key="item.title" class="rounded-2xl border border-border skin-raised p-5 text-fg">
+					<article v-for="item in futureAiPages" :key="item.title" class="rounded-2xl border border-border skin-card p-5 text-canvas-fg">
 						<h3 class="font-semibold tracking-tight">{{ item.title }}</h3>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">{{ item.body }}</p>
 					</article>

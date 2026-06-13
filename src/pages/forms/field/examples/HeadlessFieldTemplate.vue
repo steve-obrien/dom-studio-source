@@ -58,7 +58,7 @@ const errors = [
 						</template>
 						<div class="space-y-2">
 							<p class="text-xs font-semibold uppercase tracking-wider text-destructive">Validation</p>
-							<ul class="space-y-1 text-xs leading-5 text-fg">
+							<ul class="space-y-1 text-xs leading-5 text-canvas-fg">
 								<li v-for="error in fieldErrors" :key="error">{{ error }}</li>
 							</ul>
 						</div>

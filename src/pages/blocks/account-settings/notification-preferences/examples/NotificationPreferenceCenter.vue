@@ -139,8 +139,8 @@ function statusText() {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-5 py-5 sm:px-7">
+	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-5 py-5 sm:px-7">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Account settings</p>
@@ -162,15 +162,15 @@ function statusText() {
 			</div>
 
 			<div class="mt-5 grid gap-3 md:grid-cols-3">
-				<div class="border-l-4 border-primary bg-background px-4 py-3">
+				<div class="border-l-4 border-primary bg-canvas px-4 py-3">
 					<p class="text-xs font-medium text-muted-fg">Enabled channels</p>
 					<p class="mt-1 text-2xl font-semibold tracking-tight">{{ enabledChannelCount }}</p>
 				</div>
-				<div class="border-l-4 border-warning bg-background px-4 py-3">
+				<div class="border-l-4 border-warning bg-canvas px-4 py-3">
 					<p class="text-xs font-medium text-muted-fg">Required topics</p>
 					<p class="mt-1 text-2xl font-semibold tracking-tight">{{ requiredAlertCount }}</p>
 				</div>
-				<div class="border-l-4 border-border bg-background px-4 py-3">
+				<div class="border-l-4 border-border bg-canvas px-4 py-3">
 					<p class="text-xs font-medium text-muted-fg">Fully muted optional topics</p>
 					<p class="mt-1 text-2xl font-semibold tracking-tight">{{ optionalDisabledCount }}</p>
 				</div>
@@ -185,17 +185,17 @@ function statusText() {
 						v-for="group in preferenceGroups"
 						:key="group.id"
 						type="button"
-						class="rounded-xl px-3 py-3 text-left transition hover:bg-background"
-						:class="group.id === activeGroupId ? 'bg-background shadow-sm ring-1 ring-border' : 'text-muted-fg'"
+						class="rounded-xl px-3 py-3 text-left transition hover:bg-canvas"
+						:class="group.id === activeGroupId ? 'bg-canvas shadow-sm ring-1 ring-border' : 'text-muted-fg'"
 						@click="activeGroupId = group.id"
 					>
-						<span class="block text-sm font-semibold text-fg">{{ group.label }}</span>
+						<span class="block text-sm font-semibold text-canvas-fg">{{ group.label }}</span>
 						<span class="mt-1 block text-xs leading-5">{{ group.topics.length }} topics</span>
 					</button>
 				</div>
 
 				<div class="mt-6 border-t border-border pt-4 text-sm leading-6 text-muted-fg">
-					<p class="font-semibold text-fg">Delivery rule</p>
+					<p class="font-semibold text-canvas-fg">Delivery rule</p>
 					<p class="mt-1">Required email alerts stay enabled for security, billing, and account recovery messages.</p>
 				</div>
 			</nav>
@@ -232,7 +232,7 @@ function statusText() {
 									type="button"
 									class="grid size-10 place-items-center rounded-full border transition"
 									:class="[
-										topic.channels[channel.key] ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-background text-muted-fg',
+										topic.channels[channel.key] ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-canvas text-muted-fg',
 										topic.required && channel.key === 'email' ? 'cursor-not-allowed opacity-70' : 'hover:border-primary/60'
 									]"
 									:aria-pressed="topic.channels[channel.key]"
@@ -275,7 +275,7 @@ function statusText() {
 							<input
 								v-model="digest.deliveryTime"
 								type="time"
-								class="h-10 rounded-lg border border-border bg-background px-3 text-sm text-fg outline-none focus:border-primary"
+								class="h-10 rounded-lg border border-border bg-canvas px-3 text-sm text-canvas-fg outline-none focus:border-primary"
 								@input="saveState = 'unsaved'"
 							/>
 						</label>
@@ -291,7 +291,7 @@ function statusText() {
 							<input
 								v-model="quietHours.start"
 								type="time"
-								class="h-10 rounded-lg border border-border bg-background px-3 text-sm text-fg outline-none focus:border-primary"
+								class="h-10 rounded-lg border border-border bg-canvas px-3 text-sm text-canvas-fg outline-none focus:border-primary"
 								@input="saveState = 'unsaved'"
 							/>
 						</label>
@@ -300,7 +300,7 @@ function statusText() {
 							<input
 								v-model="quietHours.end"
 								type="time"
-								class="h-10 rounded-lg border border-border bg-background px-3 text-sm text-fg outline-none focus:border-primary"
+								class="h-10 rounded-lg border border-border bg-canvas px-3 text-sm text-canvas-fg outline-none focus:border-primary"
 								@input="saveState = 'unsaved'"
 							/>
 						</label>

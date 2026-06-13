@@ -211,8 +211,8 @@ function confirmRequest() {
 </script>
 
 <template>
-	<div class="w-full overflow-hidden border border-border bg-background text-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-raised px-5 py-5 sm:px-7">
+	<div class="w-full overflow-hidden border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
+		<header class="border-b border-border skin-card px-5 py-5 sm:px-7">
 			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div>
 					<p class="text-xs font-semibold uppercase text-muted-fg">Account settings</p>
@@ -293,7 +293,7 @@ function confirmRequest() {
 						<p class="mt-1 text-sm leading-6 text-muted-fg">
 							Show a compact version of the data you will persist before the user saves.
 						</p>
-						<pre class="mt-3 max-h-48 overflow-auto bg-background p-3 text-xs leading-5 text-muted-fg">{{ saveSummary }}</pre>
+						<pre class="mt-3 max-h-48 overflow-auto bg-canvas p-3 text-xs leading-5 text-muted-fg">{{ saveSummary }}</pre>
 					</div>
 				</div>
 			</section>
@@ -437,9 +437,9 @@ function confirmRequest() {
 			</section>
 		</main>
 
-		<div class="sticky bottom-0 flex flex-col gap-3 border-t border-border skin-floating px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+		<div class="sticky bottom-0 flex flex-col gap-3 border-t border-border skin-popover px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7">
 			<p class="text-sm leading-6 text-muted-fg">
-				Effective policy <span class="font-semibold text-fg">privacy-2026-05</span> for region <span class="font-semibold text-fg">GB</span>.
+				Effective policy <span class="font-semibold text-canvas-fg">privacy-2026-05</span> for region <span class="font-semibold text-canvas-fg">GB</span>.
 			</p>
 			<div class="flex flex-wrap gap-2">
 				<DomButton variant="secondary" @click="restoreDefaults">Restore defaults</DomButton>
@@ -457,7 +457,7 @@ function confirmRequest() {
 					This should create a backend job, notify the user, and store an audit event with the current policy version.
 				</p>
 				<div class="border border-border bg-secondary/40 p-3">
-					<p class="font-semibold text-fg">Job context</p>
+					<p class="font-semibold text-canvas-fg">Job context</p>
 					<p class="mt-1">Export format: {{ exportFormat }}</p>
 					<p>Retention window: {{ activityRetention }}</p>
 					<p>Visibility: {{ profileVisibility }}</p>

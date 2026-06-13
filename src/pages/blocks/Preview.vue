@@ -21,7 +21,7 @@ onMounted(() => {
 </script>
 
 <template>
-	<main class="min-h-screen bg-background text-fg">
+	<main class="min-h-screen bg-canvas text-canvas-fg">
 		<component v-if="previewComponent" :is="previewComponent" />
 		<div v-else class="grid min-h-screen place-items-center p-6 text-sm text-muted-fg">
 			Block preview not found.

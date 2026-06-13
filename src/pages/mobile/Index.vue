@@ -62,9 +62,9 @@ const platformPoints = [
 					<div
 						v-for="point in platformPoints"
 						:key="point.title"
-						class="rounded-lg border border-border skin-raised p-4"
+						class="rounded-lg border border-border skin-card p-4"
 					>
-						<p class="text-sm font-semibold text-fg">{{ point.title }}</p>
+						<p class="text-sm font-semibold text-canvas-fg">{{ point.title }}</p>
 						<p class="mt-1 text-xs leading-5 text-muted-fg">{{ point.description }}</p>
 					</div>
 				</div>
@@ -76,12 +76,12 @@ const platformPoints = [
 			>
 				<template #notes>
 					<div class="grid gap-3 sm:grid-cols-2">
-						<div class="rounded-lg border border-border skin-raised p-4">
-							<p class="text-sm font-semibold text-fg">Capacitor posture</p>
+						<div class="rounded-lg border border-border skin-card p-4">
+							<p class="text-sm font-semibold text-canvas-fg">Capacitor posture</p>
 							<p class="mt-1 text-xs leading-5 text-muted-fg">Keep the UI web-native, then bridge native status bar, haptics, keyboard, camera, and share actions through Capacitor plugins.</p>
 						</div>
-						<div class="rounded-lg border border-border skin-raised p-4">
-							<p class="text-sm font-semibold text-fg">Mobile defaults</p>
+						<div class="rounded-lg border border-border skin-card p-4">
+							<p class="text-sm font-semibold text-canvas-fg">Mobile defaults</p>
 							<p class="mt-1 text-xs leading-5 text-muted-fg">One scroll container, safe-area-aware chrome, large touch targets, and bottom actions for thumb reach.</p>
 						</div>
 					</div>
@@ -105,9 +105,9 @@ const platformPoints = [
 					<div
 						v-for="item in mobileFoundations"
 						:key="item[0]"
-						class="rounded-lg border border-border skin-raised p-4"
+						class="rounded-lg border border-border skin-card p-4"
 					>
-						<code class="text-xs font-semibold text-fg">&lt;{{ item[0] }}&gt;</code>
+						<code class="text-xs font-semibold text-canvas-fg">&lt;{{ item[0] }}&gt;</code>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">{{ item[1] }}</p>
 					</div>
 				</div>

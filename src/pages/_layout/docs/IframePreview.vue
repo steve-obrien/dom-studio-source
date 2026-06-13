@@ -125,8 +125,8 @@ function syncFrameStyles() {
 
 		body {
 			margin: 0;
-			background: var(--background);
-			color: var(--fg);
+			background: var(--canvas);
+			color: var(--canvas-fg);
 			font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 			text-rendering: optimizeLegibility;
 			-webkit-font-smoothing: antialiased;
@@ -270,12 +270,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<div class="iframe-preview min-w-0 bg-background">
+	<div class="iframe-preview min-w-0 bg-canvas">
 		<div class="flex items-center justify-between gap-3 border-b border-border bg-secondary/40 px-3 py-2">
 			<p class="text-xs font-medium tabular-nums text-muted-fg">{{ roundedWidth }}px</p>
 			<button
 				type="button"
-				class="rounded-md px-2 py-1 text-xs font-medium text-muted-fg transition hover:bg-secondary hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+				class="rounded-md px-2 py-1 text-xs font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
 				@click="resetPreviewWidth"
 			>
 				Fit
@@ -292,7 +292,7 @@ onBeforeUnmount(() => {
 					ref="iframe"
 					:title="title"
 					:src="src || undefined"
-					class="block h-full w-full rounded-[inherit] border-0 bg-background"
+					class="block h-full w-full rounded-[inherit] border-0 bg-canvas"
 				/>
 				<div v-if="isDragging" class="absolute inset-0 z-10 cursor-ew-resize" aria-hidden="true"></div>
 				<button
@@ -355,7 +355,7 @@ onBeforeUnmount(() => {
 .iframe-preview-handle:hover,
 .iframe-preview-handle:focus-visible,
 .iframe-preview-viewport-dragging .iframe-preview-handle {
-	color: var(--fg);
+	color: var(--canvas-fg);
 	outline: none;
 }
 
@@ -364,7 +364,7 @@ onBeforeUnmount(() => {
 	z-index: 1;
 	width: 1rem;
 	height: 3rem;
-	background: var(--background);
+	background: var(--canvas);
 	border-right: 1px solid currentColor;
 	border-left: 1px solid currentColor;
 	border-radius: 999px;
