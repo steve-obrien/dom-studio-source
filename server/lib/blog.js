@@ -8,6 +8,12 @@ const markdown = new MarkdownIt({
 	linkify: true,
 	typographer: true,
 });
+markdown.renderer.rules.table_open = (tokens, idx, options, env, self) => {
+	return `<div class="dom-markdown-table">${self.renderToken(tokens, idx, options)}`;
+};
+markdown.renderer.rules.table_close = (tokens, idx, options, env, self) => {
+	return `${self.renderToken(tokens, idx, options)}</div>`;
+};
 const localContentDir = path.resolve(process.cwd(), 'src/pages/blog/content');
 
 export async function listPublishedArticles() {

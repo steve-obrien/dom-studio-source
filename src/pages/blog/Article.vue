@@ -156,9 +156,65 @@ function getCodeLanguage(code) {
 
 			<div
 				ref="articleContent"
-				class="max-w-none text-base leading-8 text-canvas-fg [&>*+*]:mt-6 [&_a]:font-semibold [&_a]:text-canvas-fg [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-5 [&_blockquote]:text-muted-fg [&_code]:rounded [&_code]:bg-secondary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_code]:text-canvas-fg [&_h2]:mt-12 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:leading-tight [&_h2]:tracking-tight [&_h2]:text-canvas-fg [&_h3]:mt-10 [&_h3]:text-2xl [&_h3]:font-semibold [&_h3]:leading-tight [&_h3]:tracking-tight [&_h3]:text-canvas-fg [&_iframe]:block [&_iframe]:aspect-video [&_iframe]:h-auto [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:rounded-lg [&_iframe]:border [&_iframe]:border-border [&_iframe]:bg-secondary [&_li]:text-muted-fg [&_ol]:ml-6 [&_ol]:list-decimal [&_ol]:space-y-2 [&_p]:text-muted-fg [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-border [&_pre]:bg-secondary [&_pre]:p-4 [&_pre]:text-sm [&_pre]:leading-6 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_ul]:ml-6 [&_ul]:list-disc [&_ul]:space-y-2 [&_.dom-shiki]:overflow-hidden [&_.dom-shiki]:rounded-lg [&_.dom-shiki]:border [&_.dom-shiki]:border-border [&_.dom-shiki]:bg-secondary [&_.dom-shiki_.shiki]:m-0"
+				class="article-content max-w-none text-base leading-8 text-canvas-fg [&>*+*]:mt-6 [&_a]:font-semibold [&_a]:text-canvas-fg [&_a]:underline [&_a]:underline-offset-4 [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-5 [&_blockquote]:text-muted-fg [&_code]:rounded [&_code]:bg-secondary [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_code]:text-canvas-fg [&_h2]:mt-12 [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:leading-tight [&_h2]:tracking-tight [&_h2]:text-canvas-fg [&_h3]:mt-10 [&_h3]:text-2xl [&_h3]:font-semibold [&_h3]:leading-tight [&_h3]:tracking-tight [&_h3]:text-canvas-fg [&_iframe]:block [&_iframe]:aspect-video [&_iframe]:h-auto [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:rounded-lg [&_iframe]:border [&_iframe]:border-border [&_iframe]:bg-secondary [&_li]:text-muted-fg [&_ol]:ml-6 [&_ol]:list-decimal [&_ol]:space-y-2 [&_p]:text-muted-fg [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-border [&_pre]:bg-secondary [&_pre]:p-4 [&_pre]:text-sm [&_pre]:leading-6 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_ul]:ml-6 [&_ul]:list-disc [&_ul]:space-y-2 [&_.dom-shiki]:overflow-hidden [&_.dom-shiki]:rounded-lg [&_.dom-shiki]:border [&_.dom-shiki]:border-border [&_.dom-shiki]:bg-secondary [&_.dom-shiki_.shiki]:m-0"
 				v-html="article.rendered_html"
 			></div>
 		</article>
 	</DomStudioLayout>
 </template>
+
+<style scoped>
+.article-content :deep(.dom-markdown-table),
+.article-content :deep(> table) {
+	max-width: 100%;
+	overflow-x: auto;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background: var(--canvas);
+	box-shadow: var(--shadow-xs);
+}
+
+.article-content :deep(> table) {
+	display: block;
+}
+
+.article-content :deep(table) {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+	font-size: 0.875rem;
+	line-height: 1.6;
+}
+
+.article-content :deep(.dom-markdown-table table) {
+	min-width: 44rem;
+}
+
+.article-content :deep(th),
+.article-content :deep(td) {
+	border-right: 1px solid var(--border);
+	border-bottom: 1px solid var(--border);
+	padding: 0.75rem 1rem;
+	text-align: left;
+	vertical-align: top;
+}
+
+.article-content :deep(th) {
+	background: color-mix(in oklch, var(--secondary) 76%, transparent);
+	color: var(--canvas-fg);
+	font-weight: 650;
+}
+
+.article-content :deep(td) {
+	color: var(--muted-fg);
+}
+
+.article-content :deep(th:last-child),
+.article-content :deep(td:last-child) {
+	border-right: 0;
+}
+
+.article-content :deep(tbody tr:last-child td) {
+	border-bottom: 0;
+}
+</style>
