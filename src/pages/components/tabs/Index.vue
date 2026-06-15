@@ -4,10 +4,13 @@ import DocPage from '../../_layout/DocPage.vue';
 import DocSection from '../../_layout/DocSection.vue';
 import CodeBlock from '../../_layout/CodeBlock.vue';
 import Demo from '../../_layout/Demo.vue';
+import Example from '../../_layout/docs/Example.vue';
 import Playground from '../../_layout/docs/Playground.vue';
 import PropsTable from '../../_layout/PropsTable.vue';
 import { DomTabs } from '../../lib/vue';
 import { ref } from 'vue';
+import PageTabs from './examples/PageTabs.vue';
+import PageTabsSrc from './examples/PageTabs.vue?raw';
 
 const active = ref('overview');
 const tabs = [
@@ -21,30 +24,32 @@ import { DomTabs } from '@getdom/studio/vue';
 import { ref } from 'vue';
 const active = ref('overview');
 const tabs = [
-  { key: 'overview', label: 'Overview' },
-  { key: 'pricing',  label: 'Pricing' },
+\t{ key: 'overview', label: 'Overview' },
+\t{ key: 'pricing', label: 'Pricing' },
 ];
 <\/script>
 
 <template>
-  <DomTabs v-model="active" :tabs="tabs">
-    <template #overview>Overview content…</template>
-    <template #pricing>Pricing content…</template>
-  </DomTabs>
+\t<DomTabs v-model="active" :tabs="tabs">
+\t\t<template #overview>Overview content…</template>
+\t\t<template #pricing>Pricing content…</template>
+\t</DomTabs>
 </template>`;
 
 const usageWeb = `<dom-tabs value="overview">
-  <div role="tablist">
-    <button data-tab="overview">Overview</button>
-    <button data-tab="pricing">Pricing</button>
-  </div>
-  <div data-panel="overview">Overview…</div>
-  <div data-panel="pricing">Pricing…</div>
+\t<div role="tablist">
+\t\t<button data-tab="overview">Overview</button>
+\t\t<button data-tab="pricing">Pricing</button>
+\t</div>
+\t<div data-panel="overview">Overview…</div>
+\t<div data-panel="pricing">Pricing…</div>
 </dom-tabs>`;
 
 const props = [
 	{ name: 'v-model', type: 'string', default: 'first tab key', description: 'Active tab key.' },
 	{ name: 'tabs', type: 'Array<{ key, label }>', default: '—', description: 'Tabs to render.' },
+	{ name: 'variant', type: "'pill' | 'page'", default: "'pill'", description: 'Use page for editor-style tabs attached to a panel.' },
+	{ name: 'fill', type: 'boolean', default: 'false', description: 'Stretch the tab list and active panel inside a flex parent.' },
 ];
 const keys = [
 	{ k: '← / →', d: 'Move to previous / next tab.' },
@@ -85,6 +90,19 @@ const keys = [
 						</DomTabs>
 					</div>
 				</Demo>
+			</DocSection>
+
+			<DocSection eyebrow="Variant" title="Page tabs">
+				<Example
+					:source="PageTabsSrc"
+					filename="PageTabs.vue"
+					title="Page tabs"
+					description="Editor-style tabs can use variant=&quot;page&quot;, scoped tab labels, and reactive tab arrays."
+					default-open
+					:preview-lines="18"
+				>
+					<PageTabs />
+				</Example>
 			</DocSection>
 
 			<DocSection eyebrow="Usage" title="Vue">

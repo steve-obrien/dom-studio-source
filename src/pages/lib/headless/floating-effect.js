@@ -53,6 +53,7 @@ export function beginFloatingEffectEnter(element, {
 	beforeFrame,
 	delayFrames = 0,
 	durationMs = FLOATING_EFFECT_DURATION_MS,
+	animatePlacement = true,
 } = {}) {
 	if (!element || !hasFloatingEffect(element)) return false;
 	const view = viewFor(element);
@@ -60,7 +61,7 @@ export function beginFloatingEffectEnter(element, {
 	delete element.dataset.leaving;
 	element.dataset.floatingEffect ||= FLOATING_EFFECT_NAME;
 	element.dataset.floatingOpen = 'true';
-	element.dataset.animatePlacement = 'true';
+	element.toggleAttribute('data-animate-placement', animatePlacement);
 	element.dataset.entering = 'from';
 	beforeMeasure?.();
 	flushFloatingEffectStyle(element);

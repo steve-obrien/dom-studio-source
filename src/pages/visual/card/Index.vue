@@ -12,6 +12,8 @@ import Basic from './examples/Basic.vue';
 import BasicSrc from './examples/Basic.vue?raw';
 import Glass from './examples/Glass.vue';
 import GlassSrc from './examples/Glass.vue?raw';
+import MediaAsset from './examples/MediaAsset.vue';
+import MediaAssetSrc from './examples/MediaAsset.vue?raw';
 
 const doc = DomCard.__doc;
 </script>
@@ -42,6 +44,16 @@ const doc = DomCard.__doc;
 					description="Use DomCard for grouped content that needs a consistent skin recipe."
 				>
 					<Basic />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Variant" title="Aspect-ratio media cards">
+				<Example
+					:source="MediaAssetSrc"
+					filename="MediaAsset.vue"
+					description="Use padding none when the card image owns the top edge, then keep the media area stable with aspect-ratio utilities."
+				>
+					<MediaAsset />
 				</Example>
 			</DocSection>
 

@@ -54,8 +54,7 @@ const filtered = computed(() => {
 	const q = query.value.trim().toLowerCase();
 	if (!q) return props.commands;
 	return props.commands.filter((command) => {
-		const text = [command.label, command.description, command.value].filter(Boolean).join(' ').toLowerCase();
-		return text.includes(q);
+		return searchableCommandText(command).includes(q);
 	});
 });
 
@@ -155,7 +154,25 @@ function onKeydown(event) {
 	}
 }
 
+function searchableCommandText(command) {
+	return [
+		command.label,
+		command.description,
+		command.value,
+		command.to,
+		command.search,
+		command.keywords,
+	]
+		.flatMap((part) => Array.isArray(part) ? part : [part])
+		.map((part) => String(part || '').trim())
+		.filter(Boolean)
+		.join(' ')
+		.toLowerCase();
+}
+
 function onShortcut(event) {
+	if (isSiteSearchShortcut()) return;
+	if (event.defaultPrevented || event.__domStudioGlobalSearchHandled) return;
 	if (!matchesShortcut(event, props.shortcut)) return;
 	if (event.repeat) return;
 	event.preventDefault();
@@ -165,10 +182,27 @@ function onShortcut(event) {
 
 function onShortcutFallback(event) {
 	if (props.modelValue) return;
+	if (isSiteSearchShortcut()) return;
+	if (event.defaultPrevented || event.__domStudioGlobalSearchHandled) return;
 	if (!matchesShortcut(event, props.shortcut)) return;
 	event.preventDefault();
 	event.stopPropagation();
 	open();
+}
+
+function isSiteSearchShortcut() {
+	return typeof window !== 'undefined'
+		&& Boolean(window.__domStudioGlobalSearchShortcutHandler)
+		&& normalizeShortcut(props.shortcut) === 'mod+k';
+}
+
+function normalizeShortcut(shortcut) {
+	return String(shortcut || '')
+		.toLowerCase()
+		.split('+')
+		.map((part) => part.trim())
+		.filter(Boolean)
+		.join('+');
 }
 
 function matchesShortcut(event, shortcut) {
@@ -246,8 +280,23 @@ function matchesShortcut(event, shortcut) {
 						@mouseenter="activeIndex = index"
 						@click="select(command)"
 					>
-						<span class="block text-sm font-medium">{{ command.label }}</span>
-						<span v-if="command.description" class="mt-0.5 block text-xs text-muted-fg">{{ command.description }}</span>
+						<span class="flex min-w-0 items-start gap-3">
+							<span
+								v-if="command.icon"
+								class="grid size-8 shrink-0 place-items-center rounded-lg border border-border/70 bg-secondary text-muted-fg"
+								:class="index === activeIndex ? 'border-accent-fg/20 bg-accent-fg/10 text-accent-fg' : ''"
+								aria-hidden="true"
+							>
+								<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
+									<path :d="command.icon" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+								</svg>
+							</span>
+							<span v-else class="size-8 shrink-0" aria-hidden="true"></span>
+							<span class="min-w-0 flex-1 pt-0.5">
+								<span class="block truncate text-sm font-medium">{{ command.label }}</span>
+								<span v-if="command.description" class="mt-0.5 block truncate text-xs text-muted-fg">{{ command.description }}</span>
+							</span>
+						</span>
 					</button>
 					<p v-if="!filtered.length" class="px-3 py-6 text-center text-sm text-muted-fg">No commands found.</p>
 				</div>

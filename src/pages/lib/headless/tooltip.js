@@ -3,6 +3,13 @@ import {
 	applyFloatingPosition,
 	autoUpdateFloating,
 } from './floating.js';
+import {
+	beginFloatingEffectEnter,
+	beginFloatingEffectLeave,
+	clearFloatingEffectTimer,
+	prepareFloatingEffect,
+	resetFloatingEffectState,
+} from './floating-effect.js';
 
 const STYLE_ID = 'dom-tooltip-styles';
 
@@ -29,7 +36,27 @@ dom-tooltip {
 	white-space: normal;
 	pointer-events: none;
 }
+[data-dom-tooltip][data-floating-effect="fade"] {
+	opacity: 0;
+	transition: opacity 190ms ease;
+}
+[data-dom-tooltip][data-floating-open="true"] {
+	opacity: 1;
+}
+[data-dom-tooltip][data-entering="from"][data-floating-open="true"],
+[data-dom-tooltip][data-leaving="to"][data-floating-open="true"] {
+	opacity: 0;
+}
+[data-dom-tooltip][data-entering="to"][data-floating-open="true"],
+[data-dom-tooltip][data-leaving="from"][data-floating-open="true"] {
+	opacity: 1;
+}
 [data-dom-tooltip][hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) {
+	[data-dom-tooltip][data-floating-effect="fade"] {
+		transition-duration: 1ms;
+	}
+}
 `;
 	document.head.appendChild(style);
 }
@@ -75,6 +102,7 @@ export class DomTooltipElement extends DomElementBase {
 		this._bubble = null;
 		this._trigger = null;
 		this._t = 0;
+		this._open = false;
 		this._reflowOff = null;
 	}
 
@@ -90,8 +118,11 @@ export class DomTooltipElement extends DomElementBase {
 		this._bubble.setAttribute('role', 'tooltip');
 		this._bubble.setAttribute('data-placement', this.getAttribute('placement') || 'top');
 		this._bubble.dataset.domTooltip = '';
+		this._bubble.dataset.floatingEffect = 'fade';
+		this._bubble.setAttribute('aria-hidden', 'true');
 		this._bubble.hidden = true;
 		this._bubble.textContent = this.getAttribute('text') || '';
+		prepareFloatingEffect(this._bubble, 'fade');
 		document.body.appendChild(this._bubble);
 		this._trigger.setAttribute('aria-describedby', this._bubble.id);
 
@@ -117,25 +148,61 @@ export class DomTooltipElement extends DomElementBase {
 		return applyFloatingPosition(this._trigger, this._bubble, this._positionOptions());
 	}
 
+	_bindReflow() {
+		this._reflowOff?.();
+		this._reflowOff = autoUpdateFloating(this._trigger, this._bubble, () => this._place());
+	}
+
+	_unbindReflow() {
+		this._reflowOff?.();
+		this._reflowOff = null;
+	}
+
+	_finishHide(bubble = this._bubble) {
+		if (!bubble) return;
+		bubble.hidden = true;
+		bubble.setAttribute('aria-hidden', 'true');
+		resetFloatingEffectState(bubble);
+	}
+
 	_show() {
 		const delay = Number(this.getAttribute('delay') || 120);
 		clearTimeout(this._t);
+		if (this._open && !this._bubble?.hidden) return;
 		this._t = setTimeout(() => {
-			this._bubble.style.visibility = 'hidden';
-			this._bubble.hidden = false;
-			this._place();
-			this._reflowOff?.();
-			this._reflowOff = autoUpdateFloating(this._trigger, this._bubble, () => this._place());
-			this._bubble.style.visibility = '';
+			const bubble = this._bubble;
+			if (!bubble || !this._trigger) return;
+			this._open = true;
+			bubble.removeAttribute('aria-hidden');
+			const showNow = () => {
+				bubble.hidden = false;
+				this._place();
+				this._bindReflow();
+			};
+			const animated = beginFloatingEffectEnter(bubble, {
+				animatePlacement: false,
+				beforeMeasure: showNow,
+				beforeFrame: () => this._place(),
+				shouldContinue: () => this._open && this._bubble === bubble,
+			});
+			if (!animated) showNow();
 			this.emit('dom:show');
 		}, delay);
 	}
 
 	_hide() {
 		clearTimeout(this._t);
-		this._reflowOff?.();
-		this._reflowOff = null;
-		this._bubble.hidden = true;
+		if (!this._bubble || (!this._open && this._bubble.hidden)) return;
+		this._open = false;
+		this._unbindReflow();
+		const bubble = this._bubble;
+		bubble.setAttribute('aria-hidden', 'true');
+		beginFloatingEffectLeave(bubble, {
+			shouldContinue: () => !this._open && this._bubble === bubble,
+			finish: () => {
+				if (this._bubble === bubble) this._finishHide(bubble);
+			},
+		});
 		this.emit('dom:hide');
 	}
 
@@ -148,8 +215,10 @@ export class DomTooltipElement extends DomElementBase {
 
 	disconnectedCallback() {
 		clearTimeout(this._t);
-		this._reflowOff?.();
-		this._reflowOff = null;
+		this._open = false;
+		this._unbindReflow();
+		clearFloatingEffectTimer(this._bubble);
+		this._finishHide(this._bubble);
 		this._bubble?.remove();
 		this._bubble = null;
 		this._trigger = null;

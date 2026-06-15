@@ -9,7 +9,7 @@ import { getBlockNavItems } from '../blocks/blockRegistry.js';
 
 const sidebarComponentSectionOrder = ['components', 'forms', 'mobile', 'visual'];
 
-const staticIconPaths = {
+export const staticIconPaths = {
 	'AI builders': 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Zm6 9 .9 2.6 2.6.9-2.6.9L18 20l-.9-2.6-2.6-.9 2.6-.9L18 12Z',
 	Theming: 'M5 18c4-7 10-11 14-12-1 4-5 10-12 14l-2-2Zm4-1 8-8M6 13l5 5',
 	'Component spec': 'M6 5h12v14H6V5Zm3 4h6M9 13h6M9 17h3',

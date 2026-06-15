@@ -494,6 +494,10 @@ export declare const DomDialogSchemaForm: DomComponent<DomDialogSchemaFormProps>
 export interface DomTabsProps {
 	modelValue?: string;
 	tabs: Array<unknown>;
+	/**
+	 * Visual treatment for the tab list.
+	 */
+	variant?: "pill" | "page";
 	fill?: boolean;
 }
 export declare const DomTabs: DomComponent<DomTabsProps>;

@@ -5,6 +5,7 @@ import { routes } from './routes';
 import { getAuthState, hasEntitlement, refreshSession } from './composable/useAuth.js';
 
 const siteName = 'getdom.studio';
+const globalSearchOpenEvent = 'dom-studio:open-global-search';
 const documentationRoutePrefixes = [
 	'/ai',
 	'/blocks',
@@ -17,6 +18,8 @@ const documentationRoutePrefixes = [
 	'/theming',
 	'/visual',
 ];
+
+if (typeof window !== 'undefined') installGlobalSearchShortcut();
 
 const scrollBehavior = (to, from, savedPosition) => {
 	if (savedPosition) return savedPosition;
@@ -47,6 +50,30 @@ export function createDomStudioApp() {
 	}
 
 	return { app, router, pinia };
+}
+
+function installGlobalSearchShortcut() {
+	if (window.__domStudioGlobalSearchShortcutHandler) {
+		window.removeEventListener('keydown', window.__domStudioGlobalSearchShortcutHandler, { capture: true });
+		document.removeEventListener('keydown', window.__domStudioGlobalSearchShortcutHandler, { capture: true });
+	}
+
+	window.__domStudioGlobalSearchShortcutHandler = (event) => {
+		if (!isGlobalSearchShortcut(event)) return;
+		event.__domStudioGlobalSearchHandled = true;
+		event.preventDefault();
+		event.stopPropagation();
+		event.stopImmediatePropagation?.();
+		window.dispatchEvent(new CustomEvent(globalSearchOpenEvent));
+	};
+	window.addEventListener('keydown', window.__domStudioGlobalSearchShortcutHandler, { capture: true });
+	document.addEventListener('keydown', window.__domStudioGlobalSearchShortcutHandler, { capture: true });
+}
+
+function isGlobalSearchShortcut(event) {
+	if (event.repeat || event.altKey || event.shiftKey || event.isComposing) return false;
+	if (!(event.metaKey || event.ctrlKey)) return false;
+	return String(event.key || '').toLowerCase() === 'k';
 }
 
 function installAuthGuard(router) {

@@ -1,10 +1,10 @@
 import { DomElementBase, defineDomElement, uid, createRoving } from './base.js';
 
 // <dom-tabs value="overview">
-//   <div role="tablist">
-//     <button data-tab="overview">Overview</button>
-//   </div>
-//   <div data-panel="overview">…</div>
+// 	<div role="tablist">
+// 		<button data-tab="overview">Overview</button>
+// 	</div>
+// 	<div data-panel="overview">…</div>
 // </dom-tabs>
 export class DomTabsElement extends DomElementBase {
 	static get observedAttributes() { return ['value']; }
@@ -27,16 +27,33 @@ export class DomTabsElement extends DomElementBase {
 			{ keys: 'Enter / Space', action: 'Activate focused tab.' },
 		],
 		example: `<dom-tabs value="overview">
-  <div role="tablist">
-    <button data-tab="overview">Overview</button>
-    <button data-tab="pricing">Pricing</button>
-  </div>
-  <div data-panel="overview">Overview content…</div>
-  <div data-panel="pricing">Pricing content…</div>
+\t<div role="tablist">
+\t\t<button data-tab="overview">Overview</button>
+\t\t<button data-tab="pricing">Pricing</button>
+\t</div>
+\t<div data-panel="overview">Overview content…</div>
+\t<div data-panel="pricing">Pricing content…</div>
 </dom-tabs>`,
 	};
 
 	connectedCallback() {
+		if (this._connected) return;
+		this._connected = true;
+		this._observer = new MutationObserver(() => this._refresh());
+		this._observer.observe(this, { childList: true, subtree: true });
+		this._refresh();
+	}
+
+	disconnectedCallback() {
+		this._observer?.disconnect();
+		this._observer = null;
+		this._teardownTabs();
+		this._connected = false;
+		super.disconnectedCallback();
+	}
+
+	_refresh() {
+		this._teardownTabs();
 		this._tablist = this.querySelector('[role="tablist"], [data-tablist]');
 		this._tabs = Array.from(this.querySelectorAll('[data-tab]'));
 		this._panels = Array.from(this.querySelectorAll('[data-panel]'));
@@ -55,7 +72,7 @@ export class DomTabsElement extends DomElementBase {
 				panel.setAttribute('aria-labelledby', tab.id);
 				tab.setAttribute('aria-controls', panel.id);
 			}
-			this.on(tab, 'click', () => { this.value = key; });
+			this._tabOffs.push(this.on(tab, 'click', () => { this.value = key; }));
 		});
 
 		this._roving = createRoving({
@@ -63,9 +80,18 @@ export class DomTabsElement extends DomElementBase {
 			orientation: 'horizontal',
 			onSelect: (_, el) => { this.value = el.dataset.tab; },
 		});
-		this._tablist?.addEventListener('keydown', this._roving.onKey);
+		if (this._tablist) this._tabOffs.push(this.on(this._tablist, 'keydown', this._roving.onKey));
 
-		this.value = this.getAttribute('value') || this._tabs[0].dataset.tab;
+		const current = this.getAttribute('value');
+		const next = this._tabs.some((tab) => tab.dataset.tab === current)
+			? current
+			: this._tabs[0].dataset.tab;
+		this.value = next;
+	}
+
+	_teardownTabs() {
+		for (const off of this._tabOffs || []) off();
+		this._tabOffs = [];
 	}
 
 	get value() { return this.getAttribute('value'); }

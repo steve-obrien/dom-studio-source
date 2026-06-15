@@ -1,21 +1,27 @@
 <script setup>
-import { RouterLink, useRoute } from 'vue-router';
-import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useTheme } from '../../composable/useTheme';
 import ThemeToggle from './ThemeToggle.vue';
 import BrandLockup from './BrandLockup.vue';
 import SideNav from './SideNav.vue';
 import DomStudioFooter from './DomStudioFooter.vue';
 import AccountMenu from './AccountMenu.vue';
+import DomCommandPalette from '../components/command-palette/DomCommandPalette.vue';
+import { getGlobalSearchCommands } from './globalSearch.js';
 
 const props = defineProps({
 	fullWidth: { type: Boolean, default: false },
 });
 
+const globalSearchOpenEvent = 'dom-studio:open-global-search';
 const { initTheme } = useTheme();
 
 const route = useRoute();
+const router = useRouter();
 const mobileMenuOpen = ref(false);
+const searchOpen = ref(false);
+const searchCommands = getGlobalSearchCommands();
 const sidebarRoutePrefixes = [
 	'/ai',
 	'/blocks',
@@ -70,6 +76,16 @@ function scrollDetailsToTop() {
 	if (detailsPanel.value) detailsPanel.value.scrollTo({ top: 0 });
 }
 
+function openGlobalSearch() {
+	searchOpen.value = true;
+}
+
+function runGlobalSearch(event) {
+	const target = event.command?.to || event.value;
+	if (typeof target !== 'string' || !target.startsWith('/')) return;
+	router.push(target);
+}
+
 watch(() => route.fullPath, async () => {
 	mobileMenuOpen.value = false;
 	await nextTick();
@@ -78,6 +94,12 @@ watch(() => route.fullPath, async () => {
 
 onMounted(() => {
 	initTheme();
+	if (typeof window !== 'undefined') window.addEventListener(globalSearchOpenEvent, openGlobalSearch);
+});
+
+onBeforeUnmount(() => {
+	if (typeof window === 'undefined') return;
+	window.removeEventListener(globalSearchOpenEvent, openGlobalSearch);
 });
 </script>
 
@@ -101,12 +123,34 @@ onMounted(() => {
 							? 'bg-primary text-primary-fg'
 							: 'text-muted-fg hover:text-canvas-fg'"
 					>{{ l.label }}</RouterLink>
+					<button
+						type="button"
+						class="ml-2 hidden h-9 min-w-0 items-center gap-2 rounded-full border border-border bg-secondary px-3 text-sm font-medium text-muted-fg transition hover:bg-accent hover:text-accent-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 lg:flex"
+						aria-label="Search DOM Studio"
+						@click="openGlobalSearch"
+					>
+						<svg viewBox="0 0 24 24" class="size-4 shrink-0" fill="none" aria-hidden="true">
+							<path d="M11 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm4.5 10.5L20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+						</svg>
+						<span>Search</span>
+						<kbd class="rounded border border-border bg-canvas px-1.5 py-0.5 text-[11px] font-semibold text-muted-fg">⌘K</kbd>
+					</button>
 					<div class="ml-2">
 						<ThemeToggle />
 					</div>
 					<AccountMenu class="ml-2" />
 				</nav>
 				<div class="flex shrink-0 items-center gap-1 md:hidden">
+					<button
+						type="button"
+						class="grid size-9 place-items-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+						aria-label="Search DOM Studio"
+						@click="openGlobalSearch"
+					>
+						<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
+							<path d="M11 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm4.5 10.5L20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+						</svg>
+					</button>
 					<ThemeToggle />
 					<button
 						type="button"
@@ -198,5 +242,12 @@ onMounted(() => {
 		</div>
 
 		<DomStudioFooter v-if="!showSidebar" />
+		<DomCommandPalette
+			v-model="searchOpen"
+			:commands="searchCommands"
+			shortcut=""
+			placeholder="Search pages, components, blocks..."
+			@select="runGlobalSearch"
+		/>
 	</div>
 </template>

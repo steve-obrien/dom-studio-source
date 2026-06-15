@@ -362,6 +362,14 @@ dom-popover:not(:defined) > *:not([slot="trigger"]) {
 		--dom-floating-origin: center left;
 	}
 
+	.dom-floating-transition[data-floating-effect="fade"] {
+		--dom-floating-enter-x: 0px;
+		--dom-floating-enter-y: 0px;
+		--dom-floating-scale: 1;
+		--dom-floating-enter-transform-duration: 0ms;
+		--dom-floating-leave-transform-duration: 0ms;
+	}
+
 	[data-invalid] .skin-input,
 	.skin-input[data-invalid] {
 		@apply border-destructive focus:border-destructive focus:ring-destructive/25;
