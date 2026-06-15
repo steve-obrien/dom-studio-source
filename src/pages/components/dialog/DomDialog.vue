@@ -106,15 +106,15 @@ defineExpose({
 		<span slot="trigger" class="contents">
 			<slot name="trigger" />
 		</span>
-		<div class="skin-overlay rounded-2xl p-6 outline-none w-[min(92vw,28rem)]">
-			<div v-if="title || description" class="space-y-2">
+		<div class="skin-overlay flex max-h-[calc(100dvh-2rem)] w-[min(calc(100vw-2rem),28rem)] flex-col overflow-hidden rounded-2xl p-6 outline-none">
+			<div v-if="title || description" class="shrink-0 space-y-2">
 				<h2 v-if="title" :id="titleId" class="text-lg font-semibold tracking-tight">{{ title }}</h2>
 				<p v-if="description" :id="descriptionId" class="text-sm text-muted-fg">{{ description }}</p>
 			</div>
-			<div :class="(title || description) && 'mt-4'">
+			<div class="min-h-0 overflow-y-auto" :class="(title || description) && 'mt-4'">
 				<slot />
 			</div>
-			<div v-if="footer || $slots.footer" class="mt-6 flex items-center justify-end gap-2">
+			<div v-if="footer || $slots.footer" class="mt-6 flex shrink-0 items-center justify-end gap-2">
 				<slot name="footer">
 					<button
 						data-close

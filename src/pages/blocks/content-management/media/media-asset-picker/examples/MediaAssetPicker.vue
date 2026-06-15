@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { DomBadge, DomButton, DomCheckbox, DomDialog, DomListbox, DomStatusPill, DomTabs, DomTextInput, DomTooltip } from '@getdom/studio/vue';
+import { DomBadge, DomButton, DomCheckbox, DomDialog, DomSelect, DomStatusPill, DomTabs, DomTextInput, DomTooltip } from '@getdom/studio/vue';
 import AssetPreviewArtwork from '../components/AssetPreviewArtwork.vue';
 import AssetTile from '../components/AssetTile.vue';
 import SelectedAssetChip from '../components/SelectedAssetChip.vue';
@@ -44,6 +44,7 @@ const assets = [
 		placement: 'Hero',
 		alt: 'Dashboard screen showing project health metrics and tasks.',
 		license: 'Company owned',
+		previewSrc: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&h=900&q=80',
 		accent: 'from-cyan-200 via-sky-300 to-indigo-500',
 		shape: 'rounded-[2rem] bg-white/45',
 	},
@@ -64,6 +65,7 @@ const assets = [
 		placement: 'Checkout',
 		alt: 'Payment review card with order total and shipping address.',
 		license: 'Company owned',
+		previewSrc: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200&h=900&q=80',
 		accent: 'from-emerald-200 via-teal-300 to-slate-700',
 		shape: 'rounded-2xl bg-white/50',
 	},
@@ -84,6 +86,7 @@ const assets = [
 		placement: 'Launch',
 		alt: 'Colorful campaign artwork with layered product cards.',
 		license: 'Licensed through 2027',
+		previewSrc: 'https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&w=1400&h=900&q=80',
 		accent: 'from-rose-300 via-orange-200 to-yellow-300',
 		shape: 'rounded-full bg-black/20',
 	},
@@ -104,6 +107,7 @@ const assets = [
 		placement: 'Video',
 		alt: 'Video thumbnail for a founder product announcement.',
 		license: 'Company owned',
+		previewSrc: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1200&h=900&q=80',
 		accent: 'from-zinc-800 via-stone-600 to-amber-300',
 		shape: 'rounded-full bg-white/35',
 	},
@@ -124,6 +128,7 @@ const assets = [
 		placement: 'Brand',
 		alt: 'Approved partner logo package for co-marketing pages.',
 		license: 'Partner approved',
+		previewSrc: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=1200&h=900&q=80',
 		accent: 'from-neutral-100 via-lime-200 to-emerald-500',
 		shape: 'rounded-lg bg-black/20',
 	},
@@ -144,6 +149,7 @@ const assets = [
 		placement: 'Social',
 		alt: 'Square customer quote graphic for social proof sections.',
 		license: 'Customer approved',
+		previewSrc: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&h=900&q=80',
 		accent: 'from-fuchsia-200 via-pink-300 to-red-500',
 		shape: 'rounded-3xl bg-white/45',
 	},
@@ -164,6 +170,7 @@ const assets = [
 		placement: 'Profile',
 		alt: '',
 		license: 'Pending review',
+		previewSrc: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=1200&h=900&q=80',
 		accent: 'from-violet-200 via-indigo-200 to-cyan-500',
 		shape: 'rounded-[1.75rem] bg-white/45',
 	},
@@ -184,6 +191,7 @@ const assets = [
 		placement: 'Empty state',
 		alt: 'Empty project state with a simple upload prompt.',
 		license: 'Company owned',
+		previewSrc: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1200&h=900&q=80',
 		accent: 'from-sky-100 via-white to-emerald-300',
 		shape: 'rounded-full bg-slate-900/15',
 	},
@@ -292,7 +300,23 @@ function statusTone(status) {
 				</div>
 				<div class="grid gap-2 sm:grid-cols-[minmax(12rem,1fr)_minmax(11rem,0.55fr)_minmax(11rem,0.55fr)] xl:w-[47rem]">
 					<DomTextInput v-model="searchQuery" label="Search assets" placeholder="Search title, owner, or alt text" />
-					<DomListbox v-model="selectedType" label="Type" :options="typeOptions">
+					<DomSelect
+						v-model="selectedType"
+						label="Type"
+						:options="typeOptions"
+						width="w-[min(calc(100vw-2rem),18rem)]"
+					>
+						<template #value="{ option, label, placeholder }">
+							<span v-if="option" class="flex min-w-0 items-center gap-2">
+								<span class="grid size-6 shrink-0 place-items-center rounded-md bg-secondary">
+									<svg viewBox="0 0 24 24" class="size-3.5" fill="none" aria-hidden="true">
+										<path :d="option.icon" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+									</svg>
+								</span>
+								<span class="truncate">{{ label }}</span>
+							</span>
+							<span v-else class="text-muted-fg">{{ placeholder }}</span>
+						</template>
 						<template #option="{ option }">
 							<span class="flex min-w-0 items-center gap-2">
 								<span class="grid size-8 shrink-0 place-items-center rounded-lg bg-canvas/70">
@@ -307,8 +331,20 @@ function statusTone(status) {
 								<span class="rounded-full bg-canvas/70 px-2 py-0.5 text-[11px]">{{ option.count }}</span>
 							</span>
 						</template>
-					</DomListbox>
-					<DomListbox v-model="selectedSort" label="Sort" :options="sortOptions">
+					</DomSelect>
+					<DomSelect
+						v-model="selectedSort"
+						label="Sort"
+						:options="sortOptions"
+						width="w-[min(calc(100vw-2rem),18rem)]"
+					>
+						<template #value="{ option, label, placeholder }">
+							<span v-if="option" class="flex min-w-0 items-center justify-between gap-2">
+								<span class="truncate">{{ label }}</span>
+								<span class="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[11px] text-muted-fg">{{ option.metric }}</span>
+							</span>
+							<span v-else class="text-muted-fg">{{ placeholder }}</span>
+						</template>
 						<template #option="{ option }">
 							<span class="flex min-w-0 items-center justify-between gap-3">
 								<span class="min-w-0">
@@ -318,7 +354,7 @@ function statusTone(status) {
 								<span class="rounded-full bg-canvas/70 px-2 py-0.5 text-[11px]">{{ option.metric }}</span>
 							</span>
 						</template>
-					</DomListbox>
+					</DomSelect>
 				</div>
 			</div>
 		</header>

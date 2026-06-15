@@ -400,7 +400,7 @@ export interface DomToolbarProps {
 	 */
 	wrap?: boolean;
 	/**
-	 * Use inset skin instead of control skin.
+	 * Use card skin instead of control skin.
 	 */
 	inset?: boolean;
 }
@@ -840,6 +840,90 @@ export interface DomContextMenuProps {
 	openOnContextMenu?: boolean;
 }
 export declare const DomContextMenu: DomComponent<DomContextMenuProps>;
+
+export interface DomDataGridProps {
+	/**
+	 * Rows to render. Each row should be a plain object from an API, store, or database result.
+	 */
+	rows?: Array<unknown>;
+	/**
+	 * Column definitions. Each type chooses its own sorting, formatting, and filter controls.
+	 */
+	columns?: Array<unknown>;
+	/**
+	 * Field name or function used to identify each row.
+	 */
+	rowKey?: string | ((...args: Array<unknown>) => unknown);
+	/**
+	 * Controlled filter map keyed by column key.
+	 */
+	filters?: Record<string, unknown>;
+	/**
+	 * Controlled sort state as { key, direction }.
+	 */
+	sort?: Record<string, unknown>;
+	/**
+	 * Global search text.
+	 */
+	search?: string;
+	/**
+	 * Selected row keys.
+	 */
+	selectedKeys?: Array<unknown>;
+	/**
+	 * When true, rows render as supplied and query-change can drive a server/API request.
+	 */
+	remote?: boolean;
+	/**
+	 * Show a loading row while server data is being fetched.
+	 */
+	loading?: boolean;
+	/**
+	 * Show row selection checkboxes.
+	 */
+	selectable?: boolean;
+	/**
+	 * Show spreadsheet-style row numbers.
+	 */
+	showRowNumbers?: boolean;
+	/**
+	 * Show spreadsheet-style column letters above headers.
+	 */
+	showColumnLetters?: boolean;
+	/**
+	 * Keep header rows visible while the grid scrolls.
+	 */
+	stickyHeader?: boolean;
+	/**
+	 * Show the title, search box, filter chips, and row count toolbar.
+	 */
+	toolbar?: boolean;
+	/**
+	 * Toolbar title.
+	 */
+	title?: string;
+	/**
+	 * Human label for the resource being rendered.
+	 */
+	resourceLabel?: string;
+	/**
+	 * Server-side total row count when remote is true.
+	 */
+	totalRows?: number;
+	/**
+	 * Row height density.
+	 */
+	density?: "compact" | "comfortable";
+	/**
+	 * Scrollable grid height as a CSS size or pixel number.
+	 */
+	height?: string | number;
+	/**
+	 * Message shown when no rows are visible.
+	 */
+	emptyText?: string;
+}
+export declare const DomDataGrid: DomComponent<DomDataGridProps>;
 
 export interface DomMonthCalendarProps {
 	/**
@@ -2404,6 +2488,22 @@ export interface DomRangeInputProps {
 	 * Show the current value beside the slider.
 	 */
 	showValue?: boolean;
+	/**
+	 * Classes applied to the visual range track.
+	 */
+	trackClass?: string | Array<unknown> | Record<string, unknown>;
+	/**
+	 * Classes applied to the filled range track.
+	 */
+	progressClass?: string | Array<unknown> | Record<string, unknown>;
+	/**
+	 * Classes applied to the visual slider handle.
+	 */
+	handleClass?: string | Array<unknown> | Record<string, unknown>;
+	/**
+	 * Additional classes applied to the handle while it is being dragged.
+	 */
+	activeHandleClass?: string | Array<unknown> | Record<string, unknown>;
 }
 export declare const DomRangeInput: DomComponent<DomRangeInputProps>;
 
@@ -2880,7 +2980,7 @@ export declare const DomBooleanInput: typeof DomToggle;
 
 export interface DomColorInputProps {
 	/**
-	 * Hex colour value.
+	 * CSS colour value. Hex and OKLCH values are supported.
 	 */
 	modelValue?: string;
 	/**

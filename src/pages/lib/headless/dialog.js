@@ -20,16 +20,18 @@ function getTemplate() {
 <style>
 	:host { display: contents; }
 	dialog {
+		box-sizing: border-box;
 		border: 0;
-		padding: 0;
 		margin: auto;
 		background: transparent;
 		color: inherit;
 		outline: none;
 		max-width: 100vw;
 		max-height: 100vh;
-		/* UA default is overflow:auto, which clips box-shadow on slotted content */
-		overflow: visible;
+		max-height: 100dvh;
+		overscroll-behavior: contain;
+		overflow: auto;
+		padding: min(1rem, 4vw);
 	}
 	dialog:focus,
 	dialog:focus-visible {
@@ -201,6 +203,14 @@ export class DomDialogElement extends DomElementBase {
 		}
 		if (next) {
 			this._dialog.showModal();
+			if (!this.querySelector('[autofocus]')) {
+				try {
+					this._dialog.focus({ preventScroll: true });
+				} catch {
+					this._dialog.focus();
+				}
+			}
+			this._dialog.scrollTop = 0;
 			this._syncAttr(true);
 			this._trigger?.setAttribute('aria-expanded', 'true');
 			this.emit('dom:open');

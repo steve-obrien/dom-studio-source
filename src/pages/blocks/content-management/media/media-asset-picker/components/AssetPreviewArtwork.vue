@@ -1,5 +1,7 @@
 <script setup>
-defineProps({
+import { computed, ref, watch } from 'vue';
+
+const props = defineProps({
 	asset: {
 		type: Object,
 		required: true,
@@ -9,29 +11,58 @@ defineProps({
 		default: 'tile',
 	},
 });
+
+const imageFailed = ref(false);
+const imageSrc = computed(() => props.asset.previewSrc || props.asset.src || '');
+const imageAlt = computed(() => (props.size === 'dialog' ? (props.asset.alt || props.asset.title || '') : ''));
+const hasImage = computed(() => Boolean(imageSrc.value) && !imageFailed.value);
+
+watch(imageSrc, () => {
+	imageFailed.value = false;
+});
 </script>
 
 <template>
 	<div class="relative overflow-hidden" :class="size === 'dialog' ? 'aspect-[4/3] rounded-2xl' : 'aspect-[4/3]'">
-		<div class="absolute inset-0 bg-gradient-to-br" :class="asset.accent"></div>
-		<div
-			class="absolute shadow-2xl shadow-black/15"
-			:class="[
-				asset.shape,
-				size === 'dialog' ? 'inset-x-8 top-8 h-24' : 'inset-x-6 top-6 h-20',
-			]"
-		></div>
-		<div
-			class="absolute rounded-xl border border-white/50 bg-white/55 p-3 text-slate-950 shadow-lg backdrop-blur"
-			:class="size === 'dialog' ? 'bottom-5 left-5 right-5' : 'bottom-4 left-4 right-4'"
-		>
-			<div class="h-2 w-2/3 rounded-full bg-slate-900/70"></div>
-			<div class="mt-2 h-2 w-1/2 rounded-full bg-slate-900/30"></div>
-			<div v-if="size !== 'dialog'" class="mt-3 grid grid-cols-3 gap-1.5">
-				<span class="h-8 rounded-lg bg-white/70"></span>
-				<span class="h-8 rounded-lg bg-white/45"></span>
-				<span class="h-8 rounded-lg bg-white/30"></span>
+		<img
+			v-if="hasImage"
+			:src="imageSrc"
+			:alt="imageAlt"
+			class="absolute inset-0 size-full object-cover"
+			:style="{ objectPosition: asset.previewPosition || 'center' }"
+			loading="lazy"
+			decoding="async"
+			@error="imageFailed = true"
+		/>
+		<div v-else>
+			<div class="absolute inset-0 bg-gradient-to-br" :class="asset.accent"></div>
+			<div
+				class="absolute shadow-2xl shadow-black/15"
+				:class="[
+					asset.shape,
+					size === 'dialog' ? 'inset-x-8 top-8 h-24' : 'inset-x-6 top-6 h-20',
+				]"
+			></div>
+			<div
+				class="absolute rounded-xl border border-white/50 bg-white/55 p-3 text-slate-950 shadow-lg backdrop-blur"
+				:class="size === 'dialog' ? 'bottom-5 left-5 right-5' : 'bottom-4 left-4 right-4'"
+			>
+				<div class="h-2 w-2/3 rounded-full bg-slate-900/70"></div>
+				<div class="mt-2 h-2 w-1/2 rounded-full bg-slate-900/30"></div>
+				<div v-if="size !== 'dialog'" class="mt-3 grid grid-cols-3 gap-1.5">
+					<span class="h-8 rounded-lg bg-white/70"></span>
+					<span class="h-8 rounded-lg bg-white/45"></span>
+					<span class="h-8 rounded-lg bg-white/30"></span>
+				</div>
 			</div>
+		</div>
+		<div v-if="hasImage" class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/35 to-transparent"></div>
+		<div v-if="hasImage && asset.type === 'video'" class="absolute inset-0 grid place-items-center">
+			<span class="grid size-12 place-items-center rounded-full bg-black/50 text-white shadow-xl backdrop-blur">
+				<svg viewBox="0 0 24 24" class="ml-0.5 size-5" fill="currentColor" aria-hidden="true">
+					<path d="M8 5.75v12.5L18 12 8 5.75Z" />
+				</svg>
+			</span>
 		</div>
 	</div>
 </template>
