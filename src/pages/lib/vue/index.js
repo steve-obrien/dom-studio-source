@@ -138,6 +138,8 @@ export { default as DomAppShell } from '../../mobile/shell/DomAppShell.vue';
 export { default as DomAppTopBar } from '../../mobile/top-bar/DomAppTopBar.vue';
 export { default as DomActionSheet } from '../../mobile/action-sheet/DomActionSheet.vue';
 export { default as DomSafeArea } from '../../mobile/safe-area/DomSafeArea.vue';
+export { default as DomAppStack } from '../../mobile/stack/DomAppStack.vue';
+export { default as DomAppStackScreen } from '../../mobile/stack/AppStackScreen.vue';
 
 // Rehydration
 export { default as DomRenderer } from '../../components/playground/DomRenderer.vue';

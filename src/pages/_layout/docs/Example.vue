@@ -4,7 +4,6 @@ import { useRoute } from 'vue-router';
 import CodePanel from './CodePanel.vue';
 import { getComponentUsage } from './componentUsage';
 import IframePreview from './IframePreview.vue';
-import MobilePreview from './MobilePreview.vue';
 
 // Pair a live demo with its source code — guaranteed in sync because both come
 // from the same SFC file:
@@ -35,6 +34,11 @@ const props = defineProps({
 	},
 	deviceTitle: { type: String, default: '' },
 	device: { type: String, default: 'DOM Studio Phone' },
+	frameChrome: {
+		type: String,
+		default: '',
+		validator: (value) => ['', 'none', 'mobile'].includes(value),
+	},
 	frameTitle: { type: String, default: '' },
 	frameMinWidth: { type: Number, default: 320 },
 	frameMaxWidth: { type: Number, default: 0 },
@@ -48,18 +52,19 @@ const slots = useSlots();
 const hasProperties = computed(() => Boolean(slots.properties));
 const isIframePresentation = computed(() => props.presentation === 'iframe');
 const isMobilePresentation = computed(() => props.presentation === 'mobile');
+const isFramePresentation = computed(() => isIframePresentation.value || isMobilePresentation.value);
 const componentUsage = computed(() => route.path.startsWith('/blocks') ? getComponentUsage(props.source) : []);
 const resolvedSourcePath = computed(() => props.sourcePath || sourcePathFromRoute());
+const resolvedFrameChrome = computed(() => props.frameChrome || (isMobilePresentation.value ? 'mobile' : 'none'));
+const resolvedFrameDefaultWidth = computed(() => {
+	if (!isMobilePresentation.value || props.frameDefaultWidth) return props.frameDefaultWidth;
+	return 390;
+});
 const previewClasses = computed(() => {
-	if (isMobilePresentation.value) {
-		return hasProperties.value
-			? 'flex min-h-[200px] items-center justify-center overflow-hidden bg-secondary/30 p-4 sm:p-8'
-			: 'flex min-h-[200px] items-center justify-center overflow-hidden bg-secondary/30 p-4 sm:p-8';
-	}
-	if (isIframePresentation.value) {
+	if (isFramePresentation.value) {
 		return 'min-h-[200px] overflow-hidden';
 	}
-	return 'flex min-h-[200px] items-center justify-center overflow-auto p-10';
+	return 'flex min-h-[200px] items-center justify-center overflow-auto p-4 sm:p-10';
 });
 
 function sourcePathFromRoute() {
@@ -98,21 +103,16 @@ function sourcePathFromRoute() {
 				: 'block'"
 		>
 			<div :class="previewClasses">
-				<MobilePreview
-					v-if="isMobilePresentation"
-					:title="deviceTitle || title"
-					:device="device"
-				>
-					<slot />
-				</MobilePreview>
 				<IframePreview
-					v-else-if="isIframePresentation"
-					:title="frameTitle || title || filename"
+					v-if="isFramePresentation"
+					:title="frameTitle || deviceTitle || title || filename"
 					:src="frameSrc"
 					:min-width="frameMinWidth"
 					:max-width="frameMaxWidth"
-					:default-width="frameDefaultWidth"
+					:default-width="resolvedFrameDefaultWidth"
 					:height="frameHeight"
+					:chrome="resolvedFrameChrome"
+					:device="device"
 				>
 					<slot />
 				</IframePreview>

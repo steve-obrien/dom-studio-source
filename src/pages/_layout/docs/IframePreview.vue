@@ -8,6 +8,12 @@ const props = defineProps({
 	maxWidth: { type: Number, default: 0 },
 	defaultWidth: { type: Number, default: 0 },
 	height: { type: Number, default: 720 },
+	chrome: {
+		type: String,
+		default: 'none',
+		validator: (value) => ['none', 'mobile'].includes(value),
+	},
+	device: { type: String, default: 'DOM Studio Phone' },
 });
 
 const canvas = ref(null);
@@ -18,6 +24,8 @@ const availableWidth = ref(0);
 const previewWidth = ref(props.defaultWidth || props.maxWidth || fallbackPreviewWidth);
 const userResized = ref(false);
 const isDragging = ref(false);
+const mobilePresetWidth = 390;
+const desktopPresetWidth = 1024;
 
 let resizeObserver;
 let headObserver;
@@ -29,6 +37,7 @@ let dragStartWidth = 0;
 const effectiveMaxWidth = computed(() => Math.max(props.minWidth, props.maxWidth || availableWidth.value || props.defaultWidth || fallbackPreviewWidth));
 const clampedWidth = computed(() => clamp(previewWidth.value, props.minWidth, effectiveMaxWidth.value));
 const roundedWidth = computed(() => Math.round(clampedWidth.value));
+const hasMobileChrome = computed(() => props.chrome === 'mobile');
 const iframeStyle = computed(() => ({
 	width: `${roundedWidth.value}px`,
 	height: `${props.height}px`,
@@ -209,6 +218,19 @@ function resetPreviewWidth() {
 	fitToAvailableWidth();
 }
 
+function resizeToPreset(width) {
+	userResized.value = true;
+	previewWidth.value = clamp(width, props.minWidth, effectiveMaxWidth.value);
+}
+
+function useMobilePreset() {
+	resizeToPreset(mobilePresetWidth);
+}
+
+function useDesktopPreset() {
+	resizeToPreset(desktopPresetWidth);
+}
+
 function resizeWithKeyboard(event) {
 	const keySteps = {
 		ArrowLeft: -40,
@@ -272,7 +294,25 @@ onBeforeUnmount(() => {
 <template>
 	<div class="iframe-preview min-w-0 bg-canvas">
 		<div class="flex items-center justify-between gap-3 border-b border-border bg-secondary/40 px-3 py-2">
-			<p class="text-xs font-medium tabular-nums text-muted-fg">{{ roundedWidth }}px</p>
+			<div class="flex min-w-0 items-center gap-2">
+				<p class="text-xs font-medium tabular-nums text-muted-fg">{{ roundedWidth }}px</p>
+				<div class="inline-flex shrink-0 rounded-md border border-border bg-canvas p-0.5">
+					<button
+						type="button"
+						class="rounded px-2 py-0.5 text-[11px] font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+						@click="useMobilePreset"
+					>
+						Mobile
+					</button>
+					<button
+						type="button"
+						class="rounded px-2 py-0.5 text-[11px] font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+						@click="useDesktopPreset"
+					>
+						Desktop
+					</button>
+				</div>
+			</div>
 			<button
 				type="button"
 				class="rounded-md px-2 py-1 text-xs font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
@@ -285,10 +325,30 @@ onBeforeUnmount(() => {
 		<div ref="canvas" class="overflow-x-auto overflow-y-hidden bg-secondary/30 p-4">
 			<div
 				class="iframe-preview-viewport relative mx-auto overflow-visible rounded-lg bg-transparent shadow-sm"
-				:class="{ 'iframe-preview-viewport-dragging': isDragging }"
+				:class="[
+					hasMobileChrome ? 'iframe-preview-viewport-mobile' : '',
+					{ 'iframe-preview-viewport-dragging': isDragging },
+				]"
 				:style="iframeStyle"
 			>
+				<div
+					v-if="hasMobileChrome"
+					class="iframe-preview-mobile-shell"
+					:aria-label="device"
+				>
+					<div class="iframe-preview-mobile-screen">
+						<iframe
+							ref="iframe"
+							:title="title"
+							:src="src || undefined"
+							class="iframe-preview-frame"
+						/>
+						<div class="iframe-preview-mobile-notch" aria-hidden="true"></div>
+						<div class="iframe-preview-mobile-speaker" aria-hidden="true"></div>
+					</div>
+				</div>
 				<iframe
+					v-else
 					ref="iframe"
 					:title="title"
 					:src="src || undefined"
@@ -319,6 +379,65 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.iframe-preview-viewport-mobile {
+	border-radius: 3rem;
+	box-shadow: 0 24px 70px color-mix(in oklch, black 20%, transparent);
+}
+
+.iframe-preview-mobile-shell {
+	height: 100%;
+	padding: 0.625rem;
+	background: var(--canvas-fg);
+	border: 1px solid var(--border);
+	border-radius: 3rem;
+}
+
+.iframe-preview-mobile-screen {
+	position: relative;
+	isolation: isolate;
+	height: 100%;
+	overflow: hidden;
+	background: var(--canvas);
+	border: 1px solid var(--border);
+	border-radius: 2.35rem;
+	clip-path: inset(0 round 2.35rem);
+}
+
+.iframe-preview-frame {
+	position: relative;
+	z-index: 1;
+	display: block;
+	width: 100%;
+	height: 100%;
+	background: var(--canvas);
+	border: 0;
+	border-radius: inherit;
+}
+
+.iframe-preview-mobile-notch {
+	position: absolute;
+	top: 0.5rem;
+	left: 50%;
+	z-index: 20;
+	width: 6rem;
+	height: 1.5rem;
+	background: var(--canvas-fg);
+	border-radius: 999px;
+	transform: translateX(-50%);
+}
+
+.iframe-preview-mobile-speaker {
+	position: absolute;
+	top: 0.75rem;
+	left: 50%;
+	z-index: 30;
+	width: 2.5rem;
+	height: 0.375rem;
+	background: color-mix(in oklch, var(--canvas) 25%, transparent);
+	border-radius: 999px;
+	transform: translateX(-50%);
+}
+
 .iframe-preview-handle {
 	position: absolute;
 	top: 0;

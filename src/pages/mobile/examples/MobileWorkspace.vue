@@ -113,12 +113,14 @@ const actions = [
 			<DomAppBottomNav v-model="activeTab" :items="navItems" />
 		</template>
 
-		<DomActionSheet
-			v-model="sheetOpen"
-			title="Project actions"
-			description="Use for app commands that should stay near the thumb."
-			:actions="actions"
-		/>
+		<template #overlay>
+			<DomActionSheet
+				v-model="sheetOpen"
+				title="Project actions"
+				description="Use for app commands that should stay near the thumb."
+				:actions="actions"
+			/>
+		</template>
 	</DomAppShell>
 </template>
 

@@ -27,6 +27,7 @@ const pageDescriptions = {
 	'/forms': 'Page / Form primitives, schemas, fields, validation, and inputs.',
 	'/forms/schema': 'Page / Form schema helpers and generated form definitions.',
 	'/headless': 'Page / Framework-neutral custom element primitives.',
+	'/icons': 'Page / Copyable SVG icon inventory generated from DOM Studio metadata and source usage.',
 	'/mobile': 'Page / Mobile app shell, navigation, safe areas, and action sheets.',
 	'/pricing': 'Page / DOM Studio source access and pricing.',
 	'/theming': 'Page / Theme tokens, skins, dark mode, and style guidance.',

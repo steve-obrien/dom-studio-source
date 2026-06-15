@@ -6,6 +6,8 @@ import Example from '../_layout/docs/Example.vue';
 import MobileExampleSection from './_components/MobileExampleSection.vue';
 import MobileWorkspace from './examples/MobileWorkspace.vue';
 import MobileWorkspaceSource from './examples/MobileWorkspace.vue?raw';
+import SettingsStack from './examples/SettingsStack.vue';
+import SettingsStackSource from './examples/SettingsStack.vue?raw';
 
 const mobileFoundations = [
 	['DomAppShell', 'Full-screen app surface with safe-area-aware top and bottom slots.'],
@@ -13,6 +15,8 @@ const mobileFoundations = [
 	['DomAppBottomNav', 'Thumb-friendly primary navigation for app tabs.'],
 	['DomAppListItem', 'Touch-sized rows for settings, menus, inboxes, and task lists.'],
 	['DomSafeArea', 'Safe-area padding for app chrome around cutouts and home indicators.'],
+	['DomAppStack', 'Settings-style nested navigation with slide transitions, breadcrumbs, lazy screens, and responsive panel styling.'],
+	['DomAppStackScreen', 'Slot-driven screen registration for custom stack content inside DomAppStack.'],
 	['DomTextInput', 'Use the shared text input with type="search" for mobile search fields.'],
 	['DomActionSheet', 'Bottom action sheet for app choices and destructive commands.'],
 ];
@@ -99,6 +103,27 @@ const platformPoints = [
 					<MobileWorkspace />
 				</Example>
 			</MobileExampleSection>
+
+			<DocSection eyebrow="Navigation" title="Settings stack">
+				<div class="max-w-3xl space-y-4 text-sm leading-7 text-muted-fg">
+					<p>
+						Use <code>DomAppStack</code> when a settings flow needs to slide through nested screens while staying full-width at every viewport. Screens can be slot-defined for small custom surfaces or loaded dynamically from larger modules.
+					</p>
+				</div>
+
+				<Example
+					:source="SettingsStackSource"
+					title="Settings stack"
+					description="The root menu is a slot, deeper account screens are nested slots, and larger settings panels are loaded with dynamic imports."
+					filename="SettingsStack.vue"
+					presentation="mobile"
+					device-title="Settings stack"
+					:frame-height="680"
+					:preview-lines="16"
+				>
+					<SettingsStack />
+				</Example>
+			</DocSection>
 
 			<DocSection eyebrow="Components" title="App primitives for mobile">
 				<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

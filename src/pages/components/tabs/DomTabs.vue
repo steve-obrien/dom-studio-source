@@ -25,7 +25,8 @@ const tabButtonClass = computed(() => {
 		return [
 			'relative -mb-px flex h-9 min-w-0 max-w-56 items-center gap-2 rounded-t-md border border-transparent border-b-border px-3 text-left text-sm font-medium text-muted-fg transition',
 			'hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60',
-			'data-[active]:border-border data-[active]:border-b-canvas data-[active]:bg-canvas data-[active]:text-canvas-fg data-[active]:shadow-sm',
+			'data-[active]:z-10 data-[active]:border-x-border data-[active]:border-t-border data-[active]:border-b-canvas data-[active]:bg-canvas data-[active]:text-canvas-fg data-[active]:shadow-sm',
+			'data-[active]:after:absolute data-[active]:after:inset-x-0 data-[active]:after:-bottom-px data-[active]:after:h-px data-[active]:after:bg-canvas',
 		].join(' ');
 	}
 	return 'rounded-full px-4 py-1.5 text-sm font-medium text-muted-fg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 data-[active]:bg-canvas data-[active]:text-canvas-fg data-[active]:shadow-sm';

@@ -18,7 +18,7 @@
 	--shadow-lg: 0 8px 20px -6px rgb(15 23 42 / 0.16), 0 2px 6px -2px rgb(15 23 42 / 0.08);
 	--shadow-xl: 0 18px 44px -18px rgb(15 23 42 / 0.24), 0 8px 18px -12px rgb(15 23 42 / 0.16);
 	--shadow-2xl: 0 24px 60px -18px rgb(15 23 42 / 0.24), 0 8px 20px -10px rgb(15 23 42 / 0.14);
-	--canvas: oklch(0.984 0.003 247);
+	--canvas: #fff;
 	--canvas-fg: oklch(0.145 0 0);
 	--primary: oklch(0.205 0 0);
 	--primary-fg: oklch(0.985 0 0);

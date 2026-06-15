@@ -98,6 +98,23 @@ export interface DomRenderSpec {
 	text?: string;
 	[key: string]: unknown;
 }
+export type DomAppStackLayout = 'auto' | 'mobile' | 'desktop';
+export interface DomAppStackScreenRecord {
+	id: string;
+	title?: string;
+	label?: string;
+	description?: string;
+	meta?: string;
+	icon?: string;
+	parent?: string;
+	children?: Array<string>;
+	component?: Component | (() => Promise<unknown>);
+	loader?: () => Promise<unknown>;
+	props?: Record<string, unknown>;
+	disabled?: boolean;
+	loadingTitle?: string;
+	[key: string]: unknown;
+}
 export interface MonthCalendarCell {
 	date: Date;
 	value: string;
@@ -3386,6 +3403,122 @@ export interface DomSafeAreaProps {
 	edges?: Array<unknown>;
 }
 export declare const DomSafeArea: DomComponent<DomSafeAreaProps>;
+
+export interface DomAppStackProps {
+	/**
+	 * Controlled stack path. Use v-model:path for two-way navigation.
+	 */
+	path?: Array<string>;
+	/**
+	 * Root screen id. Defaults to the first registered screen.
+	 */
+	root?: string;
+	/**
+	 * Screen records: { id, title, description, children, component, props }.
+	 */
+	screens?: Array<DomAppStackScreenRecord>;
+	/**
+	 * Resolve mobile or desktop styling automatically while keeping one full-width sliding stack.
+	 */
+	layout?: DomAppStackLayout;
+	/**
+	 * Breakpoint used when layout is auto. Accepts a CSS length or media query.
+	 */
+	desktopBreakpoint?: string;
+	/**
+	 * Render the default breadcrumb bar, or provide the breadcrumb slot.
+	 */
+	showBreadcrumbs?: boolean;
+	/**
+	 * Animate push and back transitions.
+	 */
+	animate?: boolean;
+	/**
+	 * Move focus to the active panel after navigation.
+	 */
+	focusOnNavigate?: boolean;
+	/**
+	 * Fallback label shown while lazy screens load.
+	 */
+	loadingLabel?: string;
+	/**
+	 * Fallback title when no screen is active.
+	 */
+	emptyTitle?: string;
+	/**
+	 * Fallback description when no screen is active.
+	 */
+	emptyDescription?: string;
+	/**
+	 * Classes merged onto the default breadcrumb bar.
+	 */
+	breadcrumbClass?: string;
+	/**
+	 * Classes merged onto clickable breadcrumb items.
+	 */
+	breadcrumbItemClass?: string;
+	/**
+	 * Classes merged onto the current breadcrumb item.
+	 */
+	breadcrumbCurrentClass?: string;
+	/**
+	 * Classes merged onto the default back button.
+	 */
+	backButtonClass?: string;
+	/**
+	 * Classes merged onto the sliding panel when layout resolves to mobile.
+	 */
+	mobilePanelClass?: string;
+	/**
+	 * Classes merged onto the sliding panel when layout resolves to desktop.
+	 */
+	desktopContentClass?: string;
+}
+export declare const DomAppStack: DomComponent<DomAppStackProps>;
+
+export interface DomAppStackScreenProps {
+	/**
+	 * Unique screen id used in the stack path.
+	 */
+	id: string;
+	/**
+	 * Screen title used in breadcrumbs and generated menu rows.
+	 */
+	title?: string;
+	/**
+	 * Optional supporting text for generated menu rows.
+	 */
+	description?: string;
+	/**
+	 * Small trailing metadata for generated menu rows.
+	 */
+	meta?: string;
+	/**
+	 * Optional SVG string for generated menu rows.
+	 */
+	icon?: string;
+	/**
+	 * Parent screen id used to build desktop and breadcrumb paths.
+	 */
+	parent?: string;
+	/**
+	 * Child screen ids for generated settings menus.
+	 */
+	children?: Array<string>;
+	/**
+	 * Props forwarded when this screen is rendered through a component.
+	 */
+	props?: Record<string, unknown>;
+	/**
+	 * Disable generated menu rows that point to this screen.
+	 */
+	disabled?: boolean;
+	/**
+	 * Optional loading title for lazy screen content.
+	 */
+	loadingTitle?: string;
+}
+export declare const DomAppStackScreen: DomComponent<DomAppStackScreenProps>;
 
 export interface DomRendererProps {
 	node: Record<string, unknown>;
