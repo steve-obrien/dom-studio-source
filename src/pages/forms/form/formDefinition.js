@@ -22,6 +22,9 @@ export const defaultComponentByType = {
 	money: 'DomMoneyInput',
 	boolean: 'DomToggle',
 	date: 'DomDatePicker',
+	time: 'DomTimeSelector',
+	datetime: 'DomDateTimePicker',
+	'date-time': 'DomDateTimePicker',
 	file: 'DomFileUpload',
 	array: 'DomJsonListInput',
 	object: 'DomForm',
@@ -34,6 +37,7 @@ export const typeByComponent = {
 	DomCheckbox: 'boolean',
 	DomCodeInput: 'string',
 	DomCombobox: 'string',
+	DomDateTimePicker: 'datetime',
 	DomDatePicker: 'date',
 	DomEmailInput: 'email',
 	DomForm: 'object',
@@ -50,6 +54,7 @@ export const typeByComponent = {
 	DomTagCombobox: 'array',
 	DomTextInput: 'string',
 	DomTextareaInput: 'string',
+	DomTimeSelector: 'time',
 	DomToggle: 'boolean',
 	DomUrlInput: 'url',
 };
@@ -107,6 +112,8 @@ function inferStringType(value, key = '') {
 		|| name.includes('image')
 		|| /^https?:\/\//.test(text)
 	) return 'url';
+	if (name.includes('datetime') || name.includes('date_time') || name.includes('date-time') || /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(text)) return 'datetime';
+	if (name.includes('time') || /^\d{2}:\d{2}(?::\d{2})?$/.test(text)) return 'time';
 	if (name.includes('date') || /^\d{4}-\d{2}-\d{2}$/.test(text)) return 'date';
 	if (text.length > 160 || text.includes('\n')) return 'text';
 	return 'string';

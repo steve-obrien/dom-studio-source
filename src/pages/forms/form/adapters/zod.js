@@ -165,10 +165,14 @@ function componentFor(schema, path, options) {
 	if (format === 'currency' || format === 'money' || format === 'decimal') return 'DomMoneyInput';
 	if (format === 'email') return 'DomEmailInput';
 	if (format === 'url') return 'DomUrlInput';
+	if (format === 'time') return 'DomTimeSelector';
+	if (format === 'date-time' || format === 'datetime') return 'DomDateTimePicker';
 	if (/decimal|currency|money/.test(type)) return 'DomMoneyInput';
 	if (/file/.test(type)) return 'DomFileUpload';
 	if (/number|bigint|int|float|double/.test(type)) return 'DomNumberInput';
 	if (/boolean|bool/.test(type)) return 'DomToggle';
+	if (/datetime|date-time/.test(type)) return 'DomDateTimePicker';
+	if (/time/.test(type)) return 'DomTimeSelector';
 	if (/date/.test(type)) return 'DomCalendar';
 	return 'DomTextInput';
 }

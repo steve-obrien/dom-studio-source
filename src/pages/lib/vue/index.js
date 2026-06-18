@@ -103,6 +103,10 @@ export { checkCompromisedPassword, sha1PasswordHash } from '../../forms/password
 export { default as DomCalendar } from '../../forms/calendar/DomCalendar.vue';
 export { calendarProps } from '../../forms/calendar/DomCalendar.vue';
 export { default as DomDatePicker } from '../../forms/date-picker/DomDatePicker.vue';
+export { default as DomTimeSelector } from '../../forms/time-selector/DomTimeSelector.vue';
+export { timeSelectorProps } from '../../forms/time-selector/DomTimeSelector.vue';
+export { default as DomDateTimePicker } from '../../forms/date-time-picker/DomDateTimePicker.vue';
+export { dateTimePickerProps } from '../../forms/date-time-picker/DomDateTimePicker.vue';
 export { default as DomBooleanInput } from '../../forms/toggle/DomToggle.vue';
 export { default as DomColorInput } from '../../forms/color-input/DomColorInput.vue';
 export { default as DomJsonListInput } from '../../forms/json-list-input/DomJsonListInput.vue';

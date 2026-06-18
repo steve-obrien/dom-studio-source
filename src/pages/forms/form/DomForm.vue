@@ -5,6 +5,7 @@ import DomCalendar from '../calendar/DomCalendar.vue';
 import DomCheckbox from '../checkbox/DomCheckbox.vue';
 import DomCodeInput from '../code-input/DomCodeInput.vue';
 import DomCombobox from '../combobox/DomCombobox.vue';
+import DomDateTimePicker from '../date-time-picker/DomDateTimePicker.vue';
 import DomDatePicker from '../date-picker/DomDatePicker.vue';
 import DomEmailInput from '../email-input/DomEmailInput.vue';
 import DomFileUpload from '../file-upload/DomFileUpload.vue';
@@ -18,6 +19,7 @@ import DomSelectInput from '../select-input/DomSelectInput.vue';
 import DomTagCombobox from '../tag-combobox/DomTagCombobox.vue';
 import DomTextInput from '../text-input/DomTextInput.vue';
 import DomTextareaInput from '../textarea-input/DomTextareaInput.vue';
+import DomTimeSelector from '../time-selector/DomTimeSelector.vue';
 import DomToggle from '../toggle/DomToggle.vue';
 import DomUrlInput from '../url-input/DomUrlInput.vue';
 import { formFieldProviderKey, normalizeErrors } from '../field/useField.js';
@@ -34,6 +36,7 @@ const formComponents = {
 	DomCheckbox,
 	DomCodeInput,
 	DomCombobox,
+	DomDateTimePicker,
 	DomDatePicker,
 	DomEmailInput,
 	DomFileUpload,
@@ -49,6 +52,7 @@ const formComponents = {
 	DomTagCombobox,
 	DomTextInput,
 	DomTextareaInput,
+	DomTimeSelector,
 	DomToggle,
 	DomUrlInput,
 };

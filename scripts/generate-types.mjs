@@ -221,14 +221,17 @@ function extractComponentProps(component) {
 	if (component.aliasOf) return null;
 	const source = fs.readFileSync(component.file, 'utf8');
 	const { descriptor } = parse(source, { filename: component.file });
+	const scriptContent = descriptor.script?.content || '';
+	const scriptSetupContent = descriptor.scriptSetup?.content || '';
 	const content = [
-		descriptor.script?.content || '',
-		descriptor.scriptSetup?.content || '',
+		scriptContent,
+		scriptSetupContent,
 	].filter(Boolean).join('\n\n');
 
 	const globals = {
 		...sharedPropObjects,
-		...evaluateModuleSource(content, [], sharedPropObjects),
+		...evaluateModuleSource(scriptContent, [], sharedPropObjects),
+		...evaluateModuleSource(scriptSetupContent, [], sharedPropObjects),
 	};
 
 	const definePropsArg = firstDefinePropsArgument(content);
@@ -1072,6 +1075,8 @@ function libraryFunctionTypes() {
 		'export declare const popoverProps: DomRuntimeProps;',
 		'export declare const calendarProps: DomRuntimeProps;',
 		'export declare const monthCalendarProps: DomRuntimeProps;',
+		'export declare const timeSelectorProps: DomRuntimeProps;',
+		'export declare const dateTimePickerProps: DomRuntimeProps;',
 		'export declare const fieldProps: DomRuntimeProps;',
 		'export declare const fieldLayoutProviderKey: InjectionKey<unknown>;',
 		'export declare const formFieldProviderKey: InjectionKey<unknown>;',

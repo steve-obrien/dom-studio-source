@@ -136,6 +136,8 @@ function jsonSchemaComponentFor(schema, path, options) {
 	if (type === 'array') return 'DomJsonListInput';
 	if (format === 'email') return 'DomEmailInput';
 	if (format === 'uri' || format === 'url') return 'DomUrlInput';
+	if (format === 'time') return 'DomTimeSelector';
+	if (format === 'date-time' || format === 'datetime') return 'DomDateTimePicker';
 	if (format === 'date') return 'DomDatePicker';
 	if (type === 'number' || type === 'integer') return 'DomNumberInput';
 	if (type === 'boolean') return 'DomToggle';
@@ -148,6 +150,8 @@ function jsonListFieldType(schema) {
 	const format = jsonSchemaFormat(schema);
 	if (format === 'email') return 'email';
 	if (format === 'uri' || format === 'url') return 'url';
+	if (format === 'time') return 'time';
+	if (format === 'date-time' || format === 'datetime') return 'datetime';
 	if (format === 'date') return 'date';
 	if (format === 'currency' || format === 'money' || format === 'decimal') return 'number';
 	if (format === 'binary' || format === 'file') return 'file';

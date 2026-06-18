@@ -3561,6 +3561,210 @@ export interface DomDatePickerProps {
 }
 export declare const DomDatePicker: DomComponent<DomDatePickerProps>;
 
+export interface DomTimeSelectorProps {
+	/**
+	 * Selected time as HH:mm, or HH:mm:ss when showSeconds is enabled.
+	 */
+	modelValue?: string;
+	/**
+	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
+	 */
+	id?: string;
+	/**
+	 * Local field name. Parent forms derive the full field path and native HTML name from the form hierarchy.
+	 */
+	name?: string;
+	/**
+	 * Visible field label.
+	 */
+	label?: string;
+	/**
+	 * Optional helper copy below the field.
+	 */
+	description?: string;
+	/**
+	 * Placeholder shown when the control is empty.
+	 */
+	placeholder?: string;
+	/**
+	 * Mark the field as required.
+	 */
+	required?: boolean;
+	/**
+	 * Disable field interaction.
+	 */
+	disabled?: boolean;
+	/**
+	 * Show the value but prevent editing.
+	 */
+	readOnly?: boolean;
+	/**
+	 * Mark the field invalid.
+	 */
+	invalid?: boolean;
+	/**
+	 * Validation errors for this field.
+	 */
+	errors?: Array<unknown> | Record<string, unknown> | string;
+	/**
+	 * Show or hide the field.
+	 */
+	visible?: boolean;
+	/**
+	 * Validators attached to this field. Use functions in Vue code, or serializable records such as { name: "minLength", props: { min: 2 } } in generated schemas.
+	 */
+	validators?: Array<unknown>;
+	/**
+	 * Run validators when the field loses focus.
+	 */
+	validateOnBlur?: boolean;
+	/**
+	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 */
+	chrome?: "field" | false;
+	/**
+	 * How times are displayed in the input and option list.
+	 */
+	timeFormat?: "24h" | "12h";
+	/**
+	 * Minute interval used to generate selectable options.
+	 */
+	minuteStep?: number;
+	/**
+	 * Minimum selectable time as HH:mm or HH:mm:ss.
+	 */
+	min?: string;
+	/**
+	 * Maximum selectable time as HH:mm or HH:mm:ss.
+	 */
+	max?: string;
+	/**
+	 * Optional custom time options. Use strings such as 09:30 or records with value, label, and disabled.
+	 */
+	options?: Array<unknown>;
+	/**
+	 * Store and display seconds in addition to hours and minutes.
+	 */
+	showSeconds?: boolean;
+	/**
+	 * Include the native input name for HTML form submission.
+	 */
+	nativeInput?: boolean;
+	/**
+	 * Register with a parent form. Disable when composing this inside another form control.
+	 */
+	registerField?: boolean;
+	/**
+	 * Props passed to the inner DomPopover. Time selector defaults position to bottom-end, max width to 18rem, padding to p-2, and arrow to true.
+	 */
+	popoverProps?: Record<string, unknown>;
+}
+export declare const DomTimeSelector: DomComponent<DomTimeSelectorProps>;
+
+export interface DomDateTimePickerProps {
+	/**
+	 * Selected date and time as YYYY-MM-DDTHH:mm, or YYYY-MM-DDTHH:mm:ss when showSeconds is enabled.
+	 */
+	modelValue?: string;
+	/**
+	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
+	 */
+	id?: string;
+	/**
+	 * Local field name. Parent forms derive the full field path and native HTML name from the form hierarchy.
+	 */
+	name?: string;
+	/**
+	 * Visible field label.
+	 */
+	label?: string;
+	/**
+	 * Optional helper copy below the field.
+	 */
+	description?: string;
+	/**
+	 * Placeholder shown when the control is empty.
+	 */
+	placeholder?: string;
+	/**
+	 * Mark the field as required.
+	 */
+	required?: boolean;
+	/**
+	 * Disable field interaction.
+	 */
+	disabled?: boolean;
+	/**
+	 * Show the value but prevent editing.
+	 */
+	readOnly?: boolean;
+	/**
+	 * Mark the field invalid.
+	 */
+	invalid?: boolean;
+	/**
+	 * Validation errors for this field.
+	 */
+	errors?: Array<unknown> | Record<string, unknown> | string;
+	/**
+	 * Show or hide the field.
+	 */
+	visible?: boolean;
+	/**
+	 * Validators attached to this field. Use functions in Vue code, or serializable records such as { name: "minLength", props: { min: 2 } } in generated schemas.
+	 */
+	validators?: Array<unknown>;
+	/**
+	 * Run validators when the field loses focus.
+	 */
+	validateOnBlur?: boolean;
+	/**
+	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 */
+	chrome?: "field" | false;
+	/**
+	 * How typed dates are parsed and displayed.
+	 */
+	dateFormat?: "dd/mm/yyyy" | "mm/dd/yyyy";
+	/**
+	 * How times are displayed in the input and option list.
+	 */
+	timeFormat?: "24h" | "12h";
+	/**
+	 * Minute interval used to generate time options.
+	 */
+	minuteStep?: number;
+	/**
+	 * Time used when a date is selected before the user has chosen a time.
+	 */
+	defaultTime?: string;
+	/**
+	 * Minimum selectable date-time as YYYY-MM-DDTHH:mm.
+	 */
+	min?: string;
+	/**
+	 * Maximum selectable date-time as YYYY-MM-DDTHH:mm.
+	 */
+	max?: string;
+	/**
+	 * Optional custom time options. Use strings such as 09:30 or records with value, label, and disabled.
+	 */
+	timeOptions?: Array<unknown>;
+	/**
+	 * Store and display seconds in addition to hours and minutes.
+	 */
+	showSeconds?: boolean;
+	/**
+	 * Props passed to the inner DomPopover. Date time picker defaults position to bottom-end, max width to 34rem, padding to p-0, and arrow to true.
+	 */
+	popoverProps?: Record<string, unknown>;
+	/**
+	 * Props passed to the inner DomCalendar, such as locale, weekStartsOn, min, max, fixedWeeks, and showAdjacentDays.
+	 */
+	calendarProps?: Record<string, unknown>;
+}
+export declare const DomDateTimePicker: DomComponent<DomDateTimePickerProps>;
+
 export type DomBooleanInputProps = DomToggleProps;
 export declare const DomBooleanInput: typeof DomToggle;
 
@@ -4093,6 +4297,8 @@ export declare const DomRenderer: DomComponent<DomRendererProps>;
 export declare const popoverProps: DomRuntimeProps;
 export declare const calendarProps: DomRuntimeProps;
 export declare const monthCalendarProps: DomRuntimeProps;
+export declare const timeSelectorProps: DomRuntimeProps;
+export declare const dateTimePickerProps: DomRuntimeProps;
 export declare const fieldProps: DomRuntimeProps;
 export declare const fieldLayoutProviderKey: InjectionKey<unknown>;
 export declare const formFieldProviderKey: InjectionKey<unknown>;

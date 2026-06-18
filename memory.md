@@ -67,7 +67,7 @@ Use DOM Studio primitives first:
 - Overlays and menus: `DomDialog`, `DomDrawer`, `DomPopover`, `DomDropdown`, `DomMenu`, `DomContextMenu`, `DomCommandPalette`.
 - Structure: `DomTabs`, `DomAccordion`, `DomTreeView`, `DomSplitterPanel`, `DomDataGrid`.
 - Feedback: `DomToastStack`, `DomToastItem`, `useToasts`, `DomBadge`, `DomStatusPill`, `DomEmptyState`.
-- Forms: `DomForm`, `DomField`, `DomTextInput`, `DomTextareaInput`, `DomSelect`, `DomNativeSelect`, `DomCombobox`, `DomAutocomplete`, `DomTagCombobox`, `DomCheckbox`, `DomRadioGroup`, `DomToggle`, `DomDatePicker`, `DomCalendar`, `DomJsonInput`, `DomJsonListInput`, `DomCodeInput`.
+- Forms: `DomForm`, `DomField`, `DomTextInput`, `DomTextareaInput`, `DomSelect`, `DomNativeSelect`, `DomCombobox`, `DomAutocomplete`, `DomTagCombobox`, `DomCheckbox`, `DomRadioGroup`, `DomToggle`, `DomDatePicker`, `DomDateTimePicker`, `DomTimeSelector`, `DomCalendar`, `DomJsonInput`, `DomJsonListInput`, `DomCodeInput`.
 - Mobile: `DomAppShell`, `DomAppTopBar`, `DomAppBottomNav`, `DomAppListItem`, `DomActionSheet`, `DomSafeArea`.
 
 Docs pages normally use:
