@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
+import { RouterLink } from 'vue-router';
 import { DomBadge, DomDropdown, DomStatusPill } from '@getdom/studio/vue';
 
 const statuses = [
@@ -15,7 +16,7 @@ const current = computed(() => statuses.find((item) => item.value === status.val
 
 <template>
 	<div class="grid w-full max-w-sm gap-3">
-		<DomDropdown :items="statuses" label="Change status" width="min-w-[19rem]" @select="(value) => status = value">
+		<DomDropdown :items="statuses" :focus-value="status" label="Change status" width="min-w-[19rem]" @select="(value) => status = value">
 			<template #trigger>
 				<span class="flex items-center gap-2">
 					<DomStatusPill :tone="current?.tone">{{ current?.label }}</DomStatusPill>
@@ -38,7 +39,7 @@ const current = computed(() => statuses.find((item) => item.value === status.val
 			</template>
 		</DomDropdown>
 		<p class="text-xs text-muted-fg">
-			Dropdowns are for actions. Use <code class="text-canvas-fg">DomSelect</code> when the selection is a form value.
+			Dropdowns are for actions. Use <RouterLink to="/forms/select" class="font-medium text-canvas-fg underline-offset-4 hover:underline">DomSelect</RouterLink> when the selection is a form value.
 		</p>
 	</div>
 </template>

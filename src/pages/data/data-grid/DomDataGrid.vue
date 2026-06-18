@@ -1,13 +1,16 @@
 <script>
 /**
 * @typedef {object} DataGridColumn
-* @property {string} key Field name used to read each row.
+* @property {string} key Stable column id. It can match a row property, or identify a display-only column such as actions.
+* @property {string} [field] Row property to read when it differs from key.
 * @property {string} [label] Header label.
 * @property {'text'|'number'|'date'|'boolean'|'select'|'currency'} [type] Column data type. Drives sorting, formatting, and filter controls.
 * @property {string|number} [width] CSS width for the column.
 * @property {'left'|'center'|'right'} [align] Cell alignment.
+* @property {object|Function|string} [component] Vue component used to render cells in this column. Receives row, column, value, formatted, rowIndex, and rowKey props.
+* @property {boolean} [resizable] Set false to disable drag resizing for this column.
 * @property {boolean} [sortable] Set false to disable sorting.
-* @property {boolean} [filterable] Set false to hide the filter button.
+* @property {boolean} [filterable] Set false to disable filtering for this column, hide the filter button, and omit the column from query filters.
 * @property {boolean} [searchable] Set false to remove the column from global search.
 * @property {Array<string|number|boolean|object>} [options] Select filter options. Objects may include label, value, and tone.
 * @property {string} [currency] Currency code for currency columns.
@@ -46,6 +49,9 @@ export const dataGridProps = {
 		default: () => [],
 		_edit: { description: 'Rows to render. Each row should be a plain object from an API, store, or database result.' },
 	},
+	/**
+	* @type {Array<DataGridColumn>}
+	*/
 	columns: {
 		type: Array,
 		default: () => [],
@@ -86,6 +92,21 @@ export const dataGridProps = {
 		default: false,
 		_edit: { description: 'Show a loading row while server data is being fetched.' },
 	},
+	virtualRows: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Render large in-memory row sets through the isolated virtual row renderer.' },
+	},
+	virtualRowBuffer: {
+		type: Number,
+		default: 50,
+		_edit: { description: 'Rows kept mounted above and below the visible viewport when virtualRows is true.' },
+	},
+	virtualRowHeight: {
+		type: Number,
+		default: null,
+		_edit: { description: 'Fixed row height in pixels for virtual row calculations. Defaults to the grid density.' },
+	},
 	selectable: {
 		type: Boolean,
 		default: true,
@@ -105,6 +126,16 @@ export const dataGridProps = {
 		type: Boolean,
 		default: true,
 		_edit: { description: 'Keep header rows visible while the grid scrolls.' },
+	},
+	resizableColumns: {
+		type: Boolean,
+		default: true,
+		_edit: { description: 'Allow users to drag header dividers to resize columns.' },
+	},
+	minColumnWidth: {
+		type: Number,
+		default: 40,
+		_edit: { description: 'Minimum column width in pixels while resizing. The default leaves room for the filter icon.' },
 	},
 	toolbar: {
 		type: Boolean,
@@ -146,8 +177,9 @@ export const dataGridProps = {
 </script>
 
 <script setup>
-import { computed, reactive, ref, useId, watch } from 'vue';
-import DomPopover from '../popover/DomPopover.vue';
+import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, reactive, ref, useId, watch } from 'vue';
+import DomPopover from '../../components/popover/DomPopover.vue';
+import DataGridVirtualRows from './DataGridVirtualRows.vue';
 
 defineOptions({
 	__doc: {
@@ -162,10 +194,17 @@ defineOptions({
 			{ name: 'update:search', payload: 'string', description: 'Fired when the toolbar search changes.' },
 			{ name: 'update:selectedKeys', payload: 'Array<string | number>', description: 'Fired when row selection changes.' },
 			{ name: 'query-change', payload: 'DataGridQuery', description: 'Fired with the normalized search, filters, and sort state. Use this to call a resource API.' },
+			{ name: 'viewport-scroll', payload: '{ scrollTop, scrollHeight, clientHeight, remaining, atEnd }', description: 'Fired when the scrollable row viewport scrolls.' },
+			{ name: 'viewport-end', payload: '{ scrollTop, scrollHeight, clientHeight, remaining, atEnd }', description: 'Fired when the scrollable row viewport reaches the bottom threshold. Useful for cursor pagination and infinite loading.' },
+			{ name: 'cell-update', payload: '({ row, column, rowIndex, rowKey, value, previousValue })', description: 'Re-emitted when a column component emits update:value.' },
+			{ name: 'cell-action', payload: '({ row, column, rowIndex, rowKey, value, formatted, action, payload })', description: 'Re-emitted when a column component emits action.' },
+			{ name: 'column-resize', payload: '({ column, key, width, previousWidth, startWidth })', description: 'Fired while a header divider is dragged and a column width changes.' },
+			{ name: 'column-resize-end', payload: '({ column, key, width, previousWidth, startWidth })', description: 'Fired when the user finishes resizing a column.' },
+			{ name: 'render-window-change', payload: '({ startIndex, endIndex, renderedRows, totalRows, firstVisibleIndex, lastVisibleIndex })', description: 'Fired by the virtual row renderer when the mounted row window changes.' },
 			{ name: 'row-click', payload: '({ row, index })', description: 'Fired when a data row is clicked.' },
 		],
 		slots: [
-			{ name: 'cell', payload: '{ row, column, value, formatted, rowIndex }', description: 'Custom cell renderer.' },
+			{ name: 'cell', payload: '{ row, column, value, formatted, rowIndex, rowKey }', description: 'Custom cell renderer.' },
 			{ name: 'toolbar-actions', payload: '{ query, clearFilters }', description: 'Extra controls rendered next to search and Clear filters.' },
 			{ name: 'empty', description: 'Custom empty state.' },
 		],
@@ -185,6 +224,13 @@ const emit = defineEmits([
 	'sort-change',
 	'update:search',
 	'query-change',
+	'viewport-scroll',
+	'viewport-end',
+	'cell-update',
+	'cell-action',
+	'column-resize',
+	'column-resize-end',
+	'render-window-change',
 	'update:selectedKeys',
 	'selection-change',
 	'row-click',
@@ -192,10 +238,17 @@ const emit = defineEmits([
 
 const titleId = `dom-data-grid-${useId()}`;
 const filterDrafts = reactive({});
+const resizedColumnWidths = reactive({});
+const viewportState = reactive({ scrollTop: 0, clientHeight: 0 });
 const internalFilters = ref({});
 const internalSort = ref(normalizeSort(props.sort));
 const internalSearch = ref(props.search || '');
 const internalSelectedKeys = ref([...props.selectedKeys]);
+const columnResize = ref(null);
+const scrollViewport = ref(null);
+let resizeListenersAttached = false;
+let previousBodyCursor = '';
+let previousBodyUserSelect = '';
 
 const sourceRows = computed(() => Array.isArray(props.rows) ? props.rows : []);
 const normalizedColumns = computed(() => {
@@ -256,6 +309,11 @@ const tableStyle = computed(() => ({
 }));
 const emptyColspan = computed(() => visibleColumns.value.length + (props.selectable ? 1 : 0) + (props.showRowNumbers ? 1 : 0));
 const headerOffset = computed(() => props.showColumnLetters ? '1.75rem' : '0px');
+const virtualRowHeightPx = computed(() => {
+	const value = Number(props.virtualRowHeight);
+	if (Number.isFinite(value) && value > 0) return value;
+	return props.density === 'comfortable' ? 48 : 36;
+});
 
 watch(() => props.filters, (value) => {
 	internalFilters.value = normalizeFilterMap(value);
@@ -274,10 +332,25 @@ watch(() => props.selectedKeys, (value) => {
 	internalSelectedKeys.value = Array.isArray(value) ? [...value] : [];
 }, { deep: true });
 
-watch(visibleColumns, syncFilterDrafts, { deep: true });
+watch(visibleColumns, () => {
+	internalFilters.value = normalizeFilterMap(internalFilters.value);
+	syncFilterDrafts();
+}, { deep: true });
 watch(query, (value) => {
 	emit('query-change', cloneQuery(value));
 }, { deep: true });
+watch(() => [props.height, props.virtualRows, props.density, displayRows.value.length], () => {
+	nextTick(refreshViewportMetrics);
+});
+
+onBeforeUnmount(() => {
+	removeColumnResizeListeners();
+	columnResize.value = null;
+});
+
+onMounted(() => {
+	nextTick(refreshViewportMetrics);
+});
 
 function inferColumns(rows) {
 	const first = rows.find((row) => row && typeof row === 'object');
@@ -295,8 +368,10 @@ function normalizeColumn(column) {
 		...column,
 		type,
 		label: column.label || labelFromKey(column.key),
+		component: column.component ? markRaw(column.component) : null,
 		width: columnWidth(column.width, type),
 		align: column.align || defaultAlign(type),
+		resizable: column.resizable !== false,
 		sortable: column.sortable !== false,
 		filterable: column.filterable !== false,
 		searchable: column.searchable !== false,
@@ -339,8 +414,17 @@ function defaultAlign(type) {
 
 function tableMinWidth() {
 	const utilityWidth = (props.selectable ? 44 : 0) + (props.showRowNumbers ? 54 : 0);
-	const columnWidthTotal = visibleColumns.value.reduce((total, column) => total + numericWidth(column.width), 0);
+	const columnWidthTotal = visibleColumns.value.reduce((total, column) => total + columnPixelWidth(column), 0);
 	return Math.max(720, utilityWidth + columnWidthTotal);
+}
+
+function columnWidthStyle(column) {
+	return `${columnPixelWidth(column)}px`;
+}
+
+function columnPixelWidth(column) {
+	const resizedWidth = resizedColumnWidths[column.key];
+	return Number.isFinite(resizedWidth) ? resizedWidth : numericWidth(column.width);
 }
 
 function numericWidth(width) {
@@ -353,6 +437,101 @@ function numericWidth(width) {
 	return 160;
 }
 
+function minimumColumnWidth() {
+	const value = Number(props.minColumnWidth);
+	return Number.isFinite(value) && value > 0 ? value : 40;
+}
+
+function canResizeColumn(column) {
+	return props.resizableColumns && column.resizable !== false;
+}
+
+function startColumnResize(column, event) {
+	if (!canResizeColumn(column)) return;
+
+	event.preventDefault();
+	event.stopPropagation();
+
+	const startWidth = columnPixelWidth(column);
+	columnResize.value = {
+		key: column.key,
+		column,
+		startX: event.clientX,
+		startWidth,
+		width: startWidth,
+	};
+
+	addColumnResizeListeners();
+}
+
+function addColumnResizeListeners() {
+	if (typeof document === 'undefined') return;
+	if (resizeListenersAttached) removeColumnResizeListeners();
+
+	resizeListenersAttached = true;
+	previousBodyCursor = document.body.style.cursor;
+	previousBodyUserSelect = document.body.style.userSelect;
+	document.body.style.cursor = 'col-resize';
+	document.body.style.userSelect = 'none';
+	document.addEventListener('pointermove', updateColumnResize);
+	document.addEventListener('pointerup', finishColumnResize);
+	document.addEventListener('pointercancel', finishColumnResize);
+}
+
+function removeColumnResizeListeners() {
+	if (!resizeListenersAttached || typeof document === 'undefined') return;
+
+	resizeListenersAttached = false;
+	document.removeEventListener('pointermove', updateColumnResize);
+	document.removeEventListener('pointerup', finishColumnResize);
+	document.removeEventListener('pointercancel', finishColumnResize);
+	document.body.style.cursor = previousBodyCursor;
+	document.body.style.userSelect = previousBodyUserSelect;
+}
+
+function updateColumnResize(event) {
+	const resize = columnResize.value;
+	if (!resize) return;
+
+	event.preventDefault();
+
+	const width = Math.max(
+		minimumColumnWidth(),
+		Math.round(resize.startWidth + event.clientX - resize.startX),
+	);
+
+	if (width === resize.width) return;
+
+	const previousWidth = resize.width;
+	resize.width = width;
+	resizedColumnWidths[resize.key] = width;
+
+	emit('column-resize', {
+		column: resize.column,
+		key: resize.key,
+		width,
+		previousWidth,
+		startWidth: resize.startWidth,
+	});
+}
+
+function finishColumnResize(event) {
+	if (event) event.preventDefault();
+
+	const resize = columnResize.value;
+	removeColumnResizeListeners();
+	if (!resize) return;
+
+	columnResize.value = null;
+	emit('column-resize-end', {
+		column: resize.column,
+		key: resize.key,
+		width: resize.width,
+		previousWidth: resize.startWidth,
+		startWidth: resize.startWidth,
+	});
+}
+
 function rowKey(row, index) {
 	if (typeof props.rowKey === 'function') return props.rowKey(row, index);
 	const key = row?.[props.rowKey];
@@ -361,7 +540,7 @@ function rowKey(row, index) {
 
 function cellValue(row, column) {
 	if (typeof column.accessor === 'function') return column.accessor(row, column);
-	return row?.[column.key];
+	return row?.[column.field || column.key];
 }
 
 function formattedCell(row, column) {
@@ -530,6 +709,8 @@ function rowMatchesFilters(row) {
 }
 
 function rowMatchesFilter(row, column) {
+	if (!column.filterable) return true;
+
 	const filter = activeFilters.value[column.key];
 	if (!isFilterActive(filter, column)) return true;
 
@@ -595,6 +776,8 @@ function normalizeFilterMap(filters) {
 	const next = {};
 	const source = filters && typeof filters === 'object' ? filters : {};
 	for (const column of visibleColumns.value) {
+		if (!column.filterable) continue;
+
 		const filter = normalizeFilter(column, source[column.key]);
 		if (isFilterActive(filter, column)) next[column.key] = filter;
 	}
@@ -612,7 +795,14 @@ function isFilterActive(filter, column) {
 }
 
 function syncFilterDrafts() {
+	const availableKeys = new Set(visibleColumns.value.filter((column) => column.filterable).map((column) => column.key));
+	for (const key of Object.keys(filterDrafts)) {
+		if (!availableKeys.has(key)) delete filterDrafts[key];
+	}
+
 	for (const column of visibleColumns.value) {
+		if (!column.filterable) continue;
+
 		filterDrafts[column.key] = {
 			...defaultFilterForColumn(column),
 			...(internalFilters.value[column.key] || {}),
@@ -621,6 +811,8 @@ function syncFilterDrafts() {
 }
 
 function applyFilter(column) {
+	if (!column.filterable) return;
+
 	const draft = filterDrafts[column.key] || defaultFilterForColumn(column);
 	const next = {
 		...internalFilters.value,
@@ -759,6 +951,60 @@ function cellAlignClass(column) {
 function rowDensityClass() {
 	return props.density === 'comfortable' ? 'h-12' : 'h-9';
 }
+
+function refreshViewportMetrics() {
+	if (!scrollViewport.value) return;
+	updateViewportMetrics(scrollViewport.value);
+}
+
+function updateViewportMetrics(element) {
+	viewportState.scrollTop = element.scrollTop;
+	viewportState.clientHeight = element.clientHeight;
+}
+
+function onViewportScroll(event) {
+	const element = event.currentTarget;
+	updateViewportMetrics(element);
+
+	const remaining = Math.max(0, element.scrollHeight - element.scrollTop - element.clientHeight);
+	const payload = {
+		scrollTop: element.scrollTop,
+		scrollHeight: element.scrollHeight,
+		clientHeight: element.clientHeight,
+		remaining,
+		atEnd: remaining <= 32,
+	};
+
+	emit('viewport-scroll', payload);
+	if (payload.atEnd) emit('viewport-end', payload);
+}
+
+function cellContext(row, column, rowIndex) {
+	return {
+		row,
+		column,
+		value: cellValue(row, column),
+		formatted: formattedCell(row, column),
+		rowIndex,
+		rowKey: rowKey(row, rowIndex),
+	};
+}
+
+function onCellComponentUpdate(row, column, rowIndex, value) {
+	emit('cell-update', {
+		...cellContext(row, column, rowIndex),
+		value,
+		previousValue: cellValue(row, column),
+	});
+}
+
+function onCellComponentAction(row, column, rowIndex, payload) {
+	emit('cell-action', {
+		...cellContext(row, column, rowIndex),
+		action: payload?.action ?? payload?.type ?? payload,
+		payload,
+	});
+}
 </script>
 
 <template>
@@ -826,15 +1072,15 @@ function rowDensityClass() {
 			</div>
 		</header>
 
-		<div class="overflow-auto" :style="gridHeightStyle">
-			<table class="w-full border-separate border-spacing-0 text-sm" :style="tableStyle">
+		<div ref="scrollViewport" class="overflow-auto" :style="gridHeightStyle" @scroll="onViewportScroll">
+			<table class="w-full table-fixed border-separate border-spacing-0 text-sm" :style="tableStyle">
 				<colgroup>
 					<col v-if="selectable" class="w-11" />
 					<col v-if="showRowNumbers" class="w-[3.375rem]" />
 					<col
 						v-for="column in visibleColumns"
 						:key="column.key"
-						:style="{ width: column.width, minWidth: column.width }"
+						:style="{ width: columnWidthStyle(column), minWidth: columnWidthStyle(column) }"
 					/>
 				</colgroup>
 
@@ -888,26 +1134,29 @@ function rowDensityClass() {
 							v-for="column in visibleColumns"
 							:key="column.key"
 							scope="col"
-							class="border-b border-r border-border px-0 text-left align-middle last:border-r-0"
+							class="relative overflow-hidden border-b border-r border-border px-0 text-left align-middle last:border-r-0"
 							:aria-sort="ariaSort(column)"
 							:class="stickyHeader && 'sticky z-20 bg-canvas/95 backdrop-blur'"
 							:style="stickyHeader ? { top: headerOffset } : null"
 						>
-							<div class="flex min-w-0 items-center gap-1 px-2 py-1.5">
+							<div
+								class="relative flex min-w-0 items-center overflow-hidden px-1 py-1.5"
+								:class="column.filterable ? 'pr-9' : 'pr-1'"
+							>
 								<button
 									type="button"
-									class="flex min-w-0 flex-1 items-center gap-1.5 rounded-md px-1.5 py-1 text-left font-semibold text-canvas-fg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+									class="flex min-w-0 w-full items-center gap-1.5 overflow-hidden rounded-md px-1 py-1 text-left font-semibold text-canvas-fg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 									:class="column.sortable ? 'hover:bg-secondary' : 'cursor-default'"
 									:disabled="!column.sortable"
 									@click="toggleSort(column)"
 								>
 									<span class="truncate">{{ column.label }}</span>
-									<span v-if="column.type !== 'text'" class="rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-fg">
+									<span v-if="column.type !== 'text'" class="shrink rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-fg">
 										{{ column.type === 'currency' ? 'num' : column.type }}
 									</span>
 									<svg
 										v-if="column.sortable"
-										class="size-3.5 shrink-0 text-muted-fg"
+										class="size-3.5 shrink text-muted-fg"
 										viewBox="0 0 24 24"
 										fill="none"
 										aria-hidden="true"
@@ -939,34 +1188,34 @@ function rowDensityClass() {
 									</svg>
 								</button>
 
-								<DomPopover
-									v-if="column.filterable"
-									position="bottom-end"
-									width="w-[20rem]"
-									padding="p-0"
-									:arrow="false"
-								>
-									<template #trigger>
-										<button
-											type="button"
-											class="relative grid size-7 shrink-0 place-items-center rounded-md border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-											:class="activeFilters[column.key]
-												? 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300'
-												: 'border-transparent text-muted-fg hover:border-border hover:bg-secondary hover:text-canvas-fg'"
-											:aria-label="`Filter ${column.label}`"
-										>
-											<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-												<path d="M4 5h16l-6.2 7.1V18l-3.6 1.8v-7.7L4 5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
-											</svg>
-											<span
-												v-if="activeFilters[column.key]"
-												class="absolute right-1 top-1 size-1.5 rounded-full bg-sky-500"
-											></span>
-										</button>
-									</template>
+								<div v-if="column.filterable" class="absolute right-1 top-1/2 -translate-y-1/2">
+									<DomPopover
+										position="bottom-end"
+										width="w-[20rem]"
+										padding="p-0"
+										:arrow="false"
+									>
+										<template #trigger>
+											<button
+												type="button"
+												class="relative grid size-7 shrink-0 place-items-center rounded-md border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+												:class="activeFilters[column.key]
+													? 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300'
+													: 'border-transparent text-muted-fg hover:border-border hover:bg-secondary hover:text-canvas-fg'"
+												:aria-label="`Filter ${column.label}`"
+											>
+												<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+													<path d="M4 5h16l-6.2 7.1V18l-3.6 1.8v-7.7L4 5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+												</svg>
+												<span
+													v-if="activeFilters[column.key]"
+													class="absolute right-1 top-1 size-1.5 rounded-full bg-sky-500"
+												></span>
+											</button>
+										</template>
 
-									<template #default="{ close }">
-										<div v-if="filterDrafts[column.key]" class="grid gap-4 p-4 text-sm">
+										<template #default="{ close }">
+											<div v-if="filterDrafts[column.key]" class="grid gap-4 p-4 text-sm">
 											<div>
 												<p class="font-semibold text-canvas-fg">Filter {{ column.label }}</p>
 												<p class="mt-0.5 text-xs text-muted-fg">Column type: {{ column.type }}</p>
@@ -1058,15 +1307,80 @@ function rowDensityClass() {
 													Apply filter
 												</button>
 											</div>
-										</div>
-									</template>
-								</DomPopover>
+											</div>
+										</template>
+									</DomPopover>
+								</div>
 							</div>
+							<span
+								v-if="canResizeColumn(column)"
+								class="absolute inset-y-0 right-0 z-30 block w-2 cursor-col-resize touch-none transition-opacity"
+								:class="columnResize?.key === column.key ? 'opacity-100' : 'opacity-0 hover:opacity-100'"
+								@pointerdown="startColumnResize(column, $event)"
+								@click.stop
+							>
+								<span class="mx-auto block h-full w-px bg-primary/60"></span>
+							</span>
 						</th>
 					</tr>
 				</thead>
 
-				<tbody>
+				<DataGridVirtualRows
+					v-if="virtualRows && !loading && displayRows.length"
+					:rows="displayRows"
+					:columns="visibleColumns"
+					:row-key="rowKey"
+					:cell-value="cellValue"
+					:formatted-cell="formattedCell"
+					:cell-align-class="cellAlignClass"
+					:row-density-class="rowDensityClass"
+					:selected-keys="internalSelectedKeys"
+					:selectable="selectable"
+					:show-row-numbers="showRowNumbers"
+					:scroll-top="viewportState.scrollTop"
+					:viewport-height="viewportState.clientHeight"
+					:row-height="virtualRowHeightPx"
+					:buffer-rows="virtualRowBuffer"
+					@toggle-row-selection="toggleRowSelection($event.row, $event.index)"
+					@row-click="emit('row-click', { row: $event.row, index: $event.index })"
+					@render-window-change="emit('render-window-change', $event)"
+				>
+					<template #cell="{ row, column, value, formatted, rowIndex, rowKey: currentRowKey }">
+						<slot
+							name="cell"
+							:row="row"
+							:column="column"
+							:value="value"
+							:formatted="formatted"
+							:row-index="rowIndex"
+							:row-key="currentRowKey"
+						>
+							<component
+								:is="column.component"
+								v-if="column.component"
+								:row="row"
+								:column="column"
+								:value="value"
+								:formatted="formatted"
+								:row-index="rowIndex"
+								:row-key="currentRowKey"
+								@update:value="onCellComponentUpdate(row, column, rowIndex, $event)"
+								@action="onCellComponentAction(row, column, rowIndex, $event)"
+							/>
+							<span v-else-if="column.type === 'boolean'" class="inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="value ? toneClass('green') : toneClass('neutral')">
+								{{ formatted }}
+							</span>
+							<span v-else-if="column.type === 'select'" class="inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="toneClass(optionTone(column, value))">
+								<span class="size-1.5 rounded-full bg-current opacity-70"></span>
+								<span class="truncate">{{ formatted }}</span>
+							</span>
+							<span v-else-if="formatted" class="block max-w-full truncate">{{ formatted }}</span>
+							<span v-else class="text-muted-fg/60">-</span>
+						</slot>
+					</template>
+				</DataGridVirtualRows>
+
+				<tbody v-else>
 					<tr v-if="loading">
 						<td :colspan="emptyColspan" class="border-b border-border px-4 py-10 text-center text-sm text-muted-fg">
 							Loading {{ resourceLabel }}...
@@ -1105,7 +1419,7 @@ function rowDensityClass() {
 							<td
 								v-for="column in visibleColumns"
 								:key="column.key"
-								class="border-b border-r border-border px-3 align-middle last:border-r-0"
+								class="overflow-hidden border-b border-r border-border px-3 align-middle last:border-r-0"
 								:class="[cellAlignClass(column), rowDensityClass()]"
 							>
 								<slot
@@ -1115,15 +1429,28 @@ function rowDensityClass() {
 									:value="cellValue(row, column)"
 									:formatted="formattedCell(row, column)"
 									:row-index="rowIndex"
+									:row-key="rowKey(row, rowIndex)"
 								>
-									<span v-if="column.type === 'boolean'" class="inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="cellValue(row, column) ? toneClass('green') : toneClass('neutral')">
+									<component
+										:is="column.component"
+										v-if="column.component"
+										:row="row"
+										:column="column"
+										:value="cellValue(row, column)"
+										:formatted="formattedCell(row, column)"
+										:row-index="rowIndex"
+										:row-key="rowKey(row, rowIndex)"
+										@update:value="onCellComponentUpdate(row, column, rowIndex, $event)"
+										@action="onCellComponentAction(row, column, rowIndex, $event)"
+									/>
+									<span v-else-if="column.type === 'boolean'" class="inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="cellValue(row, column) ? toneClass('green') : toneClass('neutral')">
 										{{ formattedCell(row, column) }}
 									</span>
 									<span v-else-if="column.type === 'select'" class="inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="toneClass(optionTone(column, cellValue(row, column)))">
 										<span class="size-1.5 rounded-full bg-current opacity-70"></span>
 										<span class="truncate">{{ formattedCell(row, column) }}</span>
 									</span>
-									<span v-else-if="formattedCell(row, column)" class="truncate">{{ formattedCell(row, column) }}</span>
+									<span v-else-if="formattedCell(row, column)" class="block max-w-full truncate">{{ formattedCell(row, column) }}</span>
 									<span v-else class="text-muted-fg/60">-</span>
 								</slot>
 							</td>

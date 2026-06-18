@@ -7,6 +7,8 @@ import DomCodeInput from '../code-input/DomCodeInput.vue';
 import DomCombobox from '../combobox/DomCombobox.vue';
 import DomDatePicker from '../date-picker/DomDatePicker.vue';
 import DomEmailInput from '../email-input/DomEmailInput.vue';
+import DomFileUpload from '../file-upload/DomFileUpload.vue';
+import DomMoneyInput from '../money-input/DomMoneyInput.vue';
 import DomNativeSelect from '../native-select/DomNativeSelect.vue';
 import DomNumberInput from '../number-input/DomNumberInput.vue';
 import DomPasswordInput from '../password-input/DomPasswordInput.vue';
@@ -34,8 +36,10 @@ const formComponents = {
 	DomCombobox,
 	DomDatePicker,
 	DomEmailInput,
+	DomFileUpload,
 	DomJsonInput,
 	DomJsonListInput,
+	DomMoneyInput,
 	DomNativeSelect,
 	DomNumberInput,
 	DomPasswordInput,

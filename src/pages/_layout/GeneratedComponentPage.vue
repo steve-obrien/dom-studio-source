@@ -1,5 +1,6 @@
 <script setup>
-import { computed, onMounted, shallowRef } from 'vue';
+import { computed, shallowRef, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import DomStudioLayout from './DomStudioLayout.vue';
 import DocPage from './DocPage.vue';
 import DocSection from './DocSection.vue';
@@ -18,24 +19,55 @@ const props = defineProps({
 
 const loadedComponent = shallowRef(props.component);
 const loadedSource = shallowRef(props.componentSource);
+const route = useRoute();
+let loadRun = 0;
 
-onMounted(async () => {
-	if (!loadedComponent.value && props.componentLoader) {
-		const module = await props.componentLoader();
-		loadedComponent.value = module.default || module;
-	}
-	if (!loadedSource.value && props.componentSourceLoader) {
-		const module = await props.componentSourceLoader();
-		loadedSource.value = module.default || module;
-	}
-});
+watch(() => [
+	props.component,
+	props.componentLoader,
+	props.componentSource,
+	props.componentSourceLoader,
+], loadComponent, { immediate: true });
+
+async function loadComponent() {
+	const run = ++loadRun;
+	loadedComponent.value = props.component || null;
+	loadedSource.value = props.componentSource || '';
+
+	const [componentModule, sourceModule] = await Promise.all([
+		loadedComponent.value || !props.componentLoader ? null : props.componentLoader(),
+		loadedSource.value || !props.componentSourceLoader ? null : props.componentSourceLoader(),
+	]);
+
+	if (run !== loadRun) return;
+	if (componentModule) loadedComponent.value = componentModule.default || componentModule;
+	if (sourceModule) loadedSource.value = sourceModule.default || sourceModule;
+}
 
 const doc = computed(() => loadedComponent.value?.__doc || {});
-const name = computed(() => doc.value.name || loadedComponent.value?.__name || loadedComponent.value?.name || 'Component');
+const routeTitle = computed(() => (
+	typeof route.meta.title === 'string' && route.meta.title
+		? route.meta.title
+		: titleFromRoutePath(route.path)
+));
+const name = computed(() => doc.value.name || loadedComponent.value?.__name || loadedComponent.value?.name || routeTitle.value || 'Component');
 const tagline = computed(() => doc.value.description || 'Auto-generated documentation from the component metadata and runtime props.');
-const tag = computed(() => doc.value.tag || `<${loadedComponent.value?.__name || loadedComponent.value?.name || 'Component'}>`);
+const tag = computed(() => {
+	if (doc.value.tag) return doc.value.tag;
+	const componentName = loadedComponent.value?.__name || loadedComponent.value?.name;
+	return componentName ? `<${componentName}>` : '';
+});
 const playgroundPresentation = computed(() => (props.section === 'mobile' ? 'mobile' : 'default'));
 const playgroundInitial = computed(() => doc.value.playground?.initial || {});
+const componentKey = computed(() => loadedComponent.value?.__name || loadedComponent.value?.name || tag.value);
+
+function titleFromRoutePath(path) {
+	const segment = String(path || '').split('/').filter(Boolean).pop();
+	if (!segment) return '';
+	return segment
+		.replace(/-/g, ' ')
+		.replace(/\b\w/g, (character) => character.toUpperCase());
+}
 </script>
 
 <template>
@@ -44,6 +76,7 @@ const playgroundInitial = computed(() => doc.value.playground?.initial || {});
 			<DocSection eyebrow="Playground" title="Try every prop live">
 				<Playground
 					v-if="loadedComponent"
+					:key="componentKey"
 					:inspect="loadedComponent"
 					:title="`${name} playground`"
 					description="This page is generated automatically from the component folder. Add a custom Index.vue beside the component when it needs richer docs."

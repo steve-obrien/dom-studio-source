@@ -449,7 +449,7 @@ const implementedCoverage = [
 	'Text, textarea, number, password, email, and URL inputs.',
 	'Native select, select input, listbox, radio group, combobox, autocomplete, and tag combobox.',
 	'Checkbox, toggle, toggle button, and toggle button group.',
-	'Calendar, color, code, JSON, JSON list, position input, and range input.',
+	'Calendar, color, code, JSON, JSON list, money, file upload, position input, and range input.',
 	'Wrapper inputs such as DomEmailInput and DomUrlInput delegate to DomTextInput instead of registering an extra field.',
 	'Composite inputs such as DomJsonInput and DomJsonListInput own the field and disable internal child registration where needed.',
 ];

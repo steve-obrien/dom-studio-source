@@ -27,6 +27,7 @@ const sidebarRoutePrefixes = [
 	'/blocks',
 	'/component-spec',
 	'/components',
+	'/data',
 	'/forms',
 	'/headless',
 	'/mobile',
@@ -37,6 +38,7 @@ const sidebarRoutePrefixes = [
 const wideContentRoutePrefixes = [
 	'/blocks',
 	'/components',
+	'/data',
 	'/forms',
 	'/headless',
 	'/mobile',

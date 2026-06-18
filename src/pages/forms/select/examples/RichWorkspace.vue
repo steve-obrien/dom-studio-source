@@ -34,6 +34,36 @@ const workspaces = [
 		plan: 'Business',
 		count: '11 members',
 	},
+	{
+		value: 'design',
+		label: 'Design systems',
+		description: 'Component governance, accessibility review, and release notes.',
+		initials: 'DS',
+		src: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&crop=faces&w=96&h=96&q=80',
+		tone: 'neutral',
+		plan: 'Team',
+		count: '9 members',
+	},
+	{
+		value: 'research',
+		label: 'Research lab',
+		description: 'Interview notes, insight tagging, and participant panels.',
+		initials: 'RL',
+		src: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&crop=faces&w=96&h=96&q=80',
+		tone: 'info',
+		plan: 'Pro',
+		count: '6 members',
+	},
+	{
+		value: 'ops',
+		label: 'Operations hub',
+		description: 'Vendor reviews, procurement workflows, and launch checklists.',
+		initials: 'OH',
+		src: 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?auto=format&fit=crop&crop=faces&w=96&h=96&q=80',
+		tone: 'warning',
+		plan: 'Scale',
+		count: '24 members',
+	},
 ];
 const current = computed(() => workspaces.find((item) => item.value === workspace.value));
 </script>
@@ -45,6 +75,8 @@ const current = computed(() => workspaces.find((item) => item.value === workspac
 			label="Workspace"
 			description="Use DomSelect when options need richer markup than a native select can render."
 			:options="workspaces"
+			searchable
+			search-placeholder="Search workspaces..."
 			width="min-w-[22rem]"
 		>
 			<template #value>

@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { DomEmailInput, DomField } from '@getdom/studio/vue';
 
 const email = ref('steve.example');
+const errors = ['Enter a valid email address.'];
 
 </script>
 

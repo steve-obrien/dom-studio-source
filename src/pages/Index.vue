@@ -34,6 +34,8 @@ const density = ref('comfortable');
 const radius = ref(12);
 const motion = ref(true);
 const { toasts, success, normal, dismiss } = useToasts({ duration: 3200 });
+const rangeHandleClass = 'size-5 border-2 border-canvas shadow-md group-hover:scale-110';
+const rangeActiveHandleClass = 'scale-125 ring-4 ring-primary/20';
 
 const heroTabs = [
 	{ key: 'product', label: 'Product' },
@@ -348,7 +350,15 @@ function runCommand({ value }) {
 												<p class="text-sm font-semibold text-canvas-fg">Theme controls</p>
 												<div class="mt-4 grid gap-4">
 													<DomRadioGroup v-model="density" :options="densityOptions" label="Density" orientation="horizontal" />
-													<DomRangeInput v-model="radius" label="Radius" :min="4" :max="24" suffix="px" />
+													<DomRangeInput
+														v-model="radius"
+														label="Radius"
+														:min="4"
+														:max="24"
+														suffix="px"
+														:handle-class="rangeHandleClass"
+														:active-handle-class="rangeActiveHandleClass"
+													/>
 													<DomToggle v-model="motion" label="Enable motion" />
 												</div>
 											</div>
@@ -381,7 +391,15 @@ function runCommand({ value }) {
 								<p class="text-sm font-semibold text-canvas-fg">Inspector</p>
 								<div class="mt-4 grid gap-4">
 									<DomCombobox v-model="selectedPrimitive" :options="primitiveOptions" label="Primitive" />
-									<DomRangeInput v-model="radius" label="Radius" :min="4" :max="24" suffix="px" />
+									<DomRangeInput
+										v-model="radius"
+										label="Radius"
+										:min="4"
+										:max="24"
+										suffix="px"
+										:handle-class="rangeHandleClass"
+										:active-handle-class="rangeActiveHandleClass"
+									/>
 									<DomToggle v-model="motion" label="Motion" />
 								</div>
 								<div class="mt-6 rounded-2xl border border-border bg-secondary/35 p-4">

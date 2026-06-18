@@ -41,15 +41,59 @@ export interface DomMenuItemRecord {
 	label?: string;
 	value?: string | number;
 	description?: string;
+	href?: string;
 	icon?: string;
 	disabled?: boolean;
 	separator?: boolean;
+	static?: boolean;
+	selectable?: boolean;
+	type?: string;
+	task?: boolean;
+	completed?: boolean;
+	shortcut?: string;
+	accessory?: string;
+	accessorySlot?: string;
+	component?: unknown;
+	componentName?: string;
+	tone?: string;
 	children?: Array<DomMenuItemRecord>;
 	[key: string]: unknown;
 }
 export interface DomCommandPaletteItem extends DomMenuItemRecord {
 	keywords?: Array<string>;
 	shortcut?: string;
+}
+export interface DataGridColumn {
+	key: string;
+	field?: string;
+	label?: string;
+	type?: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'currency';
+	width?: string | number;
+	align?: 'left' | 'center' | 'right';
+	component?: Component | string;
+	resizable?: boolean;
+	sortable?: boolean;
+	filterable?: boolean;
+	searchable?: boolean;
+	options?: Array<string | number | boolean | DomOption | Record<string, unknown>>;
+	currency?: string;
+	accessor?: (row: Record<string, unknown>) => unknown;
+	format?: (value: unknown, row: Record<string, unknown>, column: DataGridColumn) => string | number;
+	[key: string]: unknown;
+}
+export interface DomUploadedFile {
+	id?: string | number;
+	name: string;
+	size?: number;
+	type?: string;
+	url?: string;
+	previewUrl?: string;
+	[key: string]: unknown;
+}
+export interface DomFileUploadRejection {
+	file: File;
+	reason: string;
+	message: string;
 }
 export interface DomJsonListSchemaField {
 	key?: string;
@@ -98,6 +142,17 @@ export interface DomRenderSpec {
 	text?: string;
 	[key: string]: unknown;
 }
+export type DomThemeMode = 'light' | 'dark' | 'system';
+export type DomResolvedTheme = 'light' | 'dark';
+export interface DomThemeApi {
+	mode: Ref<DomThemeMode>;
+	resolvedTheme: ComputedRef<DomResolvedTheme>;
+	setMode(mode: unknown): DomResolvedTheme;
+	cycleMode(): DomResolvedTheme;
+	initTheme(): DomResolvedTheme;
+	currentTheme: ComputedRef<DomResolvedTheme>;
+	toggleTheme(): DomResolvedTheme;
+}
 export type DomAppStackLayout = 'auto' | 'mobile' | 'desktop';
 export interface DomAppStackScreenRecord {
 	id: string;
@@ -132,6 +187,12 @@ export interface MonthCalendarCell {
 	muted: boolean;
 	disabled: boolean;
 }
+export interface MonthCalendarWeek {
+	index: number;
+	weekNumber: number;
+	label: string;
+	days: Array<MonthCalendarCell>;
+}
 export interface MonthCalendarMonth {
 	date: Date;
 	value: string;
@@ -140,7 +201,7 @@ export interface MonthCalendarMonth {
 	year: number;
 	label: string;
 	cells: Array<MonthCalendarCell>;
-	weeks: Array<{ index: number; days: Array<MonthCalendarCell> }>;
+	weeks: Array<MonthCalendarWeek>;
 }
 export interface TreeItemAction {
 	value?: string;
@@ -460,8 +521,120 @@ export interface DomDropdownProps {
 	 * Accessible popup type. Use tree/dialog/etc when rendering the #panel slot.
 	 */
 	panelType?: "menu" | "tree" | "dialog" | "listbox" | "grid";
+	/**
+	 * Focus the first focusable element when opening a custom panel.
+	 */
+	autoFocusPanel?: boolean;
+	/**
+	 * Menu item value to prefer when opening from the keyboard.
+	 */
+	focusValue?: string | number;
+	/**
+	 * Disable the trigger and prevent the dropdown from opening.
+	 */
+	disabled?: boolean;
+	/**
+	 * Override the trigger button classes when composing dropdowns into toolbars or compact controls.
+	 */
+	triggerClass?: string | Array<unknown> | Record<string, unknown>;
+	/**
+	 * Show the chevron indicator in the trigger.
+	 */
+	showIndicator?: boolean;
 }
 export declare const DomDropdown: DomComponent<DomDropdownProps>;
+
+export interface DomProfileMenuProps {
+	/**
+	 * User display name used for avatar fallback and optional trigger text.
+	 */
+	name?: string;
+	/**
+	 * Signed-in email shown in the trigger by default.
+	 */
+	email?: string;
+	/**
+	 * Avatar image URL.
+	 */
+	avatar?: string;
+	/**
+	 * Explicit initials for the avatar fallback.
+	 */
+	initials?: string;
+	/**
+	 * Fallback trigger text when no email or name is available.
+	 */
+	triggerLabel?: string;
+	/**
+	 * Show the name in the trigger. When email is also shown, it appears as secondary text.
+	 */
+	showName?: boolean;
+	/**
+	 * Show the email address in the trigger.
+	 */
+	showEmail?: boolean;
+	/**
+	 * Avatar size inside the trigger.
+	 */
+	avatarSize?: "xs" | "sm" | "md";
+	/**
+	 * Optional controlled theme mode for the embedded theme switcher. Omit it to use the stored DOM Studio preference.
+	 */
+	themeMode?: "dark" | "light" | "system";
+	/**
+	 * Render a segmented dark / light / system control as a profile row accessory.
+	 */
+	themeControl?: boolean;
+	/**
+	 * Optional data-driven menu rows. Use separator: true, type: "label" for static rows, children for submenus, shortcut for right-side commands, accessorySlot for custom right-side content, and componentName as a marker for the #item slot.
+	 */
+	items?: Array<DomMenuItemRecord> | null;
+	/**
+	 * Where the menu opens relative to the trigger.
+	 */
+	align?: "left" | "right";
+	/**
+	 * Preferred side before collision handling.
+	 */
+	placement?: "bottom" | "top" | "right" | "left";
+	/**
+	 * Tailwind width utility for the dropdown panel.
+	 */
+	width?: string;
+	/**
+	 * Viewport padding used when the menu flips or shifts.
+	 */
+	collisionPadding?: number;
+	/**
+	 * viewport keeps the menu inside the browser; anchor keeps it attached while scrolling.
+	 */
+	floatingMode?: "viewport" | "anchor";
+	/**
+	 * Lock browser scrolling while the dropdown is open.
+	 */
+	lockScroll?: boolean;
+}
+export declare const DomProfileMenu: DomComponent<DomProfileMenuProps>;
+
+export interface DomThemeSwitcherProps {
+	/**
+	 * Optional controlled theme mode. Omit this to use the stored DOM Studio preference.
+	 */
+	modelValue?: "light" | "dark" | "system";
+	/**
+	 * Accessible label for the segmented control.
+	 */
+	label?: string;
+	/**
+	 * Show the current preference label beside the segmented control.
+	 */
+	showLabel?: boolean;
+	/**
+	 * Button size for the segmented control.
+	 */
+	size?: "icon-sm" | "icon-md" | "sm" | "md" | "lg";
+}
+export declare const DomThemeSwitcher: DomComponent<DomThemeSwitcherProps>;
 
 export interface DomDialogProps {
 	/**
@@ -588,6 +761,22 @@ export declare const DomMenuItem: DomComponent<DomMenuItemProps>;
 
 export type MenuItemProps = DomMenuItemProps;
 export declare const MenuItem: typeof DomMenuItem;
+
+export interface DomMenuSeparatorProps {
+	[key: string]: unknown;
+}
+export declare const DomMenuSeparator: DomComponent<DomMenuSeparatorProps>;
+
+export type MenuSeparatorProps = DomMenuSeparatorProps;
+export declare const MenuSeparator: typeof DomMenuSeparator;
+
+export interface DomMenuLabelProps {
+	[key: string]: unknown;
+}
+export declare const DomMenuLabel: DomComponent<DomMenuLabelProps>;
+
+export type MenuLabelProps = DomMenuLabelProps;
+export declare const MenuLabel: typeof DomMenuLabel;
 
 /** TreeItemAction, TreeItem, TreeItems, TreeNode, TreeDropPosition, TreeDropKind, TreeSelectionPayload, TreeActionPayload, TreeTogglePayload, TreeLoadChildrenPayload, TreeDragPreviewPayload, TreeDragPreviewEndPayload, TreeReorderPayload, TreeExternalDropPayload payload types are exported from this module. */
 export interface DomTreeViewProps {
@@ -870,7 +1059,7 @@ export interface DomDataGridProps {
 	/**
 	 * Column definitions. Each type chooses its own sorting, formatting, and filter controls.
 	 */
-	columns?: Array<unknown>;
+	columns?: Array<DataGridColumn>;
 	/**
 	 * Field name or function used to identify each row.
 	 */
@@ -900,6 +1089,18 @@ export interface DomDataGridProps {
 	 */
 	loading?: boolean;
 	/**
+	 * Render large in-memory row sets through the isolated virtual row renderer.
+	 */
+	virtualRows?: boolean;
+	/**
+	 * Rows kept mounted above and below the visible viewport when virtualRows is true.
+	 */
+	virtualRowBuffer?: number;
+	/**
+	 * Fixed row height in pixels for virtual row calculations. Defaults to the grid density.
+	 */
+	virtualRowHeight?: number;
+	/**
 	 * Show row selection checkboxes.
 	 */
 	selectable?: boolean;
@@ -915,6 +1116,14 @@ export interface DomDataGridProps {
 	 * Keep header rows visible while the grid scrolls.
 	 */
 	stickyHeader?: boolean;
+	/**
+	 * Allow users to drag header dividers to resize columns.
+	 */
+	resizableColumns?: boolean;
+	/**
+	 * Minimum column width in pixels while resizing. The default leaves room for the filter icon.
+	 */
+	minColumnWidth?: number;
 	/**
 	 * Show the title, search box, filter chips, and row count toolbar.
 	 */
@@ -984,6 +1193,10 @@ export interface DomMonthCalendarProps {
 	 */
 	fixedWeeks?: boolean;
 	/**
+	 * Render ISO-8601 week numbers at the start of each week row.
+	 */
+	showWeekNumbers?: boolean;
+	/**
 	 * Dates before this YYYY-MM-DD value render muted.
 	 */
 	mutedBefore?: string;
@@ -1025,6 +1238,50 @@ export interface DomMonthCalendarProps {
 	dayStyle?: string | Record<string, string | number> | ((cell: MonthCalendarCell) => string | Record<string, string | number> | null | undefined);
 }
 export declare const DomMonthCalendar: DomComponent<DomMonthCalendarProps>;
+
+export interface DomPaginationProps {
+	/**
+	 * Current 1-based page.
+	 */
+	page?: number;
+	/**
+	 * Rows or items per page.
+	 */
+	pageSize?: number;
+	/**
+	 * Total available items.
+	 */
+	total?: number;
+	/**
+	 * Explicit total page count. Overrides total/pageSize when provided.
+	 */
+	pageCount?: number | null;
+	/**
+	 * Pages to show around the current page.
+	 */
+	siblingCount?: number;
+	/**
+	 * Pages to show at the beginning and end.
+	 */
+	boundaryCount?: number;
+	/**
+	 * Disable pagination controls.
+	 */
+	disabled?: boolean;
+	/**
+	 * Hide first and last buttons.
+	 */
+	compact?: boolean;
+	/**
+	 * Navigation landmark label.
+	 */
+	label?: string;
+	/**
+	 * Visual style for the current page. Use primary to restore the stronger selected treatment.
+	 */
+	activeStyle?: "secondary" | "primary";
+}
+export declare const DomPagination: DomComponent<DomPaginationProps>;
 
 export interface DomCardProps {
 	/**
@@ -1165,6 +1422,118 @@ export interface DomEmptyStateProps {
 	size?: "sm" | "md" | "lg";
 }
 export declare const DomEmptyState: DomComponent<DomEmptyStateProps>;
+
+export interface DomAlertProps {
+	/**
+	 * Element to render.
+	 */
+	as?: string;
+	/**
+	 * Semantic alert tone.
+	 */
+	tone?: "neutral" | "primary" | "success" | "warning" | "danger" | "info";
+	/**
+	 * Visual weight.
+	 */
+	variant?: "soft" | "outline";
+	/**
+	 * Fallback title when the title slot is empty.
+	 */
+	title?: string;
+	/**
+	 * Fallback body copy when the default slot is empty.
+	 */
+	description?: string;
+	/**
+	 * Show the leading status icon.
+	 */
+	icon?: boolean;
+	/**
+	 * ARIA role override. Danger and warning default to alert; other tones default to status.
+	 */
+	role?: string;
+}
+export declare const DomAlert: DomComponent<DomAlertProps>;
+
+export interface DomSkeletonProps {
+	/**
+	 * Element to render.
+	 */
+	as?: string;
+	/**
+	 * Placeholder shape.
+	 */
+	variant?: "block" | "text" | "circle";
+	/**
+	 * Number of text lines when variant is text.
+	 */
+	lines?: number;
+	/**
+	 * Optional CSS width.
+	 */
+	width?: string;
+	/**
+	 * Optional CSS height.
+	 */
+	height?: string;
+	/**
+	 * Screen reader label.
+	 */
+	label?: string;
+	/**
+	 * Pulse while content is loading.
+	 */
+	animated?: boolean;
+}
+export declare const DomSkeleton: DomComponent<DomSkeletonProps>;
+
+export interface DomProgressProps {
+	/**
+	 * Current progress value. Leave empty for indeterminate progress.
+	 */
+	value?: number | null;
+	/**
+	 * Maximum progress value.
+	 */
+	max?: number;
+	/**
+	 * Accessible progress label.
+	 */
+	label?: string;
+	/**
+	 * Filled bar tone.
+	 */
+	tone?: "primary" | "success" | "warning" | "danger" | "neutral";
+	/**
+	 * Track height.
+	 */
+	size?: "sm" | "md" | "lg";
+	/**
+	 * Show a percentage label beside the title.
+	 */
+	showValue?: boolean;
+	/**
+	 * Show an indeterminate loading bar.
+	 */
+	indeterminate?: boolean;
+}
+export declare const DomProgress: DomComponent<DomProgressProps>;
+
+export interface DomSpinnerProps {
+	/**
+	 * Screen reader label.
+	 */
+	label?: string;
+	/**
+	 * Spinner size.
+	 */
+	size?: "sm" | "md" | "lg";
+	/**
+	 * Spinner colour.
+	 */
+	tone?: "primary" | "neutral" | "success" | "warning" | "danger";
+}
+export declare const DomSpinner: DomComponent<DomSpinnerProps>;
 
 export interface DomToggleProps {
 	/**
@@ -1382,7 +1751,7 @@ export interface DomToggleButtonGroupProps {
 	/**
 	 * Button size.
 	 */
-	size?: "sm" | "md" | "lg";
+	size?: "sm" | "md" | "lg" | "icon-sm" | "icon-md";
 }
 export declare const DomToggleButtonGroup: DomComponent<DomToggleButtonGroupProps>;
 
@@ -1675,6 +2044,14 @@ export interface DomSelectProps {
 	 * Tailwind width utility for the floating listbox.
 	 */
 	width?: string;
+	/**
+	 * Show a search input inside the option panel while keeping select-style committed values.
+	 */
+	searchable?: boolean | string;
+	/**
+	 * Placeholder shown inside the panel search input.
+	 */
+	searchPlaceholder?: string;
 }
 export declare const DomSelect: DomComponent<DomSelectProps>;
 
@@ -2427,6 +2804,194 @@ export interface DomNumberInputProps {
 	step?: number;
 }
 export declare const DomNumberInput: DomComponent<DomNumberInputProps>;
+
+export interface DomMoneyInputProps {
+	/**
+	 * Current decimal amount.
+	 */
+	modelValue?: string | number;
+	/**
+	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
+	 */
+	id?: string;
+	/**
+	 * Local field name. Parent forms derive the full field path and native HTML name from the form hierarchy.
+	 */
+	name?: string;
+	/**
+	 * Visible field label.
+	 */
+	label?: string;
+	/**
+	 * Optional helper copy below the field.
+	 */
+	description?: string;
+	/**
+	 * Placeholder shown when the control is empty.
+	 */
+	placeholder?: string;
+	/**
+	 * Mark the field as required.
+	 */
+	required?: boolean;
+	/**
+	 * Disable field interaction.
+	 */
+	disabled?: boolean;
+	/**
+	 * Show the value but prevent editing.
+	 */
+	readOnly?: boolean;
+	/**
+	 * Mark the field invalid.
+	 */
+	invalid?: boolean;
+	/**
+	 * Validation errors for this field.
+	 */
+	errors?: Array<unknown> | Record<string, unknown> | string;
+	/**
+	 * Show or hide the field.
+	 */
+	visible?: boolean;
+	/**
+	 * Validators attached to this field. Use functions in Vue code, or serializable records such as { name: "minLength", props: { min: 2 } } in generated schemas.
+	 */
+	validators?: Array<unknown>;
+	/**
+	 * Run validators when the field loses focus.
+	 */
+	validateOnBlur?: boolean;
+	/**
+	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 */
+	chrome?: "field" | false;
+	/**
+	 * ISO currency code used for the visual prefix.
+	 */
+	currency?: string;
+	/**
+	 * Locale used to resolve the currency symbol.
+	 */
+	locale?: string;
+	/**
+	 * Prefix override. Defaults to the currency symbol.
+	 */
+	prefix?: string;
+	/**
+	 * Optional suffix such as per month.
+	 */
+	suffix?: string;
+	/**
+	 * Minimum numeric value.
+	 */
+	min?: number | null;
+	/**
+	 * Maximum numeric value.
+	 */
+	max?: number | null;
+	/**
+	 * Native numeric step hint.
+	 */
+	step?: number;
+	/**
+	 * Input text alignment.
+	 */
+	textAlign?: "left" | "right";
+}
+export declare const DomMoneyInput: DomComponent<DomMoneyInputProps>;
+
+export interface DomFileUploadProps {
+	/**
+	 * Selected local files or existing uploaded file metadata.
+	 */
+	modelValue?: Array<File | DomUploadedFile>;
+	/**
+	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
+	 */
+	id?: string;
+	/**
+	 * Local field name. Parent forms derive the full field path and native HTML name from the form hierarchy.
+	 */
+	name?: string;
+	/**
+	 * Visible field label.
+	 */
+	label?: string;
+	/**
+	 * Optional helper copy below the field.
+	 */
+	description?: string;
+	/**
+	 * Placeholder shown when the control is empty.
+	 */
+	placeholder?: string;
+	/**
+	 * Mark the field as required.
+	 */
+	required?: boolean;
+	/**
+	 * Disable field interaction.
+	 */
+	disabled?: boolean;
+	/**
+	 * Show the value but prevent editing.
+	 */
+	readOnly?: boolean;
+	/**
+	 * Mark the field invalid.
+	 */
+	invalid?: boolean;
+	/**
+	 * Validation errors for this field.
+	 */
+	errors?: Array<unknown> | Record<string, unknown> | string;
+	/**
+	 * Show or hide the field.
+	 */
+	visible?: boolean;
+	/**
+	 * Validators attached to this field. Use functions in Vue code, or serializable records such as { name: "minLength", props: { min: 2 } } in generated schemas.
+	 */
+	validators?: Array<unknown>;
+	/**
+	 * Run validators when the field loses focus.
+	 */
+	validateOnBlur?: boolean;
+	/**
+	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 */
+	chrome?: "field" | false;
+	/**
+	 * Native accept string, such as image/*,.pdf.
+	 */
+	accept?: string;
+	/**
+	 * Allow multiple files.
+	 */
+	multiple?: boolean;
+	/**
+	 * Maximum file count. Use 0 for no explicit limit.
+	 */
+	maxFiles?: number;
+	/**
+	 * Maximum file size in bytes. Use 0 for no explicit limit.
+	 */
+	maxSize?: number;
+	/**
+	 * Browse button label.
+	 */
+	browseLabel?: string;
+	/**
+	 * Title shown when no files are selected.
+	 */
+	emptyTitle?: string;
+	/**
+	 * Helper copy shown in the dropzone.
+	 */
+	emptyDescription?: string;
+}
+export declare const DomFileUpload: DomComponent<DomFileUploadProps>;
 
 export interface DomRangeInputProps {
 	/**
@@ -3536,7 +4101,18 @@ export declare const FORM_NODE_RESERVED_KEYS: Set<string>;
 export declare const defaultComponentByType: Record<string, string>;
 export declare const typeByComponent: Record<string, string>;
 export declare const forms: Record<string, unknown>;
+export declare const THEME_MODE_STORAGE_KEY: string;
+export declare const themeModeValues: Array<DomThemeMode>;
+export declare const resolvedTheme: ComputedRef<DomResolvedTheme>;
 
+export declare function normalizeThemeMode(value: unknown): DomThemeMode;
+export declare function resolveThemeMode(value?: unknown, prefersDark?: boolean): DomResolvedTheme;
+export declare function readThemeMode(): DomThemeMode;
+export declare function initTheme(): DomResolvedTheme;
+export declare function setThemeMode(value: unknown): DomResolvedTheme;
+export declare function cycleThemeMode(): DomResolvedTheme;
+export declare function applyThemeMode(value?: unknown): DomResolvedTheme;
+export declare function useTheme(): DomThemeApi;
 export declare function useToasts(defaults?: ToastOptions): ToastApi;
 export declare function useDialogs(defaults?: DialogOptions): DialogApi;
 export declare function sha1PasswordHash(password: string): Promise<string>;

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import DomField from '../field/DomField.vue';
+import DomTooltip from '../../components/tooltip/DomTooltip.vue';
 import { fieldProps } from '../field/fieldProps.js';
 import { useField } from '../field/useField.js';
 
@@ -33,6 +34,7 @@ const props = defineProps({
 				schema: [
 					{ key: 'label', label: 'Label', placeholder: 'Option label', default: (index) => `Option ${index + 1}` },
 					{ key: 'value', label: 'Value', placeholder: 'option-value', default: (index) => `option-${index + 1}` },
+					{ key: 'tooltip', label: 'Tooltip', placeholder: 'Choose this option' },
 				],
 			},
 		},
@@ -50,7 +52,7 @@ const props = defineProps({
 	size: {
 		type: String,
 		default: 'md',
-		_edit: { options: ['sm', 'md', 'lg'], description: 'Button size.' },
+		_edit: { options: ['sm', 'md', 'lg', 'icon-sm', 'icon-md'], description: 'Button size.' },
 	},
 });
 const emit = defineEmits(['update:modelValue', 'focus', 'blur']);
@@ -66,11 +68,39 @@ const sizeClass = computed(() => ({
 	sm: 'min-h-8 px-3 py-1.5 text-xs',
 	md: 'min-h-10 px-4 py-2 text-sm',
 	lg: 'min-h-11 px-5 py-2.5 text-base',
+	'icon-sm': 'size-8 p-0 text-xs',
+	'icon-md': 'size-10 p-0 text-sm',
 }[props.size] || 'min-h-10 px-4 py-2 text-sm'));
 
 const labelOf = (option) => (option && typeof option === 'object' ? (option.label ?? option.value) : option);
 const valueOf = (option) => String(option && typeof option === 'object' ? (option.value ?? option.label) : option);
 const selected = (option) => selectedValues.value.includes(valueOf(option));
+const tooltipOf = (option) => (option && typeof option === 'object' ? option.tooltip : '');
+const ariaLabelOf = (option) => (option && typeof option === 'object' ? (option.ariaLabel || option.tooltip || null) : null);
+
+function joinClass(index) {
+	const last = index === props.options.length - 1;
+	if (props.orientation === 'vertical') {
+		return [
+			index > 0 ? 'border-t border-border/80' : '',
+			index === 0 ? 'rounded-t-xl' : '',
+			last ? 'rounded-b-xl' : '',
+		];
+	}
+	return [
+		index > 0 ? 'border-l border-border/80' : '',
+		index === 0 ? 'rounded-l-xl' : '',
+		last ? 'rounded-r-xl' : '',
+	];
+}
+
+function buttonClass(index) {
+	return [
+		'relative inline-flex items-center justify-center gap-2 font-medium text-muted-fg outline-none transition hover:bg-secondary hover:text-canvas-fg focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring/50 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:z-10 aria-pressed:bg-canvas aria-pressed:text-canvas-fg aria-pressed:shadow-sm aria-pressed:ring-1 aria-pressed:ring-ring/30',
+		sizeClass.value,
+		joinClass(index),
+	];
+}
 
 function setButtonRef(element, index) {
 	if (element) buttons.value[index] = element;
@@ -129,31 +159,48 @@ function onKeydown(event, index, option) {
 		/>
 		<div
 			:id="field.id.value"
-				role="group"
-				:aria-label="label || undefined"
-				:aria-describedby="field.describedBy.value || undefined"
-				:aria-invalid="field.invalid.value || undefined"
-				:aria-errormessage="field.errorId.value || undefined"
-				:data-invalid="field.invalid.value ? '' : undefined"
-			class="skin-control inline-flex w-fit rounded-2xl p-1 data-[invalid]:border-destructive"
+			role="group"
+			:aria-label="label || undefined"
+			:aria-describedby="field.describedBy.value || undefined"
+			:aria-invalid="field.invalid.value || undefined"
+			:aria-errormessage="field.errorId.value || undefined"
+			:data-invalid="field.invalid.value ? '' : undefined"
+			class="skin-control inline-flex w-fit overflow-hidden rounded-xl p-0 data-[invalid]:border-destructive"
 			:class="orientation === 'vertical' ? 'flex-col' : 'flex-row'"
 		>
-			<button
-				v-for="(option, index) in options"
-				:key="valueOf(option) || index"
-				:ref="(element) => setButtonRef(element, index)"
-				type="button"
-				:aria-pressed="String(selected(option))"
-				:disabled="field.disabled.value || option?.disabled || undefined"
-				class="inline-flex items-center justify-center gap-2 rounded-xl font-medium text-muted-fg outline-none transition hover:text-canvas-fg focus-visible:ring-2 focus-visible:ring-ring/50 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 aria-pressed:bg-canvas aria-pressed:text-canvas-fg aria-pressed:shadow-sm"
-				:class="sizeClass"
-				@click="selectOption(option)"
-				@keydown="onKeydown($event, index, option)"
-				@focus="field.onFocus"
-				@blur="field.onBlur"
-			>
-				<slot name="option" :option="option" :index="index" :selected="selected(option)">{{ labelOf(option) }}</slot>
-			</button>
+			<template v-for="(option, index) in options" :key="valueOf(option) || index">
+				<DomTooltip v-if="tooltipOf(option)" :text="tooltipOf(option)" placement="top">
+					<button
+						:ref="(element) => setButtonRef(element, index)"
+						type="button"
+						:aria-label="ariaLabelOf(option) || undefined"
+						:aria-pressed="String(selected(option))"
+						:disabled="field.disabled.value || option?.disabled || undefined"
+						:class="buttonClass(index)"
+						@click="selectOption(option)"
+						@keydown="onKeydown($event, index, option)"
+						@focus="field.onFocus"
+						@blur="field.onBlur"
+					>
+						<slot name="option" :option="option" :index="index" :selected="selected(option)">{{ labelOf(option) }}</slot>
+					</button>
+				</DomTooltip>
+				<button
+					v-else
+					:ref="(element) => setButtonRef(element, index)"
+					type="button"
+					:aria-label="ariaLabelOf(option) || undefined"
+					:aria-pressed="String(selected(option))"
+					:disabled="field.disabled.value || option?.disabled || undefined"
+					:class="buttonClass(index)"
+					@click="selectOption(option)"
+					@keydown="onKeydown($event, index, option)"
+					@focus="field.onFocus"
+					@blur="field.onBlur"
+				>
+					<slot name="option" :option="option" :index="index" :selected="selected(option)">{{ labelOf(option) }}</slot>
+				</button>
+			</template>
 		</div>
 	</DomField>
 </template>

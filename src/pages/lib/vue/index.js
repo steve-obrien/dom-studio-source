@@ -2,6 +2,8 @@ export { default as DomButton } from '../../components/button/DomButton.vue';
 export { default as DomIconButton } from '../../components/icon-button/DomIconButton.vue';
 export { default as DomToolbar } from '../../components/toolbar/DomToolbar.vue';
 export { default as DomDropdown } from '../../components/dropdown/DomDropdown.vue';
+export { default as DomProfileMenu } from '../../components/profile-menu/DomProfileMenu.vue';
+export { default as DomThemeSwitcher } from '../../components/theme-switcher/DomThemeSwitcher.vue';
 export { default as DomDialog } from '../../components/dialog/DomDialog.vue';
 export { default as DomDialogStack } from '../../components/dialog/DomDialogStack.vue';
 export { default as DomDialogSchemaForm } from '../../components/dialog/DomDialogSchemaForm.vue';
@@ -11,6 +13,10 @@ export { default as DomAccordion } from '../../components/accordion/DomAccordion
 export { default as DomMenu } from '../../components/menu/DomMenu.vue';
 export { default as DomMenuItem } from '../../components/menu/DomMenuItem.vue';
 export { default as MenuItem } from '../../components/menu/DomMenuItem.vue';
+export { default as DomMenuSeparator } from '../../components/menu/DomMenuSeparator.vue';
+export { default as MenuSeparator } from '../../components/menu/DomMenuSeparator.vue';
+export { default as DomMenuLabel } from '../../components/menu/DomMenuLabel.vue';
+export { default as MenuLabel } from '../../components/menu/DomMenuLabel.vue';
 export { default as DomTreeView } from '../../components/tree-view/DomTreeView.vue';
 export { default as DomSplitterPanel } from '../../components/splitter-panel/DomSplitterPanel.vue';
 export {
@@ -33,12 +39,26 @@ export { default as DomToastStack } from '../../components/toast/DomToastStack.v
 export { default as DomToastItem } from '../../components/toast/DomToastItem.vue';
 export { default as DomCommandPalette } from '../../components/command-palette/DomCommandPalette.vue';
 export { default as DomContextMenu } from '../../components/context-menu/DomContextMenu.vue';
-export { default as DomDataGrid } from '../../components/data-grid/DomDataGrid.vue';
-export { default as DomMonthCalendar } from '../../components/month-calendar/DomMonthCalendar.vue';
-export { monthCalendarProps } from '../../components/month-calendar/DomMonthCalendar.vue';
+export { default as DomDataGrid } from '../../data/data-grid/DomDataGrid.vue';
+export { default as DomMonthCalendar } from '../../data/month-calendar/DomMonthCalendar.vue';
+export { default as DomPagination } from '../../components/pagination/DomPagination.vue';
+export { monthCalendarProps } from '../../data/month-calendar/DomMonthCalendar.vue';
 export { popoverProps } from '../../components/popover/DomPopover.vue';
 export { useToasts } from '../../components/toast/useToasts.js';
 export { useDialogs } from '../../components/dialog/useDialogs.js';
+export {
+	THEME_MODE_STORAGE_KEY,
+	applyThemeMode,
+	cycleThemeMode,
+	initTheme,
+	normalizeThemeMode,
+	readThemeMode,
+	resolveThemeMode,
+	resolvedTheme,
+	setThemeMode,
+	themeModeValues,
+	useTheme,
+} from './useTheme.js';
 
 // Visual primitives
 export { default as DomCard } from '../../visual/card/DomCard.vue';
@@ -47,6 +67,10 @@ export { default as DomStatusPill } from '../../visual/status-pill/DomStatusPill
 export { default as DomAvatar } from '../../visual/avatar/DomAvatar.vue';
 export { default as DomAvatarStack } from '../../visual/avatar-stack/DomAvatarStack.vue';
 export { default as DomEmptyState } from '../../visual/empty-state/DomEmptyState.vue';
+export { default as DomAlert } from '../../visual/alert/DomAlert.vue';
+export { default as DomSkeleton } from '../../visual/skeleton/DomSkeleton.vue';
+export { default as DomProgress } from '../../visual/progress/DomProgress.vue';
+export { default as DomSpinner } from '../../visual/spinner/DomSpinner.vue';
 
 // Form primitives
 export { default as DomToggle } from '../../forms/toggle/DomToggle.vue';
@@ -68,6 +92,8 @@ export { default as DomEmailInput } from '../../forms/email-input/DomEmailInput.
 export { default as DomUrlInput } from '../../forms/url-input/DomUrlInput.vue';
 export { default as DomTextareaInput } from '../../forms/textarea-input/DomTextareaInput.vue';
 export { default as DomNumberInput } from '../../forms/number-input/DomNumberInput.vue';
+export { default as DomMoneyInput } from '../../forms/money-input/DomMoneyInput.vue';
+export { default as DomFileUpload } from '../../forms/file-upload/DomFileUpload.vue';
 export { default as DomRangeInput } from '../../forms/range-input/DomRangeInput.vue';
 export { default as DomPositionInput } from '../../forms/position-input/DomPositionInput.vue';
 export { default as DomSelectInput } from '../../forms/select-input/DomSelectInput.vue';

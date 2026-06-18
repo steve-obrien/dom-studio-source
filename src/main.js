@@ -3,6 +3,7 @@ import App from './App.vue';
 import './style.css';
 import { routes } from './routes';
 import { getAuthState, hasEntitlement, refreshSession } from './composable/useAuth.js';
+import { initTheme } from './pages/lib/vue/useTheme.js';
 
 const siteName = 'getdom.studio';
 const globalSearchOpenEvent = 'dom-studio:open-global-search';
@@ -137,13 +138,7 @@ export function updateDocumentHead(route) {
 }
 
 function applyInitialTheme() {
-	if (typeof window === 'undefined') return;
-	const stored = window.localStorage.getItem('theme-mode') || 'system';
-	let theme = stored;
-	if (stored === 'system' || (stored !== 'light' && stored !== 'dark')) {
-		theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-	}
-	document.documentElement.dataset.theme = theme;
+	initTheme();
 }
 
 function updateMetaTag(selector, attributes) {

@@ -1,11 +1,13 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, shallowRef, useId, watch } from 'vue';
-import { normalizeOption } from '../_shared/options.js';
+import { booleanProp, normalizeOption, searchableText } from '../_shared/options.js';
 import DomField from '../field/DomField.vue';
 import { fieldProps } from '../field/fieldProps.js';
 import { useField } from '../field/useField.js';
 
-const listId = `dom-select-${useId()}`;
+const id = useId();
+const panelId = `dom-select-panel-${id}`;
+const listId = `dom-select-list-${id}`;
 
 defineOptions({
 	__doc: {
@@ -23,6 +25,7 @@ defineOptions({
 		keyboard: [
 			{ keys: 'Enter / Space / ↓', action: 'Open the listbox.' },
 			{ keys: '↑ / ↓', action: 'Move active option.' },
+			{ keys: 'Type in search', action: 'Filter visible options when searchable is enabled.' },
 			{ keys: 'Enter / Space', action: 'Select active option.' },
 			{ keys: 'Esc / Tab', action: 'Close and return focus.' },
 		],
@@ -78,19 +81,38 @@ const props = defineProps({
 		default: 'min-w-[14rem]',
 		_edit: { group: 'Control props', description: 'Tailwind width utility for the floating listbox.' },
 	},
+	searchable: {
+		type: [Boolean, String],
+		default: false,
+		_edit: { group: 'Control props', description: 'Show a search input inside the option panel while keeping select-style committed values.' },
+	},
+	searchPlaceholder: {
+		type: String,
+		default: 'Search options...',
+		_edit: { group: 'Control props', description: 'Placeholder shown inside the panel search input.' },
+	},
 });
 const emit = defineEmits(['update:modelValue', 'select', 'focus', 'blur']);
 
 const root = ref(null);
 const listbox = ref(null);
+const searchInput = ref(null);
+const searchQuery = ref('');
 const isMounted = ref(false);
 const teleportTarget = shallowRef(null);
 const field = useField(props, emit, { idPrefix: 'dom-select' });
+const isSearchable = computed(() => booleanProp(props.searchable, false));
 
 const optionList = computed(() => props.options.map((option) => normalizeOption(option, {
 	stringifyValue: true,
 	allowEmptyValue: true,
 })).filter(Boolean));
+const filteredOptions = computed(() => {
+	if (!isSearchable.value) return optionList.value;
+	const needle = searchQuery.value.trim().toLowerCase();
+	if (!needle) return optionList.value;
+	return optionList.value.filter((option) => searchableText(option).includes(needle));
+});
 const selectedOption = computed(() => optionList.value.find((option) => String(option.value) === String(field.value.value)) || null);
 const selectedLabel = computed(() => selectedOption.value?.label ?? '');
 const selectedValue = computed(() => String(field.value.value ?? ''));
@@ -109,10 +131,15 @@ onMounted(async () => {
 		import('../../lib/headless/listbox.js'),
 	]);
 	listbox.value?.addEventListener('dom:select', onSelect);
+	root.value?.addEventListener('dom:open', onOpen);
+	root.value?.addEventListener('dom:close', resetSearch);
 });
 
 watch(selectedValue, () => {
 	if (listbox.value && listbox.value.value !== selectedValue.value) listbox.value.value = selectedValue.value;
+});
+watch(isSearchable, () => {
+	if (!isSearchable.value) resetSearch();
 });
 
 function onSelect(event) {
@@ -128,8 +155,58 @@ function onSelect(event) {
 	close();
 }
 
+function onOpen() {
+	resetSearch();
+	if (!isSearchable.value) return;
+	nextTick(() => searchInput.value?.focus());
+}
+
 function close() {
 	if (root.value) root.value.open = false;
+}
+
+function resetSearch() {
+	searchQuery.value = '';
+	if (searchInput.value) searchInput.value.value = '';
+}
+
+function selectOption(option) {
+	if (!option || option.disabled) return;
+	onSelect({
+		detail: { value: option.value },
+	});
+}
+
+function focusVisibleOption(position = 'first') {
+	const options = Array.from(listbox.value?.querySelectorAll('[role="option"]:not([disabled])') || [])
+		.filter((option) => option.getAttribute('aria-disabled') !== 'true');
+	if (!options.length) return;
+	const option = position === 'last' ? options[options.length - 1] : options[0];
+	option.focus();
+}
+
+function onSearchKeydown(event) {
+	if (event.key === 'ArrowDown') {
+		event.preventDefault();
+		event.stopPropagation();
+		focusVisibleOption('first');
+		return;
+	}
+	if (event.key === 'ArrowUp') {
+		event.preventDefault();
+		event.stopPropagation();
+		focusVisibleOption('last');
+		return;
+	}
+	if (event.key === 'Enter') {
+		event.preventDefault();
+		event.stopPropagation();
+		selectOption(filteredOptions.value[0]);
+		return;
+	}
+	if (event.key === 'Home' || event.key === 'End') {
+		event.stopPropagation();
+	}
 }
 </script>
 
@@ -143,7 +220,7 @@ function close() {
 		/>
 		<dom-dropdown
 			ref="root"
-			:data-menu-id="listId"
+			:data-menu-id="panelId"
 			:align="align"
 			:placement="placement"
 			:floating-mode="floatingMode"
@@ -161,6 +238,7 @@ function close() {
 				:aria-describedby="field.describedBy.value || undefined"
 				:aria-invalid="field.invalid.value || undefined"
 				:aria-errormessage="field.errorId.value || undefined"
+				:aria-controls="panelId"
 				@focus="field.onFocus"
 				@blur="field.onBlur"
 			>
@@ -182,30 +260,53 @@ function close() {
 				</svg>
 			</button>
 			<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
-				<dom-listbox
-					:id="listId"
-					ref="listbox"
-					:value="selectedValue"
+				<div
+					:id="panelId"
 					data-composite-panel="true"
 					data-haspopup="listbox"
-					class="dom-dropdown-menu dom-floating-transition skin-popover z-50 max-h-[min(18rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"
+					class="dom-dropdown-menu dom-floating-transition skin-popover z-50 flex max-h-[min(20rem,var(--dom-floating-available-height))] flex-col overflow-hidden rounded-2xl p-0"
 					:class="width"
 				>
-					<button
-						v-for="(option, index) in optionList"
-						:key="option.value ?? index"
-						role="option"
-						type="button"
-						:data-value="option.value"
-						:disabled="option.disabled || undefined"
-						class="block w-full cursor-pointer rounded-xl px-3 py-2 text-left text-sm text-canvas-fg outline-none transition hover:bg-accent focus:bg-accent aria-selected:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+					<div v-if="isSearchable" class="border-b border-border p-2">
+						<input
+							ref="searchInput"
+							v-model="searchQuery"
+							type="search"
+							data-autofocus
+							:placeholder="searchPlaceholder"
+							:aria-label="label ? `Search ${label}` : 'Search options'"
+							:aria-controls="listId"
+							class="skin-input h-9 w-full rounded-full px-3 text-sm focus:ring-ring/60"
+							@focus="field.onFocus"
+							@blur="field.onBlur"
+							@keydown="onSearchKeydown"
+						/>
+					</div>
+					<dom-listbox
+						:id="listId"
+						ref="listbox"
+						:value="selectedValue"
+						class="min-h-0 overflow-auto p-1"
 					>
-						<slot name="option" :option="option" :index="index" :selected="String(option.value) === selectedValue">
-							<span class="block font-medium">{{ option.label }}</span>
-							<span v-if="option.description" class="mt-0.5 block text-xs text-muted-fg">{{ option.description }}</span>
-						</slot>
-					</button>
-				</dom-listbox>
+						<button
+							v-for="(option, index) in filteredOptions"
+							:key="option.value ?? index"
+							role="option"
+							type="button"
+							:data-value="option.value"
+							:disabled="option.disabled || undefined"
+							class="block w-full cursor-pointer rounded-xl px-3 py-2 text-left text-sm text-canvas-fg outline-none transition hover:bg-accent focus:bg-accent aria-selected:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							<slot name="option" :option="option" :index="index" :selected="String(option.value) === selectedValue">
+								<span class="block font-medium">{{ option.label }}</span>
+								<span v-if="option.description" class="mt-0.5 block text-xs text-muted-fg">{{ option.description }}</span>
+							</slot>
+						</button>
+						<div v-if="isSearchable && !filteredOptions.length" class="px-3 py-6 text-center text-sm text-muted-fg">
+							No options found
+						</div>
+					</dom-listbox>
+				</div>
 			</Teleport>
 		</dom-dropdown>
 	</DomField>

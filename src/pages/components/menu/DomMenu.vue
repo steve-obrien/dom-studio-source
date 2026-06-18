@@ -19,8 +19,11 @@ defineOptions({
 		slots: [
 			{ name: '(default)', description: 'Custom <MenuItem> rows when you want markup-driven menus instead of the items prop.' },
 			{ name: 'item', payload: '{ item, index, value, label, checked, open, hasChildren }', description: 'Custom label/body content inside the default menu row.' },
+			{ name: 'item-accessory', payload: '{ item, index, value, label, checked, open, hasChildren }', description: 'Custom right-side content for rows that expose shortcuts, children, checks, or accessorySlot.' },
 			{ name: 'item-row', payload: '{ item, index, value, label, checked, open, hasChildren }', description: 'Replace the full inner row markup while DomMenu keeps the interactive wrapper.' },
+			{ name: 'item-label', payload: '{ item, index, value, label }', description: 'Replace the markup for non-selectable label/static rows.' },
 			{ name: 'item.slot', payload: '{ item, index, value, label, checked, open, hasChildren }', description: 'Set item.slot to a named slot for per-item row markup.' },
+			{ name: 'item.accessorySlot', payload: '{ item, index, value, label, checked, open, hasChildren }', description: 'Set item.accessorySlot to a named slot for per-item right-side accessory content.' },
 		],
 		events: [
 			{ name: 'select', payload: '({ value, item })', description: 'Fired when an item is selected.' },
@@ -72,12 +75,12 @@ onMounted(async () => {
 	await import('../../lib/headless/menu.js');
 	root.value?.addEventListener('dom:select', (event) => emitSelect({
 		value: event.detail.value,
-		item: itemForValue(event.detail.value),
+		item: itemForValue(event.detail.value) || event.detail.item,
 	}));
 	root.value?.addEventListener('dom:change', (event) => emitChange({
 		value: event.detail.value,
 		checked: event.detail.checked,
-		item: itemForValue(event.detail.value),
+		item: itemForValue(event.detail.value) || event.detail.item,
 	}));
 	root.value?.addEventListener('dom:submenu', (event) => {
 		if (!hasItemPropRows.value) return;
@@ -95,8 +98,14 @@ onMounted(async () => {
 const labelOf = (item) => (item && typeof item === 'object' ? (item.label ?? item.value) : item);
 const valueOf = (item) => String(item && typeof item === 'object' ? (item.value ?? item.label) : item);
 const hasChildren = (item) => Array.isArray(item?.children) && item.children.length > 0;
+const isCheckable = (item) => item?.type === 'checkbox' || item?.type === 'radio';
+const isStaticItem = (item) => item?.type === 'label' || item?.type === 'static' || item?.static === true || item?.selectable === false;
+const hasCheckAccessory = (item) => isCheckable(item) && item?.checkPlacement !== 'start';
+const hasCustomAccessory = (item) => Boolean(item?.accessorySlot || item?.accessory);
+const hasAccessory = (item) => hasCustomAccessory(item) || hasChildren(item) || hasCheckAccessory(item) || Boolean(item?.shortcut);
 const itemTag = (item) => item?.as || (item?.href ? 'a' : 'button');
 const slotNameOf = (item) => item?.slot || 'item-row';
+const accessorySlotNameOf = (item) => item?.accessorySlot || item?.accessory || 'item-accessory';
 const slotProps = (item, index) => {
 	const value = valueOf(item);
 	return {
@@ -198,11 +207,17 @@ function onSubmenuKeydown(event, item) {
 }
 
 function onSelect(event) {
+	if (isCheckable(event.item)) return;
 	openPath.value = '';
 }
 
 function onChange() {
 	// Nested DomMenu instances propagate change through menuContext.
+}
+
+function onAccessoryKeydown(event) {
+	if (event.key === 'Tab' || event.key === 'Escape') return;
+	event.stopPropagation();
 }
 
 function setSubmenuPanel(element) {
@@ -238,12 +253,57 @@ onBeforeUnmount(() => {
 		<template v-for="(item, index) in items" v-else :key="valueOf(item) || index">
 			<hr v-if="item && item.separator" class="my-1 border-t border-border" />
 			<div
+				v-else-if="isStaticItem(item)"
+				role="presentation"
+				class="rounded-xl px-3 py-2 text-sm text-muted-fg"
+			>
+				<slot :name="slotNameOf(item)" v-bind="slotProps(item, index)">
+					<slot name="item-label" v-bind="slotProps(item, index)">
+						<span class="block truncate text-xs font-medium text-muted-fg">{{ labelOf(item) }}</span>
+						<span v-if="item?.description" class="mt-0.5 block truncate text-sm font-medium text-canvas-fg">
+							{{ item.description }}
+						</span>
+					</slot>
+				</slot>
+			</div>
+			<div
 				v-else
 				class="relative"
 				@mouseenter="hasChildren(item) && openSubmenu(valueOf(item), $event.currentTarget.querySelector('[role=menuitem]'))"
 				@mouseleave="hasChildren(item) && maybeCloseSubmenu($event, valueOf(item))"
 			>
+				<div
+					v-if="hasCustomAccessory(item)"
+					class="flex w-full items-center gap-2 rounded-xl transition hover:bg-secondary focus-within:bg-secondary"
+				>
+					<component
+						:is="itemTag(item)"
+						v-bind="focusableAttrs(item)"
+						:role="roleOf(item)"
+						:data-value="valueOf(item)"
+						:aria-haspopup="hasChildren(item) ? 'menu' : null"
+						:aria-expanded="hasChildren(item) ? String(openPath === valueOf(item)) : null"
+						:aria-checked="item?.checked == null ? null : String(item.checked)"
+						:aria-disabled="item?.disabled ? 'true' : null"
+						:disabled="item?.disabled || null"
+						class="group/menu-item flex min-w-0 flex-1 items-center gap-3 rounded-xl py-2 pl-3 pr-1 text-left text-sm text-canvas-fg outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50 aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[tone=danger]:text-destructive"
+						:data-tone="item?.tone || null"
+						@keydown="onItemKeydown($event, item)"
+					>
+						<slot :name="slotNameOf(item)" v-bind="slotProps(item, index)">
+							<span class="min-w-0">
+								<slot name="item" v-bind="slotProps(item, index)">{{ labelOf(item) }}</slot>
+							</span>
+						</slot>
+					</component>
+					<span data-dom-menu-accessory class="mr-2 shrink-0" @pointerdown.stop @click.stop @keydown="onAccessoryKeydown">
+						<slot :name="accessorySlotNameOf(item)" v-bind="slotProps(item, index)">
+							<slot name="item-accessory" v-bind="slotProps(item, index)" />
+						</slot>
+					</span>
+				</div>
 				<component
+					v-else
 					:is="itemTag(item)"
 					v-bind="focusableAttrs(item)"
 					:role="roleOf(item)"
@@ -253,7 +313,7 @@ onBeforeUnmount(() => {
 					:aria-checked="item?.checked == null ? null : String(item.checked)"
 					:aria-disabled="item?.disabled ? 'true' : null"
 					:disabled="item?.disabled || null"
-					class="flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm text-canvas-fg outline-none transition hover:bg-secondary focus:bg-secondary aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[tone=danger]:text-destructive"
+					class="group/menu-item flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm text-canvas-fg outline-none transition hover:bg-secondary focus:bg-secondary aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[tone=danger]:text-destructive"
 					:data-tone="item?.tone || null"
 					@keydown="onItemKeydown($event, item)"
 				>
@@ -261,13 +321,20 @@ onBeforeUnmount(() => {
 						<span class="min-w-0">
 							<slot name="item" v-bind="slotProps(item, index)">{{ labelOf(item) }}</slot>
 						</span>
-						<span v-if="hasChildren(item)" aria-hidden="true" class="text-xs text-muted-fg">›</span>
-						<span
-							v-else-if="item?.type === 'checkbox' || item?.type === 'radio'"
-							aria-hidden="true"
-							class="text-xs text-muted-fg transition"
-							:class="item?.checked ? 'opacity-100' : 'opacity-0'"
-						>✓</span>
+						<span v-if="hasAccessory(item)" class="ml-auto flex shrink-0 items-center gap-2 text-xs text-muted-fg">
+							<slot :name="accessorySlotNameOf(item)" v-bind="slotProps(item, index)">
+								<slot name="item-accessory" v-bind="slotProps(item, index)">
+									<span v-if="item?.shortcut">{{ item.shortcut }}</span>
+									<span v-if="hasChildren(item)" aria-hidden="true">›</span>
+									<span
+										v-else-if="hasCheckAccessory(item)"
+										aria-hidden="true"
+										class="transition"
+										:class="item?.checked ? 'opacity-100' : 'opacity-0'"
+									>✓</span>
+								</slot>
+							</slot>
+						</span>
 					</slot>
 				</component>
 			</div>

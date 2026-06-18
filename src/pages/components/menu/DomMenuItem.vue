@@ -19,6 +19,7 @@ defineOptions({
 		description: 'Markup-driven menu row for DomMenu, including optional submenu content through the submenu slot.',
 		slots: [
 			{ name: '(default)', description: 'Custom row markup.' },
+			{ name: 'accessory', description: 'Right-side content rendered beside the menu item, useful for controls, shortcuts, and status.' },
 			{ name: 'submenu', description: 'Nested <MenuItem> rows shown as a submenu.' },
 		],
 	},
@@ -60,6 +61,7 @@ const slots = useSlots();
 const open = ref(false);
 const trigger = ref(null);
 const submenuPanel = ref(null);
+const hasAccessory = computed(() => Boolean(slots.accessory));
 const hasSubmenu = computed(() => Boolean(slots.submenu));
 const closeTimer = createSubmenuCloseTimer((focusBack = false) => closeSubmenu(focusBack));
 
@@ -141,8 +143,15 @@ function onSubmenuKeydown(event) {
 	closeSubmenu(true);
 }
 
-function onNestedSelect() {
+function onNestedSelect(event) {
+	const role = event?.item?.getAttribute?.('role');
+	if (role === 'menuitemcheckbox' || role === 'menuitemradio') return;
 	closeSubmenu(false);
+}
+
+function onAccessoryKeydown(event) {
+	if (event.key === 'Tab' || event.key === 'Escape') return;
+	event.stopPropagation();
 }
 
 onBeforeUnmount(() => {
@@ -157,7 +166,36 @@ onBeforeUnmount(() => {
 		@mouseenter="openSubmenu(false)"
 		@mouseleave="maybeCloseSubmenu"
 	>
+		<div
+			v-if="hasAccessory"
+			class="flex w-full items-center gap-2 rounded-xl transition hover:bg-secondary focus-within:bg-secondary"
+		>
+			<component
+				:is="tag"
+				ref="trigger"
+				v-bind="focusableAttrs"
+				:role="role"
+				:data-value="String(value)"
+				:data-custom-submenu="hasSubmenu ? 'true' : null"
+				:aria-haspopup="hasSubmenu ? 'menu' : null"
+				:aria-expanded="hasSubmenu ? String(open) : null"
+				:aria-checked="checked == null ? null : String(checked)"
+				:aria-disabled="disabled ? 'true' : null"
+				:disabled="disabled || null"
+				class="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-xl py-2 pl-3 pr-1 text-left text-sm text-canvas-fg outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50 aria-disabled:cursor-not-allowed aria-disabled:opacity-50 data-[tone=danger]:text-destructive"
+				:data-tone="tone"
+				@click="onClick"
+				@keydown="onKeydown"
+			>
+				<slot />
+				<span v-if="hasSubmenu" aria-hidden="true" class="text-xs text-muted-fg">›</span>
+			</component>
+			<span data-dom-menu-accessory class="mr-2 shrink-0" @pointerdown.stop @click.stop @keydown="onAccessoryKeydown">
+				<slot name="accessory" />
+			</span>
+		</div>
 		<component
+			v-else
 			:is="tag"
 			ref="trigger"
 			v-bind="focusableAttrs"

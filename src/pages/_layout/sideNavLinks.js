@@ -7,7 +7,7 @@ import {
 import { inspectComponentRecord } from './componentInspector.js';
 import { getBlockNavItems } from '../blocks/blockRegistry.js';
 
-const sidebarComponentSectionOrder = ['components', 'forms', 'mobile', 'visual'];
+const sidebarComponentSectionOrder = ['components', 'data', 'forms', 'mobile', 'visual'];
 
 export const staticIconPaths = {
 	'AI builders': 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Zm6 9 .9 2.6 2.6.9-2.6.9L18 20l-.9-2.6-2.6-.9 2.6-.9L18 12Z',
@@ -18,6 +18,11 @@ export const staticIconPaths = {
 	Studio: 'M4 5h16v14H4V5Zm4 4h8M8 13h5',
 	Playground: 'M8 4l8 8-8 8',
 	Mobile: 'M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm3 15h4',
+	Data: 'M5 7c0-2 14-2 14 0v10c0 2-14 2-14 0V7Zm0 0c0 2 14 2 14 0M5 12c0 2 14 2 14 0',
+	'Media browser': 'M5 6h14v12H5V6Zm3 9 3-3 2 2 2-3 3 4M8 9h.01',
+	'Media Browser': 'M5 6h14v12H5V6Zm3 9 3-3 2 2 2-3 3 4M8 9h.01',
+	'Data grid': 'M5 5h14v14H5V5Zm0 5h14M5 14h14M10 5v14M15 5v14',
+	'Data Grid': 'M5 5h14v14H5V5Zm0 5h14M5 14h14M10 5v14M15 5v14',
 	Dashboard: 'M4 5h7v7H4V5Zm9 0h7v5h-7V5ZM4 14h7v5H4v-5Zm9-2h7v7h-7v-7Z',
 	Chat: 'M5 6h14v9H9l-4 4V6Z',
 	Mail: 'M4 6h16v12H4V6Zm0 0 8 7 8-7',
@@ -40,12 +45,17 @@ export const staticIconPaths = {
 	'Command palette': 'M6 7h12M8 12h8M8 17h4M17 15l2 2-2 2',
 	Menu: 'M6 7h12M6 12h12M6 17h12',
 	Toast: 'M6 7h12v8H9l-3 3V7Z',
+	Pagination: 'M7 8l-4 4 4 4M17 8l4 4-4 4M10 12h4',
 	Card: 'M5 7h14v10H5V7Zm3 3h8M8 14h5',
 	Badge: 'M7 8h10a4 4 0 0 1 0 8H7a4 4 0 0 1 0-8Zm2 4h.01M13 12h2',
 	'Status pill': 'M8 8h8a4 4 0 0 1 0 8H8a4 4 0 0 1 0-8Zm2 4h.01M14 12h2',
 	Avatar: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 20a7 7 0 0 1 14 0',
 	'Avatar stack': 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 1a3 3 0 1 0 0-6M4 20a5 5 0 0 1 10 0M13 20a5 5 0 0 1 7-4.5',
 	'Empty state': 'M6 7h12v10H6V7Zm3 4h6M10 15h4',
+	Alert: 'M12 4l9 16H3L12 4Zm0 5v4M12 17h.01',
+	Skeleton: 'M5 7h14M5 12h10M5 17h7',
+	Progress: 'M5 12h14M5 12a3 3 0 0 1 3-3h8a3 3 0 0 1 0 6H8a3 3 0 0 1-3-3Z',
+	Spinner: 'M12 4a8 8 0 1 1-8 8',
 	Combobox: 'M5 7h14M7 12h8M7 17h5',
 	Select: 'M6 7h12v10H6V7Zm3 4h6M10 14l2 2 2-2',
 	Autocomplete: 'M5 11h10M5 16h7M16 16l3 3M14 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z',
@@ -63,6 +73,10 @@ export const staticIconPaths = {
 	'Native select': 'M6 7h12v10H6V7Zm4 4h4M9 14l3 3 3-3',
 	'Number input': 'M9 5l-2 14M15 5l-2 14M5 9h14M5 15h14',
 	'Number Input': 'M9 5l-2 14M15 5l-2 14M5 9h14M5 15h14',
+	'Money input': 'M12 5v14M7 8h7a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h8',
+	'Money Input': 'M12 5v14M7 8h7a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h8',
+	'File upload': 'M12 16V4M8 8l4-4 4 4M5 16v3h14v-3',
+	'File Upload': 'M12 16V4M8 8l4-4 4 4M5 16v3h14v-3',
 	'Password input': 'M7 11V8a5 5 0 0 1 10 0v3M6 11h12v8H6v-8Zm6 3v2',
 	'Radio group': 'M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0-5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z',
 	'Select input': 'M6 7h12v10H6V7Zm3 4h6M10 14l2 2 2-2',
@@ -140,6 +154,7 @@ function groupsFromDiscoveredComponents() {
 			label: labelFromSection(section),
 			items: [
 				...(section === 'forms' ? [{ to: '/forms', label: 'Overview', icon: staticIconPaths.Overview }] : []),
+				...(section === 'data' ? [{ to: '/data', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...Array.from(families.values())
 					.filter((family) => family[0]?.section === section)
 					.map(navItemFromFamily),

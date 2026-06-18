@@ -1,5 +1,5 @@
 <script setup>
-import { nextTick, onMounted, ref, shallowRef, useId } from 'vue';
+import { computed, nextTick, onMounted, ref, shallowRef, useId, useSlots } from 'vue';
 
 defineOptions({
 	__doc: {
@@ -7,6 +7,7 @@ defineOptions({
 		tag: '<DomDropdown>',
 		description: 'A menu that opens from a button — fully keyboard accessible, with focus return, optional scroll lock, and outside-click handling.',
 		slots: [
+			{ name: '(default)', payload: '{ close, open, toggle }', description: 'Custom panel content, usually a DomMenu composed with MenuItem rows.' },
 			{ name: 'trigger', description: 'Replaces the inner content of the trigger button.' },
 			{ name: 'item', payload: '{ item, index }', description: 'Replaces the rendering of each menu item.' },
 			{ name: 'panel', payload: '{ close, open, toggle }', description: 'Replaces menu items with custom dropdown content, such as a tree view or form.' },
@@ -92,12 +93,40 @@ const props = defineProps({
 			description: 'Accessible popup type. Use tree/dialog/etc when rendering the #panel slot.',
 		},
 	},
+	autoFocusPanel: {
+		type: Boolean,
+		default: true,
+		_edit: { description: 'Focus the first focusable element when opening a custom panel.' },
+	},
+	focusValue: {
+		type: [String, Number],
+		default: null,
+		_edit: { description: 'Menu item value to prefer when opening from the keyboard.' },
+	},
+	disabled: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Disable the trigger and prevent the dropdown from opening.' },
+	},
+	triggerClass: {
+		type: [String, Array, Object],
+		default: null,
+		_edit: { description: 'Override the trigger button classes when composing dropdowns into toolbars or compact controls.' },
+	},
+	showIndicator: {
+		type: Boolean,
+		default: true,
+		_edit: { description: 'Show the chevron indicator in the trigger.' },
+	},
 });
 const emit = defineEmits(['select']);
 
 const root = ref(null);
 const isMounted = ref(false);
 const teleportTarget = shallowRef(null);
+const slots = useSlots();
+const hasDefaultPanel = computed(() => Boolean(slots.default && !slots.panel));
+const hasCustomPanel = computed(() => Boolean(slots.panel || slots.default));
 
 onMounted(async () => {
 	teleportTarget.value = root.value?.ownerDocument?.body || document.body;
@@ -122,6 +151,14 @@ function toggle() {
 	root.value?.toggle?.();
 }
 
+function onPanelDomSelect(event) {
+	if (!slots.default) return;
+	emit('select', event.detail?.value);
+	const role = event.detail?.item?.getAttribute?.('role');
+	if (role === 'menuitemcheckbox' || role === 'menuitemradio') return;
+	close();
+}
+
 defineExpose({
 	open,
 	close,
@@ -144,22 +181,27 @@ defineExpose({
 		<button
 			slot="trigger"
 			type="button"
-			class="skin-control inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium transition hover:brightness-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+			:disabled="disabled || null"
+			:class="triggerClass || 'skin-control inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-medium transition hover:brightness-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 disabled:cursor-not-allowed disabled:opacity-50'"
 		>
 			<slot name="trigger">{{ label }}</slot>
-			<svg viewBox="0 0 20 20" class="size-4 opacity-70" fill="none">
+			<svg v-if="showIndicator" viewBox="0 0 20 20" class="size-4 opacity-70" fill="none">
 				<path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
 			</svg>
 		</button>
 		<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
 			<div
 				:id="menuId"
-				class="dom-dropdown-menu dom-floating-transition skin-popover rounded-2xl p-1"
-				:class="width"
-				:data-composite-panel="$slots.panel ? 'true' : null"
-				:data-haspopup="$slots.panel ? panelType : null"
+				class="dom-dropdown-menu dom-floating-transition"
+				:class="[width, hasDefaultPanel ? '' : 'skin-popover rounded-2xl p-1']"
+				:data-composite-panel="hasCustomPanel ? 'true' : null"
+				:data-haspopup="hasCustomPanel ? panelType : null"
+				:data-autofocus-panel="autoFocusPanel ? null : 'false'"
+				:data-focus-value="focusValue === null || focusValue === undefined || focusValue === '' ? null : String(focusValue)"
+				@dom:select="onPanelDomSelect"
 			>
 				<slot v-if="$slots.panel" name="panel" :close="close" :open="open" :toggle="toggle" />
+				<slot v-else-if="$slots.default" :close="close" :open="open" :toggle="toggle" />
 				<template v-else>
 					<template v-for="(item, i) in items" :key="valueOf(item) ?? i">
 						<hr v-if="item && item.separator" class="my-1 border-t border-border" />

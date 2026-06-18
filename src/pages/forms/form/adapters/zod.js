@@ -161,8 +161,12 @@ function componentFor(schema, path, options) {
 
 	if (override) return override;
 	if (values) return 'DomSelect';
+	if (format === 'binary' || format === 'file') return 'DomFileUpload';
+	if (format === 'currency' || format === 'money' || format === 'decimal') return 'DomMoneyInput';
 	if (format === 'email') return 'DomEmailInput';
 	if (format === 'url') return 'DomUrlInput';
+	if (/decimal|currency|money/.test(type)) return 'DomMoneyInput';
+	if (/file/.test(type)) return 'DomFileUpload';
 	if (/number|bigint|int|float|double/.test(type)) return 'DomNumberInput';
 	if (/boolean|bool/.test(type)) return 'DomToggle';
 	if (/date/.test(type)) return 'DomCalendar';

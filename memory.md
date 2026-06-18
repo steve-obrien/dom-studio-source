@@ -10,7 +10,7 @@ The public package is `@getdom/studio`. It exports Vue components from `src/page
 
 Inventory from this review:
 
-- 65 auto-discovered Vue primitives across components, forms, mobile, and visual.
+- 65 auto-discovered Vue primitives across components, data, forms, mobile, and visual.
 - 73 block pages under `src/pages/blocks`.
 - 77 block example files.
 - 21 headless library modules.
@@ -32,7 +32,7 @@ The root app is server-rendered Vue 3 through the local `packages/now` framework
 - `packages/now/src/framework/server/createNowServer.js` mounts request context, API routes, Vite middleware in development, static assets and compression in production, and SSR rendering for pages.
 - `src/main.js` creates the Vue app through `createNowApp`, installs router behavior, applies theme mode, and guards entitlement-gated routes.
 - `src/entry-server.js` performs SSR, hydrates auth and billing offer payloads, handles paywall redirects, applies route head metadata, and sets 404 status.
-- `src/routes.js` combines manual routes, file-based `Index.vue` routes, generated component routes, block legacy redirects, form redirects, docs redirects, and the catch-all 404.
+- `src/routes.js` combines manual routes, file-based `Index.vue` routes, generated component routes, block legacy redirects, moved component-section redirects, docs redirects, and the catch-all 404.
 
 Default local server configuration is in `now.config.js`: host `0.0.0.0`, port `3333`, API prefix `/api`, API directory `server/api`, SSR template `index.html`.
 
@@ -43,11 +43,12 @@ Most pages are discovered from `src/pages/**/Index.vue`. Some pages are manually
 Component docs are generated from `Dom*.vue` files under:
 
 - `src/pages/components/*/Dom*.vue`
+- `src/pages/data/*/Dom*.vue`
 - `src/pages/forms/*/Dom*.vue`
 - `src/pages/mobile/*/Dom*.vue`
 - `src/pages/visual/*/Dom*.vue`
 
-`src/pages/_layout/componentManager.js` turns these files into component records and routes. Forms also get redirects from `/components/:slug` to `/forms/:slug`.
+`src/pages/_layout/componentManager.js` turns these files into component records and routes. Forms and data components also get redirects from `/components/:slug` to their current section route.
 
 Blocks are discovered by `src/pages/blocks/blockRegistry.js` from `Index.vue` files under `src/pages/blocks`. The nested folder path is the canonical route, for example:
 

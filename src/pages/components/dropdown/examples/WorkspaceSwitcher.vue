@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
+import { RouterLink } from 'vue-router';
 import { DomAvatar, DomAvatarStack, DomBadge, DomDropdown, DomStatusPill } from '@getdom/studio/vue';
 
 const workspaces = [
@@ -52,8 +53,8 @@ const current = computed(() => workspaces.find((workspace) => workspace.value ==
 </script>
 
 <template>
-	<div class="w-full max-w-sm">
-		<DomDropdown :items="workspaces" width="min-w-[22rem]" @select="(value) => selected = value">
+	<div class="grid w-full max-w-sm gap-3">
+		<DomDropdown :items="workspaces" :focus-value="selected" width="min-w-[22rem]" @select="(value) => selected = value">
 			<template #trigger>
 				<span class="flex min-w-0 items-center gap-2">
 					<DomAvatar :src="current?.src" :name="current?.label" :initials="current?.initials" size="xs" />
@@ -79,5 +80,8 @@ const current = computed(() => workspaces.find((workspace) => workspace.value ==
 				</span>
 			</template>
 		</DomDropdown>
+		<p class="text-xs leading-5 text-muted-fg">
+			Use <RouterLink to="/forms/select" class="font-medium text-canvas-fg underline-offset-4 hover:underline">DomSelect</RouterLink> when workspace selection needs form semantics.
+		</p>
 	</div>
 </template>

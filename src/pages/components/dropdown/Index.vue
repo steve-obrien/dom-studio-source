@@ -22,6 +22,8 @@ import StatusMenu from './examples/StatusMenu.vue';
 import StatusMenuSrc from './examples/StatusMenu.vue?raw';
 import Actions from './examples/Actions.vue';
 import ActionsSrc from './examples/Actions.vue?raw';
+import ComposedMenu from './examples/ComposedMenu.vue';
+import ComposedMenuSrc from './examples/ComposedMenu.vue?raw';
 import TreePanel from './examples/TreePanel.vue';
 import TreePanelSrc from './examples/TreePanel.vue?raw';
 
@@ -93,6 +95,16 @@ const playgroundItems = [
 					description="Items with separator: true draw a divider. tone: 'danger' colours destructive rows red."
 				>
 					<Actions />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Composed menu">
+				<Example
+					:source="ComposedMenuSrc"
+					filename="ComposedMenu.vue"
+					description="Use the default slot for a composed DomMenu panel. MenuItem keeps selection and keyboard behaviour while #accessory and MenuLabel handle rich row content."
+				>
+					<ComposedMenu />
 				</Example>
 			</DocSection>
 

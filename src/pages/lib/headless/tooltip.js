@@ -24,6 +24,7 @@ dom-tooltip {
 [data-dom-tooltip] {
 	position: fixed;
 	z-index: 70;
+	margin: 0;
 	max-width: min(18rem, calc(100vw - 1rem));
 	padding: 0.375rem 0.625rem;
 	border-radius: 0.5rem;
@@ -35,6 +36,10 @@ dom-tooltip {
 	box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.25);
 	white-space: normal;
 	pointer-events: none;
+}
+[data-dom-tooltip][popover] {
+	margin: 0;
+	overflow: visible;
 }
 [data-dom-tooltip][data-floating-effect="fade"] {
 	opacity: 0;
@@ -119,6 +124,7 @@ export class DomTooltipElement extends DomElementBase {
 		this._bubble.setAttribute('data-placement', this.getAttribute('placement') || 'top');
 		this._bubble.dataset.domTooltip = '';
 		this._bubble.dataset.floatingEffect = 'fade';
+		this._bubble.setAttribute('popover', 'manual');
 		this._bubble.setAttribute('aria-hidden', 'true');
 		this._bubble.hidden = true;
 		this._bubble.textContent = this.getAttribute('text') || '';
@@ -143,6 +149,32 @@ export class DomTooltipElement extends DomElementBase {
 		};
 	}
 
+	_isBubblePopoverOpen(bubble = this._bubble) {
+		try {
+			return Boolean(bubble?.matches?.(':popover-open'));
+		} catch {
+			return false;
+		}
+	}
+
+	_showBubblePopover(bubble = this._bubble) {
+		if (!bubble?.showPopover || this._isBubblePopoverOpen(bubble)) return;
+		try {
+			bubble.showPopover();
+		} catch {
+			// Browsers without Popover API support keep the fixed-position fallback.
+		}
+	}
+
+	_hideBubblePopover(bubble = this._bubble) {
+		if (!bubble?.hidePopover || !this._isBubblePopoverOpen(bubble)) return;
+		try {
+			bubble.hidePopover();
+		} catch {
+			// Ignore stale popover state during disconnects or browser fallback paths.
+		}
+	}
+
 	_place() {
 		if (!this._trigger || !this._bubble || this._bubble.hidden) return null;
 		return applyFloatingPosition(this._trigger, this._bubble, this._positionOptions());
@@ -160,6 +192,7 @@ export class DomTooltipElement extends DomElementBase {
 
 	_finishHide(bubble = this._bubble) {
 		if (!bubble) return;
+		this._hideBubblePopover(bubble);
 		bubble.hidden = true;
 		bubble.setAttribute('aria-hidden', 'true');
 		resetFloatingEffectState(bubble);
@@ -176,6 +209,7 @@ export class DomTooltipElement extends DomElementBase {
 			bubble.removeAttribute('aria-hidden');
 			const showNow = () => {
 				bubble.hidden = false;
+				this._showBubblePopover(bubble);
 				this._place();
 				this._bindReflow();
 			};

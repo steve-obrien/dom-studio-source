@@ -41,7 +41,7 @@ const options = [
 				<Example
 					:source="RichWorkspaceSrc"
 					filename="RichWorkspace.vue"
-					description="The value and option slots let a select show avatars, badges, descriptions, and counts while v-model stores a simple value."
+					description="The searchable panel opens to the full option list, then filters rich rows as the user types while v-model stores a simple value."
 				>
 					<RichWorkspace />
 				</Example>

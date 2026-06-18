@@ -21,6 +21,8 @@
 /**
  * @typedef {object} MonthCalendarWeek
  * @property {number} index
+ * @property {number} weekNumber ISO-8601 week number for the row.
+ * @property {string} label Accessible week number label.
  * @property {Array<MonthCalendarCell>} days
  */
 
@@ -106,6 +108,11 @@ export const monthCalendarProps = {
 		type: Boolean,
 		default: false,
 		_edit: { description: 'Render six weeks per month even when the month needs fewer rows.' },
+	},
+	showWeekNumbers: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Render ISO-8601 week numbers at the start of each week row.' },
 	},
 	mutedBefore: {
 		type: String,
@@ -225,6 +232,8 @@ const renderedMonths = computed(() => {
 	const firstMonth = new Date(anchorDate.value.getFullYear(), anchorDate.value.getMonth(), 1);
 	return Array.from({ length: count }, (_, index) => buildMonth(firstMonth, index));
 });
+const gridMinWidthClass = computed(() => props.showWeekNumbers ? 'md:min-w-[52rem]' : 'md:min-w-[48rem]');
+const weekGridClass = computed(() => props.showWeekNumbers ? 'md:grid-cols-[3.5rem_repeat(7,minmax(0,1fr))]' : 'md:grid-cols-7');
 
 function buildMonth(firstMonth, index) {
 	const monthDate = new Date(firstMonth.getFullYear(), firstMonth.getMonth() + index, 1);
@@ -354,12 +363,29 @@ function endOfWeek(date, weekStartsOn) {
 function chunkWeeks(cells) {
 	const weeks = [];
 	for (let index = 0; index < cells.length; index += 7) {
+		const days = cells.slice(index, index + 7);
+		const weekNumber = isoWeekNumberForWeek(days);
 		weeks.push({
 			index: weeks.length,
-			days: cells.slice(index, index + 7),
+			weekNumber,
+			label: `Week ${weekNumber}`,
+			days,
 		});
 	}
 	return weeks;
+}
+
+function isoWeekNumberForWeek(days) {
+	const thursday = days.find((cell) => cell.date.getDay() === 4)?.date || days[0]?.date || new Date();
+	return isoWeekNumber(thursday);
+}
+
+function isoWeekNumber(date) {
+	const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+	const day = target.getDay() || 7;
+	target.setDate(target.getDate() + 4 - day);
+	const yearStart = new Date(target.getFullYear(), 0, 1);
+	return Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
 }
 
 function isDateBoundary(value) {
@@ -414,15 +440,28 @@ function onDayClick(cell, event) {
 				<div
 					role="grid"
 					:aria-labelledby="month.id"
-					class="md:min-w-[48rem]"
+					class="min-w-0"
+					:class="gridMinWidthClass"
 				>
-					<div v-if="dayHeaders" role="row" class="hidden md:grid md:grid-cols-7 border-b border-border bg-secondary/30">
+					<div
+						v-if="dayHeaders"
+						role="row"
+						class="hidden border-b border-border bg-secondary/30 md:grid"
+						:class="weekGridClass"
+					>
+						<div
+							v-if="showWeekNumbers"
+							role="columnheader"
+							class="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-fg"
+						>
+							Week
+						</div>
 						<div
 							v-for="(weekday, index) in weekdayLabels"
 							:key="weekday"
 							role="columnheader"
 							class="px-3 py-2 text-right text-[11px] font-semibold uppercase tracking-wide text-muted-fg"
-							:class="index > 0 && 'border-l border-border'"
+							:class="(index > 0 || showWeekNumbers) && 'border-l border-border'"
 						>
 							{{ weekday }}
 						</div>
@@ -432,8 +471,18 @@ function onDayClick(cell, event) {
 						v-for="week in month.weeks"
 						:key="week.index"
 						role="row"
-						class="grid grid-cols-1 md:grid-cols-7 "
+						class="grid grid-cols-1"
+						:class="weekGridClass"
 					>
+						<div
+							v-if="showWeekNumbers"
+							role="rowheader"
+							:aria-label="week.label"
+							class="flex min-h-10 items-center justify-between gap-3 bg-secondary/35 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-fg sm:min-h-12 md:min-h-30 md:flex-col md:items-start md:justify-start md:py-3 lg:min-h-44"
+							:class="week.index > 0 && 'border-t border-border'"
+						>
+							<span class="text-base leading-none tabular-nums">{{ week.weekNumber }}</span>
+						</div>
 						<component
 							:is="clickable ? 'button' : 'div'"
 							v-for="cell in week.days"
@@ -452,9 +501,9 @@ function onDayClick(cell, event) {
 							:data-today="cell.today ? '' : undefined"
 							class="flex min-h-30 w-full min-w-0 flex-col items-stretch justify-start p-3 text-left outline-none transition sm:min-h-38 lg:min-h-44"
 							:class="[
-								(cell.row > 0 || cell.column > 0) && 'border-t border-border',
-								cell.row === 0 && cell.column > 0 && 'md:border-t-0',
-								cell.column > 0 && 'md:border-l md:border-border',
+								(showWeekNumbers || cell.row > 0 || cell.column > 0) && 'border-t border-border',
+								cell.row === 0 && (showWeekNumbers || cell.column > 0) && 'md:border-t-0',
+								(cell.column > 0 || showWeekNumbers) && 'md:border-l md:border-border',
 								cell.hidden && 'pointer-events-none bg-secondary/20 text-transparent',
 								!cell.hidden && cell.muted && 'bg-secondary/20 text-muted-fg/55',
 								!cell.hidden && !cell.muted && 'text-canvas-fg',
@@ -469,8 +518,8 @@ function onDayClick(cell, event) {
 						>
 							<template v-if="!cell.hidden">
 								<div class="flex items-start justify-between gap-2">
-									<span class="text-base font-bold leading-none">{{ cell.day }}</span>
-									<span class="text-sm font-bold lowercase leading-none">{{ cell.weekday }}</span>
+									<span class="text-base font-bold leading-none tabular-nums">{{ cell.day }}</span>
+									<span class="text-base lowercase leading-none tabular-nums">{{ cell.weekday }}</span>
 								</div>
 								<div class="mt-3 min-h-0">
 									<slot :cell="cell" :month="month" />

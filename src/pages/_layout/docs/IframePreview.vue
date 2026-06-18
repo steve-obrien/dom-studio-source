@@ -18,12 +18,14 @@ const props = defineProps({
 
 const canvas = ref(null);
 const iframe = ref(null);
+const viewport = ref(null);
 const mountTarget = shallowRef(null);
 const fallbackPreviewWidth = 1200;
 const availableWidth = ref(0);
 const previewWidth = ref(props.defaultWidth || props.maxWidth || fallbackPreviewWidth);
 const userResized = ref(false);
 const isDragging = ref(false);
+const activePreset = ref('');
 const mobilePresetWidth = 390;
 const desktopPresetWidth = 1024;
 
@@ -33,6 +35,9 @@ let themeObserver;
 let styleSyncFrame = 0;
 let dragStartX = 0;
 let dragStartWidth = 0;
+let dragHandleOffset = 0;
+let dragContentLeft = 0;
+let dragContentWidth = 0;
 
 const effectiveMaxWidth = computed(() => Math.max(props.minWidth, props.maxWidth || availableWidth.value || props.defaultWidth || fallbackPreviewWidth));
 const clampedWidth = computed(() => clamp(previewWidth.value, props.minWidth, effectiveMaxWidth.value));
@@ -58,6 +63,26 @@ function measureAvailableWidth(entry) {
 	const style = window.getComputedStyle(canvas.value);
 	const horizontalPadding = Number.parseFloat(style.paddingLeft || '0') + Number.parseFloat(style.paddingRight || '0');
 	return Math.max(0, canvas.value.clientWidth - horizontalPadding);
+}
+
+function measureCanvasContentBox() {
+	if (!canvas.value) {
+		return {
+			left: 0,
+			width: availableWidth.value || fallbackPreviewWidth,
+		};
+	}
+
+	const rect = canvas.value.getBoundingClientRect();
+	const style = window.getComputedStyle(canvas.value);
+	const paddingLeft = Number.parseFloat(style.paddingLeft || '0');
+	const paddingRight = Number.parseFloat(style.paddingRight || '0');
+	const width = Math.max(0, canvas.value.clientWidth - paddingLeft - paddingRight);
+
+	return {
+		left: rect.left + paddingLeft - canvas.value.scrollLeft,
+		width: width || availableWidth.value || fallbackPreviewWidth,
+	};
 }
 
 function updateAvailableWidth(entry) {
@@ -197,15 +222,32 @@ function startResize(event) {
 	event.preventDefault();
 	userResized.value = true;
 	isDragging.value = true;
+	activePreset.value = '';
+	updateAvailableWidth();
+	const viewportRect = viewport.value?.getBoundingClientRect();
+	const contentBox = measureCanvasContentBox();
 	dragStartX = event.clientX;
 	dragStartWidth = clampedWidth.value;
+	dragHandleOffset = viewportRect ? event.clientX - viewportRect.right : 0;
+	dragContentLeft = contentBox.left;
+	dragContentWidth = contentBox.width;
 
 	window.addEventListener('pointermove', resizePreview);
 	window.addEventListener('pointerup', stopResize, { once: true });
 }
 
 function resizePreview(event) {
-	previewWidth.value = clamp(dragStartWidth + event.clientX - dragStartX, props.minWidth, effectiveMaxWidth.value);
+	const pointerDelta = event.clientX - dragStartX;
+	const targetRight = event.clientX - dragHandleOffset;
+	const contentCenter = dragContentLeft + dragContentWidth / 2;
+	const centeredWidth = (targetRight - contentCenter) * 2;
+	const anchoredWidth = dragStartWidth + pointerDelta;
+	const overflowWidth = targetRight - dragContentLeft;
+	const targetWidth = centeredWidth <= dragContentWidth
+		? centeredWidth
+		: Math.max(anchoredWidth, overflowWidth);
+
+	previewWidth.value = clamp(targetWidth, props.minWidth, effectiveMaxWidth.value);
 }
 
 function stopResize() {
@@ -215,20 +257,22 @@ function stopResize() {
 
 function resetPreviewWidth() {
 	userResized.value = false;
+	activePreset.value = '';
 	fitToAvailableWidth();
 }
 
-function resizeToPreset(width) {
+function resizeToPreset(width, preset = '') {
 	userResized.value = true;
+	activePreset.value = preset;
 	previewWidth.value = clamp(width, props.minWidth, effectiveMaxWidth.value);
 }
 
 function useMobilePreset() {
-	resizeToPreset(mobilePresetWidth);
+	resizeToPreset(mobilePresetWidth, 'mobile');
 }
 
 function useDesktopPreset() {
-	resizeToPreset(desktopPresetWidth);
+	resizeToPreset(desktopPresetWidth, 'desktop');
 }
 
 function resizeWithKeyboard(event) {
@@ -240,6 +284,7 @@ function resizeWithKeyboard(event) {
 	if (event.key === 'Home') {
 		event.preventDefault();
 		userResized.value = true;
+		activePreset.value = '';
 		previewWidth.value = props.minWidth;
 		return;
 	}
@@ -247,6 +292,7 @@ function resizeWithKeyboard(event) {
 	if (event.key === 'End') {
 		event.preventDefault();
 		userResized.value = true;
+		activePreset.value = '';
 		previewWidth.value = effectiveMaxWidth.value;
 		return;
 	}
@@ -255,6 +301,7 @@ function resizeWithKeyboard(event) {
 
 	event.preventDefault();
 	userResized.value = true;
+	activePreset.value = '';
 	previewWidth.value = clamp(clampedWidth.value + keySteps[event.key], props.minWidth, effectiveMaxWidth.value);
 }
 
@@ -296,20 +343,34 @@ onBeforeUnmount(() => {
 		<div class="flex items-center justify-between gap-3 border-b border-border bg-secondary/40 px-3 py-2">
 			<div class="flex min-w-0 items-center gap-2">
 				<p class="text-xs font-medium tabular-nums text-muted-fg">{{ roundedWidth }}px</p>
-				<div class="inline-flex shrink-0 rounded-md border border-border bg-canvas p-0.5">
+				<div class="inline-flex shrink-0 rounded-md border border-border bg-canvas p-0.5" role="toolbar" aria-label="Preview presets">
 					<button
 						type="button"
-						class="rounded px-2 py-0.5 text-[11px] font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+						class="grid size-7 place-items-center rounded text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+						:class="activePreset === 'mobile' && 'bg-secondary text-canvas-fg shadow-sm ring-1 ring-border/70'"
+						:aria-pressed="activePreset === 'mobile' ? 'true' : 'false'"
+						aria-label="Mobile preview"
+						title="Mobile preview"
 						@click="useMobilePreset"
 					>
-						Mobile
+						<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
+							<rect x="7" y="2.75" width="10" height="18.5" rx="2.25" stroke="currentColor" stroke-width="1.7" />
+							<path d="M10.5 17.75h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+						</svg>
 					</button>
 					<button
 						type="button"
-						class="rounded px-2 py-0.5 text-[11px] font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+						class="grid size-7 place-items-center rounded text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+						:class="activePreset === 'desktop' && 'bg-secondary text-canvas-fg shadow-sm ring-1 ring-border/70'"
+						:aria-pressed="activePreset === 'desktop' ? 'true' : 'false'"
+						aria-label="Desktop preview"
+						title="Desktop preview"
 						@click="useDesktopPreset"
 					>
-						Desktop
+						<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
+							<rect x="3.25" y="4.25" width="17.5" height="12" rx="1.75" stroke="currentColor" stroke-width="1.7" />
+							<path d="M9 20h6M12 16.25V20" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+						</svg>
 					</button>
 				</div>
 			</div>
@@ -324,6 +385,7 @@ onBeforeUnmount(() => {
 
 		<div ref="canvas" class="overflow-x-auto overflow-y-hidden bg-secondary/30 p-4">
 			<div
+				ref="viewport"
 				class="iframe-preview-viewport relative mx-auto overflow-visible rounded-lg bg-transparent shadow-sm"
 				:class="[
 					hasMobileChrome ? 'iframe-preview-viewport-mobile' : '',

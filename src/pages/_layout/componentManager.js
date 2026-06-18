@@ -1,5 +1,6 @@
 const eagerComponentModules = import.meta.glob([
 	'../components/*/Dom*.vue',
+	'../data/*/Dom*.vue',
 	'../forms/*/Dom*.vue',
 	'../mobile/*/Dom*.vue',
 	'../visual/*/Dom*.vue',
@@ -10,6 +11,7 @@ const eagerComponentModules = import.meta.glob([
 
 const eagerComponentSourceModules = import.meta.glob([
 	'../components/*/Dom*.vue',
+	'../data/*/Dom*.vue',
 	'../forms/*/Dom*.vue',
 	'../mobile/*/Dom*.vue',
 	'../visual/*/Dom*.vue',
@@ -20,6 +22,7 @@ const eagerComponentSourceModules = import.meta.glob([
 
 const lazyComponentModules = import.meta.glob([
 	'../components/*/Dom*.vue',
+	'../data/*/Dom*.vue',
 	'../forms/*/Dom*.vue',
 	'../mobile/*/Dom*.vue',
 	'../visual/*/Dom*.vue',
@@ -30,6 +33,7 @@ const lazyComponentModules = import.meta.glob([
 
 const lazyComponentSourceModules = import.meta.glob([
 	'../components/*/Dom*.vue',
+	'../data/*/Dom*.vue',
 	'../forms/*/Dom*.vue',
 	'../mobile/*/Dom*.vue',
 	'../visual/*/Dom*.vue',
@@ -38,7 +42,7 @@ const lazyComponentSourceModules = import.meta.glob([
 	'!../forms/_shared/Dom*.vue',
 ], { import: 'default', query: '?raw' });
 
-export const componentSections = ['components', 'visual', 'forms', 'mobile'];
+export const componentSections = ['components', 'data', 'visual', 'forms', 'mobile'];
 
 export function getComponentRecords() {
 	return recordsFromModules(eagerComponentModules, 'component', eagerComponentSourceModules, 'source');
@@ -61,9 +65,19 @@ export function getFormRedirectRecords() {
 		}));
 }
 
+export function getDataRedirectRecords() {
+	return getLazyComponentRecords()
+		.filter((record) => record.section === 'data')
+		.map((record) => ({
+			from: `/components/${record.slug}`,
+			to: record.route,
+		}));
+}
+
 export function labelFromSection(section) {
 	return {
 		components: 'Components',
+		data: 'Data',
 		forms: 'Forms',
 		mobile: 'Mobile',
 		visual: 'Visual',
@@ -107,7 +121,7 @@ function recordsFromModules(modules, valueKey, sourceModules = {}, sourceKey = '
 }
 
 function recordFromPath(path, valueKey, value, sourceKey, source) {
-	const match = path.match(/^\.\.\/(components|forms|mobile|visual)\/([^/]+)\/(Dom[^/]+)\.vue$/);
+	const match = path.match(/^\.\.\/(components|data|forms|mobile|visual)\/([^/]+)\/(Dom[^/]+)\.vue$/);
 	if (!match) return null;
 	const [, section, slug, exportName] = match;
 	return {

@@ -82,6 +82,7 @@
 		"public/skills.sh",
 		"src/pages/_layout",
 		"src/pages/components",
+		"src/pages/data",
 		"src/pages/forms",
 		"src/pages/lib",
 		"src/pages/mobile",

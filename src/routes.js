@@ -6,7 +6,7 @@ import BlockPreviewPage from './pages/blocks/Preview.vue';
 import DomStudioHome from './pages/Index.vue';
 import FloatingHeadlessPage from './pages/headless/floating/Index.vue';
 import PaywallPage from './pages/paywall/Index.vue';
-import { getFormRedirectRecords, getLazyComponentRecords } from './pages/_layout/componentManager.js';
+import { getDataRedirectRecords, getFormRedirectRecords, getLazyComponentRecords } from './pages/_layout/componentManager.js';
 import { getBlockLegacyRedirects } from './pages/blocks/blockRegistry.js';
 
 const pageRouteModules = import.meta.glob([
@@ -120,6 +120,12 @@ const movedFormRedirects = getFormRedirectRecords()
 		redirect: record.to,
 	}));
 
+const movedDataRedirects = getDataRedirectRecords()
+	.map((record) => ({
+		path: record.from,
+		redirect: record.to,
+	}));
+
 const legacyDocsRedirects = [
 	{
 		path: '/docs',
@@ -137,6 +143,7 @@ export const routes = [
 	...blockLegacyRedirects,
 	...generatedComponentRoutes,
 	...movedFormRedirects,
+	...movedDataRedirects,
 	...legacyDocsRedirects,
 	{
 		path: '/:pathMatch(.*)*',

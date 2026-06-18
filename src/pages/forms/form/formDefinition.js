@@ -17,8 +17,12 @@ export const defaultComponentByType = {
 	url: 'DomUrlInput',
 	number: 'DomNumberInput',
 	integer: 'DomNumberInput',
+	decimal: 'DomMoneyInput',
+	currency: 'DomMoneyInput',
+	money: 'DomMoneyInput',
 	boolean: 'DomToggle',
 	date: 'DomDatePicker',
+	file: 'DomFileUpload',
 	array: 'DomJsonListInput',
 	object: 'DomForm',
 	json: 'DomJsonInput',
@@ -35,6 +39,8 @@ export const typeByComponent = {
 	DomForm: 'object',
 	DomJsonInput: 'json',
 	DomJsonListInput: 'array',
+	DomFileUpload: 'file',
+	DomMoneyInput: 'decimal',
 	DomNativeSelect: 'string',
 	DomNumberInput: 'number',
 	DomPasswordInput: 'string',
@@ -288,6 +294,7 @@ export function formNodeDefaultValue(node, context = {}) {
 		);
 	}
 	if (normalized.type === 'array') return [];
+	if (normalized.type === 'file') return [];
 	if (normalized.type === 'boolean') return false;
 	if (normalized.type === 'number' || normalized.type === 'integer') return 0;
 	if (normalized.type === 'json') return null;
@@ -305,6 +312,8 @@ function optionValues(options) {
 
 function jsonSchemaTypeFor(node) {
 	if (node.type === 'email' || node.type === 'url' || node.type === 'date' || node.type === 'text') return 'string';
+	if (node.type === 'decimal' || node.type === 'currency' || node.type === 'money') return 'number';
+	if (node.type === 'file') return 'array';
 	if (node.type === 'json') return 'object';
 	if (isKnownDataType(node.type)) return node.type === 'integer' ? 'integer' : node.type;
 	if (node.children?.length) return 'object';

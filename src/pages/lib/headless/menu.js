@@ -90,8 +90,10 @@ export class DomMenuElement extends DomElementBase {
 	}
 
 	_onClick(event) {
+		if (event.target.closest('[data-dom-menu-accessory]')) return;
 		const item = event.target.closest(itemSelector);
 		if (!item || !this.contains(item)) return;
+		if (item.closest('dom-menu') !== this) return;
 		if (isDisabled(item)) {
 			event.preventDefault();
 			event.stopPropagation();
@@ -105,6 +107,8 @@ export class DomMenuElement extends DomElementBase {
 		if (event.key !== 'Enter' && event.key !== ' ') return;
 		const item = document.activeElement?.closest?.(itemSelector);
 		if (!item || !this.contains(item) || isDisabled(item)) return;
+		if (document.activeElement?.closest?.('[data-dom-menu-accessory]')) return;
+		if (item.closest('dom-menu') !== this) return;
 		event.preventDefault();
 		this._select(item, event);
 	}

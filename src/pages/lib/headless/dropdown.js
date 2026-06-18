@@ -16,6 +16,12 @@ import {
 // menu semantics, roving focus, and dom:select.
 import './popover.js';
 
+const menuItemSelector = [
+	'[role="menuitem"]',
+	'[role="menuitemcheckbox"]',
+	'[role="menuitemradio"]',
+].join(',');
+
 // <dom-dropdown>
 //   <button slot="trigger">…</button>
 //   <div slot="menu">
@@ -42,6 +48,7 @@ export class DomDropdownElement extends DomElementBase {
 			{ name: 'collision-padding', type: 'number', description: 'Viewport padding used when flipping or shifting the menu (default 8).' },
 			{ name: 'floating-mode', type: "'viewport' | 'anchor'", description: 'viewport keeps the menu inside the browser; anchor keeps it attached to the trigger while scrolling.' },
 			{ name: 'lock-scroll', type: 'boolean', description: 'Lock document scrolling while the menu is open.' },
+			{ name: 'data-focus-value', type: 'string', description: 'Preferred menu item value to focus when opening from the keyboard.' },
 			{ name: 'data-menu-id', type: 'string', description: 'Id of an external (teleported) menu element. Used when the menu lives outside the host — e.g. portalled to <body>.' },
 		],
 		events: [
@@ -84,6 +91,8 @@ export class DomDropdownElement extends DomElementBase {
 		this._scrollLocked = false;
 		this._dismissOff = null;
 		this._dismissBindFrame = 0;
+		this._focusOnOpen = false;
+		this._focusPosition = 'preferred';
 	}
 
 	_positionOpts() {
@@ -112,10 +121,21 @@ export class DomDropdownElement extends DomElementBase {
 		this._trigger.setAttribute('aria-haspopup', this._menu?.dataset.haspopup || 'menu');
 		this._trigger.setAttribute('aria-expanded', 'false');
 
-		this.on(this._trigger, 'click', () => this.toggle());
+		this.on(this._trigger, 'click', () => {
+			this._focusOnOpen = false;
+			this._focusPosition = 'preferred';
+			this.toggle();
+		});
 		this.on(this._trigger, 'keydown', (e) => {
-			if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+			if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
 				e.preventDefault();
+				const position = e.key === 'ArrowUp' ? 'last' : 'preferred';
+				if (this._open || isPopoverOpen(this._menu)) {
+					this._focusMenuStart(position, true);
+					return;
+				}
+				this._focusOnOpen = true;
+				this._focusPosition = position;
 				this.open = true;
 			}
 		});
@@ -161,7 +181,12 @@ export class DomDropdownElement extends DomElementBase {
 		return this._menu?.dataset.compositePanel === 'true';
 	}
 
-	_focusFirstCompositeElement() {
+	_focusValue() {
+		const value = this._menu?.dataset.focusValue ?? this.dataset.focusValue;
+		return value == null || value === '' ? null : String(value);
+	}
+
+	_focusableCompositeElements() {
 		const preferredSelector = [
 			'[data-autofocus]',
 			'[autofocus]',
@@ -169,6 +194,7 @@ export class DomDropdownElement extends DomElementBase {
 			'[aria-selected="true"]',
 		].join(',');
 		const selector = [
+			menuItemSelector,
 			'button:not([disabled])',
 			'[href]',
 			'input:not([disabled])',
@@ -178,19 +204,53 @@ export class DomDropdownElement extends DomElementBase {
 		].join(',');
 		const findFocusable = (query) => Array.from(this._menu?.querySelectorAll(query) || [])
 			.find((element) => element.tabIndex >= 0 && element.getAttribute('aria-disabled') !== 'true');
-		requestAnimationFrame(() => (findFocusable(preferredSelector) || findFocusable(selector))?.focus());
+		return {
+			preferred: findFocusable(preferredSelector),
+			all: Array.from(this._menu?.querySelectorAll(selector) || [])
+				.filter((element) => element.tabIndex >= 0 && element.getAttribute('aria-disabled') !== 'true'),
+		};
 	}
 
-	_setupMenuInteractions() {
+	_preferredElement(elements, position = 'preferred') {
+		if (!elements.length) return null;
+		if (position === 'last') return elements[elements.length - 1];
+		const focusValue = this._focusValue();
+		if (focusValue != null) {
+			const byValue = elements.find((element) => element.dataset?.value === focusValue);
+			if (byValue) return byValue;
+		}
+		return elements.find((element) => element.hasAttribute('data-autofocus') || element.hasAttribute('autofocus'))
+			|| elements.find((element) => element.getAttribute('aria-selected') === 'true')
+			|| elements.find((element) => element.tabIndex === 0)
+			|| elements[0];
+	}
+
+	_focusCompositeElement(position = 'preferred', force = false) {
+		if (!force && this._menu?.dataset.autofocusPanel === 'false') return;
+		const { preferred, all } = this._focusableCompositeElements();
+		const target = position === 'preferred'
+			? (preferred || this._preferredElement(all, position))
+			: this._preferredElement(all, position);
+		requestAnimationFrame(() => target?.focus());
+	}
+
+	_menuItems() {
+		return Array.from(this._menu.querySelectorAll(menuItemSelector))
+			.filter((item) => item.closest('dom-menu') === this._menu || !item.closest('dom-menu'))
+			.filter((item) => !item.hasAttribute('disabled') && item.getAttribute('aria-disabled') !== 'true');
+	}
+
+	_setupMenuInteractions({ focus = false, position = 'preferred' } = {}) {
 		if (this._isCompositePanel()) {
 			this._menu.addEventListener('keydown', this._onCompositeKey);
-			this._focusFirstCompositeElement();
+			this._focusCompositeElement(position, focus);
 			return;
 		}
-		const items = Array.from(this._menu.querySelectorAll('[role="menuitem"]:not([disabled])'));
+		const items = this._menuItems();
 		this._roving = createRoving({ items, orientation: 'vertical', loop: true });
-		items.forEach((el, i) => { el.tabIndex = i === 0 ? 0 : -1; });
-		requestAnimationFrame(() => items[0]?.focus());
+		const active = Math.max(0, items.indexOf(this._preferredElement(items, position)));
+		items.forEach((el, i) => { el.tabIndex = i === active ? 0 : -1; });
+		this._roving.setActive(active, { focus, select: false });
 		this._menu.addEventListener('keydown', this._onKey);
 		this._itemClickHandlers = items.map((el) => {
 			const handler = (ev) => this._select(el, ev);
@@ -206,6 +266,18 @@ export class DomDropdownElement extends DomElementBase {
 		this._itemClickHandlers = [];
 		this._roving = null;
 		this._trigger?.focus();
+	}
+
+	_focusMenuStart(position = 'preferred', force = false) {
+		if (!this._ensureMenu()) return;
+		if (this._isCompositePanel()) {
+			this._focusCompositeElement(position, force);
+			return;
+		}
+		const items = this._menuItems();
+		const target = this._preferredElement(items, position);
+		const index = Math.max(0, items.indexOf(target));
+		this._roving?.setActive(index, { focus: true, select: false });
 	}
 
 	_placeMenu() {
@@ -257,13 +329,17 @@ export class DomDropdownElement extends DomElementBase {
 		if (!next && !this._open) return;
 
 		if (next) {
+			const focus = this._focusOnOpen;
+			const position = this._focusPosition || 'preferred';
+			this._focusOnOpen = false;
+			this._focusPosition = 'preferred';
 			if (!fromPopover) {
 				openPopoverPanel(this._menu, this._trigger, this._positionOpts(), () => this._placeMenu());
 			} else {
 				this._placeMenu();
 			}
 			this._bindReflow();
-			this._setupMenuInteractions();
+			this._setupMenuInteractions({ focus, position });
 			this._syncScrollLock(true);
 			this._bindDismiss();
 		} else {

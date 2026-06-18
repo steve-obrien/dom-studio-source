@@ -129,6 +129,10 @@ function jsonSchemaComponentFor(schema, path, options) {
 
 	if (override) return override;
 	if (values) return 'DomSelect';
+	if (format === 'binary' || format === 'file' || plain.contentMediaType || plain.contentEncoding === 'base64') return 'DomFileUpload';
+	if (format === 'currency' || format === 'money' || format === 'decimal') return 'DomMoneyInput';
+	if (type === 'decimal' || type === 'currency' || type === 'money') return 'DomMoneyInput';
+	if (type === 'file') return 'DomFileUpload';
 	if (type === 'array') return 'DomJsonListInput';
 	if (format === 'email') return 'DomEmailInput';
 	if (format === 'uri' || format === 'url') return 'DomUrlInput';
@@ -145,6 +149,10 @@ function jsonListFieldType(schema) {
 	if (format === 'email') return 'email';
 	if (format === 'uri' || format === 'url') return 'url';
 	if (format === 'date') return 'date';
+	if (format === 'currency' || format === 'money' || format === 'decimal') return 'number';
+	if (format === 'binary' || format === 'file') return 'file';
+	if (type === 'decimal' || type === 'currency' || type === 'money') return 'number';
+	if (type === 'file') return 'file';
 	if (type === 'number' || type === 'integer') return 'number';
 	if (type === 'object' || type === 'array') return 'json';
 	return 'text';

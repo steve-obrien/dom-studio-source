@@ -29,8 +29,11 @@ export class DomListboxElement extends DomElementBase {
 	constructor() {
 		super();
 		this._roving = null;
+		this._observer = null;
+		this._refreshFrame = 0;
 		this._onKey = this._onKey.bind(this);
 		this._onClick = this._onClick.bind(this);
+		this._scheduleRefresh = this._scheduleRefresh.bind(this);
 	}
 
 	connectedCallback() {
@@ -38,6 +41,13 @@ export class DomListboxElement extends DomElementBase {
 		this._refresh();
 		this.on(this, 'keydown', this._onKey);
 		this.on(this, 'click', this._onClick);
+		this._observer = new MutationObserver(this._scheduleRefresh);
+		this._observer.observe(this, {
+			attributes: true,
+			attributeFilter: ['aria-disabled', 'data-value', 'disabled', 'role'],
+			childList: true,
+			subtree: true,
+		});
 	}
 
 	attributeChangedCallback() {
@@ -53,6 +63,14 @@ export class DomListboxElement extends DomElementBase {
 	get options() {
 		return Array.from(this.querySelectorAll('[role="option"]'))
 			.filter((option) => !option.hasAttribute('disabled') && option.getAttribute('aria-disabled') !== 'true');
+	}
+
+	_scheduleRefresh() {
+		if (this._refreshFrame) return;
+		this._refreshFrame = requestAnimationFrame(() => {
+			this._refreshFrame = 0;
+			this._refresh();
+		});
 	}
 
 	_refresh() {
@@ -92,6 +110,16 @@ export class DomListboxElement extends DomElementBase {
 		if (!option || !this.contains(option)) return;
 		event.preventDefault();
 		this._select(option, event);
+	}
+
+	disconnectedCallback() {
+		this._observer?.disconnect();
+		this._observer = null;
+		if (this._refreshFrame) {
+			cancelAnimationFrame(this._refreshFrame);
+			this._refreshFrame = 0;
+		}
+		super.disconnectedCallback();
 	}
 }
 

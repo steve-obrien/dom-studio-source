@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { DomMenu, MenuItem } from '@getdom/studio/vue';
+import { DomMenu, MenuItem, MenuLabel, MenuSeparator } from '@getdom/studio/vue';
 
 const selected = ref('none');
 const liveMode = ref(true);
@@ -19,6 +19,12 @@ function onChange(event) {
 <template>
 	<div class="w-full max-w-sm space-y-3">
 		<DomMenu @select="onSelect" @change="onChange">
+			<MenuLabel>
+				<span class="block text-[11px] font-medium uppercase text-muted-fg">Workspace</span>
+				<span class="mt-0.5 block truncate text-sm font-medium text-canvas-fg">Northstar Studio</span>
+			</MenuLabel>
+			<MenuSeparator />
+
 			<MenuItem value="sync">
 				<span class="flex min-w-0 items-center gap-3">
 					<span class="grid size-8 place-items-center rounded-lg bg-success/15 text-success">
@@ -31,7 +37,9 @@ function onChange(event) {
 						<span class="block truncate text-xs text-muted-fg">Updated just now</span>
 					</span>
 				</span>
-				<span class="text-xs text-success">Ready</span>
+				<template #accessory>
+					<span class="text-xs text-success">Ready</span>
+				</template>
 			</MenuItem>
 
 			<MenuItem value="notifications">
@@ -43,29 +51,19 @@ function onChange(event) {
 				<template #submenu>
 					<MenuItem value="notifications-live" type="checkbox" :checked="liveMode">
 						<span class="min-w-0 truncate">Live mode</span>
-						<span
-							class="relative inline-flex h-5 w-9 shrink-0 rounded-full transition"
-							:class="liveMode ? 'bg-primary' : 'bg-input'"
-							aria-hidden="true"
-						>
-							<span
-								class="absolute left-0.5 top-0.5 size-4 rounded-full skin-card shadow-sm transition"
-								:class="liveMode ? 'translate-x-4' : 'translate-x-0'"
-							></span>
-						</span>
+						<template #accessory>
+							<span class="relative inline-flex h-5 w-9 shrink-0 rounded-full transition" :class="liveMode ? 'bg-primary' : 'bg-input'" aria-hidden="true">
+								<span class="absolute left-0.5 top-0.5 size-4 rounded-full skin-card shadow-sm transition" :class="liveMode ? 'translate-x-4' : 'translate-x-0'"></span>
+							</span>
+						</template>
 					</MenuItem>
 					<MenuItem value="notifications-compact" type="checkbox" :checked="compactSidebar">
 						<span class="min-w-0 truncate">Compact sidebar</span>
-						<span
-							class="relative inline-flex h-5 w-9 shrink-0 rounded-full transition"
-							:class="compactSidebar ? 'bg-primary' : 'bg-input'"
-							aria-hidden="true"
-						>
-							<span
-								class="absolute left-0.5 top-0.5 size-4 rounded-full skin-card shadow-sm transition"
-								:class="compactSidebar ? 'translate-x-4' : 'translate-x-0'"
-							></span>
-						</span>
+						<template #accessory>
+							<span class="relative inline-flex h-5 w-9 shrink-0 rounded-full transition" :class="compactSidebar ? 'bg-primary' : 'bg-input'" aria-hidden="true">
+								<span class="absolute left-0.5 top-0.5 size-4 rounded-full skin-card shadow-sm transition" :class="compactSidebar ? 'translate-x-4' : 'translate-x-0'"></span>
+							</span>
+						</template>
 					</MenuItem>
 					<MenuItem value="notifications-email">
 						<span class="min-w-0">
@@ -76,11 +74,13 @@ function onChange(event) {
 				</template>
 			</MenuItem>
 
-			<hr class="my-1 border-t border-border" />
+			<MenuSeparator />
 
 			<MenuItem value="delete" tone="danger">
 				<span class="min-w-0 truncate">Delete workspace</span>
-				<span class="text-xs text-destructive/70">Del</span>
+				<template #accessory>
+					<span class="text-xs text-destructive/70">Del</span>
+				</template>
 			</MenuItem>
 		</DomMenu>
 
