@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import DomStudioLayout from '../_layout/DomStudioLayout.vue';
+import CodeBlock from '../_layout/CodeBlock.vue';
 import { DomButton, DomAccordion } from '../lib/vue';
 import { useBillingOffer } from '../../composable/useBillingOffer.js';
 
@@ -184,7 +185,12 @@ const generatedSource = [
 						<span>Generated source</span>
 						<span>InviteDialog.vue</span>
 					</div>
-					<pre class="max-h-[30rem] overflow-auto p-5 text-[12px] leading-relaxed text-canvas-fg"><code>{{ generatedSource }}</code></pre>
+					<CodeBlock
+						class="max-h-[30rem]"
+						:code="generatedSource"
+						:framed="false"
+						lang="vue"
+					/>
 				</div>
 			</div>
 		</section>

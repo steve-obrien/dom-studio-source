@@ -196,7 +196,16 @@ dom-popover:not(:defined) > *:not([slot="trigger"]) {
 /* Shiki code blocks. Shiki emits dual-theme styles in one render — the inline
  * styles carry the light colours and the dark colours as CSS variables.
  * Override those vars when [data-theme="dark"] is on the root. */
+.dom-shiki {
+	min-width: 0;
+	max-width: 100%;
+	overflow-x: auto;
+}
 .dom-shiki .shiki {
+	box-sizing: border-box;
+	margin: 0;
+	min-width: 0;
+	max-width: 100%;
 	overflow-x: auto;
 	padding: 1rem;
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;

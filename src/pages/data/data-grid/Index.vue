@@ -13,6 +13,8 @@ import CustomerDatabase from './examples/CustomerDatabase.vue';
 import CustomerDatabaseSrc from './examples/CustomerDatabase.vue?raw';
 import LargeMemoryGrid from './examples/LargeMemoryGrid.vue';
 import LargeMemoryGridSrc from './examples/LargeMemoryGrid.vue?raw';
+import KeywordOpportunityGrid from './examples/KeywordOpportunityGrid.vue';
+import KeywordOpportunityGridSrc from './examples/KeywordOpportunityGrid.vue?raw';
 import ServerResourceGrid from './examples/ServerResourceGrid.vue';
 import ServerResourceGridSrc from './examples/ServerResourceGrid.vue?raw';
 import CustomColumnComponents from './examples/CustomColumnComponents.vue';
@@ -31,7 +33,14 @@ const resourceApiCode = `// Request
 \t\t\tstatus: { type: 'select', values: ['active', 'trial'] },
 \t\t\tarr: { type: 'currency', min: 50000, max: 250000 },
 \t\t},
-\t\tsort: { key: 'updatedAt', direction: 'desc' },
+\t\tsort: {
+\t\t\tkey: 'updatedAt',
+\t\t\tdirection: 'desc',
+\t\t\trules: [
+\t\t\t\t{ key: 'updatedAt', direction: 'desc' },
+\t\t\t\t{ key: 'arr', direction: 'desc' },
+\t\t\t],
+\t\t},
 \t},
 \tpagination: {
 \t\tstrategy: 'page',
@@ -102,6 +111,17 @@ const resourceApiCode = `// Request
 				</Example>
 			</DocSection>
 
+			<DocSection eyebrow="Advanced sorting" title="Keyword table sort presets">
+				<Example
+					:source="KeywordOpportunityGridSrc"
+					filename="KeywordOpportunityGrid.vue"
+					description="Enable multiSort when header clicks should toggle ordered sort rules per column. Click Volume to add it, click Difficulty to add a second rule, and click a sorted header through asc, desc, and off."
+					default-open
+				>
+					<KeywordOpportunityGrid />
+				</Example>
+			</DocSection>
+
 			<DocSection eyebrow="Remote data" title="Server pagination and forever scrolling">
 				<Example
 					:source="ServerResourceGridSrc"
@@ -152,6 +172,10 @@ const resourceApiCode = `// Request
 					<p>
 						Column definitions are the contract. A date column gets a date-range filter, numeric columns get min/max, boolean columns get a yes/no segmented control, and select columns can render known options from the resource schema.
 						Set <code class="text-canvas-fg">filterable: false</code> on display-only or operational columns so they stay out of the filter UI and resource query.
+					</p>
+					<p>
+						For more complex ordering, pass <code class="text-canvas-fg">sort.rules</code> as an ordered array, or enable <code class="text-canvas-fg">multiSort</code> so header clicks build that array interactively.
+						A keyword table can send <code class="text-canvas-fg">searchVolume desc</code> followed by <code class="text-canvas-fg">difficulty asc</code>, and a resource API can translate that directly to a multi-column ORDER BY.
 					</p>
 				</div>
 				<CodeBlock class="mt-5" :code="resourceApiCode" lang="js" />

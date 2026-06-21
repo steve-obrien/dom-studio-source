@@ -6,6 +6,7 @@ import BlockPreviewPage from './pages/blocks/Preview.vue';
 import DomStudioHome from './pages/Index.vue';
 import FloatingHeadlessPage from './pages/headless/floating/Index.vue';
 import PaywallPage from './pages/paywall/Index.vue';
+import WilboCallendarPage from './pages/(private)/wilbo-callendar/Index.vue';
 import { getDataRedirectRecords, getFormRedirectRecords, getLazyComponentRecords } from './pages/_layout/componentManager.js';
 import { getBlockLegacyRedirects } from './pages/blocks/blockRegistry.js';
 
@@ -25,8 +26,13 @@ function filePathToRoutePath(globKey) {
 	if (!m) return null;
 	const inner = m[1];
 	if (inner === '.' || inner === '..' || inner.includes('..')) return null;
+	if (inner.split('/').some(isPrivateRouteSegment)) return null;
 	if (inner.toLowerCase() === 'index') return '/';
 	return `/${inner}`;
+}
+
+function isPrivateRouteSegment(segment) {
+	return /^\(.+\)$/.test(segment);
 }
 
 function titleFromRoutePath(routePath) {
@@ -75,6 +81,11 @@ const manualRoutes = [
 		path: '/paywall',
 		component: PaywallPage,
 		meta: { title: 'Source access', description: 'Unlock DOM Studio source access.' },
+	},
+	{
+		path: '/wilbo-callendar',
+		component: WilboCallendarPage,
+		meta: { title: 'Wilbo calendar', robots: 'noindex,nofollow' },
 	},
 	{
 		path: '/blog/:slug',

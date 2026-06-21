@@ -211,17 +211,28 @@ function applyResourceQuery(records, query) {
 		return Object.entries(activeFilters).every(([key, filter]) => recordMatchesFilter(record, key, filter));
 	});
 
-	if (!normalized.sort?.key || !normalized.sort?.direction) return filtered;
+	const sortRules = normalizedSortRules(normalized.sort);
+	if (!sortRules.length) return filtered;
 
-	const direction = normalized.sort.direction === 'desc' ? -1 : 1;
-	const key = normalized.sort.key;
 	return [...filtered].sort((a, b) => {
-		const left = sortableValue(a[key]);
-		const right = sortableValue(b[key]);
-		if (left > right) return direction;
-		if (left < right) return direction * -1;
+		for (const rule of sortRules) {
+			const direction = rule.direction === 'desc' ? -1 : 1;
+			const left = sortableValue(a[rule.field || rule.key]);
+			const right = sortableValue(b[rule.field || rule.key]);
+			if (left > right) return direction;
+			if (left < right) return direction * -1;
+		}
 		return 0;
 	});
+}
+
+function normalizedSortRules(sort) {
+	if (!sort) return [];
+	if (Array.isArray(sort.rules)) {
+		return sort.rules.filter((rule) => rule?.key && (rule.direction === 'asc' || rule.direction === 'desc'));
+	}
+	if (sort.key && (sort.direction === 'asc' || sort.direction === 'desc')) return [sort];
+	return [];
 }
 
 function recordMatchesFilter(record, key, filter) {

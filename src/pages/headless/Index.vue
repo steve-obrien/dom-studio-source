@@ -29,6 +29,10 @@ const install = `<!-- Register every <dom-*> custom element. One import is enoug
   import '@getdom/studio/headless/dialog.js';
 <\/script>`;
 
+const eventExample = `document.addEventListener('dom:select', (event) => {
+\tconsole.log(event.target.tagName, '->', event.detail.value);
+});`;
+
 const headlessControls = [
 	{ cls: DomDropdownElement, to: '/headless/dropdown' },
 	{ cls: DomDialogElement, to: '/headless/dialog' },
@@ -134,9 +138,11 @@ function eventSummary(cls) {
 						component-specific verb (<code>dom:select</code>, <code>dom:change</code>, <code>dom:show</code>) for the action it
 						mediates. All events <strong>bubble</strong> and use the <code>detail</code> field for data:
 					</p>
-					<pre class="mt-4 overflow-auto rounded-xl bg-[#0b1020] p-4 font-mono text-[12.5px] leading-relaxed text-white/90"><code>document.addEventListener('dom:select', (e) =&gt; {
-  console.log(e.target.tagName, '→', e.detail.value);
-});</code></pre>
+					<CodeBlock
+						class="mt-4 rounded-xl"
+						:code="eventExample"
+						lang="js"
+					/>
 				</div>
 			</DocSection>
 

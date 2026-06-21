@@ -1,9 +1,9 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { DomMonthCalendar } from '../../../lib/vue';
 
 const startDate = '2026-06-11';
-const articles = [
+const initialArticles = [
 	{ date: '2026-06-11', type: 'Guide: Explainer', title: 'controlled components', volume: '170', difficulty: 14, cta: 'Visit Article' },
 	{ date: '2026-06-12', type: 'Guide: How-to', title: 'tailwind css themes', volume: '390', difficulty: 24, cta: 'View Article' },
 	{ date: '2026-06-13', type: 'List: Examples', title: 'examples of a sidebar', volume: '590', difficulty: 22 },
@@ -31,10 +31,46 @@ const articles = [
 	{ date: '2026-07-05', type: 'Guide: Explainer', title: 'drawer component', volume: '140', difficulty: 30 },
 ];
 
-const articleByDate = computed(() => Object.fromEntries(articles.map((article) => [article.date, article])));
+const articles = ref(initialArticles.map((article, index) => ({
+	id: `article-${index + 1}`,
+	...article,
+})));
+const articleByDate = computed(() => Object.fromEntries(articles.value.map((article) => [article.date, article])));
 
 function articleFor(value) {
 	return articleByDate.value[value];
+}
+
+function dragDataFor(article) {
+	return {
+		id: article.id,
+		title: article.title,
+		sourceDate: article.date,
+	};
+}
+
+function moveArticle({ data, sourceValue, targetValue }) {
+	if (!data?.id || !targetValue || sourceValue === targetValue) return;
+	const sourceArticle = articles.value.find((article) => article.id === data.id);
+	if (!sourceArticle) return;
+	const sourceDate = sourceValue || sourceArticle.date;
+	const targetArticle = articleFor(targetValue);
+
+	articles.value = articles.value.map((article) => {
+		if (article.id === sourceArticle.id) {
+			return {
+				...article,
+				date: targetValue,
+			};
+		}
+		if (targetArticle && article.id === targetArticle.id) {
+			return {
+				...article,
+				date: sourceDate,
+			};
+		}
+		return article;
+	});
 }
 
 function badgeClass(article) {
@@ -50,39 +86,44 @@ function badgeClass(article) {
 			:start-date="startDate"
 			:months="2"
 			:muted-before="startDate"
+			drag-and-drop
+			@day-drop="moveArticle"
 		>
 			<template #month-header>
 				<span>Articles are generated and published at 7AM-9AM UTC.</span>
 			</template>
 
-			<template #default="{ cell }">
+			<template #default="{ cell, drag, dragAttrs }">
 				<article
-					v-if="cell.currentMonth && articleFor(cell.value)"
-					class="flex min-h-[7.4rem] flex-col rounded-lg border border-violet-200 bg-violet-50/35 p-3 text-sm shadow-xs"
+					v-for="article in cell.currentMonth && articleFor(cell.value) ? [articleFor(cell.value)] : []"
+					:key="article.id"
+					v-bind="dragAttrs(dragDataFor(article))"
+					class="flex min-h-[7.4rem] cursor-grab flex-col rounded-lg border border-violet-200 bg-violet-50/35 p-3 text-sm shadow-xs transition active:cursor-grabbing"
+					:class="drag.source && drag.data?.id === article.id && 'opacity-60 ring-2 ring-ring/40'"
 				>
 					<div
 						class="mb-2 w-fit rounded-full border px-1.5 py-0.5 text-[11px] font-bold leading-none"
-						:class="badgeClass(articleFor(cell.value))"
+						:class="badgeClass(article)"
 					>
-						{{ articleFor(cell.value).type }}
+						{{ article.type }}
 					</div>
 
 					<h3 class="text-sm font-bold leading-5 text-canvas-fg">
-						{{ articleFor(cell.value).title }}
+						{{ article.title }}
 					</h3>
 
 					<div class="mt-auto flex items-center justify-between border-t border-violet-100 pt-2 text-xs text-muted-fg">
-						<span>Vol: <strong class="text-canvas-fg">{{ articleFor(cell.value).volume }}</strong></span>
-						<span>Diff: <strong class="text-canvas-fg">{{ articleFor(cell.value).difficulty }}</strong></span>
+						<span>Vol: <strong class="text-canvas-fg">{{ article.volume }}</strong></span>
+						<span>Diff: <strong class="text-canvas-fg">{{ article.difficulty }}</strong></span>
 					</div>
 
 					<a
-						v-if="articleFor(cell.value).cta"
+						v-if="article.cta"
 						href="#"
 						class="mt-2 inline-flex h-8 items-center justify-center rounded-md bg-primary px-3 text-xs font-bold text-primary-fg transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
 						@click.prevent
 					>
-						{{ articleFor(cell.value).cta }}
+						{{ article.cta }}
 					</a>
 				</article>
 			</template>

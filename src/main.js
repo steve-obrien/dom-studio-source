@@ -100,12 +100,14 @@ export function getRouteHead(route) {
 	const title = route.meta?.title ? `${route.meta.title} | ${siteName}` : siteName;
 	const description = route.meta?.description || '';
 	const keywords = route.meta?.keywords || '';
+	const robots = route.meta?.robots || '';
 
 	return {
 		title,
 		meta: [
 			description ? { name: 'description', content: description } : null,
 			keywords ? { name: 'keywords', content: keywords } : null,
+			robots ? { name: 'robots', content: robots } : null,
 		].filter(Boolean),
 	};
 }
@@ -117,6 +119,7 @@ export function updateDocumentHead(route) {
 
 	const description = head.meta.find((meta) => meta.name === 'description')?.content;
 	const keywords = head.meta.find((meta) => meta.name === 'keywords')?.content;
+	const robots = head.meta.find((meta) => meta.name === 'robots')?.content;
 
 	if (description) {
 		updateMetaTag('meta[name="description"]', {
@@ -134,6 +137,15 @@ export function updateDocumentHead(route) {
 		});
 	} else {
 		removeMetaTag('meta[name="keywords"]');
+	}
+
+	if (robots) {
+		updateMetaTag('meta[name="robots"]', {
+			name: 'robots',
+			content: robots,
+		});
+	} else {
+		removeMetaTag('meta[name="robots"]');
 	}
 }
 

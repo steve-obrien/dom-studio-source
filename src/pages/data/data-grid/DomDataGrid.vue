@@ -15,6 +15,7 @@
 * @property {Array<string|number|boolean|object>} [options] Select filter options. Objects may include label, value, and tone.
 * @property {string} [currency] Currency code for currency columns.
 * @property {Function} [accessor] Function that receives a row and returns the cell value.
+* @property {Function} [sortAccessor] Function that receives a row and column and returns the value used for local sorting.
 * @property {Function} [format] Function that receives value, row, and column and returns display text.
 */
 
@@ -31,9 +32,19 @@
 */
 
 /**
+* @typedef {object} DataGridSortRule
+* @property {string} [key] Column key, row field, or stable custom sort id.
+* @property {'asc'|'desc'} [direction]
+* @property {string} [field] Row property to sort by when it differs from key.
+* @property {Function} [accessor] Function that receives a row and returns the local sort value.
+* @property {Function} [compare] Function that receives left row, right row, rule, and context and returns an ascending comparison result.
+*/
+
+/**
 * @typedef {object} DataGridSort
 * @property {string} [key]
 * @property {'asc'|'desc'|''} [direction]
+* @property {Array<DataGridSortRule>} [rules] Ordered sort rules for multi-column or computed local sorting and server query payloads.
 */
 
 /**
@@ -68,9 +79,14 @@ export const dataGridProps = {
 		_edit: { description: 'Controlled filter map keyed by column key.' },
 	},
 	sort: {
-		type: Object,
+		type: [Object, Array],
 		default: () => ({ key: '', direction: '' }),
-		_edit: { description: 'Controlled sort state as { key, direction }.' },
+		_edit: { description: 'Controlled sort state as { key, direction }, or { rules } for multi-column and computed sorting.' },
+	},
+	multiSort: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'When true, header clicks toggle each sortable column inside an ordered sort.rules array.' },
 	},
 	search: {
 		type: String,
@@ -190,7 +206,7 @@ defineOptions({
 		icon: 'M4 5h16v14H4V5Zm0 4h16M4 13h16M9 5v14M15 5v14',
 		events: [
 			{ name: 'update:filters', payload: 'Record<string, DataGridFilter>', description: 'Fired when a column filter is applied or cleared.' },
-			{ name: 'update:sort', payload: 'DataGridSort', description: 'Fired when column sorting changes.' },
+			{ name: 'update:sort', payload: 'DataGridSort', description: 'Fired when column sorting changes. Complex sort values may include an ordered rules array.' },
 			{ name: 'update:search', payload: 'string', description: 'Fired when the toolbar search changes.' },
 			{ name: 'update:selectedKeys', payload: 'Array<string | number>', description: 'Fired when row selection changes.' },
 			{ name: 'query-change', payload: 'DataGridQuery', description: 'Fired with the normalized search, filters, and sort state. Use this to call a resource API.' },
@@ -262,10 +278,11 @@ const normalizedColumns = computed(() => {
 });
 const visibleColumns = computed(() => normalizedColumns.value);
 const activeFilters = computed(() => normalizeFilterMap(internalFilters.value));
+const activeSortRules = computed(() => sortRules(internalSort.value));
 const query = computed(() => ({
 	search: internalSearch.value.trim(),
 	filters: cloneFilterMap(activeFilters.value),
-	sort: internalSort.value.direction ? { ...internalSort.value } : null,
+	sort: activeSortRules.value.length ? cloneSort(internalSort.value) : null,
 }));
 const filteredRows = computed(() => {
 	if (props.remote) return sourceRows.value;
@@ -273,12 +290,9 @@ const filteredRows = computed(() => {
 });
 const displayRows = computed(() => {
 	if (props.remote) return sourceRows.value;
-	if (!internalSort.value.direction) return filteredRows.value;
+	if (!activeSortRules.value.length) return filteredRows.value;
 
-	const column = visibleColumns.value.find((item) => item.key === internalSort.value.key);
-	if (!column) return filteredRows.value;
-
-	return [...filteredRows.value].sort((a, b) => compareRows(a, b, column, internalSort.value.direction));
+	return [...filteredRows.value].sort((a, b) => compareRows(a, b, activeSortRules.value));
 });
 const remoteTotalRows = computed(() => Number.isFinite(props.totalRows) ? props.totalRows : sourceRows.value.length);
 const shownRowCount = computed(() => props.remote ? sourceRows.value.length : displayRows.value.length);
@@ -649,15 +663,69 @@ function toneClass(tone) {
 }
 
 function normalizeSort(sort) {
-	const direction = sort?.direction === 'desc' ? 'desc' : sort?.direction === 'asc' ? 'asc' : '';
+	const source = Array.isArray(sort) ? { rules: sort } : sort && typeof sort === 'object' ? sort : {};
+	const parentDirection = normalizeSortDirection(source.direction);
+	const rules = Array.isArray(source.rules)
+		? source.rules
+			.map((rule) => normalizeSortRule(rule, parentDirection || 'asc'))
+			.filter(Boolean)
+		: [];
+
+	if (rules.length) {
+		return {
+			...source,
+			key: source.key ? String(source.key) : rules[0].key,
+			direction: parentDirection || rules[0].direction,
+			rules,
+		};
+	}
+
+	const direction = normalizeSortDirection(source.direction);
+	const key = direction ? String(source.key || '') : '';
 	return {
-		key: direction ? String(sort?.key || '') : '',
-		direction: direction && sort?.key ? direction : '',
+		...source,
+		key,
+		direction: key ? direction : '',
 	};
+}
+
+function normalizeSortRule(rule, fallbackDirection = '') {
+	if (!rule || typeof rule !== 'object') return null;
+
+	const direction = normalizeSortDirection(rule.direction) || fallbackDirection;
+	const key = rule.key !== undefined && rule.key !== null && rule.key !== ''
+		? String(rule.key)
+		: rule.field !== undefined && rule.field !== null && rule.field !== ''
+			? String(rule.field)
+			: '';
+
+	if (!direction || (!key && typeof rule.accessor !== 'function' && typeof rule.compare !== 'function')) return null;
+
+	return {
+		...rule,
+		key,
+		direction,
+	};
+}
+
+function normalizeSortDirection(direction) {
+	return direction === 'desc' ? 'desc' : direction === 'asc' ? 'asc' : '';
+}
+
+function sortRules(sort) {
+	if (!sort || typeof sort !== 'object') return [];
+	if (Array.isArray(sort.rules) && sort.rules.length) return sort.rules;
+	if (!sort.key || !sort.direction) return [];
+	return [normalizeSortRule(sort)].filter(Boolean);
 }
 
 function toggleSort(column) {
 	if (!column.sortable) return;
+	if (props.multiSort) {
+		toggleMultiSort(column);
+		return;
+	}
+
 	const current = internalSort.value;
 	let next = { key: column.key, direction: 'asc' };
 
@@ -667,21 +735,101 @@ function toggleSort(column) {
 		next = { key: '', direction: '' };
 	}
 
-	internalSort.value = next;
-	emit('update:sort', { ...next });
-	emit('sort-change', { ...next });
+	internalSort.value = normalizeSort(next);
+	emit('update:sort', cloneSort(internalSort.value));
+	emit('sort-change', cloneSort(internalSort.value));
+}
+
+function toggleMultiSort(column) {
+	const rules = activeSortRules.value.map((rule) => ({ ...rule }));
+	const ruleIndex = rules.findIndex((rule) => rule.key === column.key);
+
+	if (ruleIndex === -1) {
+		rules.push(sortRuleForColumn(column, 'asc'));
+	} else if (rules[ruleIndex].direction === 'asc') {
+		rules[ruleIndex] = { ...rules[ruleIndex], direction: 'desc' };
+	} else {
+		rules.splice(ruleIndex, 1);
+	}
+
+	const next = sortFromRules(rules);
+	internalSort.value = normalizeSort(next);
+	emit('update:sort', cloneSort(internalSort.value));
+	emit('sort-change', cloneSort(internalSort.value));
+}
+
+function sortRuleForColumn(column, direction) {
+	return {
+		key: column.key,
+		direction,
+		...(column.field && column.field !== column.key ? { field: column.field } : {}),
+	};
+}
+
+function sortFromRules(rules) {
+	const firstRule = rules[0];
+	return {
+		key: firstRule?.key || '',
+		direction: firstRule?.direction || '',
+		rules,
+	};
 }
 
 function ariaSort(column) {
-	if (internalSort.value.key !== column.key || !internalSort.value.direction) return 'none';
-	return internalSort.value.direction === 'asc' ? 'ascending' : 'descending';
+	const primaryRule = activeSortRules.value[0];
+	if (!primaryRule || primaryRule.key !== column.key) {
+		return activeSortRules.value.some((rule) => rule.key === column.key) ? 'other' : 'none';
+	}
+
+	return primaryRule.direction === 'asc' ? 'ascending' : 'descending';
 }
 
-function compareRows(a, b, column, direction) {
-	const av = sortableValue(cellValue(a, column), column);
-	const bv = sortableValue(cellValue(b, column), column);
+function sortDirectionForColumn(column) {
+	if (internalSort.value.key === column.key && internalSort.value.direction) return internalSort.value.direction;
+	const rule = activeSortRules.value.find((item) => item.key === column.key);
+	return rule?.direction || '';
+}
+
+function sortRankForColumn(column) {
+	const index = activeSortRules.value.findIndex((rule) => rule.key === column.key);
+	return index >= 0 ? index + 1 : 0;
+}
+
+function sortButtonLabel(column) {
+	const direction = sortDirectionForColumn(column);
+	if (direction === 'asc') return `Sort ${column.label} descending`;
+	if (direction === 'desc') return props.multiSort ? `Remove ${column.label} sort` : `Clear ${column.label} sort`;
+	return `Sort ${column.label} ascending`;
+}
+
+function compareRows(a, b, rules) {
+	for (const rule of rules) {
+		const result = compareRowsByRule(a, b, rule);
+		if (result !== 0) return result;
+	}
+	return 0;
+}
+
+function compareRowsByRule(a, b, rule) {
+	const column = visibleColumns.value.find((item) => item.key === rule.key);
+
+	if (typeof rule.compare === 'function') {
+		const result = Number(rule.compare(a, b, rule, { column, columns: visibleColumns.value }));
+		if (Number.isFinite(result) && result !== 0) return rule.direction === 'desc' ? result * -1 : result;
+		return 0;
+	}
+
+	const av = sortableValue(sortRuleValue(a, column, rule), column || rule);
+	const bv = sortableValue(sortRuleValue(b, column, rule), column || rule);
 	const result = av > bv ? 1 : av < bv ? -1 : 0;
-	return direction === 'desc' ? result * -1 : result;
+	return rule.direction === 'desc' ? result * -1 : result;
+}
+
+function sortRuleValue(row, column, rule) {
+	if (typeof rule.accessor === 'function') return rule.accessor(row, column || rule);
+	if (column && typeof column.sortAccessor === 'function') return column.sortAccessor(row, column);
+	if (column) return cellValue(row, column);
+	return row?.[rule.field || rule.key];
 }
 
 function sortableValue(value, column) {
@@ -881,7 +1029,15 @@ function cloneQuery(value) {
 	return {
 		search: value.search,
 		filters: cloneFilterMap(value.filters),
-		sort: value.sort ? { ...value.sort } : null,
+		sort: cloneSort(value.sort),
+	};
+}
+
+function cloneSort(sort) {
+	if (!sort) return null;
+	return {
+		...sort,
+		...(Array.isArray(sort.rules) ? { rules: sort.rules.map((rule) => ({ ...rule })) } : {}),
 	};
 }
 
@@ -1148,11 +1304,17 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 									class="flex min-w-0 w-full items-center gap-1.5 overflow-hidden rounded-md px-1 py-1 text-left font-semibold text-canvas-fg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
 									:class="column.sortable ? 'hover:bg-secondary' : 'cursor-default'"
 									:disabled="!column.sortable"
+									:aria-label="sortButtonLabel(column)"
+									:title="sortButtonLabel(column)"
 									@click="toggleSort(column)"
 								>
 									<span class="truncate">{{ column.label }}</span>
-									<span v-if="column.type !== 'text'" class="shrink rounded bg-secondary px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-fg">
-										{{ column.type === 'currency' ? 'num' : column.type }}
+									<span
+										v-if="multiSort && sortRankForColumn(column)"
+										class="grid size-4 shrink-0 place-items-center rounded bg-primary text-[10px] font-semibold leading-none text-primary-fg"
+										aria-hidden="true"
+									>
+										{{ sortRankForColumn(column) }}
 									</span>
 									<svg
 										v-if="column.sortable"
@@ -1162,7 +1324,7 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 										aria-hidden="true"
 									>
 										<path
-											v-if="internalSort.key === column.key && internalSort.direction === 'asc'"
+											v-if="sortDirectionForColumn(column) === 'asc'"
 											d="m7 14 5-5 5 5"
 											stroke="currentColor"
 											stroke-width="2"
@@ -1170,7 +1332,7 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 											stroke-linejoin="round"
 										/>
 										<path
-											v-else-if="internalSort.key === column.key && internalSort.direction === 'desc'"
+											v-else-if="sortDirectionForColumn(column) === 'desc'"
 											d="m7 10 5 5 5-5"
 											stroke="currentColor"
 											stroke-width="2"
@@ -1216,97 +1378,96 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 
 										<template #default="{ close }">
 											<div v-if="filterDrafts[column.key]" class="grid gap-4 p-4 text-sm">
-											<div>
-												<p class="font-semibold text-canvas-fg">Filter {{ column.label }}</p>
-												<p class="mt-0.5 text-xs text-muted-fg">Column type: {{ column.type }}</p>
-											</div>
+												<div>
+													<p class="font-semibold text-canvas-fg">Filter {{ column.label }}</p>
+												</div>
 
-											<div v-if="column.type === 'number' || column.type === 'currency'" class="grid grid-cols-2 gap-3">
-												<label class="grid gap-1.5">
-													<span class="text-xs font-medium text-muted-fg">Minimum</span>
-													<input v-model="filterDrafts[column.key].min" type="number" class="skin-input h-9 rounded-md" placeholder="Any" />
-												</label>
-												<label class="grid gap-1.5">
-													<span class="text-xs font-medium text-muted-fg">Maximum</span>
-													<input v-model="filterDrafts[column.key].max" type="number" class="skin-input h-9 rounded-md" placeholder="Any" />
-												</label>
-											</div>
-
-											<div v-else-if="column.type === 'date'" class="grid grid-cols-2 gap-3">
-												<label class="grid gap-1.5">
-													<span class="text-xs font-medium text-muted-fg">From</span>
-													<input v-model="filterDrafts[column.key].start" type="date" class="skin-input h-9 rounded-md" />
-												</label>
-												<label class="grid gap-1.5">
-													<span class="text-xs font-medium text-muted-fg">To</span>
-													<input v-model="filterDrafts[column.key].end" type="date" class="skin-input h-9 rounded-md" />
-												</label>
-											</div>
-
-											<div v-else-if="column.type === 'boolean'" class="grid grid-cols-3 gap-1 rounded-md border border-border bg-secondary/40 p-1">
-												<button
-													v-for="option in [{ label: 'Any', value: '' }, { label: 'Yes', value: true }, { label: 'No', value: false }]"
-													:key="option.label"
-													type="button"
-													class="h-8 rounded px-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-													:class="filterDrafts[column.key].value === option.value ? 'bg-canvas text-canvas-fg shadow-xs' : 'text-muted-fg hover:text-canvas-fg'"
-													@click="setDraftBoolean(column, option.value)"
-												>
-													{{ option.label }}
-												</button>
-											</div>
-
-											<div v-else-if="column.type === 'select'" class="grid gap-2">
-												<p class="text-xs font-medium text-muted-fg">Values</p>
-												<div class="max-h-52 overflow-y-auto rounded-md border border-border bg-canvas p-1">
-													<label
-														v-for="option in optionRecords(column)"
-														:key="String(option.value)"
-														class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm transition hover:bg-secondary"
-													>
-														<input
-															type="checkbox"
-															class="size-4 rounded border-border accent-primary"
-															:checked="filterDrafts[column.key].values?.map(String).includes(String(option.value))"
-															@change="toggleDraftOption(column, option.value)"
-														/>
-														<span class="min-w-0 flex-1 truncate">{{ option.label }}</span>
-														<span v-if="option.tone" class="size-2 rounded-full" :class="toneClass(option.tone)"></span>
+												<div v-if="column.type === 'number' || column.type === 'currency'" class="grid grid-cols-2 gap-3">
+													<label class="grid gap-1.5">
+														<span class="text-xs font-medium text-muted-fg">Minimum</span>
+														<input v-model="filterDrafts[column.key].min" type="number" class="skin-input h-9 rounded-md" placeholder="Any" />
+													</label>
+													<label class="grid gap-1.5">
+														<span class="text-xs font-medium text-muted-fg">Maximum</span>
+														<input v-model="filterDrafts[column.key].max" type="number" class="skin-input h-9 rounded-md" placeholder="Any" />
 													</label>
 												</div>
-											</div>
 
-											<div v-else class="grid gap-3">
-												<label class="grid gap-1.5">
-													<span class="text-xs font-medium text-muted-fg">Match</span>
-													<select v-model="filterDrafts[column.key].operator" class="skin-input h-9 rounded-md">
-														<option value="contains">Contains</option>
-														<option value="equals">Equals</option>
-														<option value="starts">Starts with</option>
-													</select>
-												</label>
-												<label class="grid gap-1.5">
-													<span class="text-xs font-medium text-muted-fg">Value</span>
-													<input v-model="filterDrafts[column.key].value" type="text" class="skin-input h-9 rounded-md" placeholder="Search this column" />
-												</label>
-											</div>
+												<div v-else-if="column.type === 'date'" class="grid grid-cols-2 gap-3">
+													<label class="grid gap-1.5">
+														<span class="text-xs font-medium text-muted-fg">From</span>
+														<input v-model="filterDrafts[column.key].start" type="date" class="skin-input h-9 rounded-md" />
+													</label>
+													<label class="grid gap-1.5">
+														<span class="text-xs font-medium text-muted-fg">To</span>
+														<input v-model="filterDrafts[column.key].end" type="date" class="skin-input h-9 rounded-md" />
+													</label>
+												</div>
 
-											<div class="flex items-center justify-between gap-2 border-t border-border pt-3">
-												<button
-													type="button"
-													class="inline-flex h-9 items-center rounded-md px-3 text-xs font-semibold text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-													@click="clearColumnFilter(column); close();"
-												>
-													Clear
-												</button>
-												<button
-													type="button"
-													class="skin-action inline-flex h-9 items-center rounded-md px-3 text-xs font-semibold transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-													@click="applyFilter(column); close();"
-												>
-													Apply filter
-												</button>
-											</div>
+												<div v-else-if="column.type === 'boolean'" class="grid grid-cols-3 gap-1 rounded-md border border-border bg-secondary/40 p-1">
+													<button
+														v-for="option in [{ label: 'Any', value: '' }, { label: 'Yes', value: true }, { label: 'No', value: false }]"
+														:key="option.label"
+														type="button"
+														class="h-8 rounded px-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+														:class="filterDrafts[column.key].value === option.value ? 'bg-canvas text-canvas-fg shadow-xs' : 'text-muted-fg hover:text-canvas-fg'"
+														@click="setDraftBoolean(column, option.value)"
+													>
+														{{ option.label }}
+													</button>
+												</div>
+
+												<div v-else-if="column.type === 'select'" class="grid gap-2">
+													<p class="text-xs font-medium text-muted-fg">Values</p>
+													<div class="max-h-52 overflow-y-auto rounded-md border border-border bg-canvas p-1">
+														<label
+															v-for="option in optionRecords(column)"
+															:key="String(option.value)"
+															class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm transition hover:bg-secondary"
+														>
+															<input
+																type="checkbox"
+																class="size-4 rounded border-border accent-primary"
+																:checked="filterDrafts[column.key].values?.map(String).includes(String(option.value))"
+																@change="toggleDraftOption(column, option.value)"
+															/>
+															<span class="min-w-0 flex-1 truncate">{{ option.label }}</span>
+															<span v-if="option.tone" class="size-2 rounded-full" :class="toneClass(option.tone)"></span>
+														</label>
+													</div>
+												</div>
+
+												<div v-else class="grid gap-3">
+													<label class="grid gap-1.5">
+														<span class="text-xs font-medium text-muted-fg">Match</span>
+														<select v-model="filterDrafts[column.key].operator" class="skin-input h-9 rounded-md">
+															<option value="contains">Contains</option>
+															<option value="equals">Equals</option>
+															<option value="starts">Starts with</option>
+														</select>
+													</label>
+													<label class="grid gap-1.5">
+														<span class="text-xs font-medium text-muted-fg">Value</span>
+														<input v-model="filterDrafts[column.key].value" type="text" class="skin-input h-9 rounded-md" placeholder="Search this column" />
+													</label>
+												</div>
+
+												<div class="flex items-center justify-between gap-2 border-t border-border pt-3">
+													<button
+														type="button"
+														class="inline-flex h-9 items-center rounded-md px-3 text-xs font-semibold text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+														@click="clearColumnFilter(column); close();"
+													>
+														Clear
+													</button>
+													<button
+														type="button"
+														class="skin-action inline-flex h-9 items-center rounded-md px-3 text-xs font-semibold transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+														@click="applyFilter(column); close();"
+													>
+														Apply filter
+													</button>
+												</div>
 											</div>
 										</template>
 									</DomPopover>

@@ -42,12 +42,47 @@
  * @typedef {object} MonthCalendarDaySlotPayload
  * @property {MonthCalendarCell} cell
  * @property {MonthCalendarMonth} month
+ * @property {MonthCalendarDragState} drag
+ * @property {MonthCalendarDragAttrs} dragAttrs
  */
 
 /**
  * @typedef {object} MonthCalendarDayClickPayload
  * @property {MonthCalendarCell} cell
  * @property {MouseEvent} event
+ */
+
+/**
+ * @typedef {object} MonthCalendarDragState
+ * @property {boolean} active True while a calendar drag is in progress.
+ * @property {boolean} source True for the day where the drag started.
+ * @property {boolean} over True for the day currently previewed as the drop target.
+ * @property {MonthCalendarCell|null} sourceCell Cell where the drag started, when known.
+ * @property {MonthCalendarCell|null} overCell Cell currently previewed as the drop target, when known.
+ * @property {unknown} data App-owned data passed to dragAttrs.
+ */
+
+/**
+ * @typedef {object} MonthCalendarDragAttrsOptions
+ * @property {string} [effectAllowed] Native DataTransfer effectAllowed value.
+ */
+
+/**
+ * @typedef {(data?: unknown, options?: MonthCalendarDragAttrsOptions) => Record<string, unknown>} MonthCalendarDragAttrs
+ */
+
+/**
+ * @typedef {object} MonthCalendarDayDragPayload
+ * @property {MonthCalendarCell} cell
+ * @property {MonthCalendarCell|null} sourceCell
+ * @property {MonthCalendarCell} targetCell
+ * @property {string} sourceValue
+ * @property {string} targetValue
+ * @property {unknown} data
+ * @property {DragEvent} event
+ * @property {DataTransfer|null} dataTransfer
+ * @property {Array<string>} types
+ * @property {(type: string) => string} getData
  */
 
 /**
@@ -144,13 +179,24 @@ export const monthCalendarProps = {
 		default: false,
 		_edit: { group: 'Interaction', description: 'Allow day-click on visible days outside the displayed month.' },
 	},
+	dragAndDrop: {
+		type: Boolean,
+		default: false,
+		_edit: { group: 'Interaction', description: 'Expose dragAttrs in the day slot and emit day-drop when a draggable item is dropped onto a day.' },
+	},
+	dropEffect: {
+		type: String,
+		default: 'move',
+		validator: (value) => ['copy', 'move', 'link'].includes(value),
+		_edit: { group: 'Interaction', options: ['copy', 'move', 'link'], description: 'Native drop effect shown when a day can receive a dragged item.' },
+	},
 	/**
 	 * @type {MonthCalendarDisabledDate}
 	 */
 	disabledDate: {
 		type: Function,
 		default: null,
-		_edit: { group: 'Interaction', description: 'Function that receives a day cell and returns true when the day should not be clickable.' },
+		_edit: { group: 'Interaction', description: 'Function that receives a day cell and returns true when the day should not be clickable or droppable.' },
 	},
 	dayHeaders: {
 		type: Boolean,
@@ -177,7 +223,7 @@ export const monthCalendarProps = {
 </script>
 
 <script setup>
-import { computed, useId } from 'vue';
+import { computed, ref, useId } from 'vue';
 
 defineOptions({
 	__doc: {
@@ -187,9 +233,14 @@ defineOptions({
 		icon: 'M7 4v3M17 4v3M5 8h14M6 6h12v13H6V6Zm3 6h2M13 12h2M9 16h2M13 16h2',
 		events: [
 			{ name: 'day-click', payload: '({ cell, event })', typeRef: 'MonthCalendarDayClickPayload', description: 'Fired when a clickable day is activated.' },
+			{ name: 'day-drag-start', payload: '({ cell, sourceCell, sourceValue, data, event })', typeRef: 'MonthCalendarDayDragPayload', description: 'Fired when an item using dragAttrs starts dragging from a day.' },
+			{ name: 'day-drag-enter', payload: '({ cell, sourceCell, targetCell, sourceValue, targetValue, data, event })', typeRef: 'MonthCalendarDayDragPayload', description: 'Fired when a dragged item previews a day as the drop target.' },
+			{ name: 'day-drag-leave', payload: '({ cell, sourceCell, targetCell, sourceValue, targetValue, data, event })', typeRef: 'MonthCalendarDayDragPayload', description: 'Fired when a dragged item leaves a previewed day.' },
+			{ name: 'day-drop', payload: '({ cell, sourceCell, targetCell, sourceValue, targetValue, data, event })', typeRef: 'MonthCalendarDayDragPayload', description: 'Fired when a draggable item is dropped onto a day. The calendar does not mutate records.' },
+			{ name: 'day-drag-end', payload: '({ cell, sourceCell, targetCell, sourceValue, targetValue, data, event })', typeRef: 'MonthCalendarDayDragPayload', description: 'Fired when a drag started with dragAttrs ends.' },
 		],
 		slots: [
-			{ name: '(default)', payload: '{ cell, month }', typeRef: 'MonthCalendarDaySlotPayload', description: 'Custom content inside each visible calendar day.' },
+			{ name: '(default)', payload: '{ cell, month, drag, dragAttrs }', typeRef: 'MonthCalendarDaySlotPayload', description: 'Custom content inside each visible calendar day. Use dragAttrs(data) on items that should be draggable.' },
 			{ name: 'month-header', payload: '{ month }', description: 'Custom content rendered opposite the month title.' },
 		],
 		keyboard: [
@@ -200,10 +251,12 @@ defineOptions({
 });
 
 const props = defineProps(monthCalendarProps);
-const emit = defineEmits(['day-click']);
+const emit = defineEmits(['day-click', 'day-drag-start', 'day-drag-enter', 'day-drag-leave', 'day-drop', 'day-drag-end']);
 const rootId = useId();
+const calendarDragType = 'application/x-dom-month-calendar-drag';
 
 const todayValue = formatDate(new Date());
+const dragState = ref(createEmptyDragState());
 const resolvedWeekStartsOn = computed(() => clampWeekStartsOn(props.weekStartsOn));
 const rangeStart = computed(() => parseDate(props.startDate));
 const anchorDate = computed(() => rangeStart.value || initialDateFromProps() || new Date());
@@ -404,6 +457,222 @@ function outsideRange(value) {
 	return beforeBoundary(value, props.min) || afterBoundary(value, props.max);
 }
 
+function createEmptyDragState() {
+	return {
+		active: false,
+		sourceCell: null,
+		overCell: null,
+		data: null,
+	};
+}
+
+function dragAttrsFor(cell) {
+	return (data = null, options = {}) => {
+		if (!canStartDrag(cell)) {
+			return {
+				draggable: false,
+			};
+		}
+
+		return {
+			draggable: true,
+			'data-dom-month-calendar-drag': '',
+			onDragstart: (event) => onItemDragStart(cell, data, options, event),
+			onDragend: (event) => onItemDragEnd(cell, data, event),
+		};
+	};
+}
+
+function dragStateFor(cell) {
+	const state = dragState.value;
+	return {
+		active: state.active,
+		source: isDragSource(cell),
+		over: isDropTarget(cell),
+		sourceCell: state.sourceCell,
+		overCell: state.overCell,
+		data: state.data,
+	};
+}
+
+function canStartDrag(cell) {
+	return props.dragAndDrop && !cell.hidden && !cell.disabled;
+}
+
+function canDropOnCell(cell) {
+	return props.dragAndDrop && !cell.hidden && !cell.disabled;
+}
+
+function isDragSource(cell) {
+	return dragState.value.sourceCell?.value === cell.value;
+}
+
+function isDropTarget(cell) {
+	return dragState.value.overCell?.value === cell.value;
+}
+
+function onItemDragStart(cell, data, options, event) {
+	if (!canStartDrag(cell)) {
+		event.preventDefault();
+		return;
+	}
+
+	dragState.value = {
+		active: true,
+		sourceCell: cell,
+		overCell: null,
+		data,
+	};
+
+	if (event.dataTransfer) {
+		event.dataTransfer.effectAllowed = options.effectAllowed || 'move';
+		safeSetData(event, calendarDragType, serializeDragData({
+			sourceValue: cell.value,
+			sourceMonth: cell.monthValue,
+			data,
+		}));
+		safeSetData(event, 'text/plain', plainTextForDrag(data, cell));
+	}
+
+	emit('day-drag-start', dragPayload(cell, event));
+}
+
+function onItemDragEnd(cell, data, event) {
+	emit('day-drag-end', {
+		...dragPayload(cell, event),
+		data,
+	});
+	dragState.value = createEmptyDragState();
+}
+
+function onDayDragEnter(cell, event) {
+	if (!canDropOnCell(cell)) return;
+	event.preventDefault();
+	applyDropEffect(event);
+	if (!isDropTarget(cell)) {
+		dragState.value = {
+			...dragState.value,
+			active: true,
+			overCell: cell,
+		};
+		emit('day-drag-enter', dragPayload(cell, event));
+	}
+}
+
+function onDayDragOver(cell, event) {
+	if (!canDropOnCell(cell)) return;
+	event.preventDefault();
+	applyDropEffect(event);
+	if (!isDropTarget(cell)) {
+		dragState.value = {
+			...dragState.value,
+			active: true,
+			overCell: cell,
+		};
+	}
+}
+
+function onDayDragLeave(cell, event) {
+	if (!isDropTarget(cell) || event.currentTarget.contains(event.relatedTarget)) return;
+	emit('day-drag-leave', dragPayload(cell, event));
+	const nextState = {
+		...dragState.value,
+		overCell: null,
+	};
+	dragState.value = nextState.sourceCell ? nextState : createEmptyDragState();
+}
+
+function onDayDrop(cell, event) {
+	if (!canDropOnCell(cell)) return;
+	event.preventDefault();
+	applyDropEffect(event);
+	emit('day-drop', dragPayload(cell, event));
+	const nextState = {
+		...dragState.value,
+		overCell: null,
+	};
+	dragState.value = nextState.sourceCell ? nextState : createEmptyDragState();
+}
+
+function applyDropEffect(event) {
+	if (event.dataTransfer) event.dataTransfer.dropEffect = props.dropEffect;
+}
+
+function plainTextForDrag(data, cell) {
+	if (typeof data === 'string') return data;
+	if (data && typeof data === 'object' && 'id' in data) return String(data.id);
+	return cell.value;
+}
+
+function serializeDragData(payload) {
+	try {
+		return JSON.stringify(payload);
+	} catch {
+		return JSON.stringify({
+			sourceValue: payload.sourceValue,
+			sourceMonth: payload.sourceMonth,
+		});
+	}
+}
+
+function dragPayload(cell, event) {
+	const transferPayload = dragTransferPayload(event);
+	const sourceValue = dragState.value.sourceCell?.value || transferPayload.sourceValue || transferPayload.sourceDate || '';
+	const data = dragState.value.data ?? transferPayload.data ?? null;
+	return {
+		cell,
+		targetCell: cell,
+		sourceCell: dragState.value.sourceCell || cellForValue(sourceValue),
+		sourceValue,
+		targetValue: cell.value,
+		data,
+		event,
+		dataTransfer: event.dataTransfer,
+		types: dataTransferTypes(event),
+		getData: (type) => safeGetData(event, type),
+	};
+}
+
+function dragTransferPayload(event) {
+	const payload = safeGetData(event, calendarDragType);
+	if (!payload) return {};
+	try {
+		const parsed = JSON.parse(payload);
+		return parsed && typeof parsed === 'object' ? parsed : { data: parsed };
+	} catch {
+		return {};
+	}
+}
+
+function cellForValue(value) {
+	if (!value) return null;
+	for (const month of renderedMonths.value) {
+		const cell = month.cells.find((day) => day.value === value);
+		if (cell) return cell;
+	}
+	return null;
+}
+
+function dataTransferTypes(event) {
+	return Array.from(event.dataTransfer?.types || []);
+}
+
+function safeGetData(event, type) {
+	try {
+		return event.dataTransfer?.getData(type) || '';
+	} catch {
+		return '';
+	}
+}
+
+function safeSetData(event, type, value) {
+	try {
+		event.dataTransfer?.setData(type, value);
+	} catch {
+		// Some browsers reject non-string payloads or unavailable drag stores.
+	}
+}
+
 function dayClassFor(cell) {
 	if (!props.dayClass) return '';
 	if (typeof props.dayClass === 'function') return props.dayClass(cell);
@@ -499,6 +768,8 @@ function onDayClick(cell, event) {
 							:data-current-month="cell.currentMonth ? '' : undefined"
 							:data-muted="cell.muted ? '' : undefined"
 							:data-today="cell.today ? '' : undefined"
+							:data-drag-source="isDragSource(cell) ? '' : undefined"
+							:data-drop-target="isDropTarget(cell) ? '' : undefined"
 							class="flex min-h-30 w-full min-w-0 flex-col items-stretch justify-start p-3 text-left outline-none transition sm:min-h-38 lg:min-h-44"
 							:class="[
 								(showWeekNumbers || cell.row > 0 || cell.column > 0) && 'border-t border-border',
@@ -512,9 +783,16 @@ function onDayClick(cell, event) {
 								!clickable && 'cursor-default',
 								cell.today && !cell.hidden && 'ring-2 ring-inset ring-ring/40',
 								dayClassFor(cell),
+								dragAndDrop && dragState.active && canDropOnCell(cell) && !isDropTarget(cell) && 'bg-primary/5',
+								dragAndDrop && isDropTarget(cell) && 'bg-primary/10 ring-2 ring-inset ring-ring/60',
+								dragAndDrop && isDragSource(cell) && 'opacity-75',
 							]"
 							:style="dayStyleFor(cell)"
 							@click="onDayClick(cell, $event)"
+							@dragenter="onDayDragEnter(cell, $event)"
+							@dragover="onDayDragOver(cell, $event)"
+							@dragleave="onDayDragLeave(cell, $event)"
+							@drop="onDayDrop(cell, $event)"
 						>
 							<template v-if="!cell.hidden">
 								<div class="flex items-start justify-between gap-2">
@@ -522,7 +800,12 @@ function onDayClick(cell, event) {
 									<span class="text-base lowercase leading-none tabular-nums">{{ cell.weekday }}</span>
 								</div>
 								<div class="mt-3 min-h-0">
-									<slot :cell="cell" :month="month" />
+									<slot
+										:cell="cell"
+										:month="month"
+										:drag="dragStateFor(cell)"
+										:dragAttrs="dragAttrsFor(cell)"
+									/>
 								</div>
 							</template>
 						</component>

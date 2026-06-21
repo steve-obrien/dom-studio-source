@@ -119,10 +119,52 @@ function recordsFor(value) {
 	return recordsByDate.value[value] || [];
 }
 
+function disabledDate() {
+	return loading.value;
+}
+
 function dayClass(cell) {
 	if (!cell.currentMonth) return '';
 	if (loading.value) return 'bg-secondary/25';
 	if (recordsFor(cell.value).length) return 'bg-primary/5';
+	return '';
+}
+
+function dragDataFor(record) {
+	return {
+		id: record.id,
+		title: record.title,
+		sourceDate: record.date,
+	};
+}
+
+function moveRecord({ data, targetValue }) {
+	if (loading.value || !data?.id || !targetValue) return;
+	const sourceDate = data.sourceDate || recordDate(data.id);
+	if (!sourceDate || sourceDate === targetValue) return;
+	const record = recordsByDate.value[sourceDate]?.find((item) => item.id === data.id);
+	if (!record) return;
+
+	const next = { ...recordsByDate.value };
+	next[sourceDate] = (next[sourceDate] || []).filter((item) => item.id !== record.id);
+	if (!next[sourceDate].length) delete next[sourceDate];
+	next[targetValue] = [
+		...(next[targetValue] || []),
+		{
+			...record,
+			date: targetValue,
+		},
+	].sort((a, b) => a.time.localeCompare(b.time));
+
+	recordsByDate.value = next;
+	loadedAt.value = timeFormatter.format(new Date());
+	addRequestLog(`PATCH /api/calendar-records/${record.id} date=${targetValue}`, 'info');
+}
+
+function recordDate(id) {
+	for (const [date, records] of Object.entries(recordsByDate.value)) {
+		if (records.some((record) => record.id === id)) return date;
+	}
 	return '';
 }
 
@@ -221,12 +263,15 @@ function pad(value) {
 			:fixed-weeks="true"
 			:show-week-numbers="weekNumbers"
 			:day-class="dayClass"
+			:disabled-date="disabledDate"
+			drag-and-drop
+			@day-drop="moveRecord"
 		>
 			<template #month-header>
 				<span>{{ loading ? 'Fetching records' : `${recordCount} records available` }}</span>
 			</template>
 
-			<template #default="{ cell }">
+			<template #default="{ cell, drag, dragAttrs }">
 				<div v-if="cell.currentMonth" class="min-h-[6.25rem]">
 					<div v-if="loading" class="space-y-2" aria-hidden="true">
 						<div class="h-3 w-11/12 animate-pulse rounded-full bg-secondary"></div>
@@ -238,8 +283,12 @@ function pad(value) {
 						<article
 							v-for="record in recordsFor(cell.value)"
 							:key="record.id"
-							class="rounded-lg border px-2 py-1.5 text-xs font-semibold leading-4"
-							:class="toneClass(record)"
+							v-bind="dragAttrs(dragDataFor(record))"
+							class="cursor-grab rounded-lg border px-2 py-1.5 text-xs font-semibold leading-4 transition active:cursor-grabbing"
+							:class="[
+								toneClass(record),
+								drag.source && drag.data?.id === record.id && 'opacity-60 ring-2 ring-ring/40',
+							]"
 						>
 							<div class="flex min-w-0 items-center justify-between gap-2">
 								<span class="min-w-0 truncate">{{ record.title }}</span>

@@ -221,11 +221,11 @@ onBeforeUnmount(() => {
 		</header>
 
 		<div v-if="showSidebar" class="w-full px-4">
-			<div class="flex min-h-0 gap-12 py-10 md:h-[calc(100vh-4rem)] md:overflow-hidden md:py-0">
-				<SideNav persist-scroll class="docs-sidebar w-56 shrink-0 md:h-full md:overflow-y-auto md:py-10 md:pr-2" />
+			<div class="flex min-h-0 min-w-0 gap-0 py-10 md:h-[calc(100vh-4rem)] md:gap-12 md:overflow-hidden md:py-0">
+				<SideNav persist-scroll class="docs-sidebar hidden w-56 shrink-0 md:block md:h-full md:overflow-y-auto md:py-10 md:pr-2" />
 
 				<main ref="detailsPanel" class="min-h-0 min-w-0 flex-1 md:h-full md:overflow-y-auto md:py-10 md:pr-2">
-					<div class="mx-auto w-full" :class="contentMaxWidthClass">
+					<div class="mx-auto w-full min-w-0" :class="contentMaxWidthClass">
 						<slot />
 					</div>
 					<DomStudioFooter class="mt-16" />

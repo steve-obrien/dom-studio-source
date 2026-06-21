@@ -77,8 +77,29 @@ export interface DataGridColumn {
 	searchable?: boolean;
 	options?: Array<string | number | boolean | DomOption | Record<string, unknown>>;
 	currency?: string;
-	accessor?: (row: Record<string, unknown>) => unknown;
+	accessor?: (row: Record<string, unknown>, column: DataGridColumn) => unknown;
+	sortAccessor?: (row: Record<string, unknown>, column: DataGridColumn) => unknown;
 	format?: (value: unknown, row: Record<string, unknown>, column: DataGridColumn) => string | number;
+	[key: string]: unknown;
+}
+export interface DataGridSortContext {
+	column?: DataGridColumn;
+	columns: Array<DataGridColumn>;
+}
+export interface DataGridSortRule {
+	key?: string;
+	field?: string;
+	label?: string;
+	type?: DataGridColumn['type'];
+	direction?: 'asc' | 'desc';
+	accessor?: (row: Record<string, unknown>, column?: DataGridColumn | DataGridSortRule) => unknown;
+	compare?: (leftRow: Record<string, unknown>, rightRow: Record<string, unknown>, rule: DataGridSortRule, context: DataGridSortContext) => number;
+	[key: string]: unknown;
+}
+export interface DataGridSort {
+	key?: string;
+	direction?: 'asc' | 'desc' | '';
+	rules?: Array<DataGridSortRule>;
 	[key: string]: unknown;
 }
 export interface DomUploadedFile {
@@ -202,6 +223,30 @@ export interface MonthCalendarMonth {
 	label: string;
 	cells: Array<MonthCalendarCell>;
 	weeks: Array<MonthCalendarWeek>;
+}
+export interface MonthCalendarDragState {
+	active: boolean;
+	source: boolean;
+	over: boolean;
+	sourceCell: MonthCalendarCell | null;
+	overCell: MonthCalendarCell | null;
+	data: unknown;
+}
+export interface MonthCalendarDragAttrsOptions {
+	effectAllowed?: DataTransfer['effectAllowed'];
+}
+export type MonthCalendarDragAttrs = (data?: unknown, options?: MonthCalendarDragAttrsOptions) => Record<string, unknown>;
+export interface MonthCalendarDayDragPayload {
+	cell: MonthCalendarCell;
+	targetCell: MonthCalendarCell;
+	sourceCell: MonthCalendarCell | null;
+	sourceValue: string;
+	targetValue: string;
+	data: unknown;
+	event: DragEvent;
+	dataTransfer: DataTransfer | null;
+	types: Array<string>;
+	getData(type: string): string;
 }
 export interface TreeItemAction {
 	value?: string;
@@ -1069,9 +1114,13 @@ export interface DomDataGridProps {
 	 */
 	filters?: Record<string, unknown>;
 	/**
-	 * Controlled sort state as { key, direction }.
+	 * Controlled sort state as { key, direction }, or { rules } for multi-column and computed sorting.
 	 */
-	sort?: Record<string, unknown>;
+	sort?: DataGridSort | Array<DataGridSortRule>;
+	/**
+	 * When true, header clicks toggle each sortable column inside an ordered sort.rules array.
+	 */
+	multiSort?: boolean;
 	/**
 	 * Global search text.
 	 */
@@ -1155,6 +1204,7 @@ export interface DomDataGridProps {
 }
 export declare const DomDataGrid: DomComponent<DomDataGridProps>;
 
+/** MonthCalendarCell, MonthCalendarMonth, MonthCalendarDragState, MonthCalendarDayDragPayload payload types are exported from this module. */
 export interface DomMonthCalendarProps {
 	/**
 	 * First date in the rendered range as YYYY-MM-DD. The first month starts on the week containing this date.
@@ -1221,7 +1271,15 @@ export interface DomMonthCalendarProps {
 	 */
 	clickableAdjacentDays?: boolean;
 	/**
-	 * Function that receives a day cell and returns true when the day should not be clickable.
+	 * Expose dragAttrs in the day slot and emit day-drop when a draggable item is dropped onto a day.
+	 */
+	dragAndDrop?: boolean;
+	/**
+	 * Native drop effect shown when a day can receive a dragged item.
+	 */
+	dropEffect?: 'copy' | 'move' | 'link';
+	/**
+	 * Function that receives a day cell and returns true when the day should not be clickable or droppable.
 	 */
 	disabledDate?: (cell: MonthCalendarCell) => boolean;
 	/**
@@ -1534,6 +1592,30 @@ export interface DomSpinnerProps {
 	tone?: "primary" | "neutral" | "success" | "warning" | "danger";
 }
 export declare const DomSpinner: DomComponent<DomSpinnerProps>;
+
+export interface DomCodeBlockProps {
+	/**
+	 * Language passed to the syntax highlighter.
+	 */
+	lang?: "vue" | "html" | "js" | "ts" | "css" | "json" | "md" | "txt";
+	/**
+	 * Code to render. If empty, default slot content is serialized.
+	 */
+	code?: string;
+	/**
+	 * Optional source filename for labels and wrappers.
+	 */
+	filename?: string;
+	/**
+	 * Maximum visible lines before the block scrolls. Use 0 for no cap.
+	 */
+	previewLines?: number;
+	/**
+	 * Render the standard border, radius, and canvas background.
+	 */
+	framed?: boolean;
+}
+export declare const DomCodeBlock: DomComponent<DomCodeBlockProps>;
 
 export interface DomToggleProps {
 	/**

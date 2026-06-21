@@ -62,9 +62,9 @@ const resolvedFrameDefaultWidth = computed(() => {
 });
 const previewClasses = computed(() => {
 	if (isFramePresentation.value) {
-		return 'min-h-[200px] overflow-hidden';
+		return 'min-h-[200px] min-w-0 overflow-hidden';
 	}
-	return 'flex min-h-[200px] items-center justify-center overflow-auto p-4 sm:p-10';
+	return 'flex min-h-[200px] min-w-0 max-w-full items-center justify-center overflow-auto p-4 sm:p-10';
 });
 
 function sourcePathFromRoute() {

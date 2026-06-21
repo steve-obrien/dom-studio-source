@@ -71,6 +71,7 @@ export { default as DomAlert } from '../../visual/alert/DomAlert.vue';
 export { default as DomSkeleton } from '../../visual/skeleton/DomSkeleton.vue';
 export { default as DomProgress } from '../../visual/progress/DomProgress.vue';
 export { default as DomSpinner } from '../../visual/spinner/DomSpinner.vue';
+export { default as DomCodeBlock } from '../../visual/code-block/DomCodeBlock.vue';
 
 // Form primitives
 export { default as DomToggle } from '../../forms/toggle/DomToggle.vue';
