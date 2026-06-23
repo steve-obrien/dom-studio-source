@@ -198,6 +198,9 @@ export interface MonthCalendarCell {
 	weekday: string;
 	label: string;
 	currentMonth: boolean;
+	previousMonth: boolean;
+	nextMonth: boolean;
+	adjacentMonth: boolean;
 	hidden: boolean;
 	monthValue: string;
 	row: number;
@@ -208,6 +211,7 @@ export interface MonthCalendarCell {
 	muted: boolean;
 	disabled: boolean;
 }
+export type MonthCalendarDayClass = string | Array<unknown> | Record<string, boolean> | ((cell: MonthCalendarCell) => unknown);
 export interface MonthCalendarWeek {
 	index: number;
 	weekNumber: number;
@@ -475,9 +479,9 @@ export interface DomIconButtonProps {
 	 */
 	label?: string;
 	/**
-	 * Fallback SVG path data when no icon slot is provided.
+	 * Fallback SVG path data, or a Vue icon component from libraries such as lucide-vue-next.
 	 */
-	icon?: string;
+	icon?: string | Component;
 	/**
 	 * Visual role.
 	 */
@@ -485,7 +489,7 @@ export interface DomIconButtonProps {
 	/**
 	 * Hit area size.
 	 */
-	size?: "sm" | "md" | "lg";
+	size?: "xs" | "sm" | "md" | "lg";
 	/**
 	 * Show active/selected state.
 	 */
@@ -1255,6 +1259,14 @@ export interface DomMonthCalendarProps {
 	 */
 	mutedAfter?: string;
 	/**
+	 * Classes for visible muted days. Replaces the default muted day classes.
+	 */
+	mutedDayClass?: MonthCalendarDayClass;
+	/**
+	 * Classes for visible previous and next month days. Overrides mutedDayClass for adjacent days.
+	 */
+	adjacentDayClass?: MonthCalendarDayClass;
+	/**
 	 * Minimum clickable date as YYYY-MM-DD.
 	 */
 	min?: string;
@@ -1289,7 +1301,7 @@ export interface DomMonthCalendarProps {
 	/**
 	 * Extra classes, or a function that receives a day cell and returns classes for the day cell.
 	 */
-	dayClass?: string | Array<unknown> | Record<string, boolean> | ((cell: MonthCalendarCell) => unknown);
+	dayClass?: MonthCalendarDayClass;
 	/**
 	 * Extra styles, or a function that receives a day cell and returns styles for the day cell.
 	 */

@@ -28,6 +28,9 @@ const typeByConstructor = {
 };
 
 const manualPropTypes = {
+	DomIconButton: {
+		icon: 'string | Component',
+	},
 	DomTreeView: {
 		items: 'TreeItems',
 		openValues: 'Array<string | number>',
@@ -122,7 +125,9 @@ const manualPropTypes = {
 		weekdayFormat: '\'narrow\' | \'short\' | \'long\'',
 		dropEffect: '\'copy\' | \'move\' | \'link\'',
 		disabledDate: '(cell: MonthCalendarCell) => boolean',
-		dayClass: 'string | Array<unknown> | Record<string, boolean> | ((cell: MonthCalendarCell) => unknown)',
+		mutedDayClass: 'MonthCalendarDayClass',
+		adjacentDayClass: 'MonthCalendarDayClass',
+		dayClass: 'MonthCalendarDayClass',
 		dayStyle: 'string | Record<string, string | number> | ((cell: MonthCalendarCell) => string | Record<string, string | number> | null | undefined)',
 	},
 	DomPagination: {
@@ -753,6 +758,9 @@ function sharedVueTypes() {
 		'\tweekday: string;',
 		'\tlabel: string;',
 		'\tcurrentMonth: boolean;',
+		'\tpreviousMonth: boolean;',
+		'\tnextMonth: boolean;',
+		'\tadjacentMonth: boolean;',
 		'\thidden: boolean;',
 		'\tmonthValue: string;',
 		'\trow: number;',
@@ -763,6 +771,7 @@ function sharedVueTypes() {
 		'\tmuted: boolean;',
 		'\tdisabled: boolean;',
 		'}',
+		'export type MonthCalendarDayClass = string | Array<unknown> | Record<string, boolean> | ((cell: MonthCalendarCell) => unknown);',
 		'export interface MonthCalendarWeek {',
 		'\tindex: number;',
 		'\tweekNumber: number;',

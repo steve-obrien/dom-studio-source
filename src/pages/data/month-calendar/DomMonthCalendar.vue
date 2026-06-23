@@ -7,6 +7,9 @@
  * @property {string} weekday Formatted weekday label.
  * @property {string} label Full accessible date label.
  * @property {boolean} currentMonth True when the date belongs to the rendered month.
+ * @property {boolean} previousMonth True when the date belongs to the previous month relative to the rendered month.
+ * @property {boolean} nextMonth True when the date belongs to the next month relative to the rendered month.
+ * @property {boolean} adjacentMonth True when the date belongs to either adjacent month outside the rendered month.
  * @property {boolean} hidden True for adjacent dates when showAdjacentDays is false.
  * @property {string} monthValue YYYY-MM month key for the rendered month.
  * @property {number} row Zero-based week row in the grid.
@@ -159,6 +162,22 @@ export const monthCalendarProps = {
 		default: '',
 		_edit: { description: 'Dates after this YYYY-MM-DD value render muted.' },
 	},
+	/**
+	 * @type {MonthCalendarDayClass}
+	 */
+	mutedDayClass: {
+		type: [String, Array, Object, Function],
+		default: '',
+		_edit: { group: 'Styling', description: 'Classes for visible muted days. Replaces the default muted day classes.' },
+	},
+	/**
+	 * @type {MonthCalendarDayClass}
+	 */
+	adjacentDayClass: {
+		type: [String, Array, Object, Function],
+		default: '',
+		_edit: { group: 'Styling', description: 'Classes for visible previous and next month days. Overrides mutedDayClass for adjacent days.' },
+	},
 	min: {
 		type: String,
 		default: '',
@@ -258,6 +277,7 @@ const calendarDragType = 'application/x-dom-month-calendar-drag';
 const todayValue = formatDate(new Date());
 const dragState = ref(createEmptyDragState());
 const resolvedWeekStartsOn = computed(() => clampWeekStartsOn(props.weekStartsOn));
+const defaultMutedDayClass = 'bg-secondary/20 text-muted-fg/55';
 const rangeStart = computed(() => parseDate(props.startDate));
 const anchorDate = computed(() => rangeStart.value || initialDateFromProps() || new Date());
 const monthLabelFormatter = computed(() => new Intl.DateTimeFormat(props.locale, {
@@ -329,7 +349,11 @@ function buildMonth(firstMonth, index) {
 
 function buildCell(date, month, indexInGrid) {
 	const value = formatDate(date);
-	const currentMonth = date.getMonth() + 1 === month.month && date.getFullYear() === month.year;
+	const distanceFromRenderedMonth = monthDistance(date, month.date);
+	const currentMonth = distanceFromRenderedMonth === 0;
+	const previousMonth = distanceFromRenderedMonth < 0;
+	const nextMonth = distanceFromRenderedMonth > 0;
+	const adjacentMonth = previousMonth || nextMonth;
 	const hidden = !currentMonth && !props.showAdjacentDays;
 	const cell = {
 		date,
@@ -338,6 +362,9 @@ function buildCell(date, month, indexInGrid) {
 		weekday: weekdayLabelFormatter.value.format(date),
 		label: dateLabelFormatter.value.format(date),
 		currentMonth,
+		previousMonth,
+		nextMonth,
+		adjacentMonth,
 		hidden,
 		monthValue: month.value,
 		row: Math.floor(indexInGrid / 7),
@@ -348,7 +375,7 @@ function buildCell(date, month, indexInGrid) {
 		muted: false,
 		disabled: false,
 	};
-	cell.muted = hidden || !currentMonth || beforeBoundary(value, props.mutedBefore) || afterBoundary(value, props.mutedAfter);
+	cell.muted = hidden || adjacentMonth || beforeBoundary(value, props.mutedBefore) || afterBoundary(value, props.mutedAfter);
 	cell.disabled = hidden
 		|| outsideRange(value)
 		|| (!currentMonth && !props.clickableAdjacentDays)
@@ -382,6 +409,17 @@ function formatDate(date) {
 
 function monthValue(date) {
 	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+}
+
+/**
+ * Returns the number of calendar months between a day and its rendered month.
+ *
+ * @param {Date} date Date represented by the rendered cell.
+ * @param {Date} monthDate First day of the rendered month.
+ * @returns {number} Negative for previous-month cells, positive for next-month cells, and zero for current-month cells.
+ */
+function monthDistance(date, monthDate) {
+	return ((date.getFullYear() - monthDate.getFullYear()) * 12) + date.getMonth() - monthDate.getMonth();
 }
 
 function clampWeekStartsOn(value) {
@@ -673,10 +711,62 @@ function safeSetData(event, type, value) {
 	}
 }
 
+/**
+ * Resolves a class prop that may be static or computed from the day cell.
+ *
+ * @param {MonthCalendarDayClass} classValue Class prop value to resolve.
+ * @param {MonthCalendarCell} cell Day cell passed to function class props.
+ * @returns {unknown} Class value accepted by Vue's class binding.
+ */
+function resolveDayClass(classValue, cell) {
+	if (!classValue) return '';
+	if (typeof classValue === 'function') return classValue(cell);
+	return classValue;
+}
+
+/**
+ * Chooses the base visual state classes for a day cell.
+ *
+ * @param {MonthCalendarCell} cell Day cell being rendered.
+ * @returns {unknown} Class value for the cell's default, muted, adjacent, or hidden state.
+ */
+function stateDayClassFor(cell) {
+	if (cell.hidden) return 'pointer-events-none bg-secondary/20 text-transparent';
+	if (cell.adjacentMonth) return adjacentDayClassFor(cell);
+	if (cell.muted) return mutedDayClassFor(cell);
+	return 'text-canvas-fg';
+}
+
+/**
+ * Resolves classes for a muted current-month day.
+ *
+ * @param {MonthCalendarCell} cell Day cell being rendered.
+ * @returns {unknown} Custom muted classes when provided, otherwise the component default.
+ */
+function mutedDayClassFor(cell) {
+	return props.mutedDayClass ? resolveDayClass(props.mutedDayClass, cell) : defaultMutedDayClass;
+}
+
+/**
+ * Resolves classes for a visible previous or next month day.
+ *
+ * @param {MonthCalendarCell} cell Day cell being rendered.
+ * @returns {unknown} Adjacent classes, muted classes, or the component default in priority order.
+ */
+function adjacentDayClassFor(cell) {
+	if (props.adjacentDayClass) return resolveDayClass(props.adjacentDayClass, cell);
+	if (props.mutedDayClass) return resolveDayClass(props.mutedDayClass, cell);
+	return defaultMutedDayClass;
+}
+
+/**
+ * Resolves consumer-supplied classes for a day cell.
+ *
+ * @param {MonthCalendarCell} cell Day cell being rendered.
+ * @returns {unknown} Class value accepted by Vue's class binding.
+ */
 function dayClassFor(cell) {
-	if (!props.dayClass) return '';
-	if (typeof props.dayClass === 'function') return props.dayClass(cell);
-	return props.dayClass;
+	return resolveDayClass(props.dayClass, cell);
 }
 
 function dayStyleFor(cell) {
@@ -766,6 +856,9 @@ function onDayClick(cell, event) {
 							:aria-disabled="clickable && cell.disabled ? 'true' : undefined"
 							:data-date="cell.hidden ? undefined : cell.value"
 							:data-current-month="cell.currentMonth ? '' : undefined"
+							:data-adjacent-month="cell.adjacentMonth ? '' : undefined"
+							:data-previous-month="cell.previousMonth ? '' : undefined"
+							:data-next-month="cell.nextMonth ? '' : undefined"
 							:data-muted="cell.muted ? '' : undefined"
 							:data-today="cell.today ? '' : undefined"
 							:data-drag-source="isDragSource(cell) ? '' : undefined"
@@ -775,9 +868,7 @@ function onDayClick(cell, event) {
 								(showWeekNumbers || cell.row > 0 || cell.column > 0) && 'border-t border-border',
 								cell.row === 0 && (showWeekNumbers || cell.column > 0) && 'md:border-t-0',
 								(cell.column > 0 || showWeekNumbers) && 'md:border-l md:border-border',
-								cell.hidden && 'pointer-events-none bg-secondary/20 text-transparent',
-								!cell.hidden && cell.muted && 'bg-secondary/20 text-muted-fg/55',
-								!cell.hidden && !cell.muted && 'text-canvas-fg',
+								stateDayClassFor(cell),
 								clickable && !cell.disabled && 'cursor-pointer hover:bg-secondary/50 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50',
 								clickable && cell.disabled && 'cursor-not-allowed opacity-55',
 								!clickable && 'cursor-default',

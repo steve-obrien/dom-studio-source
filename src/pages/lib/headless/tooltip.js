@@ -13,6 +13,16 @@ import {
 
 const STYLE_ID = 'dom-tooltip-styles';
 
+/**
+ * Install the document-level styles required by headless tooltip bubbles.
+ *
+ * Tooltip bubbles are appended to `document.body` so they can escape local
+ * stacking contexts and overflow containers. Keeping these styles centralized
+ * gives Vue and custom element consumers the same arrow, placement, and motion
+ * treatment without requiring application CSS.
+ *
+ * @returns {void}
+ */
 function ensureTooltipStyles() {
 	if (!isBrowser || document.getElementById(STYLE_ID)) return;
 	const style = document.createElement('style');
@@ -22,6 +32,7 @@ dom-tooltip {
 	display: inline-flex;
 }
 [data-dom-tooltip] {
+	--dom-tooltip-arrow-size: 0.375rem;
 	position: fixed;
 	z-index: 70;
 	margin: 0;
@@ -36,6 +47,43 @@ dom-tooltip {
 	box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.25);
 	white-space: normal;
 	pointer-events: none;
+}
+[data-dom-tooltip]::before {
+	content: "";
+	position: absolute;
+	display: block;
+	width: 0;
+	height: 0;
+	border: var(--dom-tooltip-arrow-size) solid transparent;
+	pointer-events: none;
+}
+[data-dom-tooltip][data-side="top"]::before {
+	bottom: calc(var(--dom-tooltip-arrow-size) * -1);
+	left: var(--dom-popover-arrow-x, 50%);
+	border-top-color: var(--primary);
+	border-bottom: 0;
+	transform: translateX(-50%);
+}
+[data-dom-tooltip][data-side="bottom"]::before {
+	top: calc(var(--dom-tooltip-arrow-size) * -1);
+	left: var(--dom-popover-arrow-x, 50%);
+	border-top: 0;
+	border-bottom-color: var(--primary);
+	transform: translateX(-50%);
+}
+[data-dom-tooltip][data-side="left"]::before {
+	top: var(--dom-popover-arrow-y, 50%);
+	right: calc(var(--dom-tooltip-arrow-size) * -1);
+	border-right: 0;
+	border-left-color: var(--primary);
+	transform: translateY(-50%);
+}
+[data-dom-tooltip][data-side="right"]::before {
+	top: var(--dom-popover-arrow-y, 50%);
+	left: calc(var(--dom-tooltip-arrow-size) * -1);
+	border-right-color: var(--primary);
+	border-left: 0;
+	transform: translateY(-50%);
 }
 [data-dom-tooltip][popover] {
 	margin: 0;

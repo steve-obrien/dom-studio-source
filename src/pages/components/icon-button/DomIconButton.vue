@@ -11,7 +11,7 @@ defineOptions({
 			initial: { label: 'Add item', icon: 'M12 5v14M5 12h14' },
 		},
 		slots: [
-			{ name: '(default)', description: 'Icon content. Use an SVG sized to 1em or Tailwind size utilities.' },
+			{ name: '(default)', description: 'Custom icon content. Use an SVG or icon component sized to 1em or Tailwind size utilities.' },
 		],
 	},
 });
@@ -28,9 +28,9 @@ const props = defineProps({
 		_edit: { description: 'Accessible label for screen readers.' },
 	},
 	icon: {
-		type: String,
+		type: [String, Object, Function],
 		default: 'M12 5v14M5 12h14',
-		_edit: { description: 'Fallback SVG path data when no icon slot is provided.' },
+		_edit: { description: 'Fallback SVG path data, or a Vue icon component from libraries such as lucide-vue-next.' },
 	},
 	variant: {
 		type: String,
@@ -40,7 +40,7 @@ const props = defineProps({
 	size: {
 		type: String,
 		default: 'md',
-		_edit: { options: ['sm', 'md', 'lg'], description: 'Hit area size.' },
+		_edit: { options: ['xs', 'sm', 'md', 'lg'], description: 'Hit area size.' },
 	},
 	active: {
 		type: Boolean,
@@ -75,9 +75,17 @@ const activeVariants = {
 };
 
 const sizes = {
+	xs: 'size-7 text-xs',
 	sm: 'size-8 text-sm',
 	md: 'size-10 text-base',
 	lg: 'size-12 text-lg',
+};
+
+const iconSizes = {
+	xs: 'size-3.5',
+	sm: 'size-4',
+	md: 'size-4',
+	lg: 'size-4',
 };
 
 const classes = computed(() => [
@@ -92,6 +100,22 @@ const classes = computed(() => [
 
 const isNativeButton = computed(() => props.as === 'button');
 const disabledState = computed(() => props.disabled || props.loading);
+
+/**
+ * Matches the rendered fallback or component icon to the selected button size.
+ */
+const iconClasses = computed(() => iconSizes[props.size] || iconSizes.md);
+
+/**
+ * Resolves the fallback icon when the icon prop contains SVG path data.
+ */
+const iconPath = computed(() => (typeof props.icon === 'string' ? props.icon : ''));
+
+/**
+ * Resolves externally supplied Vue icon components without treating path data
+ * strings as dynamic component names.
+ */
+const iconComponent = computed(() => (typeof props.icon === 'string' ? null : props.icon));
 </script>
 
 <template>
@@ -106,13 +130,16 @@ const disabledState = computed(() => props.disabled || props.loading);
 		:disabled="isNativeButton && disabledState ? true : undefined"
 		:type="isNativeButton ? 'button' : undefined"
 	>
-		<svg v-if="loading" class="size-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		<svg v-if="loading" :class="[iconClasses, 'animate-spin']" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 			<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-opacity="0.25" />
 			<path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
 		</svg>
-		<slot v-else />
-		<svg v-if="!loading && !$slots.default" viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
-			<path :d="icon" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-		</svg>
+		<template v-else>
+			<slot v-if="$slots.default" />
+			<component v-else-if="iconComponent" :is="iconComponent" :class="iconClasses" aria-hidden="true" focusable="false" />
+			<svg v-else-if="iconPath" viewBox="0 0 24 24" :class="iconClasses" fill="none" aria-hidden="true">
+				<path :d="iconPath" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+			</svg>
+		</template>
 	</component>
 </template>

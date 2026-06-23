@@ -12,6 +12,8 @@ import { getBlockRecords } from '../blocks/blockRegistry.js';
 const pageModules = import.meta.glob([
 	'../**/Index.vue',
 	'!../auth/**/Index.vue',
+	'!../blocks/*/Index.vue',
+	'!../blocks/*/**/Index.vue',
 	'!../experiments/**/Index.vue',
 	'!../paywall/**/Index.vue',
 ]);

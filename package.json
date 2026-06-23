@@ -3,6 +3,10 @@
 	"version": "0.1.0",
 	"description": "DOM Studio is a source-owned Vue and web component interface system for humans and LLMs.",
 	"type": "module",
+	"sideEffects": [
+		"**/*.css",
+		"src/pages/lib/headless/*.js"
+	],
 	"types": "./src/pages/lib/vue/index.d.ts",
 	"scripts": {
 		"dev": "node server.js",

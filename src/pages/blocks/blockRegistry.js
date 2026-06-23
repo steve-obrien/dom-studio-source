@@ -83,6 +83,22 @@ export function getBlockLegacyRedirects() {
 		}));
 }
 
+export function getBlockRouteRecords() {
+	return getBlockRecords()
+		.map((record) => {
+			const loader = blockPageModules[`./${record.blockPath}/Index.vue`];
+			if (!loader) return null;
+
+			return {
+				route: record.route,
+				label: record.label,
+				summary: record.summary,
+				loader,
+			};
+		})
+		.filter(Boolean);
+}
+
 export function getBlockNavItems() {
 	return getBlockCategoryTree().map(navItemFromCategory);
 }
