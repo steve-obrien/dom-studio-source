@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, shallowRef, useId, watch } from 'vue';
+import { resolveFloatingTeleportTarget } from '../../lib/vue/floatingTeleportTarget.js';
 import { booleanProp, normalizeOption, searchableText } from '../_shared/options.js';
 import DomField from '../field/DomField.vue';
 import { fieldProps } from '../field/fieldProps.js';
@@ -123,7 +124,7 @@ const triggerClasses = computed(() => [
 ]);
 
 onMounted(async () => {
-	teleportTarget.value = root.value?.ownerDocument?.body || document.body;
+	teleportTarget.value = resolveFloatingTeleportTarget(root.value);
 	isMounted.value = true;
 	await nextTick();
 	await Promise.all([
@@ -142,6 +143,12 @@ watch(isSearchable, () => {
 	if (!isSearchable.value) resetSearch();
 });
 
+/**
+ * Commit the selected option value and close the floating panel.
+ *
+ * @param {CustomEvent<{ value: string }>} event Selection event from the headless listbox.
+ * @returns {void}
+ */
 function onSelect(event) {
 	if (field.disabled.value || field.readOnly.value) return;
 	const value = event.detail.value;
@@ -155,21 +162,42 @@ function onSelect(event) {
 	close();
 }
 
+/**
+ * Reset transient search state when the select panel opens.
+ *
+ * @returns {void}
+ */
 function onOpen() {
 	resetSearch();
 	if (!isSearchable.value) return;
 	nextTick(() => searchInput.value?.focus());
 }
 
+/**
+ * Close the headless dropdown host.
+ *
+ * @returns {void}
+ */
 function close() {
 	if (root.value) root.value.open = false;
 }
 
+/**
+ * Clear the panel search input and matching query state.
+ *
+ * @returns {void}
+ */
 function resetSearch() {
 	searchQuery.value = '';
 	if (searchInput.value) searchInput.value.value = '';
 }
 
+/**
+ * Select an option from keyboard-driven searchable interactions.
+ *
+ * @param {{ value: string, disabled?: boolean }|null|undefined} option Normalized option record.
+ * @returns {void}
+ */
 function selectOption(option) {
 	if (!option || option.disabled) return;
 	onSelect({
@@ -177,6 +205,12 @@ function selectOption(option) {
 	});
 }
 
+/**
+ * Move focus to the first or last visible option in the listbox.
+ *
+ * @param {'first'|'last'} [position='first'] Position to focus.
+ * @returns {void}
+ */
 function focusVisibleOption(position = 'first') {
 	const options = Array.from(listbox.value?.querySelectorAll('[role="option"]:not([disabled])') || [])
 		.filter((option) => option.getAttribute('aria-disabled') !== 'true');
@@ -185,6 +219,12 @@ function focusVisibleOption(position = 'first') {
 	option.focus();
 }
 
+/**
+ * Handle search-box keyboard shortcuts without leaking navigation to the listbox wrapper.
+ *
+ * @param {KeyboardEvent} event Search input keydown event.
+ * @returns {void}
+ */
 function onSearchKeydown(event) {
 	if (event.key === 'ArrowDown') {
 		event.preventDefault();

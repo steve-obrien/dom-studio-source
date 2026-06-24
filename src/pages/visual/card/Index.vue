@@ -14,6 +14,8 @@ import Glass from './examples/Glass.vue';
 import GlassSrc from './examples/Glass.vue?raw';
 import MediaAsset from './examples/MediaAsset.vue';
 import MediaAssetSrc from './examples/MediaAsset.vue?raw';
+import AppleStoreCards from '../card-rail/examples/AppleStoreCards.vue';
+import AppleStoreCardsSrc from '../card-rail/examples/AppleStoreCards.vue?raw';
 
 const doc = DomCard.__doc;
 </script>
@@ -54,6 +56,19 @@ const doc = DomCard.__doc;
 					description="Use padding none when the card image owns the top edge, then keep the media area stable with aspect-ratio utilities."
 				>
 					<MediaAsset />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Composition" title="Storefront card rails">
+				<Example
+					:source="AppleStoreCardsSrc"
+					filename="AppleStoreCards.vue"
+					source-path="src/pages/visual/card-rail/examples/AppleStoreCards.vue"
+					description="Keep DomCard as a flexible frame: compose product, promo, background-image, and icon cards inside DomCardRail when the page needs horizontal browsing."
+					default-open
+					:preview-lines="24"
+				>
+					<AppleStoreCards />
 				</Example>
 			</DocSection>
 

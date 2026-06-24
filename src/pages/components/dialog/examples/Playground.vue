@@ -6,6 +6,9 @@ const data = reactive({
 	modelValue: false,
 	static: false,
 	backdrop: true,
+	size: 'md',
+	width: '',
+	height: '',
 	title: 'Dialog title',
 	description: 'Supporting text shown under the heading.',
 });

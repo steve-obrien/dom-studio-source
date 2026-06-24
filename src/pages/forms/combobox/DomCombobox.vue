@@ -1,5 +1,6 @@
 <script setup>
-import { computed, onMounted, ref, useId, watch } from 'vue';
+import { computed, onMounted, ref, shallowRef, useId, watch } from 'vue';
+import { resolveFloatingTeleportTarget } from '../../lib/vue/floatingTeleportTarget.js';
 import DomFieldLoadingSpinner from '../_shared/DomFieldLoadingSpinner.vue';
 import { booleanProp, normalizeOption } from '../_shared/options.js';
 import DomField from '../field/DomField.vue';
@@ -77,6 +78,7 @@ const emit = defineEmits(['update:modelValue', 'query', 'select', 'focus', 'blur
 const root = ref(null);
 const inputEl = ref(null);
 const isMounted = ref(false);
+const teleportTarget = shallowRef(null);
 const field = useField(props, emit, { idPrefix: 'dom-combobox' });
 const isClearable = computed(() => booleanProp(props.clearable, true));
 const isLoading = computed(() => booleanProp(props.loading, false));
@@ -95,11 +97,22 @@ const loadingPositionClass = computed(() => (isClearable.value && hasSelection.v
 
 const optionList = computed(() => props.options.map((option) => normalizeOption(option)).filter(Boolean));
 
+/**
+ * Resolve the user-facing text shown for a committed value.
+ *
+ * @param {string|number|null|undefined} value Current model value.
+ * @returns {string|number} Option label or raw value fallback.
+ */
 function displayForValue(value) {
 	const selected = optionList.value.find((option) => String(option.value ?? option.label) === String(value));
 	return selected ? (selected.label ?? selected.value ?? '') : (value ?? '');
 }
 
+/**
+ * Synchronize the headless host and visible input from the Vue model value.
+ *
+ * @returns {void}
+ */
 function syncInputFromModel() {
 	if (root.value && root.value.value !== String(field.value.value ?? '')) {
 		root.value.value = field.value.value ?? '';
@@ -107,12 +120,18 @@ function syncInputFromModel() {
 	if (inputEl.value) inputEl.value.value = displayForValue(field.value.value);
 }
 
+/**
+ * Refresh the input label after async option records change.
+ *
+ * @returns {void}
+ */
 function syncInputAfterOptionsChange() {
 	if (!hasSelection.value || field.focused.value) return;
 	syncInputFromModel();
 }
 
 onMounted(async () => {
+	teleportTarget.value = resolveFloatingTeleportTarget(root.value);
 	isMounted.value = true;
 	await import('../../lib/headless/combobox.js');
 	syncInputFromModel();
@@ -134,6 +153,11 @@ onMounted(async () => {
 watch(field.value, syncInputFromModel);
 watch(optionList, syncInputAfterOptionsChange);
 
+/**
+ * Clear the selected value and close any open suggestion list.
+ *
+ * @returns {void}
+ */
 function clearSelection() {
 	field.setValue('');
 	if (root.value) root.value.value = '';
@@ -191,7 +215,7 @@ function clearSelection() {
 					<path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
 				</svg>
 			</button>
-			<Teleport to="body" :disabled="!isMounted">
+			<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
 				<ul
 					:id="listId"
 					class="dom-floating-transition skin-popover z-50 max-h-[min(15rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"

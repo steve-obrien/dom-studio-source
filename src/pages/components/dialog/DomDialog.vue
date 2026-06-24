@@ -23,6 +23,13 @@ defineOptions({
 	},
 });
 
+const dialogWidthClasses = {
+	sm: 'w-[min(calc(100vw-2rem),24rem)]',
+	md: 'w-[min(calc(100vw-2rem),28rem)]',
+	lg: 'w-[min(calc(100vw-2rem),44rem)]',
+	xl: 'w-[min(calc(100vw-2rem),56rem)]',
+};
+
 const props = defineProps({
 	modelValue: {
 		type: Boolean,
@@ -38,6 +45,25 @@ const props = defineProps({
 		type: String,
 		default: '',
 		_edit: { description: 'Supporting copy under the heading.' },
+	},
+	size: {
+		type: String,
+		default: 'md',
+		validator: (value) => ['sm', 'md', 'lg', 'xl'].includes(value),
+		_edit: {
+			options: ['sm', 'md', 'lg', 'xl'],
+			description: 'Width preset for the dialog card.',
+		},
+	},
+	width: {
+		type: [String, Number],
+		default: '',
+		_edit: { description: 'Optional CSS width. Overrides the size preset when set, for example 95vw.' },
+	},
+	height: {
+		type: [String, Number],
+		default: '',
+		_edit: { description: 'Optional CSS height. Use values like 95vh for near-full-page dialogs.' },
 	},
 	static: {
 		type: Boolean,
@@ -61,20 +87,69 @@ const root = ref(null);
 const uniqueId = useId();
 const titleId = computed(() => (props.title ? `dom-dialog-${uniqueId}-title` : ''));
 const descriptionId = computed(() => (props.description ? `dom-dialog-${uniqueId}-description` : ''));
+const dialogWidthClass = computed(() => dialogWidthClasses[props.size] || dialogWidthClasses.md);
+const dialogPanelStyle = computed(() => {
+	const width = normalizeDialogDimension(props.width);
+	const height = normalizeDialogDimension(props.height);
 
+	return {
+		width: width || undefined,
+		height: height || undefined,
+		maxHeight: height || undefined,
+	};
+});
+
+/**
+ * Normalize a CSS dimension prop into an inline style value.
+ *
+ * @param {string|number} value CSS size string or numeric pixel value.
+ * @returns {string} CSS size value, with numbers converted to pixels.
+ */
+function normalizeDialogDimension(value) {
+	if (typeof value === 'number' && Number.isFinite(value)) return `${value}px`;
+	if (typeof value === 'string') return value.trim();
+	return '';
+}
+
+/**
+ * Synchronize the headless dialog host with the controlled Vue model.
+ *
+ * @param {boolean} v Whether the dialog should be open.
+ * @returns {void}
+ */
 function setOpen(v) {
 	if (!root.value) return;
 	if (v) root.value.open();
 	else root.value.close();
 }
 
+/**
+ * Forward only the root dialog's open event to Vue consumers.
+ *
+ * @param {CustomEvent} event Headless open event.
+ * @returns {void}
+ */
+function onHeadlessOpen(event) {
+	if (event.target !== root.value) return;
+	emit('update:modelValue', true);
+}
+
+/**
+ * Forward only the root dialog's close event to Vue consumers.
+ *
+ * @param {CustomEvent} event Headless close event.
+ * @returns {void}
+ */
+function onHeadlessClose(event) {
+	if (event.target !== root.value) return;
+	emit('update:modelValue', false);
+	emit('close');
+}
+
 onMounted(async () => {
 	await import('../../lib/headless/dialog.js');
-	root.value?.addEventListener('dom:open', () => emit('update:modelValue', true));
-	root.value?.addEventListener('dom:close', () => {
-		emit('update:modelValue', false);
-		emit('close');
-	});
+	root.value?.addEventListener('dom:open', onHeadlessOpen);
+	root.value?.addEventListener('dom:close', onHeadlessClose);
 	if (props.modelValue) setOpen(true);
 });
 
@@ -106,12 +181,16 @@ defineExpose({
 		<span slot="trigger" class="contents">
 			<slot name="trigger" />
 		</span>
-		<div class="skin-overlay flex max-h-[calc(100dvh-2rem)] w-[min(calc(100vw-2rem),28rem)] flex-col overflow-hidden rounded-2xl p-6 outline-none">
+		<div
+			class="skin-overlay flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-2xl p-6 outline-none"
+			:class="dialogWidthClass"
+			:style="dialogPanelStyle"
+		>
 			<div v-if="title || description" class="shrink-0 space-y-2">
 				<h2 v-if="title" :id="titleId" class="text-lg font-semibold tracking-tight">{{ title }}</h2>
 				<p v-if="description" :id="descriptionId" class="text-sm text-muted-fg">{{ description }}</p>
 			</div>
-			<div class="min-h-0 overflow-y-auto" :class="(title || description) && 'mt-4'">
+			<div class="-mx-1 -mb-1 min-h-0 overflow-y-auto px-1 pb-1" :class="(title || description) ? 'mt-3 pt-1' : '-mt-1 pt-1'">
 				<slot />
 			</div>
 			<div v-if="footer || $slots.footer" class="mt-6 flex shrink-0 items-center justify-end gap-2">
@@ -143,7 +222,7 @@ defineExpose({
 
 .dom-dialog[open]::part(dialog) {
 	opacity: 1;
-	transform: translateY(0) scale(1);
+	transform: none;
 	filter: blur(0);
 }
 

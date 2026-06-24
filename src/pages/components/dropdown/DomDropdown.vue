@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, ref, shallowRef, useId, useSlots } from 'vue';
+import { resolveFloatingTeleportTarget } from '../../lib/vue/floatingTeleportTarget.js';
 
 defineOptions({
 	__doc: {
@@ -129,28 +130,66 @@ const hasDefaultPanel = computed(() => Boolean(slots.default && !slots.panel));
 const hasCustomPanel = computed(() => Boolean(slots.panel || slots.default));
 
 onMounted(async () => {
-	teleportTarget.value = root.value?.ownerDocument?.body || document.body;
+	teleportTarget.value = resolveFloatingTeleportTarget(root.value);
 	isMounted.value = true;
 	await nextTick();
 	await import('../../lib/headless/dropdown.js');
 	root.value?.addEventListener('dom:select', (e) => emit('select', e.detail.value));
 });
 
-const labelOf = (item) => (item && typeof item === 'object' ? (item.label ?? item.value) : item);
-const valueOf = (item) => (item && typeof item === 'object' ? (item.value ?? item.label) : item);
+/**
+ * Resolve the visible label for a dropdown item.
+ *
+ * @param {string|number|Record<string, unknown>} item Dropdown item definition.
+ * @returns {unknown} Item label, value fallback, or primitive item.
+ */
+function labelOf(item) {
+	return item && typeof item === 'object' ? (item.label ?? item.value) : item;
+}
 
+/**
+ * Resolve the submitted value for a dropdown item.
+ *
+ * @param {string|number|Record<string, unknown>} item Dropdown item definition.
+ * @returns {unknown} Item value, label fallback, or primitive item.
+ */
+function valueOf(item) {
+	return item && typeof item === 'object' ? (item.value ?? item.label) : item;
+}
+
+/**
+ * Open the dropdown panel programmatically.
+ *
+ * @returns {void}
+ */
 function open() {
 	if (root.value) root.value.open = true;
 }
 
+/**
+ * Close the dropdown panel programmatically.
+ *
+ * @returns {void}
+ */
 function close() {
 	if (root.value) root.value.open = false;
 }
 
+/**
+ * Toggle the dropdown panel programmatically.
+ *
+ * @returns {void}
+ */
 function toggle() {
 	root.value?.toggle?.();
 }
 
+/**
+ * Forward custom panel selections and close one-shot menu rows.
+ *
+ * @param {CustomEvent<{ value?: string, item?: Element }>} event Selection event from nested menu primitives.
+ * @returns {void}
+ */
 function onPanelDomSelect(event) {
 	if (!slots.default) return;
 	emit('select', event.detail?.value);

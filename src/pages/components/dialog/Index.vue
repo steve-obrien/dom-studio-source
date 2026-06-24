@@ -17,6 +17,8 @@ import Delete from './examples/Delete.vue';
 import DeleteSrc from './examples/Delete.vue?raw';
 import TermsScroll from './examples/TermsScroll.vue';
 import TermsScrollSrc from './examples/TermsScroll.vue?raw';
+import EditPostDialog from './examples/EditPostDialog.vue';
+import EditPostDialogSrc from './examples/EditPostDialog.vue?raw';
 import Nested from './examples/Nested.vue';
 import NestedSrc from './examples/Nested.vue?raw';
 import Programmatic from './examples/Programmatic.vue';
@@ -60,6 +62,16 @@ const doc = DomDialog.__doc;
 					description="A long-form agreement pattern that keeps the dialog footer visible while the terms scroll inside the dialog body."
 				>
 					<TermsScroll />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Wide edit form">
+				<Example
+					:source="EditPostDialogSrc"
+					filename="EditPostDialog.vue"
+					description="A near-full-page dialog for dense editorial workflows — custom width and height keep form fields scrollable while the action footer stays available."
+				>
+					<EditPostDialog />
 				</Example>
 			</DocSection>
 

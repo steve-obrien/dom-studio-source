@@ -699,6 +699,18 @@ export interface DomDialogProps {
 	 */
 	description?: string;
 	/**
+	 * Width preset for the dialog card.
+	 */
+	size?: "sm" | "md" | "lg" | "xl";
+	/**
+	 * Optional CSS width. Overrides the size preset when set, for example 95vw.
+	 */
+	width?: string | number;
+	/**
+	 * Optional CSS height. Use values like 95vh for near-full-page dialogs.
+	 */
+	height?: string | number;
+	/**
 	 * Modal cannot be dismissed by backdrop click or Esc — use footer actions with data-close or v-model.
 	 */
 	static?: boolean;
@@ -1368,6 +1380,18 @@ export interface DomCardProps {
 	interactive?: boolean;
 }
 export declare const DomCard: DomComponent<DomCardProps>;
+
+export interface DomCardRailProps {
+	/**
+	 * Element to render for the rail wrapper.
+	 */
+	as?: string;
+	/**
+	 * Accessible label for the focusable horizontal scroll region.
+	 */
+	ariaLabel?: string;
+}
+export declare const DomCardRail: DomComponent<DomCardRailProps>;
 
 export interface DomBadgeProps {
 	/**

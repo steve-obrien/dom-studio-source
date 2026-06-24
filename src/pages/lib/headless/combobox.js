@@ -59,6 +59,46 @@ function dispatchCancelable(host, type, detail) {
 	return event;
 }
 
+/**
+ * Check whether a listbox is currently promoted to the browser top layer.
+ *
+ * @param {HTMLElement|null|undefined} list Floating listbox element.
+ * @returns {boolean} True when the element is an open native popover.
+ */
+function isListPopoverOpen(list) {
+	return Boolean(list?.matches?.(':popover-open'));
+}
+
+/**
+ * Show a listbox as a manual popover when the browser supports the Popover API.
+ *
+ * @param {HTMLElement|null|undefined} list Floating listbox element.
+ * @returns {void}
+ */
+function showListPopover(list) {
+	if (!list || typeof list.showPopover !== 'function' || isListPopoverOpen(list)) return;
+	try {
+		list.showPopover();
+	} catch {
+		// The list remains in-place for browsers or states that reject promotion.
+	}
+}
+
+/**
+ * Hide a listbox manual popover when it is currently open.
+ *
+ * @param {HTMLElement|null|undefined} list Floating listbox element.
+ * @returns {void}
+ */
+function hideListPopover(list) {
+	if (!list || typeof list.hidePopover !== 'function' || !isListPopoverOpen(list)) return;
+	try {
+		list.hidePopover();
+	} catch {
+		// Ignore stale top-layer state; hidden/reset below still closes the list.
+	}
+}
+
 export class ComboBase extends DomElementBase {
 	static get observedAttributes() { return OBSERVED; }
 
@@ -152,6 +192,9 @@ export class ComboBase extends DomElementBase {
 		this._wiredList = this._list;
 		this._list.id = this._list.id || `${id}-list`;
 		this._list.setAttribute('role', 'listbox');
+		if (typeof this._list.showPopover === 'function' && !this._list.hasAttribute('popover')) {
+			this._list.setAttribute('popover', 'manual');
+		}
 		prepareFloatingEffect(this._list);
 		this._list.hidden = !this._open;
 		this._input.setAttribute('aria-controls', this._list.id);
@@ -224,6 +267,7 @@ export class ComboBase extends DomElementBase {
 
 	_finishListClose(list = this._list) {
 		if (!list) return;
+		hideListPopover(list);
 		list.hidden = true;
 		resetFloatingEffectState(list);
 	}
@@ -231,6 +275,7 @@ export class ComboBase extends DomElementBase {
 	_showList() {
 		const list = this._list;
 		list.hidden = false;
+		showListPopover(list);
 		if (!hasFloatingEffect(list)) return;
 		beginFloatingEffectEnter(list, {
 			shouldContinue: () => this._open && this._list === list,

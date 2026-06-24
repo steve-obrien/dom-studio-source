@@ -62,6 +62,7 @@ export {
 
 // Visual primitives
 export { default as DomCard } from '../../visual/card/DomCard.vue';
+export { default as DomCardRail } from '../../visual/card-rail/DomCardRail.vue';
 export { default as DomBadge } from '../../visual/badge/DomBadge.vue';
 export { default as DomStatusPill } from '../../visual/status-pill/DomStatusPill.vue';
 export { default as DomAvatar } from '../../visual/avatar/DomAvatar.vue';

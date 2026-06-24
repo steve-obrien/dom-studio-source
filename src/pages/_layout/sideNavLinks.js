@@ -47,6 +47,7 @@ export const staticIconPaths = {
 	Toast: 'M6 7h12v8H9l-3 3V7Z',
 	Pagination: 'M7 8l-4 4 4 4M17 8l4 4-4 4M10 12h4',
 	Card: 'M5 7h14v10H5V7Zm3 3h8M8 14h5',
+	'Card rail': 'M4 8h5v8H4V8Zm7 0h5v8h-5V8Zm7 0h2v8h-2V8Z',
 	Badge: 'M7 8h10a4 4 0 0 1 0 8H7a4 4 0 0 1 0-8Zm2 4h.01M13 12h2',
 	'Status pill': 'M8 8h8a4 4 0 0 1 0 8H8a4 4 0 0 1 0-8Zm2 4h.01M14 12h2',
 	Avatar: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 20a7 7 0 0 1 14 0',

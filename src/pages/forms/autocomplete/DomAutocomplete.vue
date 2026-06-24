@@ -1,5 +1,6 @@
 <script setup>
-import { computed, onMounted, ref, useId, watch } from 'vue';
+import { computed, onMounted, ref, shallowRef, useId, watch } from 'vue';
+import { resolveFloatingTeleportTarget } from '../../lib/vue/floatingTeleportTarget.js';
 import DomFieldLoadingSpinner from '../_shared/DomFieldLoadingSpinner.vue';
 import { booleanProp, normalizeOption } from '../_shared/options.js';
 import DomField from '../field/DomField.vue';
@@ -73,18 +74,25 @@ const emit = defineEmits(['update:modelValue', 'query', 'select', 'commit', 'foc
 const root = ref(null);
 const inputEl = ref(null);
 const isMounted = ref(false);
+const teleportTarget = shallowRef(null);
 const currentText = ref('');
 const field = useField(props, emit, { idPrefix: 'dom-autocomplete' });
 const isLoading = computed(() => booleanProp(props.loading, false));
 
 const items = computed(() => props.options.map((option) => normalizeOption(option)).filter(Boolean));
 
+/**
+ * Synchronize the free-text input from the Vue model value.
+ *
+ * @returns {void}
+ */
 function syncInputFromModel() {
 	currentText.value = field.value.value ?? '';
 	if (inputEl.value) inputEl.value.value = field.value.value ?? '';
 }
 
 onMounted(async () => {
+	teleportTarget.value = resolveFloatingTeleportTarget(root.value);
 	isMounted.value = true;
 	await import('../../lib/headless/autocomplete.js');
 	syncInputFromModel();
@@ -139,7 +147,7 @@ watch(field.value, syncInputFromModel);
 				v-if="isLoading"
 				class="absolute right-1 top-1"
 			/>
-			<Teleport to="body" :disabled="!isMounted">
+			<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
 				<ul
 					:id="listId"
 					class="dom-floating-transition skin-popover z-50 max-h-[min(15rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"
