@@ -4,6 +4,7 @@ import DocPage from '../../_layout/DocPage.vue';
 import DocSection from '../../_layout/DocSection.vue';
 import Example from '../../_layout/docs/Example.vue';
 import Playground from '../../_layout/docs/Playground.vue';
+import CodePanel from '../../_layout/docs/CodePanel.vue';
 import ComponentProps from '../../_layout/docs/ComponentProps.vue';
 import ComponentSlots from '../../_layout/docs/ComponentSlots.vue';
 import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
@@ -29,6 +30,44 @@ import Custom from './examples/Custom.vue';
 import CustomSrc from './examples/Custom.vue?raw';
 
 const doc = DomDialog.__doc;
+const lifecycleSource = `<script setup>
+import { ref } from 'vue';
+import { DomDialog } from '@getdom/studio/vue';
+
+const open = ref(false);
+const selectedCustomer = ref(null);
+const draft = ref(null);
+
+/**
+ * Create an editable dialog draft before the panel is shown.
+ *
+ * @returns {void}
+ */
+function prepareDialogData() {
+	if (!selectedCustomer.value) return;
+	draft.value = { ...selectedCustomer.value };
+}
+
+/**
+ * Release retained dialog data after the close animation has finished.
+ *
+ * @returns {void}
+ */
+function resetDialogData() {
+	draft.value = null;
+}
+<\\/script>
+
+<template>
+	<DomDialog
+		v-model="open"
+		title="Edit customer"
+		@before-open="prepareDialogData"
+		@close-complete="resetDialogData"
+	>
+		<CustomerForm v-if="draft" v-model="draft" />
+	</DomDialog>
+</template>`;
 </script>
 
 <template>
@@ -73,6 +112,26 @@ const doc = DomDialog.__doc;
 				>
 					<EditPostDialog />
 				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Lifecycle" title="Prepare data before opening">
+				<div class="space-y-4 text-sm leading-relaxed text-muted-fg">
+					<p>
+						When a dialog renders selected row data or a form draft, avoid clearing that data in the same tick that closes the dialog.
+						Vue will re-render the slot while the leave transition is still visible, which can make the panel shrink or flash empty content.
+					</p>
+					<p>
+						Use <code class="rounded bg-secondary px-1 py-0.5 font-mono text-[0.85em] text-canvas-fg">before-open</code> to create the fresh draft or snapshot before the panel appears.
+						Then use <code class="rounded bg-secondary px-1 py-0.5 font-mono text-[0.85em] text-canvas-fg">close-complete</code> to release that retained data after the close transition has finished.
+					</p>
+				</div>
+				<div class="mt-5 overflow-hidden rounded-xl border border-border bg-canvas">
+					<CodePanel
+						:source="lifecycleSource"
+						filename="DialogLifecycle.vue"
+						:border-top="false"
+					/>
+				</div>
 			</DocSection>
 
 			<DocSection eyebrow="Demo" title="Programmatic control">

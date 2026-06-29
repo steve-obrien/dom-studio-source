@@ -30,7 +30,15 @@ const props = defineProps({
 	icon: {
 		type: [String, Object, Function],
 		default: 'M12 5v14M5 12h14',
-		_edit: { description: 'Fallback SVG path data, or a Vue icon component from libraries such as lucide-vue-next.' },
+		_edit: {
+			component: 'DomIconSelector',
+			description: 'Fallback SVG path data, or a Vue icon component from libraries such as lucide-vue-next.',
+			props: {
+				kind: 'icons',
+				clearable: false,
+				placeholder: 'Search icons',
+			},
+		},
 	},
 	variant: {
 		type: String,

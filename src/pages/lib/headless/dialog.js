@@ -1,5 +1,7 @@
 import { DomElementBase, defineDomElement, isBrowser } from './base.js';
 
+const CLOSE_COMPLETE_BUFFER_MS = 40;
+
 // <dom-dialog id="my-dialog">
 //   <!-- trigger slot optional — omit when opening via commandfor or .open() -->
 //   <h2>Title</h2>
@@ -13,6 +15,12 @@ import { DomElementBase, defineDomElement, isBrowser } from './base.js';
 // dlg.open(); dlg.close(); dlg.toggle();
 
 let TEMPLATE = null;
+
+/**
+ * Resolve the shared shadow DOM template for dialog elements.
+ *
+ * @returns {HTMLTemplateElement|null} Cached dialog template, or null outside the browser.
+ */
 function getTemplate() {
 	if (TEMPLATE || !isBrowser) return TEMPLATE;
 	TEMPLATE = document.createElement('template');
@@ -65,6 +73,67 @@ function getTemplate() {
 
 const OPEN_COMMANDS = new Set(['open', 'show-modal']);
 
+/**
+ * Parse a CSS time value into milliseconds.
+ *
+ * @param {string} value CSS time token such as `120ms` or `0.2s`.
+ * @returns {number} Milliseconds represented by the token.
+ */
+function parseCssTime(value) {
+	const time = String(value || '').trim();
+	if (!time) return 0;
+	const numeric = Number.parseFloat(time);
+	if (!Number.isFinite(numeric)) return 0;
+	if (time.endsWith('ms')) return numeric;
+	if (time.endsWith('s')) return numeric * 1000;
+	return numeric;
+}
+
+/**
+ * Parse a comma-separated CSS time list into millisecond values.
+ *
+ * @param {string} value CSS transition duration or delay list.
+ * @returns {Array<number>} Parsed millisecond values.
+ */
+function parseCssTimeList(value) {
+	return String(value || '')
+		.split(',')
+		.map((entry) => parseCssTime(entry));
+}
+
+/**
+ * Read an indexed CSS time, repeating the final value as CSS transitions do.
+ *
+ * @param {Array<number>} values Parsed CSS time values.
+ * @param {number} index Desired transition index.
+ * @returns {number} Millisecond value for the index.
+ */
+function cssTimeAt(values, index) {
+	if (!values.length) return 0;
+	return values[index] ?? values[values.length - 1] ?? 0;
+}
+
+/**
+ * Calculate the longest transition duration plus delay for an element.
+ *
+ * @param {Element|null} element Element whose computed transition timing should be measured.
+ * @returns {number} Longest transition time in milliseconds.
+ */
+function transitionTotalMs(element) {
+	if (!element || !isBrowser) return 0;
+	const style = window.getComputedStyle(element);
+	const durations = parseCssTimeList(style.transitionDuration);
+	const delays = parseCssTimeList(style.transitionDelay);
+	const count = Math.max(durations.length, delays.length);
+	let longest = 0;
+
+	for (let index = 0; index < count; index += 1) {
+		longest = Math.max(longest, cssTimeAt(durations, index) + cssTimeAt(delays, index));
+	}
+
+	return longest;
+}
+
 export class DomDialogElement extends DomElementBase {
 	static get observedAttributes() { return ['open', 'aria-labelledby', 'aria-describedby']; }
 
@@ -82,8 +151,10 @@ export class DomDialogElement extends DomElementBase {
 			{ name: 'no-backdrop', type: 'boolean', description: 'Hides the visual backdrop while keeping native modal top-layer behaviour.' },
 		],
 		events: [
+			{ name: 'dom:before-open', description: 'Fired immediately before the dialog opens so callers can prepare render state.' },
 			{ name: 'dom:open', description: 'Fired when the dialog opens.' },
 			{ name: 'dom:close', description: 'Fired when the dialog closes (Esc, .close(), backdrop, or data-close).' },
+			{ name: 'dom:close-complete', description: 'Fired after the close transition completes so callers can release retained data.' },
 		],
 		keyboard: [
 			{ keys: 'Esc', action: 'Closes the topmost open dialog unless `static` is set.' },
@@ -114,6 +185,8 @@ export class DomDialogElement extends DomElementBase {
 		}
 		this._dialog = this.shadowRoot.querySelector('dialog');
 		this._syncing = false;
+		this._closeCompleteRun = 0;
+		this._closeCompleteTimer = null;
 	}
 
 	connectedCallback() {
@@ -155,6 +228,21 @@ export class DomDialogElement extends DomElementBase {
 		if (this.boolAttr('open')) this._setOpen(true);
 	}
 
+	/**
+	 * Release listeners and close-complete timers when the element disconnects.
+	 *
+	 * @returns {void}
+	 */
+	disconnectedCallback() {
+		super.disconnectedCallback();
+		this._cancelCloseCompleteWait();
+	}
+
+	/**
+	 * Synchronize ARIA references from the host to the internal native dialog.
+	 *
+	 * @returns {void}
+	 */
 	_syncAria() {
 		for (const name of ['aria-labelledby', 'aria-describedby']) {
 			const value = this.getAttribute(name);
@@ -176,13 +264,24 @@ export class DomDialogElement extends DomElementBase {
 		}
 	}
 
+	/**
+	 * Handle the native close event and start close-complete tracking.
+	 *
+	 * @returns {void}
+	 */
 	_onNativeClose() {
-		if (!this.hasAttribute('open')) return;
 		this._syncAttr(false);
 		this._trigger?.setAttribute('aria-expanded', 'false');
 		this.emit('dom:close');
+		this._waitForCloseComplete();
 	}
 
+	/**
+	 * Reflect open state changes without recursively re-entering attribute watchers.
+	 *
+	 * @param {boolean} open Whether the host should carry the open attribute.
+	 * @returns {void}
+	 */
 	_syncAttr(open) {
 		if (this._syncing) return;
 		this._syncing = true;
@@ -194,6 +293,12 @@ export class DomDialogElement extends DomElementBase {
 		}
 	}
 
+	/**
+	 * Open or close the internal native dialog.
+	 *
+	 * @param {boolean} next Desired open state.
+	 * @returns {void}
+	 */
 	_setOpen(next) {
 		if (!this._dialog || this._syncing) return;
 		const isOpen = this._dialog.open;
@@ -202,6 +307,8 @@ export class DomDialogElement extends DomElementBase {
 			return;
 		}
 		if (next) {
+			this._cancelCloseCompleteWait();
+			this.emit('dom:before-open');
 			this._dialog.showModal();
 			if (!this.querySelector('[autofocus]')) {
 				try {
@@ -219,10 +326,46 @@ export class DomDialogElement extends DomElementBase {
 		}
 	}
 
+	/**
+	 * React to controlled attribute changes.
+	 *
+	 * @param {string} name Changed attribute name.
+	 * @param {string|null} _oldValue Previous attribute value.
+	 * @param {string|null} newValue New attribute value.
+	 * @returns {void}
+	 */
 	attributeChangedCallback(name, _oldValue, newValue) {
 		if (!this.isConnected || !this._dialog || this._syncing) return;
 		if (name === 'open') this._setOpen(newValue !== null);
 		else this._syncAria();
+	}
+
+	/**
+	 * Schedule a close-complete event after the active leave transition timing.
+	 *
+	 * @returns {void}
+	 */
+	_waitForCloseComplete() {
+		this._cancelCloseCompleteWait();
+		const run = ++this._closeCompleteRun;
+		const delay = transitionTotalMs(this._dialog) + CLOSE_COMPLETE_BUFFER_MS;
+		this._closeCompleteTimer = window.setTimeout(() => {
+			this._closeCompleteTimer = null;
+			if (run !== this._closeCompleteRun || this.isOpen) return;
+			this.emit('dom:close-complete');
+		}, delay);
+	}
+
+	/**
+	 * Cancel a pending close-complete event when the dialog reopens or unmounts.
+	 *
+	 * @returns {void}
+	 */
+	_cancelCloseCompleteWait() {
+		this._closeCompleteRun += 1;
+		if (!this._closeCompleteTimer) return;
+		window.clearTimeout(this._closeCompleteTimer);
+		this._closeCompleteTimer = null;
 	}
 
 	/** Whether the modal is open (reads the internal &lt;dialog&gt;). */

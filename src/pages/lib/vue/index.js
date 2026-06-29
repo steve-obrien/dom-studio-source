@@ -7,6 +7,7 @@ export { default as DomThemeSwitcher } from '../../components/theme-switcher/Dom
 export { default as DomDialog } from '../../components/dialog/DomDialog.vue';
 export { default as DomDialogStack } from '../../components/dialog/DomDialogStack.vue';
 export { default as DomDialogSchemaForm } from '../../components/dialog/DomDialogSchemaForm.vue';
+export { default as DomLightbox } from '../../components/lightbox/DomLightbox.vue';
 export { default as DomTabs } from '../../components/tabs/DomTabs.vue';
 export { default as DomTooltip } from '../../components/tooltip/DomTooltip.vue';
 export { default as DomAccordion } from '../../components/accordion/DomAccordion.vue';
@@ -85,6 +86,7 @@ export { default as DomSelect } from '../../forms/select/DomSelect.vue';
 export { default as DomCombobox } from '../../forms/combobox/DomCombobox.vue';
 export { default as DomAutocomplete } from '../../forms/autocomplete/DomAutocomplete.vue';
 export { default as DomTagCombobox } from '../../forms/tag-combobox/DomTagCombobox.vue';
+export { default as DomIconSelector } from '../../forms/icon-selector/DomIconSelector.vue';
 export { default as DomClassToggleInput } from '../../forms/class-toggle-input/DomClassToggleInput.vue';
 export { default as DomField } from '../../forms/field/DomField.vue';
 export { default as DomGridFieldLayout } from '../../forms/field/layouts/DomGridFieldLayout.vue';

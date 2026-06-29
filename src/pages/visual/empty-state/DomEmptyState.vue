@@ -29,7 +29,15 @@ const props = defineProps({
 	icon: {
 		type: String,
 		default: 'M5 12h14M12 5v14',
-		_edit: { description: 'SVG path data for the default 24x24 line icon.' },
+		_edit: {
+			component: 'DomIconSelector',
+			description: 'SVG path data for the default 24x24 line icon.',
+			props: {
+				kind: 'icons',
+				clearable: false,
+				placeholder: 'Search icons',
+			},
+		},
 	},
 	align: {
 		type: String,

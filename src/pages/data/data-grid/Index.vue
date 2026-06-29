@@ -2,7 +2,7 @@
 import DomStudioLayout from '../../_layout/DomStudioLayout.vue';
 import DocPage from '../../_layout/DocPage.vue';
 import DocSection from '../../_layout/DocSection.vue';
-import CodeBlock from '../../_layout/CodeBlock.vue';
+import CodePanel from '../../_layout/docs/CodePanel.vue';
 import Example from '../../_layout/docs/Example.vue';
 import ComponentProps from '../../_layout/docs/ComponentProps.vue';
 import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
@@ -17,6 +17,8 @@ import KeywordOpportunityGrid from './examples/KeywordOpportunityGrid.vue';
 import KeywordOpportunityGridSrc from './examples/KeywordOpportunityGrid.vue?raw';
 import ServerResourceGrid from './examples/ServerResourceGrid.vue';
 import ServerResourceGridSrc from './examples/ServerResourceGrid.vue?raw';
+import LiveSqlQueryLog from './examples/LiveSqlQueryLog.vue';
+import LiveSqlQueryLogSrc from './examples/LiveSqlQueryLog.vue?raw';
 import CustomColumnComponents from './examples/CustomColumnComponents.vue';
 import CustomColumnComponentsSrc from './examples/CustomColumnComponents.vue?raw';
 import EditNameCellSrc from './examples/EditNameCell.vue?raw';
@@ -94,7 +96,7 @@ const resourceApiCode = `// Request
 					:source="CustomerDatabaseSrc"
 					filename="CustomerDatabase.vue"
 					description="Column filters use typed controls: date columns open a date range, number columns use min/max, select columns use checklist filters, and applied filters are visible in both the header and toolbar."
-					default-open
+					:preview-lines="0"
 				>
 					<CustomerDatabase />
 				</Example>
@@ -105,7 +107,7 @@ const resourceApiCode = `// Request
 					:source="LargeMemoryGridSrc"
 					filename="LargeMemoryGrid.vue"
 					description="Use virtualRows when a large local array is already in memory. The grid keeps the full 10,000-row data set available for client-side search, filters, and sort, while the isolated virtual row renderer mounts only the visible rows plus the configured buffer."
-					default-open
+					:preview-lines="0"
 				>
 					<LargeMemoryGrid />
 				</Example>
@@ -116,7 +118,7 @@ const resourceApiCode = `// Request
 					:source="KeywordOpportunityGridSrc"
 					filename="KeywordOpportunityGrid.vue"
 					description="Enable multiSort when header clicks should toggle ordered sort rules per column. Click Volume to add it, click Difficulty to add a second rule, and click a sorted header through asc, desc, and off."
-					default-open
+					:preview-lines="0"
 				>
 					<KeywordOpportunityGrid />
 				</Example>
@@ -127,9 +129,20 @@ const resourceApiCode = `// Request
 					:source="ServerResourceGridSrc"
 					filename="ServerResourceGrid.vue"
 					description="The same resource endpoint handles page-number navigation and cursor-based forever scrolling. The grid sends search, filters, and sort; pagination adds either page/pageSize or cursor/limit."
-					default-open
+					:preview-lines="0"
 				>
 					<ServerResourceGrid />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Live data" title="SQL query log with duration ordering">
+				<Example
+					:source="LiveSqlQueryLogSrc"
+					filename="LiveSqlQueryLog.vue"
+					description="A live developer query-log surface that treats the grid as a server-backed resource: new query rows stream into the buffer, search and typed filters update the resource query, and duration_ms desc exposes the slowest statements first."
+					:preview-lines="0"
+				>
+					<LiveSqlQueryLog />
 				</Example>
 			</DocSection>
 
@@ -138,7 +151,7 @@ const resourceApiCode = `// Request
 					:source="CustomColumnComponentsSrc"
 					filename="CustomColumnComponents.vue"
 					description="Set column.component to a Vue component. The component receives row, column, value, formatted, rowIndex, and rowKey. Display-only columns such as actions still use a stable key, but do not need a matching row property."
-					default-open
+					:preview-lines="0"
 				>
 					<CustomColumnComponents />
 				</Example>
@@ -146,11 +159,27 @@ const resourceApiCode = `// Request
 				<div class="mt-5 grid gap-4 lg:grid-cols-2">
 					<div class="min-w-0">
 						<p class="mb-2 text-sm font-semibold text-canvas-fg">EditNameCell.vue</p>
-						<CodeBlock :code="EditNameCellSrc" lang="vue" />
+						<CodePanel
+							class="overflow-hidden rounded-lg border border-border"
+							:source="EditNameCellSrc"
+							:preview-lines="0"
+							:default-open="false"
+							:border-top="false"
+							filename="EditNameCell.vue"
+							lang="vue"
+						/>
 					</div>
 					<div class="min-w-0">
 						<p class="mb-2 text-sm font-semibold text-canvas-fg">RowActionsCell.vue</p>
-						<CodeBlock :code="RowActionsCellSrc" lang="vue" />
+						<CodePanel
+							class="overflow-hidden rounded-lg border border-border"
+							:source="RowActionsCellSrc"
+							:preview-lines="0"
+							:default-open="false"
+							:border-top="false"
+							filename="RowActionsCell.vue"
+							lang="vue"
+						/>
 					</div>
 				</div>
 			</DocSection>
@@ -178,7 +207,15 @@ const resourceApiCode = `// Request
 						A keyword table can send <code class="text-canvas-fg">searchVolume desc</code> followed by <code class="text-canvas-fg">difficulty asc</code>, and a resource API can translate that directly to a multi-column ORDER BY.
 					</p>
 				</div>
-				<CodeBlock class="mt-5" :code="resourceApiCode" lang="js" />
+				<CodePanel
+					class="mt-5 overflow-hidden rounded-lg border border-border"
+					:source="resourceApiCode"
+					:preview-lines="0"
+					:default-open="false"
+					:border-top="false"
+					filename="resource-query-api.js"
+					lang="js"
+				/>
 			</DocSection>
 
 			<DocSection title="Reference">

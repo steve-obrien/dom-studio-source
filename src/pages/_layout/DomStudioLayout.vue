@@ -31,6 +31,7 @@ const sidebarRoutePrefixes = [
 	'/forms',
 	'/headless',
 	'/mobile',
+	'/tools',
 	'/theming',
 	'/visual',
 ];
@@ -42,6 +43,7 @@ const wideContentRoutePrefixes = [
 	'/forms',
 	'/headless',
 	'/mobile',
+	'/tools',
 	'/visual',
 ];
 
@@ -58,6 +60,7 @@ const contentMaxWidthClass = computed(() => (
 const topLinks = [
 	{ to: '/', label: 'Overview', exact: true },
 	{ to: '/ai', label: 'AI' },
+	{ to: '/tools/json-unstringifier', label: 'Tools', match: '/tools' },
 	{ to: '/theming', label: 'Theming' },
 	{ to: '/components/button', label: 'Components', match: '/components' },
 	{ to: '/visual/card', label: 'Visual', match: '/visual' },

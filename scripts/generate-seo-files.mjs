@@ -1,12 +1,18 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { loadStaticRoutes } from './lib/load-routes.mjs';
+import { loadStaticRouteRecords } from './lib/load-routes.mjs';
 
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, 'dist', 'client');
 const cnamePath = path.join(rootDir, 'CNAME');
 const siteName = 'DOM Studio';
 
+/**
+ * Escapes text for safe insertion into generated HTML and XML.
+ *
+ * @param {string} value Source value.
+ * @returns {string} Escaped value.
+ */
 const escapeHtml = (value) => String(value)
 	.replace(/&/g, '&amp;')
 	.replace(/</g, '&lt;')
@@ -14,6 +20,11 @@ const escapeHtml = (value) => String(value)
 	.replace(/"/g, '&quot;')
 	.replace(/'/g, '&#39;');
 
+/**
+ * Reads the canonical production site URL from CNAME when available.
+ *
+ * @returns {Promise<string>} Production site URL.
+ */
 const readSiteUrl = async () => {
 	try {
 		const cname = (await readFile(cnamePath, 'utf8')).trim();
@@ -24,15 +35,24 @@ const readSiteUrl = async () => {
 	}
 };
 
-const buildSitemap = (siteUrl, routes) => {
-	const now = new Date().toISOString();
-	const urlEntries = routes
-		.map((route) => {
-			const location = route === '/' ? siteUrl : `${siteUrl}${route}`;
+/**
+ * Builds sitemap XML for the supplied route records.
+ *
+ * @param {string} siteUrl Production site URL.
+ * @param {{ path: string, lastmod?: string }[]} routeRecords Static route records.
+ * @returns {string} Sitemap XML.
+ */
+const buildSitemap = (siteUrl, routeRecords) => {
+	const generatedAt = new Date().toISOString();
+	const urlEntries = routeRecords
+		.map((routeRecord) => {
+			const routePath = routeRecord.path;
+			const location = routePath === '/' ? siteUrl : `${siteUrl}${routePath}`;
+			const lastmod = routeRecord.lastmod || generatedAt;
 			return [
 				'\t<url>',
-				`\t\t<loc>${location}</loc>`,
-				`\t\t<lastmod>${now}</lastmod>`,
+				`\t\t<loc>${escapeHtml(location)}</loc>`,
+				`\t\t<lastmod>${escapeHtml(lastmod)}</lastmod>`,
 				'\t\t<changefreq>weekly</changefreq>',
 				'\t\t<priority>0.8</priority>',
 				'\t</url>',
@@ -48,6 +68,12 @@ const buildSitemap = (siteUrl, routes) => {
 	].join('\n');
 };
 
+/**
+ * Builds the robots.txt content pointing crawlers at the generated sitemap.
+ *
+ * @param {string} siteUrl Production site URL.
+ * @returns {string} Robots.txt content.
+ */
 const buildRobots = (siteUrl) => [
 	'User-agent: *',
 	'Allow: /',
@@ -55,6 +81,12 @@ const buildRobots = (siteUrl) => [
 	`Sitemap: ${siteUrl}/sitemap.xml`,
 ].join('\n');
 
+/**
+ * Creates generic page metadata for static HTML files.
+ *
+ * @param {string} routePath Public route path.
+ * @returns {{ title: string, description: string }} Page metadata.
+ */
 const getPageMeta = (routePath) => {
 	if (routePath === '/') {
 		return {
@@ -71,6 +103,13 @@ const getPageMeta = (routePath) => {
 	};
 };
 
+/**
+ * Injects static head metadata into a generated HTML file when it exists.
+ *
+ * @param {string} siteUrl Production site URL.
+ * @param {string} routePath Public route path.
+ * @returns {Promise<void>}
+ */
 const injectMetaIntoPage = async (siteUrl, routePath) => {
 	const fileName = routePath === "/" ? "index.html" : `${routePath.replace(/^\//, "")}.html`;
 	const htmlPath = path.join(distDir, fileName);
@@ -103,16 +142,30 @@ const injectMetaIntoPage = async (siteUrl, routePath) => {
 	await writeFile(htmlPath, html);
 };
 
+/**
+ * Generates SEO artifacts from the current route inventory.
+ *
+ * @returns {Promise<void>}
+ */
 const main = async () => {
 	const siteUrl = await readSiteUrl();
-	const routes = await loadStaticRoutes();
+	const routeRecords = await loadStaticRouteRecords();
+	const routes = routeRecords.map((routeRecord) => routeRecord.path);
 	await mkdir(distDir, { recursive: true });
 	await writeFile(path.join(distDir, 'robots.txt'), buildRobots(siteUrl));
-	await writeFile(path.join(distDir, 'sitemap.xml'), buildSitemap(siteUrl, routes));
+	await writeFile(path.join(distDir, 'sitemap.xml'), buildSitemap(siteUrl, routeRecords));
 	await Promise.all(routes.map((routePath) => injectMetaIntoPage(siteUrl, routePath)));
 };
 
-main().catch((error) => {
+/**
+ * Reports a fatal generation error and exits with failure.
+ *
+ * @param {Error} error Generation error.
+ * @returns {void}
+ */
+function handleFatalError(error) {
 	console.error(error);
 	process.exit(1);
-});
+}
+
+main().catch(handleFatalError);

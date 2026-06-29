@@ -1228,7 +1228,7 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 			</div>
 		</header>
 
-		<div ref="scrollViewport" class="overflow-auto" :style="gridHeightStyle" @scroll="onViewportScroll">
+		<div ref="scrollViewport" class="overflow-auto pb-3" :style="gridHeightStyle" @scroll="onViewportScroll">
 			<table class="w-full table-fixed border-separate border-spacing-0 text-sm" :style="tableStyle">
 				<colgroup>
 					<col v-if="selectable" class="w-11" />

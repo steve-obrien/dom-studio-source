@@ -34,6 +34,7 @@ const pageDescriptions = {
 	'/mobile': 'Page / Mobile app shell, navigation, safe areas, and action sheets.',
 	'/pricing': 'Page / DOM Studio source access and pricing.',
 	'/theming': 'Page / Theme tokens, skins, dark mode, and style guidance.',
+	'/tools/json-unstringifier': 'Tool / Convert stringified, escaped, or minified JSON into pretty copy-ready JSON.',
 };
 
 export function getGlobalSearchCommands() {

@@ -244,6 +244,7 @@ function dialogComponent(dialog) {
 		:backdrop="item.dialog.backdrop !== false"
 		:footer="item.dialog.footer !== false"
 		@close="onDialogClose(item)"
+		@close-complete="removeDialogItem(item.id)"
 	>
 		<slot :dialog="item.dialog" :resolve="(value = true) => resolve(item, value)" :dismiss="(value = false) => dismiss(item, value)">
 			<component

@@ -11,6 +11,8 @@ const sidebarComponentSectionOrder = ['components', 'data', 'forms', 'mobile', '
 
 export const staticIconPaths = {
 	'AI builders': 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Zm6 9 .9 2.6 2.6.9-2.6.9L18 20l-.9-2.6-2.6-.9 2.6-.9L18 12Z',
+	Tools: 'M5 5h14v4H5V5Zm0 6h6v8H5v-8Zm8 0h6v8h-6v-8Z',
+	'JSON Unstringifier': 'M8 8l-3 4 3 4M16 8l3 4-3 4M11 6h2M10 18h4',
 	Theming: 'M5 18c4-7 10-11 14-12-1 4-5 10-12 14l-2-2Zm4-1 8-8M6 13l5 5',
 	'Component spec': 'M6 5h12v14H6V5Zm3 4h6M9 13h6M9 17h3',
 	'Form schema': 'M6 4h8l4 4v12H6V4Zm8 0v5h5M9 12h6M9 16h8',
@@ -103,6 +105,7 @@ export const sideNavLinks = [
 		label: 'Tooling',
 		items: [
 			{ to: '/ai', label: 'AI builders', tag: 'New' },
+			{ to: '/tools/json-unstringifier', label: 'JSON Unstringifier', tag: 'New' },
 			{ to: '/theming', label: 'Theming', tag: 'New' },
 			{ to: '/component-spec', label: 'Component spec' },
 			{ to: '/forms/schema', label: 'Form schema' },

@@ -37,6 +37,39 @@ export interface DomRuntimePropDefinition<T = unknown> {
 	[key: string]: unknown;
 }
 export type DomRuntimeProps = Record<string, DomRuntimePropDefinition | Function | Array<Function> | null>;
+export interface LightboxItem {
+	id?: string | number;
+	src?: string;
+	href?: string;
+	thumbnail?: string;
+	alt?: string;
+	title?: string;
+	description?: string;
+	width?: number;
+	height?: number;
+	aspectRatio?: number;
+	[key: string]: unknown;
+}
+export interface LightboxOriginContext {
+	item: LightboxItem | null;
+	index: number;
+}
+export type LightboxOriginTarget = Element | DOMRect | DOMRectReadOnly;
+export type LightboxOrigin = LightboxOriginTarget | Ref<LightboxOriginTarget | null> | ((context: LightboxOriginContext) => LightboxOriginTarget | null) | string | null;
+export interface IconSelectorItem {
+	value?: string | number | boolean | Component;
+	optionValue?: string;
+	label?: string;
+	description?: string;
+	group?: string;
+	kind?: string;
+	path?: string;
+	emoji?: string;
+	viewBox?: string;
+	keywords?: string | Array<string>;
+	component?: Component;
+	[key: string]: unknown;
+}
 export interface DomMenuItemRecord {
 	label?: string;
 	value?: string | number;
@@ -741,6 +774,46 @@ export interface DomDialogSchemaFormProps {
 	invalidMessage?: string;
 }
 export declare const DomDialogSchemaForm: DomComponent<DomDialogSchemaFormProps>;
+
+export interface DomLightboxProps {
+	/**
+	 * Whether the lightbox overlay is open.
+	 */
+	modelValue?: boolean;
+	/**
+	 * Gallery items. Image items usually provide src, thumbnail, alt, title, width, and height.
+	 */
+	items?: Array<LightboxItem>;
+	/**
+	 * Active gallery item index.
+	 */
+	index?: number;
+	/**
+	 * Element, Vue ref, selector, DOMRect, or resolver used as the thumbnail origin.
+	 */
+	origin?: LightboxOrigin;
+	/**
+	 * Accessible label for the overlay.
+	 */
+	label?: string;
+	/**
+	 * Show a thumbnail navigation strip when multiple items are available.
+	 */
+	showThumbnails?: boolean;
+	/**
+	 * Wrap previous/next navigation at the ends of the gallery.
+	 */
+	loop?: boolean;
+	/**
+	 * Close when the dimmed backdrop is clicked.
+	 */
+	closeOnBackdrop?: boolean;
+	/**
+	 * Thumbnail flyout transition duration in milliseconds.
+	 */
+	duration?: number;
+}
+export declare const DomLightbox: DomComponent<DomLightboxProps>;
 
 export interface DomTabsProps {
 	modelValue?: string;
@@ -1525,11 +1598,11 @@ export interface DomAlertProps {
 	/**
 	 * Semantic alert tone.
 	 */
-	tone?: "neutral" | "primary" | "success" | "warning" | "danger" | "info";
+	tone?: "default" | "info" | "neutral" | "primary" | "success" | "warning" | "danger";
 	/**
 	 * Visual weight.
 	 */
-	variant?: "soft" | "outline";
+	variant?: "soft" | "outline" | "solid" | "toast";
 	/**
 	 * Fallback title when the title slot is empty.
 	 */
@@ -1539,9 +1612,9 @@ export interface DomAlertProps {
 	 */
 	description?: string;
 	/**
-	 * Show the leading status icon.
+	 * Show a tone icon, hide it with false, pass SVG path data, or pass an imported Vue icon component.
 	 */
-	icon?: boolean;
+	icon?: boolean | string | Component;
 	/**
 	 * ARIA role override. Danger and warning default to alert; other tones default to status.
 	 */
@@ -2432,6 +2505,102 @@ export interface DomTagComboboxProps {
 	clearable?: boolean | string;
 }
 export declare const DomTagCombobox: DomComponent<DomTagComboboxProps>;
+
+export interface DomIconSelectorProps {
+	/**
+	 * Selected icon path, emoji, component, or custom item value.
+	 */
+	modelValue?: string | number | boolean | Component;
+	/**
+	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
+	 */
+	id?: string;
+	/**
+	 * Local field name. Parent forms derive the full field path and native HTML name from the form hierarchy.
+	 */
+	name?: string;
+	/**
+	 * Visible field label.
+	 */
+	label?: string;
+	/**
+	 * Optional helper copy below the field.
+	 */
+	description?: string;
+	/**
+	 * Search input placeholder.
+	 */
+	placeholder?: string;
+	/**
+	 * Mark the field as required.
+	 */
+	required?: boolean;
+	/**
+	 * Disable field interaction.
+	 */
+	disabled?: boolean;
+	/**
+	 * Show the value but prevent editing.
+	 */
+	readOnly?: boolean;
+	/**
+	 * Mark the field invalid.
+	 */
+	invalid?: boolean;
+	/**
+	 * Validation errors for this field.
+	 */
+	errors?: Array<unknown> | Record<string, unknown> | string;
+	/**
+	 * Show or hide the field.
+	 */
+	visible?: boolean;
+	/**
+	 * Validators attached to this field. Use functions in Vue code, or serializable records such as { name: "minLength", props: { min: 2 } } in generated schemas.
+	 */
+	validators?: Array<unknown>;
+	/**
+	 * Run validators when the field loses focus.
+	 */
+	validateOnBlur?: boolean;
+	/**
+	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 */
+	chrome?: "field" | false;
+	/**
+	 * Built-in collection to show before custom items.
+	 */
+	kind?: "icons" | "emoji" | "mixed" | "custom";
+	/**
+	 * Custom icon, emoji, or symbol rows.
+	 */
+	items?: Array<IconSelectorItem>;
+	/**
+	 * Include DOM Studio icon and emoji collections for the selected kind.
+	 */
+	includeBuiltIns?: boolean;
+	/**
+	 * Show a clear button when a value is selected.
+	 */
+	clearable?: boolean;
+	/**
+	 * Show an inline spinner while custom symbol rows are loading.
+	 */
+	loading?: boolean | string;
+	/**
+	 * Preferred side before collision handling.
+	 */
+	placement?: "bottom" | "top" | "right" | "left";
+	/**
+	 * viewport keeps the picker inside the browser; anchor keeps it attached while scrolling.
+	 */
+	floatingMode?: "viewport" | "anchor";
+	/**
+	 * Minimum floating panel width as a CSS length.
+	 */
+	panelMinWidth?: string;
+}
+export declare const DomIconSelector: DomComponent<DomIconSelectorProps>;
 
 export interface DomClassToggleInputProps {
 	/**

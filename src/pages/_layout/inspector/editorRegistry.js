@@ -13,6 +13,7 @@ import {
 	DomJsonListInput,
 	DomCodeInput,
 	DomJsonInput,
+	DomIconSelector,
 } from '../../lib/vue';
 import DomPropDefinitionInput from './editors/DomPropDefinitionInput.vue';
 import DomValidatorInput from './editors/DomValidatorInput.vue';
@@ -38,11 +39,46 @@ const editors = {
 	DomJsonListInput: markRaw(DomJsonListInput),
 	DomCodeInput: markRaw(DomCodeInput),
 	DomJsonInput: markRaw(DomJsonInput),
+	DomIconSelector: markRaw(DomIconSelector),
 	DomPropDefinitionInput: markRaw(DomPropDefinitionInput),
 	DomValidatorInput: markRaw(DomValidatorInput),
 };
 
-export function getEditor(name) { return editors[name] || null; }
-export function getDefaultEditor() { return editors.DomTextInput; }
-export function registerEditor(name, component) { editors[name] = markRaw(component); }
-export function listEditors() { return Object.keys(editors); }
+/**
+ * Resolve an inspector editor component by registry name.
+ *
+ * @param {string} name Editor component name.
+ * @returns {import('vue').Component|null}
+ */
+export function getEditor(name) {
+	return editors[name] || null;
+}
+
+/**
+ * Resolve the fallback editor used when a field does not name one explicitly.
+ *
+ * @returns {import('vue').Component}
+ */
+export function getDefaultEditor() {
+	return editors.DomTextInput;
+}
+
+/**
+ * Register or replace an inspector editor component.
+ *
+ * @param {string} name Editor component name.
+ * @param {import('vue').Component} component Vue component used to edit the field.
+ * @returns {void}
+ */
+export function registerEditor(name, component) {
+	editors[name] = markRaw(component);
+}
+
+/**
+ * List registered inspector editor names.
+ *
+ * @returns {Array<string>}
+ */
+export function listEditors() {
+	return Object.keys(editors);
+}

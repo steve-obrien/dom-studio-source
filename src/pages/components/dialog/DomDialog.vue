@@ -13,7 +13,9 @@ defineOptions({
 		],
 		events: [
 			{ name: 'update:modelValue', payload: '(open: boolean)', description: 'Emitted when the dialog opens or closes.' },
+			{ name: 'before-open', description: 'Emitted immediately before the dialog opens; prepare draft data or item snapshots here.' },
 			{ name: 'close', description: 'Emitted when the dialog is dismissed.' },
+			{ name: 'close-complete', description: 'Emitted after the close transition completes; clear retained dialog data here.' },
 		],
 		keyboard: [
 			{ keys: 'Esc', action: 'Closes the topmost open dialog unless `static` is set.' },
@@ -81,7 +83,7 @@ const props = defineProps({
 		_edit: { description: 'Show the footer region and default Close action when no footer slot is provided.' },
 	},
 });
-const emit = defineEmits(['update:modelValue', 'close']);
+const emit = defineEmits(['update:modelValue', 'before-open', 'close', 'close-complete']);
 
 const root = ref(null);
 const uniqueId = useId();
@@ -124,6 +126,17 @@ function setOpen(v) {
 }
 
 /**
+ * Forward only the root dialog's before-open event to Vue consumers.
+ *
+ * @param {CustomEvent} event Headless before-open event.
+ * @returns {void}
+ */
+function onHeadlessBeforeOpen(event) {
+	if (event.target !== root.value) return;
+	emit('before-open');
+}
+
+/**
  * Forward only the root dialog's open event to Vue consumers.
  *
  * @param {CustomEvent} event Headless open event.
@@ -146,10 +159,23 @@ function onHeadlessClose(event) {
 	emit('close');
 }
 
+/**
+ * Forward only the root dialog's close-complete event to Vue consumers.
+ *
+ * @param {CustomEvent} event Headless close-complete event.
+ * @returns {void}
+ */
+function onHeadlessCloseComplete(event) {
+	if (event.target !== root.value) return;
+	emit('close-complete');
+}
+
 onMounted(async () => {
 	await import('../../lib/headless/dialog.js');
+	root.value?.addEventListener('dom:before-open', onHeadlessBeforeOpen);
 	root.value?.addEventListener('dom:open', onHeadlessOpen);
 	root.value?.addEventListener('dom:close', onHeadlessClose);
+	root.value?.addEventListener('dom:close-complete', onHeadlessCloseComplete);
 	if (props.modelValue) setOpen(true);
 });
 
