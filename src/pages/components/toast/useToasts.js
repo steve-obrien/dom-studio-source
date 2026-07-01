@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { markRaw, ref, toRaw } from 'vue';
 import DomToastItem from './DomToastItem.vue';
 
 /**
@@ -119,6 +119,15 @@ export function useToasts(defaults = {}) {
 		clear,
 	};
 
+	/**
+	 * Show a toast while forcing a specific tone into the supported argument shapes.
+	 *
+	 * @param {string} tone Tone to apply to the toast.
+	 * @param {string|ToastOptions|ToastComponent} [input] Toast text, full toast object, or Vue component.
+	 * @param {ToastProps|ToastOptions} [propsOrOverrides] Props for component toasts, or option overrides for default toasts.
+	 * @param {ToastOptions} [options] Options for component toasts.
+	 * @returns {string}
+	 */
 	function showWithTone(tone, input, propsOrOverrides = {}, options = {}) {
 		const toastOptions = tone === 'default'
 			? { tone, ...options }
@@ -131,6 +140,15 @@ export function useToasts(defaults = {}) {
 	}
 }
 
+/**
+ * Normalizes supported show() inputs into the controlled toast record shape.
+ *
+ * @param {string|ToastOptions|ToastComponent} input Toast text, full toast object, or Vue component.
+ * @param {ToastProps|ToastOptions} propsOrOverrides Props for component toasts, or option overrides for default toasts.
+ * @param {ToastOptions} options Options for component toasts.
+ * @param {ToastOptions} defaults Options applied to every toast shown by this store.
+ * @returns {ToastOptions & { id: string }}
+ */
 function normalizeToast(input, propsOrOverrides, options, defaults) {
 	if (isToastComponent(input)) {
 		return {
@@ -138,7 +156,7 @@ function normalizeToast(input, propsOrOverrides, options, defaults) {
 			tone: 'default',
 			...defaults,
 			...options,
-			component: input,
+			component: rawToastComponent(input),
 			props: propsOrOverrides || {},
 		};
 	}
@@ -155,11 +173,23 @@ function normalizeToast(input, propsOrOverrides, options, defaults) {
 	return withDefaultComponent(toast);
 }
 
+/**
+ * Ensures component references stay out of Vue's reactive proxy conversion.
+ *
+ * @param {ToastOptions} toast Toast record to normalize.
+ * @returns {ToastOptions}
+ */
 function withDefaultComponent(toast) {
-	if (toast.component) return { ...toast, props: toast.props || {} };
+	if (toast.component) {
+		return {
+			...toast,
+			component: rawToastComponent(toast.component),
+			props: toast.props || {},
+		};
+	}
 	return {
 		...toast,
-		component: DomToastItem,
+		component: rawToastComponent(DomToastItem),
 		props: {
 			title: toast.title,
 			description: toast.description,
@@ -170,6 +200,12 @@ function withDefaultComponent(toast) {
 	};
 }
 
+/**
+ * Reports whether a value looks like a Vue component that can render a toast.
+ *
+ * @param {unknown} value Value to inspect.
+ * @returns {boolean}
+ */
 function isToastComponent(value) {
 	return Boolean(
 		value
@@ -179,6 +215,22 @@ function isToastComponent(value) {
 	);
 }
 
+/**
+ * Marks a Vue component reference as raw before storing it in the reactive toast array.
+ *
+ * @param {ToastComponent|string} component Component reference to store.
+ * @returns {ToastComponent|string}
+ */
+function rawToastComponent(component) {
+	if (!isToastComponent(component)) return component;
+	return markRaw(toRaw(component));
+}
+
+/**
+ * Creates a stable id for a toast that did not provide one.
+ *
+ * @returns {string}
+ */
 function createToastId() {
 	if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
 	return `toast-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;

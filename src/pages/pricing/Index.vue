@@ -32,7 +32,7 @@ const licences = computed(() => [
 	},
 	{
 		name: 'Team',
-		tagline: 'For a company or client-facing team sharing DOM Studio source.',
+		tagline: 'For a company or client-facing team shipping one editable UI system.',
 		price: teamPrice.value,
 		originalPrice: team.value.originalPrice,
 		hasPromotion: hasTeamPromotion.value,
@@ -54,7 +54,7 @@ const licences = computed(() => [
 ]);
 
 const proPerks = [
-	{ title: 'Source-first delivery', body: 'Every paid component is visible as generated source. Copy it into your app, import it as a package, or vendor the whole workspace with git subtree.' },
+	{ title: 'Editable delivery', body: 'Every paid component is visible as generated source. Copy it into your app, import it as a package, or vendor the whole workspace with git subtree.' },
 	{ title: 'Portable living docs', body: 'Bring the DOM Studio documentation engine into your own product. It discovers local components, examples, props, and usage notes automatically.' },
 	{ title: 'Editable generated apps', body: 'Generated screens are built from the same headless primitives, DomForm, and Vue components you can inspect and change.' },
 	{ title: 'Theme ownership', body: 'Styles are token driven and designed to be copied. Your app owns the CSS variables, spacing, radius, and final look.' },
@@ -115,9 +115,9 @@ const generatedSource = [
 
 		<section class="-mt-6 pb-16 pt-10 text-center">
 			<p class="text-xs font-semibold uppercase tracking-[0.22em] text-muted-fg">Pricing</p>
-			<h1 class="mt-3 text-5xl font-bold leading-[1.05] tracking-tight text-canvas-fg sm:text-6xl">Buy the source. Own the system.</h1>
+			<h1 class="mt-3 text-5xl font-bold leading-[1.05] tracking-tight text-canvas-fg sm:text-6xl">Own the UI system you ship.</h1>
 			<p class="mx-auto mt-5 max-w-2xl text-lg text-muted-fg">
-				Choose an Individual or Team licence. Both unlock DOM Studio source access, generated examples, and the living documentation workflow.
+				A complete Vue and Web Component UI system you can own, edit, and ship. Choose an Individual or Team licence to unlock DOM Studio source access, generated examples, and the living documentation workflow.
 			</p>
 			<div class="mt-6 inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-4 py-1.5 text-xs font-medium uppercase tracking-wider text-muted-fg">
 				<span class="size-1.5 rounded-full bg-success"></span>
@@ -245,7 +245,7 @@ const generatedSource = [
 
 		<section id="checkout" class="mt-24 border-t border-border pt-16 text-center">
 			<div class="mx-auto max-w-2xl rounded-3xl border border-border bg-secondary/40 p-10">
-				<h2 class="text-3xl font-bold tracking-tight text-canvas-fg">Get the source and make it yours.</h2>
+				<h2 class="text-3xl font-bold tracking-tight text-canvas-fg">Own, edit, and ship your UI system.</h2>
 				<p class="mt-3 text-muted-fg">Buy once for DOM Studio v1 access. Copy components into your app, vendor the workspace with git subtree, and keep the living docs close to the code.</p>
 				<div class="mt-6 flex flex-wrap items-center justify-center gap-3">
 					<DomButton :as="'a'" href="/api/billing/checkout?licence=individual" size="lg">Individual - £{{ individualPrice }} once</DomButton>

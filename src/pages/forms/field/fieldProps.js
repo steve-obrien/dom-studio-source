@@ -1,5 +1,11 @@
 export const FIELD_PROPS_GROUP = 'Field props';
 
+/**
+ * Adds the shared field prop group metadata to a field prop definition.
+ *
+ * @param {Record<string, unknown>} definition Vue prop definition.
+ * @returns {Record<string, unknown>} Field prop definition with editor metadata.
+ */
 function fieldProp(definition) {
 	return {
 		...definition,
@@ -101,7 +107,7 @@ export const fieldProps = {
 	chrome: fieldProp({
 		type: [String, Boolean],
 		default: 'field',
-		_edit: { options: ['field', false], description: 'Render default field chrome, or false to render only the control while keeping form state wiring.' },
+		_edit: { options: ['field', 'none', false], description: 'Render default field chrome, or hide chrome while keeping form state wiring.' },
 	}),
 };
 

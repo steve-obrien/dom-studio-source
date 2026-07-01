@@ -15,7 +15,7 @@ const { data: articles, pending, error } = useAsyncData('blog:articles', () => l
 const featuredArticle = computed(() => articles.value[0] || null);
 const moreArticles = computed(() => articles.value.slice(1));
 const title = 'Blog | getdom.studio';
-const description = 'Practical writing on DOM Studio, AI-ready UI, component systems, and source-owned product interfaces.';
+const description = 'Practical writing on DOM Studio, AI-ready UI, component systems, and editable product interfaces.';
 const canonical = 'https://getdom.studio/blog';
 
 useHead().setTitle(title);

@@ -10,9 +10,14 @@ onMounted(() => {
 	mounted.value = true;
 });
 
+/**
+ * Keeps server HTML and the first client hydration render aligned before the
+ * stored theme preference is allowed to update the button copy.
+ */
 const ariaLabel = computed(() => {
-	if (mode.value === 'light') return 'Theme: light; click for dark';
-	if (mode.value === 'dark') return 'Theme: dark; click for system';
+	const displayMode = mounted.value ? mode.value : 'system';
+	if (displayMode === 'light') return 'Theme: light; click for dark';
+	if (displayMode === 'dark') return 'Theme: dark; click for system';
 	return 'Theme: system; click for light';
 });
 </script>

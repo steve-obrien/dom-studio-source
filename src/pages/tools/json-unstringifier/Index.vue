@@ -18,7 +18,7 @@ const samplePayload = {
 		{
 			keyword: 'headless web components',
 			generatedFrom: 'business description',
-			generatedFromDetail: 'source-owned UI system with headless web components',
+			generatedFromDetail: 'editable UI system with headless web components',
 		},
 		{
 			keyword: 'Vue UI library',
@@ -56,9 +56,9 @@ const samplePayload = {
 			generatedFromDetail: 'mobile shells and mobile layouts included in the library',
 		},
 		{
-			keyword: 'source owned UI',
+			keyword: 'editable UI system',
 			generatedFrom: 'business description',
-			generatedFromDetail: 'source-owned UI system for product teams and AI app builders',
+			generatedFromDetail: 'complete Vue and Web Component UI system product teams can own, edit, and ship',
 		},
 	],
 };

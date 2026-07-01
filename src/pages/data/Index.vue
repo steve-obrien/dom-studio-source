@@ -15,6 +15,11 @@ const componentTypes = [
 		status: 'Reference',
 	},
 	{
+		name: 'Media browser',
+		description: 'Uses a Pinia store and emulated media API for folder navigation, breadcrumbs, optimistic mutations, drag/drop uploads, and picker-style selection.',
+		status: 'Reference',
+	},
+	{
 		name: 'Team invites',
 		description: 'Shows pending invitations with email, role, status, and created date, then calls a remove-invite mutation when access should be withdrawn.',
 		status: 'Planned',

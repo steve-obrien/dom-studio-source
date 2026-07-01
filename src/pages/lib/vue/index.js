@@ -42,7 +42,10 @@ export { default as DomCommandPalette } from '../../components/command-palette/D
 export { default as DomContextMenu } from '../../components/context-menu/DomContextMenu.vue';
 export { default as DomDataGrid } from '../../data/data-grid/DomDataGrid.vue';
 export { default as DomMonthCalendar } from '../../data/month-calendar/DomMonthCalendar.vue';
+export { default as DomMediaBrowser } from '../../data/media-browser/DomMediaBrowser.vue';
 export { default as DomPagination } from '../../components/pagination/DomPagination.vue';
+export { mediaBrowserProps } from '../../data/media-browser/DomMediaBrowser.vue';
+export { createMediaBrowserRestApi, defineMediaBrowserStore } from '../../data/media-browser/examples/useMediaBrowserDemoStore.js';
 export { monthCalendarProps } from '../../data/month-calendar/DomMonthCalendar.vue';
 export { popoverProps } from '../../components/popover/DomPopover.vue';
 export { useToasts } from '../../components/toast/useToasts.js';
@@ -72,6 +75,7 @@ export { default as DomEmptyState } from '../../visual/empty-state/DomEmptyState
 export { default as DomAlert } from '../../visual/alert/DomAlert.vue';
 export { default as DomSkeleton } from '../../visual/skeleton/DomSkeleton.vue';
 export { default as DomProgress } from '../../visual/progress/DomProgress.vue';
+export { default as DomRadialProgress } from '../../visual/progress/DomRadialProgress.vue';
 export { default as DomSpinner } from '../../visual/spinner/DomSpinner.vue';
 export { default as DomCodeBlock } from '../../visual/code-block/DomCodeBlock.vue';
 

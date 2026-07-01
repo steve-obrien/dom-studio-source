@@ -1,7 +1,7 @@
 {
 	"name": "DOM Studio",
 	"short_name": "DOM Studio",
-	"description": "Source-owned Vue and web component primitives for humans and LLMs.",
+	"description": "A complete Vue and Web Component UI system you can own, edit, and ship.",
 	"icons": [
 		{
 			"src": "/favicon.svg",

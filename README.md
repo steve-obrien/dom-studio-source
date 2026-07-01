@@ -1,6 +1,6 @@
 # DOM Studio
 
-DOM Studio is a source-owned interface system for building application UI with humans and LLMs working from the same component contract.
+DOM Studio is a complete Vue and Web Component UI system you can own, edit, and ship with humans and LLMs working from the same component contract.
 
 It includes:
 

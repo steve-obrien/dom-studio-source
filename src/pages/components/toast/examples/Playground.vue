@@ -6,9 +6,15 @@ let id = 0;
 const data = reactive({
 	duration: 3600,
 	autoDismiss: false,
+	layout: 'stack',
 	toasts: [],
 });
 
+/**
+ * Adds a toast row to the playground's editable controlled state.
+ *
+ * @returns {void}
+ */
 function pushToast() {
 	id += 1;
 	data.toasts = [
@@ -23,6 +29,12 @@ function pushToast() {
 	];
 }
 
+/**
+ * Removes a toast row after the stack emits its dismiss event.
+ *
+ * @param {string} toastId Toast id to remove.
+ * @returns {void}
+ */
 function dismiss(toastId) {
 	data.toasts = data.toasts.filter((toast) => toast.id !== toastId);
 }

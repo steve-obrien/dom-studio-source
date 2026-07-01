@@ -8,7 +8,7 @@ defineOptions({
 		description: 'A token-driven loading placeholder for cards, rows, text blocks, and avatars.',
 		icon: 'M5 7h14M5 12h10M5 17h7',
 		playground: {
-			initial: { variant: 'text', lines: 3 },
+			initial: { variant: 'text', lines: 3, width: '100%' },
 		},
 	},
 });
@@ -54,23 +54,68 @@ const props = defineProps({
 	},
 });
 
-const lineCount = computed(() => Math.max(1, Number(props.lines) || 1));
-const rootStyle = computed(() => ({
-	width: props.width || undefined,
-	height: props.height || undefined,
-}));
-const baseClass = computed(() => [
-	'block bg-secondary',
-	props.animated && 'animate-pulse',
-]);
-const blockClass = computed(() => [
-	baseClass.value,
-	props.variant === 'circle' ? 'size-10 rounded-full' : 'min-h-24 rounded-lg',
-]);
-const lineClass = computed(() => [
-	baseClass.value,
-	'h-3 rounded-full',
-]);
+const lineCount = computed(getLineCount);
+const rootStyle = computed(getRootStyle);
+const baseClass = computed(getBaseClass);
+const blockClass = computed(getBlockClass);
+const lineClass = computed(getLineClass);
+
+/**
+ * Resolves the number of rendered text skeleton lines.
+ *
+ * @returns {number} Text line count.
+ */
+function getLineCount() {
+	return Math.max(1, Number(props.lines) || 1);
+}
+
+/**
+ * Builds optional inline dimensions.
+ *
+ * @returns {Record<string, string|undefined>} Inline style object.
+ */
+function getRootStyle() {
+	return {
+		width: props.width || undefined,
+		height: props.height || undefined,
+	};
+}
+
+/**
+ * Builds the shared skeleton class list.
+ *
+ * @returns {Array<string|boolean>} Vue class list.
+ */
+function getBaseClass() {
+	return [
+		'dom-skeleton block bg-secondary ring-1 ring-border/40',
+		props.animated && 'dom-skeleton-animated',
+	];
+}
+
+/**
+ * Builds the block or circle skeleton class list.
+ *
+ * @returns {Array<unknown>} Vue class list.
+ */
+function getBlockClass() {
+	return [
+		baseClass.value,
+		props.variant === 'circle' ? 'size-10 rounded-full' : 'min-h-24 rounded-lg',
+	];
+}
+
+/**
+ * Builds the text line skeleton class list.
+ *
+ * @returns {Array<unknown>} Vue class list.
+ */
+function getLineClass() {
+	return [
+		baseClass.value,
+		'h-3 rounded-full',
+	];
+}
 </script>
 
 <template>
@@ -87,6 +132,7 @@ const lineClass = computed(() => [
 				v-for="line in lineCount"
 				:key="line"
 				:class="lineClass"
+				class="animate-pulse"
 				:style="{ width: line === lineCount && lineCount > 1 ? '72%' : '100%' }"
 				aria-hidden="true"
 			></span>
@@ -94,3 +140,35 @@ const lineClass = computed(() => [
 		<span v-else class="sr-only">{{ label }}</span>
 	</component>
 </template>
+
+<style scoped>
+.dom-skeleton {
+	background-image: linear-gradient(
+		110deg,
+		var(--color-secondary) 0%,
+		color-mix(in oklab, var(--color-secondary) 58%, var(--color-canvas) 42%) 18%,
+		var(--color-secondary)
+	);
+	background-size: 220% 100%;
+}
+
+.dom-skeleton-animated {
+	animation: dom-skeleton-shimmer 1.1s ease-in-out infinite;
+}
+
+@keyframes dom-skeleton-shimmer {
+	0% {
+		background-position: 120% 0;
+		opacity: 0.50;
+	}
+
+	50% {
+		opacity: 1;
+	}
+
+	100% {
+		background-position: -120% 0;
+		opacity: 0.5;
+	}
+}
+</style>

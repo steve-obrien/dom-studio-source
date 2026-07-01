@@ -15,7 +15,7 @@ If a task touches a focused area, inspect the local examples beside it before ma
 
 ## Project Shape
 
-DOM Studio is a source-owned Vue 3 and web component interface system for application UI. It is both:
+DOM Studio is a complete Vue 3 and web component interface system for application UI that teams can own, edit, and ship. It is both:
 
 - A documentation/demo site served through a custom SSR framework called Now.
 - A package surface exported as `@getdom/studio`, `@getdom/studio/vue`, `@getdom/studio/headless`, and `@getdom/studio/style.css`.

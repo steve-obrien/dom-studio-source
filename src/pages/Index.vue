@@ -222,13 +222,13 @@ function runCommand({ value }) {
 						<div class="flex flex-wrap items-center gap-3 text-sm font-medium text-muted-fg">
 							<BrandMark class="size-12 text-canvas-fg" title="DOM Studio" />
 							<span class="text-base font-semibold text-canvas-fg">DOM Studio</span>
-							<span class="rounded-full border border-border bg-secondary px-3 py-1">Source-owned UI system</span>
+							<span class="rounded-full border border-border bg-secondary px-3 py-1">Own, edit, and ship</span>
 						</div>
 						<h1 class="mt-6 max-w-5xl text-4xl font-bold leading-[1.05] text-canvas-fg sm:text-5xl lg:text-6xl">
 							Build real app UI from primitives that already know the hard parts.
 						</h1>
 						<p class="mt-6 max-w-3xl text-lg leading-8 text-muted-fg">
-							Headless web components, polished Vue wrappers, app blocks, form schemas, mobile shells, Studio metadata, and LLM-ready docs in one source-owned library.
+							A complete Vue and Web Component UI system you can own, edit, and ship. Headless web components, polished Vue wrappers, app blocks, form schemas, mobile shells, Studio metadata, and LLM-ready docs work together in one editable library.
 						</p>
 						<div class="mt-8 flex flex-wrap items-center gap-3">
 							<DomButton as="router-link" to="/components/button" size="lg">Browse the library</DomButton>
@@ -379,7 +379,7 @@ function runCommand({ value }) {
 												/>
 											</div>
 											<div class="overflow-hidden rounded-2xl border border-border bg-[#0b0f14] text-slate-100">
-												<div class="border-b border-white/10 px-4 py-3 text-sm font-semibold">source-first usage</div>
+												<div class="border-b border-white/10 px-4 py-3 text-sm font-semibold">editable usage</div>
 												<pre class="overflow-x-auto p-4 text-sm leading-7"><code v-for="line in codeLines" :key="line" class="block">{{ line || ' ' }}</code></pre>
 											</div>
 										</div>
@@ -480,7 +480,7 @@ function runCommand({ value }) {
 							<p class="text-sm font-semibold text-muted-fg">Library wall</p>
 							<h2 class="mt-2 text-3xl font-bold leading-tight text-canvas-fg sm:text-4xl">Start anywhere, then keep going.</h2>
 						</div>
-						<DomButton as="router-link" to="/pricing" size="lg">Get source access</DomButton>
+						<DomButton as="router-link" to="/pricing" size="lg">Get DOM Studio</DomButton>
 					</div>
 					<div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 						<RouterLink

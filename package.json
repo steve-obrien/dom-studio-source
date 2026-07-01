@@ -1,7 +1,7 @@
 {
 	"name": "@getdom/studio",
 	"version": "0.1.0",
-	"description": "DOM Studio is a source-owned Vue and web component interface system for humans and LLMs.",
+	"description": "DOM Studio is a complete Vue and Web Component UI system you can own, edit, and ship.",
 	"type": "module",
 	"sideEffects": [
 		"**/*.css",

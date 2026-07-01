@@ -4,7 +4,7 @@ This file is a fast orientation for new agent conversations. Treat it as project
 
 ## Snapshot
 
-DOM Studio is a source-owned interface system for building application UI with humans and LLMs working from the same component contract. It is part design-system documentation site, part commercial source package, part library of copyable product blocks, and part agent context bundle.
+DOM Studio is a complete Vue and Web Component UI system you can own, edit, and ship with humans and LLMs working from the same component contract. It is part design-system documentation site, part commercial source package, part library of copyable product blocks, and part agent context bundle.
 
 The public package is `@getdom/studio`. It exports Vue components from `src/pages/lib/vue/index.js`, framework-neutral custom elements from `src/pages/lib/headless/index.js`, styles from `src/style.css`, and agent context files from `public/llms.txt`, `SKILL.md`, and `public/skills.sh`.
 
@@ -20,7 +20,7 @@ Inventory from this review:
 
 ## Product Direction
 
-The core promise is source-owned, inspectable, editable application UI. DOM Studio should feel useful to a developer building SaaS/product interfaces, not like a marketing theme kit. The repo leans toward dense, practical app surfaces: dashboards, settings, operations consoles, billing, communication, data capture, AI tooling, mobile shells, and product-management workflows.
+The core promise is inspectable, editable application UI that teams can own and ship. DOM Studio should feel useful to a developer building SaaS/product interfaces, not like a marketing theme kit. The repo leans toward dense, practical app surfaces: dashboards, settings, operations consoles, billing, communication, data capture, AI tooling, mobile shells, and product-management workflows.
 
 When adding UI, prefer real product workflows, concrete data, accessible controls, and copyable source examples. Avoid generic hero pages or decorative-only composition unless the task explicitly asks for a landing/marketing page.
 

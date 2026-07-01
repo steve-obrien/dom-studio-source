@@ -135,6 +135,74 @@ export interface DataGridSort {
 	rules?: Array<DataGridSortRule>;
 	[key: string]: unknown;
 }
+export interface MediaBrowserFileRecord {
+	ulid?: string;
+	name?: string;
+	mimeType?: string;
+	diskPath?: string;
+	size?: number;
+	publicUrl?: string;
+	thumbnailUrl?: string;
+	previewUrl?: string;
+	meta?: Record<string, unknown>;
+	[key: string]: unknown;
+}
+export interface MediaBrowserItem {
+	ulid: string;
+	type: 'root' | 'dir' | 'file';
+	path: string;
+	parent_id?: string | null;
+	file_uuid?: string | null;
+	name?: string;
+	file?: MediaBrowserFileRecord | null;
+	status?: 'idle' | 'saving' | 'uploading' | 'complete' | 'error' | string;
+	uploadProgress?: number;
+	temporaryId?: string;
+	previewUrl?: string;
+	meta?: Record<string, unknown>;
+	[key: string]: unknown;
+}
+export interface MediaBrowserBreadcrumb {
+	label: string;
+	path: string;
+	ulid?: string | null;
+	[key: string]: unknown;
+}
+export interface MediaBrowserDroppedFile {
+	file: File;
+	name: string;
+	relativePath: string;
+	pathSegments: Array<string>;
+	[key: string]: unknown;
+}
+export type MediaBrowserItemKind = 'folder' | 'image' | 'pdf' | 'default';
+export type MediaBrowserDetailMode = 'dialog' | 'inline';
+export type MediaBrowserComponentMap = Partial<Record<MediaBrowserItemKind, Component | string>>;
+export interface MediaBrowserDetailComponentConfig {
+	component?: Component | string;
+	mode?: MediaBrowserDetailMode;
+	title?: string | ((item: MediaBrowserItem) => string);
+	size?: 'sm' | 'md' | 'lg' | 'xl';
+	width?: string | number;
+	height?: string | number;
+	[key: string]: unknown;
+}
+export type MediaBrowserDetailComponentMap = Partial<Record<MediaBrowserItemKind, Component | string | MediaBrowserDetailComponentConfig>>;
+export interface MediaBrowserItemPayload { item: MediaBrowserItem; event: MouseEvent | KeyboardEvent | DragEvent; }
+export interface MediaBrowserSelectionPayload { selectedKeys: Array<string>; selectedItems: Array<MediaBrowserItem>; }
+export interface MediaBrowserMovePayload { items: Array<MediaBrowserItem>; target: MediaBrowserItem; event: DragEvent; }
+export interface MediaBrowserUploadPayload { files: Array<MediaBrowserDroppedFile>; target: MediaBrowserItem | null; path: string; event: DragEvent; }
+export interface MediaBrowserDetailPayload { item: MediaBrowserItem; kind: MediaBrowserItemKind; mode: MediaBrowserDetailMode; event: MouseEvent | KeyboardEvent | null; }
+export interface MediaBrowserStoreOptions {
+	rootId?: string;
+	baseUrl?: string;
+	filesBaseUrl?: string;
+	mode?: 'grid' | 'list';
+	api?: Record<string, Function>;
+	fetchOptions?: RequestInit;
+	headers?: Record<string, string>;
+	[key: string]: unknown;
+}
 export interface DomUploadedFile {
 	id?: string | number;
 	name: string;
@@ -1127,6 +1195,10 @@ export interface DomToastStackProps {
 	 */
 	position?: "top-right" | "top-center" | "top-left" | "bottom-right" | "bottom-center" | "bottom-left";
 	/**
+	 * Visual layout. Use rack to place the newest toast in front while older toasts recede behind it.
+	 */
+	layout?: "stack" | "rack";
+	/**
 	 * Default auto-dismiss delay in milliseconds. Set to 0 to keep toasts until manually dismissed.
 	 */
 	duration?: number;
@@ -1393,6 +1465,107 @@ export interface DomMonthCalendarProps {
 	dayStyle?: string | Record<string, string | number> | ((cell: MonthCalendarCell) => string | Record<string, string | number> | null | undefined);
 }
 export declare const DomMonthCalendar: DomComponent<DomMonthCalendarProps>;
+
+/** MediaBrowserItem, MediaBrowserBreadcrumb, MediaBrowserDroppedFile, MediaBrowserSelectionPayload, MediaBrowserMovePayload, MediaBrowserUploadPayload, MediaBrowserDetailPayload payload types are exported from this module. */
+export interface DomMediaBrowserProps {
+	/**
+	 * Media rows for the current folder. Rows usually come from the Pinia store after a folder API request.
+	 */
+	items?: Array<MediaBrowserItem>;
+	/**
+	 * Clickable folder path segments. When omitted, the component derives labels from currentPath.
+	 */
+	breadcrumbs?: Array<MediaBrowserBreadcrumb>;
+	/**
+	 * Slash-prefixed folder path currently being rendered.
+	 */
+	currentPath?: string;
+	/**
+	 * Controlled media row ids selected in the browser.
+	 */
+	selectedKeys?: Array<string>;
+	/**
+	 * Visual display mode.
+	 */
+	mode?: "grid" | "list";
+	/**
+	 * Show the current folder as loading while the store waits for the API.
+	 */
+	loading?: boolean;
+	/**
+	 * Render the built-in breadcrumb and action toolbar.
+	 */
+	toolbar?: boolean;
+	/**
+	 * Accessible title for the browser surface.
+	 */
+	title?: string;
+	/**
+	 * Message shown when the current folder has no media rows.
+	 */
+	emptyText?: string;
+	/**
+	 * Show an inspector panel for the active selection.
+	 */
+	inspector?: boolean;
+	/**
+	 * Allow external files and folders to be dropped onto the browser.
+	 */
+	canUpload?: boolean;
+	/**
+	 * Show create-folder actions and emit create-folder events.
+	 */
+	canCreateFolder?: boolean;
+	/**
+	 * Allow selected rows to enter inline rename mode.
+	 */
+	canRename?: boolean;
+	/**
+	 * Allow internal rows to be dragged onto folders.
+	 */
+	canMove?: boolean;
+	/**
+	 * Allow click-drag rectangle selection across visible rows.
+	 */
+	rubberBand?: boolean;
+	/**
+	 * Selection behavior for picker and library workflows.
+	 */
+	selectionMode?: "single" | "multiple";
+	/**
+	 * Media row types that can be selected. Use ["file"] with accept="image/*" for an image picker.
+	 */
+	selectableTypes?: Array<'root' | 'dir' | 'file'>;
+	/**
+	 * Accepted file MIME patterns or extensions for file selection, such as image/* or .pdf.
+	 */
+	accept?: string | Array<string>;
+	/**
+	 * Component map keyed by folder, image, pdf, or default for custom item renderers.
+	 */
+	itemComponents?: MediaBrowserComponentMap;
+	/**
+	 * Component map keyed by folder, image, pdf, or default for custom inspector renderers.
+	 */
+	inspectorComponents?: MediaBrowserComponentMap;
+	/**
+	 * Component map keyed by folder, image, pdf, or default. Values may be a component or { component, mode }.
+	 */
+	detailComponents?: MediaBrowserDetailComponentMap;
+	/**
+	 * Default placement when a detail component does not define its own mode.
+	 */
+	detailMode?: MediaBrowserDetailMode;
+	/**
+	 * Delay in milliseconds before a selected filename click enters rename mode, leaving double-click open intact.
+	 */
+	renameDelay?: number;
+	/**
+	 * Overall upload progress. When omitted, progress is inferred from uploading rows.
+	 */
+	uploadProgress?: number | null;
+}
+export declare const DomMediaBrowser: DomComponent<DomMediaBrowserProps>;
 
 export interface DomPaginationProps {
 	/**
@@ -1686,6 +1859,34 @@ export interface DomProgressProps {
 }
 export declare const DomProgress: DomComponent<DomProgressProps>;
 
+export interface DomRadialProgressProps {
+	/**
+	 * Current progress value. Leave empty for an empty meter.
+	 */
+	value?: number | null;
+	/**
+	 * Maximum progress value.
+	 */
+	max?: number;
+	/**
+	 * Accessible progress label.
+	 */
+	label?: string;
+	/**
+	 * Progress stroke tone.
+	 */
+	tone?: "primary" | "success" | "warning" | "danger" | "neutral";
+	/**
+	 * Rendered diameter. Use a preset or a pixel number.
+	 */
+	size?: 'sm' | 'md' | 'lg' | number;
+	/**
+	 * Show the percentage inside the circle.
+	 */
+	showValue?: boolean;
+}
+export declare const DomRadialProgress: DomComponent<DomRadialProgressProps>;
+
 export interface DomSpinnerProps {
 	/**
 	 * Screen reader label.
@@ -1784,9 +1985,9 @@ export interface DomToggleProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 }
 export declare const DomToggle: DomComponent<DomToggleProps>;
 
@@ -1848,9 +2049,9 @@ export interface DomToggleButtonProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Optional button label shown while pressed.
 	 */
@@ -1924,9 +2125,9 @@ export interface DomToggleButtonGroupProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Toggle button options.
 	 */
@@ -1942,7 +2143,11 @@ export interface DomToggleButtonGroupProps {
 	/**
 	 * Button size.
 	 */
-	size?: "sm" | "md" | "lg" | "icon-sm" | "icon-md";
+	size?: "sm" | "md" | "lg" | "icon-sm" | "icon-md" | "icon-lg";
+	/**
+	 * Visual treatment. Use switch for raised icon-only segmented controls.
+	 */
+	variant?: "default" | "switch";
 }
 export declare const DomToggleButtonGroup: DomComponent<DomToggleButtonGroupProps>;
 
@@ -2004,9 +2209,9 @@ export interface DomCheckboxProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 }
 export declare const DomCheckbox: DomComponent<DomCheckboxProps>;
 
@@ -2068,9 +2273,9 @@ export interface DomRadioGroupProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Radio options.
 	 */
@@ -2140,9 +2345,9 @@ export interface DomListboxProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Available options.
 	 */
@@ -2212,9 +2417,9 @@ export interface DomSelectProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Available options. Use the option slot for rich rows.
 	 */
@@ -2304,9 +2509,9 @@ export interface DomComboboxProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Available options. May be replaced by async lookup results.
 	 */
@@ -2388,9 +2593,9 @@ export interface DomAutocompleteProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Suggestions. May be replaced by async lookup results.
 	 */
@@ -2468,9 +2673,9 @@ export interface DomTagComboboxProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Autocomplete options. Strings are treated as both label and value.
 	 */
@@ -2564,9 +2769,9 @@ export interface DomIconSelectorProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Built-in collection to show before custom items.
 	 */
@@ -2660,9 +2865,9 @@ export interface DomClassToggleInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Known class names that are shown but toggled off.
 	 */
@@ -2810,9 +3015,9 @@ export interface DomTextInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Native input type.
 	 */
@@ -2882,9 +3087,9 @@ export interface DomEmailInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Native autocomplete hint.
 	 */
@@ -2950,9 +3155,9 @@ export interface DomUrlInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Native autocomplete hint.
 	 */
@@ -3018,9 +3223,9 @@ export interface DomTextareaInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	rows?: number;
 }
 export declare const DomTextareaInput: DomComponent<DomTextareaInputProps>;
@@ -3083,9 +3288,9 @@ export interface DomNumberInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	min?: number;
 	max?: number;
 	step?: number;
@@ -3150,9 +3355,9 @@ export interface DomMoneyInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * ISO currency code used for the visual prefix.
 	 */
@@ -3246,9 +3451,9 @@ export interface DomFileUploadProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Native accept string, such as image/*,.pdf.
 	 */
@@ -3338,9 +3543,9 @@ export interface DomRangeInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Minimum slider value.
 	 */
@@ -3438,9 +3643,9 @@ export interface DomPositionInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 }
 export declare const DomPositionInput: DomComponent<DomPositionInputProps>;
 
@@ -3502,9 +3707,9 @@ export interface DomSelectInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Options to render as buttons.
 	 */
@@ -3570,9 +3775,9 @@ export interface DomNativeSelectProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Options can be strings or objects with label/value.
 	 */
@@ -3638,9 +3843,9 @@ export interface DomPasswordInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Show a strength meter below the field.
 	 */
@@ -3722,9 +3927,9 @@ export interface DomCalendarProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Locale used for month and weekday labels.
 	 */
@@ -3830,9 +4035,9 @@ export interface DomDatePickerProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * How typed dates are parsed and displayed.
 	 */
@@ -3906,9 +4111,9 @@ export interface DomTimeSelectorProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * How times are displayed in the input and option list.
 	 */
@@ -4006,9 +4211,9 @@ export interface DomDateTimePickerProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * How typed dates are parsed and displayed.
 	 */
@@ -4113,9 +4318,9 @@ export interface DomColorInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 }
 export declare const DomColorInput: DomComponent<DomColorInputProps>;
 
@@ -4174,9 +4379,9 @@ export interface DomJsonListInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Button label for adding a row.
 	 */
@@ -4254,9 +4459,9 @@ export interface DomCodeInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Language hint for the optional enhanced editor.
 	 */
@@ -4330,9 +4535,9 @@ export interface DomJsonInputProps {
 	 */
 	validateOnBlur?: boolean;
 	/**
-	 * Render default field chrome, or false to render only the control while keeping form state wiring.
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
-	chrome?: "field" | false;
+	chrome?: "field" | "none" | false;
 	/**
 	 * Textarea fallback rows.
 	 */
@@ -4608,6 +4813,8 @@ export declare function applyThemeMode(value?: unknown): DomResolvedTheme;
 export declare function useTheme(): DomThemeApi;
 export declare function useToasts(defaults?: ToastOptions): ToastApi;
 export declare function useDialogs(defaults?: DialogOptions): DialogApi;
+export declare function defineMediaBrowserStore(storeId?: string, options?: MediaBrowserStoreOptions): Function;
+export declare function createMediaBrowserRestApi(options?: MediaBrowserStoreOptions): Record<string, Function>;
 export declare function sha1PasswordHash(password: string): Promise<string>;
 export declare function checkCompromisedPassword(password: string, options?: { signal?: AbortSignal }): Promise<number>;
 export declare function normalizeErrors(errors: unknown): Array<string>;

@@ -91,7 +91,7 @@ const getPageMeta = (routePath) => {
 	if (routePath === '/') {
 		return {
 			title: siteName,
-			description: 'DOM Studio is a source-owned Vue and web component interface system for humans and LLMs.',
+			description: 'DOM Studio is a complete Vue and Web Component UI system you can own, edit, and ship.',
 		};
 	}
 

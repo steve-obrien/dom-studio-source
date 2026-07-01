@@ -12,6 +12,8 @@ import ToastPlayground from './examples/Playground.vue';
 import ToastPlaygroundSrc from './examples/Playground.vue?raw';
 import Notifications from './examples/Notifications.vue';
 import NotificationsSrc from './examples/Notifications.vue?raw';
+import Rack from './examples/Rack.vue';
+import RackSrc from './examples/Rack.vue?raw';
 import Programmatic from './examples/Programmatic.vue';
 import ProgrammaticSrc from './examples/Programmatic.vue?raw';
 import CustomContent from './examples/CustomContent.vue';
@@ -52,6 +54,16 @@ const componentToastSource = [
 					description="Trigger normal, success, danger, and persistent toasts. Each toast animates in and out, and timed toasts automatically dismiss."
 				>
 					<Notifications />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Rack layout">
+				<Example
+					:source="RackSrc"
+					filename="Rack.vue"
+					description="Use layout=&quot;rack&quot; when the newest notification should sit in front and older notifications should tuck behind it."
+				>
+					<Rack />
 				</Example>
 			</DocSection>
 

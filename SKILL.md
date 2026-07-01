@@ -5,7 +5,7 @@ description: Build, edit, or review application UI with DOM Studio. Use when gen
 
 # DOM Studio
 
-DOM Studio is a source-owned UI system for app-like interfaces built by humans and AI. Prefer its blocks, Vue components, headless primitives, Studio specs, and theme tokens before inventing custom UI behavior.
+DOM Studio is a complete Vue and Web Component UI system for app-like interfaces teams can own, edit, and ship. Prefer its blocks, Vue components, headless primitives, Studio specs, and theme tokens before inventing custom UI behavior.
 
 ## Workflow
 

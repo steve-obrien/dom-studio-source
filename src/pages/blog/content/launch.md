@@ -58,7 +58,7 @@ But there will still be value in the code that makes those interfaces reliable. 
 
 That is the bet behind DOM Studio.
 
-It is not just a component library for the current shape of apps. It is a source-owned interface system for the period where humans and AI are learning how to work together. It assumes interfaces may become more dynamic, more contextual, and more disposable, while still needing to be accessible, inspectable, testable, and worth owning.
+It is not just a component library for the current shape of apps. It is a complete Vue and Web Component UI system for the period where humans and AI are learning how to work together. It assumes interfaces may become more dynamic, more contextual, and more disposable, while still needing to be accessible, inspectable, testable, and worth owning.
 
 Maybe one day the fixed app screen becomes the exception.
 
