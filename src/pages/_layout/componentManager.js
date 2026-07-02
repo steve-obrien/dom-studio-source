@@ -1,6 +1,6 @@
-import { componentCatalog } from 'virtual:dom-studio-component-catalog';
+import { componentCatalog } from './componentCatalog.generated.js';
 
-const componentGlobPatterns = [
+const lazyComponentModules = import.meta.glob([
 	'../components/*/Dom*.vue',
 	'../data/*/Dom*.vue',
 	'../forms/*/Dom*.vue',
@@ -9,10 +9,17 @@ const componentGlobPatterns = [
 	'!../components/playground/DomRenderer.vue',
 	'!../components/toast/DomToastItem.vue',
 	'!../forms/_shared/Dom*.vue',
-];
-
-const lazyComponentModules = import.meta.glob(componentGlobPatterns, { import: 'default' });
-const lazyComponentSourceModules = import.meta.glob(componentGlobPatterns, { import: 'default', query: '?raw' });
+], { import: 'default' });
+const lazyComponentSourceModules = import.meta.glob([
+	'../components/*/Dom*.vue',
+	'../data/*/Dom*.vue',
+	'../forms/*/Dom*.vue',
+	'../mobile/*/Dom*.vue',
+	'../visual/*/Dom*.vue',
+	'!../components/playground/DomRenderer.vue',
+	'!../components/toast/DomToastItem.vue',
+	'!../forms/_shared/Dom*.vue',
+], { import: 'default', query: '?raw' });
 
 export const componentSections = ['components', 'data', 'visual', 'forms', 'mobile'];
 
