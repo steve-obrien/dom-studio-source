@@ -1,5 +1,5 @@
 import { markRaw } from 'vue';
-import { getComponentRecords } from '../componentManager.js';
+import { getRuntimeComponentRecords } from '../componentRuntimeRecords.js';
 import { getComponentProps, getStudioMeta, inspectComponentRecord } from '../componentInspector.js';
 
 const GROUP_ORDER = ['DOM Studio', 'Forms', 'Visual', 'HTML', 'Content'];
@@ -205,6 +205,12 @@ const SAMPLE_CHILDREN = {
 	DomTooltip: [{ id: null, text: 'Hover me' }],
 };
 
+/**
+ * Builds a palette entry from a discovered DOM Studio component record.
+ *
+ * @param {object} record Inspected component record.
+ * @returns {object} Component palette entry.
+ */
 function buildComponentEntry(record) {
 	const { exportName, component, section } = record;
 	const meta = record.studio || getStudioMeta(component);
@@ -234,6 +240,14 @@ function buildComponentEntry(record) {
 	};
 }
 
+/**
+ * Infers sensible starter props for a component dropped into the editor.
+ *
+ * @param {string} exportName Component export name.
+ * @param {object} component Vue component object.
+ * @param {string} label Display label for label-like props.
+ * @returns {object} Default props for a new component node.
+ */
 function inferDefaultProps(exportName, component, label) {
 	const props = {};
 	for (const [key, def] of Object.entries(getComponentProps(component))) {
@@ -261,6 +275,12 @@ function inferDefaultProps(exportName, component, label) {
 	};
 }
 
+/**
+ * Reads a prop default without letting unsafe or failing factories break setup.
+ *
+ * @param {object} def Vue prop definition.
+ * @returns {unknown} Default value, or undefined when unavailable.
+ */
 function propDefaultValue(def) {
 	if (!def || typeof def !== 'object' || !('default' in def)) return undefined;
 	if (typeof def.default === 'function' && def.type !== Function) {
@@ -273,6 +293,12 @@ function propDefaultValue(def) {
 	return def.default;
 }
 
+/**
+ * Creates an empty v-model value that matches a prop constructor.
+ *
+ * @param {object} def Vue prop definition.
+ * @returns {unknown} Empty value for the prop type.
+ */
 function emptyValueForProp(def) {
 	const type = Array.isArray(def?.type) ? def.type : [def?.type];
 	if (type.includes(Boolean)) return false;
@@ -282,6 +308,11 @@ function emptyValueForProp(def) {
 	return '';
 }
 
+/**
+ * Provides generic option records for controls that need selectable choices.
+ *
+ * @returns {Array<object>} Default option records.
+ */
 function defaultOptions() {
 	return [
 		{ label: 'Small', value: 'small' },
@@ -290,6 +321,12 @@ function defaultOptions() {
 	];
 }
 
+/**
+ * Provides generic item records for list-like DOM Studio components.
+ *
+ * @param {string} exportName Component export name.
+ * @returns {Array<object>} Default item records.
+ */
 function defaultItems(exportName) {
 	if (exportName === 'DomAccordion') {
 		return [
@@ -304,6 +341,11 @@ function defaultItems(exportName) {
 	];
 }
 
+/**
+ * Provides generic command records for command-palette-like components.
+ *
+ * @returns {Array<object>} Default command records.
+ */
 function defaultCommands() {
 	return [
 		{ label: 'Open dashboard', value: 'dashboard' },
@@ -312,6 +354,11 @@ function defaultCommands() {
 	];
 }
 
+/**
+ * Provides generic tab records for tab-like components.
+ *
+ * @returns {Array<object>} Default tab records.
+ */
 function defaultTabs() {
 	return [
 		{ key: 'overview', label: 'Overview' },
@@ -319,18 +366,36 @@ function defaultTabs() {
 	];
 }
 
+/**
+ * Provides a generic toast record for toast stack previews.
+ *
+ * @returns {Array<object>} Default toast records.
+ */
 function defaultToasts() {
 	return [
 		{ id: 'saved', title: 'Successfully saved', description: 'Your changes have been stored.', tone: 'success', duration: 0 },
 	];
 }
 
+/**
+ * Infers whether a component can accept child nodes in the editor.
+ *
+ * @param {string} exportName Component export name.
+ * @param {object} component Vue component object.
+ * @returns {'children'|'none'} Editor child-acceptance mode.
+ */
 function inferAccepts(exportName, component) {
 	if (SAMPLE_CHILDREN[exportName]) return 'children';
 	const slots = component.__doc?.slots || [];
 	return slots.some((slot) => slot.name === '(default)' || slot.name === 'default') ? 'children' : 'none';
 }
 
+/**
+ * Maps a source section to an editor palette group.
+ *
+ * @param {string} section Component source section.
+ * @returns {string} Palette group label.
+ */
 function groupFromSection(section) {
 	return {
 		components: 'DOM Studio',
@@ -339,6 +404,12 @@ function groupFromSection(section) {
 	}[section] || 'DOM Studio';
 }
 
+/**
+ * Creates a stable palette id from a component export name.
+ *
+ * @param {string} name Component export name.
+ * @returns {string} Palette id.
+ */
 function idFromExport(name) {
 	return name
 		.replace(/^El/, 'el')
@@ -346,6 +417,12 @@ function idFromExport(name) {
 		.toLowerCase();
 }
 
+/**
+ * Creates a human-readable label from a component export name.
+ *
+ * @param {string} name Component export name.
+ * @returns {string} Display label.
+ */
 function labelFromExport(name) {
 	return name
 		.replace(/^El/, '')
@@ -353,6 +430,13 @@ function labelFromExport(name) {
 		.replace(/^./, (c) => c.toUpperCase());
 }
 
+/**
+ * Sorts palette entries by group priority and then label.
+ *
+ * @param {object} a First palette entry.
+ * @param {object} b Second palette entry.
+ * @returns {number} Sort comparison result.
+ */
 function sortEntries(a, b) {
 	const groupDelta = GROUP_ORDER.indexOf(a.group) - GROUP_ORDER.indexOf(b.group);
 	if (groupDelta) return groupDelta;
@@ -449,7 +533,7 @@ const htmlEntries = [
 	},
 ];
 
-const discoveredEntries = getComponentRecords()
+const discoveredEntries = getRuntimeComponentRecords()
 	.map(inspectComponentRecord)
 	.filter((record) => !record.studioHidden)
 	.map(buildComponentEntry)
@@ -462,6 +546,12 @@ export const groupedRegistry = entries.reduce((acc, entry) => {
 	return acc;
 }, {});
 
+/**
+ * Finds the palette entry for a rendered component, component name, or node type.
+ *
+ * @param {object|string|null} component Component object, component name, native tag, or null text node.
+ * @returns {object|undefined|null} Matching palette entry.
+ */
 export function lookupEntry(component) {
 	if (component == null) return entries.find((e) => e.id === 'html-text');
 	const direct = entries.find((e) => e.component === component);
@@ -470,10 +560,22 @@ export function lookupEntry(component) {
 	return lookupByName(component?.name || component?.__name || component?.__doc?.tag || component?.__doc?.name);
 }
 
+/**
+ * Finds a palette entry by its stable type id.
+ *
+ * @param {string} typeId Palette type id.
+ * @returns {object|undefined} Matching palette entry.
+ */
 export function lookupById(typeId) {
 	return entries.find((e) => e.id === typeId);
 }
 
+/**
+ * Finds a palette entry by any normalized component or display name.
+ *
+ * @param {string} name Component name, tag, id, or display label.
+ * @returns {object|null} Matching palette entry.
+ */
 export function lookupByName(name) {
 	if (!name) return null;
 	const normalized = normalizeName(name);
@@ -493,6 +595,12 @@ export function lookupByName(name) {
 	}) || null;
 }
 
+/**
+ * Normalizes component names, tags, and labels for fuzzy registry lookup.
+ *
+ * @param {string} name Source name.
+ * @returns {string} Normalized lookup key.
+ */
 function normalizeName(name) {
 	return String(name || '')
 		.replace(/[<>]/g, '')
@@ -503,11 +611,22 @@ function normalizeName(name) {
 		.replace(/^-|-$/g, '');
 }
 
-// Text nodes are pure-content leaves: `{ id, text: 'Hello' }` (no `component`).
+/**
+ * Determines whether an inspector node is a pure text node.
+ *
+ * @param {object} node Inspector node.
+ * @returns {boolean} True when the node carries text content instead of a component.
+ */
 export function isTextNode(node) {
 	return !!(node && node.component == null && node.text != null);
 }
 
+/**
+ * Determines whether an inspector node can contain child nodes.
+ *
+ * @param {object} node Inspector node.
+ * @returns {boolean} True when children can be inserted.
+ */
 export function canHaveChildren(node) {
 	if (!node) return false;
 	if (isTextNode(node)) return false;

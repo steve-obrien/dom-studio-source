@@ -104,6 +104,32 @@ const getPageMeta = (routePath) => {
 };
 
 /**
+ * Checks whether an HTML file is the SSR shell rendered by Now.
+ *
+ * @param {string} html HTML file contents.
+ * @returns {boolean} True when the file contains the runtime head placeholder.
+ */
+const isSsrTemplate = (html) => html.includes('<!--now-head-->');
+
+/**
+ * Removes generated page-level SEO tags from the SSR shell.
+ *
+ * @param {string} html HTML file contents.
+ * @returns {string} HTML without static title, description, canonical, and social tags.
+ */
+const removeStaticPageMeta = (html) => {
+	const patterns = [
+		/^\s*<title>[\s\S]*?<\/title>\s*\n?/gim,
+		/^\s*<meta(?=[^>]*\bname=["']description["'])[^>]*>\s*\n?/gim,
+		/^\s*<link(?=[^>]*\brel=["']canonical["'])[^>]*>\s*\n?/gim,
+		/^\s*<meta(?=[^>]*\bproperty=["']og:(?:title|description|url|type)["'])[^>]*>\s*\n?/gim,
+		/^\s*<meta(?=[^>]*\bname=["']twitter:card["'])[^>]*>\s*\n?/gim,
+	];
+
+	return patterns.reduce((content, pattern) => content.replace(pattern, ''), html);
+};
+
+/**
  * Injects static head metadata into a generated HTML file when it exists.
  *
  * @param {string} siteUrl Production site URL.
@@ -117,6 +143,12 @@ const injectMetaIntoPage = async (siteUrl, routePath) => {
 	try {
 		html = await readFile(htmlPath, 'utf8');
 	} catch {
+		return;
+	}
+
+	if (isSsrTemplate(html)) {
+		const cleanedHtml = removeStaticPageMeta(html);
+		if (cleanedHtml !== html) await writeFile(htmlPath, cleanedHtml);
 		return;
 	}
 

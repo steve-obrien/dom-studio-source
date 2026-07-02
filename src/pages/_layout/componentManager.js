@@ -1,15 +1,6 @@
-const eagerComponentModules = import.meta.glob([
-	'../components/*/Dom*.vue',
-	'../data/*/Dom*.vue',
-	'../forms/*/Dom*.vue',
-	'../mobile/*/Dom*.vue',
-	'../visual/*/Dom*.vue',
-	'!../components/playground/DomRenderer.vue',
-	'!../components/toast/DomToastItem.vue',
-	'!../forms/_shared/Dom*.vue',
-], { eager: true, import: 'default' });
+import { componentCatalog } from 'virtual:dom-studio-component-catalog';
 
-const eagerComponentSourceModules = import.meta.glob([
+const componentGlobPatterns = [
 	'../components/*/Dom*.vue',
 	'../data/*/Dom*.vue',
 	'../forms/*/Dom*.vue',
@@ -18,44 +9,56 @@ const eagerComponentSourceModules = import.meta.glob([
 	'!../components/playground/DomRenderer.vue',
 	'!../components/toast/DomToastItem.vue',
 	'!../forms/_shared/Dom*.vue',
-], { eager: true, import: 'default', query: '?raw' });
+];
 
-const lazyComponentModules = import.meta.glob([
-	'../components/*/Dom*.vue',
-	'../data/*/Dom*.vue',
-	'../forms/*/Dom*.vue',
-	'../mobile/*/Dom*.vue',
-	'../visual/*/Dom*.vue',
-	'!../components/playground/DomRenderer.vue',
-	'!../components/toast/DomToastItem.vue',
-	'!../forms/_shared/Dom*.vue',
-], { import: 'default' });
-
-const lazyComponentSourceModules = import.meta.glob([
-	'../components/*/Dom*.vue',
-	'../data/*/Dom*.vue',
-	'../forms/*/Dom*.vue',
-	'../mobile/*/Dom*.vue',
-	'../visual/*/Dom*.vue',
-	'!../components/playground/DomRenderer.vue',
-	'!../components/toast/DomToastItem.vue',
-	'!../forms/_shared/Dom*.vue',
-], { import: 'default', query: '?raw' });
+const lazyComponentModules = import.meta.glob(componentGlobPatterns, { import: 'default' });
+const lazyComponentSourceModules = import.meta.glob(componentGlobPatterns, { import: 'default', query: '?raw' });
 
 export const componentSections = ['components', 'data', 'visual', 'forms', 'mobile'];
 
+/**
+ * Returns component records that are safe for app-shell navigation and search.
+ *
+ * These records intentionally contain metadata only. Component implementations
+ * and raw SFC source strings are resolved through lazy records or runtime-only
+ * discovery so ordinary routes do not preload the whole component catalogue.
+ *
+ * @returns {Array<object>} Lightweight component discovery records.
+ */
 export function getComponentRecords() {
-	return recordsFromModules(eagerComponentModules, 'component', eagerComponentSourceModules, 'source');
+	return componentCatalog.map(recordFromCatalogRecord);
 }
 
+/**
+ * Returns lazy loaders for generated component documentation routes.
+ *
+ * @returns {Array<object>} Component records with dynamic component and source loaders.
+ */
 export function getLazyComponentRecords() {
-	return recordsFromModules(lazyComponentModules, 'loader', lazyComponentSourceModules, 'sourceLoader');
+	return getComponentRecords()
+		.map((record) => ({
+			...record,
+			loader: lazyComponentModules[record.path],
+			sourceLoader: lazyComponentSourceModules[record.path],
+		}))
+		.filter((record) => record.loader);
 }
 
+/**
+ * Finds the first metadata record for a public component route.
+ *
+ * @param {string} route Public route path.
+ * @returns {object|undefined} Matching component record when one exists.
+ */
 export function getComponentRecordByRoute(route) {
 	return getComponentRecords().find((record) => record.route === route);
 }
 
+/**
+ * Builds legacy redirects for components that moved from /components to /forms.
+ *
+ * @returns {Array<{ from: string, to: string }>} Redirect records.
+ */
 export function getFormRedirectRecords() {
 	return getLazyComponentRecords()
 		.filter((record) => record.section === 'forms')
@@ -65,6 +68,11 @@ export function getFormRedirectRecords() {
 		}));
 }
 
+/**
+ * Builds legacy redirects for components that moved from /components to /data.
+ *
+ * @returns {Array<{ from: string, to: string }>} Redirect records.
+ */
 export function getDataRedirectRecords() {
 	return getLazyComponentRecords()
 		.filter((record) => record.section === 'data')
@@ -74,6 +82,12 @@ export function getDataRedirectRecords() {
 		}));
 }
 
+/**
+ * Converts a component section key into a readable navigation label.
+ *
+ * @param {string} section Section key.
+ * @returns {string} Human-readable section label.
+ */
 export function labelFromSection(section) {
 	return {
 		components: 'Components',
@@ -84,6 +98,12 @@ export function labelFromSection(section) {
 	}[section] || labelFromSlug(section);
 }
 
+/**
+ * Converts a URL slug into a title-cased label.
+ *
+ * @param {string} slug URL slug.
+ * @returns {string} Human-readable label.
+ */
 export function labelFromSlug(slug) {
 	return slug
 		.split('-')
@@ -91,6 +111,12 @@ export function labelFromSlug(slug) {
 		.join(' ');
 }
 
+/**
+ * Converts a component export name into a default display label.
+ *
+ * @param {string} exportName Component export name.
+ * @returns {string} Human-readable component label.
+ */
 export function labelFromExportName(exportName) {
 	return labelFromSlug(
 		String(exportName || '')
@@ -100,6 +126,12 @@ export function labelFromExportName(exportName) {
 	);
 }
 
+/**
+ * Builds a stable hash anchor for secondary component records.
+ *
+ * @param {object} record Component record.
+ * @returns {string} URL hash anchor without the leading #.
+ */
 export function componentAnchor(record) {
 	return String(record?.exportName || record?.slug || '')
 		.replace(/^Dom/, 'dom-')
@@ -107,6 +139,12 @@ export function componentAnchor(record) {
 		.toLowerCase();
 }
 
+/**
+ * Infers the primary component export name for a component folder slug.
+ *
+ * @param {string} slug Component folder slug.
+ * @returns {string} Expected primary export name.
+ */
 export function primaryExportNameForSlug(slug) {
 	return `Dom${slug
 		.split('-')
@@ -114,24 +152,17 @@ export function primaryExportNameForSlug(slug) {
 		.join('')}`;
 }
 
-function recordsFromModules(modules, valueKey, sourceModules = {}, sourceKey = 'source') {
-	return Object.entries(modules)
-		.map(([path, value]) => recordFromPath(path, valueKey, value, sourceKey, sourceModules[path]))
-		.filter(Boolean);
-}
-
-function recordFromPath(path, valueKey, value, sourceKey, source) {
-	const match = path.match(/^\.\.\/(components|data|forms|mobile|visual)\/([^/]+)\/(Dom[^/]+)\.vue$/);
-	if (!match) return null;
-	const [, section, slug, exportName] = match;
+/**
+ * Normalizes a catalog module record into the shape expected by docs helpers.
+ *
+ * @param {object} record Static component catalog record.
+ * @returns {object} Component discovery record.
+ */
+function recordFromCatalogRecord(record) {
+	const doc = record.doc || {};
 	return {
-		id: `${section}/${slug}`,
-		path,
-		section,
-		slug,
-		exportName,
-		route: `/${section}/${slug}`,
-		[sourceKey]: source,
-		[valueKey]: value,
+		...record,
+		doc,
+		studio: record.studio || doc.studio || {},
 	};
 }

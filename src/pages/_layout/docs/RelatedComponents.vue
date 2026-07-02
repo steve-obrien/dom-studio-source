@@ -3,9 +3,9 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import {
 	componentAnchor,
-	getComponentRecords,
 	primaryExportNameForSlug,
 } from '../componentManager.js';
+import { getRuntimeComponentRecords } from '../componentRuntimeRecords.js';
 import { inspectComponentRecord } from '../componentInspector.js';
 import ComponentProps from './ComponentProps.vue';
 import ComponentSlots from './ComponentSlots.vue';
@@ -15,7 +15,7 @@ import ComponentKeyboard from './ComponentKeyboard.vue';
 const route = useRoute();
 
 const related = computed(() => {
-	const family = getComponentRecords()
+	const family = getRuntimeComponentRecords()
 		.map(inspectComponentRecord)
 		.filter((record) => !record.hidden && record.route === route.path);
 	const primary = primaryRecord(family);
@@ -28,6 +28,12 @@ const related = computed(() => {
 		}));
 });
 
+/**
+ * Selects the primary component in a component-folder family.
+ *
+ * @param {Array<object>} family Component records that share one route.
+ * @returns {object|undefined} Primary component record.
+ */
 function primaryRecord(family) {
 	const slug = family[0]?.slug || '';
 	const expected = primaryExportNameForSlug(slug);
@@ -36,6 +42,13 @@ function primaryRecord(family) {
 		|| family[0];
 }
 
+/**
+ * Sorts related component records by documentation order and label.
+ *
+ * @param {object} a First component record.
+ * @param {object} b Second component record.
+ * @returns {number} Sort comparison result.
+ */
 function sortRecords(a, b) {
 	const orderDelta = a.order - b.order;
 	if (orderDelta) return orderDelta;

@@ -1,9 +1,15 @@
 import { labelFromExportName, labelFromSlug } from './componentManager.js';
 
+/**
+ * Expands a component record with display metadata used by docs and editors.
+ *
+ * @param {object} record Component discovery record.
+ * @returns {object} Component record with normalized docs, labels, and props.
+ */
 export function inspectComponentRecord(record) {
 	const component = record.component;
-	const doc = getComponentDoc(component);
-	const studio = getStudioMeta(component);
+	const doc = getComponentDoc(record);
+	const studio = getStudioMeta(record);
 	return {
 		...record,
 		doc,
@@ -19,15 +25,33 @@ export function inspectComponentRecord(record) {
 	};
 }
 
-export function getComponentDoc(component) {
-	return component?.__doc || {};
+/**
+ * Reads documentation metadata from either a Vue component or catalog record.
+ *
+ * @param {object} value Vue component object or component catalog record.
+ * @returns {object} Documentation metadata.
+ */
+export function getComponentDoc(value) {
+	return value?.__doc || value?.component?.__doc || value?.doc || {};
 }
 
-export function getStudioMeta(component) {
-	const doc = getComponentDoc(component);
-	return component?.__studio || doc.studio || {};
+/**
+ * Reads Studio editor metadata from either a Vue component or catalog record.
+ *
+ * @param {object} value Vue component object or component catalog record.
+ * @returns {object} Studio metadata.
+ */
+export function getStudioMeta(value) {
+	const doc = getComponentDoc(value);
+	return value?.__studio || value?.component?.__studio || value?.studio || doc.studio || {};
 }
 
+/**
+ * Normalizes Vue props from a component object for docs/editor inspection.
+ *
+ * @param {object} component Vue component object.
+ * @returns {object} Component props keyed by prop name.
+ */
 export function getComponentProps(component) {
 	const props = component?.props;
 	if (!props) return {};
