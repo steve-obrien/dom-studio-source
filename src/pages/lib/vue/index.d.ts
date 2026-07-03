@@ -783,6 +783,18 @@ export interface DomThemeSwitcherProps {
 	 * Button size for the segmented control.
 	 */
 	size?: "icon-sm" | "icon-md" | "sm" | "md" | "lg";
+	/**
+	 * Use appearance for a larger account-settings presentation.
+	 */
+	variant?: "default" | "appearance";
+	/**
+	 * Heading shown by the appearance variant. Pass an empty string to hide it.
+	 */
+	title?: string;
+	/**
+	 * Supporting text shown by the appearance variant. Pass an empty string to hide it.
+	 */
+	description?: string;
 }
 export declare const DomThemeSwitcher: DomComponent<DomThemeSwitcherProps>;
 

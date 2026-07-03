@@ -8,6 +8,8 @@ import ComponentProps from '../../_layout/docs/ComponentProps.vue';
 import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
 import { DomThemeSwitcher } from '../../lib/vue';
 
+import AppearanceSettings from './examples/AppearanceSettings.vue';
+import AppearanceSettingsSrc from './examples/AppearanceSettings.vue?raw';
 import SettingsRow from './examples/SettingsRow.vue';
 import SettingsRowSrc from './examples/SettingsRow.vue?raw';
 import AppToolbar from './examples/AppToolbar.vue';
@@ -26,6 +28,16 @@ const doc = DomThemeSwitcher.__doc;
 					title="Theme switcher playground"
 					description="The switcher stores the selected DOM Studio theme preference and updates the document theme."
 				/>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Appearance settings">
+				<Example
+					:source="AppearanceSettingsSrc"
+					filename="AppearanceSettings.vue"
+					description="Use the appearance variant for account settings pages where the theme preference is a primary row."
+				>
+					<AppearanceSettings />
+				</Example>
 			</DocSection>
 
 			<DocSection eyebrow="Demo" title="Settings row">

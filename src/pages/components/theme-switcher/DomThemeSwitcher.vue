@@ -21,7 +21,7 @@ defineOptions({
 	},
 });
 
-const themeModeOptions = [
+const compactThemeModeOptions = [
 	{
 		value: 'dark',
 		label: 'Dark',
@@ -55,6 +55,11 @@ const themeModeOptions = [
 		],
 	},
 ];
+const appearanceThemeModeOptions = [
+	compactThemeModeOptions[1],
+	compactThemeModeOptions[0],
+	compactThemeModeOptions[2],
+];
 
 const props = defineProps({
 	modelValue: {
@@ -77,13 +82,30 @@ const props = defineProps({
 		default: 'icon-sm',
 		_edit: { options: ['icon-sm', 'icon-md', 'sm', 'md', 'lg'], description: 'Button size for the segmented control.' },
 	},
+	variant: {
+		type: String,
+		default: 'default',
+		_edit: { options: ['default', 'appearance'], description: 'Use appearance for a larger account-settings presentation.' },
+	},
+	title: {
+		type: String,
+		default: 'Appearance settings',
+		_edit: { description: 'Heading shown by the appearance variant. Pass an empty string to hide it.' },
+	},
+	description: {
+		type: String,
+		default: 'Update the appearance settings for your account',
+		_edit: { description: 'Supporting text shown by the appearance variant. Pass an empty string to hide it.' },
+	},
 });
 
 const emit = defineEmits(['update:modelValue', 'change']);
 const { mode, resolvedTheme, setMode, initTheme } = useTheme();
 const mounted = ref(false);
 
+const isAppearanceVariant = computed(() => props.variant === 'appearance');
 const hasControlledMode = computed(() => props.modelValue !== null && props.modelValue !== undefined && props.modelValue !== '');
+const themeModeOptions = computed(() => isAppearanceVariant.value ? appearanceThemeModeOptions : compactThemeModeOptions);
 const selectedMode = computed({
 	get() {
 		return mode.value;
@@ -93,16 +115,17 @@ const selectedMode = computed({
 	},
 });
 const currentLabel = computed(() => {
-	return themeModeOptions.find((option) => option.value === mode.value)?.label || 'System';
+	return compactThemeModeOptions.find((option) => option.value === mode.value)?.label || 'System';
 });
 const displayLabel = computed(() => mounted.value ? currentLabel.value : 'System');
+const controlSize = computed(() => isAppearanceVariant.value && props.size === 'icon-sm' ? 'lg' : props.size);
 const placeholderSizeClass = computed(() => ({
 	sm: 'min-h-8 px-3 py-1.5 text-xs',
 	md: 'min-h-10 px-4 py-2 text-sm',
 	lg: 'min-h-11 px-5 py-2.5 text-base',
 	'icon-sm': 'size-8 p-0 text-xs',
 	'icon-md': 'size-10 p-0 text-sm',
-}[props.size] || 'size-8 p-0 text-xs'));
+}[controlSize.value] || 'size-8 p-0 text-xs'));
 
 onMounted(() => {
 	initTheme();
@@ -115,6 +138,11 @@ watch(() => props.modelValue, (value) => {
 	setMode(value);
 });
 
+/**
+ * Persists the selected theme mode and emits the public change events.
+ *
+ * @param {unknown} value Requested theme mode.
+ */
 function commitMode(value) {
 	const next = normalizeThemeMode(value);
 	const theme = setMode(next);
@@ -125,10 +153,19 @@ function commitMode(value) {
 
 <template>
 	<div
-		class="flex items-center gap-3"
-		:class="showLabel ? 'w-full justify-between' : 'w-fit'"
+		class="dom-theme-switcher"
+		:class="isAppearanceVariant ? 'dom-theme-switcher--appearance grid w-full gap-5' : (showLabel ? 'flex w-full items-center justify-between gap-3' : 'flex w-fit items-center gap-3')"
 	>
-		<span v-if="showLabel" class="min-w-0 truncate text-sm font-medium text-canvas-fg">
+		<div v-if="isAppearanceVariant && (title || description)" class="grid gap-1">
+			<h2 v-if="title" class="text-3xl font-semibold leading-tight text-canvas-fg">
+				{{ title }}
+			</h2>
+			<p v-if="description" class="text-lg leading-7 text-muted-fg">
+				{{ description }}
+			</p>
+		</div>
+
+		<span v-if="!isAppearanceVariant && showLabel" class="min-w-0 truncate text-sm font-medium text-canvas-fg">
 			{{ displayLabel }} theme
 		</span>
 
@@ -138,13 +175,14 @@ function commitMode(value) {
 			v-model="selectedMode"
 			:options="themeModeOptions"
 			:label="label"
-			:size="size"
+			:size="controlSize"
+			:variant="isAppearanceVariant ? 'switch' : 'default'"
 			:chrome="false"
 		>
 			<template #option="{ option }">
 				<svg
 					viewBox="0 0 24 24"
-					class="size-4"
+					:class="isAppearanceVariant ? 'size-5' : 'size-4'"
 					fill="none"
 					stroke="currentColor"
 					stroke-width="1.8"
@@ -154,24 +192,26 @@ function commitMode(value) {
 				>
 					<path v-for="path in option.paths" :key="path" :d="path" />
 				</svg>
-				<span class="sr-only">{{ option.label }}</span>
+				<span v-if="isAppearanceVariant">{{ option.label }}</span>
+				<span v-else class="sr-only">{{ option.label }}</span>
 			</template>
 		</DomToggleButtonGroup>
 
 		<div
 			v-else
-			class="skin-control inline-flex w-fit overflow-hidden rounded-xl p-0"
+			class="inline-flex w-fit overflow-hidden rounded-xl p-0"
+			:class="isAppearanceVariant ? 'dom-theme-switcher__placeholder dom-theme-switcher__placeholder--appearance' : 'skin-control'"
 			aria-hidden="true"
 		>
 			<span
 				v-for="option in themeModeOptions"
 				:key="option.value"
-				class="relative inline-flex items-center justify-center border-l border-border/80 text-muted-fg first:border-l-0 first:rounded-l-xl last:rounded-r-xl"
-				:class="placeholderSizeClass"
+				class="relative inline-flex items-center justify-center gap-2 text-muted-fg first:border-l-0 first:rounded-l-xl last:rounded-r-xl"
+				:class="[isAppearanceVariant ? 'dom-theme-switcher__placeholder-option' : 'border-l border-border/80', placeholderSizeClass]"
 			>
 				<svg
 					viewBox="0 0 24 24"
-					class="size-4"
+					:class="isAppearanceVariant ? 'size-5' : 'size-4'"
 					fill="none"
 					stroke="currentColor"
 					stroke-width="1.8"
@@ -180,7 +220,59 @@ function commitMode(value) {
 				>
 					<path v-for="path in option.paths" :key="path" :d="path" />
 				</svg>
+				<span v-if="isAppearanceVariant">{{ option.label }}</span>
 			</span>
 		</div>
 	</div>
 </template>
+
+<style scoped>
+.dom-theme-switcher--appearance {
+	max-width: 34rem;
+}
+
+.dom-theme-switcher--appearance :deep([role='group']),
+.dom-theme-switcher__placeholder--appearance {
+	width: min(100%, 33rem);
+	flex-wrap: wrap;
+	gap: 0.25rem;
+	border: 0;
+	border-radius: 1rem;
+	background: color-mix(in oklab, var(--secondary) 78%, var(--canvas));
+	box-shadow: none;
+	padding: 0.35rem;
+}
+
+.dom-theme-switcher--appearance :deep([role='group'] > dom-tooltip) {
+	display: inline-flex;
+	min-width: 0;
+	flex: 1 1 9rem;
+}
+
+.dom-theme-switcher--appearance :deep([role='group'] button),
+.dom-theme-switcher__placeholder-option {
+	min-height: 3.75rem;
+	border-radius: 0.875rem;
+	padding-inline: 1.25rem;
+	font-size: 1.25rem;
+	font-weight: 500;
+}
+
+.dom-theme-switcher--appearance :deep([role='group'] > dom-tooltip > button) {
+	width: 100%;
+}
+
+.dom-theme-switcher--appearance :deep([role='group'] button[aria-pressed='true']) {
+	background: var(--canvas);
+	color: var(--canvas-fg);
+	box-shadow: var(--shadow-sm);
+}
+
+.dom-theme-switcher--appearance :deep([role='group'] button:hover) {
+	background: color-mix(in oklab, var(--canvas) 72%, transparent);
+}
+
+.dom-theme-switcher--appearance :deep([role='group'] button[aria-pressed='true']:hover) {
+	background: var(--canvas);
+}
+</style>
