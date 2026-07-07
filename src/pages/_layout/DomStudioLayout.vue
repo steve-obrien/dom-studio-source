@@ -28,6 +28,7 @@ const sidebarRoutePrefixes = [
 	'/component-spec',
 	'/components',
 	'/data',
+	'/dev',
 	'/forms',
 	'/headless',
 	'/mobile',
@@ -40,6 +41,7 @@ const wideContentRoutePrefixes = [
 	'/blocks',
 	'/components',
 	'/data',
+	'/dev',
 	'/forms',
 	'/headless',
 	'/mobile',
@@ -71,20 +73,42 @@ const topLinks = [
 
 const detailsPanel = ref(null);
 
+/**
+ * Checks whether a top-level navigation item matches the current route.
+ *
+ * @param {{ exact?: boolean, match?: string, to: string }} link Navigation item.
+ * @returns {boolean} Whether the item is active.
+ */
 function isTopLinkActive(link) {
 	return link.exact
 		? route.path === link.to
 		: route.path.startsWith(link.match || link.to);
 }
 
+/**
+ * Scrolls the fixed docs detail panel back to the top after route changes.
+ *
+ * @returns {void}
+ */
 function scrollDetailsToTop() {
 	if (detailsPanel.value) detailsPanel.value.scrollTo({ top: 0 });
 }
 
+/**
+ * Opens the global command palette.
+ *
+ * @returns {void}
+ */
 function openGlobalSearch() {
 	searchOpen.value = true;
 }
 
+/**
+ * Runs a selected global-search command.
+ *
+ * @param {{ command?: { to?: string }, value?: string }} event Search select event.
+ * @returns {void}
+ */
 function runGlobalSearch(event) {
 	const target = event.command?.to || event.value;
 	if (typeof target !== 'string' || !target.startsWith('/')) return;

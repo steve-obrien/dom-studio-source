@@ -32,6 +32,10 @@ Headless primitives use the `dom-*` custom element prefix:
 
 The published package exports the Vue layer, headless primitives, styles, and AI context files. Block implementations remain in this repository's source tree for direct reuse and adaptation rather than as a versioned import surface.
 
+## Component Areas
+
+Component docs are grouped by purpose: `/components` for general primitives, `/forms` for inputs, `/visual` for presentational UI, `/data` for API-shaped data-driven workflows, `/dev` for code and payload inspection utilities, and `/mobile` for app-shell controls.
+
 ## Block Routing
 
 Block pages are auto-discovered from nested folders under `src/pages/blocks`, so the folder path is the canonical route. For example, `src/pages/blocks/operations/scheduling/resource-scheduler/Index.vue` becomes `/blocks/operations/scheduling/resource-scheduler`.

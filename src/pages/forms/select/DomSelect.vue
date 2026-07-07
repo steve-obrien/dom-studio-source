@@ -82,6 +82,11 @@ const props = defineProps({
 		default: 'min-w-[14rem]',
 		_edit: { group: 'Control props', description: 'Tailwind width utility for the floating listbox.' },
 	},
+	optionTone: {
+		type: String,
+		default: 'accent',
+		_edit: { group: 'Control props', description: 'Theme token basename for hovered, focused, and selected options. For example, primary uses var(--primary) and var(--primary-fg).' },
+	},
 	searchable: {
 		type: [Boolean, String],
 		default: false,
@@ -122,6 +127,24 @@ const triggerClasses = computed(() => [
 	(field.disabled.value || field.readOnly.value) && 'cursor-not-allowed opacity-60',
 	field.invalid.value && 'border-destructive focus:border-destructive focus:ring-destructive/25',
 ]);
+const optionToneStyle = computed(() => {
+	const tone = normalizeThemeVariableName(props.optionTone);
+	return {
+		'--dom-select-option-active-bg': `var(--${tone}, var(--accent))`,
+		'--dom-select-option-active-fg': `var(--${tone}-fg, var(--accent-fg))`,
+	};
+});
+
+/**
+ * Normalize a theme token basename before using it to assemble CSS variable references.
+ *
+ * @param {string|null|undefined} value Theme token basename such as accent, primary, or --brand.
+ * @returns {string} Safe CSS custom property basename without the leading double dash.
+ */
+function normalizeThemeVariableName(value) {
+	const name = String(value || '').trim().replace(/^--/, '');
+	return /^[A-Za-z][A-Za-z0-9_-]*$/.test(name) ? name : 'accent';
+}
 
 onMounted(async () => {
 	teleportTarget.value = resolveFloatingTeleportTarget(root.value);
@@ -306,6 +329,7 @@ function onSearchKeydown(event) {
 					data-haspopup="listbox"
 					class="dom-dropdown-menu dom-floating-transition skin-popover z-50 flex max-h-[min(20rem,var(--dom-floating-available-height))] flex-col overflow-hidden rounded-2xl p-0"
 					:class="width"
+					:style="optionToneStyle"
 				>
 					<div v-if="isSearchable" class="border-b border-border p-2">
 						<input
@@ -335,11 +359,11 @@ function onSearchKeydown(event) {
 							type="button"
 							:data-value="option.value"
 							:disabled="option.disabled || undefined"
-							class="block w-full cursor-pointer rounded-xl px-3 py-2 text-left text-sm text-canvas-fg outline-none transition hover:bg-accent focus:bg-accent aria-selected:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+							class="dom-select-option block w-full cursor-pointer rounded-xl px-3 py-2 text-left text-sm text-canvas-fg outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							<slot name="option" :option="option" :index="index" :selected="String(option.value) === selectedValue">
 								<span class="block font-medium">{{ option.label }}</span>
-								<span v-if="option.description" class="mt-0.5 block text-xs text-muted-fg">{{ option.description }}</span>
+								<span v-if="option.description" class="dom-select-option-description mt-0.5 block text-xs text-muted-fg">{{ option.description }}</span>
 							</slot>
 						</button>
 						<div v-if="isSearchable && !filteredOptions.length" class="px-3 py-6 text-center text-sm text-muted-fg">
@@ -351,3 +375,14 @@ function onSearchKeydown(event) {
 		</dom-dropdown>
 	</DomField>
 </template>
+
+<style scoped>
+.dom-select-option:not(:disabled):is(:hover, :focus, [aria-selected="true"]) {
+	background-color: var(--dom-select-option-active-bg, var(--accent));
+	color: var(--dom-select-option-active-fg, var(--accent-fg));
+}
+
+.dom-select-option:not(:disabled):is(:hover, :focus, [aria-selected="true"]) .dom-select-option-description {
+	color: var(--dom-select-option-active-fg, var(--accent-fg));
+}
+</style>

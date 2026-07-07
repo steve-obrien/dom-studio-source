@@ -1,5 +1,5 @@
 <script setup>
-import DomCodeBlock from '../visual/code-block/DomCodeBlock.vue';
+import DomCodeBlock from '../dev/code-block/DomCodeBlock.vue';
 
 defineOptions({ inheritAttrs: false });
 

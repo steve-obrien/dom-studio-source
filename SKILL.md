@@ -42,6 +42,7 @@ The package root exports the same Vue surface as `@getdom/studio/vue`. Use headl
 - Use `DomNativeSelect` for small native option lists, `DomListbox` for custom single-choice lists, `DomCombobox` for search plus committed selection, and `DomAutocomplete` for free text with suggestions.
 - Use `DomCalendar` for month-grid date picking and `DomDatePicker` for typed date entry with a popover calendar.
 - Use `DomCodeInput` for prompts, snippets, templates, and structured text; use `DomJsonInput` for parsed JSON values; use `DomJsonListInput` for schema-aware arrays such as options, commands, menu rows, and inspector data.
+- Use `DomCodeBlock` for highlighted read-only code and `DomJsonViewer` for inspecting JSON payloads, diagnostics, and implementation data.
 - Use `DomAppShell`, `DomAppTopBar`, `DomAppBottomNav`, `DomAppListItem`, `DomSafeArea`, and `DomActionSheet` for Capacitor-style app screens.
 
 ## Studio Specs

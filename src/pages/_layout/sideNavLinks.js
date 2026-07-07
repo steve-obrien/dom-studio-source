@@ -7,7 +7,7 @@ import {
 import { inspectComponentRecord } from './componentInspector.js';
 import { getBlockNavItems } from '../blocks/blockRegistry.js';
 
-const sidebarComponentSectionOrder = ['components', 'data', 'forms', 'mobile', 'visual'];
+const sidebarComponentSectionOrder = ['components', 'data', 'dev', 'forms', 'mobile', 'visual'];
 
 export const staticIconPaths = {
 	'AI builders': 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Zm6 9 .9 2.6 2.6.9-2.6.9L18 20l-.9-2.6-2.6-.9 2.6-.9L18 12Z',
@@ -21,6 +21,9 @@ export const staticIconPaths = {
 	Playground: 'M8 4l8 8-8 8',
 	Mobile: 'M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm3 15h4',
 	Data: 'M5 7c0-2 14-2 14 0v10c0 2-14 2-14 0V7Zm0 0c0 2 14 2 14 0M5 12c0 2 14 2 14 0',
+	Dev: 'M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14',
+	'Code block': 'M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14',
+	'JSON viewer': 'M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z',
 	'Media browser': 'M5 6h14v12H5V6Zm3 9 3-3 2 2 2-3 3 4M8 9h.01',
 	'Media Browser': 'M5 6h14v12H5V6Zm3 9 3-3 2 2 2-3 3 4M8 9h.01',
 	'Data grid': 'M5 5h14v14H5V5Zm0 5h14M5 14h14M10 5v14M15 5v14',
@@ -163,6 +166,7 @@ function groupsFromDiscoveredComponents() {
 			items: [
 				...(section === 'forms' ? [{ to: '/forms', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...(section === 'data' ? [{ to: '/data', label: 'Overview', icon: staticIconPaths.Overview }] : []),
+				...(section === 'dev' ? [{ to: '/dev', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...Array.from(families.values())
 					.filter((family) => family[0]?.section === section)
 					.map(navItemFromFamily),

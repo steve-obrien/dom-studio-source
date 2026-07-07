@@ -43,8 +43,16 @@ export { default as DomContextMenu } from '../../components/context-menu/DomCont
 export { default as DomDataGrid } from '../../data/data-grid/DomDataGrid.vue';
 export { default as DomMonthCalendar } from '../../data/month-calendar/DomMonthCalendar.vue';
 export { default as DomMediaBrowser } from '../../data/media-browser/DomMediaBrowser.vue';
+export { default as DomJsonViewer } from '../../dev/json-viewer/DomJsonViewer.vue';
+export { default as DomAgentChatShell } from '../../data/agent-chat/DomAgentChatShell.vue';
+export { default as DomAgentConversation } from '../../data/agent-chat/DomAgentConversation.vue';
+export { default as DomAgentConversationList } from '../../data/agent-chat/DomAgentConversationList.vue';
 export { default as DomPagination } from '../../components/pagination/DomPagination.vue';
+export { agentChatShellProps } from '../../data/agent-chat/DomAgentChatShell.vue';
+export { agentConversationProps } from '../../data/agent-chat/DomAgentConversation.vue';
+export { agentConversationListProps } from '../../data/agent-chat/DomAgentConversationList.vue';
 export { mediaBrowserProps } from '../../data/media-browser/DomMediaBrowser.vue';
+export { createAgentChatRestApi, defineAgentChatStore } from '../../data/agent-chat/examples/useAgentChatDemoStore.js';
 export { createMediaBrowserRestApi, defineMediaBrowserStore } from '../../data/media-browser/examples/useMediaBrowserDemoStore.js';
 export { monthCalendarProps } from '../../data/month-calendar/DomMonthCalendar.vue';
 export { popoverProps } from '../../components/popover/DomPopover.vue';
@@ -77,7 +85,7 @@ export { default as DomSkeleton } from '../../visual/skeleton/DomSkeleton.vue';
 export { default as DomProgress } from '../../visual/progress/DomProgress.vue';
 export { default as DomRadialProgress } from '../../visual/progress/DomRadialProgress.vue';
 export { default as DomSpinner } from '../../visual/spinner/DomSpinner.vue';
-export { default as DomCodeBlock } from '../../visual/code-block/DomCodeBlock.vue';
+export { default as DomCodeBlock } from '../../dev/code-block/DomCodeBlock.vue';
 
 // Form primitives
 export { default as DomToggle } from '../../forms/toggle/DomToggle.vue';

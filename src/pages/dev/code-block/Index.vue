@@ -16,7 +16,7 @@ const doc = DomCodeBlock.__doc;
 
 <template>
 	<DomStudioLayout>
-		<DocPage :name="doc.name" :tagline="doc.description" :tag="doc.tag" eyebrow="Visual primitive">
+		<DocPage :name="doc.name" :tagline="doc.description" :tag="doc.tag" eyebrow="Dev component">
 			<DocSection eyebrow="Usage" title="Package-ready syntax highlighting">
 				<Example
 					:source="CodeSnippetSrc"

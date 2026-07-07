@@ -1024,6 +1024,241 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "data/agent-chat",
+		"path": "../data/agent-chat/DomAgentChatShell.vue",
+		"section": "data",
+		"slug": "agent-chat",
+		"exportName": "DomAgentChatShell",
+		"route": "/data/agent-chat",
+		"doc": {
+			"name": "Agent chat shell",
+			"tag": "<DomAgentChatShell>",
+			"description": "A three-pane AI chat application shell with a resizable conversation sidebar, scroll-contained conversation window, closable context aside, streaming tool calls, and audio/text handoff controls.",
+			"icon": "M4 5h5v14H4V5Zm7 0h9v14h-9V5Zm2 3h5M13 12h5M13 16h3",
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "string",
+					"description": "Passes composer updates from the conversation component."
+				},
+				{
+					"name": "update:mode",
+					"payload": "'text' | 'audio'",
+					"description": "Passes audio/text mode changes from the conversation component."
+				},
+				{
+					"name": "update:search",
+					"payload": "string",
+					"description": "Passes sidebar search updates."
+				},
+				{
+					"name": "update:sidebarOpen",
+					"payload": "boolean",
+					"description": "Fired when the sidebar is opened or closed."
+				},
+				{
+					"name": "update:asideOpen",
+					"payload": "boolean",
+					"description": "Fired when the aside is opened or closed."
+				},
+				{
+					"name": "update:sidebarSize",
+					"payload": "number",
+					"description": "Fired when the sidebar splitter changes width."
+				},
+				{
+					"name": "update:asideSize",
+					"payload": "number",
+					"description": "Fired when the aside splitter changes width."
+				},
+				{
+					"name": "select-conversation",
+					"payload": "conversation",
+					"description": "Fired when a sidebar row is selected."
+				},
+				{
+					"name": "new-conversation",
+					"payload": "undefined",
+					"description": "Fired when the sidebar new button is activated."
+				},
+				{
+					"name": "submit",
+					"payload": "({ content, mode, conversation })",
+					"description": "Fired when the composer submits."
+				},
+				{
+					"name": "stop",
+					"payload": "({ conversation })",
+					"description": "Fired when streaming is stopped."
+				},
+				{
+					"name": "tool-action",
+					"payload": "({ action, tool, message })",
+					"description": "Fired by generic or custom tool renderers."
+				}
+			],
+			"slots": [
+				{
+					"name": "sidebar",
+					"payload": "{ conversations, activeConversationId }",
+					"description": "Replace the conversation sidebar."
+				},
+				{
+					"name": "conversation",
+					"payload": "{ conversation, messages, activeAgent }",
+					"description": "Replace the main conversation component."
+				},
+				{
+					"name": "aside",
+					"payload": "{ conversation, activeAgent, toolParts }",
+					"description": "Replace the contextual aside."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "data/agent-chat",
+		"path": "../data/agent-chat/DomAgentConversation.vue",
+		"section": "data",
+		"slug": "agent-chat",
+		"exportName": "DomAgentConversation",
+		"route": "/data/agent-chat",
+		"doc": {
+			"name": "Agent conversation",
+			"tag": "<DomAgentConversation>",
+			"description": "A scroll-contained AI conversation surface with a fixed header, streaming messages, reasoning summaries, audio/text mode switching, tool-call rendering, and a composer footer.",
+			"icon": "M5 7h14M5 12h10M5 17h6M18 15l3 3-3 3",
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "string",
+					"description": "Fired when the composer text changes."
+				},
+				{
+					"name": "update:mode",
+					"payload": "'text' | 'audio'",
+					"description": "Fired when the composer switches between text and audio mode."
+				},
+				{
+					"name": "submit",
+					"payload": "({ content, mode, conversation })",
+					"description": "Fired when the user submits the composer."
+				},
+				{
+					"name": "stop",
+					"payload": "({ conversation })",
+					"description": "Fired when the user stops an active stream."
+				},
+				{
+					"name": "tool-action",
+					"payload": "({ action, tool, message })",
+					"description": "Fired by generic and custom tool renderers for approvals, retries, and inspection."
+				},
+				{
+					"name": "scroll-bottom",
+					"payload": "({ conversation })",
+					"description": "Fired when the built-in jump-to-bottom control is used."
+				}
+			],
+			"slots": [
+				{
+					"name": "header-leading",
+					"payload": "{ conversation, activeAgent }",
+					"description": "Controls shown before the title, useful for opening an app sidebar."
+				},
+				{
+					"name": "header-actions",
+					"payload": "{ conversation, activeAgent, streaming }",
+					"description": "Controls shown at the end of the header."
+				},
+				{
+					"name": "message",
+					"payload": "{ message, activeAgent, parts }",
+					"description": "Replace the full message renderer."
+				},
+				{
+					"name": "tool",
+					"payload": "{ tool, message, component, action }",
+					"description": "Replace generic tool rendering without supplying toolComponents."
+				},
+				{
+					"name": "composer-actions",
+					"payload": "{ mode, setMode, disabled, streaming }",
+					"description": "Extra controls inside the composer row."
+				},
+				{
+					"name": "footer",
+					"payload": "{ value, mode, submit, setMode }",
+					"description": "Replace the built-in composer footer."
+				},
+				{
+					"name": "empty",
+					"description": "Custom empty conversation state."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Enter",
+					"action": "Submit the composer."
+				},
+				{
+					"keys": "Shift + Enter",
+					"action": "Insert a new line."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "data/agent-chat",
+		"path": "../data/agent-chat/DomAgentConversationList.vue",
+		"section": "data",
+		"slug": "agent-chat",
+		"exportName": "DomAgentConversationList",
+		"route": "/data/agent-chat",
+		"doc": {
+			"name": "Agent conversation list",
+			"tag": "<DomAgentConversationList>",
+			"description": "A reusable AI conversation navigation list with search, agent labels, unread counts, status pills, and active-thread selection.",
+			"icon": "M5 6h14M5 12h14M5 18h8",
+			"events": [
+				{
+					"name": "update:search",
+					"payload": "string",
+					"description": "Fired when the sidebar search changes."
+				},
+				{
+					"name": "select",
+					"payload": "conversation",
+					"description": "Fired when a conversation row is selected."
+				},
+				{
+					"name": "new",
+					"payload": "undefined",
+					"description": "Fired when the new conversation action is activated."
+				}
+			],
+			"slots": [
+				{
+					"name": "actions",
+					"payload": "{ conversations }",
+					"description": "Extra controls beside the heading."
+				},
+				{
+					"name": "conversation",
+					"payload": "{ conversation, active, agent }",
+					"description": "Replace a conversation row."
+				},
+				{
+					"name": "empty",
+					"description": "Custom empty state."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "data/data-grid",
 		"path": "../data/data-grid/DomDataGrid.vue",
 		"section": "data",
@@ -1355,6 +1590,74 @@ export const componentCatalog = [
 					"action": "Activate the focused day."
 				}
 			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "dev/code-block",
+		"path": "../dev/code-block/DomCodeBlock.vue",
+		"section": "dev",
+		"slug": "code-block",
+		"exportName": "DomCodeBlock",
+		"route": "/dev/code-block",
+		"doc": {
+			"name": "Code block",
+			"tag": "<DomCodeBlock>",
+			"description": "A syntax-highlighted code block for examples, API snippets, and generated source previews.",
+			"icon": "M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14",
+			"playground": {
+				"initial": {
+					"code": "import { DomCodeBlock } from '@getdom/studio/vue';\n\nconst source = '<DomButton>Save</DomButton>';",
+					"lang": "js",
+					"framed": true,
+					"previewLines": 0
+				}
+			}
+		},
+		"studio": {}
+	},
+	{
+		"id": "dev/json-viewer",
+		"path": "../dev/json-viewer/DomJsonViewer.vue",
+		"section": "dev",
+		"slug": "json-viewer",
+		"exportName": "DomJsonViewer",
+		"route": "/dev/json-viewer",
+		"doc": {
+			"name": "JSON viewer",
+			"tag": "<DomJsonViewer>",
+			"description": "A read-only JSON viewer with a collapsible tree, formatted source view, syntax highlighting, and copy support.",
+			"icon": "M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z",
+			"events": [
+				{
+					"name": "update:mode",
+					"payload": "'tree' | 'code'",
+					"description": "Fired when the built-in mode toggle changes the active view."
+				},
+				{
+					"name": "copy",
+					"payload": "string",
+					"description": "Fired after formatted JSON is copied to the clipboard."
+				}
+			],
+			"playground": {
+				"initial": {
+					"title": "API response",
+					"filename": "response.json",
+					"value": {
+						"ok": true,
+						"data": {
+							"id": "project_dom_studio",
+							"status": "active",
+							"features": [
+								"components",
+								"blocks",
+								"theme"
+							]
+						}
+					}
+				}
+			}
 		},
 		"studio": {}
 	},
@@ -3000,29 +3303,6 @@ export const componentCatalog = [
 					"description": "Rail items. Each direct child becomes fixed-width, snap-aligned content."
 				}
 			]
-		},
-		"studio": {}
-	},
-	{
-		"id": "visual/code-block",
-		"path": "../visual/code-block/DomCodeBlock.vue",
-		"section": "visual",
-		"slug": "code-block",
-		"exportName": "DomCodeBlock",
-		"route": "/visual/code-block",
-		"doc": {
-			"name": "Code block",
-			"tag": "<DomCodeBlock>",
-			"description": "A syntax-highlighted code block for examples, API snippets, and generated source previews.",
-			"icon": "M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14",
-			"playground": {
-				"initial": {
-					"code": "import { DomCodeBlock } from '@getdom/studio/vue';\n\nconst source = '<DomButton>Save</DomButton>';",
-					"lang": "js",
-					"framed": true,
-					"previewLines": 0
-				}
-			}
 		},
 		"studio": {}
 	},

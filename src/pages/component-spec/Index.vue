@@ -6,7 +6,10 @@ import CodeBlock from '../_layout/CodeBlock.vue';
 
 const discoveryCode = `// Discovered by componentManager.js from:
 // src/pages/components/*/Dom*.vue
+// src/pages/data/*/Dom*.vue
+// src/pages/dev/*/Dom*.vue
 // src/pages/forms/*/Dom*.vue
+// src/pages/mobile/*/Dom*.vue
 // src/pages/visual/*/Dom*.vue
 
 {
@@ -283,7 +286,10 @@ const editFields = [
 						<p class="mt-2 text-sm leading-6 text-muted-fg">
 							Put a <code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">Dom*.vue</code> file under
 							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">components</code>,
-							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">forms</code>, or
+							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">data</code>,
+							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">dev</code>,
+							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">forms</code>,
+							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">mobile</code>, or
 							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">visual</code>.
 							It should appear in the generated docs and Studio automatically unless hidden.
 						</p>

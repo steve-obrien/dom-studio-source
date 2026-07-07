@@ -15,6 +15,11 @@ const componentTypes = [
 		status: 'Reference',
 	},
 	{
+		name: 'Agent chat',
+		description: 'Uses a Pinia store and emulated streaming API for AI conversations, tool calls, reasoning summaries, text/audio handoff, and a resizable app shell.',
+		status: 'Reference',
+	},
+	{
 		name: 'Media browser',
 		description: 'Uses a Pinia store and emulated media API for folder navigation, breadcrumbs, optimistic mutations, drag/drop uploads, and picker-style selection.',
 		status: 'Reference',

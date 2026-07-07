@@ -44,11 +44,12 @@ Component docs are generated from `Dom*.vue` files under:
 
 - `src/pages/components/*/Dom*.vue`
 - `src/pages/data/*/Dom*.vue`
+- `src/pages/dev/*/Dom*.vue`
 - `src/pages/forms/*/Dom*.vue`
 - `src/pages/mobile/*/Dom*.vue`
 - `src/pages/visual/*/Dom*.vue`
 
-`src/pages/_layout/componentManager.js` turns these files into component records and routes. Forms and data components also get redirects from `/components/:slug` to their current section route.
+`src/pages/_layout/componentManager.js` turns these files into component records and routes. Forms, data, and dev components also get redirects from `/components/:slug` to their current section route.
 
 Blocks are discovered by `src/pages/blocks/blockRegistry.js` from `Index.vue` files under `src/pages/blocks`. The nested folder path is the canonical route, for example:
 

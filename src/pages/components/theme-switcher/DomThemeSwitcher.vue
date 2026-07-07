@@ -118,7 +118,7 @@ const currentLabel = computed(() => {
 	return compactThemeModeOptions.find((option) => option.value === mode.value)?.label || 'System';
 });
 const displayLabel = computed(() => mounted.value ? currentLabel.value : 'System');
-const controlSize = computed(() => isAppearanceVariant.value && props.size === 'icon-sm' ? 'lg' : props.size);
+const controlSize = computed(() => isAppearanceVariant.value && props.size === 'icon-sm' ? 'md' : props.size);
 const placeholderSizeClass = computed(() => ({
 	sm: 'min-h-8 px-3 py-1.5 text-xs',
 	md: 'min-h-10 px-4 py-2 text-sm',
@@ -153,14 +153,13 @@ function commitMode(value) {
 
 <template>
 	<div
-		class="dom-theme-switcher"
-		:class="isAppearanceVariant ? 'dom-theme-switcher--appearance grid w-full gap-5' : (showLabel ? 'flex w-full items-center justify-between gap-3' : 'flex w-fit items-center gap-3')"
+		:class="isAppearanceVariant ? 'grid w-full max-w-lg gap-4' : (showLabel ? 'flex w-full items-center justify-between gap-3' : 'flex w-fit items-center gap-3')"
 	>
 		<div v-if="isAppearanceVariant && (title || description)" class="grid gap-1">
-			<h2 v-if="title" class="text-3xl font-semibold leading-tight text-canvas-fg">
+			<h2 v-if="title" class="text-2xl font-semibold leading-tight text-canvas-fg">
 				{{ title }}
 			</h2>
-			<p v-if="description" class="text-lg leading-7 text-muted-fg">
+			<p v-if="description" class="text-sm leading-6 text-muted-fg">
 				{{ description }}
 			</p>
 		</div>
@@ -182,7 +181,7 @@ function commitMode(value) {
 			<template #option="{ option }">
 				<svg
 					viewBox="0 0 24 24"
-					:class="isAppearanceVariant ? 'size-5' : 'size-4'"
+					class="size-4"
 					fill="none"
 					stroke="currentColor"
 					stroke-width="1.8"
@@ -199,19 +198,19 @@ function commitMode(value) {
 
 		<div
 			v-else
-			class="inline-flex w-fit overflow-hidden rounded-xl p-0"
-			:class="isAppearanceVariant ? 'dom-theme-switcher__placeholder dom-theme-switcher__placeholder--appearance' : 'skin-control'"
+			class="inline-flex w-fit overflow-hidden rounded-xl"
+			:class="isAppearanceVariant ? 'items-center gap-0.5 bg-secondary/80 p-0.5 shadow-inner ring-1 ring-border/30' : 'skin-control p-0'"
 			aria-hidden="true"
 		>
 			<span
 				v-for="option in themeModeOptions"
 				:key="option.value"
 				class="relative inline-flex items-center justify-center gap-2 text-muted-fg first:border-l-0 first:rounded-l-xl last:rounded-r-xl"
-				:class="[isAppearanceVariant ? 'dom-theme-switcher__placeholder-option' : 'border-l border-border/80', placeholderSizeClass]"
+				:class="[isAppearanceVariant ? 'rounded-lg' : 'border-l border-border/80', placeholderSizeClass]"
 			>
 				<svg
 					viewBox="0 0 24 24"
-					:class="isAppearanceVariant ? 'size-5' : 'size-4'"
+					class="size-4"
 					fill="none"
 					stroke="currentColor"
 					stroke-width="1.8"
@@ -225,54 +224,3 @@ function commitMode(value) {
 		</div>
 	</div>
 </template>
-
-<style scoped>
-.dom-theme-switcher--appearance {
-	max-width: 34rem;
-}
-
-.dom-theme-switcher--appearance :deep([role='group']),
-.dom-theme-switcher__placeholder--appearance {
-	width: min(100%, 33rem);
-	flex-wrap: wrap;
-	gap: 0.25rem;
-	border: 0;
-	border-radius: 1rem;
-	background: color-mix(in oklab, var(--secondary) 78%, var(--canvas));
-	box-shadow: none;
-	padding: 0.35rem;
-}
-
-.dom-theme-switcher--appearance :deep([role='group'] > dom-tooltip) {
-	display: inline-flex;
-	min-width: 0;
-	flex: 1 1 9rem;
-}
-
-.dom-theme-switcher--appearance :deep([role='group'] button),
-.dom-theme-switcher__placeholder-option {
-	min-height: 3.75rem;
-	border-radius: 0.875rem;
-	padding-inline: 1.25rem;
-	font-size: 1.25rem;
-	font-weight: 500;
-}
-
-.dom-theme-switcher--appearance :deep([role='group'] > dom-tooltip > button) {
-	width: 100%;
-}
-
-.dom-theme-switcher--appearance :deep([role='group'] button[aria-pressed='true']) {
-	background: var(--canvas);
-	color: var(--canvas-fg);
-	box-shadow: var(--shadow-sm);
-}
-
-.dom-theme-switcher--appearance :deep([role='group'] button:hover) {
-	background: color-mix(in oklab, var(--canvas) 72%, transparent);
-}
-
-.dom-theme-switcher--appearance :deep([role='group'] button[aria-pressed='true']:hover) {
-	background: var(--canvas);
-}
-</style>

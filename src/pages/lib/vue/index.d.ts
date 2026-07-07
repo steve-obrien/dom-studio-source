@@ -203,6 +203,71 @@ export interface MediaBrowserStoreOptions {
 	headers?: Record<string, string>;
 	[key: string]: unknown;
 }
+export type AgentChatInputMode = 'text' | 'audio';
+export type AgentChatConversationStatus = 'idle' | 'streaming' | 'waiting' | 'error' | 'complete';
+export type AgentChatMessageStatus = 'queued' | 'streaming' | 'complete' | 'error' | 'cancelled';
+export type AgentChatPartStatus = 'queued' | 'running' | 'streaming' | 'complete' | 'error' | 'cancelled';
+export type AgentChatMessageRole = 'user' | 'assistant' | 'system' | 'tool';
+export type AgentChatPartType = 'text' | 'reasoning' | 'tool-call' | 'tool-result' | 'audio' | 'handoff';
+export interface AgentChatAgent {
+	id: string;
+	name: string;
+	role?: string;
+	status?: string;
+	model?: string;
+	avatarUrl?: string;
+	tools?: Array<string>;
+	[key: string]: unknown;
+}
+export interface AgentChatConversation {
+	id: string;
+	title: string;
+	summary?: string;
+	agentId?: string;
+	status?: AgentChatConversationStatus;
+	mode?: AgentChatInputMode;
+	updatedAt?: string;
+	labels?: Array<string>;
+	unreadCount?: number;
+	[key: string]: unknown;
+}
+export interface AgentChatMessagePart {
+	id?: string;
+	type: AgentChatPartType;
+	text?: string;
+	name?: string;
+	label?: string;
+	status?: AgentChatPartStatus;
+	args?: Record<string, unknown>;
+	result?: Record<string, unknown> | null;
+	rendererKey?: string;
+	[key: string]: unknown;
+}
+export interface AgentChatMessage {
+	id: string;
+	role: AgentChatMessageRole;
+	agentId?: string;
+	authorName?: string;
+	content?: string;
+	parts?: Array<AgentChatMessagePart>;
+	status?: AgentChatMessageStatus;
+	mode?: AgentChatInputMode;
+	createdAt?: string;
+	[key: string]: unknown;
+}
+export type AgentChatToolComponentMap = Record<string, Component | string>;
+export interface AgentChatStoreOptions {
+	baseUrl?: string;
+	mode?: AgentChatInputMode;
+	sidebarOpen?: boolean;
+	asideOpen?: boolean;
+	sidebarSize?: number;
+	asideSize?: number;
+	api?: Record<string, Function>;
+	fetchOptions?: RequestInit;
+	headers?: Record<string, string>;
+	[key: string]: unknown;
+}
 export interface DomUploadedFile {
 	id?: string | number;
 	name: string;
@@ -1579,6 +1644,254 @@ export interface DomMediaBrowserProps {
 }
 export declare const DomMediaBrowser: DomComponent<DomMediaBrowserProps>;
 
+export interface DomJsonViewerProps {
+	/**
+	 * A JSON-serializable value, or a raw JSON string when parseStrings is enabled.
+	 */
+	value?: JsonValue | string;
+	/**
+	 * Optional label rendered in the viewer toolbar.
+	 */
+	title?: string;
+	/**
+	 * Optional supporting text rendered below the title.
+	 */
+	description?: string;
+	/**
+	 * Optional filename shown in the toolbar and used by the source view.
+	 */
+	filename?: string;
+	/**
+	 * Initial display mode.
+	 */
+	mode?: 'tree' | 'code';
+	/**
+	 * Show the Tree / Code segmented control.
+	 */
+	showModeToggle?: boolean;
+	/**
+	 * Render the viewer toolbar.
+	 */
+	showToolbar?: boolean;
+	/**
+	 * Show a copy button when the toolbar is visible.
+	 */
+	copyable?: boolean;
+	/**
+	 * Treat string values as raw JSON source and format them when they parse.
+	 */
+	parseStrings?: boolean;
+	/**
+	 * Spaces used when formatting JSON in code mode and clipboard output.
+	 */
+	indent?: number;
+	/**
+	 * Default branch depth to expand in tree mode. Use 0 to collapse everything.
+	 */
+	expandedDepth?: number;
+	/**
+	 * Maximum visible lines before the viewer scrolls. Use 0 for no cap.
+	 */
+	previewLines?: number;
+	/**
+	 * Tree row spacing.
+	 */
+	density?: 'compact' | 'comfortable';
+	/**
+	 * Render the standard card frame around the viewer.
+	 */
+	framed?: boolean;
+	/**
+	 * Message shown when the supplied value is empty.
+	 */
+	emptyText?: string;
+}
+export declare const DomJsonViewer: DomComponent<DomJsonViewerProps>;
+
+export interface DomAgentChatShellProps {
+	/**
+	 * Conversation summaries for the sidebar.
+	 */
+	conversations?: Array<AgentChatConversation>;
+	/**
+	 * Active conversation record.
+	 */
+	conversation?: AgentChatConversation | null;
+	/**
+	 * Messages for the active conversation.
+	 */
+	messages?: Array<AgentChatMessage>;
+	/**
+	 * Agents available to the chat shell.
+	 */
+	agents?: Array<AgentChatAgent>;
+	/**
+	 * Selected conversation id.
+	 */
+	activeConversationId?: string;
+	/**
+	 * Controlled composer text.
+	 */
+	modelValue?: string;
+	/**
+	 * Active composer mode.
+	 */
+	mode?: AgentChatInputMode;
+	/**
+	 * Controlled sidebar search value.
+	 */
+	search?: string;
+	/**
+	 * Whether the active assistant response is streaming.
+	 */
+	streaming?: boolean;
+	/**
+	 * Whether active conversation messages are loading.
+	 */
+	loading?: boolean;
+	/**
+	 * Controls the conversation sidebar visibility.
+	 */
+	sidebarOpen?: boolean;
+	/**
+	 * Controls the contextual aside visibility.
+	 */
+	asideOpen?: boolean;
+	/**
+	 * Resizable sidebar width in pixels.
+	 */
+	sidebarSize?: number;
+	/**
+	 * Resizable aside width in pixels.
+	 */
+	asideSize?: number;
+	/**
+	 * Minimum sidebar width while open.
+	 */
+	minSidebar?: number;
+	/**
+	 * Minimum center conversation width.
+	 */
+	minConversation?: number;
+	/**
+	 * Minimum aside width while open.
+	 */
+	minAside?: number;
+	/**
+	 * Tool renderer component map passed through to DomAgentConversation.
+	 */
+	toolComponents?: AgentChatToolComponentMap;
+	/**
+	 * Accessible label for the chat application shell.
+	 */
+	title?: string;
+}
+export declare const DomAgentChatShell: DomComponent<DomAgentChatShellProps>;
+
+export interface DomAgentConversationProps {
+	/**
+	 * Active conversation record. Used for the header, status, and empty state context.
+	 */
+	conversation?: AgentChatConversation | null;
+	/**
+	 * Ordered conversation messages. Messages may contain text, reasoning, audio, handoff, and tool-call parts.
+	 */
+	messages?: Array<AgentChatMessage>;
+	/**
+	 * Agents that can author assistant messages or be displayed in the header.
+	 */
+	agents?: Array<AgentChatAgent>;
+	/**
+	 * Controlled composer text.
+	 */
+	modelValue?: string;
+	/**
+	 * Active composer modality.
+	 */
+	mode?: AgentChatInputMode;
+	/**
+	 * Show the stop control and live status while the assistant response streams.
+	 */
+	streaming?: boolean;
+	/**
+	 * Show a loading state before conversation messages are available.
+	 */
+	loading?: boolean;
+	/**
+	 * Keep the scroller pinned to the bottom while new content arrives.
+	 */
+	autoScroll?: boolean;
+	/**
+	 * Render the built-in conversation header.
+	 */
+	showHeader?: boolean;
+	/**
+	 * Render the built-in composer footer.
+	 */
+	showFooter?: boolean;
+	/**
+	 * Render reasoning summary parts when the supplied message data includes them.
+	 */
+	showReasoning?: boolean;
+	/**
+	 * Composer placeholder text.
+	 */
+	placeholder?: string;
+	/**
+	 * Message shown when there are no messages.
+	 */
+	emptyText?: string;
+	/**
+	 * Disable composer input and send controls.
+	 */
+	disabled?: boolean;
+	/**
+	 * Component map keyed by tool rendererKey or tool name. Falls back to the generic tool card.
+	 */
+	toolComponents?: AgentChatToolComponentMap;
+	/**
+	 * CSS max-width applied to message bubbles.
+	 */
+	maxMessageWidth?: string;
+}
+export declare const DomAgentConversation: DomComponent<DomAgentConversationProps>;
+
+export interface DomAgentConversationListProps {
+	/**
+	 * Conversation summaries shown in the navigation list.
+	 */
+	conversations?: Array<AgentChatConversation>;
+	/**
+	 * Agent records used to label each conversation.
+	 */
+	agents?: Array<AgentChatAgent>;
+	/**
+	 * Selected conversation id.
+	 */
+	activeConversationId?: string;
+	/**
+	 * Controlled conversation search value.
+	 */
+	search?: string;
+	/**
+	 * Show loading rows while conversations are fetched.
+	 */
+	loading?: boolean;
+	/**
+	 * Sidebar heading.
+	 */
+	title?: string;
+	/**
+	 * Show the built-in new conversation button.
+	 */
+	showNewButton?: boolean;
+	/**
+	 * Message shown when the filtered list is empty.
+	 */
+	emptyText?: string;
+}
+export declare const DomAgentConversationList: DomComponent<DomAgentConversationListProps>;
+
 export interface DomPaginationProps {
 	/**
 	 * Current 1-based page.
@@ -2000,6 +2313,10 @@ export interface DomToggleProps {
 	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
 	chrome?: "field" | "none" | false;
+	/**
+	 * Switch size. Matches DomButton size names.
+	 */
+	size?: "sm" | "md" | "lg";
 }
 export declare const DomToggle: DomComponent<DomToggleProps>;
 
@@ -2452,6 +2769,10 @@ export interface DomSelectProps {
 	 * Tailwind width utility for the floating listbox.
 	 */
 	width?: string;
+	/**
+	 * Theme token basename for hovered, focused, and selected options. For example, primary uses var(--primary) and var(--primary-fg).
+	 */
+	optionTone?: string;
 	/**
 	 * Show a search input inside the option panel while keeping select-style committed values.
 	 */
@@ -4801,6 +5122,9 @@ export declare const DomRenderer: DomComponent<DomRendererProps>;
 export declare const popoverProps: DomRuntimeProps;
 export declare const calendarProps: DomRuntimeProps;
 export declare const monthCalendarProps: DomRuntimeProps;
+export declare const agentChatShellProps: DomRuntimeProps;
+export declare const agentConversationProps: DomRuntimeProps;
+export declare const agentConversationListProps: DomRuntimeProps;
 export declare const timeSelectorProps: DomRuntimeProps;
 export declare const dateTimePickerProps: DomRuntimeProps;
 export declare const fieldProps: DomRuntimeProps;
@@ -4825,6 +5149,8 @@ export declare function applyThemeMode(value?: unknown): DomResolvedTheme;
 export declare function useTheme(): DomThemeApi;
 export declare function useToasts(defaults?: ToastOptions): ToastApi;
 export declare function useDialogs(defaults?: DialogOptions): DialogApi;
+export declare function defineAgentChatStore(storeId?: string, options?: AgentChatStoreOptions): Function;
+export declare function createAgentChatRestApi(options?: AgentChatStoreOptions): Record<string, Function>;
 export declare function defineMediaBrowserStore(storeId?: string, options?: MediaBrowserStoreOptions): Function;
 export declare function createMediaBrowserRestApi(options?: MediaBrowserStoreOptions): Record<string, Function>;
 export declare function sha1PasswordHash(password: string): Promise<string>;

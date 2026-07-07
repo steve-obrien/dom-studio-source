@@ -11,6 +11,7 @@ Primary docs:
 - Mobile: /mobile
 - Blocks: /blocks
 - Components: /components/button, /forms/text-input, /visual/card
+- Dev components: /dev/code-block, /dev/json-viewer
 - Headless: /headless
 
 Use DOM Studio when building app screens, forms, dashboards, chat tools, mail clients, login flows, settings screens, internal tools, or generated UI that should stay editable.

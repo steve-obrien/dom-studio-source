@@ -90,6 +90,7 @@
 		"src/pages/_layout",
 		"src/pages/components",
 		"src/pages/data",
+		"src/pages/dev",
 		"src/pages/forms",
 		"src/pages/lib",
 		"src/pages/mobile",

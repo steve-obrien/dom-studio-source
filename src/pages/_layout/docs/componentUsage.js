@@ -1,6 +1,7 @@
 const componentPageModules = import.meta.glob([
 	'../../components/*/Dom*.vue',
 	'../../data/*/Dom*.vue',
+	'../../dev/*/Dom*.vue',
 	'../../forms/*/Dom*.vue',
 	'../../mobile/*/Dom*.vue',
 	'../../visual/*/Dom*.vue',
@@ -17,6 +18,12 @@ const componentRecordsByName = new Map(
 	componentRecords.map((record) => [record.exportName, record]),
 );
 
+/**
+ * Finds DOM Studio component references in a source snippet.
+ *
+ * @param {string} source Source code to inspect.
+ * @returns {Array<object>} Matched component usage records.
+ */
 export function getComponentUsage(source) {
 	if (!source) return [];
 
@@ -42,8 +49,14 @@ export function getComponentUsage(source) {
 	return usage.sort((a, b) => a.index - b.index);
 }
 
+/**
+ * Converts a component glob path into a lightweight component record.
+ *
+ * @param {string} path Glob path from import.meta.glob.
+ * @returns {object|null} Component usage record, or null when unrecognized.
+ */
 function recordFromPath(path) {
-	const match = path.match(/^\.\.\/\.\.\/(components|data|forms|mobile|visual)\/([^/]+)\/(Dom[^/]+)\.vue$/);
+	const match = path.match(/^\.\.\/\.\.\/(components|data|dev|forms|mobile|visual)\/([^/]+)\/(Dom[^/]+)\.vue$/);
 	if (!match) return null;
 
 	const [, section, slug, exportName] = match;
@@ -57,16 +70,29 @@ function recordFromPath(path) {
 	};
 }
 
+/**
+ * Converts a component section key into a readable label.
+ *
+ * @param {string} section Section key.
+ * @returns {string} Human-readable section label.
+ */
 function labelFromSection(section) {
 	return {
 		components: 'Components',
 		data: 'Data',
+		dev: 'Dev',
 		forms: 'Forms',
 		mobile: 'Mobile',
 		visual: 'Visual',
 	}[section] || labelFromSlug(section);
 }
 
+/**
+ * Converts a component export name into a readable label.
+ *
+ * @param {string} exportName Component export name.
+ * @returns {string} Human-readable label.
+ */
 function labelFromExportName(exportName) {
 	return labelFromSlug(
 		String(exportName || '')
@@ -76,6 +102,12 @@ function labelFromExportName(exportName) {
 	);
 }
 
+/**
+ * Converts a URL slug into a title-cased label.
+ *
+ * @param {string} slug URL slug.
+ * @returns {string} Human-readable label.
+ */
 function labelFromSlug(slug) {
 	return String(slug || '')
 		.split('-')

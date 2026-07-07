@@ -3,6 +3,7 @@ import { componentCatalog } from './componentCatalog.generated.js';
 const lazyComponentModules = import.meta.glob([
 	'../components/*/Dom*.vue',
 	'../data/*/Dom*.vue',
+	'../dev/*/Dom*.vue',
 	'../forms/*/Dom*.vue',
 	'../mobile/*/Dom*.vue',
 	'../visual/*/Dom*.vue',
@@ -13,6 +14,7 @@ const lazyComponentModules = import.meta.glob([
 const lazyComponentSourceModules = import.meta.glob([
 	'../components/*/Dom*.vue',
 	'../data/*/Dom*.vue',
+	'../dev/*/Dom*.vue',
 	'../forms/*/Dom*.vue',
 	'../mobile/*/Dom*.vue',
 	'../visual/*/Dom*.vue',
@@ -21,7 +23,7 @@ const lazyComponentSourceModules = import.meta.glob([
 	'!../forms/_shared/Dom*.vue',
 ], { import: 'default', query: '?raw' });
 
-export const componentSections = ['components', 'data', 'visual', 'forms', 'mobile'];
+export const componentSections = ['components', 'data', 'dev', 'forms', 'mobile', 'visual'];
 
 /**
  * Returns component records that are safe for app-shell navigation and search.
@@ -90,6 +92,20 @@ export function getDataRedirectRecords() {
 }
 
 /**
+ * Builds legacy redirects for developer components from /components.
+ *
+ * @returns {Array<{ from: string, to: string }>} Redirect records.
+ */
+export function getDevRedirectRecords() {
+	return getLazyComponentRecords()
+		.filter((record) => record.section === 'dev')
+		.map((record) => ({
+			from: `/components/${record.slug}`,
+			to: record.route,
+		}));
+}
+
+/**
  * Converts a component section key into a readable navigation label.
  *
  * @param {string} section Section key.
@@ -99,6 +115,7 @@ export function labelFromSection(section) {
 	return {
 		components: 'Components',
 		data: 'Data',
+		dev: 'Dev',
 		forms: 'Forms',
 		mobile: 'Mobile',
 		visual: 'Visual',

@@ -11,6 +11,7 @@ import { ref } from 'vue';
 
 const notifications = ref(true);
 const marketing = ref(false);
+const approvals = ref(true);
 
 const usageVue = `<script setup>
 import { DomToggle } from '@getdom/studio/vue';
@@ -19,20 +20,21 @@ const on = ref(true);
 <\/script>
 
 <template>
-  <DomToggle v-model="on" label="Notifications" />
+	<DomToggle v-model="on" label="Notifications" size="md" />
 </template>`;
 
 const usageWeb = `<dom-toggle checked aria-label="Notifications"></dom-toggle>
 
 <script type="module">
-  import '@getdom/studio/headless';
-  document.querySelector('dom-toggle')
-    .addEventListener('dom:change', (e) => console.log(e.detail.checked));
+	import '@getdom/studio/headless';
+	document.querySelector('dom-toggle')
+		.addEventListener('dom:change', (e) => console.log(e.detail.checked));
 <\/script>`;
 
 const props = [
 	{ name: 'v-model', type: 'boolean', default: 'false', description: 'Checked state.' },
 	{ name: 'label', type: 'string', default: '—', description: 'Visible label next to the toggle.' },
+	{ name: 'size', type: "'sm' | 'md' | 'lg'", default: "'md'", description: 'Switch size. Uses the same size names as DomButton.' },
 	{ name: 'disabled', type: 'boolean', default: 'false', description: 'Disable interaction.' },
 ];
 const keys = [
@@ -47,7 +49,7 @@ const keys = [
 			<DocSection eyebrow="Playground" title="Try every prop live">
 				<Playground
 					:inspect="DomToggle"
-					:initial="{ label: 'Notifications', modelValue: true }"
+					:initial="{ label: 'Notifications', modelValue: true, size: 'md' }"
 					title="Toggle playground"
 					description="Edit props in the inspector — the live switch and synthesised source stay in sync."
 				/>
@@ -56,8 +58,9 @@ const keys = [
 			<DocSection eyebrow="Demo" title="Live preview">
 				<Demo>
 					<div class="flex w-full max-w-sm flex-col gap-4">
-						<DomToggle v-model="notifications" label="Push notifications" />
+						<DomToggle v-model="notifications" size="sm" label="Push notifications" />
 						<DomToggle v-model="marketing" label="Marketing emails" />
+						<DomToggle v-model="approvals" size="lg" label="Approval alerts" />
 						<DomToggle :model-value="false" label="Disabled option" disabled />
 					</div>
 				</Demo>

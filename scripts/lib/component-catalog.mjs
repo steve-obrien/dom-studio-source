@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 
-export const componentCatalogSections = ['components', 'data', 'forms', 'mobile', 'visual'];
+export const componentCatalogSections = ['components', 'data', 'dev', 'forms', 'mobile', 'visual'];
 
 /**
  * Resolves the generated component catalog file path.
@@ -71,7 +71,7 @@ export function buildComponentCatalog(root) {
  */
 export function isComponentCatalogFile(root, filePath) {
 	const relative = path.relative(path.join(root, 'src', 'pages'), filePath).split(path.sep).join('/');
-	const match = relative.match(/^(components|data|forms|mobile|visual)\/([^/]+)\/(Dom[^/]+\.vue)$/);
+	const match = relative.match(/^(components|data|dev|forms|mobile|visual)\/([^/]+)\/(Dom[^/]+\.vue)$/);
 	if (!match) return false;
 	const [, section, slug, fileName] = match;
 	return !isExcludedComponentCatalogPath(section, slug, fileName);

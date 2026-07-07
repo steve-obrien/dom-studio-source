@@ -60,6 +60,11 @@ const codeStyle = computed(() => {
 	return { maxHeight: `${Math.round((props.previewLines * 20.625) + 32)}px` };
 });
 
+/**
+ * Refreshes highlighted HTML when the source text or language changes.
+ *
+ * @returns {Promise<void>} Resolves after the highlighted output is stored.
+ */
 async function refreshHighlight() {
 	highlighted.value = await highlight(displayCode.value, props.lang);
 }
@@ -67,6 +72,12 @@ async function refreshHighlight() {
 onMounted(refreshHighlight);
 watch(() => [displayCode.value, props.lang], refreshHighlight);
 
+/**
+ * Escapes text content for safe HTML serialization.
+ *
+ * @param {unknown} value Raw text-like value.
+ * @returns {string} Escaped text.
+ */
 function escapeText(value) {
 	return String(value)
 		.replace(/&/g, '&amp;')
@@ -74,10 +85,22 @@ function escapeText(value) {
 		.replace(/>/g, '&gt;');
 }
 
+/**
+ * Escapes an attribute value for safe HTML serialization.
+ *
+ * @param {unknown} value Raw attribute value.
+ * @returns {string} Escaped attribute value.
+ */
 function escapeAttribute(value) {
 	return escapeText(value).replace(/"/g, '&quot;');
 }
 
+/**
+ * Normalizes Vue class bindings into a static class string.
+ *
+ * @param {string|Array|object|unknown} value Vue class binding value.
+ * @returns {string} Serialized class list.
+ */
 function normalizeClass(value) {
 	if (!value) return '';
 	if (typeof value === 'string') return value;
@@ -91,6 +114,12 @@ function normalizeClass(value) {
 	return String(value);
 }
 
+/**
+ * Normalizes Vue style bindings into a static style string.
+ *
+ * @param {string|object|unknown} value Vue style binding value.
+ * @returns {string} Serialized inline style.
+ */
 function normalizeStyle(value) {
 	if (!value) return '';
 	if (typeof value === 'string') return value;
@@ -102,6 +131,12 @@ function normalizeStyle(value) {
 	return String(value);
 }
 
+/**
+ * Serializes Vue vnode props into HTML attributes.
+ *
+ * @param {Record<string, unknown>} props Raw vnode props.
+ * @returns {string} Serialized attributes.
+ */
 function serializeProps(props = {}) {
 	return Object.entries(props)
 		.filter(([name, value]) => (
@@ -121,11 +156,24 @@ function serializeProps(props = {}) {
 		.join(' ');
 }
 
+/**
+ * Resolves a Vue vnode type into a readable tag name.
+ *
+ * @param {string|object} type Vue vnode type.
+ * @returns {string} Serialized tag name.
+ */
 function serializeType(type) {
 	if (typeof type === 'string') return type;
 	return type?.name || type?.__name || 'component';
 }
 
+/**
+ * Serializes vnode children into an HTML string.
+ *
+ * @param {string|Array|object} children Raw vnode children.
+ * @param {number} depth Current indentation depth.
+ * @returns {string} Serialized child content.
+ */
 function serializeChildren(children, depth) {
 	if (typeof children === 'string') return escapeText(children);
 	if (Array.isArray(children)) return serializeNodes(children, depth);
@@ -133,6 +181,13 @@ function serializeChildren(children, depth) {
 	return '';
 }
 
+/**
+ * Serializes a Vue vnode into a readable HTML snippet.
+ *
+ * @param {object|string} node Vue vnode or text node.
+ * @param {number} depth Current indentation depth.
+ * @returns {string} Serialized node markup.
+ */
 function serializeNode(node, depth = 0) {
 	if (!node) return '';
 	if (typeof node === 'string') return `${'\t'.repeat(depth)}${escapeText(node)}`;
@@ -151,6 +206,13 @@ function serializeNode(node, depth = 0) {
 	return `${indent}${open}\n${children}\n${indent}</${tag}>`;
 }
 
+/**
+ * Serializes a list of Vue vnodes into a readable HTML snippet.
+ *
+ * @param {Array} nodes Vue vnodes.
+ * @param {number} depth Current indentation depth.
+ * @returns {string} Serialized node list.
+ */
 function serializeNodes(nodes, depth = 0) {
 	return nodes
 		.map((node) => serializeNode(node, depth))

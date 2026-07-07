@@ -5,8 +5,8 @@
 // can fall back to plain code rendering.
 
 const SHIKI_URL = 'https://esm.sh/shiki@1';
-const LIGHT = 'github-light';
-const DARK = 'github-dark';
+const LIGHT = 'light-plus';
+const DARK = 'dark-plus';
 const LANGS = ['vue', 'html', 'javascript', 'typescript', 'css', 'json', 'markdown', 'text'];
 const LANG_ALIASES = {
 	js: 'javascript',
@@ -18,6 +18,11 @@ const LANG_ALIASES = {
 let highlighterPromise = null;
 let loadFailed = false;
 
+/**
+ * Loads the shared Shiki highlighter when the browser can reach the CDN.
+ *
+ * @returns {Promise<object|null>} Shiki highlighter instance, or null when unavailable.
+ */
 async function getHighlighter() {
 	if (loadFailed) return null;
 	if (highlighterPromise) return highlighterPromise;
@@ -42,6 +47,13 @@ async function getHighlighter() {
 	return highlighterPromise;
 }
 
+/**
+ * Highlights source code with Shiki when available.
+ *
+ * @param {string} code Source code to highlight.
+ * @param {string} lang Source language key.
+ * @returns {Promise<string|null>} Highlighted HTML, or null for caller fallback.
+ */
 export async function highlight(code, lang = 'vue') {
 	if (!code) return null;
 	const h = await getHighlighter();
