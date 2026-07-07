@@ -203,6 +203,104 @@ export interface MediaBrowserStoreOptions {
 	headers?: Record<string, string>;
 	[key: string]: unknown;
 }
+export type DocumentEditorContent = JsonValue | string;
+export type DocumentEditorToolId = 'undo' | 'redo' | 'paragraph' | 'heading2' | 'heading3' | 'bold' | 'italic' | 'underline' | 'bulletList' | 'orderedList' | 'blockquote' | 'link' | 'image' | 'video' | 'rewrite' | string;
+export interface DocumentEditorCollaborator {
+	id: string;
+	name: string;
+	color?: string;
+	type?: 'human' | 'ai' | 'system' | string;
+	[key: string]: unknown;
+}
+export interface DocumentEditorSuggestion {
+	id: string;
+	type?: 'replace' | string;
+	from: number;
+	to: number;
+	original: string;
+	proposed: string;
+	instruction?: string;
+	author?: DocumentEditorCollaborator;
+	createdAt?: string;
+	status?: 'pending' | 'accepted' | 'rejected' | string;
+	[key: string]: unknown;
+}
+export interface DocumentEditorSelectionPayload {
+	from: number;
+	to: number;
+	empty: boolean;
+	selectedText: string;
+	selectedJson?: Record<string, unknown> | null;
+}
+export interface DocumentEditorRewriteRequest extends DocumentEditorSelectionPayload {
+	instruction?: string;
+	author?: DocumentEditorCollaborator;
+	editor?: unknown;
+	respond?: (suggestion: string | Partial<DocumentEditorSuggestion>) => DocumentEditorSuggestion | null;
+}
+export interface DocumentEditorChangePayload {
+	json: Record<string, unknown> | null;
+	html: string;
+	text: string;
+}
+export interface DocumentEditorMediaPayload {
+	src: string;
+	alt?: string;
+	title?: string;
+	mediaId?: string;
+	caption?: string;
+	[key: string]: unknown;
+}
+export interface DocumentEditorVideoPayload {
+	src: string;
+	title?: string;
+	provider?: string;
+	[key: string]: unknown;
+}
+export interface DocumentEditorToolContext {
+	tool?: DocumentEditorTool | null;
+	editor?: unknown;
+	selection?: DocumentEditorSelectionPayload;
+	insertImage?: (payload: DocumentEditorMediaPayload | Record<string, unknown>) => void;
+	insertVideo?: (payload: DocumentEditorVideoPayload | Record<string, unknown>) => void;
+	requestRewrite?: (instruction?: string) => Promise<DocumentEditorSuggestion | null>;
+	createSuggestion?: (payload: Partial<DocumentEditorSuggestion>) => DocumentEditorSuggestion | null;
+	savePayload?: () => DocumentEditorChangePayload;
+	runTool?: (tool: DocumentEditorToolId) => void;
+	[key: string]: unknown;
+}
+export interface DocumentEditorTool {
+	id: string;
+	label: string;
+	icon?: string | Component;
+	variant?: 'ghost' | 'secondary' | 'primary' | 'danger' | string;
+	disabled?: boolean;
+	command?: (context: DocumentEditorToolContext) => void;
+	[key: string]: unknown;
+}
+export interface DocumentEditorCollaboration {
+	document?: unknown;
+	doc?: unknown;
+	fragment?: unknown;
+	provider?: unknown;
+	field?: string;
+	user?: DocumentEditorCollaborator;
+	[key: string]: unknown;
+}
+export interface DocumentEditorExtensionContext {
+	extensions: Array<unknown>;
+	modules: Record<string, unknown>;
+	helpers: DocumentEditorToolContext;
+	props: Record<string, unknown>;
+}
+export interface DocumentEditorStoreOptions {
+	baseUrl?: string;
+	documentId?: string;
+	api?: Record<string, Function>;
+	fetchOptions?: RequestInit;
+	headers?: Record<string, string>;
+	[key: string]: unknown;
+}
 export type AgentChatInputMode = 'text' | 'audio';
 export type AgentChatConversationStatus = 'idle' | 'streaming' | 'waiting' | 'error' | 'complete';
 export type AgentChatMessageStatus = 'queued' | 'streaming' | 'complete' | 'error' | 'cancelled';
@@ -383,6 +481,7 @@ export interface MonthCalendarWeek {
 	weekNumber: number;
 	label: string;
 	days: Array<MonthCalendarCell>;
+	monthLabels?: Array<string>;
 }
 export interface MonthCalendarMonth {
 	date: Date;
@@ -693,9 +792,25 @@ export interface DomToolbarProps {
 	 */
 	wrap?: boolean;
 	/**
-	 * Use card skin instead of control skin.
+	 * Toolbar surface skin. Use flat when the parent supplies border, padding, or background chrome.
+	 */
+	skin?: "control" | "card" | "flat" | "none" | false;
+	/**
+	 * Use card skin instead of control skin. Prefer skin="card" for new usage.
 	 */
 	inset?: boolean;
+	/**
+	 * Shared toolbar control height for buttons, dropdowns, and select triggers.
+	 */
+	controlSize?: "xs" | "sm" | "md" | "lg";
+	/**
+	 * Explicit CSS height for toolbar controls. Overrides controlSize when provided.
+	 */
+	controlHeight?: string;
+	/**
+	 * Shared corner radius for toolbar buttons, dropdowns, and select triggers.
+	 */
+	controlRadius?: "none" | "sm" | "md" | "lg" | "xl" | "2xl" | "full";
 }
 export declare const DomToolbar: DomComponent<DomToolbarProps>;
 
@@ -1481,6 +1596,18 @@ export interface DomMonthCalendarProps {
 	 */
 	fixedWeeks?: boolean;
 	/**
+	 * Render one continuous week grid across the range instead of separated month blocks with repeated adjacent days.
+	 */
+	continuous?: boolean;
+	/**
+	 * Constrain continuous mode to its own scrollport. Disable when a parent layout already owns the vertical scroll.
+	 */
+	containedContinuousScroll?: boolean;
+	/**
+	 * Apply the default hover background to clickable day cells.
+	 */
+	hoverableDays?: boolean;
+	/**
 	 * Render ISO-8601 week numbers at the start of each week row.
 	 */
 	showWeekNumbers?: boolean;
@@ -1643,6 +1770,142 @@ export interface DomMediaBrowserProps {
 	uploadProgress?: number | null;
 }
 export declare const DomMediaBrowser: DomComponent<DomMediaBrowserProps>;
+
+export interface DomDocumentEditorProps {
+	/**
+	 * Controlled editor content. JSON is preferred; HTML strings are accepted for simple imports.
+	 */
+	modelValue?: DocumentEditorContent;
+	/**
+	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
+	 */
+	id?: string;
+	/**
+	 * Local field name. Parent forms derive the full field path and native HTML name from the form hierarchy.
+	 */
+	name?: string;
+	/**
+	 * Visible field label.
+	 */
+	label?: string;
+	/**
+	 * Optional helper copy below the field.
+	 */
+	description?: string;
+	/**
+	 * Placeholder shown inside empty blocks.
+	 */
+	placeholder?: string;
+	/**
+	 * Mark the field as required.
+	 */
+	required?: boolean;
+	/**
+	 * Disable field interaction.
+	 */
+	disabled?: boolean;
+	/**
+	 * Show the value but prevent editing.
+	 */
+	readOnly?: boolean;
+	/**
+	 * Mark the field invalid.
+	 */
+	invalid?: boolean;
+	/**
+	 * Validation errors for this field.
+	 */
+	errors?: Array<unknown> | Record<string, unknown> | string;
+	/**
+	 * Show or hide the field.
+	 */
+	visible?: boolean;
+	/**
+	 * Validators attached to this field. Use functions in Vue code, or serializable records such as { name: "minLength", props: { min: 2 } } in generated schemas.
+	 */
+	validators?: Array<unknown>;
+	/**
+	 * Run validators when the field loses focus.
+	 */
+	validateOnBlur?: boolean;
+	/**
+	 * Render the full document workspace, form-field chrome, or no outer field chrome.
+	 */
+	chrome?: "document" | "field" | "none" | false;
+	/**
+	 * Value emitted through update:modelValue.
+	 */
+	output?: "json" | "html";
+	/**
+	 * Allow editing and toolbar commands.
+	 */
+	editable?: boolean;
+	/**
+	 * Accessible editor title.
+	 */
+	title?: string;
+	/**
+	 * Optional save or collaboration status label.
+	 */
+	status?: string;
+	/**
+	 * Built-in toolbar tool ids to show.
+	 */
+	tools?: Array<DocumentEditorToolId>;
+	/**
+	 * Additional toolbar actions emitted through tool-action.
+	 */
+	customTools?: Array<DocumentEditorTool>;
+	/**
+	 * Externally supplied rewrite suggestions.
+	 */
+	suggestions?: Array<DocumentEditorSuggestion>;
+	/**
+	 * Human, AI, or system collaborators shown in the editor header.
+	 */
+	collaborators?: Array<DocumentEditorCollaborator>;
+	/**
+	 * Additional Tiptap extensions appended to the built-in editor extension list.
+	 */
+	extensions?: Array<unknown>;
+	/**
+	 * Optional hook that receives the default extension list and Tiptap runtime modules, then returns the final extension list.
+	 */
+	configureExtensions?: (context: DocumentEditorExtensionContext) => Array<unknown> | void;
+	/**
+	 * Optional Yjs collaboration adapter with document/fragment, provider, field, and user.
+	 */
+	collaboration?: DocumentEditorCollaboration | null;
+	/**
+	 * Optional async function that returns a rewrite suggestion for the current selection.
+	 */
+	rewriteProvider?: (payload: DocumentEditorRewriteRequest) => Promise<string | DocumentEditorSuggestion | null> | string | DocumentEditorSuggestion | null;
+	/**
+	 * AI author metadata used for locally created rewrite suggestions.
+	 */
+	aiUser?: DocumentEditorCollaborator;
+	/**
+	 * Show the review rail for pending AI suggestions.
+	 */
+	showSuggestionRail?: boolean;
+	/**
+	 * Show the WYSIWYG toolbar. Slash commands remain available when enabled.
+	 */
+	showToolbar?: boolean;
+	/**
+	 * Open the block command menu when the user types / at the start of a block.
+	 */
+	showSlashMenu?: boolean;
+	/**
+	 * Focus the editor when the client runtime mounts.
+	 */
+	autofocus?: boolean;
+	/**
+	 * Minimum height for the editable document canvas.
+	 */
+	minHeight?: string;
+}
+export declare const DomDocumentEditor: DomComponent<DomDocumentEditorProps>;
 
 export interface DomJsonViewerProps {
 	/**
@@ -3563,6 +3826,106 @@ export interface DomTextareaInputProps {
 }
 export declare const DomTextareaInput: DomComponent<DomTextareaInputProps>;
 
+export interface DomWysiwygProps {
+	/**
+	 * Controlled editor content. JSON is preferred; HTML strings are accepted for simple imports.
+	 */
+	modelValue?: DocumentEditorContent;
+	/**
+	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
+	 */
+	id?: string;
+	/**
+	 * Local field name. Parent forms derive the full field path and native HTML name from the form hierarchy.
+	 */
+	name?: string;
+	/**
+	 * Visible field label.
+	 */
+	label?: string;
+	/**
+	 * Optional helper copy below the field.
+	 */
+	description?: string;
+	/**
+	 * Placeholder shown when the control is empty.
+	 */
+	placeholder?: string;
+	/**
+	 * Mark the field as required.
+	 */
+	required?: boolean;
+	/**
+	 * Disable field interaction.
+	 */
+	disabled?: boolean;
+	/**
+	 * Show the value but prevent editing.
+	 */
+	readOnly?: boolean;
+	/**
+	 * Mark the field invalid.
+	 */
+	invalid?: boolean;
+	/**
+	 * Validation errors for this field.
+	 */
+	errors?: Array<unknown> | Record<string, unknown> | string;
+	/**
+	 * Show or hide the field.
+	 */
+	visible?: boolean;
+	/**
+	 * Validators attached to this field. Use functions in Vue code, or serializable records such as { name: "minLength", props: { min: 2 } } in generated schemas.
+	 */
+	validators?: Array<unknown>;
+	/**
+	 * Run validators when the field loses focus.
+	 */
+	validateOnBlur?: boolean;
+	/**
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
+	 */
+	chrome?: "field" | "none" | false;
+	/**
+	 * Value emitted through update:modelValue.
+	 */
+	output?: "json" | "html";
+	/**
+	 * Allow editing and toolbar commands.
+	 */
+	editable?: boolean;
+	/**
+	 * Accessible editor title. Defaults to the field label.
+	 */
+	title?: string;
+	/**
+	 * Optional save or validation status label.
+	 */
+	status?: string;
+	/**
+	 * Built-in toolbar tool ids to show.
+	 */
+	tools?: Array<DocumentEditorToolId>;
+	/**
+	 * Additional toolbar actions emitted through tool-action.
+	 */
+	customTools?: Array<DocumentEditorTool>;
+	/**
+	 * Show the WYSIWYG toolbar.
+	 */
+	showToolbar?: boolean;
+	/**
+	 * Open the block command menu when the user types / at the start of a block.
+	 */
+	showSlashMenu?: boolean;
+	/**
+	 * Minimum height for the editable field.
+	 */
+	minHeight?: string;
+}
+export declare const DomWysiwyg: DomComponent<DomWysiwygProps>;
+
 export interface DomNumberInputProps {
 	/**
 	 * Current numeric value.
@@ -5125,6 +5488,8 @@ export declare const monthCalendarProps: DomRuntimeProps;
 export declare const agentChatShellProps: DomRuntimeProps;
 export declare const agentConversationProps: DomRuntimeProps;
 export declare const agentConversationListProps: DomRuntimeProps;
+export declare const documentEditorProps: DomRuntimeProps;
+export declare const wysiwygProps: DomRuntimeProps;
 export declare const timeSelectorProps: DomRuntimeProps;
 export declare const dateTimePickerProps: DomRuntimeProps;
 export declare const fieldProps: DomRuntimeProps;
@@ -5151,6 +5516,9 @@ export declare function useToasts(defaults?: ToastOptions): ToastApi;
 export declare function useDialogs(defaults?: DialogOptions): DialogApi;
 export declare function defineAgentChatStore(storeId?: string, options?: AgentChatStoreOptions): Function;
 export declare function createAgentChatRestApi(options?: AgentChatStoreOptions): Record<string, Function>;
+export declare function defineDocumentEditorStore(storeId?: string, options?: DocumentEditorStoreOptions): Function;
+export declare function createDocumentEditorRestApi(options?: DocumentEditorStoreOptions): Record<string, Function>;
+export declare function createDefaultDocumentContent(): Record<string, unknown>;
 export declare function defineMediaBrowserStore(storeId?: string, options?: MediaBrowserStoreOptions): Function;
 export declare function createMediaBrowserRestApi(options?: MediaBrowserStoreOptions): Record<string, Function>;
 export declare function sha1PasswordHash(password: string): Promise<string>;

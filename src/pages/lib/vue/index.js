@@ -43,6 +43,7 @@ export { default as DomContextMenu } from '../../components/context-menu/DomCont
 export { default as DomDataGrid } from '../../data/data-grid/DomDataGrid.vue';
 export { default as DomMonthCalendar } from '../../data/month-calendar/DomMonthCalendar.vue';
 export { default as DomMediaBrowser } from '../../data/media-browser/DomMediaBrowser.vue';
+export { default as DomDocumentEditor } from '../../data/document-editor/DomDocumentEditor.vue';
 export { default as DomJsonViewer } from '../../dev/json-viewer/DomJsonViewer.vue';
 export { default as DomAgentChatShell } from '../../data/agent-chat/DomAgentChatShell.vue';
 export { default as DomAgentConversation } from '../../data/agent-chat/DomAgentConversation.vue';
@@ -51,8 +52,10 @@ export { default as DomPagination } from '../../components/pagination/DomPaginat
 export { agentChatShellProps } from '../../data/agent-chat/DomAgentChatShell.vue';
 export { agentConversationProps } from '../../data/agent-chat/DomAgentConversation.vue';
 export { agentConversationListProps } from '../../data/agent-chat/DomAgentConversationList.vue';
+export { documentEditorProps, createDefaultDocumentContent } from '../../data/document-editor/DomDocumentEditor.vue';
 export { mediaBrowserProps } from '../../data/media-browser/DomMediaBrowser.vue';
 export { createAgentChatRestApi, defineAgentChatStore } from '../../data/agent-chat/examples/useAgentChatDemoStore.js';
+export { createDocumentEditorRestApi, defineDocumentEditorStore } from '../../data/document-editor/examples/useDocumentEditorDemoStore.js';
 export { createMediaBrowserRestApi, defineMediaBrowserStore } from '../../data/media-browser/examples/useMediaBrowserDemoStore.js';
 export { monthCalendarProps } from '../../data/month-calendar/DomMonthCalendar.vue';
 export { popoverProps } from '../../components/popover/DomPopover.vue';
@@ -107,6 +110,7 @@ export { default as DomTextInput } from '../../forms/text-input/DomTextInput.vue
 export { default as DomEmailInput } from '../../forms/email-input/DomEmailInput.vue';
 export { default as DomUrlInput } from '../../forms/url-input/DomUrlInput.vue';
 export { default as DomTextareaInput } from '../../forms/textarea-input/DomTextareaInput.vue';
+export { default as DomWysiwyg } from '../../forms/wysiwyg/DomWysiwyg.vue';
 export { default as DomNumberInput } from '../../forms/number-input/DomNumberInput.vue';
 export { default as DomMoneyInput } from '../../forms/money-input/DomMoneyInput.vue';
 export { default as DomFileUpload } from '../../forms/file-upload/DomFileUpload.vue';
@@ -129,6 +133,7 @@ export { default as DomJsonListInput } from '../../forms/json-list-input/DomJson
 export { default as DomCodeInput } from '../../forms/code-input/DomCodeInput.vue';
 export { default as DomJsonInput } from '../../forms/json-input/DomJsonInput.vue';
 export { fieldProps } from '../../forms/field/fieldProps.js';
+export { wysiwygProps } from '../../forms/wysiwyg/DomWysiwyg.vue';
 export { fieldLayoutProviderKey } from '../../forms/field/fieldLayout.js';
 export { fieldDisplayProviderKey, formFieldProviderKey, normalizeErrors, useField } from '../../forms/field/useField.js';
 export {

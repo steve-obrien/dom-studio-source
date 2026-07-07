@@ -20,6 +20,11 @@ const componentTypes = [
 		status: 'Reference',
 	},
 	{
+		name: 'Document editor',
+		description: 'Uses a client-only editor runtime with structured JSON output, AI rewrite suggestions, media insertion, video embeds, and optional Yjs collaboration adapters.',
+		status: 'Reference',
+	},
+	{
 		name: 'Media browser',
 		description: 'Uses a Pinia store and emulated media API for folder navigation, breadcrumbs, optimistic mutations, drag/drop uploads, and picker-style selection.',
 		status: 'Reference',

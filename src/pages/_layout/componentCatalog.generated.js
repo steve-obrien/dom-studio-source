@@ -1371,6 +1371,119 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "data/document-editor",
+		"path": "../data/document-editor/DomDocumentEditor.vue",
+		"section": "data",
+		"slug": "document-editor",
+		"exportName": "DomDocumentEditor",
+		"route": "/data/document-editor",
+		"doc": {
+			"name": "Document editor",
+			"tag": "<DomDocumentEditor>",
+			"description": "A client-only WYSIWYG document editor shell for structured writing, AI rewrite suggestions, media insertion, video embeds, and optional Yjs collaboration adapters.",
+			"icon": "M5 4h14v16H5V4Zm4 5h6M9 13h6M9 17h3",
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "Record<string, unknown> | string",
+					"description": "Fired with JSON or HTML content depending on the output prop."
+				},
+				{
+					"name": "change",
+					"payload": "DocumentEditorChangePayload",
+					"description": "Fired with JSON, HTML, and plain text whenever the editor changes."
+				},
+				{
+					"name": "selection-change",
+					"payload": "DocumentEditorSelectionPayload",
+					"description": "Fired when the editor selection changes."
+				},
+				{
+					"name": "rewrite-request",
+					"payload": "DocumentEditorRewriteRequest",
+					"description": "Fired when the user asks AI to rewrite the selected range."
+				},
+				{
+					"name": "suggestion-create",
+					"payload": "DocumentEditorSuggestion",
+					"description": "Fired after a rewrite suggestion is added to the review rail."
+				},
+				{
+					"name": "suggestion-accept",
+					"payload": "DocumentEditorSuggestion",
+					"description": "Fired after a suggestion is accepted."
+				},
+				{
+					"name": "suggestion-reject",
+					"payload": "DocumentEditorSuggestion",
+					"description": "Fired after a suggestion is rejected."
+				},
+				{
+					"name": "media-request",
+					"payload": "({ editor })",
+					"description": "Fired when the image tool should open an app-owned media picker."
+				},
+				{
+					"name": "media-insert",
+					"payload": "DocumentEditorMediaPayload",
+					"description": "Fired after insertImage inserts a media-backed image node."
+				},
+				{
+					"name": "video-insert",
+					"payload": "DocumentEditorVideoPayload",
+					"description": "Fired after a video embed node is inserted."
+				},
+				{
+					"name": "tool-action",
+					"payload": "({ tool, editor })",
+					"description": "Fired when a custom toolbar tool is activated."
+				},
+				{
+					"name": "ready",
+					"payload": "({ editor })",
+					"description": "Fired after the browser-only editor runtime mounts."
+				},
+				{
+					"name": "runtime-error",
+					"payload": "Error",
+					"description": "Fired when the editor runtime cannot mount."
+				},
+				{
+					"name": "focus",
+					"payload": "FocusEvent",
+					"description": "Fired when the editable document receives focus."
+				},
+				{
+					"name": "blur",
+					"payload": "FocusEvent",
+					"description": "Fired when the editable document loses focus."
+				}
+			],
+			"slots": [
+				{
+					"name": "toolbar-start",
+					"payload": "{ editor, active }",
+					"description": "Add controls before the built-in toolbar groups."
+				},
+				{
+					"name": "toolbar-end",
+					"payload": "{ editor, active }",
+					"description": "Add controls after the built-in toolbar groups."
+				},
+				{
+					"name": "suggestion",
+					"payload": "{ suggestion, accept, reject }",
+					"description": "Replace a suggestion review card."
+				},
+				{
+					"name": "empty-suggestions",
+					"description": "Replace the empty suggestion rail state."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "data/media-browser",
 		"path": "../data/media-browser/DomMediaBrowser.vue",
 		"section": "data",
@@ -1527,7 +1640,7 @@ export const componentCatalog = [
 		"doc": {
 			"name": "Month calendar",
 			"tag": "<DomMonthCalendar>",
-			"description": "A large scrolling month calendar that keeps weekday grids aligned and lets each day render custom UI.",
+			"description": "A large scrolling month calendar that keeps weekday grids aligned, supports continuous date streams, and lets each day render custom UI.",
 			"icon": "M7 4v3M17 4v3M5 8h14M6 6h12v13H6V6Zm3 6h2M13 12h2M9 16h2M13 16h2",
 			"events": [
 				{
@@ -1577,7 +1690,7 @@ export const componentCatalog = [
 				{
 					"name": "month-header",
 					"payload": "{ month }",
-					"description": "Custom content rendered opposite the month title."
+					"description": "Custom content rendered opposite separated month titles or above a continuous range."
 				}
 			],
 			"keyboard": [
@@ -2810,6 +2923,62 @@ export const componentCatalog = [
 					"name": "blur",
 					"payload": "FocusEvent",
 					"description": "Fired when the input loses focus."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "forms/wysiwyg",
+		"path": "../forms/wysiwyg/DomWysiwyg.vue",
+		"section": "forms",
+		"slug": "wysiwyg",
+		"exportName": "DomWysiwyg",
+		"route": "/forms/wysiwyg",
+		"doc": {
+			"name": "WYSIWYG field",
+			"tag": "<DomWysiwyg>",
+			"description": "A textarea-shaped rich text field powered by DomDocumentEditor, with simple v-model wiring and no collaboration or AI review rail by default.",
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "Record<string, unknown> | string",
+					"description": "Fired with JSON or HTML content depending on the output prop."
+				},
+				{
+					"name": "change",
+					"payload": "DocumentEditorChangePayload",
+					"description": "Fired with JSON, HTML, and plain text whenever the editor changes."
+				},
+				{
+					"name": "selection-change",
+					"payload": "DocumentEditorSelectionPayload",
+					"description": "Fired when the editor selection changes."
+				},
+				{
+					"name": "tool-action",
+					"payload": "({ tool, editor })",
+					"description": "Fired when a custom toolbar tool is activated."
+				},
+				{
+					"name": "ready",
+					"payload": "({ editor })",
+					"description": "Fired after the browser-only editor runtime mounts."
+				},
+				{
+					"name": "runtime-error",
+					"payload": "Error",
+					"description": "Fired when the editor runtime cannot mount."
+				},
+				{
+					"name": "focus",
+					"payload": "FocusEvent",
+					"description": "Fired when the editable document receives focus."
+				},
+				{
+					"name": "blur",
+					"payload": "FocusEvent",
+					"description": "Fired when the editable document loses focus."
 				}
 			]
 		},

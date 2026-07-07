@@ -60,15 +60,13 @@ const contentMaxWidthClass = computed(() => (
 ));
 
 const topLinks = [
-	{ to: '/', label: 'Overview', exact: true },
-	{ to: '/ai', label: 'AI' },
-	{ to: '/tools/json-unstringifier', label: 'Tools', match: '/tools' },
-	{ to: '/theming', label: 'Theming' },
 	{ to: '/components/button', label: 'Components', match: '/components' },
+	{ to: '/forms', label: 'Forms', match: '/forms' },
+	{ to: '/data', label: 'Data', match: '/data' },
 	{ to: '/visual/card', label: 'Visual', match: '/visual' },
+	{ to: '/mobile', label: 'Mobile', match: '/mobile' },
 	{ to: '/blocks', label: 'Blocks', match: '/blocks' },
-	{ to: '/pricing', label: 'Pricing' },
-	{ to: '/blog', label: 'Blog' },
+	{ to: '/headless', label: 'Headless', match: '/headless' },
 ];
 
 const detailsPanel = ref(null);
