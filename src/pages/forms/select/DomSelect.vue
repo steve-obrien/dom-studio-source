@@ -325,6 +325,7 @@ function onSearchKeydown(event) {
 			<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
 				<div
 					:id="panelId"
+					popover="manual"
 					data-composite-panel="true"
 					data-haspopup="listbox"
 					class="dom-dropdown-menu dom-floating-transition skin-popover z-50 flex max-h-[min(20rem,var(--dom-floating-available-height))] flex-col overflow-hidden rounded-2xl p-0"

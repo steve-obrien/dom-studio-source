@@ -296,9 +296,11 @@ export function ensurePopoverPanelStyles() {
 			overflow: visible;
 			padding: 0;
 		}
-		:where([popover].dom-popover-panel, [popover].dom-dropdown-menu):not(:popover-open) {
-			display: none;
-		}
+	}
+
+	[popover].dom-popover-panel:not(:popover-open),
+	[popover].dom-dropdown-menu:not(:popover-open) {
+		display: none !important;
 	}
 	`;
 	document.head.appendChild(style);

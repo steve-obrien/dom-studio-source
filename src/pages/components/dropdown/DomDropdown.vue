@@ -231,6 +231,7 @@ defineExpose({
 		<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
 			<div
 				:id="menuId"
+				popover="manual"
 				class="dom-dropdown-menu dom-floating-transition"
 				:class="[width, hasDefaultPanel ? '' : 'skin-popover rounded-2xl p-1']"
 				:data-composite-panel="hasCustomPanel ? 'true' : null"
