@@ -280,22 +280,27 @@ export function unlockDocumentScroll(panel) {
 
 const STYLE_ID = 'dom-popover-panel-styles';
 
-/** Hide closed popover panels; reset UA margin so fixed coords work. */
+/** Hide closed popover panels and neutralize native popover chrome. */
 export function ensurePopoverPanelStyles() {
 	if (!isBrowser || document.getElementById(STYLE_ID)) return;
 	const style = document.createElement('style');
 	style.id = STYLE_ID;
 	style.textContent = `
-[popover].dom-popover-panel,
-[popover].dom-dropdown-menu {
-	margin: 0;
-	overflow: visible;
-}
-[popover].dom-popover-panel:not(:popover-open),
-[popover].dom-dropdown-menu:not(:popover-open) {
-	display: none;
-}
-`;
+	@layer base {
+		:where([popover].dom-popover-panel, [popover].dom-dropdown-menu) {
+			background: transparent;
+			border: 0;
+			box-shadow: none;
+			color: inherit;
+			margin: 0;
+			overflow: visible;
+			padding: 0;
+		}
+		:where([popover].dom-popover-panel, [popover].dom-dropdown-menu):not(:popover-open) {
+			display: none;
+		}
+	}
+	`;
 	document.head.appendChild(style);
 }
 

@@ -123,7 +123,7 @@ const selectedOption = computed(() => optionList.value.find((option) => String(o
 const selectedLabel = computed(() => selectedOption.value?.label ?? '');
 const selectedValue = computed(() => String(field.value.value ?? ''));
 const triggerClasses = computed(() => [
-	'skin-input flex h-auto min-h-10 cursor-pointer items-center justify-between gap-3 rounded-full py-2 pr-3 text-left',
+	'skin-input flex h-auto min-h-10 cursor-pointer items-center justify-between gap-3 py-2 pr-3 text-left',
 	(field.disabled.value || field.readOnly.value) && 'cursor-not-allowed opacity-60',
 	field.invalid.value && 'border-destructive focus:border-destructive focus:ring-destructive/25',
 ]);
