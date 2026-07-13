@@ -2547,7 +2547,12 @@ export const componentCatalog = [
 			"name": "Password strength",
 			"tag": "<DomPasswordStrength>",
 			"description": "A display-only password strength meter that can read a named DomForm field or a direct model value.",
-			"icon": "M4 18h3V9H4v9Zm6 0h3V6h-3v12Zm6 0h3V3h-3v15Z"
+			"icon": "M4 18h3V9H4v9Zm6 0h3V6h-3v12Zm6 0h3V3h-3v15Z",
+			"playground": {
+				"initial": {
+					"modelValue": "violet-orbit-lantern-47!"
+				}
+			}
 		},
 		"studio": {}
 	},

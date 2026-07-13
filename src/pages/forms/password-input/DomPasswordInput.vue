@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import DomAlert from '../../visual/alert/DomAlert.vue';
 import DomField from '../field/DomField.vue';
 import { fieldProps } from '../field/fieldProps.js';
 import { useField } from '../field/useField.js';
@@ -56,8 +57,13 @@ const props = defineProps({
 	},
 	compromisedMessage: {
 		type: String,
-		default: 'This password appears in known breaches. Choose a different password.',
-		_edit: { description: 'Warning copy shown when compromised is true.' },
+		default: 'Choose a different password that you have not used elsewhere.',
+		_edit: { description: 'Guidance shown when compromised is true.' },
+	},
+	compromisedTitle: {
+		type: String,
+		default: 'Password found in a data breach',
+		_edit: { description: 'Heading shown above the compromised-password guidance.' },
 	},
 });
 
@@ -78,8 +84,8 @@ const passwordFieldAttrs = computed(() => ({
 const compromisedWarning = computed(() => {
 	if (!props.checkCompromised || !compromisedCheck.value.compromised) return props.compromisedMessage;
 	const count = compromisedCheck.value.count;
-	const records = count === 1 ? 'record' : 'records';
-	return `${props.compromisedMessage} It appears in ${count.toLocaleString()} known breach ${records}.`;
+	const occurrences = count === 1 ? 'time' : 'times';
+	return `This password appears ${count.toLocaleString()} ${occurrences} in known breach data. ${props.compromisedMessage}`;
 });
 
 let compromisedCheckTimer;
@@ -191,19 +197,21 @@ if (typeof window !== 'undefined') {
 			<DomPasswordStrength v-if="showStrength" :model-value="field.value.value" class="mt-3" />
 			<transition
 				enter-active-class="transition duration-300 ease"
-				enter-from-class="opacity-0 -translate-y-2 max-h-0"
-				enter-to-class="opacity-100 translate-y-0 max-h-28"
+				enter-from-class="max-h-0 -translate-y-2 opacity-0"
+				enter-to-class="max-h-40 translate-y-0 opacity-100"
 				leave-active-class="transition duration-200 ease"
-				leave-from-class="opacity-100 translate-y-0 max-h-28"
-				leave-to-class="opacity-0 -translate-y-2 max-h-0"
+				leave-from-class="max-h-40 translate-y-0 opacity-100"
+				leave-to-class="max-h-0 -translate-y-2 opacity-0"
 			>
-				<p
+				<DomAlert
 					v-if="isCompromised"
-					class="dom-password-input__warning mt-3 overflow-hidden rounded-lg border-warning-fg/30 bg-warning px-3 py-2 text-xs leading-5 text-warning-fg"
+					class="dom-password-input__warning mt-3 overflow-hidden"
+					tone="danger"
+					variant="soft"
+					:title="compromisedTitle"
+					:description="compromisedWarning"
 					style="transition: max-height 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s cubic-bezier(0.4,0,0.2,1), transform 0.3s cubic-bezier(0.4,0,0.2,1);"
-				>
-					{{ compromisedWarning }}
-				</p>
+				/>
 			</transition>
 		</div>
 	</DomField>

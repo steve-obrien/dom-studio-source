@@ -4588,9 +4588,13 @@ export interface DomPasswordInputProps {
 	 */
 	compromisedCheckDelay?: number;
 	/**
-	 * Warning copy shown when compromised is true.
+	 * Guidance shown when compromised is true.
 	 */
 	compromisedMessage?: string;
+	/**
+	 * Heading shown above the compromised-password guidance.
+	 */
+	compromisedTitle?: string;
 }
 export declare const DomPasswordInput: DomComponent<DomPasswordInputProps>;
 
@@ -4611,6 +4615,10 @@ export interface DomPasswordStrengthProps {
 	 * Show the strength description below the meter or in a tooltip.
 	 */
 	descriptionMode?: "inline" | "tooltip";
+	/**
+	 * Position of the strength description when descriptionMode is tooltip.
+	 */
+	tooltipPlacement?: "top" | "bottom" | "left" | "right";
 	/**
 	 * Show or hide the strength meter.
 	 */

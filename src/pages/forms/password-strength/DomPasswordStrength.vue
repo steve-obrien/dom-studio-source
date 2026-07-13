@@ -10,6 +10,11 @@ defineOptions({
 		tag: '<DomPasswordStrength>',
 		description: 'A display-only password strength meter that can read a named DomForm field or a direct model value.',
 		icon: 'M4 18h3V9H4v9Zm6 0h3V6h-3v12Zm6 0h3V3h-3v15Z',
+		playground: {
+			initial: {
+				modelValue: 'violet-orbit-lantern-47!',
+			},
+		},
 	},
 });
 
@@ -35,6 +40,14 @@ const props = defineProps({
 		_edit: {
 			options: ['inline', 'tooltip'],
 			description: 'Show the strength description below the meter or in a tooltip.',
+		},
+	},
+	tooltipPlacement: {
+		type: String,
+		default: 'bottom',
+		_edit: {
+			options: ['top', 'bottom', 'left', 'right'],
+			description: 'Position of the strength description when descriptionMode is tooltip.',
 		},
 	},
 	visible: {
@@ -83,7 +96,7 @@ const description = computed(strengthDescription);
 <template>
 	<div
 		v-if="visible"
-		class="dom-password-strength"
+		class="dom-password-strength w-full"
 		:class="{ 'space-y-2': descriptionMode === 'inline' }"
 		role="status"
 		aria-live="polite"
@@ -91,11 +104,11 @@ const description = computed(strengthDescription);
 	>
 		<component
 			:is="descriptionMode === 'tooltip' ? DomTooltip : 'div'"
-			v-bind="descriptionMode === 'tooltip' ? { text: description } : {}"
-			class="block"
+			v-bind="descriptionMode === 'tooltip' ? { text: description, placement: tooltipPlacement } : {}"
+			class="w-full"
 		>
 			<div
-				class="grid grid-cols-5 gap-1.5"
+				class="grid w-full grid-cols-5 gap-1.5"
 				:aria-hidden="descriptionMode === 'inline' ? 'true' : undefined"
 				:aria-label="descriptionMode === 'tooltip' ? description : undefined"
 				:tabindex="descriptionMode === 'tooltip' ? 0 : undefined"

@@ -155,7 +155,7 @@ function displayError(field, error) {
 					:aria-errormessage="groupErrors.length ? groupErrorId : undefined"
 					:aria-invalid="groupInvalid || undefined"
 					role="group"
-					class="dom-input-group__controls overflow-hidden rounded-lg border border-input bg-canvas shadow-sm transition focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 data-[invalid]:border-destructive data-[invalid]:focus-within:border-destructive data-[invalid]:focus-within:ring-destructive/25"
+					class="skin-input dom-input-group__controls overflow-hidden p-0 focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/30 data-[invalid]:border-destructive data-[invalid]:focus-within:border-destructive data-[invalid]:focus-within:ring-destructive/25"
 					:data-invalid="groupInvalid ? '' : undefined"
 				>
 					<div class="sr-only">
@@ -222,7 +222,7 @@ function displayError(field, error) {
 	margin: 0.75rem;
 }
 
-:global(.dom-input-group__controls > *:not(.sr-only):not(:last-child)) {
-	border-bottom: 1px solid var(--border);
+:global(.dom-input-group__controls > *:not(.sr-only) + *:not(.sr-only)) {
+	border-top: 1px solid var(--border);
 }
 </style>
