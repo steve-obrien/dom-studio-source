@@ -408,6 +408,7 @@ export interface DomFormNode {
 	id?: string;
 	type?: string;
 	component?: string | Component;
+	slot?: string;
 	children?: DomFormChildren;
 	properties?: DomFormChildren;
 	items?: DomFormNode;
@@ -3548,6 +3549,34 @@ export interface DomGridFieldLayoutProps {
 }
 export declare const DomGridFieldLayout: DomComponent<DomGridFieldLayoutProps>;
 
+export interface DomInputGroupProps {
+	/**
+	 * Accessible name for the shared control frame.
+	 */
+	ariaLabel?: string;
+	/**
+	 * Optional helper text shown below the grouped errors.
+	 */
+	description?: string;
+	/**
+	 * Optional group-level validation errors shown after child field errors.
+	 */
+	errors?: Array<unknown> | Record<string, unknown> | string;
+	/**
+	 * Prefix each child error with its field label so repeated messages remain distinguishable.
+	 */
+	errorLabels?: boolean;
+	/**
+	 * Mark the shared frame invalid in addition to any child field state.
+	 */
+	invalid?: boolean;
+	/**
+	 * Show or hide the complete input group.
+	 */
+	visible?: boolean;
+}
+export declare const DomInputGroup: DomComponent<DomInputGroupProps>;
+
 export interface DomFormProps {
 	node: Record<string, unknown> | string;
 }
@@ -4564,6 +4593,30 @@ export interface DomPasswordInputProps {
 	compromisedMessage?: string;
 }
 export declare const DomPasswordInput: DomComponent<DomPasswordInputProps>;
+
+export interface DomPasswordStrengthProps {
+	/**
+	 * Password value to assess when no form field name is provided.
+	 */
+	modelValue?: string;
+	/**
+	 * Named DomForm field whose current value should be assessed.
+	 */
+	name?: string;
+	/**
+	 * Show the estimated time required to crack the password.
+	 */
+	showCrackTime?: boolean;
+	/**
+	 * Show the strength description below the meter or in a tooltip.
+	 */
+	descriptionMode?: "inline" | "tooltip";
+	/**
+	 * Show or hide the strength meter.
+	 */
+	visible?: boolean;
+}
+export declare const DomPasswordStrength: DomComponent<DomPasswordStrengthProps>;
 
 export interface DomCalendarProps {
 	/**

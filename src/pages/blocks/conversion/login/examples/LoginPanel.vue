@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { DomButton, DomCard, DomCheckbox, DomPasswordInput, DomTextInput, DomForm } from '@getdom/studio/vue';
+import { DomButton, DomCard, DomCheckbox, DomForm, DomInputGroup, DomPasswordInput, DomTextInput } from '@getdom/studio/vue';
 
 const email = ref('steve@example.com');
 const password = ref('');
@@ -65,19 +65,23 @@ const socialProviders = [
 				</div>
 
 				<DomForm class="space-y-4">
-					<DomTextInput
-						v-model="email"
-						label="Email"
-						placeholder="you@example.com"
-						required
-					/>
-					<DomPasswordInput
-						v-model="password"
-						label="Password"
-						placeholder="Enter your password"
-						:show-strength="false"
-						required
-					/>
+					<DomInputGroup aria-label="Sign-in credentials">
+						<DomTextInput
+							v-model="email"
+							label="Email"
+							placeholder="you@example.com"
+							:chrome="false"
+							required
+						/>
+						<DomPasswordInput
+							v-model="password"
+							label="Password"
+							placeholder="Enter your password"
+							:chrome="false"
+							:show-strength="false"
+							required
+						/>
+					</DomInputGroup>
 
 					<div class="flex items-center justify-between gap-4">
 						<DomCheckbox v-model="remember" label="Remember me" />

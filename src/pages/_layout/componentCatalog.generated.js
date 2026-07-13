@@ -2335,6 +2335,31 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "forms/input-group",
+		"path": "../forms/input-group/DomInputGroup.vue",
+		"section": "forms",
+		"slug": "input-group",
+		"exportName": "DomInputGroup",
+		"route": "/forms/input-group",
+		"doc": {
+			"name": "Input group",
+			"tag": "<DomInputGroup>",
+			"description": "A display-only frame that presents several independent form controls as one grouped input, followed by optional feedback and their errors.",
+			"icon": "M5 5h14v14H5V5Zm0 7h14",
+			"slots": [
+				{
+					"name": "(default)",
+					"description": "Form controls using chrome=\"false\". Each control keeps its own model, name, validation, and form registration."
+				},
+				{
+					"name": "feedback",
+					"description": "Supporting content shown outside the shared frame and before validation errors."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "forms/json-input",
 		"path": "../forms/json-input/DomJsonInput.vue",
 		"section": "forms",
@@ -2508,6 +2533,21 @@ export const componentCatalog = [
 					"description": "Fired when the password text changes."
 				}
 			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "forms/password-strength",
+		"path": "../forms/password-strength/DomPasswordStrength.vue",
+		"section": "forms",
+		"slug": "password-strength",
+		"exportName": "DomPasswordStrength",
+		"route": "/forms/password-strength",
+		"doc": {
+			"name": "Password strength",
+			"tag": "<DomPasswordStrength>",
+			"description": "A display-only password strength meter that can read a named DomForm field or a direct model value.",
+			"icon": "M4 18h3V9H4v9Zm6 0h3V6h-3v12Zm6 0h3V3h-3v15Z"
 		},
 		"studio": {}
 	},

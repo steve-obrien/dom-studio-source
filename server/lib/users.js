@@ -15,6 +15,77 @@ export async function findUserByEmail(email) {
 	return getDb()('users').where({ email: normalizedEmail }).first();
 }
 
+/**
+ * Finds or creates a verified user for a Google OpenID identity.
+ *
+ * Existing password accounts with the same verified email are linked instead
+ * of duplicated, while the immutable Google subject remains the provider key.
+ *
+ * @param {{ providerUserId?: string, email?: string, name?: string }} input Verified Google profile.
+ * @returns {Promise<object>} Persisted user row.
+ */
+export async function findOrCreateGoogleUser(input = {}) {
+	const providerUserId = String(input.providerUserId || '').trim();
+	const email = normalizeEmail(input.email);
+	const name = String(input.name || '').trim();
+
+	if (!providerUserId || !email) {
+		throw new Error('Google did not return a usable verified identity.');
+	}
+
+	const db = getDb();
+	const userId = await db.transaction(async (trx) => {
+		const existingIdentity = await trx('auth_identities')
+			.where({ provider: 'google', provider_user_id: providerUserId })
+			.first();
+
+		if (existingIdentity) {
+			await trx('users')
+				.where({ id: existingIdentity.user_id })
+				.update({
+					email,
+					...(name ? { name } : {}),
+					email_verified_at: trx.fn.now(),
+					updated_at: trx.fn.now(),
+				});
+			await trx('auth_identities')
+				.where({ id: existingIdentity.id })
+				.update({ email, updated_at: trx.fn.now() });
+			return existingIdentity.user_id;
+		}
+
+		let user = await trx('users').where({ email }).first();
+		if (!user) {
+			user = {
+				id: randomUUID(),
+				email,
+				name: name || null,
+				email_verified_at: trx.fn.now(),
+			};
+			await trx('users').insert(user);
+		} else {
+			await trx('users')
+				.where({ id: user.id })
+				.update({
+					...(name && !user.name ? { name } : {}),
+					email_verified_at: trx.fn.now(),
+					updated_at: trx.fn.now(),
+				});
+		}
+
+		await trx('auth_identities').insert({
+			user_id: user.id,
+			provider: 'google',
+			provider_user_id: providerUserId,
+			email,
+		});
+
+		return user.id;
+	});
+
+	return findUserById(userId);
+}
+
 export async function getUserEntitlements(userId) {
 	if (!userId) return [];
 	const now = new Date();

@@ -9,10 +9,12 @@ import DomDateTimePicker from '../date-time-picker/DomDateTimePicker.vue';
 import DomDatePicker from '../date-picker/DomDatePicker.vue';
 import DomEmailInput from '../email-input/DomEmailInput.vue';
 import DomFileUpload from '../file-upload/DomFileUpload.vue';
+import DomInputGroup from '../input-group/DomInputGroup.vue';
 import DomMoneyInput from '../money-input/DomMoneyInput.vue';
 import DomNativeSelect from '../native-select/DomNativeSelect.vue';
 import DomNumberInput from '../number-input/DomNumberInput.vue';
 import DomPasswordInput from '../password-input/DomPasswordInput.vue';
+import DomPasswordStrength from '../password-strength/DomPasswordStrength.vue';
 import DomRadioGroup from '../radio-group/DomRadioGroup.vue';
 import DomSelect from '../select/DomSelect.vue';
 import DomSelectInput from '../select-input/DomSelectInput.vue';
@@ -40,12 +42,14 @@ const formComponents = {
 	DomDatePicker,
 	DomEmailInput,
 	DomFileUpload,
+	DomInputGroup,
 	DomJsonInput,
 	DomJsonListInput,
 	DomMoneyInput,
 	DomNativeSelect,
 	DomNumberInput,
 	DomPasswordInput,
+	DomPasswordStrength,
 	DomRadioGroup,
 	DomSelect,
 	DomSelectInput,
@@ -205,6 +209,43 @@ function mergeFieldState(previous = {}, patch = {}) {
 	return normalizeFieldState(next);
 }
 
+/**
+ * Returns the Vue slot name assigned to a declarative form node.
+ *
+ * @param {unknown} node Declarative child node.
+ * @returns {string} Named slot or the default slot.
+ */
+function formNodeSlotName(node) {
+	if (!node || typeof node !== 'object' || typeof node.slot !== 'string') return 'default';
+	return node.slot || 'default';
+}
+
+/**
+ * Renders declarative child nodes as a default slot or a named-slot object.
+ *
+ * @param {Array<Record<string, unknown>>} children Normalized declarative child nodes.
+ * @param {boolean} [useSlots=true] Whether to build Vue component slots instead of native children.
+ * @returns {undefined | Array<unknown> | (() => Array<unknown>) | Record<string, () => Array<unknown>>} Vue children argument.
+ */
+function renderFormNodeChildren(children = [], useSlots = true) {
+	if (!children.length) return undefined;
+	const renderedChildren = children.map((child, index) => ({
+		node: h(RenderNode, { node: child, key: child.id || index }),
+		slot: formNodeSlotName(child),
+	}));
+	if (!useSlots) return renderedChildren.map((child) => child.node);
+	if (renderedChildren.every((child) => child.slot === 'default')) {
+		return () => renderedChildren.map((child) => child.node);
+	}
+
+	const slots = {};
+	for (const child of renderedChildren) {
+		slots[child.slot] ||= [];
+		slots[child.slot].push(child.node);
+	}
+	return Object.fromEntries(Object.entries(slots).map(([name, nodes]) => [name, () => nodes]));
+}
+
 const RenderNode = defineComponent({
 	name: 'DomFormRenderNode',
 	props: {
@@ -217,7 +258,7 @@ const RenderNode = defineComponent({
 			if (node.type === 'text' || node.text != null) return node.text || '';
 			const componentName = node.component || node.type || 'div';
 			const component = componentName === 'DomForm' ? DomFormComponent : formComponents[componentName] || componentName;
-			const children = (node.children || []).map((child, index) => h(RenderNode, { node: child, key: child.id || index }));
+			const usesNativeChildren = typeof component === 'string' && /^[a-z]/.test(component);
 			const nodeProps = {
 				...renderedComponentProps(node.props),
 				...(componentName === 'DomForm' ? {
@@ -228,7 +269,7 @@ const RenderNode = defineComponent({
 					schema: jsonListSchemaForNode(node),
 				} : {}),
 			};
-			return h(component, nodeProps, children.length ? () => children : undefined);
+			return h(component, nodeProps, renderFormNodeChildren(node.children, !usesNativeChildren));
 		};
 	},
 });

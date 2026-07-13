@@ -1045,6 +1045,7 @@ function sharedVueTypes() {
 		'\tid?: string;',
 		'\ttype?: string;',
 		'\tcomponent?: string | Component;',
+		'\tslot?: string;',
 		'\tchildren?: DomFormChildren;',
 		'\tproperties?: DomFormChildren;',
 		'\titems?: DomFormNode;',

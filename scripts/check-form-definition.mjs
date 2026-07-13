@@ -101,6 +101,18 @@ assert.deepEqual(searchField.props, {
 	type: 'search',
 });
 
+const slottedFeedback = normalizeFormNode({
+	component: 'DomPasswordStrength',
+	slot: 'feedback',
+	props: {
+		name: 'password',
+	},
+});
+
+assert.equal(slottedFeedback.slot, 'feedback');
+assert.equal(slottedFeedback.props.slot, undefined);
+assert.equal(slottedFeedback.props.name, 'password');
+
 const explicitName = normalizeFormChildren({
 	name: {
 		type: 'string',

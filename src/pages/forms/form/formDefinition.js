@@ -6,6 +6,7 @@ export const FORM_NODE_RESERVED_KEYS = new Set([
 	'properties',
 	'items',
 	'props',
+	'slot',
 	'text',
 	'schema',
 ]);
@@ -235,6 +236,7 @@ export function normalizeFormNode(node, context = {}) {
 	if (node.component == null && node.text != null) {
 		return {
 			...(node.id ? { id: node.id } : {}),
+			...(node.slot ? { slot: node.slot } : {}),
 			type: 'text',
 			text: String(node.text || ''),
 		};
@@ -266,6 +268,7 @@ export function normalizeFormNode(node, context = {}) {
 	};
 	const normalized = {
 		...(mergedNode.id ? { id: mergedNode.id } : {}),
+		...(mergedNode.slot ? { slot: mergedNode.slot } : {}),
 		type,
 		component,
 		props,

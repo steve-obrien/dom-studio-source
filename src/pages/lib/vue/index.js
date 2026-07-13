@@ -105,6 +105,7 @@ export { default as DomIconSelector } from '../../forms/icon-selector/DomIconSel
 export { default as DomClassToggleInput } from '../../forms/class-toggle-input/DomClassToggleInput.vue';
 export { default as DomField } from '../../forms/field/DomField.vue';
 export { default as DomGridFieldLayout } from '../../forms/field/layouts/DomGridFieldLayout.vue';
+export { default as DomInputGroup } from '../../forms/input-group/DomInputGroup.vue';
 export { default as DomForm } from '../../forms/form/DomForm.vue';
 export { default as DomTextInput } from '../../forms/text-input/DomTextInput.vue';
 export { default as DomEmailInput } from '../../forms/email-input/DomEmailInput.vue';
@@ -119,6 +120,7 @@ export { default as DomPositionInput } from '../../forms/position-input/DomPosit
 export { default as DomSelectInput } from '../../forms/select-input/DomSelectInput.vue';
 export { default as DomNativeSelect } from '../../forms/native-select/DomNativeSelect.vue';
 export { default as DomPasswordInput } from '../../forms/password-input/DomPasswordInput.vue';
+export { default as DomPasswordStrength } from '../../forms/password-strength/DomPasswordStrength.vue';
 export { checkCompromisedPassword, sha1PasswordHash } from '../../forms/password-input/pwnedPasswords.js';
 export { default as DomCalendar } from '../../forms/calendar/DomCalendar.vue';
 export { calendarProps } from '../../forms/calendar/DomCalendar.vue';
