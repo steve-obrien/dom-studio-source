@@ -13,8 +13,12 @@ import ConfiguredPaymentCard from './examples/ConfiguredPaymentCard.vue';
 import ConfiguredPaymentCardSrc from './examples/ConfiguredPaymentCard.vue?raw';
 import TemplateCredentials from './examples/TemplateCredentials.vue';
 import TemplateCredentialsSrc from './examples/TemplateCredentials.vue?raw';
+import TemplateInputAction from './examples/TemplateInputAction.vue';
+import TemplateInputActionSrc from './examples/TemplateInputAction.vue?raw';
 import TemplatePaymentCard from './examples/TemplatePaymentCard.vue';
 import TemplatePaymentCardSrc from './examples/TemplatePaymentCard.vue?raw';
+import TemplatePrefixedInputAction from './examples/TemplatePrefixedInputAction.vue';
+import TemplatePrefixedInputActionSrc from './examples/TemplatePrefixedInputAction.vue?raw';
 
 const doc = DomInputGroup.__doc;
 </script>
@@ -74,6 +78,35 @@ const doc = DomInputGroup.__doc;
 						default-open
 					>
 						<TemplatePaymentCard />
+					</Example>
+				</div>
+			</DocSection>
+
+			<DocSection eyebrow="Actions" title="Attach actions and prefixes to an input">
+				<div class="space-y-4">
+					<p class="max-w-3xl text-sm leading-6 text-muted-fg">
+						Wrap an input and its action in one grid child to keep them on the same row. Add vertical
+						dividers to the wrapper elements, and remove the button radius so the action meets the shared
+						frame cleanly. The group suppresses the button's standalone active scale while preserving its
+						pressed shading and inset shadow. Custom content such as a URL prefix can occupy another grid
+						column. When the prefix changes the input's meaning, include that context in the field label for
+						assistive technology.
+					</p>
+					<Example
+						:source="TemplateInputActionSrc"
+						filename="TemplateInputAction.vue"
+						description="A text input and submit action presented as one compact horizontal control."
+						default-open
+					>
+						<TemplateInputAction />
+					</Example>
+					<Example
+						:source="TemplatePrefixedInputActionSrc"
+						filename="TemplatePrefixedInputAction.vue"
+						description="A custom protocol prefix, text input, and submit action composed in three columns."
+						default-open
+					>
+						<TemplatePrefixedInputAction />
 					</Example>
 				</div>
 			</DocSection>

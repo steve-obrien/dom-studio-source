@@ -510,6 +510,23 @@ const componentLinks = [
 				</div>
 			</DocSection>
 
+			<DocSection eyebrow="Reference" title="Start with the form architecture">
+				<div class="grid gap-3 md:grid-cols-3">
+					<RouterLink
+						v-for="link in componentLinks"
+						:key="link.to"
+						:to="link.to"
+						class="block rounded-lg border border-border bg-canvas p-4 transition hover:border-primary/40 hover:bg-secondary/40"
+					>
+						<div class="flex items-start justify-between gap-3">
+							<h3 class="text-sm font-semibold text-canvas-fg">{{ link.title }}</h3>
+							<code class="rounded-md bg-secondary px-2 py-1 text-[11px] text-muted-fg ring-1 ring-border">{{ link.tag }}</code>
+						</div>
+						<p class="mt-3 text-sm leading-6 text-muted-fg">{{ link.body }}</p>
+					</RouterLink>
+				</div>
+			</DocSection>
+
 			<DocSection eyebrow="Status" title="Current architecture and direction">
 				<div class="grid gap-3 md:grid-cols-3">
 					<div
@@ -941,22 +958,6 @@ const componentLinks = [
 				</ol>
 			</DocSection>
 
-			<DocSection eyebrow="Reference" title="Where to find details">
-				<div class="grid gap-3 md:grid-cols-3">
-					<RouterLink
-						v-for="link in componentLinks"
-						:key="link.to"
-						:to="link.to"
-						class="block rounded-lg border border-border bg-canvas p-4 transition hover:border-primary/40 hover:bg-secondary/40"
-					>
-						<div class="flex items-start justify-between gap-3">
-							<h3 class="text-sm font-semibold text-canvas-fg">{{ link.title }}</h3>
-							<code class="rounded-md bg-secondary px-2 py-1 text-[11px] text-muted-fg ring-1 ring-border">{{ link.tag }}</code>
-						</div>
-						<p class="mt-3 text-sm leading-6 text-muted-fg">{{ link.body }}</p>
-					</RouterLink>
-				</div>
-			</DocSection>
 		</DocPage>
 	</DomStudioLayout>
 </template>

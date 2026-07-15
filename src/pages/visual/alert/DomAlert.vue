@@ -1,7 +1,9 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, useAttrs } from 'vue';
+import DomIconButton from '../../components/icon-button/DomIconButton.vue';
 
 defineOptions({
+	inheritAttrs: false,
 	__doc: {
 		name: 'Alert',
 		tag: '<DomAlert>',
@@ -20,6 +22,9 @@ defineOptions({
 			{ name: 'title', description: 'Replace the title content.' },
 			{ name: '(default)', description: 'Alert body. Falls back to the description prop.' },
 			{ name: 'actions', description: 'Action buttons or links aligned below the message.' },
+		],
+		events: [
+			{ name: 'dismiss', payload: 'MouseEvent', description: 'Emitted after a dismissible alert has finished fading away.' },
 		],
 	},
 });
@@ -69,12 +74,26 @@ const props = defineProps({
 			},
 		},
 	},
+	dismissible: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Show a close button that fades the alert away when activated.' },
+	},
+	dismissLabel: {
+		type: String,
+		default: 'Dismiss alert',
+		_edit: { description: 'Accessible label for the optional dismiss button.' },
+	},
 	role: {
 		type: String,
 		default: '',
 		_edit: { description: 'ARIA role override. Danger and warning default to alert; other tones default to status.' },
 	},
 });
+const emit = defineEmits(['dismiss']);
+const attrs = useAttrs();
+const visible = ref(true);
+let dismissEvent = null;
 
 const toneIconPaths = {
 	default: 'M12 17v-5M12 8h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
@@ -258,28 +277,87 @@ function getResolvedRole() {
 	if (props.role) return props.role;
 	return ['danger', 'warning'].includes(resolvedTone.value) ? 'alert' : 'status';
 }
+
+/**
+ * Starts the dismiss transition while retaining the activation event until the alert has left.
+ *
+ * @param {MouseEvent} event
+ * @returns {void}
+ */
+function dismiss(event) {
+	if (!props.dismissible || !visible.value) return;
+	dismissEvent = event;
+	visible.value = false;
+}
+
+/**
+ * Notifies consumers after the fade completes so parent-owned collections can remove the alert safely.
+ *
+ * @returns {void}
+ */
+function emitDismiss() {
+	emit('dismiss', dismissEvent);
+	dismissEvent = null;
+}
 </script>
 
 <template>
-	<component :is="as" :class="classes" :role="resolvedRole">
-		<div class="flex gap-3">
-			<slot v-if="showIcon" name="icon">
-				<component v-if="iconComponent" :is="iconComponent" :class="iconClass" aria-hidden="true" focusable="false" />
-				<svg v-else-if="iconPath" :class="iconClass" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-					<path :d="iconPath" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-				</svg>
-			</slot>
-			<div class="min-w-0 flex-1">
-				<p class="font-semibold leading-6">
-					<slot name="title">{{ title }}</slot>
-				</p>
-				<div v-if="$slots.default || description" :class="descriptionClass">
-					<slot>{{ description }}</slot>
+	<Transition name="dom-alert-fade" @after-leave="emitDismiss">
+		<component v-if="visible" :is="as" v-bind="attrs" :class="classes" :role="resolvedRole">
+			<div class="flex gap-3">
+				<slot v-if="showIcon" name="icon">
+					<component v-if="iconComponent" :is="iconComponent" :class="iconClass" aria-hidden="true" focusable="false" />
+					<svg v-else-if="iconPath" :class="iconClass" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path :d="iconPath" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+				</slot>
+				<div class="min-w-0 flex-1">
+					<p class="font-semibold leading-6">
+						<slot name="title">{{ title }}</slot>
+					</p>
+					<div v-if="$slots.default || description" :class="descriptionClass">
+						<slot>{{ description }}</slot>
+					</div>
+					<div v-if="$slots.actions" class="mt-3 flex flex-wrap gap-2">
+						<slot name="actions"></slot>
+					</div>
 				</div>
-				<div v-if="$slots.actions" class="mt-3 flex flex-wrap gap-2">
-					<slot name="actions"></slot>
-				</div>
+				<DomIconButton
+					v-if="dismissible"
+					class="dom-alert__dismiss -mr-2 -mt-1"
+					size="xs"
+					:label="dismissLabel"
+					icon="M18 6 6 18M6 6l12 12"
+					@click="dismiss"
+				/>
 			</div>
-		</div>
-	</component>
+		</component>
+	</Transition>
 </template>
+
+<style scoped>
+.dom-alert-fade-leave-active {
+	transition: opacity 180ms ease;
+}
+
+.dom-alert-fade-leave-to {
+	opacity: 0;
+}
+
+.dom-alert__dismiss {
+	color: inherit;
+	opacity: 0.65;
+}
+
+.dom-alert__dismiss:hover {
+	background-color: color-mix(in oklab, currentColor 12%, transparent);
+	color: inherit;
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dom-alert-fade-leave-active {
+		transition-duration: 1ms;
+	}
+}
+</style>

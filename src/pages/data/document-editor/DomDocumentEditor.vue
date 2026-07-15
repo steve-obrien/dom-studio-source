@@ -322,6 +322,7 @@ const videoTitle = ref('');
 const linkDialogOpen = ref(false);
 const linkUrl = ref('');
 const slashMenuOpen = ref(false);
+const slashMenuPanel = ref(null);
 const slashMenuQuery = ref('');
 const slashMenuIndex = ref(0);
 const slashMenuRange = ref(null);
@@ -1315,6 +1316,7 @@ function syncSlashMenuIndex() {
 		return;
 	}
 	slashMenuIndex.value = Math.min(slashMenuIndex.value, slashMenuOptions.value.length - 1);
+	scrollActiveSlashMenuOptionIntoView();
 }
 
 /**
@@ -1327,6 +1329,28 @@ function moveSlashMenuSelection(delta) {
 	const count = slashMenuOptions.value.length;
 	if (!count) return;
 	slashMenuIndex.value = (slashMenuIndex.value + delta + count) % count;
+	scrollActiveSlashMenuOptionIntoView();
+}
+
+/**
+ * Keeps the highlighted slash command visible inside the scrollable menu panel.
+ *
+ * @returns {void}
+ */
+function scrollActiveSlashMenuOptionIntoView() {
+	nextTick(() => {
+		const menu = slashMenuPanel.value;
+		const option = menu?.querySelector?.('[aria-selected="true"]');
+		if (!menu || !option) return;
+		const menuRect = menu.getBoundingClientRect();
+		const optionRect = option.getBoundingClientRect();
+		const edgeInset = 4;
+		if (optionRect.top < menuRect.top + edgeInset) {
+			menu.scrollTop += optionRect.top - menuRect.top - edgeInset;
+		} else if (optionRect.bottom > menuRect.bottom - edgeInset) {
+			menu.scrollTop += optionRect.bottom - menuRect.bottom + edgeInset;
+		}
+	});
 }
 
 /**
@@ -2080,6 +2104,7 @@ function insertVideoCommand(nodeName) {
 
 			<div
 				v-if="slashMenuOpen && slashMenuOptions.length"
+				ref="slashMenuPanel"
 				class="dom-document-editor__slash-menu skin-popover"
 				:style="slashMenuStyle"
 				role="listbox"

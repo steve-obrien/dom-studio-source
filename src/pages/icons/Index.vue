@@ -76,7 +76,7 @@ async function copyText(text) {
 			name="Icons"
 			tagline="Auto-generated SVG path icons collected from DOM Studio navigation, component metadata, block metadata, and source files."
 			tag="copyable SVG"
-			eyebrow="Tooling"
+			eyebrow="Visual"
 		>
 			<DocSection title="Library">
 				<div class="flex flex-col gap-4">

@@ -3358,6 +3358,13 @@ export const componentCatalog = [
 					"name": "actions",
 					"description": "Action buttons or links aligned below the message."
 				}
+			],
+			"events": [
+				{
+					"name": "dismiss",
+					"payload": "MouseEvent",
+					"description": "Emitted after a dismissible alert has finished fading away."
+				}
 			]
 		},
 		"studio": {}

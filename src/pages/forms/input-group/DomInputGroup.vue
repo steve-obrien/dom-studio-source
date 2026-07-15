@@ -218,6 +218,10 @@ function displayError(field, error) {
 	box-shadow: none;
 }
 
+.dom-input-group__controls :deep(button:active) {
+	scale: 1;
+}
+
 .dom-input-group__controls :deep(.dom-password-input__warning) {
 	margin: 0.75rem;
 }

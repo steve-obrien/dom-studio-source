@@ -10,8 +10,12 @@ import { getBlockNavItems } from '../blocks/blockRegistry.js';
 const sidebarComponentSectionOrder = ['components', 'data', 'dev', 'forms', 'mobile', 'visual'];
 
 export const staticIconPaths = {
+	Documentation: 'M6 4h9l3 3v13H6V4Zm9 0v4h4M9 11h6M9 15h6',
 	'AI builders': 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Zm6 9 .9 2.6 2.6.9-2.6.9L18 20l-.9-2.6-2.6-.9 2.6-.9L18 12Z',
 	Tools: 'M5 5h14v4H5V5Zm0 6h6v8H5v-8Zm8 0h6v8h-6v-8Z',
+	Experiments: 'M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3M8 14h8',
+	'CSS button builder': 'M7 8h10a4 4 0 0 1 0 8H7a4 4 0 0 1 0-8Zm2 4h6',
+	'Liquid glass': 'M12 3c4 4 7 7 7 11a7 7 0 0 1-14 0c0-4 3-7 7-11Zm-4 12c1 2 3 3 5 3',
 	'JSON Unstringifier': 'M8 8l-3 4 3 4M16 8l3 4-3 4M11 6h2M10 18h4',
 	Theming: 'M5 18c4-7 10-11 14-12-1 4-5 10-12 14l-2-2Zm4-1 8-8M6 13l5 5',
 	'Component spec': 'M6 5h12v14H6V5Zm3 4h6M9 13h6M9 17h3',
@@ -105,17 +109,26 @@ const componentNavGroups = groupsFromDiscoveredComponents();
 
 export const sideNavLinks = [
 	{
-		label: 'Tooling',
+		label: 'Documentation',
 		items: [
 			{ to: '/ai', label: 'AI builders', tag: 'New' },
-			{ to: '/tools/json-unstringifier', label: 'JSON Unstringifier', tag: 'New' },
 			{ to: '/theming', label: 'Theming', tag: 'New' },
 			{ to: '/component-spec', label: 'Component spec' },
-			{ to: '/forms/schema', label: 'Form schema' },
-			{ to: '/icons', label: 'Icons' },
+		],
+	},
+	{
+		label: 'Tools',
+		items: [
+			{ to: '/tools/json-unstringifier', label: 'JSON Unstringifier', tag: 'New' },
 			{ to: '/components/studio', label: 'Studio', tag: 'Pro' },
 			{ to: '/components/playground', label: 'Playground' },
-			{ to: '/mobile', label: 'Mobile', tag: 'New' },
+		],
+	},
+	{
+		label: 'Experiments',
+		items: [
+			{ to: '/experiments/css-button-creator', label: 'CSS button builder' },
+			{ to: '/experiments/liquid-glass', label: 'Liquid glass', tag: 'New' },
 		],
 	},
 	...componentNavGroups,
@@ -167,6 +180,8 @@ function groupsFromDiscoveredComponents() {
 				...(section === 'forms' ? [{ to: '/forms', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...(section === 'data' ? [{ to: '/data', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...(section === 'dev' ? [{ to: '/dev', label: 'Overview', icon: staticIconPaths.Overview }] : []),
+				...(section === 'mobile' ? [{ to: '/mobile', label: 'Overview', icon: staticIconPaths.Overview }] : []),
+				...(section === 'visual' ? [{ to: '/icons', label: 'Icons', icon: staticIconPaths.Icons }] : []),
 				...Array.from(families.values())
 					.filter((family) => family[0]?.section === section)
 					.map(navItemFromFamily),

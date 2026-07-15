@@ -6,6 +6,7 @@ import Example from '../../_layout/docs/Example.vue';
 import Playground from '../../_layout/docs/Playground.vue';
 import ComponentProps from '../../_layout/docs/ComponentProps.vue';
 import ComponentSlots from '../../_layout/docs/ComponentSlots.vue';
+import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
 import { DomAlert } from '../../lib/vue';
 
 import AlertVariants from './examples/AlertVariants.vue';
@@ -15,6 +16,8 @@ import ToastLikeAlertsSrc from './examples/ToastLikeAlerts.vue?raw';
 import CustomIcons from './examples/CustomIcons.vue';
 import CustomIconsSrc from './examples/CustomIcons.vue?raw';
 import CloudSyncIconSrc from './examples/CloudSyncIcon.vue?raw';
+import DismissibleAlert from './examples/DismissibleAlert.vue';
+import DismissibleAlertSrc from './examples/DismissibleAlert.vue?raw';
 
 const doc = DomAlert.__doc;
 const customIconSource = [
@@ -67,8 +70,19 @@ const customIconSource = [
 				</Example>
 			</DocSection>
 
+			<DocSection eyebrow="Interaction" title="Dismissible alerts">
+				<Example
+					:source="DismissibleAlertSrc"
+					filename="DismissibleAlert.vue"
+					description="Enable dismissible only when a persistent notice is safe to hide. The dismiss event fires after the fade completes."
+				>
+					<DismissibleAlert />
+				</Example>
+			</DocSection>
+
 			<DocSection title="Reference">
 				<ComponentProps :component="DomAlert" />
+				<ComponentEvents :component="DomAlert" />
 			</DocSection>
 
 			<ComponentSlots :component="DomAlert" />

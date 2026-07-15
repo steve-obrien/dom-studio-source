@@ -47,7 +47,7 @@ const props = defineProps({
 	},
 });
 const attrs = useAttrs();
-const active = 'select-none active:bg-[linear-gradient(rgb(0_0_0/6%)_0_0)] active:border-t-border active:data-disabled:bg-secondary active:data-disabled:border-t-border active:data-disabled:shadow-none active:scale-[0.97] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-1 data-disabled:text-muted-fg';
+const active = 'select-none active:bg-[linear-gradient(rgb(0_0_0/6%)_0_0)] active:data-disabled:bg-secondary active:data-disabled:border-t-border active:data-disabled:shadow-none active:scale-[0.97] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] focus-visible:outline-2 focus-visible:outline-ring focus-visible:-outline-offset-1 data-disabled:text-muted-fg';
 const variants = {
 	primary: 'skin-action hover:opacity-90',
 	secondary: 'skin-control hover:brightness-[0.98]',
@@ -62,7 +62,7 @@ const sizes = {
 
 const classes = computed(() => [
 	active,
-	'inline-flex items-center cursor-pointer justify-center gap-2 rounded-full font-medium tracking-tight transition',
+	'inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap rounded-full font-medium tracking-tight transition',
 	'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
 	variants[props.variant] || variants.primary,
 	sizes[props.size] || sizes.md,
@@ -88,6 +88,13 @@ const componentAttrs = computed(() => {
 	};
 });
 
+/**
+ * Invokes one or more click handlers forwarded through component attributes.
+ *
+ * @param {Function | Function[] | undefined} handler Forwarded click handler or handler collection.
+ * @param {MouseEvent} event Native click event.
+ * @returns {void}
+ */
 function callClickHandler(handler, event) {
 	if (Array.isArray(handler)) {
 		handler.forEach((item) => callClickHandler(item, event));
@@ -96,6 +103,12 @@ function callClickHandler(handler, event) {
 	if (typeof handler === 'function') handler(event);
 }
 
+/**
+ * Blocks disabled interactions or forwards an enabled click to the consumer.
+ *
+ * @param {MouseEvent} event Native click event.
+ * @returns {void}
+ */
 function onClick(event) {
 	if (disabledState.value) {
 		event.preventDefault();
