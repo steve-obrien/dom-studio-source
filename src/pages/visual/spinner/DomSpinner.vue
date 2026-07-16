@@ -8,7 +8,12 @@ defineOptions({
 		description: 'A compact loading indicator for buttons, toolbars, inline rows, and pending states.',
 		icon: 'M12 4a8 8 0 1 1-8 8',
 		playground: {
-			initial: { label: 'Saving', size: 'md' },
+			initial: {
+				label: 'Saving',
+				size: 'md',
+				background: 'color-mix(in oklab, var(--warning) 20%, transparent)',
+				foreground: 'var(--warning)',
+			},
 		},
 	},
 });
@@ -32,31 +37,86 @@ const props = defineProps({
 		default: 'primary',
 		_edit: {
 			options: ['primary', 'neutral', 'success', 'warning', 'danger'],
-			description: 'Spinner colour.',
+			description: 'Spinner foreground colour when no custom foreground is provided.',
 		},
+	},
+	background: {
+		type: String,
+		default: '',
+		_edit: { description: 'CSS color for the stationary donut track. Defaults to a tint of the foreground.' },
+	},
+	foreground: {
+		type: String,
+		default: '',
+		_edit: { description: 'CSS color for the spinning arc. Overrides tone when provided.' },
 	},
 });
 
-const classes = computed(() => [
-	'inline-block animate-spin rounded-full border-2 border-current border-r-transparent',
-	{
-		sm: 'size-4',
-		md: 'size-5',
-		lg: 'size-7',
-	}[props.size] || 'size-5',
-	{
-		primary: 'text-primary',
-		neutral: 'text-muted-fg',
-		success: 'text-success',
-		warning: 'text-warning-fg',
-		danger: 'text-destructive',
-	}[props.tone] || 'text-primary',
-]);
+const classes = computed(getClasses);
+const spinnerStyle = computed(getSpinnerStyle);
+
+/**
+ * Builds the spinner class list for the selected size and semantic tone.
+ *
+ * @returns {Array<string>} Vue class list.
+ */
+function getClasses() {
+	return [
+		'dom-spinner inline-block rounded-full border-2',
+		{
+			sm: 'size-4',
+			md: 'size-5',
+			lg: 'size-7',
+		}[props.size] || 'size-5',
+		{
+			primary: 'text-primary',
+			neutral: 'text-muted-fg',
+			success: 'text-success',
+			warning: 'text-warning-fg',
+			danger: 'text-destructive',
+		}[props.tone] || 'text-primary',
+	];
+}
+
+/**
+ * Maps optional custom colors to the spinner's CSS variables.
+ *
+ * @returns {Record<string, string|undefined>} Inline CSS custom properties.
+ */
+function getSpinnerStyle() {
+	return {
+		'--dom-spinner-background': props.background || undefined,
+		'--dom-spinner-foreground': props.foreground || undefined,
+	};
+}
 </script>
 
 <template>
 	<span role="status" :aria-label="label" class="inline-flex items-center">
-		<span :class="classes" aria-hidden="true"></span>
+		<span :class="classes" :style="spinnerStyle" aria-hidden="true"></span>
 		<span class="sr-only">{{ label }}</span>
 	</span>
 </template>
+
+<style scoped>
+.dom-spinner {
+	animation: dom-spinner-spin 0.7s linear infinite;
+	border-color: var(
+		--dom-spinner-background,
+		color-mix(in oklab, var(--dom-spinner-foreground, currentColor) 20%, transparent)
+	);
+	border-top-color: var(--dom-spinner-foreground, currentColor);
+}
+
+@keyframes dom-spinner-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dom-spinner {
+		animation: none;
+	}
+}
+</style>

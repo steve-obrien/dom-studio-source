@@ -2461,7 +2461,11 @@ export interface DomProgressProps {
 	 */
 	showValue?: boolean;
 	/**
-	 * Show an indeterminate loading bar.
+	 * Show the label above the bar. The label remains accessible when visually hidden.
+	 */
+	showLabel?: boolean;
+	/**
+	 * Show a sweeping loading bar when the total is unknown.
 	 */
 	indeterminate?: boolean;
 }
@@ -2505,9 +2509,17 @@ export interface DomSpinnerProps {
 	 */
 	size?: "sm" | "md" | "lg";
 	/**
-	 * Spinner colour.
+	 * Spinner foreground colour when no custom foreground is provided.
 	 */
 	tone?: "primary" | "neutral" | "success" | "warning" | "danger";
+	/**
+	 * CSS color for the stationary donut track. Defaults to a tint of the foreground.
+	 */
+	background?: string;
+	/**
+	 * CSS color for the spinning arc. Overrides tone when provided.
+	 */
+	foreground?: string;
 }
 export declare const DomSpinner: DomComponent<DomSpinnerProps>;
 

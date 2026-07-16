@@ -3639,7 +3639,9 @@ export const componentCatalog = [
 			"playground": {
 				"initial": {
 					"label": "Saving",
-					"size": "md"
+					"size": "md",
+					"background": "color-mix(in oklab, var(--warning) 20%, transparent)",
+					"foreground": "var(--warning)"
 				}
 			}
 		},

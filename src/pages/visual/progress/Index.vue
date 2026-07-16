@@ -9,6 +9,8 @@ import { DomProgress, DomRadialProgress } from '../../lib/vue';
 
 import ProgressStates from './examples/ProgressStates.vue';
 import ProgressStatesSrc from './examples/ProgressStates.vue?raw';
+import IndeterminateLoading from './examples/IndeterminateLoading.vue';
+import IndeterminateLoadingSrc from './examples/IndeterminateLoading.vue?raw';
 import RadialMeters from './examples/RadialMeters.vue';
 import RadialMetersSrc from './examples/RadialMeters.vue?raw';
 import UploadOverlay from './examples/UploadOverlay.vue';
@@ -37,6 +39,16 @@ const radialDoc = DomRadialProgress.__doc;
 					title="Radial progress playground"
 					:description="radialDoc.description"
 				/>
+			</DocSection>
+
+			<DocSection eyebrow="Composition" title="Unknown-duration loading">
+				<Example
+					:source="IndeterminateLoadingSrc"
+					filename="IndeterminateLoading.vue"
+					description="Combine the spinner's separate track and arc colors with an indeterminate progress sweep when work has started but no total is available."
+				>
+					<IndeterminateLoading />
+				</Example>
 			</DocSection>
 
 			<DocSection eyebrow="Demo" title="Status progress bars">
