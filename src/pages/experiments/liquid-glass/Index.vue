@@ -1,11 +1,28 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import {
+	computed,
+	onMounted,
+	reactive,
+	ref,
+} from 'vue';
+import {
+	DomButton,
+	DomRangeInput,
+} from '../../lib/vue';
 import DomLiquidGlassSurface from './DomLiquidGlassSurface.vue';
 import LiquidGlassDragHandle from './LiquidGlassDragHandle.vue';
 import { vDraggableSurface } from './draggableSurface.js';
 import { supportsLiquidGlassRefraction } from './liquidGlass.js';
 
+const DEFAULT_GLASS_SETTINGS = Object.freeze({
+	fill: 40,
+	blur: 7,
+	saturation: 140,
+	refraction: 50,
+});
+
 const isEnhanced = ref(false);
+const glassSettings = reactive({ ...DEFAULT_GLASS_SETTINGS });
 const photoExamples = [
 	{
 		id: 'mountain-lake',
@@ -57,11 +74,42 @@ function detectRefractionSupport() {
 	isEnhanced.value = supportsLiquidGlassRefraction();
 }
 
+/**
+ * Build the shared CSS custom properties used by every surface in the demo.
+ *
+ * @returns {Record<string, string>} Inline custom properties for the current settings.
+ */
+function getGlassStyle() {
+	return {
+		'--dom-liquid-glass-surface-fill': glassSettings.fill === 0
+			? 'transparent'
+			: `color-mix(in oklch, var(--canvas) ${glassSettings.fill}%, transparent)`,
+		'--dom-liquid-glass-blur': `${glassSettings.blur}px`,
+		'--dom-liquid-glass-fallback-blur': `${glassSettings.blur + 11}px`,
+		'--dom-liquid-glass-saturation': glassSettings.saturation / 100,
+		'--dom-liquid-glass-fallback-saturation': glassSettings.saturation / 100,
+	};
+}
+
+/**
+ * Restore the experiment controls to the balanced baseline values.
+ *
+ * @returns {void}
+ */
+function resetGlassSettings() {
+	Object.assign(glassSettings, DEFAULT_GLASS_SETTINGS);
+}
+
+const glassStyle = computed(getGlassStyle);
+
 onMounted(detectRefractionSupport);
 </script>
 
 <template>
-	<main class="min-h-screen bg-canvas p-[clamp(1.5rem,4vw,4rem)] text-canvas-fg">
+	<main
+		:style="glassStyle"
+		class="experiment-page min-h-screen p-[clamp(1.5rem,4vw,4rem)] text-canvas-fg"
+	>
 		<header class="mx-auto flex w-[min(100%,76rem)] items-start justify-between gap-8 max-md:flex-col">
 			<div>
 				<p class="mb-2.5 text-xs font-bold uppercase tracking-[0.12em] text-primary">
@@ -92,7 +140,56 @@ onMounted(detectRefractionSupport);
 		</header>
 
 		<section
-			class="hero-stage relative mx-auto mt-[clamp(2rem,5vw,4rem)] grid min-h-[38rem] w-[min(100%,76rem)] place-items-center overflow-hidden rounded-[clamp(1.5rem,4vw,3.5rem)] border border-white/70 max-md:min-h-[32rem]"
+			class="mx-auto mt-8 w-[min(100%,76rem)] rounded-3xl border border-border bg-canvas/55 p-5 shadow-sm backdrop-blur-xl md:p-6"
+			aria-labelledby="glass-controls-title"
+		>
+			<div class="flex items-start justify-between gap-5">
+				<div class="min-w-0">
+					<p class="mb-2 text-xs font-bold uppercase tracking-[0.12em] text-primary">Live controls</p>
+					<h2 id="glass-controls-title" class="m-0 text-xl font-[735] tracking-[-0.025em]">Tune the surface</h2>
+					<p class="mt-1.5 text-sm leading-relaxed text-muted-fg">
+						Changes apply to every glass sample below. Set surface fill to 0% for fully transparent glass.
+					</p>
+				</div>
+				<DomButton type="button" variant="ghost" size="sm" @click="resetGlassSettings">Reset</DomButton>
+			</div>
+
+			<div class="mt-5 grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
+				<DomRangeInput
+					v-model="glassSettings.fill"
+					label="Surface fill"
+					:min="0"
+					:max="100"
+					suffix="%"
+				/>
+				<DomRangeInput
+					v-model="glassSettings.blur"
+					label="Backdrop blur"
+					:min="0"
+					:max="20"
+					suffix="px"
+				/>
+				<DomRangeInput
+					v-model="glassSettings.saturation"
+					label="Saturation"
+					:min="80"
+					:max="180"
+					:step="5"
+					suffix="%"
+				/>
+				<DomRangeInput
+					v-model="glassSettings.refraction"
+					label="Refraction"
+					:min="0"
+					:max="80"
+					:step="2"
+					suffix="px"
+				/>
+			</div>
+		</section>
+
+		<section
+			class="hero-stage relative mx-auto mt-5 grid min-h-[38rem] w-[min(100%,76rem)] place-items-center overflow-hidden rounded-[clamp(1.5rem,4vw,3.5rem)] border border-canvas-fg/10 max-md:min-h-[32rem]"
 			aria-labelledby="surface-test-title"
 		>
 			<div class="absolute left-[8%] top-[5%] size-48 rounded-full bg-gradient-to-br from-rose-400 to-orange-500 saturate-[1.16]" />
@@ -109,6 +206,7 @@ onMounted(detectRefractionSupport);
 
 			<DomLiquidGlassSurface
 				v-draggable-surface
+				:refraction="glassSettings.refraction"
 				class="draggable-surface z-[2] min-h-[17rem] w-[min(82%,43rem)] min-w-[min(18rem,82%)] max-w-[92%] max-h-[32rem] resize [--dom-liquid-glass-radius:2rem]"
 			>
 				<div class="flex min-h-[17rem] flex-col justify-center p-[clamp(1.5rem,4vw,3rem)]">
@@ -146,6 +244,7 @@ onMounted(detectRefractionSupport);
 				<div class="menu-stage relative grid min-h-[25rem] place-items-center overflow-hidden p-8">
 					<DomLiquidGlassSurface
 						v-draggable-surface
+						:refraction="glassSettings.refraction"
 						class="draggable-surface w-[min(100%,19rem)] p-2 [--dom-liquid-glass-radius:1.15rem]"
 					>
 						<div class="flex w-full items-center justify-between px-3 pb-2 pt-2 text-xs font-bold text-canvas-fg/65">
@@ -183,6 +282,7 @@ onMounted(detectRefractionSupport);
 				<div class="dialog-stage relative grid min-h-[25rem] place-items-center overflow-hidden p-8">
 					<DomLiquidGlassSurface
 						v-draggable-surface
+						:refraction="glassSettings.refraction"
 						class="draggable-surface w-[min(100%,25rem)] p-6 [--dom-liquid-glass-radius:1.5rem]"
 					>
 						<LiquidGlassDragHandle class="absolute right-4 top-4" label="Move liquid glass dialog" />
@@ -245,6 +345,7 @@ onMounted(detectRefractionSupport);
 
 					<DomLiquidGlassSurface
 						v-draggable-surface
+						:refraction="glassSettings.refraction"
 						class="draggable-surface absolute z-[3] w-[calc(100%_-_2.5rem)] max-w-[22rem] p-[1.35rem] text-canvas-fg [--dom-liquid-glass-radius:1.4rem]"
 						:class="example.panelClass"
 					>
@@ -287,10 +388,28 @@ onMounted(detectRefractionSupport);
 </template>
 
 <style scoped>
+.experiment-page {
+	background:
+		radial-gradient(
+			circle at 10% 2%,
+			light-dark(rgb(129 140 248 / 0.24), transparent),
+			transparent 32rem
+		),
+		radial-gradient(
+			circle at 92% 18%,
+			light-dark(rgb(45 212 191 / 0.17), transparent),
+			transparent 38rem
+		),
+		light-dark(
+			color-mix(in oklch, var(--canvas) 82%, var(--muted-fg)),
+			var(--canvas)
+		);
+}
+
 .hero-stage {
 	background:
-		linear-gradient(125deg, rgb(255 255 255 / 0.36), transparent 45%),
-		linear-gradient(135deg, #c7d2fe 0%, #a7f3d0 44%, #fde68a 72%, #f9a8d4 100%);
+		linear-gradient(125deg, rgb(15 23 42 / 0.08), transparent 45%),
+		linear-gradient(135deg, #a5b4fc 0%, #6ee7b7 44%, #fcd34d 72%, #f472b6 100%);
 	box-shadow: 0 26px 80px rgb(48 51 84 / 0.16);
 }
 
@@ -299,8 +418,8 @@ onMounted(detectRefractionSupport);
 	inset: 0;
 	content: '';
 	background-image:
-		linear-gradient(rgb(255 255 255 / 0.24) 1px, transparent 1px),
-		linear-gradient(90deg, rgb(255 255 255 / 0.24) 1px, transparent 1px);
+		linear-gradient(rgb(255 255 255 / 0.16) 1px, transparent 1px),
+		linear-gradient(90deg, rgb(255 255 255 / 0.16) 1px, transparent 1px);
 	background-size: 38px 38px;
 	mask-image: linear-gradient(to bottom, black, transparent 92%);
 }

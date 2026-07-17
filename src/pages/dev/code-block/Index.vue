@@ -3,6 +3,7 @@ import DomStudioLayout from '../../_layout/DomStudioLayout.vue';
 import DocPage from '../../_layout/DocPage.vue';
 import DocSection from '../../_layout/DocSection.vue';
 import Example from '../../_layout/docs/Example.vue';
+import Playground from '../../_layout/docs/Playground.vue';
 import ComponentProps from '../../_layout/docs/ComponentProps.vue';
 import { DomCodeBlock } from '../../lib/vue';
 
@@ -17,6 +18,15 @@ const doc = DomCodeBlock.__doc;
 <template>
 	<DomStudioLayout>
 		<DocPage :name="doc.name" :tagline="doc.description" :tag="doc.tag" eyebrow="Dev component">
+			<DocSection eyebrow="Playground" title="Try each language and layout prop">
+				<Playground
+					:inspect="DomCodeBlock"
+					:initial="doc.playground.initial"
+					title="Code block playground"
+					description="Edit the source, switch syntax languages, clamp the preview, or remove the standard frame. Language grammars load only when selected."
+				/>
+			</DocSection>
+
 			<DocSection eyebrow="Usage" title="Package-ready syntax highlighting">
 				<Example
 					:source="CodeSnippetSrc"

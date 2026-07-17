@@ -26,6 +26,7 @@ const previewWidth = ref(props.defaultWidth || props.maxWidth || fallbackPreview
 const userResized = ref(false);
 const isDragging = ref(false);
 const activePreset = ref('');
+const isFullscreen = ref(false);
 const mobilePresetWidth = 390;
 const desktopPresetWidth = 1024;
 
@@ -38,6 +39,7 @@ let dragStartWidth = 0;
 let dragHandleOffset = 0;
 let dragContentLeft = 0;
 let dragContentWidth = 0;
+let previousBodyOverflow = '';
 
 const effectiveMaxWidth = computed(() => Math.max(props.minWidth, props.maxWidth || availableWidth.value || props.defaultWidth || fallbackPreviewWidth));
 const clampedWidth = computed(() => clamp(previewWidth.value, props.minWidth, effectiveMaxWidth.value));
@@ -45,17 +47,37 @@ const roundedWidth = computed(() => Math.round(clampedWidth.value));
 const hasMobileChrome = computed(() => props.chrome === 'mobile');
 const iframeStyle = computed(() => ({
 	width: `${roundedWidth.value}px`,
-	height: `${props.height}px`,
+	height: isFullscreen.value ? '100%' : `${props.height}px`,
 }));
 
+/**
+ * Constrains a numeric value to an inclusive range.
+ *
+ * @param {number} value Candidate value.
+ * @param {number} min Minimum accepted value.
+ * @param {number} max Maximum accepted value.
+ * @returns {number} Clamped value.
+ */
 function clamp(value, min, max) {
 	return Math.min(Math.max(value, min), max);
 }
 
+/**
+ * Resolves the preferred responsive width from props and the measured canvas.
+ *
+ * @param {number} width Current available canvas width.
+ * @returns {number} Preferred preview width.
+ */
 function preferredWidth(width = availableWidth.value) {
 	return props.defaultWidth || width || props.maxWidth || fallbackPreviewWidth;
 }
 
+/**
+ * Measures the usable horizontal space inside the preview canvas.
+ *
+ * @param {ResizeObserverEntry} [entry] Latest observer entry when available.
+ * @returns {number} Canvas content width in pixels.
+ */
 function measureAvailableWidth(entry) {
 	if (entry?.contentRect?.width) return entry.contentRect.width;
 	if (!canvas.value) return 0;
@@ -65,6 +87,11 @@ function measureAvailableWidth(entry) {
 	return Math.max(0, canvas.value.clientWidth - horizontalPadding);
 }
 
+/**
+ * Measures the canvas content box in viewport coordinates for drag math.
+ *
+ * @returns {{ left: number, width: number }} Content box geometry.
+ */
 function measureCanvasContentBox() {
 	if (!canvas.value) {
 		return {
@@ -85,22 +112,44 @@ function measureCanvasContentBox() {
 	};
 }
 
+/**
+ * Stores the latest measured canvas width.
+ *
+ * @param {ResizeObserverEntry} [entry] Latest observer entry when available.
+ * @returns {number} Updated width in pixels.
+ */
 function updateAvailableWidth(entry) {
 	const width = measureAvailableWidth(entry);
 	if (width) availableWidth.value = width;
 	return width;
 }
 
+/**
+ * Fits the preview to its configured preference within the available canvas.
+ *
+ * @param {ResizeObserverEntry} [entry] Latest observer entry when available.
+ * @returns {void}
+ */
 function fitToAvailableWidth(entry) {
 	const width = updateAvailableWidth(entry);
 	previewWidth.value = clamp(preferredWidth(width), props.minWidth, effectiveMaxWidth.value);
 }
 
+/**
+ * Re-measures the canvas and preserves an intentional user resize.
+ *
+ * @returns {void}
+ */
 function syncAvailableWidth() {
 	if (!userResized.value) fitToAvailableWidth();
 	else updateAvailableWidth();
 }
 
+/**
+ * Creates the isolated document used by inline slot previews.
+ *
+ * @returns {void}
+ */
 function writeFrameDocument() {
 	const frameDocument = iframe.value?.contentDocument;
 	if (!frameDocument) return;
@@ -113,11 +162,21 @@ function writeFrameDocument() {
 	mountTarget.value = frameDocument.getElementById('dom-example-frame-root');
 }
 
+/**
+ * Synchronizes theme and stylesheet state into an inline preview document.
+ *
+ * @returns {void}
+ */
 function syncFrameDocument() {
 	syncFrameTheme();
 	syncFrameStyles();
 }
 
+/**
+ * Mirrors host theme attributes into an inline preview document.
+ *
+ * @returns {void}
+ */
 function syncFrameTheme() {
 	const frameDocument = iframe.value?.contentDocument;
 	if (!frameDocument?.documentElement || !frameDocument.body) return;
@@ -133,6 +192,11 @@ function syncFrameTheme() {
 	}
 }
 
+/**
+ * Replaces cloned host styles in an inline preview document.
+ *
+ * @returns {void}
+ */
 function syncFrameStyles() {
 	const frameDocument = iframe.value?.contentDocument;
 	if (!frameDocument?.head) return;
@@ -178,6 +242,11 @@ function syncFrameStyles() {
 	frameDocument.head.appendChild(baseStyle);
 }
 
+/**
+ * Batches iframe stylesheet synchronization into one animation frame.
+ *
+ * @returns {void}
+ */
 function scheduleStyleSync() {
 	if (styleSyncFrame) cancelAnimationFrame(styleSyncFrame);
 	styleSyncFrame = requestAnimationFrame(() => {
@@ -186,6 +255,11 @@ function scheduleStyleSync() {
 	});
 }
 
+/**
+ * Observes host styles and theme attributes used by inline previews.
+ *
+ * @returns {void}
+ */
 function observeHostDocument() {
 	headObserver = new MutationObserver(scheduleStyleSync);
 	headObserver.observe(document.head, {
@@ -208,6 +282,11 @@ function observeHostDocument() {
 	}
 }
 
+/**
+ * Observes preview canvas resizing so fitted widths remain accurate.
+ *
+ * @returns {void}
+ */
 function observeShell() {
 	if (!canvas.value) return;
 
@@ -218,6 +297,12 @@ function observeShell() {
 	resizeObserver.observe(canvas.value);
 }
 
+/**
+ * Starts pointer-driven preview resizing from the current rendered geometry.
+ *
+ * @param {PointerEvent} event Pointer-down event from the resize separator.
+ * @returns {void}
+ */
 function startResize(event) {
 	event.preventDefault();
 	userResized.value = true;
@@ -236,6 +321,12 @@ function startResize(event) {
 	window.addEventListener('pointerup', stopResize, { once: true });
 }
 
+/**
+ * Updates preview width while a pointer resize is active.
+ *
+ * @param {PointerEvent} event Active pointer-move event.
+ * @returns {void}
+ */
 function resizePreview(event) {
 	const pointerDelta = event.clientX - dragStartX;
 	const targetRight = event.clientX - dragHandleOffset;
@@ -250,31 +341,64 @@ function resizePreview(event) {
 	previewWidth.value = clamp(targetWidth, props.minWidth, effectiveMaxWidth.value);
 }
 
+/**
+ * Ends the current pointer resize interaction.
+ *
+ * @returns {void}
+ */
 function stopResize() {
 	isDragging.value = false;
 	window.removeEventListener('pointermove', resizePreview);
 }
 
+/**
+ * Returns the preview to its fitted responsive width.
+ *
+ * @returns {void}
+ */
 function resetPreviewWidth() {
 	userResized.value = false;
 	activePreset.value = '';
 	fitToAvailableWidth();
 }
 
+/**
+ * Applies a named responsive width preset.
+ *
+ * @param {number} width Preset width in pixels.
+ * @param {string} [preset] Preset identifier for pressed-state feedback.
+ * @returns {void}
+ */
 function resizeToPreset(width, preset = '') {
 	userResized.value = true;
 	activePreset.value = preset;
 	previewWidth.value = clamp(width, props.minWidth, effectiveMaxWidth.value);
 }
 
+/**
+ * Applies the standard mobile preview width.
+ *
+ * @returns {void}
+ */
 function useMobilePreset() {
 	resizeToPreset(mobilePresetWidth, 'mobile');
 }
 
+/**
+ * Applies the standard desktop preview width.
+ *
+ * @returns {void}
+ */
 function useDesktopPreset() {
 	resizeToPreset(desktopPresetWidth, 'desktop');
 }
 
+/**
+ * Supports keyboard resizing from the separator control.
+ *
+ * @param {KeyboardEvent} event Separator keyboard event.
+ * @returns {void}
+ */
 function resizeWithKeyboard(event) {
 	const keySteps = {
 		ArrowLeft: -40,
@@ -305,6 +429,45 @@ function resizeWithKeyboard(event) {
 	previewWidth.value = clamp(clampedWidth.value + keySteps[event.key], props.minWidth, effectiveMaxWidth.value);
 }
 
+/**
+ * Applies the viewport-filling preview state and prevents background scrolling.
+ *
+ * @param {boolean} nextState Whether the preview should fill the browser window.
+ * @returns {void}
+ */
+function setFullscreenState(nextState) {
+	if (nextState === isFullscreen.value) return;
+
+	if (nextState) {
+		previousBodyOverflow = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
+	} else {
+		document.body.style.overflow = previousBodyOverflow;
+	}
+
+	isFullscreen.value = nextState;
+	requestAnimationFrame(syncAvailableWidth);
+}
+
+/**
+ * Enters or exits a viewport-filling preview while preserving the chosen width.
+ *
+ * @returns {void}
+ */
+function toggleFullscreen() {
+	setFullscreenState(!isFullscreen.value);
+}
+
+/**
+ * Exits the expanded preview when the user presses Escape.
+ *
+ * @param {KeyboardEvent} event Global keyboard event.
+ * @returns {void}
+ */
+function handleFullscreenKeydown(event) {
+	if (event.key === 'Escape' && isFullscreen.value) setFullscreenState(false);
+}
+
 watch(
 	() => [props.defaultWidth, props.minWidth, props.maxWidth],
 	() => {
@@ -322,6 +485,7 @@ onMounted(async () => {
 	fitToAvailableWidth();
 	requestAnimationFrame(syncAvailableWidth);
 	window.addEventListener('resize', syncAvailableWidth);
+	window.addEventListener('keydown', handleFullscreenKeydown);
 	if (!props.src) {
 		writeFrameDocument();
 		observeHostDocument();
@@ -334,13 +498,15 @@ onBeforeUnmount(() => {
 	themeObserver?.disconnect();
 	window.removeEventListener('resize', syncAvailableWidth);
 	window.removeEventListener('pointermove', resizePreview);
+	window.removeEventListener('keydown', handleFullscreenKeydown);
+	if (isFullscreen.value) setFullscreenState(false);
 	if (styleSyncFrame) cancelAnimationFrame(styleSyncFrame);
 });
 </script>
 
 <template>
-	<div class="iframe-preview min-w-0 bg-canvas">
-		<div class="flex items-center justify-between gap-3 border-b border-border bg-secondary/40 px-3 py-2">
+	<div class="iframe-preview min-w-0 bg-canvas" :class="{ 'iframe-preview-fullscreen': isFullscreen }">
+		<div class="iframe-preview-toolbar flex items-center justify-between gap-3 border-b border-border bg-secondary/40 px-3 py-2">
 			<div class="flex min-w-0 items-center gap-2">
 				<p class="text-xs font-medium tabular-nums text-muted-fg">{{ roundedWidth }}px</p>
 				<div class="inline-flex shrink-0 rounded-md border border-border bg-canvas p-0.5" role="toolbar" aria-label="Preview presets">
@@ -374,16 +540,31 @@ onBeforeUnmount(() => {
 					</button>
 				</div>
 			</div>
-			<button
-				type="button"
-				class="rounded-md px-2 py-1 text-xs font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-				@click="resetPreviewWidth"
-			>
-				Fit
-			</button>
+			<div class="flex items-center gap-1">
+				<button
+					type="button"
+					class="rounded-md px-2 py-1 text-xs font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+					@click="resetPreviewWidth"
+				>
+					Fit
+				</button>
+				<button
+					type="button"
+					class="grid size-7 place-items-center rounded text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+					:aria-label="isFullscreen ? 'Exit full screen' : 'Enter full screen'"
+					:title="isFullscreen ? 'Exit full screen' : 'Enter full screen'"
+					:aria-pressed="isFullscreen ? 'true' : 'false'"
+					@click="toggleFullscreen"
+				>
+					<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
+						<path v-if="isFullscreen" d="M9 4v5H4M15 4v5h5M9 20v-5H4m11 5v-5h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+						<path v-else d="M4 9V4h5m6 0h5v5M4 15v5h5m11-5v5h-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+				</button>
+			</div>
 		</div>
 
-		<div ref="canvas" class="overflow-x-auto overflow-y-hidden bg-secondary/30 p-4">
+		<div ref="canvas" class="iframe-preview-canvas overflow-x-auto overflow-y-hidden bg-secondary/30 p-4">
 			<div
 				ref="viewport"
 				class="iframe-preview-viewport relative mx-auto overflow-visible rounded-lg bg-transparent shadow-sm"
@@ -441,6 +622,30 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.iframe-preview-fullscreen {
+	position: fixed;
+	inset: 0;
+	z-index: 100;
+	display: flex;
+	width: 100vw;
+	height: 100vh;
+	flex-direction: column;
+	background: var(--canvas);
+}
+
+.iframe-preview-fullscreen .iframe-preview-toolbar {
+	flex: 0 0 auto;
+}
+
+.iframe-preview-fullscreen .iframe-preview-canvas {
+	min-height: 0;
+	flex: 1 1 auto;
+}
+
+.iframe-preview-fullscreen .iframe-preview-viewport {
+	max-height: 100%;
+}
+
 .iframe-preview-viewport-mobile {
 	border-radius: 3rem;
 	box-shadow: 0 24px 70px color-mix(in oklch, black 20%, transparent);

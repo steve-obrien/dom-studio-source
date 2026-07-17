@@ -2523,11 +2523,55 @@ export interface DomSpinnerProps {
 }
 export declare const DomSpinner: DomComponent<DomSpinnerProps>;
 
+export interface DomTextDiffProps {
+	/**
+	 * Current or original text.
+	 */
+	original?: string;
+	/**
+	 * Suggested replacement text.
+	 */
+	proposed?: string;
+	/**
+	 * Show the complete diff, current text, or finished replacement.
+	 */
+	mode?: 'diff' | 'original' | 'replacement';
+	/**
+	 * Inline prose, unified patch, or side-by-side comparison.
+	 */
+	view?: 'inline' | 'unified' | 'split';
+	/**
+	 * Use proportional text or code-oriented monospace styling.
+	 */
+	format?: 'text' | 'code';
+	/**
+	 * Label for the original content.
+	 */
+	originalLabel?: string;
+	/**
+	 * Label for the proposed content.
+	 */
+	proposedLabel?: string;
+	/**
+	 * Show comparison labels and change counts.
+	 */
+	showHeader?: boolean;
+	/**
+	 * Show the Diff, Current, and Replacement controls inside the standard header.
+	 */
+	showModeSwitcher?: boolean;
+	/**
+	 * Render the standard border, radius, and canvas background.
+	 */
+	framed?: boolean;
+}
+export declare const DomTextDiff: DomComponent<DomTextDiffProps>;
+
 export interface DomCodeBlockProps {
 	/**
 	 * Language passed to the syntax highlighter.
 	 */
-	lang?: "vue" | "html" | "js" | "ts" | "css" | "json" | "md" | "txt";
+	lang?: "vue" | "html" | "js" | "ts" | "css" | "json" | "md" | "python" | "bash" | "sh" | "txt";
 	/**
 	 * Code to render. If empty, default slot content is serialized.
 	 */

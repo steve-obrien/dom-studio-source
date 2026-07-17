@@ -7,16 +7,18 @@
 const SHIKI_URL = 'https://esm.sh/shiki@1';
 const LIGHT = 'light-plus';
 const DARK = 'dark-plus';
-const LANGS = ['vue', 'html', 'javascript', 'typescript', 'css', 'json', 'markdown', 'text'];
+const LANGS = ['vue', 'html', 'javascript', 'typescript', 'css', 'json', 'markdown', 'python', 'bash', 'text'];
 const LANG_ALIASES = {
 	js: 'javascript',
 	ts: 'typescript',
 	md: 'markdown',
+	sh: 'bash',
 	txt: 'text',
 };
 
 let highlighterPromise = null;
 let loadFailed = false;
+const languagePromises = new Map();
 
 /**
  * Loads the shared Shiki highlighter when the browser can reach the CDN.
@@ -33,7 +35,7 @@ async function getHighlighter() {
 			const shiki = await import(/* @vite-ignore */ SHIKI_URL);
 			const factory = shiki.createHighlighter || shiki.getHighlighter;
 			if (!factory) throw new Error('shiki: no factory export');
-			return await factory({ themes: [LIGHT, DARK], langs: LANGS });
+			return await factory({ themes: [LIGHT, DARK], langs: [] });
 		} catch (err) {
 			loadFailed = true;
 			if (typeof console !== 'undefined') {
@@ -45,6 +47,26 @@ async function getHighlighter() {
 	})();
 
 	return highlighterPromise;
+}
+
+/**
+ * Loads one bundled language grammar and shares concurrent requests for it.
+ *
+ * @param {object} highlighter Shiki highlighter instance.
+ * @param {string} lang Normalized bundled language key.
+ * @returns {Promise<void>} Resolves when the language grammar is available.
+ */
+async function ensureLanguage(highlighter, lang) {
+	if (!languagePromises.has(lang)) {
+		languagePromises.set(lang, highlighter.loadLanguage(lang));
+	}
+
+	try {
+		await languagePromises.get(lang);
+	} catch (err) {
+		languagePromises.delete(lang);
+		throw err;
+	}
 }
 
 /**
@@ -60,8 +82,10 @@ export async function highlight(code, lang = 'vue') {
 	if (!h) return null;
 	try {
 		const normalizedLang = LANG_ALIASES[lang] || lang;
+		const resolvedLang = LANGS.includes(normalizedLang) ? normalizedLang : 'html';
+		await ensureLanguage(h, resolvedLang);
 		return h.codeToHtml(code, {
-			lang: LANGS.includes(normalizedLang) ? normalizedLang : 'html',
+			lang: resolvedLang,
 			themes: { light: LIGHT, dark: DARK },
 		});
 	} catch {

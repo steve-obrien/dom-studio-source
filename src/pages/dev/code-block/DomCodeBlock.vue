@@ -26,14 +26,18 @@ const props = defineProps({
 		type: String,
 		default: 'vue',
 		_edit: {
-			options: ['vue', 'html', 'js', 'ts', 'css', 'json', 'md', 'txt'],
+			options: ['vue', 'html', 'js', 'ts', 'css', 'json', 'md', 'python', 'bash', 'sh', 'txt'],
 			description: 'Language passed to the syntax highlighter.',
 		},
 	},
 	code: {
 		type: String,
 		default: '',
-		_edit: { description: 'Code to render. If empty, default slot content is serialized.' },
+		_edit: {
+			component: 'DomCodeInput',
+			props: { rows: 8, editor: false },
+			description: 'Code to render. If empty, default slot content is serialized.',
+		},
 	},
 	filename: {
 		type: String,
@@ -223,12 +227,15 @@ function serializeNodes(nodes, depth = 0) {
 
 <template>
 	<div
-		class="dom-code w-full min-w-0 max-w-full overflow-auto"
+		class="dom-code relative w-full min-w-0 max-w-full overflow-auto"
 		:class="framed ? 'rounded-2xl border border-border bg-canvas' : ''"
 		:style="codeStyle"
 		:data-language="lang || undefined"
 		:data-filename="filename || undefined"
 	>
+		<span class="pointer-events-none absolute right-3 top-1 z-10 font-mono text-[9px] font-medium uppercase leading-none tracking-wider text-muted-fg">
+			{{ lang || 'text' }}
+		</span>
 		<div v-if="highlighted" class="dom-shiki" v-html="highlighted"></div>
 		<pre v-else class="min-w-0 max-w-full overflow-auto bg-canvas p-4 font-mono text-[12.5px] leading-relaxed text-canvas-fg"><code>{{ displayCode }}</code></pre>
 	</div>

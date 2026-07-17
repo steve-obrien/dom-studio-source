@@ -85,6 +85,8 @@ Component source commonly uses `defineOptions({ __doc: ... })` and prop `_edit` 
 
 `src/style.css` is the source of global styling, Tailwind v4 theme tokens, light/dark variables, shadow/radius values, and skin utilities.
 
+DOM Studio components are Tailwind-first. Put ordinary layout, spacing, typography, color, border, state, responsive, and transition styling directly in Vue templates as Tailwind CSS v4 utilities. Use scoped CSS only when it expresses an intrinsic component behavior or keeps genuinely complex CSS clearer, such as coordinated container queries, selector relationships, pseudo-elements, or keyframes. Do not introduce BEM class trees solely to attach presentational styles.
+
 Prefer semantic tokens and skin utilities:
 
 - `canvas`, `canvas-fg`, `primary`, `primary-fg`, `secondary`, `muted`, `accent`, `destructive`, `success`, `warning`, `border`, `input`, `ring`.
@@ -112,7 +114,7 @@ Be careful around:
 
 ## Experiments
 
-The repo contains active experiments under `src/pages/experiments`, including a CSS button creator and a template editor. These routes are entitlement-gated by route metadata for `/experiments`. Treat experiments as product research surfaces that may still be messy, but do not casually break them because they are part of the commercial source-access story.
+The repo contains active public experiments under `src/pages/experiments`, including a CSS button creator, a template editor, and liquid-glass surfaces. Treat experiments as product research surfaces that may still be messy, but do not casually break them because they are useful previews of the system's direction.
 
 ## Validation Matrix
 

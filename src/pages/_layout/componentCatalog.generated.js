@@ -3673,5 +3673,53 @@ export const componentCatalog = [
 			]
 		},
 		"studio": {}
+	},
+	{
+		"id": "visual/text-diff",
+		"path": "../visual/text-diff/DomTextDiff.vue",
+		"section": "visual",
+		"slug": "text-diff",
+		"exportName": "DomTextDiff",
+		"route": "/visual/text-diff",
+		"doc": {
+			"name": "Text diff",
+			"tag": "<DomTextDiff>",
+			"description": "A standalone text comparison for AI rewrites, code patches, editorial review, and before-and-after copy changes.",
+			"icon": "M8 7H4m4 0L6 5m2 2L6 9m10 8h4m-2-2v4M11 5h3a3 3 0 0 1 3 3v1m-6 10H8a3 3 0 0 1-3-3v-1",
+			"playground": {
+				"initial": {
+					"original": "Write better pages with a flexible visual editor.",
+					"proposed": "Create clearer pages with an editor built for focused teams.",
+					"mode": "diff",
+					"view": "inline",
+					"format": "text",
+					"originalLabel": "Current",
+					"proposedLabel": "Suggested",
+					"showHeader": true,
+					"showModeSwitcher": true,
+					"framed": true
+				}
+			},
+			"slots": [
+				{
+					"name": "header",
+					"payload": "{ additions, removals, mode, setMode, originalLabel, proposedLabel }",
+					"description": "Replace the comparison header and optionally control the active content mode."
+				}
+			],
+			"events": [
+				{
+					"name": "update:mode",
+					"payload": "'diff' | 'original' | 'replacement'",
+					"description": "Fired when the active content mode changes."
+				},
+				{
+					"name": "mode-change",
+					"payload": "'diff' | 'original' | 'replacement'",
+					"description": "Fired after the viewer switches between the diff, current text, and replacement text."
+				}
+			]
+		},
+		"studio": {}
 	}
 ];

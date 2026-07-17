@@ -39,6 +39,8 @@ The app uses Vite, Vue Router, Pinia, Tailwind CSS v4, Express, Knex, MySQL, Str
 - Prefer existing DOM Studio components, blocks, headless primitives, theme tokens, and docs helpers before inventing custom UI.
 - Keep changes close to the requested area. This repo often has many active local edits, so do not revert unrelated files.
 - Preserve public package contracts. If you add or remove a public Vue or headless export, update `src/pages/lib/vue/index.js` or `src/pages/lib/headless/index.js` and run `npm run types:generate`.
+- Use Tailwind CSS v4 utilities directly in Vue templates for layout, spacing, typography, color, borders, states, responsive behavior, and transitions. DOM Studio component styling is Tailwind-first.
+- Keep scoped CSS for behavior that is intrinsic to the component or would become materially harder to understand in utilities, such as complex selector relationships, container-query coordination, pseudo-elements, or keyframe animation. Do not add BEM class trees solely as styling hooks.
 - Use semantic theme classes and CSS variables from `src/style.css`; avoid hard-coded raw colors unless defining or extending a theme token.
 - Keep docs pages inside `DomStudioLayout`, `DocPage`, and `DocSection` unless the surrounding section uses a different established pattern.
 - Component docs should prefer `defineOptions({ __doc: ... })` plus prop `_edit` metadata where useful.

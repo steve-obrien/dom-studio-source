@@ -88,6 +88,7 @@ export { default as DomSkeleton } from '../../visual/skeleton/DomSkeleton.vue';
 export { default as DomProgress } from '../../visual/progress/DomProgress.vue';
 export { default as DomRadialProgress } from '../../visual/progress/DomRadialProgress.vue';
 export { default as DomSpinner } from '../../visual/spinner/DomSpinner.vue';
+export { default as DomTextDiff } from '../../visual/text-diff/DomTextDiff.vue';
 export { default as DomCodeBlock } from '../../dev/code-block/DomCodeBlock.vue';
 
 // Form primitives

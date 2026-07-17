@@ -253,7 +253,7 @@ import DomField from '../../forms/field/DomField.vue';
 import { useField } from '../../forms/field/useField.js';
 import DomTextInput from '../../forms/text-input/DomTextInput.vue';
 import DomBadge from '../../visual/badge/DomBadge.vue';
-import { createWordDiff } from './documentEditorDiff.js';
+import DomTextDiff from '../../visual/text-diff/DomTextDiff.vue';
 
 defineOptions({
 	__doc: {
@@ -368,10 +368,7 @@ const suggestions = computed(() => [
 	...props.suggestions.map(normalizeExternalSuggestion),
 	...internalSuggestions.value,
 ]);
-const suggestionCards = computed(() => suggestions.value.map((suggestion) => ({
-	...suggestion,
-	diff: createWordDiff(suggestion.original, suggestion.proposed),
-})));
+const suggestionCards = computed(() => suggestions.value);
 const hasSuggestions = computed(() => suggestionCards.value.length > 0);
 const hasCollaboration = computed(() => Boolean(collaborationDocument(props.collaboration) || props.collaboration?.fragment));
 const visibleCollaborators = computed(() => normalizeCollaborators(props.collaborators, props.collaboration));
@@ -2080,13 +2077,13 @@ function insertVideoCommand(nodeName) {
 											</div>
 											<DomBadge label="Diff" tone="primary" size="sm" />
 										</div>
-										<div class="mt-3 rounded-md border border-border bg-secondary/25 p-2 text-sm leading-6">
-											<template v-for="token in suggestion.diff" :key="token.id">
-												<ins v-if="token.type === 'added'" class="rounded bg-success/15 px-0.5 text-success no-underline">{{ token.value }}</ins>
-												<del v-else-if="token.type === 'removed'" class="rounded bg-destructive/10 px-0.5 text-destructive">{{ token.value }}</del>
-												<span v-else>{{ token.value }}</span>
-											</template>
-										</div>
+										<DomTextDiff
+											class="mt-3"
+											:original="suggestion.original"
+											:proposed="suggestion.proposed"
+											original-label="Current"
+											proposed-label="Replacement"
+										/>
 										<div class="mt-3 flex items-center justify-end gap-2">
 											<DomButton size="sm" variant="secondary" @click="rejectSuggestion(suggestion)">Reject</DomButton>
 											<DomButton size="sm" variant="primary" @click="acceptSuggestion(suggestion)">Accept</DomButton>

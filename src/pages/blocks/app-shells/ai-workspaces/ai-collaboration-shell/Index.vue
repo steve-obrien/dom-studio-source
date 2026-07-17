@@ -12,7 +12,7 @@ import AiCollaborationShellSrc from './examples/AiCollaborationShell.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="AI Collaboration Shell Block"
-			tagline="A product shell for AI-assisted workspaces where people review context, compare model suggestions, approve changes, and keep an audit trail."
+			tagline="A responsive supervised-AI workspace that keeps source context, model suggestions, approval boundaries, and the current human decision in view."
 			tag="AI Shell UI"
 			eyebrow="Blocks"
 		>
@@ -22,7 +22,7 @@ import AiCollaborationShellSrc from './examples/AiCollaborationShell.vue?raw';
 					filename="AiCollaborationShell.vue"
 					presentation="iframe"
 					frame-src="/blocks/app-shells/ai-workspaces/ai-collaboration-shell/preview/AiCollaborationShell"
-					description="Copy this into AI copilots, workflow assistants, internal agent consoles, document collaboration tools, research workspaces, and human-review queues. Replace the local arrays with goals, suggestions, approvals, context sources, and audit events from your backend."
+					description="Copy this into copilots, agent consoles, research workspaces, or human-review queues. The desktop workstream rail becomes a rich DomSelect inside narrower iframes, while DomCard, DomTabs, DomStatusPill, DomToggle, and DomButton compose the review workflow. Replace the local arrays with goals, suggestions, approvals, context sources, and audit events from your backend."
 					default-open
 					:preview-lines="14"
 				>

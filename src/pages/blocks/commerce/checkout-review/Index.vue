@@ -12,7 +12,7 @@ import CheckoutReviewSrc from './examples/CheckoutReview.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Checkout Review Block"
-			tagline="A copyable commerce checkout surface for reviewing cart items, delivery, payment, promo codes, policy checks, and final order totals before purchase."
+			tagline="A responsive checkout review composed from DOM Studio rich selects, status, form, card, and action components."
 			tag="Application UI"
 			eyebrow="Blocks"
 		>
@@ -22,7 +22,7 @@ import CheckoutReviewSrc from './examples/CheckoutReview.vue?raw';
 					filename="CheckoutReview.vue"
 					presentation="iframe"
 					frame-src="/blocks/commerce/checkout-review/preview/CheckoutReview"
-					description="Copy this into ecommerce stores, SaaS add-on flows, marketplace order pages, booking payments, or internal order-entry tools where users need one final confident review before purchase."
+					description="Resize or expand the isolated app viewport to test the rich delivery and payment dropdowns, compact order rows, readiness checks, and sticky desktop summary."
 					default-open
 					:preview-lines="20"
 				>

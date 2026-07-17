@@ -1,6 +1,13 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { DomButton, DomCheckbox, DomNativeSelect, DomTextInput } from '@getdom/studio/vue';
+import {
+	DomButton,
+	DomCard,
+	DomCheckbox,
+	DomSelect,
+	DomStatusPill,
+	DomTextInput,
+} from '@getdom/studio/vue';
 
 const cartItems = [
 	{
@@ -36,15 +43,15 @@ const cartItems = [
 ];
 
 const shippingOptions = [
-	{ value: 'standard', label: 'Standard delivery - Jun 17-19', price: 0, detail: 'Included with this order' },
-	{ value: 'express', label: 'Express delivery - Jun 14-15', price: 9, detail: 'Tracked priority fulfilment' },
-	{ value: 'pickup', label: 'Store pickup - Jun 13', price: 0, detail: 'Oxford Street collection desk' },
+	{ value: 'standard', label: 'Standard delivery', window: 'Jun 17-19', price: 0, detail: 'Included with this order', description: 'Jun 17-19 · Included with this order' },
+	{ value: 'express', label: 'Express delivery', window: 'Jun 14-15', price: 9, detail: 'Tracked priority fulfilment', description: 'Jun 14-15 · Tracked priority fulfilment · £9' },
+	{ value: 'pickup', label: 'Store pickup', window: 'Jun 13', price: 0, detail: 'Oxford Street collection desk', description: 'Jun 13 · Oxford Street collection desk' },
 ];
 
 const paymentOptions = [
-	{ value: 'visa', label: 'Visa ending 4242', detail: 'Expires 08/28' },
-	{ value: 'amex', label: 'Amex ending 1005', detail: 'Business card' },
-	{ value: 'invoice', label: 'Pay by invoice', detail: 'Available for approved teams' },
+	{ value: 'visa', label: 'Visa ending 4242', detail: 'Expires 08/28', description: 'Personal card · Expires 08/28' },
+	{ value: 'amex', label: 'Amex ending 1005', detail: 'Business card', description: 'Business card · Finance team default' },
+	{ value: 'invoice', label: 'Pay by invoice', detail: 'Available for approved teams', description: 'Requires finance approval before fulfilment' },
 ];
 
 const selectedShippingId = ref('express');
@@ -88,16 +95,41 @@ const readyChecks = computed(() => [
 const canPlaceOrder = computed(() => readyChecks.value.every((check) => check.passed));
 const orderStatusLabel = computed(() => orderPlaced.value ? 'Order ready' : canPlaceOrder.value ? 'Ready to pay' : 'Needs attention');
 
+/**
+ * Normalizes the entered promotion code and invalidates any prepared order.
+ *
+ * @returns {void}
+ */
 function applyPromo() {
 	promoCode.value = promoCode.value.trim().toUpperCase();
 	orderPlaced.value = false;
 }
 
+/**
+ * Marks the order as prepared when every checkout readiness check passes.
+ *
+ * @returns {void}
+ */
 function placeOrder() {
 	if (!canPlaceOrder.value) return;
 	orderPlaced.value = true;
 }
 
+/**
+ * Clears the prepared state after a buyer changes a checkout decision.
+ *
+ * @returns {void}
+ */
+function resetOrderState() {
+	orderPlaced.value = false;
+}
+
+/**
+ * Formats an integer amount as a whole-pound display value.
+ *
+ * @param {number} value Amount in pounds.
+ * @returns {string} Localized GBP amount.
+ */
 function money(value) {
 	return new Intl.NumberFormat('en-GB', {
 		style: 'currency',
@@ -108,192 +140,140 @@ function money(value) {
 </script>
 
 <template>
-	<div class="w-full max-w-7xl overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
-			<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+	<div class="min-h-screen bg-secondary/30 text-canvas-fg">
+		<header class="border-b border-border bg-canvas">
+			<div class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:px-8">
 				<div>
-					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Checkout review</p>
-					<h3 class="mt-1 text-2xl font-semibold tracking-tight">Confirm order CHK-2048</h3>
-					<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">
-						Review fulfilment, payment, discount, risk checks, and the final amount before authorizing payment.
-					</p>
+					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Secure checkout / Review</p>
+					<h1 class="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">Confirm order CHK-2048</h1>
+					<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">Check delivery, payment, and the final total before authorizing this order.</p>
 				</div>
-				<div class="grid gap-1 rounded-2xl border border-border bg-canvas px-4 py-3 text-sm">
-					<span class="font-semibold">{{ orderStatusLabel }}</span>
-					<span class="text-muted-fg">Quote expires in {{ inventoryHoldMinutes }} minutes</span>
+				<div class="flex items-center gap-3">
+					<DomStatusPill :tone="canPlaceOrder ? 'success' : 'warning'" :label="orderStatusLabel" size="sm" />
+					<p class="text-xs text-muted-fg">Quote held for {{ inventoryHoldMinutes }} min</p>
 				</div>
 			</div>
 		</header>
 
-		<div class="grid lg:grid-cols-[minmax(0,1fr)_23rem]">
-			<main class="min-w-0 border-b border-border lg:border-b-0 lg:border-r">
-				<section class="border-b border-border p-4 sm:p-6">
-					<div class="flex flex-wrap items-center justify-between gap-3">
+		<main class="mx-auto grid w-full max-w-7xl gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start lg:px-8 lg:py-8">
+			<div class="min-w-0 overflow-hidden border-y border-border bg-canvas sm:rounded-2xl sm:border">
+				<section class="p-4 sm:p-6" aria-labelledby="checkout-items-heading">
+					<div class="flex flex-wrap items-end justify-between gap-3">
 						<div>
-							<h4 class="font-semibold tracking-tight">Items in this order</h4>
-							<p class="mt-1 text-sm text-muted-fg">{{ cartItems.length }} items reserved for checkout</p>
+							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Order</p>
+							<h2 id="checkout-items-heading" class="mt-1 text-lg font-semibold tracking-tight">{{ cartItems.length }} reserved items</h2>
 						</div>
-						<span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-							{{ money(subtotal) }} subtotal
-						</span>
+						<p class="text-sm font-semibold tabular-nums">{{ money(subtotal) }} subtotal</p>
 					</div>
 
-					<div class="mt-4 divide-y divide-border overflow-hidden rounded-2xl border border-border">
-						<div
-							v-for="item in cartItems"
-							:key="item.id"
-							class="grid gap-3 bg-canvas p-4 sm:grid-cols-[minmax(0,1fr)_8rem_auto]"
-						>
+					<ul class="mt-4 divide-y divide-border border-y border-border">
+						<li v-for="item in cartItems" :key="item.id" class="grid grid-cols-[minmax(0,1fr)_auto] gap-4 py-4">
 							<div class="min-w-0">
 								<div class="flex flex-wrap items-center gap-2">
-									<h5 class="font-semibold">{{ item.name }}</h5>
-									<span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ item.status }}</span>
+									<h3 class="font-semibold">{{ item.name }}</h3>
+									<DomStatusPill tone="neutral" :label="item.status" size="sm" />
 								</div>
 								<p class="mt-1 text-sm text-muted-fg">{{ item.variant }}</p>
-								<p class="mt-2 text-xs font-medium text-muted-fg">{{ item.sku }} / {{ item.eta }}</p>
+								<p class="mt-1 text-xs text-muted-fg">{{ item.sku }} / {{ item.eta }}</p>
 							</div>
-							<div class="text-sm sm:text-right">
-								<p class="font-semibold">{{ money(item.price) }}</p>
+							<div class="text-right text-sm">
+								<p class="font-semibold tabular-nums">{{ money(item.price) }}</p>
 								<p class="mt-1 text-muted-fg">Qty {{ item.quantity }}</p>
 							</div>
-							<div class="grid size-10 place-items-center rounded-xl bg-secondary text-muted-fg" aria-hidden="true">
-								<svg viewBox="0 0 24 24" class="size-5" fill="none">
-									<path d="M7 8h10l-1 11H8L7 8Zm2-3h6l2 3H7l2-3Zm2 7v3M14 12v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-								</svg>
+						</li>
+					</ul>
+				</section>
+
+				<section class="grid gap-6 border-t border-border p-4 sm:p-6" aria-labelledby="checkout-decisions-heading">
+					<div>
+						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Fulfilment and payment</p>
+						<h2 id="checkout-decisions-heading" class="mt-1 text-lg font-semibold tracking-tight">Choose how to complete the order</h2>
+					</div>
+
+					<div class="grid gap-6 lg:grid-cols-2">
+						<div>
+							<DomSelect v-model="selectedShippingId" :options="shippingOptions" label="Delivery method" width="min-w-[20rem]" @update:model-value="resetOrderState" />
+							<div class="mt-3 border-l-2 border-primary pl-3 text-sm">
+								<p class="font-semibold">{{ selectedShipping.label }} / {{ selectedShipping.window }}</p>
+								<p class="mt-1 text-muted-fg">{{ selectedShipping.detail }} · {{ shipping ? money(shipping) : 'Free' }}</p>
+							</div>
+						</div>
+
+						<div>
+							<DomSelect v-model="selectedPaymentId" :options="paymentOptions" label="Payment method" width="min-w-[20rem]" @update:model-value="resetOrderState" />
+							<div class="mt-3 border-l-2 border-primary pl-3 text-sm">
+								<p class="font-semibold">{{ selectedPayment.label }}</p>
+								<p class="mt-1 text-muted-fg">{{ selectedPayment.detail }}</p>
 							</div>
 						</div>
 					</div>
-				</section>
 
-				<section class="grid gap-6 p-4 sm:p-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
-					<div class="grid gap-5">
-						<div class="grid gap-4 md:grid-cols-2">
-							<DomNativeSelect v-model="selectedShippingId" label="Delivery method" :options="shippingOptions" @change="orderPlaced = false" />
-							<DomNativeSelect v-model="selectedPaymentId" label="Payment method" :options="paymentOptions" @change="orderPlaced = false" />
-						</div>
-
-						<div class="grid gap-3 rounded-2xl bg-secondary/60 p-4 sm:grid-cols-[minmax(0,1fr)_auto]">
-							<DomTextInput v-model="promoCode" label="Promo code" placeholder="Add a code" @keyup.enter="applyPromo" />
-							<DomButton class="self-end" variant="secondary" @click="applyPromo">Apply</DomButton>
-						</div>
-
-						<div class="grid gap-3 rounded-2xl bg-secondary/50 p-4">
-							<DomCheckbox
-								v-model="giftReceipt"
-								label="Include gift receipt"
-								description="Hide prices on the packing slip and include return instructions."
-							/>
-							<DomCheckbox
-								v-model="marketingOptIn"
-								label="Send order tips and restock updates"
-								description="Optional product guidance for this purchase."
-							/>
-							<DomCheckbox
-								v-model="acceptedTerms"
-								label="I agree to the store terms and returns policy"
-								description="Required before payment can be authorized."
-							/>
-						</div>
+					<div class="grid gap-3 border-t border-border pt-5 sm:grid-cols-[minmax(0,1fr)_auto]">
+						<DomTextInput v-model="promoCode" label="Promo code" placeholder="Add a code" @keyup.enter="applyPromo" />
+						<DomButton class="self-end" variant="secondary" @click="applyPromo">Apply code</DomButton>
 					</div>
 
-					<aside class="rounded-2xl border border-border bg-canvas p-4">
-						<h4 class="font-semibold tracking-tight">Checkout checks</h4>
-						<div class="mt-4 grid gap-3">
-							<div v-for="check in readyChecks" :key="check.label" class="flex items-start gap-3 text-sm">
-								<span
-									class="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full text-[11px] font-bold"
-									:class="check.passed ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'"
-								>
-									{{ check.passed ? 'OK' : '!' }}
-								</span>
-								<span class="min-w-0">
-									<span class="block font-medium text-canvas-fg">{{ check.label }}</span>
-									<span class="mt-0.5 block leading-5 text-muted-fg">{{ check.detail }}</span>
-								</span>
-							</div>
-						</div>
-					</aside>
+					<div class="grid gap-3 border-t border-border pt-5">
+						<DomCheckbox v-model="giftReceipt" label="Include gift receipt" description="Hide prices on the packing slip and include return instructions." />
+						<DomCheckbox v-model="marketingOptIn" label="Send order tips and restock updates" description="Optional product guidance for this purchase." />
+						<DomCheckbox v-model="acceptedTerms" label="I agree to the store terms and returns policy" description="Required before payment can be authorized." @update:model-value="resetOrderState" />
+					</div>
 				</section>
-			</main>
 
-			<aside class="grid content-start skin-card">
-				<section class="border-b border-border p-4 sm:p-6">
+				<section class="border-t border-border p-4 sm:p-6" aria-labelledby="checkout-checks-heading">
+					<div class="flex flex-wrap items-end justify-between gap-3">
+						<div>
+							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Readiness</p>
+							<h2 id="checkout-checks-heading" class="mt-1 text-lg font-semibold tracking-tight">Checkout checks</h2>
+						</div>
+						<p class="text-xs text-muted-fg">Validated just now</p>
+					</div>
+					<ul class="mt-4 grid gap-x-6 gap-y-4 md:grid-cols-2">
+						<li v-for="check in readyChecks" :key="check.label" class="flex items-start gap-3 text-sm">
+							<DomStatusPill :tone="check.passed ? 'success' : 'warning'" :label="check.passed ? 'Ready' : 'Review'" size="sm" />
+							<span class="min-w-0">
+								<span class="block font-medium">{{ check.label }}</span>
+								<span class="mt-0.5 block leading-5 text-muted-fg">{{ check.detail }}</span>
+							</span>
+						</li>
+					</ul>
+				</section>
+			</div>
+
+			<aside class="grid gap-5 lg:sticky lg:top-5">
+				<DomCard as="section" padding="lg" aria-labelledby="checkout-total-heading">
 					<div class="flex items-start justify-between gap-3">
 						<div>
-							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Order total</p>
-							<h4 class="mt-1 text-3xl font-semibold tracking-tight">{{ money(total) }}</h4>
+							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Order total</p>
+							<h2 id="checkout-total-heading" class="mt-1 text-3xl font-semibold tracking-tight tabular-nums">{{ money(total) }}</h2>
 						</div>
-						<span class="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-fg">
-							GBP
-						</span>
+						<span class="text-xs font-semibold text-muted-fg">GBP</span>
 					</div>
 
-					<div class="mt-5 grid gap-3 text-sm">
-						<div class="flex items-center justify-between gap-3">
-							<span class="text-muted-fg">Subtotal</span>
-							<span class="font-semibold">{{ money(subtotal) }}</span>
-						</div>
-						<div class="flex items-center justify-between gap-3">
-							<span class="text-muted-fg">Discount</span>
-							<span class="font-semibold">-{{ money(discount) }}</span>
-						</div>
-						<div class="flex items-center justify-between gap-3">
-							<span class="text-muted-fg">Delivery</span>
-							<span class="font-semibold">{{ money(shipping) }}</span>
-						</div>
-						<div class="flex items-center justify-between gap-3">
-							<span class="text-muted-fg">VAT estimate</span>
-							<span class="font-semibold">{{ money(tax) }}</span>
-						</div>
-					</div>
+					<dl class="mt-5 grid gap-3 border-b border-border pb-5 text-sm">
+						<div class="flex items-center justify-between gap-3"><dt class="text-muted-fg">Subtotal</dt><dd class="font-semibold tabular-nums">{{ money(subtotal) }}</dd></div>
+						<div class="flex items-center justify-between gap-3"><dt class="text-muted-fg">Discount</dt><dd class="font-semibold tabular-nums">-{{ money(discount) }}</dd></div>
+						<div class="flex items-center justify-between gap-3"><dt class="text-muted-fg">Delivery</dt><dd class="font-semibold tabular-nums">{{ money(shipping) }}</dd></div>
+						<div class="flex items-center justify-between gap-3"><dt class="text-muted-fg">VAT estimate</dt><dd class="font-semibold tabular-nums">{{ money(tax) }}</dd></div>
+					</dl>
 
-					<div class="mt-5 rounded-2xl border border-border bg-canvas p-4 text-sm leading-6">
-						<p class="font-semibold">{{ selectedShipping.label }}</p>
-						<p class="mt-1 text-muted-fg">{{ selectedShipping.detail }}</p>
-						<p class="mt-3 font-semibold">{{ selectedPayment.label }}</p>
-						<p class="mt-1 text-muted-fg">{{ selectedPayment.detail }}</p>
+					<div class="mt-5 text-sm leading-6">
+						<p class="font-semibold">Ship to Alex Morgan</p>
+						<p class="text-muted-fg">14 Market Street, London W1F 8ZA</p>
 					</div>
 
 					<DomButton class="mt-5 w-full" :disabled="!canPlaceOrder" @click="placeOrder">
 						{{ orderPlaced ? 'Order prepared' : `Pay ${money(total)}` }}
 					</DomButton>
-					<p v-if="orderPlaced" class="mt-3 rounded-2xl bg-success/15 p-3 text-sm font-medium leading-6 text-success">
-						Checkout payload is ready for payment authorization and order creation.
-					</p>
-					<p v-else-if="!canPlaceOrder" class="mt-3 rounded-2xl bg-warning/15 p-3 text-sm font-medium leading-6 text-warning">
-						Resolve payment and terms checks before placing the order.
-					</p>
-				</section>
+					<p v-if="orderPlaced" class="mt-3 border-l-2 border-success pl-3 text-sm font-medium leading-6 text-success">Checkout payload is ready for payment authorization.</p>
+					<p v-else-if="!canPlaceOrder" class="mt-3 border-l-2 border-warning pl-3 text-sm font-medium leading-6 text-warning">Resolve payment and terms checks before placing the order.</p>
+				</DomCard>
 
-				<section class="border-b border-border p-4 sm:p-6">
-					<h4 class="font-semibold tracking-tight">Ship to</h4>
-					<div class="mt-3 rounded-2xl bg-canvas p-4 text-sm leading-6">
-						<p class="font-semibold">Alex Morgan</p>
-						<p class="mt-1 text-muted-fg">14 Market Street, London W1F 8ZA</p>
-						<p class="mt-1 text-muted-fg">alex@example.com</p>
-					</div>
-				</section>
-
-				<section class="p-4 sm:p-6">
-					<h4 class="font-semibold tracking-tight">Activity</h4>
-					<div class="mt-4 grid gap-4">
-						<div class="grid grid-cols-[auto_minmax(0,1fr)] gap-3 text-sm">
-							<span class="mt-1 size-2 rounded-full bg-primary"></span>
-							<span>
-								<span class="block font-medium">Quote refreshed</span>
-								<span class="mt-1 block leading-6 text-muted-fg">Tax, stock, and delivery options checked for this address.</span>
-							</span>
-						</div>
-						<div class="grid grid-cols-[auto_minmax(0,1fr)] gap-3 text-sm">
-							<span class="mt-1 size-2 rounded-full bg-primary"></span>
-							<span>
-								<span class="block font-medium">Promo validated</span>
-								<span class="mt-1 block leading-6 text-muted-fg">WELCOME10 applies to all physical items in the cart.</span>
-							</span>
-						</div>
-					</div>
-				</section>
+				<div class="px-1 text-xs leading-5 text-muted-fg">
+					<p class="font-semibold text-canvas-fg">Latest activity</p>
+					<p class="mt-1">Tax, stock, delivery, and WELCOME10 were refreshed for this address.</p>
+				</div>
 			</aside>
-		</div>
+		</main>
 	</div>
 </template>

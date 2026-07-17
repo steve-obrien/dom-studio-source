@@ -20,6 +20,13 @@ defineOptions({
 const MAP_UPDATE_DELAY = 140;
 const FALLBACK_FILTER = 'blur(var(--dom-liquid-glass-fallback-blur, 18px)) saturate(var(--dom-liquid-glass-fallback-saturation, 1.2))';
 
+defineProps({
+	refraction: {
+		type: Number,
+		default: 50,
+	},
+});
+
 const surface = ref(null);
 const mapHref = ref('');
 const mode = ref('fallback');
@@ -140,7 +147,7 @@ onBeforeUnmount(disposeLiquidGlass);
 						in2="map"
 						xChannelSelector="R"
 						yChannelSelector="B"
-						scale="-50"
+						:scale="-refraction"
 						result="displaced-red"
 					/>
 					<feColorMatrix
@@ -154,7 +161,7 @@ onBeforeUnmount(disposeLiquidGlass);
 						in2="map"
 						xChannelSelector="R"
 						yChannelSelector="B"
-						scale="-47"
+						:scale="-Math.max(0, refraction - 3)"
 						result="displaced-green"
 					/>
 					<feColorMatrix
@@ -168,7 +175,7 @@ onBeforeUnmount(disposeLiquidGlass);
 						in2="map"
 						xChannelSelector="R"
 						yChannelSelector="B"
-						scale="-44"
+						:scale="-Math.max(0, refraction - 6)"
 						result="displaced-blue"
 					/>
 					<feColorMatrix
@@ -188,9 +195,9 @@ onBeforeUnmount(disposeLiquidGlass);
 
 <style scoped>
 .surface {
-	--dom-liquid-glass-surface-fill: var(
+	--dom-liquid-glass-default-surface-fill: var(
 		--dom-liquid-glass-fallback-background,
-		color-mix(in oklch, var(--canvas, white) 82%, transparent)
+		color-mix(in oklch, var(--canvas, white) 68%, transparent)
 	);
 	--dom-liquid-glass-default-edge-top: rgb(255 255 255 / 0.58);
 	--dom-liquid-glass-default-edge-top: light-dark(rgb(255 255 255 / 0.58), rgb(255 255 255 / 0.24));
@@ -223,8 +230,8 @@ onBeforeUnmount(disposeLiquidGlass);
 	color: var(--canvas-fg, #171717);
 	background:
 		linear-gradient(
-			var(--dom-liquid-glass-surface-fill),
-			var(--dom-liquid-glass-surface-fill)
+			var(--dom-liquid-glass-surface-fill, var(--dom-liquid-glass-default-surface-fill)),
+			var(--dom-liquid-glass-surface-fill, var(--dom-liquid-glass-default-surface-fill))
 		) padding-box,
 		linear-gradient(
 			180deg,
@@ -244,9 +251,9 @@ onBeforeUnmount(disposeLiquidGlass);
 }
 
 .surface[data-liquid-glass-mode='enhanced'] {
-	--dom-liquid-glass-surface-fill: var(
+	--dom-liquid-glass-default-surface-fill: var(
 		--dom-liquid-glass-background,
-		color-mix(in oklch, var(--canvas, white) 58%, transparent)
+		color-mix(in oklch, var(--canvas, white) 40%, transparent)
 	);
 }
 

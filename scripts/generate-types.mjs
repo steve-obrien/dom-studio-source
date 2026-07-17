@@ -93,6 +93,11 @@ const manualPropTypes = {
 		tools: 'Array<DocumentEditorToolId>',
 		customTools: 'Array<DocumentEditorTool>',
 	},
+	DomTextDiff: {
+		mode: '\'diff\' | \'original\' | \'replacement\'',
+		view: '\'inline\' | \'unified\' | \'split\'',
+		format: '\'text\' | \'code\'',
+	},
 	DomJsonViewer: {
 		value: 'JsonValue | string',
 		mode: '\'tree\' | \'code\'',

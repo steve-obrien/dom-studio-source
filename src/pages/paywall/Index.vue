@@ -30,7 +30,7 @@ const checkoutHref = computed(() => `/api/billing/checkout?licence=individual&fr
 				<p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-fg">DOM Studio access</p>
 				<h1 class="mt-3 text-5xl font-bold leading-[1.05] tracking-tight text-canvas-fg sm:text-6xl">Unlock the code behind DOM Studio.</h1>
 				<p class="mt-5 max-w-xl text-lg leading-8 text-muted-fg">
-					Create an account, buy a licence, and unlock the paid experiments, editable implementation patterns, and generated source previews designed to be copied into your own apps.
+					Create an account, buy a licence, and unlock editable implementation patterns and generated source previews designed to be copied into your own apps.
 				</p>
 				<div class="mt-8 flex flex-wrap items-center gap-3">
 					<DomButton :as="'a'" :href="checkoutHref" size="lg">Continue to checkout</DomButton>

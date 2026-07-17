@@ -11,7 +11,7 @@ import ProductDashboardSrc from './examples/ProductDashboard.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Dashboard Block"
-			tagline="A product dashboard starter with a side menu, account dropdown, metrics, and card-based content."
+			tagline="A responsive revenue dashboard with persistent navigation, compact metrics, reporting controls, and a mobile navigation fallback."
 			tag="Application UI"
 			eyebrow="Blocks"
 		>
@@ -21,8 +21,9 @@ import ProductDashboardSrc from './examples/ProductDashboard.vue?raw';
 					filename="ProductDashboard.vue"
 					presentation="iframe"
 					frame-src="/blocks/app-shells/dashboard/preview/ProductDashboard"
-					description="A larger composition showing how Card, Button, Dropdown, and NativeSelect fit together."
-					default-open
+					description="Resize the isolated app viewport to verify its desktop sidebar, compact metric layout, and mobile navigation."
+					:default-open="false"
+					:preview-lines="0"
 				>
 					<ProductDashboard />
 				</Example>

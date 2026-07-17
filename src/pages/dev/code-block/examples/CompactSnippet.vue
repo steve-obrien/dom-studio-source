@@ -1,21 +1,18 @@
 <script setup>
 import { DomCodeBlock } from '../../../lib/vue';
 
-const jsonSource = `{
-\t"component": "DomCodeBlock",
-\t"props": {
-\t\t"lang": "json",
-\t\t"previewLines": 5,
-\t\t"framed": true
-\t}
-}`;
+const shellSource = `#!/usr/bin/env bash
+set -euo pipefail
+
+npm run build
+npm run preview`;
 </script>
 
 <template>
 	<div class="w-full min-w-0 max-w-2xl">
 		<DomCodeBlock
-			:code="jsonSource"
-			lang="json"
+			:code="shellSource"
+			lang="bash"
 			:preview-lines="5"
 		/>
 	</div>
