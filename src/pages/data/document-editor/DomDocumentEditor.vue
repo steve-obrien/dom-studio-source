@@ -566,8 +566,12 @@ async function loadEditorRuntime() {
 		TableKit: tableModule.TableKit,
 		Collaboration: collaborationModule.default || collaborationModule.Collaboration,
 		CollaborationCaret: collaborationCaretModule.default || collaborationCaretModule.CollaborationCaret,
+		createCollaborationMappablePosition: collaborationModule.createMappablePosition,
+		getCollaborationUpdatedPosition: collaborationModule.getUpdatedPosition,
+		isCollaborationChange: collaborationModule.isChangeOrigin,
 		Plugin: prosemirrorStateModule.Plugin,
 		PluginKey: prosemirrorStateModule.PluginKey,
+		TextSelection: prosemirrorStateModule.TextSelection,
 		Decoration: prosemirrorViewModule.Decoration,
 		DecorationSet: prosemirrorViewModule.DecorationSet,
 	};
@@ -619,6 +623,7 @@ function createEditorExtensions(modules) {
 			field: collaborationConfig.field || 'default',
 			provider: collaborationConfig.provider || null,
 		}));
+		extensions.push(createCollaborationSelectionGuardExtension(modules));
 	}
 	if (hasCollaboration.value && collaborationConfig.provider) {
 		extensions.push(modules.CollaborationCaret.configure({
@@ -634,6 +639,167 @@ function createEditorExtensions(modules) {
 		if (Array.isArray(configured)) return configured.filter(Boolean);
 	}
 	return extensions;
+}
+
+/**
+ * Preserves a focused text cursor when a burst of remote Yjs updates is
+ * incorrectly reconstructed at the end of the document.
+ *
+ * Yjs normally restores a ProseMirror selection from relative positions. Some
+ * mobile browsers can expose a stale DOM selection during rapid remote updates,
+ * so this guard keeps a second relative bookmark and only intervenes for the
+ * narrow mid-document-to-document-end failure case.
+ *
+ * @param {Record<string, unknown>} modules Runtime modules loaded for Tiptap.
+ * @returns {unknown} Tiptap extension containing the selection guard plugin.
+ */
+function createCollaborationSelectionGuardExtension(modules) {
+	const pluginKey = new modules.PluginKey('domDocumentEditorCollaborationSelectionGuard');
+	let cursorBookmark = null;
+
+	/**
+	 * Captures the current collapsed text selection as a Yjs-relative position.
+	 *
+	 * @param {Record<string, unknown>} state Current ProseMirror state.
+	 * @returns {void}
+	 */
+	function captureCursorBookmark(state) {
+		const selection = state?.selection;
+		if (!(selection instanceof modules.TextSelection) || !selection.empty) {
+			cursorBookmark = null;
+			return;
+		}
+		try {
+			cursorBookmark = modules.createCollaborationMappablePosition(selection.head, state);
+		} catch {
+			cursorBookmark = null;
+		}
+	}
+
+	/**
+	 * Resolves the saved relative cursor against the document after a remote update.
+	 *
+	 * @param {Record<string, unknown>} transaction Remote collaboration transaction.
+	 * @param {Record<string, unknown>} state Updated ProseMirror state.
+	 * @returns {number|null} Resolved cursor position or null when unavailable.
+	 */
+	function resolveCursorBookmark(transaction, state) {
+		if (!cursorBookmark) return null;
+		try {
+			const result = modules.getCollaborationUpdatedPosition(cursorBookmark, transaction, state);
+			return Number.isFinite(result?.position?.position) ? result.position.position : null;
+		} catch {
+			return null;
+		}
+	}
+
+	/**
+	 * Checks whether a transaction was created by this selection guard.
+	 *
+	 * @param {Record<string, unknown>} transaction ProseMirror transaction.
+	 * @returns {boolean} Whether the transaction already restored the cursor.
+	 */
+	function isSelectionRestoreTransaction(transaction) {
+		return Boolean(transaction.getMeta(pluginKey)?.restored);
+	}
+
+	return modules.Extension.create({
+		name: 'domDocumentEditorCollaborationSelectionGuard',
+
+		/**
+		 * Adds the ProseMirror transaction and selection tracking plugin.
+		 *
+		 * @returns {Array<unknown>} ProseMirror plugins.
+		 */
+		addProseMirrorPlugins() {
+			const editorInstance = this.editor;
+			return [new modules.Plugin({
+				key: pluginKey,
+				state: {
+					/**
+					 * Initializes selection-capture state.
+					 *
+					 * @returns {{ skipCapture: boolean }} Initial plugin state.
+					 */
+					init() {
+						return { skipCapture: false };
+					},
+
+					/**
+					 * Keeps the pre-update bookmark until a local or restored selection arrives.
+					 *
+					 * @param {Record<string, unknown>} transaction Applied transaction.
+					 * @param {{ skipCapture: boolean }} pluginState Previous plugin state.
+					 * @returns {{ skipCapture: boolean }} Next plugin state.
+					 */
+					apply(transaction, pluginState) {
+						if (modules.isCollaborationChange(transaction)) return { skipCapture: true };
+						if (transaction.getMeta(pluginKey)?.restored) return { skipCapture: false };
+						if (pluginState.skipCapture && !transaction.docChanged && !transaction.selectionSet) return pluginState;
+						return { skipCapture: false };
+					},
+				},
+
+				/**
+				 * Restores a mid-document cursor only when a remote update moved it to the end.
+				 *
+				 * @param {Array<Record<string, unknown>>} transactions Applied transactions.
+				 * @param {Record<string, unknown>} oldState State before the transactions.
+				 * @param {Record<string, unknown>} newState State after the transactions.
+				 * @returns {Record<string, unknown>|null} Corrective transaction or null.
+				 */
+				appendTransaction(transactions, oldState, newState) {
+					if (transactions.some(isSelectionRestoreTransaction)) return null;
+					const remoteTransaction = transactions.find(modules.isCollaborationChange);
+					if (!remoteTransaction || !cursorBookmark || !editorInstance.view.hasFocus()) return null;
+					if (!(oldState.selection instanceof modules.TextSelection) || !oldState.selection.empty) return null;
+					if (!(newState.selection instanceof modules.TextSelection) || !newState.selection.empty) return null;
+
+					const oldDocumentEnd = modules.TextSelection.atEnd(oldState.doc).head;
+					const newDocumentEnd = modules.TextSelection.atEnd(newState.doc).head;
+					const wasAtDocumentEnd = oldState.selection.head >= oldDocumentEnd;
+					const landedAtDocumentEnd = newState.selection.head >= newDocumentEnd;
+					if (wasAtDocumentEnd || !landedAtDocumentEnd) return null;
+
+					let restoredPosition = resolveCursorBookmark(remoteTransaction, newState);
+					if ((restoredPosition === null || restoredPosition >= newDocumentEnd)
+						&& newState.doc.content.size >= oldState.doc.content.size) {
+						restoredPosition = Math.min(oldState.selection.head, newDocumentEnd - 1);
+					}
+					if (!Number.isFinite(restoredPosition) || restoredPosition <= 0 || restoredPosition >= newDocumentEnd) return null;
+
+					const restoredSelection = modules.TextSelection.near(newState.doc.resolve(restoredPosition));
+					if (restoredSelection.head >= newDocumentEnd || restoredSelection.eq(newState.selection)) return null;
+					return newState.tr
+						.setSelection(restoredSelection)
+						.setMeta(pluginKey, { restored: true })
+						.setMeta('addToHistory', false);
+				},
+
+				/**
+				 * Captures stable local selections after ProseMirror has updated its view.
+				 *
+				 * @param {Record<string, unknown>} view ProseMirror editor view.
+				 * @returns {{ update: (nextView: Record<string, unknown>) => void }} Plugin view hooks.
+				 */
+				view(view) {
+					captureCursorBookmark(view.state);
+					return {
+						/**
+						 * Refreshes the bookmark after local or corrective transactions.
+						 *
+						 * @param {Record<string, unknown>} nextView Updated editor view.
+						 * @returns {void}
+						 */
+						update(nextView) {
+							if (pluginKey.getState(nextView.state)?.skipCapture) return;
+							captureCursorBookmark(nextView.state);
+						},
+					};
+				},
+			})];
+		},
+	});
 }
 
 /**
