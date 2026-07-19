@@ -21,6 +21,7 @@ function defaultWysiwygTools() {
 		'undo',
 		'redo',
 		'paragraph',
+		'heading1',
 		'heading2',
 		'heading3',
 		'bold',
@@ -29,7 +30,9 @@ function defaultWysiwygTools() {
 		'bulletList',
 		'orderedList',
 		'blockquote',
+		'codeBlock',
 		'link',
+		'table',
 	];
 }
 
@@ -106,7 +109,7 @@ defineOptions({
 	__doc: {
 		name: 'WYSIWYG field',
 		tag: '<DomWysiwyg>',
-		description: 'A textarea-shaped rich text field powered by DomDocumentEditor, with simple v-model wiring and no collaboration or AI review rail by default.',
+		description: 'A textarea-shaped rich text field powered by DomDocumentEditor, with headings, language-aware highlighted code blocks, tables, simple v-model wiring, and no collaboration or AI review rail by default.',
 		events: [
 			{ name: 'update:modelValue', payload: 'Record<string, unknown> | string', description: 'Fired with JSON or HTML content depending on the output prop.' },
 			{ name: 'change', payload: 'DocumentEditorChangePayload', description: 'Fired with JSON, HTML, and plain text whenever the editor changes.' },

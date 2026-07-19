@@ -17,6 +17,8 @@ import DocumentEditorFormField from './examples/DocumentEditorFormField.vue';
 import DocumentEditorFormFieldSrc from './examples/DocumentEditorFormField.vue?raw';
 import DocumentEditorCustomTools from './examples/DocumentEditorCustomTools.vue';
 import DocumentEditorCustomToolsSrc from './examples/DocumentEditorCustomTools.vue?raw';
+import CollaborationClientSrc from './examples/documentEditorCollaborationClient.js?raw';
+import CollaborationServerSrc from '../../../../server/lib/documentEditorCollaborationServer.js?raw';
 import StoreSrc from './examples/useDocumentEditorDemoStore.js?raw';
 import MockApiSrc from './examples/documentEditorMockApi.js?raw';
 
@@ -43,21 +45,27 @@ function handleRewriteRequest(payload) {
 </template>`;
 
 const collaborationCode = `import * as Y from 'yjs';
+import { DocumentEditorCollaborationProvider } from './documentEditorCollaborationClient.js';
 
 const ydoc = new Y.Doc();
-const provider = createYourProvider(ydoc);
+const provider = new DocumentEditorCollaborationProvider({ document: ydoc });
 
-const collaboration = {
-\tdocument: ydoc,
-\tprovider,
-\tfield: 'body',
-\tuser: {
-\t\tid: currentUser.id,
-\t\tname: currentUser.name,
-\t\tcolor: currentUser.color,
-\t\ttype: 'human',
-\t},
-};`;
+/**
+ * Applies the server-assigned guest identity to the editor.
+ *
+ * @param {Record<string, unknown>} user Assigned user.
+ * @returns {void}
+ */
+function handleAssignedUser(user) {
+\tcollaboration.value = {
+\t\tdocument: ydoc,
+\t\tprovider,
+\t\tfield: 'body',
+\t\tuser,
+\t};
+}
+
+provider.on('user', handleAssignedUser);`;
 
 const suggestionShapeCode = `{
 \tid: 'sug_ai_1001',
@@ -120,14 +128,14 @@ function configureExtensions({ extensions }) {
 	<DomStudioLayout>
 		<DocPage
 			:name="doc.name"
-			tagline="A client-only WYSIWYG editing surface with structured JSON output, app-owned AI rewrite suggestions, media insertion, video embeds, and optional Yjs collaboration."
+			tagline="A client-only WYSIWYG editing surface with headings, language-aware highlighted code blocks, editable tables, structured JSON output, app-owned AI rewrite suggestions, media insertion, video embeds, and optional Yjs collaboration."
 			tag="Document editor"
 		>
 			<DocSection eyebrow="Demo" title="AI-ready editing workspace">
 				<Example
 					:source="DocumentEditorDemoSrc"
 					filename="DocumentEditorDemo.vue"
-					description="A Pinia setup store loads and saves structured document JSON, emulates an AI rewrite endpoint, and opens DomMediaBrowser when the editor image tool requests media."
+					description="A temporary Yjs room connects every visitor through the app's hardened WebSocket demo endpoint, assigns each person a guest name, and shows live carets alongside the existing mock save, AI rewrite, and media flows."
 					:preview-lines="0"
 				>
 					<DocumentEditorDemo />
@@ -210,7 +218,7 @@ function configureExtensions({ extensions }) {
 					<div class="rounded-lg border border-border bg-canvas p-4">
 						<h3 class="font-semibold text-canvas-fg">Structured persistence</h3>
 						<p class="mt-2">
-							The editor emits Tiptap JSON, HTML, and plain text in the change payload. Store JSON for editing and render public document output through a separate renderer.
+							The editor emits Tiptap JSON, HTML, and plain text in the change payload. Code blocks keep their selected language in <code class="text-canvas-fg">attrs.language</code> and render a matching <code class="text-canvas-fg">language-*</code> class. Store JSON for editing and render public document output through a separate renderer.
 						</p>
 					</div>
 					<div class="rounded-lg border border-border bg-canvas p-4">
@@ -267,18 +275,41 @@ function configureExtensions({ extensions }) {
 						Pass a Yjs document or fragment when the app wants true multi-user editing. The component wires Tiptap's collaboration extension and, when a provider is present, collaboration carets.
 					</p>
 					<p>
-						The AI can be represented as a collaborator in the header today and as a provider awareness user later while it is actively proposing changes.
+						This demo mounts a same-origin WebSocket endpoint on the existing Now HTTP server. The server assigns a friendly guest name, relays Yjs document and awareness updates, and keeps one fixed room only in memory. The room is destroyed every 15 minutes or when its final tab disconnects; connected pages reload into a fresh example document after a scheduled reset.
+					</p>
+					<p>
+						The endpoint is intentionally anonymous, but it rejects cross-origin browser handshakes and applies a 64 KB frame limit, connection and rolling rate caps, a room data budget, heartbeat cleanup, and slow-client backpressure. It remains a throw-away demo boundary: there is no persistence, account identity, private room isolation, or authorization model.
 					</p>
 				</div>
-				<CodePanel
-					class="mt-5 overflow-hidden rounded-lg border border-border"
-					:source="collaborationCode"
-					:preview-lines="0"
-					:default-open="false"
-					:border-top="false"
-					filename="document-editor-yjs.js"
-					lang="js"
-				/>
+				<div class="mt-5 grid gap-4 lg:grid-cols-3">
+					<CodePanel
+						class="overflow-hidden rounded-lg border border-border"
+						:source="collaborationCode"
+						:preview-lines="0"
+						:default-open="false"
+						:border-top="false"
+						filename="document-editor-yjs.js"
+						lang="js"
+					/>
+					<CodePanel
+						class="overflow-hidden rounded-lg border border-border"
+						:source="CollaborationClientSrc"
+						:preview-lines="0"
+						:default-open="false"
+						:border-top="false"
+						filename="documentEditorCollaborationClient.js"
+						lang="js"
+					/>
+					<CodePanel
+						class="overflow-hidden rounded-lg border border-border"
+						:source="CollaborationServerSrc"
+						:preview-lines="0"
+						:default-open="false"
+						:border-top="false"
+						filename="documentEditorCollaborationServer.js"
+						lang="js"
+					/>
+				</div>
 			</DocSection>
 
 			<DocSection eyebrow="Demo API" title="Store and API boundaries">

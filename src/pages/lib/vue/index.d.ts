@@ -215,7 +215,7 @@ export interface MediaBrowserStoreOptions {
 	[key: string]: unknown;
 }
 export type DocumentEditorContent = JsonValue | string;
-export type DocumentEditorToolId = 'undo' | 'redo' | 'paragraph' | 'heading2' | 'heading3' | 'bold' | 'italic' | 'underline' | 'bulletList' | 'orderedList' | 'blockquote' | 'link' | 'image' | 'video' | 'rewrite' | string;
+export type DocumentEditorToolId = 'undo' | 'redo' | 'paragraph' | 'heading1' | 'heading2' | 'heading3' | 'bold' | 'italic' | 'underline' | 'bulletList' | 'orderedList' | 'blockquote' | 'codeBlock' | 'link' | 'table' | 'image' | 'video' | 'rewrite' | string;
 export interface DocumentEditorCollaborator {
 	id: string;
 	name: string;
@@ -274,6 +274,7 @@ export interface DocumentEditorToolContext {
 	selection?: DocumentEditorSelectionPayload;
 	insertImage?: (payload: DocumentEditorMediaPayload | Record<string, unknown>) => void;
 	insertVideo?: (payload: DocumentEditorVideoPayload | Record<string, unknown>) => void;
+	insertTable?: () => boolean;
 	requestRewrite?: (instruction?: string) => Promise<DocumentEditorSuggestion | null>;
 	createSuggestion?: (payload: Partial<DocumentEditorSuggestion>) => DocumentEditorSuggestion | null;
 	savePayload?: () => DocumentEditorChangePayload;

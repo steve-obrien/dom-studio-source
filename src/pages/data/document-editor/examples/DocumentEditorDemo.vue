@@ -1,13 +1,16 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 import { storeToRefs } from 'pinia';
+import * as Y from 'yjs';
 import DomButton from '../../../components/button/DomButton.vue';
 import DomDialog from '../../../components/dialog/DomDialog.vue';
 import DomMediaBrowser from '../../media-browser/DomMediaBrowser.vue';
 import DomJsonViewer from '../../../dev/json-viewer/DomJsonViewer.vue';
+import DomBadge from '../../../visual/badge/DomBadge.vue';
 import DomDocumentEditor from '../DomDocumentEditor.vue';
 import { createMediaBrowserMockApi } from '../../media-browser/examples/mediaBrowserMockApi.js';
 import { defineMediaBrowserStore } from '../../media-browser/examples/useMediaBrowserDemoStore.js';
+import { DocumentEditorCollaborationProvider } from './documentEditorCollaborationClient.js';
 import { useDocumentEditorDemoStore } from './useDocumentEditorDemoStore.js';
 
 const documentStore = useDocumentEditorDemoStore();
@@ -41,21 +44,38 @@ const {
 	uploadProgress,
 } = storeToRefs(mediaStore);
 const editorRef = ref(null);
+const editorInstance = shallowRef(null);
 const mediaDialogOpen = ref(false);
 const currentEditorPayload = ref(null);
+const collaborationDocument = shallowRef(null);
+const collaborationProvider = shallowRef(null);
+const collaboration = shallowRef(null);
+const collaborationStatus = ref('connecting');
+const assignedUser = ref(null);
+const activeCollaborators = ref([]);
 const selectedImages = computed(() => selectedItems.value.filter(isImageMediaItem));
+const remoteCollaborators = computed(() => activeCollaborators.value.filter((user) => user.id !== assignedUser.value?.id));
 const status = computed(() => {
 	if (loading.value) return 'Loading document';
+	if (collaborationStatus.value !== 'connected') return 'Connecting collaborators';
 	if (saving.value) return 'Saving';
+	if (assignedUser.value) return `Live as ${assignedUser.value.name}`;
 	if (savedAt.value) return `Saved revision ${revision.value}`;
-	return 'Draft';
+	return 'Live demo';
 });
-const collaborators = [
-	{ id: 'author-mia', name: 'Mia', color: '#0f766e', type: 'human' },
-	{ id: 'ai-editor', name: 'AI', color: '#2563eb', type: 'ai' },
-];
+const collaborationSummary = computed(() => {
+	if (collaborationStatus.value === 'connected' && assignedUser.value) {
+		const others = Math.max(0, activeCollaborators.value.length - 1);
+		return others
+			? `${others} other ${others === 1 ? 'person is' : 'people are'} editing this temporary document.`
+			: 'Open this page in another tab or browser to invite another temporary editor.';
+	}
+	return 'Connecting to the temporary collaboration room.';
+});
+const aiUser = { id: 'ai-editor', name: 'AI editor', color: '#2563eb', type: 'ai' };
 
 onMounted(loadDemo);
+onBeforeUnmount(stopCollaboration);
 
 /**
  * Loads the document and media folder used by the demo.
@@ -67,6 +87,120 @@ async function loadDemo() {
 		documentStore.load(),
 		mediaStore.loadFolder('/Images'),
 	]);
+	startCollaboration();
+}
+
+/**
+ * Creates the browser-only Yjs document and connects it to the demo WebSocket.
+ *
+ * @returns {void}
+ */
+function startCollaboration() {
+	stopCollaboration();
+	const document = new Y.Doc();
+	const provider = new DocumentEditorCollaborationProvider({
+		document,
+		connect: false,
+	});
+	collaborationDocument.value = document;
+	collaborationProvider.value = provider;
+	provider.on('status', handleCollaborationStatus);
+	provider.on('user', handleAssignedUser);
+	provider.on('presence', handleCollaborationPresence);
+	provider.on('synced', initializeCollaborationDocument);
+	provider.on('initialize', initializeCollaborationDocument);
+	provider.on('reset', handleCollaborationReset);
+	provider.connect();
+}
+
+/**
+ * Disconnects the demo provider and releases its ephemeral Yjs document.
+ *
+ * @returns {void}
+ */
+function stopCollaboration() {
+	collaborationProvider.value?.destroy();
+	collaborationDocument.value?.destroy();
+	collaborationProvider.value = null;
+	collaborationDocument.value = null;
+	collaboration.value = null;
+	editorInstance.value = null;
+}
+
+/**
+ * Mirrors provider connection state into the demo status label.
+ *
+ * @param {{ status?: string }} payload Provider status event.
+ * @returns {void}
+ */
+function handleCollaborationStatus(payload = {}) {
+	collaborationStatus.value = payload.status || 'disconnected';
+}
+
+/**
+ * Applies the username assigned by the WebSocket server to the editor config.
+ *
+ * @param {Record<string, unknown>|null} user Assigned guest identity.
+ * @returns {void}
+ */
+function handleAssignedUser(user) {
+	assignedUser.value = user;
+	if (!user || !collaborationDocument.value || !collaborationProvider.value) return;
+	collaboration.value = {
+		document: collaborationDocument.value,
+		provider: collaborationProvider.value,
+		field: 'body',
+		user,
+	};
+	initializeCollaborationDocument();
+}
+
+/**
+ * Updates the visible collaborator avatars from server presence.
+ *
+ * @param {{ users?: Array<Record<string, unknown>> }} payload Presence event.
+ * @returns {void}
+ */
+function handleCollaborationPresence(payload = {}) {
+	activeCollaborators.value = Array.isArray(payload.users) ? payload.users : [];
+}
+
+/**
+ * Reloads the page after the server discards the temporary collaboration room.
+ *
+ * @returns {void}
+ */
+function handleCollaborationReset() {
+	window.location.reload();
+}
+
+/**
+ * Stores the mounted editor instance and initializes an empty collaboration room.
+ *
+ * @param {{ editor?: Record<string, unknown> }} payload Editor ready event.
+ * @returns {void}
+ */
+function handleEditorReady(payload = {}) {
+	editorInstance.value = payload.editor || null;
+	initializeCollaborationDocument();
+}
+
+/**
+ * Seeds only the first client in an empty room with the normal demo document.
+ *
+ * @returns {void}
+ */
+function initializeCollaborationDocument() {
+	const provider = collaborationProvider.value;
+	const document = collaborationDocument.value;
+	const instance = editorInstance.value;
+	if (!provider?.synced || !provider.shouldInitialize || !document || !instance || !content.value) return;
+	if (document.getXmlFragment('body').length > 0) {
+		provider.markInitialized();
+		return;
+	}
+	const initialized = instance.commands?.setContent?.(content.value);
+	if (initialized !== false) provider.markInitialized();
 }
 
 /**
@@ -159,27 +293,36 @@ function isImageMediaItem(item) {
 			<div class="min-w-0 flex-1">
 				<p class="truncate text-sm font-semibold text-canvas-fg">{{ title }}</p>
 				<p class="mt-1 truncate text-xs text-muted-fg">
-					Draft copy for the July product launch.
+					{{ collaborationSummary }} The room resets every 15 minutes or after its last tab disconnects.
 				</p>
 			</div>
+			<DomBadge
+				v-if="assignedUser"
+				:label="assignedUser.name"
+				tone="success"
+				variant="soft"
+				size="sm"
+			/>
 			<DomButton class="w-full justify-center sm:w-auto" size="sm" variant="primary" :loading="saving" @click="saveDocument">Save snapshot</DomButton>
 		</div>
 
 		<DomDocumentEditor
-			v-if="content"
+			v-if="content && collaboration"
 			ref="editorRef"
 			:model-value="content"
 			:title="title"
 			:status="status"
-			:collaborators="collaborators"
-			:ai-user="collaborators[1]"
+			:collaboration="collaboration"
+			:collaborators="remoteCollaborators"
+			:ai-user="aiUser"
 			autofocus
 			@change="handleEditorChange"
 			@media-request="openMediaPicker"
+			@ready="handleEditorReady"
 			@rewrite-request="handleRewriteRequest"
 		/>
 		<div v-else class="rounded-lg border border-border bg-canvas p-6 text-sm text-muted-fg">
-			Loading document...
+			Connecting the temporary document room...
 		</div>
 
 		<div class="grid gap-4 lg:grid-cols-2">

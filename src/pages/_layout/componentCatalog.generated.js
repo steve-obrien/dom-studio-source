@@ -1380,7 +1380,7 @@ export const componentCatalog = [
 		"doc": {
 			"name": "Document editor",
 			"tag": "<DomDocumentEditor>",
-			"description": "A client-only WYSIWYG document editor shell for structured writing, AI rewrite suggestions, media insertion, video embeds, and optional Yjs collaboration adapters.",
+			"description": "A client-only WYSIWYG document editor shell for structured writing, tables, language-aware highlighted code blocks, AI rewrite suggestions, media insertion, video embeds, and optional Yjs collaboration adapters.",
 			"icon": "M5 4h14v16H5V4Zm4 5h6M9 13h6M9 17h3",
 			"events": [
 				{
@@ -2983,7 +2983,7 @@ export const componentCatalog = [
 		"doc": {
 			"name": "WYSIWYG field",
 			"tag": "<DomWysiwyg>",
-			"description": "A textarea-shaped rich text field powered by DomDocumentEditor, with simple v-model wiring and no collaboration or AI review rail by default.",
+			"description": "A textarea-shaped rich text field powered by DomDocumentEditor, with headings, language-aware highlighted code blocks, tables, simple v-model wiring, and no collaboration or AI review rail by default.",
 			"events": [
 				{
 					"name": "update:modelValue",

@@ -16,6 +16,19 @@ const LANG_ALIASES = {
 	txt: 'text',
 };
 
+export const CODE_LANGUAGE_OPTIONS = [
+	{ label: 'Plain text', value: 'txt' },
+	{ label: 'Vue', value: 'vue' },
+	{ label: 'HTML', value: 'html' },
+	{ label: 'JavaScript', value: 'js' },
+	{ label: 'TypeScript', value: 'ts' },
+	{ label: 'CSS', value: 'css' },
+	{ label: 'JSON', value: 'json' },
+	{ label: 'Markdown', value: 'md' },
+	{ label: 'Python', value: 'python' },
+	{ label: 'Bash', value: 'bash' },
+];
+
 let highlighterPromise = null;
 let loadFailed = false;
 const languagePromises = new Map();
@@ -70,6 +83,30 @@ async function ensureLanguage(highlighter, lang) {
 }
 
 /**
+ * Normalizes public language names and aliases to a bundled Shiki grammar.
+ *
+ * @param {string} lang Public language key.
+ * @param {string} fallback Bundled grammar used for unknown values.
+ * @returns {string} Normalized bundled language key.
+ */
+export function normalizeCodeLanguage(lang, fallback = 'html') {
+	const normalizedLang = LANG_ALIASES[lang] || lang;
+	return LANGS.includes(normalizedLang) ? normalizedLang : fallback;
+}
+
+/**
+ * Resolves a language name to the preferred value used by DOM Studio controls.
+ *
+ * @param {string} lang Public or normalized language key.
+ * @returns {string} Supported DOM Studio language option value.
+ */
+export function codeLanguageOptionValue(lang) {
+	const normalizedLang = normalizeCodeLanguage(lang, 'text');
+	const option = CODE_LANGUAGE_OPTIONS.find((candidate) => normalizeCodeLanguage(candidate.value) === normalizedLang);
+	return option?.value || 'txt';
+}
+
+/**
  * Highlights source code with Shiki when available.
  *
  * @param {string} code Source code to highlight.
@@ -81,8 +118,7 @@ export async function highlight(code, lang = 'vue') {
 	const h = await getHighlighter();
 	if (!h) return null;
 	try {
-		const normalizedLang = LANG_ALIASES[lang] || lang;
-		const resolvedLang = LANGS.includes(normalizedLang) ? normalizedLang : 'html';
+		const resolvedLang = normalizeCodeLanguage(lang);
 		await ensureLanguage(h, resolvedLang);
 		return h.codeToHtml(code, {
 			lang: resolvedLang,

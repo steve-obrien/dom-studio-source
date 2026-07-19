@@ -37,6 +37,7 @@ function defaultDocumentEditorTools() {
 		'undo',
 		'redo',
 		'paragraph',
+		'heading1',
 		'heading2',
 		'heading3',
 		'bold',
@@ -45,7 +46,9 @@ function defaultDocumentEditorTools() {
 		'bulletList',
 		'orderedList',
 		'blockquote',
+		'codeBlock',
 		'link',
+		'table',
 		'image',
 		'video',
 		'rewrite',
@@ -244,22 +247,29 @@ export const documentEditorProps = {
 </script>
 
 <script setup>
-import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
+import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useId, watch } from 'vue';
 import DomButton from '../../components/button/DomButton.vue';
 import DomDialog from '../../components/dialog/DomDialog.vue';
 import DomIconButton from '../../components/icon-button/DomIconButton.vue';
 import DomToolbar from '../../components/toolbar/DomToolbar.vue';
 import DomField from '../../forms/field/DomField.vue';
 import { useField } from '../../forms/field/useField.js';
+import DomNativeSelect from '../../forms/native-select/DomNativeSelect.vue';
 import DomTextInput from '../../forms/text-input/DomTextInput.vue';
 import DomBadge from '../../visual/badge/DomBadge.vue';
 import DomTextDiff from '../../visual/text-diff/DomTextDiff.vue';
+import { codeLanguageOptionValue } from '../../lib/vue/codeHighlighter.js';
+import {
+	createDocumentEditorCodeBlockExtension,
+	createDocumentEditorCodeHighlightExtension,
+	documentEditorCodeLanguages,
+} from './documentEditorCodeBlock.js';
 
 defineOptions({
 	__doc: {
 		name: 'Document editor',
 		tag: '<DomDocumentEditor>',
-		description: 'A client-only WYSIWYG document editor shell for structured writing, AI rewrite suggestions, media insertion, video embeds, and optional Yjs collaboration adapters.',
+		description: 'A client-only WYSIWYG document editor shell for structured writing, tables, language-aware highlighted code blocks, AI rewrite suggestions, media insertion, video embeds, and optional Yjs collaboration adapters.',
 		icon: 'M5 4h14v16H5V4Zm4 5h6M9 13h6M9 17h3',
 		events: [
 			{ name: 'update:modelValue', payload: 'Record<string, unknown> | string', description: 'Fired with JSON or HTML content depending on the output prop.' },
@@ -329,6 +339,7 @@ const slashMenuRange = ref(null);
 const slashMenuStyle = ref({});
 const lastContentSignature = ref('');
 const lastChangePayload = ref(null);
+const codeLanguageInputId = `dom-document-editor-code-language-${useId()}`;
 let suggestionCounter = 0;
 let applyingExternalContent = false;
 let slashMenuFrame = 0;
@@ -337,6 +348,7 @@ const toolIcons = {
 	undo: 'M9 14 4 9l5-5M4 9h9a6 6 0 0 1 0 12h-1',
 	redo: 'm15 14 5-5-5-5M20 9h-9a6 6 0 0 0 0 12h1',
 	paragraph: 'M13 4v16M17 4v16M19 4H9a4 4 0 0 0 0 8h4',
+	heading1: 'M4 6v12M12 6v12M4 12h8M17 9l2-2v10M17 17h4',
 	heading2: 'M4 6v12M12 6v12M4 12h8M16 8h4l-4 5h4',
 	heading3: 'M4 6v12M12 6v12M4 12h8M16 7h4l-3 4h1a3 3 0 0 1 0 6h-2',
 	bold: 'M7 5h6a4 4 0 0 1 0 8H7V5Zm0 8h7a4 4 0 0 1 0 8H7v-8Z',
@@ -345,7 +357,9 @@ const toolIcons = {
 	bulletList: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
 	orderedList: 'M10 6h11M10 12h11M10 18h11M4 6h1v4M3 10h3M3 14h3l-3 4h3',
 	blockquote: 'M8 8H5v5h3v3H4V8h4Zm9 0h-3v5h3v3h-4V8h4Z',
+	codeBlock: 'm8 9-3 3 3 3M16 9l3 3-3 3M14 5l-4 14',
 	link: 'M10 13a5 5 0 0 0 7.54.54l1.92-1.92a5 5 0 0 0-7.07-7.07l-1.1 1.1M14 11a5 5 0 0 0-7.54-.54l-1.92 1.92a5 5 0 0 0 7.07 7.07l1.1-1.1',
+	table: 'M4 5h16v14H4V5Zm0 5h16M9 5v14M15 5v14',
 	image: 'M4 5h16v14H4V5Zm3 10 3-3 3 3 2-2 4 4M8 9h.01',
 	video: 'M4 6h12v12H4V6Zm12 4 5-3v10l-5-3',
 	rewrite: 'M12 3l1.4 4.2L18 9l-4.6 1.8L12 15l-1.4-4.2L6 9l4.6-1.8L12 3ZM5 16l.8 2.2L8 19l-2.2.8L5 22l-.8-2.2L2 19l2.2-.8L5 16ZM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z',
@@ -353,11 +367,14 @@ const toolIcons = {
 
 const slashBlockOptions = [
 	{ id: 'paragraph', label: 'Paragraph', description: 'Plain text block', tool: 'paragraph', icon: toolIcons.paragraph },
+	{ id: 'heading1', label: 'Heading 1', description: 'Page heading', tool: 'heading1', icon: toolIcons.heading1 },
 	{ id: 'heading2', label: 'Heading 2', description: 'Section heading', tool: 'heading2', icon: toolIcons.heading2 },
 	{ id: 'heading3', label: 'Heading 3', description: 'Sub-section heading', tool: 'heading3', icon: toolIcons.heading3 },
 	{ id: 'bulletList', label: 'Bullet list', description: 'Unordered list', tool: 'bulletList', icon: toolIcons.bulletList },
 	{ id: 'orderedList', label: 'Numbered list', description: 'Ordered list', tool: 'orderedList', icon: toolIcons.orderedList },
 	{ id: 'blockquote', label: 'Quote', description: 'Quoted callout block', tool: 'blockquote', icon: toolIcons.blockquote },
+	{ id: 'codeBlock', label: 'Code block', description: 'Preformatted code', tool: 'codeBlock', icon: toolIcons.codeBlock },
+	{ id: 'table', label: 'Table', description: 'Insert a 3 by 3 table', tool: 'table', icon: toolIcons.table },
 	{ id: 'image', label: 'Image', description: 'Insert an image', tool: 'image', icon: toolIcons.image },
 	{ id: 'video', label: 'Video', description: 'Embed a video', tool: 'video', icon: toolIcons.video },
 ];
@@ -384,6 +401,7 @@ const toolbarState = computed(() => {
 	const instance = editor.value;
 	return {
 		paragraph: Boolean(instance?.isActive?.('paragraph')),
+		heading1: Boolean(instance?.isActive?.('heading', { level: 1 })),
 		heading2: Boolean(instance?.isActive?.('heading', { level: 2 })),
 		heading3: Boolean(instance?.isActive?.('heading', { level: 3 })),
 		bold: Boolean(instance?.isActive?.('bold')),
@@ -392,7 +410,11 @@ const toolbarState = computed(() => {
 		bulletList: Boolean(instance?.isActive?.('bulletList')),
 		orderedList: Boolean(instance?.isActive?.('orderedList')),
 		blockquote: Boolean(instance?.isActive?.('blockquote')),
+		codeBlock: Boolean(instance?.isActive?.('codeBlock')),
+		codeLanguage: codeLanguageOptionValue(instance?.getAttributes?.('codeBlock')?.language || 'txt'),
 		link: Boolean(instance?.isActive?.('link')),
+		table: Boolean(instance?.isActive?.('table')),
+		tableHeader: Boolean(instance?.isActive?.('tableHeader')),
 	};
 });
 const fieldChrome = computed(() => (props.chrome === 'field' ? 'field' : false));
@@ -401,6 +423,8 @@ const hasFieldChrome = computed(() => props.chrome === 'field');
 const hasBareChrome = computed(() => props.chrome === false || props.chrome === 'none');
 const isEditorEditable = computed(() => Boolean(props.editable && !field.disabled.value && !field.readOnly.value));
 const canUseEditor = computed(() => editorReady.value && isEditorEditable.value && editor.value);
+const codeBlockControlsVisible = computed(() => Boolean(props.showToolbar && canUseEditor.value && showTool('codeBlock') && toolbarState.value.codeBlock));
+const tableControlsVisible = computed(() => Boolean(props.showToolbar && canUseEditor.value && showTool('table') && toolbarState.value.table));
 const customToolbarTools = computed(() => props.customTools.filter((tool) => tool?.id && tool?.label));
 const editorPaperStyle = computed(resolveEditorPaperStyle);
 const editorTitle = computed(() => props.title || field.fieldAttrs.value.label || 'Document editor');
@@ -444,6 +468,7 @@ defineExpose({
 	focusEditor,
 	insertImage,
 	insertVideo,
+	insertTable,
 	requestRewrite,
 	createSuggestion,
 	acceptSuggestion,
@@ -505,8 +530,12 @@ async function loadEditorRuntime() {
 		linkModule,
 		imageModule,
 		underlineModule,
+		codeBlockModule,
+		tableModule,
 		collaborationModule,
 		collaborationCaretModule,
+		prosemirrorStateModule,
+		prosemirrorViewModule,
 	] = await Promise.all([
 		import('@tiptap/vue-3'),
 		import('@tiptap/starter-kit'),
@@ -514,22 +543,33 @@ async function loadEditorRuntime() {
 		import('@tiptap/extension-link'),
 		import('@tiptap/extension-image'),
 		import('@tiptap/extension-underline'),
+		import('@tiptap/extension-code-block'),
+		import('@tiptap/extension-table'),
 		import('@tiptap/extension-collaboration'),
 		import('@tiptap/extension-collaboration-caret'),
+		import('@tiptap/pm/state'),
+		import('@tiptap/pm/view'),
 	]);
 	return {
 		Editor: tiptap.Editor,
 		EditorContent: tiptap.EditorContent,
 		Mark: tiptap.Mark,
 		Node: tiptap.Node,
+		Extension: tiptap.Extension,
 		mergeAttributes: tiptap.mergeAttributes,
 		StarterKit: starterKitModule.default || starterKitModule.StarterKit,
 		Placeholder: placeholderModule.default || placeholderModule.Placeholder,
 		Link: linkModule.default || linkModule.Link,
 		Image: imageModule.default || imageModule.Image,
 		Underline: underlineModule.default || underlineModule.Underline,
+		CodeBlock: codeBlockModule.default || codeBlockModule.CodeBlock,
+		TableKit: tableModule.TableKit,
 		Collaboration: collaborationModule.default || collaborationModule.Collaboration,
 		CollaborationCaret: collaborationCaretModule.default || collaborationCaretModule.CollaborationCaret,
+		Plugin: prosemirrorStateModule.Plugin,
+		PluginKey: prosemirrorStateModule.PluginKey,
+		Decoration: prosemirrorViewModule.Decoration,
+		DecorationSet: prosemirrorViewModule.DecorationSet,
 	};
 }
 
@@ -543,8 +583,18 @@ function createEditorExtensions(modules) {
 	const extensions = [
 		modules.StarterKit.configure({
 			heading: { levels: [1, 2, 3, 4] },
+			codeBlock: false,
 			link: false,
+			underline: false,
 			undoRedo: hasCollaboration.value ? false : undefined,
+		}),
+		createDocumentEditorCodeBlockExtension(modules.CodeBlock, modules.mergeAttributes),
+		createDocumentEditorCodeHighlightExtension(modules),
+		modules.TableKit.configure({
+			table: {
+				resizable: true,
+				lastColumnResizable: false,
+			},
 		}),
 		modules.Placeholder.configure({ placeholder: props.placeholder }),
 		modules.Link.configure({
@@ -1107,6 +1157,22 @@ function insertVideo(payload = {}) {
 }
 
 /**
+ * Inserts a default table and places the cursor in its first header cell.
+ *
+ * @returns {boolean} True when the table was inserted.
+ */
+function insertTable() {
+	if (!editor.value || !isEditorEditable.value) return false;
+	const inserted = editor.value
+		.chain()
+		.focus()
+		.insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+		.run();
+	bumpEditorTick();
+	return inserted;
+}
+
+/**
  * Opens the link editor dialog.
  *
  * @returns {void}
@@ -1147,6 +1213,7 @@ function runTool(tool) {
 	if (tool === 'undo') chain.undo().run();
 	else if (tool === 'redo') chain.redo().run();
 	else if (tool === 'paragraph') chain.setParagraph().run();
+	else if (tool === 'heading1') chain.toggleHeading({ level: 1 }).run();
 	else if (tool === 'heading2') chain.toggleHeading({ level: 2 }).run();
 	else if (tool === 'heading3') chain.toggleHeading({ level: 3 }).run();
 	else if (tool === 'bold') chain.toggleBold().run();
@@ -1155,11 +1222,62 @@ function runTool(tool) {
 	else if (tool === 'bulletList') chain.toggleBulletList().run();
 	else if (tool === 'orderedList') chain.toggleOrderedList().run();
 	else if (tool === 'blockquote') chain.toggleBlockquote().run();
+	else if (tool === 'codeBlock') chain.toggleCodeBlock().run();
 	else if (tool === 'link') openLinkDialog();
+	else if (tool === 'table') insertTable();
 	else if (tool === 'image') requestMedia();
 	else if (tool === 'video') openVideoDialog();
 	else if (tool === 'rewrite') requestRewrite();
 	bumpEditorTick();
+}
+
+/**
+ * Updates the active code block's persisted syntax language.
+ *
+ * @param {string} language Selected DOM Studio language value.
+ * @returns {void}
+ */
+function setCodeLanguage(language) {
+	if (!editor.value || !isEditorEditable.value || !toolbarState.value.codeBlock) return;
+	editor.value
+		.chain()
+		.focus()
+		.updateAttributes('codeBlock', { language: codeLanguageOptionValue(language) })
+		.run();
+	bumpEditorTick();
+}
+
+/**
+ * Runs a table command against the active table selection.
+ *
+ * @param {string} command Tiptap table command name.
+ * @returns {void}
+ */
+function runTableCommand(command) {
+	if (!editor.value || !isEditorEditable.value || !toolbarState.value.table) return;
+	const chain = editor.value.chain().focus();
+	if (command === 'addRowBefore') chain.addRowBefore().run();
+	else if (command === 'addRowAfter') chain.addRowAfter().run();
+	else if (command === 'deleteRow') chain.deleteRow().run();
+	else if (command === 'addColumnBefore') chain.addColumnBefore().run();
+	else if (command === 'addColumnAfter') chain.addColumnAfter().run();
+	else if (command === 'deleteColumn') chain.deleteColumn().run();
+	else if (command === 'toggleHeaderRow') chain.toggleHeaderRow().run();
+	else if (command === 'deleteTable') chain.deleteTable().run();
+	bumpEditorTick();
+}
+
+/**
+ * Checks whether a table command can run for the current cell selection.
+ *
+ * @param {string} command Tiptap table command name.
+ * @returns {boolean} True when the command is currently available.
+ */
+function canRunTableCommand(command) {
+	if (!editor.value || !isEditorEditable.value || !toolbarState.value.table) return false;
+	const commands = editor.value.can?.();
+	const commandHandler = commands?.[command];
+	return typeof commandHandler === 'function' && Boolean(commandHandler.call(commands));
 }
 
 /**
@@ -1189,6 +1307,7 @@ function createToolContext(tool = null) {
 		selection: currentSelectionPayload(),
 		insertImage,
 		insertVideo,
+		insertTable,
 		requestRewrite,
 		createSuggestion,
 		savePayload,
@@ -1429,21 +1548,24 @@ function positionSlashMenu(pos) {
 function applySlashMenuOption(option) {
 	if (!option || !editor.value || !isEditorEditable.value) return;
 	const range = slashMenuRange.value;
-	if (option.id === 'image' || option.id === 'video') {
+	if (option.id === 'image' || option.id === 'video' || option.id === 'table') {
 		deleteSlashRange();
 		closeSlashMenu();
 		if (option.id === 'image') requestMedia();
-		else openVideoDialog();
+		else if (option.id === 'video') openVideoDialog();
+		else insertTable();
 		return;
 	}
 	const chain = editor.value.chain().focus();
 	if (range) chain.deleteRange(range);
 	if (option.id === 'paragraph') chain.setParagraph().run();
+	else if (option.id === 'heading1') chain.setNode('heading', { level: 1 }).run();
 	else if (option.id === 'heading2') chain.setNode('heading', { level: 2 }).run();
 	else if (option.id === 'heading3') chain.setNode('heading', { level: 3 }).run();
 	else if (option.id === 'bulletList') chain.toggleBulletList().run();
 	else if (option.id === 'orderedList') chain.toggleOrderedList().run();
 	else if (option.id === 'blockquote') chain.toggleBlockquote().run();
+	else if (option.id === 'codeBlock') chain.setCodeBlock({ language: 'txt' }).run();
 	closeSlashMenu();
 	bumpEditorTick();
 }
@@ -1984,6 +2106,7 @@ function insertVideoCommand(nodeName) {
 					</div>
 					<div class="flex items-center gap-1 border-r border-border pr-1">
 						<DomIconButton v-if="showTool('paragraph')" label="Paragraph" size="sm" :icon="toolIcons.paragraph" :active="toolActive('paragraph')" :disabled="!canUseEditor" @click="runTool('paragraph')" />
+						<DomIconButton v-if="showTool('heading1')" label="Heading 1" size="sm" :icon="toolIcons.heading1" :active="toolActive('heading1')" :disabled="!canUseEditor" @click="runTool('heading1')" />
 						<DomIconButton v-if="showTool('heading2')" label="Heading 2" size="sm" :icon="toolIcons.heading2" :active="toolActive('heading2')" :disabled="!canUseEditor" @click="runTool('heading2')" />
 						<DomIconButton v-if="showTool('heading3')" label="Heading 3" size="sm" :icon="toolIcons.heading3" :active="toolActive('heading3')" :disabled="!canUseEditor" @click="runTool('heading3')" />
 					</div>
@@ -1996,9 +2119,11 @@ function insertVideoCommand(nodeName) {
 						<DomIconButton v-if="showTool('bulletList')" label="Bullet list" size="sm" :icon="toolIcons.bulletList" :active="toolActive('bulletList')" :disabled="!canUseEditor" @click="runTool('bulletList')" />
 						<DomIconButton v-if="showTool('orderedList')" label="Ordered list" size="sm" :icon="toolIcons.orderedList" :active="toolActive('orderedList')" :disabled="!canUseEditor" @click="runTool('orderedList')" />
 						<DomIconButton v-if="showTool('blockquote')" label="Quote" size="sm" :icon="toolIcons.blockquote" :active="toolActive('blockquote')" :disabled="!canUseEditor" @click="runTool('blockquote')" />
+						<DomIconButton v-if="showTool('codeBlock')" label="Code block" size="sm" :icon="toolIcons.codeBlock" :active="toolActive('codeBlock')" :disabled="!canUseEditor" @click="runTool('codeBlock')" />
 					</div>
 					<div class="flex items-center gap-1 border-r border-border pr-1">
 						<DomIconButton v-if="showTool('link')" label="Link" size="sm" :icon="toolIcons.link" :active="toolActive('link')" :disabled="!canUseEditor" @click="runTool('link')" />
+						<DomIconButton v-if="showTool('table')" label="Insert table" size="sm" :icon="toolIcons.table" :disabled="!canUseEditor" @click="runTool('table')" />
 						<DomIconButton v-if="showTool('image')" label="Insert image" size="sm" :icon="toolIcons.image" :disabled="!canUseEditor" @click="runTool('image')" />
 						<DomIconButton v-if="showTool('video')" label="Embed video" size="sm" :icon="toolIcons.video" :disabled="!canUseEditor" @click="runTool('video')" />
 					</div>
@@ -2014,6 +2139,42 @@ function insertVideoCommand(nodeName) {
 						@click="runCustomTool(tool)"
 					/>
 					<slot name="toolbar-end" :editor="editor" :active="toolbarState" />
+				</DomToolbar>
+			</div>
+
+			<div v-if="tableControlsVisible" class="border-b border-border bg-secondary/25 px-2 py-1.5">
+				<DomToolbar label="Selected table controls" skin="flat" control-size="sm" control-radius="md" class="w-full">
+					<span class="px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-fg">Table</span>
+					<div class="flex flex-wrap items-center gap-1 border-l border-border pl-1">
+						<DomButton type="button" size="sm" variant="ghost" :disabled="!canRunTableCommand('addRowBefore')" @mousedown.prevent @click="runTableCommand('addRowBefore')">Row before</DomButton>
+						<DomButton type="button" size="sm" variant="ghost" :disabled="!canRunTableCommand('addRowAfter')" @mousedown.prevent @click="runTableCommand('addRowAfter')">Row after</DomButton>
+						<DomButton type="button" size="sm" variant="ghost" :disabled="!canRunTableCommand('deleteRow')" @mousedown.prevent @click="runTableCommand('deleteRow')">Delete row</DomButton>
+					</div>
+					<div class="flex flex-wrap items-center gap-1 border-l border-border pl-1">
+						<DomButton type="button" size="sm" variant="ghost" :disabled="!canRunTableCommand('addColumnBefore')" @mousedown.prevent @click="runTableCommand('addColumnBefore')">Column before</DomButton>
+						<DomButton type="button" size="sm" variant="ghost" :disabled="!canRunTableCommand('addColumnAfter')" @mousedown.prevent @click="runTableCommand('addColumnAfter')">Column after</DomButton>
+						<DomButton type="button" size="sm" variant="ghost" :disabled="!canRunTableCommand('deleteColumn')" @mousedown.prevent @click="runTableCommand('deleteColumn')">Delete column</DomButton>
+					</div>
+					<DomButton type="button" size="sm" variant="secondary" :disabled="!canRunTableCommand('toggleHeaderRow')" :aria-pressed="toolbarState.tableHeader ? 'true' : 'false'" @mousedown.prevent @click="runTableCommand('toggleHeaderRow')">
+						{{ toolbarState.tableHeader ? 'Remove header row' : 'Make header row' }}
+					</DomButton>
+					<DomButton type="button" size="sm" variant="danger" :disabled="!canRunTableCommand('deleteTable')" @mousedown.prevent @click="runTableCommand('deleteTable')">Delete table</DomButton>
+				</DomToolbar>
+			</div>
+
+			<div v-if="codeBlockControlsVisible" class="border-b border-border bg-secondary/25 px-2 py-1.5">
+				<DomToolbar label="Selected code block controls" skin="flat" control-size="sm" control-radius="md" class="w-full">
+					<label :for="codeLanguageInputId" class="px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-fg">Language</label>
+					<div class="w-44 [&_select]:!h-8 [&_select]:!py-1 [&_select]:text-xs">
+						<DomNativeSelect
+							:id="codeLanguageInputId"
+							:model-value="toolbarState.codeLanguage"
+							:options="documentEditorCodeLanguages"
+							:chrome="false"
+							placeholder=""
+							@update:model-value="setCodeLanguage"
+						/>
+					</div>
 				</DomToolbar>
 			</div>
 
@@ -2314,6 +2475,89 @@ function insertVideoCommand(nodeName) {
 	border-left: 3px solid var(--primary);
 	color: var(--muted-fg);
 	padding-left: 1rem;
+}
+
+:deep(.dom-document-editor__prosemirror pre) {
+	background: var(--secondary);
+	border: 1px solid var(--border);
+	border-radius: 0.65rem;
+	color: var(--canvas-fg);
+	overflow-x: auto;
+	padding: 0.9rem 1rem;
+	position: relative;
+}
+
+:deep(.dom-document-editor__prosemirror pre.dom-code-block::before) {
+	color: var(--muted-fg);
+	content: attr(data-language);
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+	font-size: 9px;
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	line-height: 1;
+	pointer-events: none;
+	position: absolute;
+	right: 0.75rem;
+	text-transform: uppercase;
+	top: 0.35rem;
+}
+
+:deep(.dom-document-editor__prosemirror pre code) {
+	background: transparent;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+	font-size: 0.875em;
+	line-height: 1.65;
+	padding: 0;
+}
+
+:deep(.dom-document-editor__prosemirror .tableWrapper) {
+	overflow-x: auto;
+}
+
+:deep(.dom-document-editor__prosemirror table) {
+	border-collapse: collapse;
+	table-layout: fixed;
+	width: 100%;
+}
+
+:deep(.dom-document-editor__prosemirror th),
+:deep(.dom-document-editor__prosemirror td) {
+	border: 1px solid var(--border);
+	box-sizing: border-box;
+	min-width: 5rem;
+	padding: 0.55rem 0.65rem;
+	position: relative;
+	vertical-align: top;
+}
+
+:deep(.dom-document-editor__prosemirror th) {
+	background: var(--secondary);
+	font-weight: 700;
+	text-align: left;
+}
+
+:deep(.dom-document-editor__prosemirror .selectedCell::after) {
+	background: color-mix(in oklch, var(--primary) 14%, transparent);
+	content: '';
+	inset: 0;
+	pointer-events: none;
+	position: absolute;
+	z-index: 2;
+}
+
+:deep(.dom-document-editor__prosemirror .column-resize-handle) {
+	background: var(--primary);
+	bottom: -1px;
+	pointer-events: none;
+	position: absolute;
+	right: -2px;
+	top: 0;
+	width: 4px;
+	z-index: 3;
+}
+
+:deep(.dom-document-editor__prosemirror.resize-cursor) {
+	cursor: col-resize;
 }
 
 :deep(.dom-document-editor__prosemirror img) {
