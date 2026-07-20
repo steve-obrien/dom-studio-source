@@ -32,7 +32,7 @@ const size = ref('md');
 	<DomStudioLayout>
 		<DocPage
 			name="Select input"
-			tagline="A pill-style segmented selector. Compact, keyboard-friendly, ideal for short option lists."
+			tagline="A pill-style segmented selector that separates into complete pills when its choices wrap."
 			tag="<DomSelectInput>"
 		>
 			<DocSection eyebrow="Playground" title="Try every prop live">

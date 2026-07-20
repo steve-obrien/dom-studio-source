@@ -31,8 +31,8 @@ const props = defineProps({
 		type: String,
 		default: 'md',
 		_edit: {
-			options: ['sm', 'md', 'lg'],
-			description: 'Three balanced sizes.',
+			options: ['xs', 'sm', 'md', 'lg', 'xl'],
+			description: 'Five balanced sizes.',
 		},
 	},
 	loading: {
@@ -55,9 +55,11 @@ const variants = {
 	danger: 'skin-control text-destructive hover:brightness-[0.98]',
 };
 const sizes = {
+	xs: 'h-7 px-2.5 text-xs',
 	sm: 'h-8 px-3 text-xs',
 	md: 'h-10 px-4 text-sm',
 	lg: 'h-12 px-6 text-base',
+	xl: 'h-14 px-8 text-lg',
 };
 
 const classes = computed(() => [

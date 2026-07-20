@@ -733,9 +733,9 @@ export interface DomButtonProps {
 	 */
 	variant?: "primary" | "secondary" | "ghost" | "danger";
 	/**
-	 * Three balanced sizes.
+	 * Five balanced sizes.
 	 */
-	size?: "sm" | "md" | "lg";
+	size?: "xs" | "sm" | "md" | "lg" | "xl";
 	/**
 	 * Show a spinner and block interaction.
 	 */

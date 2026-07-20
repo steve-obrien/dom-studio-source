@@ -1,4 +1,5 @@
 <script setup>
+import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import DomField from '../field/DomField.vue';
 import DomButton from '../../components/button/DomButton.vue';
 import { fieldProps } from '../field/fieldProps.js';
@@ -30,15 +31,90 @@ const props = defineProps({
 });
 const emit = defineEmits(['update:modelValue', 'focus', 'blur']);
 const field = useField(props, emit, { idPrefix: 'dom-select-input' });
+const groupElement = ref(null);
+const wrapped = ref(false);
+let resizeObserver;
 
-// Options can be string[] or { label, value }[].
-const labelOf = (o) => (o && typeof o === 'object' ? (o.label ?? o.value) : o);
-const valueOf = (o) => (o && typeof o === 'object' ? (o.value ?? o.label) : o);
+/**
+ * Resolves the visible label for an option.
+ *
+ * @param {unknown} option Select option.
+ * @returns {unknown} Visible option label.
+ */
+function labelOf(option) {
+	return option && typeof option === 'object' ? (option.label ?? option.value) : option;
+}
 
+/**
+ * Resolves the emitted value for an option.
+ *
+ * @param {unknown} option Select option.
+ * @returns {unknown} Stable option value.
+ */
+function valueOf(option) {
+	return option && typeof option === 'object' ? (option.value ?? option.label) : option;
+}
+
+/**
+ * Selects an enabled, writable option.
+ *
+ * @param {unknown} value Option value.
+ * @returns {void}
+ */
 function select(value) {
 	if (field.disabled.value || field.readOnly.value) return;
 	field.onInput(value);
 }
+
+/**
+ * Detects whether the rendered option buttons occupy more than one row.
+ *
+ * @returns {void}
+ */
+function measureWrapping() {
+	const buttons = [...(groupElement.value?.children || [])];
+	const firstTop = buttons[0]?.offsetTop;
+	wrapped.value = firstTop != null && buttons.some((button) => button.offsetTop !== firstTop);
+}
+
+/**
+ * Starts observing the option group so its joined styling can adapt to wrapping.
+ *
+ * @returns {void}
+ */
+function startWrappingObserver() {
+	nextTick(measureWrapping);
+	if (typeof ResizeObserver === 'undefined' || !groupElement.value) return;
+	resizeObserver = new ResizeObserver(measureWrapping);
+	resizeObserver.observe(groupElement.value);
+}
+
+/**
+ * Stops the option-group resize observer during component teardown.
+ *
+ * @returns {void}
+ */
+function stopWrappingObserver() {
+	resizeObserver?.disconnect();
+}
+
+/**
+ * Builds option classes for joined and wrapped group layouts.
+ *
+ * @param {number} index Option index.
+ * @returns {Array<string>} Vue class list for the option button.
+ */
+function optionClasses(index) {
+	if (wrapped.value) return ['ml-0 rounded-full'];
+	return [
+		index > 0 ? '-ml-px' : '',
+		index === 0 ? 'rounded-l-full' : 'rounded-none',
+		index === props.options.length - 1 ? 'rounded-r-full' : 'rounded-none',
+	];
+}
+
+onMounted(startWrappingObserver);
+onBeforeUnmount(stopWrappingObserver);
 </script>
 
 <template>
@@ -49,15 +125,18 @@ function select(value) {
 			:name="field.htmlName.value"
 			:value="field.value.value ?? ''"
 		/>
-			<div
-				:id="field.id.value"
-				role="group"
-				:aria-label="label || undefined"
-				:aria-describedby="field.describedBy.value || undefined"
-				:aria-invalid="field.invalid.value || undefined"
-				:aria-errormessage="field.errorId.value || undefined"
-				class="flex flex-wrap gap-0"
-			>
+		<div
+			:id="field.id.value"
+			ref="groupElement"
+			role="group"
+			:aria-label="label || undefined"
+			:aria-describedby="field.describedBy.value || undefined"
+			:aria-invalid="field.invalid.value || undefined"
+			:aria-errormessage="field.errorId.value || undefined"
+			:data-wrapped="wrapped || undefined"
+			class="flex flex-wrap"
+			:class="wrapped ? 'gap-1' : 'gap-0'"
+		>
 			<DomButton
 				v-for="(opt, i) in options"
 				:key="valueOf(opt)"
@@ -69,11 +148,7 @@ function select(value) {
 				@click="select(valueOf(opt))"
 				@focus="field.onFocus"
 				@blur="field.onBlur"
-				:class="[
-					'-ml-px',
-					i === 0 ? 'rounded-l-full' : 'rounded-none',
-					i === options.length - 1 ? 'rounded-r-full' : 'rounded-none',
-				]"
+				:class="optionClasses(i)"
 			>{{ labelOf(opt) }}</DomButton>
 		</div>
 	</DomField>
