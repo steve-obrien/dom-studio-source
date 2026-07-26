@@ -1,5 +1,6 @@
 import { createNowApp } from '#now/runtime/createNowApp.js';
 import App from './App.vue';
+import './font.css';
 import './style.css';
 import { routes } from './routes';
 import { getAuthState, hasEntitlement, refreshSession } from './composable/useAuth.js';

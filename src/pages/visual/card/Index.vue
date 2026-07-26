@@ -26,9 +26,9 @@ const doc = DomCard.__doc;
 			<DocSection eyebrow="Playground" title="Try every prop live">
 				<Playground
 					:inspect="DomCard"
-					:initial="{ padding: 'md', interactive: false }"
+					:initial="{ padding: 'p-4 md:p-6 lg:p-8', interactive: false }"
 					title="Card playground"
-					description="Cards are visual-only: skin-card provides the material recipe and spacing, while your markup decides the content."
+					description="Cards are visual-only: skin-card provides the material recipe, while padding accepts scale names or responsive Tailwind utilities and your markup decides the content."
 				>
 					<div class="space-y-2">
 						<p class="text-lg font-semibold tracking-tight">Skin card</p>

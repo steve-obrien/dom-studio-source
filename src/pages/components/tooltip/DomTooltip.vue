@@ -1,7 +1,12 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted } from 'vue';
 
-defineProps({
+const props = defineProps({
+	for: {
+		type: String,
+		default: '',
+		_edit: { description: 'ID of an existing trigger element. Leave empty to wrap the trigger in the default slot.' },
+	},
 	text: {
 		type: String,
 		required: true,
@@ -37,13 +42,21 @@ defineProps({
 	},
 });
 
-const root = ref(null);
-onMounted(async () => { await import('../../lib/headless/tooltip.js'); });
+/**
+ * Register the headless tooltip element after Vue mounts its target markup.
+ *
+ * @returns {Promise<void>}
+ */
+async function registerTooltipElement() {
+	await import('../../lib/headless/tooltip.js');
+}
+
+onMounted(registerTooltipElement);
 </script>
 
 <template>
 	<dom-tooltip
-		ref="root"
+		:for="props.for || undefined"
 		:text="text"
 		:placement="placement"
 		:delay="delay"

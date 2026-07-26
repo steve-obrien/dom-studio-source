@@ -327,16 +327,27 @@ function isImageMediaItem(item) {
 
 		<div class="grid gap-4 lg:grid-cols-2">
 			<DomJsonViewer
-				label="Last request"
-				:value="lastRequest || {}"
-				:default-depth="2"
-				:max-lines="12"
+				class="lg:col-span-2"
+				title="document.content"
+				description="Updates live from the editor change payload."
+				:value="content || {}"
+				:expanded-depth="2"
+				:preview-lines="16"
+				density="compact"
 			/>
 			<DomJsonViewer
-				label="Last response"
+				title="Last request"
+				:value="lastRequest || {}"
+				:expanded-depth="2"
+				:preview-lines="12"
+				density="compact"
+			/>
+			<DomJsonViewer
+				title="Last response"
 				:value="lastResponse || {}"
-				:default-depth="2"
-				:max-lines="12"
+				:expanded-depth="2"
+				:preview-lines="12"
+				density="compact"
 			/>
 		</div>
 

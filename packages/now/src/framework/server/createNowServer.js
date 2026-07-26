@@ -134,6 +134,11 @@ async function installProductionRenderer(app, config) {
 	const manifestPath = path.resolve(config.root, config.ssr.manifest)
 
 	app.use(compression())
+	app.use('/assets', express.static(path.join(clientDir, 'assets'), {
+		immutable: true,
+		index: false,
+		maxAge: '1y'
+	}))
 	app.use(express.static(clientDir, { index: false }))
 
 	app.use('*', async (req, res) => {

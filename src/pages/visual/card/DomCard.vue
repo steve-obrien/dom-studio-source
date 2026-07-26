@@ -20,10 +20,13 @@ const props = defineProps({
 	},
 	padding: {
 		type: String,
-		default: 'md',
+		default: 'p-4 md:p-6 lg:p-8',
 		_edit: {
-			options: ['none', 'sm', 'md', 'lg'],
-			description: 'Internal spacing. Use none when the card owns its own internal layout.',
+			component: 'DomTextInput',
+			description: 'Internal spacing. Defaults to sm on small screens, md from the md breakpoint, and lg from the lg breakpoint. Use none, sm, md, or lg for a fixed size, or provide Tailwind padding utilities.',
+			props: {
+				placeholder: 'p-4 md:p-6',
+			},
 		},
 	},
 	interactive: {
@@ -40,10 +43,18 @@ const paddingClasses = {
 	lg: 'p-8',
 };
 
+/**
+ * Assemble the card surface, interaction state, and resolved padding classes.
+ *
+ * Named padding values use the component scale; any other string is treated as
+ * Tailwind utilities so callers can include responsive variants.
+ *
+ * @returns {Array<string|boolean>} Classes bound to the rendered card element.
+ */
 const classes = computed(() => [
 	'relative w-full overflow-hidden rounded-2xl skin-card',
 	props.interactive && 'transition duration-200 hover:-translate-y-0.5 hover:border-primary/30',
-	paddingClasses[props.padding] ?? paddingClasses.md,
+	paddingClasses[props.padding] ?? props.padding,
 ]);
 </script>
 

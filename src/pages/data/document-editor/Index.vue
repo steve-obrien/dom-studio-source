@@ -13,6 +13,12 @@ import DomWysiwyg from '../../forms/wysiwyg/DomWysiwyg.vue';
 import DomWysiwygSrc from '../../forms/wysiwyg/DomWysiwyg.vue?raw';
 import DocumentEditorDemo from './examples/DocumentEditorDemo.vue';
 import DocumentEditorDemoSrc from './examples/DocumentEditorDemo.vue?raw';
+import DocumentEditorStickyToolbar from './examples/DocumentEditorStickyToolbar.vue';
+import DocumentEditorStickyToolbarSrc from './examples/DocumentEditorStickyToolbar.vue?raw';
+import DocumentEditorSelectionToolbar from './examples/DocumentEditorSelectionToolbar.vue';
+import DocumentEditorSelectionToolbarSrc from './examples/DocumentEditorSelectionToolbar.vue?raw';
+import DocumentEditorAiSuggestionReviewSrc from './examples/DocumentEditorAiSuggestionReview.vue?raw';
+import DocumentEditorAiSuggestionExtensionSrc from './examples/documentEditorAiSuggestionExtension.js?raw';
 import DocumentEditorFormField from './examples/DocumentEditorFormField.vue';
 import DocumentEditorFormFieldSrc from './examples/DocumentEditorFormField.vue?raw';
 import DocumentEditorCustomTools from './examples/DocumentEditorCustomTools.vue';
@@ -135,11 +141,58 @@ function configureExtensions({ extensions }) {
 				<Example
 					:source="DocumentEditorDemoSrc"
 					filename="DocumentEditorDemo.vue"
-					description="A temporary Yjs room connects every visitor through the app's hardened WebSocket demo endpoint, assigns each person a guest name, and shows live carets alongside the existing mock save, AI rewrite, and media flows."
+					description="A temporary Yjs room connects every visitor through the app's hardened WebSocket demo endpoint, assigns each person a guest name, and shows live carets and document.content updates alongside the existing mock save, AI rewrite, and media flows."
 					:preview-lines="0"
 				>
 					<DocumentEditorDemo />
 				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Long documents" title="Sticky formatting toolbar">
+				<Example
+					:source="DocumentEditorStickyToolbarSrc"
+					filename="DocumentEditorStickyToolbar.vue"
+					description="A wrapper-level sticky rule keeps the normal editor toolbar visible while a long document scrolls. The offset can be adjusted when an application has its own fixed header."
+					presentation="iframe"
+					:frame-height="760"
+					:preview-lines="0"
+				>
+					<DocumentEditorStickyToolbar />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Experiment" title="AI selection toolbar">
+				<div class="rounded-lg border border-warning/35 bg-warning/10 p-4 text-sm leading-6 text-canvas-fg">
+					The popover, mock provider, review card, and Tiptap decoration extension are isolated in the example folder. They can be removed without unwinding the document editor's built-in editing flow.
+				</div>
+				<Example
+					:source="DocumentEditorSelectionToolbarSrc"
+					filename="DocumentEditorSelectionToolbar.vue"
+					description="Select text inside a paragraph to open Expand, Simplify, and Improve actions. The custom extension highlights the complete paragraph while a separate review component presents the AI response as a diff with accept and reject controls."
+					:preview-lines="0"
+				>
+					<DocumentEditorSelectionToolbar />
+				</Example>
+				<div class="mt-5 grid gap-4 lg:grid-cols-2">
+					<CodePanel
+						class="overflow-hidden rounded-lg border border-border"
+						:source="DocumentEditorAiSuggestionExtensionSrc"
+						:preview-lines="0"
+						:default-open="false"
+						:border-top="false"
+						filename="documentEditorAiSuggestionExtension.js"
+						lang="js"
+					/>
+					<CodePanel
+						class="overflow-hidden rounded-lg border border-border"
+						:source="DocumentEditorAiSuggestionReviewSrc"
+						:preview-lines="0"
+						:default-open="false"
+						:border-top="false"
+						filename="DocumentEditorAiSuggestionReview.vue"
+						lang="vue"
+					/>
+				</div>
 			</DocSection>
 
 			<DocSection eyebrow="Form" title="Textarea-style v-model">

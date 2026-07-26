@@ -2263,7 +2263,7 @@ function insertVideoCommand(nodeName) {
 				<DomBadge :label="hasCollaboration ? 'Yjs ready' : 'Client only'" tone="info" variant="soft" size="sm" />
 			</header>
 
-			<div v-if="showToolbar" :class="toolbarClasses">
+			<div v-if="showToolbar" data-document-editor-toolbar :class="toolbarClasses">
 				<DomToolbar label="Document editor toolbar" skin="flat" control-size="sm" control-radius="md" class="w-full">
 					<slot name="toolbar-start" :editor="editor" :active="toolbarState" />
 					<div v-if="showTool('undo') || showTool('redo')" class="flex items-center gap-1 border-r border-border pr-1">

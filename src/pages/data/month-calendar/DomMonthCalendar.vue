@@ -1620,7 +1620,7 @@ function onDayClick(cell, event) {
 									<span class="text-base font-bold leading-none tabular-nums">{{ cell.day }}</span>
 									<span class="text-base lowercase leading-none tabular-nums">{{ cell.weekday }}</span>
 								</div>
-								<div class="mt-3 min-h-0">
+								<div class="mt-3 min-h-0 flex-1 h-full">
 									<slot
 										:cell="cell"
 										:month="monthForCell(cell, section.month)"

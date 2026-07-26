@@ -3603,6 +3603,64 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "visual/progress",
+		"path": "../visual/progress/DomSegmentedProgress.vue",
+		"section": "visual",
+		"slug": "progress",
+		"exportName": "DomSegmentedProgress",
+		"route": "/visual/progress",
+		"doc": {
+			"name": "Segmented progress",
+			"tag": "<DomSegmentedProgress>",
+			"description": "An accessible stacked progress bar for workflows that divide a changing total across multiple states.",
+			"icon": "M4 7h16M4 12h16M4 17h16",
+			"playground": {
+				"initial": {
+					"value": 2,
+					"label": "pages processed",
+					"tone": "warning",
+					"size": "lg",
+					"segments": [
+						{
+							"key": "complete",
+							"label": "completed",
+							"value": 2,
+							"tone": "success",
+							"color": ""
+						},
+						{
+							"key": "processing",
+							"label": "processing",
+							"value": 1,
+							"tone": "warning",
+							"color": "var(--warning)"
+						},
+						{
+							"key": "queued",
+							"label": "queued",
+							"value": 1,
+							"tone": "neutral",
+							"color": ""
+						}
+					]
+				}
+			},
+			"slots": [
+				{
+					"name": "summary",
+					"payload": "{ value, max, percent, label }",
+					"description": "Custom summary content shown above the track."
+				},
+				{
+					"name": "legend-label",
+					"payload": "{ segment }",
+					"description": "Custom label content for each legend entry."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "visual/skeleton",
 		"path": "../visual/skeleton/DomSkeleton.vue",
 		"section": "visual",

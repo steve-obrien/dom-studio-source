@@ -7,7 +7,7 @@
 const SHIKI_URL = 'https://esm.sh/shiki@1';
 const LIGHT = 'light-plus';
 const DARK = 'dark-plus';
-const LANGS = ['vue', 'html', 'javascript', 'typescript', 'css', 'json', 'markdown', 'python', 'bash', 'text'];
+const LANGS = ['vue', 'html', 'javascript', 'typescript', 'css', 'json', 'markdown', 'python', 'bash', 'sql', 'text'];
 const LANG_ALIASES = {
 	js: 'javascript',
 	ts: 'typescript',
@@ -27,6 +27,7 @@ export const CODE_LANGUAGE_OPTIONS = [
 	{ label: 'Markdown', value: 'md' },
 	{ label: 'Python', value: 'python' },
 	{ label: 'Bash', value: 'bash' },
+	{ label: 'SQL', value: 'sql' },
 ];
 
 let highlighterPromise = null;
@@ -111,19 +112,20 @@ export function codeLanguageOptionValue(lang) {
  *
  * @param {string} code Source code to highlight.
  * @param {string} lang Source language key.
+ * @param {'inherit' | 'light' | 'dark'} themeMode Syntax theme mode.
  * @returns {Promise<string|null>} Highlighted HTML, or null for caller fallback.
  */
-export async function highlight(code, lang = 'vue') {
+export async function highlight(code, lang = 'vue', themeMode = 'inherit') {
 	if (!code) return null;
 	const h = await getHighlighter();
 	if (!h) return null;
 	try {
 		const resolvedLang = normalizeCodeLanguage(lang);
 		await ensureLanguage(h, resolvedLang);
-		return h.codeToHtml(code, {
-			lang: resolvedLang,
-			themes: { light: LIGHT, dark: DARK },
-		});
+		const themeOptions = themeMode === 'light'
+			? { theme: LIGHT }
+			: { themes: { light: LIGHT, dark: DARK } };
+		return h.codeToHtml(code, { lang: resolvedLang, ...themeOptions });
 	} catch {
 		return null;
 	}

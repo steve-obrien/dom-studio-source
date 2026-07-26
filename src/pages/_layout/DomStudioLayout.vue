@@ -1,15 +1,24 @@
 <script setup>
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useTheme } from '../../composable/useTheme';
 import ThemeToggle from './ThemeToggle.vue';
 import BrandLockup from './BrandLockup.vue';
 import SideNav from './SideNav.vue';
 import DomStudioFooter from './DomStudioFooter.vue';
 import AccountMenu from './AccountMenu.vue';
-import DomCommandPalette from '../components/command-palette/DomCommandPalette.vue';
 import { getGlobalSearchCommands } from './globalSearch.js';
 
+/**
+ * Loads the global search surface only after the user opens it.
+ *
+ * @returns {Promise<object>} Vue SFC module.
+ */
+function loadCommandPalette() {
+	return import('../components/command-palette/DomCommandPalette.vue');
+}
+
+const DomCommandPalette = defineAsyncComponent(loadCommandPalette);
 const props = defineProps({
 	fullWidth: { type: Boolean, default: false },
 });
@@ -19,6 +28,7 @@ const { initTheme } = useTheme();
 
 const route = useRoute();
 const router = useRouter();
+const isMounted = ref(false);
 const mobileMenuOpen = ref(false);
 const searchOpen = ref(false);
 const searchCommands = getGlobalSearchCommands();
@@ -122,6 +132,7 @@ watch(() => route.fullPath, async () => {
 });
 
 onMounted(() => {
+	isMounted.value = true;
 	initTheme();
 	if (typeof window !== 'undefined') window.addEventListener(globalSearchOpenEvent, openGlobalSearch);
 });
@@ -272,6 +283,7 @@ onBeforeUnmount(() => {
 
 		<DomStudioFooter v-if="!showSidebar" />
 		<DomCommandPalette
+			v-if="isMounted"
 			v-model="searchOpen"
 			:commands="searchCommands"
 			shortcut=""

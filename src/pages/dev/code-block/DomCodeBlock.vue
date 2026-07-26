@@ -2,6 +2,8 @@
 import { Comment, Fragment, Text, computed, onMounted, ref, useSlots, watch } from 'vue';
 import { highlight } from '../../lib/vue/codeHighlighter.js';
 
+const themeModeValues = ['inherit', 'light', 'dark'];
+
 defineOptions({
 	__doc: {
 		name: 'Code block',
@@ -26,7 +28,7 @@ const props = defineProps({
 		type: String,
 		default: 'vue',
 		_edit: {
-			options: ['vue', 'html', 'js', 'ts', 'css', 'json', 'md', 'python', 'bash', 'sh', 'txt'],
+			options: ['vue', 'html', 'js', 'ts', 'css', 'json', 'md', 'python', 'bash', 'sh', 'sql', 'txt'],
 			description: 'Language passed to the syntax highlighter.',
 		},
 	},
@@ -54,10 +56,19 @@ const props = defineProps({
 		default: true,
 		_edit: { description: 'Render the standard border, radius, and canvas background.' },
 	},
+	themeMode: {
+		type: String,
+		default: 'inherit',
+		_edit: {
+			options: ['inherit', 'light', 'dark'],
+			description: 'Force a light or dark code theme, or inherit the surrounding application theme.',
+		},
+	},
 });
 
 const slots = useSlots();
 const displayCode = computed(() => props.code || serializeNodes(slots.default?.() || []).trim());
+const resolvedThemeMode = computed(resolveThemeMode);
 const highlighted = ref(null);
 const codeStyle = computed(() => {
 	if (!props.previewLines) return {};
@@ -70,11 +81,20 @@ const codeStyle = computed(() => {
  * @returns {Promise<void>} Resolves after the highlighted output is stored.
  */
 async function refreshHighlight() {
-	highlighted.value = await highlight(displayCode.value, props.lang);
+	highlighted.value = await highlight(displayCode.value, props.lang, resolvedThemeMode.value);
 }
 
 onMounted(refreshHighlight);
-watch(() => [displayCode.value, props.lang], refreshHighlight);
+watch(() => [displayCode.value, props.lang, resolvedThemeMode.value], refreshHighlight);
+
+/**
+ * Normalizes the requested local theme mode.
+ *
+ * @returns {'inherit' | 'light' | 'dark'} Supported local theme mode.
+ */
+function resolveThemeMode() {
+	return themeModeValues.includes(props.themeMode) ? props.themeMode : 'inherit';
+}
 
 /**
  * Escapes text content for safe HTML serialization.
@@ -230,6 +250,7 @@ function serializeNodes(nodes, depth = 0) {
 		class="dom-code relative w-full min-w-0 max-w-full overflow-auto"
 		:class="framed ? 'rounded-2xl border border-border bg-canvas' : ''"
 		:style="codeStyle"
+		:data-theme="resolvedThemeMode === 'inherit' ? undefined : resolvedThemeMode"
 		:data-language="lang || undefined"
 		:data-filename="filename || undefined"
 	>

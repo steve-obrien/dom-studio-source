@@ -92,7 +92,7 @@ const sizeClasses = {
 };
 
 const classes = computed(() => [
-	'inline-flex w-fit shrink-0 items-center gap-1 rounded-full font-medium leading-none ring-1 ring-inset',
+	'inline-flex w-fit shrink-0 items-center gap-1 rounded-full font-medium ring-1 ring-inset',
 	toneClasses[props.tone]?.[props.variant] || toneClasses.neutral.soft,
 	sizeClasses[props.size] || sizeClasses.md,
 ]);

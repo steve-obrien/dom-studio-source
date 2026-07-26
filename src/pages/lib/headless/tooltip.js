@@ -1,134 +1,24 @@
-import { DomElementBase, defineDomElement, isBrowser, uid } from './base.js';
-import {
-	applyFloatingPosition,
-	autoUpdateFloating,
-} from './floating.js';
-import {
-	beginFloatingEffectEnter,
-	beginFloatingEffectLeave,
-	clearFloatingEffectTimer,
-	prepareFloatingEffect,
-	resetFloatingEffectState,
-} from './floating-effect.js';
+import { DomElementBase, defineDomElement } from './base.js';
+import { attachTooltip } from './tooltip-controller.js';
 
-const STYLE_ID = 'dom-tooltip-styles';
-
-/**
- * Install the document-level styles required by headless tooltip bubbles.
- *
- * Tooltip bubbles are appended to `document.body` so they can escape local
- * stacking contexts and overflow containers. Keeping these styles centralized
- * gives Vue and custom element consumers the same arrow, placement, and motion
- * treatment without requiring application CSS.
- *
- * @returns {void}
- */
-function ensureTooltipStyles() {
-	if (!isBrowser || document.getElementById(STYLE_ID)) return;
-	const style = document.createElement('style');
-	style.id = STYLE_ID;
-	style.textContent = `
-dom-tooltip {
-	display: inline-flex;
-}
-[data-dom-tooltip] {
-	--dom-tooltip-arrow-size: 0.375rem;
-	position: fixed;
-	z-index: 70;
-	margin: 0;
-	max-width: min(18rem, calc(100vw - 1rem));
-	padding: 0.375rem 0.625rem;
-	border-radius: 0.5rem;
-	font-size: 0.75rem;
-	line-height: 1rem;
-	font-weight: 500;
-	background: var(--primary);
-	color: var(--primary-fg);
-	box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.25);
-	white-space: normal;
-	pointer-events: none;
-}
-[data-dom-tooltip]::before {
-	content: "";
-	position: absolute;
-	display: block;
-	width: 0;
-	height: 0;
-	border: var(--dom-tooltip-arrow-size) solid transparent;
-	pointer-events: none;
-}
-[data-dom-tooltip][data-side="top"]::before {
-	bottom: calc(var(--dom-tooltip-arrow-size) * -1);
-	left: var(--dom-popover-arrow-x, 50%);
-	border-top-color: var(--primary);
-	border-bottom: 0;
-	transform: translateX(-50%);
-}
-[data-dom-tooltip][data-side="bottom"]::before {
-	top: calc(var(--dom-tooltip-arrow-size) * -1);
-	left: var(--dom-popover-arrow-x, 50%);
-	border-top: 0;
-	border-bottom-color: var(--primary);
-	transform: translateX(-50%);
-}
-[data-dom-tooltip][data-side="left"]::before {
-	top: var(--dom-popover-arrow-y, 50%);
-	right: calc(var(--dom-tooltip-arrow-size) * -1);
-	border-right: 0;
-	border-left-color: var(--primary);
-	transform: translateY(-50%);
-}
-[data-dom-tooltip][data-side="right"]::before {
-	top: var(--dom-popover-arrow-y, 50%);
-	left: calc(var(--dom-tooltip-arrow-size) * -1);
-	border-right-color: var(--primary);
-	border-left: 0;
-	transform: translateY(-50%);
-}
-[data-dom-tooltip][popover] {
-	margin: 0;
-	overflow: visible;
-}
-[data-dom-tooltip][data-floating-effect="fade"] {
-	opacity: 0;
-	transition: opacity 190ms ease;
-}
-[data-dom-tooltip][data-floating-open="true"] {
-	opacity: 1;
-}
-[data-dom-tooltip][data-entering="from"][data-floating-open="true"],
-[data-dom-tooltip][data-leaving="to"][data-floating-open="true"] {
-	opacity: 0;
-}
-[data-dom-tooltip][data-entering="to"][data-floating-open="true"],
-[data-dom-tooltip][data-leaving="from"][data-floating-open="true"] {
-	opacity: 1;
-}
-[data-dom-tooltip][hidden] { display: none; }
-@media (prefers-reduced-motion: reduce) {
-	[data-dom-tooltip][data-floating-effect="fade"] {
-		transition-duration: 1ms;
-	}
-}
-`;
-	document.head.appendChild(style);
-}
-
-ensureTooltipStyles();
+export { attachTooltip, DomTooltipController } from './tooltip-controller.js';
 
 // <dom-tooltip text="…" placement="top|bottom|left|right" delay="150">
 //   <button>trigger</button>
 // </dom-tooltip>
 export class DomTooltipElement extends DomElementBase {
-	static get observedAttributes() { return ['text', 'placement', 'delay', 'offset', 'collision-padding', 'floating-mode', 'flip']; }
+	static get observedAttributes() {
+		return ['for', 'text', 'placement', 'delay', 'offset', 'collision-padding', 'floating-mode', 'flip'];
+	}
 
 	static __doc = {
 		name: 'dom-tooltip',
-		description: 'Lightweight tooltip wired through aria-describedby. The bubble appears on hover and focus, and uses shared floating positioning.',
+		description: 'Lightweight tooltip wired through aria-describedby. Wrap a trigger or reference one by id with for.',
 		slots: [
-			{ name: '(default)', description: 'The trigger — any focusable element wrapped by the tooltip.' },
+			{ name: '(default)', description: 'The trigger — any focusable element wrapped by the tooltip when for is not set.' },
 		],
 		attributes: [
+			{ name: 'for', type: 'string', description: 'ID of an existing trigger element. This avoids adding a wrapper around the trigger.' },
 			{ name: 'text', type: 'string', description: 'Tooltip body. Keep it short.' },
 			{ name: 'placement', type: "'top' | 'bottom' | 'left' | 'right'", description: 'Position relative to the trigger.' },
 			{ name: 'delay', type: 'number', description: 'Open delay in milliseconds (default 120).' },
@@ -150,160 +40,112 @@ export class DomTooltipElement extends DomElementBase {
 </dom-tooltip>`,
 	};
 
+	/**
+	 * Initialize target and controller state for this declarative host.
+	 */
 	constructor() {
 		super();
-		this._bubble = null;
 		this._trigger = null;
-		this._t = 0;
-		this._open = false;
-		this._reflowOff = null;
+		this._controller = null;
 	}
 
+	/**
+	 * Register the wrapper child or explicit for target when connected.
+	 *
+	 * @returns {void}
+	 */
 	connectedCallback() {
-		if (this._bubble) return;
-
-		this._trigger = [...this.children].find((el) => el.getAttribute('role') !== 'tooltip');
-		if (!this._trigger) return;
-
-		const id = uid('tip');
-		this._bubble = document.createElement('div');
-		this._bubble.id = `${id}-bubble`;
-		this._bubble.setAttribute('role', 'tooltip');
-		this._bubble.setAttribute('data-placement', this.getAttribute('placement') || 'top');
-		this._bubble.dataset.domTooltip = '';
-		this._bubble.dataset.floatingEffect = 'fade';
-		this._bubble.setAttribute('popover', 'manual');
-		this._bubble.setAttribute('aria-hidden', 'true');
-		this._bubble.hidden = true;
-		this._bubble.textContent = this.getAttribute('text') || '';
-		prepareFloatingEffect(this._bubble, 'fade');
-		document.body.appendChild(this._bubble);
-		this._trigger.setAttribute('aria-describedby', this._bubble.id);
-
-		this.on(this._trigger, 'mouseenter', () => this._show());
-		this.on(this._trigger, 'mouseleave', () => this._hide());
-		this.on(this._trigger, 'focus', () => this._show());
-		this.on(this._trigger, 'blur', () => this._hide());
+		if (this._connectTarget()) return;
+		queueMicrotask(() => {
+			if (this.isConnected && !this._controller) this._connectTarget();
+		});
 	}
 
-	_positionOptions() {
+	/**
+	 * Read the complete tooltip options from host attributes.
+	 *
+	 * @returns {Record<string, unknown>} Controller options.
+	 */
+	_options() {
 		return {
-			align: 'center',
-			offset: Number(this.getAttribute('offset') || 6),
+			text: this.getAttribute('text') || '',
 			placement: this.getAttribute('placement') || 'top',
-			padding: Number(this.getAttribute('collision-padding') || 8),
-			mode: this.getAttribute('floating-mode') || 'viewport',
+			delay: Number(this.getAttribute('delay') || 120),
+			offset: Number(this.getAttribute('offset') || 6),
+			collisionPadding: Number(this.getAttribute('collision-padding') || 8),
+			floatingMode: this.getAttribute('floating-mode') || 'viewport',
 			flip: this.getAttribute('flip') !== 'false',
 		};
 	}
 
-	_isBubblePopoverOpen(bubble = this._bubble) {
-		try {
-			return Boolean(bubble?.matches?.(':popover-open'));
-		} catch {
+	/**
+	 * Resolve the target from for or the existing wrapper child.
+	 *
+	 * @returns {HTMLElement | null} Explicit tooltip target.
+	 */
+	_resolveTarget() {
+		const targetId = this.getAttribute('for')?.trim();
+		if (targetId) {
+			const target = this.ownerDocument.getElementById(targetId);
+			return target instanceof HTMLElement ? target : null;
+		}
+		return [...this.children].find((element) => element instanceof HTMLElement) || null;
+	}
+
+	/**
+	 * Attach or update the controller for the currently resolved target.
+	 *
+	 * @returns {boolean} Whether a target is registered.
+	 */
+	_connectTarget() {
+		const target = this._resolveTarget();
+		if (!target) {
+			this._disconnectTarget();
 			return false;
 		}
-	}
-
-	_showBubblePopover(bubble = this._bubble) {
-		if (!bubble?.showPopover || this._isBubblePopoverOpen(bubble)) return;
-		try {
-			bubble.showPopover();
-		} catch {
-			// Browsers without Popover API support keep the fixed-position fallback.
+		if (target === this._trigger && this._controller) {
+			this._controller.update(this._options());
+			return true;
 		}
+		this._disconnectTarget();
+		this._trigger = target;
+		this._controller = attachTooltip(target, this._options(), this);
+		return true;
 	}
 
-	_hideBubblePopover(bubble = this._bubble) {
-		if (!bubble?.hidePopover || !this._isBubblePopoverOpen(bubble)) return;
-		try {
-			bubble.hidePopover();
-		} catch {
-			// Ignore stale popover state during disconnects or browser fallback paths.
-		}
-	}
-
-	_place() {
-		if (!this._trigger || !this._bubble || this._bubble.hidden) return null;
-		return applyFloatingPosition(this._trigger, this._bubble, this._positionOptions());
-	}
-
-	_bindReflow() {
-		this._reflowOff?.();
-		this._reflowOff = autoUpdateFloating(this._trigger, this._bubble, () => this._place());
-	}
-
-	_unbindReflow() {
-		this._reflowOff?.();
-		this._reflowOff = null;
-	}
-
-	_finishHide(bubble = this._bubble) {
-		if (!bubble) return;
-		this._hideBubblePopover(bubble);
-		bubble.hidden = true;
-		bubble.setAttribute('aria-hidden', 'true');
-		resetFloatingEffectState(bubble);
-	}
-
-	_show() {
-		const delay = Number(this.getAttribute('delay') || 120);
-		clearTimeout(this._t);
-		if (this._open && !this._bubble?.hidden) return;
-		this._t = setTimeout(() => {
-			const bubble = this._bubble;
-			if (!bubble || !this._trigger) return;
-			this._open = true;
-			bubble.removeAttribute('aria-hidden');
-			const showNow = () => {
-				bubble.hidden = false;
-				this._showBubblePopover(bubble);
-				this._place();
-				this._bindReflow();
-			};
-			const animated = beginFloatingEffectEnter(bubble, {
-				animatePlacement: false,
-				beforeMeasure: showNow,
-				beforeFrame: () => this._place(),
-				shouldContinue: () => this._open && this._bubble === bubble,
-			});
-			if (!animated) showNow();
-			this.emit('dom:show');
-		}, delay);
-	}
-
-	_hide() {
-		clearTimeout(this._t);
-		if (!this._bubble || (!this._open && this._bubble.hidden)) return;
-		this._open = false;
-		this._unbindReflow();
-		const bubble = this._bubble;
-		bubble.setAttribute('aria-hidden', 'true');
-		beginFloatingEffectLeave(bubble, {
-			shouldContinue: () => !this._open && this._bubble === bubble,
-			finish: () => {
-				if (this._bubble === bubble) this._finishHide(bubble);
-			},
-		});
-		this.emit('dom:hide');
-	}
-
-	attributeChangedCallback(name, _o, value) {
-		if (!this._bubble) return;
-		if (name === 'text') this._bubble.textContent = value || '';
-		if (name === 'placement') this._bubble.setAttribute('data-placement', value || 'top');
-		if (['placement', 'offset', 'collision-padding', 'floating-mode', 'flip'].includes(name)) this._place();
-	}
-
-	disconnectedCallback() {
-		clearTimeout(this._t);
-		this._open = false;
-		this._unbindReflow();
-		clearFloatingEffectTimer(this._bubble);
-		this._finishHide(this._bubble);
-		this._bubble?.remove();
-		this._bubble = null;
+	/**
+	 * Destroy the current per-target tooltip registration.
+	 *
+	 * @returns {void}
+	 */
+	_disconnectTarget() {
+		this._controller?.destroy();
+		this._controller = null;
 		this._trigger = null;
+	}
+
+	/**
+	 * Reconnect for changes to for and update options for other attributes.
+	 *
+	 * @param {string} name Changed attribute name.
+	 * @returns {void}
+	 */
+	attributeChangedCallback(name) {
+		if (!this.isConnected) return;
+		if (name === 'for') {
+			this._connectTarget();
+			return;
+		}
+		this._controller?.update(this._options());
+	}
+
+	/**
+	 * Release the registered target when this host leaves the document.
+	 *
+	 * @returns {void}
+	 */
+	disconnectedCallback() {
+		this._disconnectTarget();
 		super.disconnectedCallback();
 	}
 }

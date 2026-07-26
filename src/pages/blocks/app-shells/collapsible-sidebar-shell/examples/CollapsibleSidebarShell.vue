@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { DomButton, DomEmailInput, DomNativeSelect, DomTextInput, DomTooltip, DomUrlInput } from '@getdom/studio/vue';
+import { DomButton, DomEmailInput, DomNativeSelect, DomTextInput, DomUrlInput, vDomTooltip } from '@getdom/studio/vue';
 import AppLayoutSidebar from './AppLayoutSidebar.vue';
 
 const navItems = [
@@ -142,49 +142,36 @@ function saveIntegration() {
 
 			<nav class="flex-1 space-y-1 overflow-y-auto p-3" aria-label="Workspace navigation">
 				<p v-if="!collapsed" class="px-2 pb-1 text-xs font-semibold text-muted-fg">Platform</p>
-				<template v-for="item in navItems" :key="item.id">
-					<DomTooltip v-if="collapsed" :text="item.label" placement="right">
-						<button
-							type="button"
-							:class="navButtonClass(item)"
-							:aria-label="item.label"
-							:aria-current="item.id === activeNav ? 'page' : undefined"
-							@click="selectNav(item)"
-						>
-							<svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-								<path :d="item.icon" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-							</svg>
-						</button>
-					</DomTooltip>
-					<button
-						v-else
-						type="button"
-						:class="navButtonClass(item)"
-						:aria-current="item.id === activeNav ? 'page' : undefined"
-						@click="selectNav(item)"
-					>
-						<svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path :d="item.icon" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-						</svg>
-						<span class="truncate">{{ item.label }}</span>
-					</button>
-				</template>
+				<button
+					v-for="item in navItems"
+					:key="item.id"
+					v-dom-tooltip.right="collapsed ? item.label : null"
+					type="button"
+					:class="navButtonClass(item)"
+					:aria-label="collapsed ? item.label : undefined"
+					:aria-current="item.id === activeNav ? 'page' : undefined"
+					@click="selectNav(item)"
+				>
+					<svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path :d="item.icon" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+					<span v-if="!collapsed" class="truncate">{{ item.label }}</span>
+				</button>
 			</nav>
 
 			<div class="space-y-2 border-t border-border p-3">
-				<DomTooltip :text="collapsed ? 'Flex Digital workspace' : 'Current workspace'" placement="right">
-					<button
-						type="button"
-						class="flex h-9 w-full items-center rounded-md text-sm text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-						:class="collapsed ? 'justify-center' : 'gap-2 px-2 text-left'"
-						:aria-label="collapsed ? 'Flex Digital workspace' : undefined"
-					>
-						<svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0c2-2.1 3-5.1 3-9s-1-6.9-3-9m0 18c-2-2.1-3-5.1-3-9s1-6.9 3-9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-						</svg>
-						<span v-if="!collapsed" class="truncate">Flex Digital</span>
-					</button>
-				</DomTooltip>
+				<button
+					v-dom-tooltip.right="collapsed ? 'Flex Digital workspace' : null"
+					type="button"
+					class="flex h-9 w-full items-center rounded-md text-sm text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+					:class="collapsed ? 'justify-center' : 'gap-2 px-2 text-left'"
+					:aria-label="collapsed ? 'Flex Digital workspace' : undefined"
+				>
+					<svg class="size-4 shrink-0" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0c2-2.1 3-5.1 3-9s-1-6.9-3-9m0 18c-2-2.1-3-5.1-3-9s1-6.9 3-9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+					<span v-if="!collapsed" class="truncate">Flex Digital</span>
+				</button>
 				<button
 					type="button"
 					class="flex h-10 w-full items-center rounded-md text-sm transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"

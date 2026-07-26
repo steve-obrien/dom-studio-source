@@ -1,13 +1,11 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { defineAsyncComponent, onMounted, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import BrandMark from './_layout/BrandMark.vue';
 import DomStudioLayout from './_layout/DomStudioLayout.vue';
 import {
-	DomAccordion,
 	DomButton,
 	DomCombobox,
-	DomCommandPalette,
 	DomDatePicker,
 	DomDropdown,
 	DomPopover,
@@ -18,10 +16,39 @@ import {
 	DomToastStack,
 	DomToggle,
 	DomTooltip,
-	DomTreeView,
 	useToasts,
 } from './lib/vue';
 
+/**
+ * Loads the below-the-fold accordion after the initial page has mounted.
+ *
+ * @returns {Promise<object>} Vue SFC module.
+ */
+function loadAccordion() {
+	return import('./components/accordion/DomAccordion.vue');
+}
+
+/**
+ * Loads the homepage command palette when it is first opened.
+ *
+ * @returns {Promise<object>} Vue SFC module.
+ */
+function loadCommandPalette() {
+	return import('./components/command-palette/DomCommandPalette.vue');
+}
+
+/**
+ * Loads the tree-view demo when its inactive tab is selected.
+ *
+ * @returns {Promise<object>} Vue SFC module.
+ */
+function loadTreeView() {
+	return import('./components/tree-view/DomTreeView.vue');
+}
+
+const DomAccordion = defineAsyncComponent(loadAccordion);
+const DomCommandPalette = defineAsyncComponent(loadCommandPalette);
+const DomTreeView = defineAsyncComponent(loadTreeView);
 const router = useRouter();
 const isMounted = ref(false);
 const showcaseTab = ref('product');
@@ -370,6 +397,7 @@ function runCommand({ value }) {
 											<div class="rounded-2xl border border-border bg-canvas p-4">
 												<p class="text-sm font-semibold text-canvas-fg">Layer tree</p>
 												<DomTreeView
+													v-if="showcaseTab === 'headless'"
 													v-model="activeLayer"
 													:items="treeItems"
 													:open-values="['workflow', 'components']"
@@ -459,7 +487,17 @@ function runCommand({ value }) {
 						<div class="rounded-2xl border border-border skin-card p-5">
 							<p class="text-sm font-semibold text-canvas-fg">Answers without leaving the page</p>
 							<div class="mt-4">
-								<DomAccordion :items="accordionItems" />
+								<Suspense v-if="isMounted">
+									<DomAccordion :items="accordionItems" />
+									<template #fallback>
+										<div class="grid gap-2" aria-hidden="true">
+											<span v-for="item in accordionItems" :key="item.title" class="h-11 rounded-xl border border-border bg-secondary/35"></span>
+										</div>
+									</template>
+								</Suspense>
+								<div v-else class="grid gap-2" aria-hidden="true">
+									<span v-for="item in accordionItems" :key="item.title" class="h-11 rounded-xl border border-border bg-secondary/35"></span>
+								</div>
 							</div>
 						</div>
 						<div class="rounded-2xl border border-border skin-card p-5">

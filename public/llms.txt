@@ -1,72 +1,50 @@
 # DOM Studio
 
-DOM Studio is a component framework for building application UI with LLMs and humans working together. It provides Vue components, headless custom elements, reusable app blocks, Studio-editable specs, and semantic theme tokens.
+> DOM Studio is a complete, code-first Vue 3 and web component interface system for building application UI that teams can own, edit, and ship.
 
-Primary docs:
-- Overview: /
-- AI builders: /ai
-- Theming: /theming
-- Component spec: /component-spec
-- Studio: /components/studio
-- Mobile: /mobile
-- Blocks: /blocks
-- Components: /components/button, /forms/text-input, /visual/card
-- Dev components: /dev/code-block, /dev/json-viewer
-- Headless: /headless
+DOM Studio combines public Vue package exports, framework-neutral headless elements, copyable source blocks, documentation metadata, semantic theme tokens, and optional Studio-editable UI specs. It is designed for product interfaces such as dashboards, settings, forms, chat and agent tools, mail clients, operations consoles, billing, onboarding, data workflows, and mobile app shells.
 
-Use DOM Studio when building app screens, forms, dashboards, chat tools, mail clients, login flows, settings screens, internal tools, or generated UI that should stay editable.
+When building with DOM Studio, start from the closest block or example, compose with existing components, use props for behaviour, and use Tailwind CSS v4 utilities with semantic theme tokens for presentation. Let DOM Studio own accessibility, focus management, keyboard navigation, overlays, selection behaviour, and form semantics. Use a Studio spec only when the generated UI should remain visually editable or serializable as a named component tree.
 
-## Core Rules
+The package root and `@getdom/studio/vue` export the same Vue surface. Import `@getdom/studio/style.css` for styles and `@getdom/studio/headless` to register the framework-neutral `dom-*` custom elements. Blocks are repository-local source patterns to copy and adapt, not published package exports.
 
-1. Prefer existing DOM Studio blocks and components before custom markup.
-2. Use component props for behavior; use classes for layout, spacing, and small visual adjustments.
-3. Use semantic theme utilities, not raw colors, unless defining a theme.
-4. Keep generated UI dense, practical, and product-like unless asked for marketing UI.
-5. Let DOM Studio components handle accessibility, focus, keyboard navigation, overlays, and selection behavior.
-6. Return a Studio spec when the user may want to visually edit or inspect generated UI later.
-7. Give Studio spec nodes stable ids and human labels.
+## Core Documentation
 
-## Vue Usage
+- [Overview](https://getdom.studio/): Product positioning, package usage, and the main DOM Studio surfaces.
+- [AI builders](https://getdom.studio/ai): Rules for reliable LLM-generated interfaces and when to return Studio specs.
+- [Theming](https://getdom.studio/theming): Semantic colour tokens, light and dark themes, material skins, radii, and shadows.
+- [Component and docs contract](https://getdom.studio/component-spec): Auto-discovery, `defineOptions({ __doc })`, prop metadata, generated docs, and Studio registration.
+- [Studio](https://getdom.studio/components/studio): Visual editing and saved UI trees made from components, props, children, stable ids, and human labels.
 
-Import public Vue components from `@getdom/studio/vue`.
+## UI Library
 
-```js
-import {
-	DomButton,
-	DomCard,
-	DomCombobox,
-	DomForm,
-	DomTextInput,
-} from '@getdom/studio/vue';
-```
+- [General components](https://getdom.studio/components/button): Actions, overlays, menus, navigation, disclosure, toolbars, and interaction primitives.
+- [Forms](https://getdom.studio/forms): Form composition, fields, validation, text inputs, selectors, dates, files, code, and structured JSON values.
+- [Data components](https://getdom.studio/data): Data grids, calendars, media workflows, document editing, and agent conversations.
+- [Developer components](https://getdom.studio/dev): Code, JSON, payload, and implementation-data inspection utilities.
+- [Visual components](https://getdom.studio/visual/card): Cards, badges, status, alerts, empty states, progress, skeletons, avatars, and diffs.
+- [Mobile components](https://getdom.studio/mobile): App shells, top and bottom navigation, screen stacks, safe areas, list rows, and action sheets.
+- [Headless elements](https://getdom.studio/headless): Framework-neutral `dom-*` custom elements for accessible behaviour without prescribed presentation.
 
-Use `@getdom/studio/headless` to register headless custom elements such as dropdown, dialog, drawer, popover, tabs, toggle, tooltip, accordion, menu, listbox, combobox, autocomplete, checkbox, radio group, and toast.
+## Application Blocks
 
-## Studio Specs
+- [Block catalog](https://getdom.studio/blocks): Complete, source-copy application workflows organised by nested product category.
+- [Application layout](https://getdom.studio/blocks/app-shells/application-layout): Responsive product shell with navigation and application content.
+- [AI collaboration shell](https://getdom.studio/blocks/app-shells/ai-workspaces/ai-collaboration-shell): Workspace composition for AI-assisted product work.
+- [Dashboard](https://getdom.studio/blocks/app-shells/dashboard): Dense, practical dashboard composition.
+- [Forms workflow](https://getdom.studio/blocks/data-capture/forms): Product-grade data capture built from DOM Studio form primitives.
+- [Chat](https://getdom.studio/blocks/communication/chat): Application chat workflow and message composition.
+- [Mail](https://getdom.studio/blocks/communication/mail): Mail client layout and interaction pattern.
+- [Resource scheduler](https://getdom.studio/blocks/operations/scheduling/resource-scheduler): Operations scheduling with resource-aware planning.
 
-Studio specs are editable UI trees:
+## Optional
 
-```json
-{
-	"id": "settings-form",
-	"label": "Settings form",
-	"component": "DomCard",
-	"props": {
-		"padding": "lg",
-		"class": "w-full max-w-2xl"
-	},
-	"children": [
-		{
-			"id": "email",
-			"label": "Email input",
-			"component": "DomTextInput",
-			"props": {
-				"label": "Email address",
-				"placeholder": "you@example.com"
-			}
-		}
-	]
-}
-```
-
-Do not invent theme token names. Do not use raw hex, RGB, or OKLCH values in component markup.
+- [Dialog](https://getdom.studio/components/dialog): Modal behaviour, focus handling, stacked dialogs, and schema-driven forms.
+- [Combobox](https://getdom.studio/forms/combobox): Searchable, committed selection; use autocomplete instead for free text with suggestions.
+- [Document editor](https://getdom.studio/data/document-editor): Rich document editing with collaboration and reviewable AI workflow examples.
+- [Agent chat](https://getdom.studio/data/agent-chat): Reusable agent conversation, conversation list, and chat shell surfaces.
+- [Month calendar](https://getdom.studio/data/month-calendar): Data-backed month planning and customisable calendar workflows.
+- [Data grid](https://getdom.studio/data/data-grid): Sortable, filterable, API-shaped tabular data.
+- [Code block](https://getdom.studio/dev/code-block): Highlighted read-only code for implementation and diagnostic output.
+- [JSON viewer](https://getdom.studio/dev/json-viewer): Structured payload and diagnostic-data inspection.
+- [Text diff](https://getdom.studio/visual/text-diff): Reviewable before-and-after text and code changes.

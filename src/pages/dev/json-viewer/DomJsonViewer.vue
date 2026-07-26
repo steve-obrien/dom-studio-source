@@ -7,6 +7,7 @@ import DomCodeBlock from '../code-block/DomCodeBlock.vue';
 const copyIcon = 'M8 8h10v10H8V8Zm-4-4h10v3H7v7H4V4Z';
 const chevronIcon = 'M9 6l6 6-6 6';
 const modeValues = ['tree', 'code'];
+const themeModeValues = ['inherit', 'light', 'dark'];
 
 defineOptions({
 	__doc: {
@@ -105,6 +106,14 @@ const props = defineProps({
 		default: true,
 		_edit: { description: 'Render the standard card frame around the viewer.' },
 	},
+	themeMode: {
+		type: String,
+		default: 'inherit',
+		_edit: {
+			options: ['inherit', 'light', 'dark'],
+			description: 'Force a light or dark viewer theme, or inherit the surrounding application theme.',
+		},
+	},
 	emptyText: {
 		type: String,
 		default: 'No JSON value.',
@@ -125,6 +134,7 @@ const expansionSeedKey = computed(resolveExpansionSeedKey);
 const treeRows = computed(resolveTreeRows);
 const bodyStyle = computed(resolveBodyStyle);
 const frameClasses = computed(resolveFrameClasses);
+const resolvedThemeMode = computed(resolveThemeMode);
 const showToolbarContent = computed(resolveShowToolbarContent);
 const displayTitle = computed(resolveDisplayTitle);
 const copyLabel = computed(resolveCopyLabel);
@@ -200,6 +210,15 @@ function resolveFrameClasses() {
 		'w-full min-w-0 overflow-hidden',
 		props.framed ? 'rounded-xl border border-border skin-card' : '',
 	];
+}
+
+/**
+ * Normalizes the requested local theme mode.
+ *
+ * @returns {'inherit' | 'light' | 'dark'} Supported local theme mode.
+ */
+function resolveThemeMode() {
+	return themeModeValues.includes(props.themeMode) ? props.themeMode : 'inherit';
 }
 
 /**
@@ -744,7 +763,11 @@ function tokenClass(kind) {
 </script>
 
 <template>
-	<div class="dom-json-viewer" :class="frameClasses">
+	<div
+		class="dom-json-viewer"
+		:class="frameClasses"
+		:data-theme="resolvedThemeMode === 'inherit' ? undefined : resolvedThemeMode"
+	>
 		<div
 			v-if="showToolbarContent"
 			class="flex flex-col gap-3 border-b border-border bg-secondary/45 px-2 py-2 sm:flex-row sm:items-center sm:justify-between"
@@ -805,6 +828,7 @@ function tokenClass(kind) {
 				:filename="filename"
 				:preview-lines="0"
 				:framed="false"
+				:theme-mode="resolvedThemeMode"
 				lang="json"
 			/>
 
@@ -886,7 +910,8 @@ function tokenClass(kind) {
 	--dom-json-token-muted: #6a737d;
 }
 
-:global([data-theme="dark"] .dom-json-viewer) {
+:global([data-theme="dark"] .dom-json-viewer:not([data-theme="light"])),
+.dom-json-viewer[data-theme="dark"] {
 	--dom-json-token-background: #1e1e1e;
 	--dom-json-token-text: #d4d4d4;
 	--dom-json-token-key: #9cdcfe;

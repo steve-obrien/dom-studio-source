@@ -5,8 +5,10 @@ import DocSection from '../../_layout/DocSection.vue';
 import Example from '../../_layout/docs/Example.vue';
 import Playground from '../../_layout/docs/Playground.vue';
 import ComponentProps from '../../_layout/docs/ComponentProps.vue';
-import { DomProgress, DomRadialProgress } from '../../lib/vue';
+import { DomProgress, DomRadialProgress, DomSegmentedProgress } from '../../lib/vue';
 
+import CrawlProgress from './examples/CrawlProgress.vue';
+import CrawlProgressSrc from './examples/CrawlProgress.vue?raw';
 import ProgressStates from './examples/ProgressStates.vue';
 import ProgressStatesSrc from './examples/ProgressStates.vue?raw';
 import IndeterminateLoading from './examples/IndeterminateLoading.vue';
@@ -18,11 +20,12 @@ import UploadOverlaySrc from './examples/UploadOverlay.vue?raw';
 
 const doc = DomProgress.__doc;
 const radialDoc = DomRadialProgress.__doc;
+const segmentedDoc = DomSegmentedProgress.__doc;
 </script>
 
 <template>
 	<DomStudioLayout>
-		<DocPage :name="doc.name" :tagline="doc.description" tag="<DomProgress> + <DomRadialProgress>" eyebrow="Visual primitive">
+		<DocPage :name="doc.name" :tagline="doc.description" tag="Progress family" eyebrow="Visual primitive">
 			<DocSection eyebrow="Playground" title="Linear progress">
 				<Playground
 					:inspect="DomProgress"
@@ -30,6 +33,25 @@ const radialDoc = DomRadialProgress.__doc;
 					title="Progress playground"
 					description="Use the linear meter for page-level loading, imports, uploads, and background work with enough horizontal space for a label."
 				/>
+			</DocSection>
+
+			<DocSection eyebrow="Playground" title="Segmented progress">
+				<Playground
+					:inspect="DomSegmentedProgress"
+					:initial="segmentedDoc.playground.initial"
+					title="Segmented progress playground"
+					:description="segmentedDoc.description"
+				/>
+			</DocSection>
+
+			<DocSection eyebrow="Workflow" title="Crawl progress with a changing total">
+				<Example
+					:source="CrawlProgressSrc"
+					filename="CrawlProgress.vue"
+					description="Move pages between queued, processing, completed, and failed states. Discovering more pages increases the total and recalculates every segment automatically."
+				>
+					<CrawlProgress />
+				</Example>
 			</DocSection>
 
 			<DocSection eyebrow="Playground" title="Radial progress">
@@ -83,6 +105,10 @@ const radialDoc = DomRadialProgress.__doc;
 
 			<DocSection title="Linear reference">
 				<ComponentProps :component="DomProgress" />
+			</DocSection>
+
+			<DocSection title="Segmented reference">
+				<ComponentProps :component="DomSegmentedProgress" />
 			</DocSection>
 
 			<DocSection title="Radial reference">

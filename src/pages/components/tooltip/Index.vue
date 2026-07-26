@@ -4,25 +4,22 @@ import DocPage from '../../_layout/DocPage.vue';
 import DocSection from '../../_layout/DocSection.vue';
 import CodeBlock from '../../_layout/CodeBlock.vue';
 import Demo from '../../_layout/Demo.vue';
+import Example from '../../_layout/docs/Example.vue';
 import Playground from '../../_layout/docs/Playground.vue';
 import PropsTable from '../../_layout/PropsTable.vue';
 import { DomTooltip, DomButton } from '../../lib/vue';
 
-const usageVue = `<script setup>
-import { DomTooltip, DomButton } from '@getdom/studio/vue';
-<\/script>
-
-<template>
-  <DomTooltip text="Sync now (⌘+S)" placement="top">
-    <DomButton variant="secondary">Save</DomButton>
-  </DomTooltip>
-</template>`;
+import TooltipDirective from './examples/Directive.vue';
+import TooltipDirectiveSrc from './examples/Directive.vue?raw';
+import ExplicitTarget from './examples/ExplicitTarget.vue';
+import ExplicitTargetSrc from './examples/ExplicitTarget.vue?raw';
 
 const usageWeb = `<dom-tooltip text="Save your changes" placement="top" delay="120">
   <button>Save</button>
 </dom-tooltip>`;
 
 const props = [
+	{ name: 'for', type: 'string', default: "''", description: 'ID of an existing trigger. Leave empty to wrap the trigger in the default slot.' },
 	{ name: 'text', type: 'string', default: '—', description: 'Tooltip content.' },
 	{ name: 'placement', type: "'top' | 'bottom' | 'left' | 'right'", default: "'top'", description: 'Position relative to the trigger.' },
 	{ name: 'delay', type: 'number', default: '120', description: 'Show delay in ms.' },
@@ -65,8 +62,33 @@ const props = [
 				</Demo>
 			</DocSection>
 
-			<DocSection eyebrow="Usage" title="Vue">
-				<CodeBlock :code="usageVue" lang="vue" />
+			<DocSection eyebrow="Vue directive" title="Add presentation without a wrapper">
+				<p class="mb-4 max-w-3xl text-sm leading-6 text-muted-fg">
+					Import <code>vDomTooltip</code> and use <code>v-dom-tooltip</code> on a native element or a Vue component with one HTML root.
+					Pass the tooltip text and append <code>.top</code>, <code>.right</code>, <code>.bottom</code>, or <code>.left</code> to set its placement.
+					The object form remains available for dynamic placement and other options.
+				</p>
+				<Example
+					:source="TooltipDirectiveSrc"
+					filename="Directive.vue"
+					description="Attach the tooltip directly to its trigger without adding a wrapper element."
+				>
+					<TooltipDirective />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Explicit target" title="Reference an element by id">
+				<p class="mb-4 max-w-3xl text-sm leading-6 text-muted-fg">
+					Use <code>for</code> when the tooltip should be declared separately from its trigger. The tooltip host registers only that element
+					and does not scan or observe the document.
+				</p>
+				<Example
+					:source="ExplicitTargetSrc"
+					filename="ExplicitTarget.vue"
+					description="Declare the tooltip separately and connect it to one element by id."
+				>
+					<ExplicitTarget />
+				</Example>
 			</DocSection>
 
 			<DocSection eyebrow="Usage" title="Web component">

@@ -2,7 +2,8 @@
 @source inline("transition duration-1000 ease-in ease-out opacity-0 opacity-100 scale-50 scale-100");
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
-:root {
+:root,
+[data-theme="light"] {
 	color-scheme: light;
 	--radius: 0.625rem;
 	--radius-sm: calc(var(--radius) * 0.6);
@@ -110,6 +111,7 @@ body,
 body {
 	margin: 0;
 	font-family:
+		"Plus Jakarta Sans Variable",
 		"Plus Jakarta Sans",
 		ui-sans-serif,
 		system-ui,
@@ -216,17 +218,20 @@ dom-popover:not(:defined) > *:not([slot="trigger"]) {
 .dom-shiki .shiki code {
 	background-color: inherit;
 }
-[data-theme="dark"] .dom-shiki .shiki,
-[data-theme="dark"] .dom-shiki .shiki span {
+[data-theme="dark"] .dom-shiki .shiki:not([data-theme="light"] *),
+[data-theme="dark"] .dom-shiki .shiki span:not([data-theme="light"] *),
+.dom-code[data-theme="dark"] > .dom-shiki .shiki,
+.dom-code[data-theme="dark"] > .dom-shiki .shiki span {
 	color: var(--shiki-dark) !important;
 	background-color: var(--shiki-dark-bg) !important;
 }
-[data-theme="dark"] .dom-shiki .shiki span {
+[data-theme="dark"] .dom-shiki .shiki span:not([data-theme="light"] *),
+.dom-code[data-theme="dark"] > .dom-shiki .shiki span {
 	font-style: var(--shiki-dark-font-style) !important;
 	font-weight: var(--shiki-dark-font-weight) !important;
 	text-decoration: var(--shiki-dark-text-decoration) !important;
 }
-[data-theme="dark"] .dom-code-token {
+[data-theme="dark"] .dom-code-token:not([data-theme="light"] *) {
 	background-color: var(--shiki-dark-bg) !important;
 	color: var(--shiki-dark) !important;
 	font-style: var(--shiki-dark-font-style) !important;

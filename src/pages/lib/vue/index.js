@@ -10,6 +10,7 @@ export { default as DomDialogSchemaForm } from '../../components/dialog/DomDialo
 export { default as DomLightbox } from '../../components/lightbox/DomLightbox.vue';
 export { default as DomTabs } from '../../components/tabs/DomTabs.vue';
 export { default as DomTooltip } from '../../components/tooltip/DomTooltip.vue';
+export { vDomTooltip } from '../../components/tooltip/vDomTooltip.js';
 export { default as DomAccordion } from '../../components/accordion/DomAccordion.vue';
 export { default as DomMenu } from '../../components/menu/DomMenu.vue';
 export { default as DomMenuItem } from '../../components/menu/DomMenuItem.vue';
@@ -86,6 +87,7 @@ export { default as DomEmptyState } from '../../visual/empty-state/DomEmptyState
 export { default as DomAlert } from '../../visual/alert/DomAlert.vue';
 export { default as DomSkeleton } from '../../visual/skeleton/DomSkeleton.vue';
 export { default as DomProgress } from '../../visual/progress/DomProgress.vue';
+export { default as DomSegmentedProgress } from '../../visual/progress/DomSegmentedProgress.vue';
 export { default as DomRadialProgress } from '../../visual/progress/DomRadialProgress.vue';
 export { default as DomSpinner } from '../../visual/spinner/DomSpinner.vue';
 export { default as DomTextDiff } from '../../visual/text-diff/DomTextDiff.vue';
