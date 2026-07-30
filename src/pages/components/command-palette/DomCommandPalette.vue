@@ -52,7 +52,6 @@ const teleportTarget = shallowRef(null);
 const listId = `dom-command-palette-${useId()}-list`;
 const dialogLabel = 'Command palette';
 const useLiquidGlass = LIQUID_GLASS_EFFECTS.commandPalette;
-let motionTimer = null;
 
 const filtered = computed(() => {
 	const q = query.value.trim().toLowerCase();
@@ -63,16 +62,10 @@ const filtered = computed(() => {
 });
 
 watch(() => props.modelValue, async (open) => {
-	window.clearTimeout(motionTimer);
 	if (!open) {
 		if (!isRendered.value) return;
 		isVisible.value = false;
 		motion.value = 'leaving';
-		motionTimer = window.setTimeout(() => {
-			if (props.modelValue) return;
-			isRendered.value = false;
-			motion.value = 'closed';
-		}, 150);
 		return;
 	}
 
@@ -86,9 +79,6 @@ watch(() => props.modelValue, async (open) => {
 		isVisible.value = true;
 		input.value?.focus();
 	});
-	motionTimer = window.setTimeout(() => {
-		if (props.modelValue) motion.value = 'open';
-	}, 250);
 });
 watch(query, resetActiveIndex);
 watch(filtered, syncActiveIndex);
@@ -121,11 +111,25 @@ onMounted(() => {
 	window.addEventListener('keyup', onShortcutFallback, { capture: true });
 });
 onBeforeUnmount(() => {
-	window.clearTimeout(motionTimer);
 	window.removeEventListener('keydown', onShortcut, { capture: true });
 	document.removeEventListener('keydown', onShortcut, { capture: true });
 	window.removeEventListener('keyup', onShortcutFallback, { capture: true });
 });
+
+/**
+ * Completes the current panel motion after the browser renders its final frame.
+ *
+ * @returns {void}
+ */
+function onPanelAnimationEnd() {
+	if (motion.value === 'entering' && props.modelValue) {
+		motion.value = 'open';
+		return;
+	}
+	if (motion.value !== 'leaving' || props.modelValue) return;
+	isRendered.value = false;
+	motion.value = 'closed';
+}
 
 function close() {
 	emit('update:modelValue', false);
@@ -303,6 +307,7 @@ function matchesShortcut(event, shortcut) {
 					},
 				]"
 				@keydown="onKeydown"
+				@animationend.self="onPanelAnimationEnd"
 			>
 				<DomLiquidGlassSurface
 					v-if="useLiquidGlass"
@@ -382,7 +387,7 @@ function matchesShortcut(event, shortcut) {
 }
 
 .command-panel-entering {
-	animation: command-panel-in 240ms both;
+	animation: command-panel-in 300ms both;
 }
 
 .command-panel-leaving {
@@ -393,10 +398,12 @@ function matchesShortcut(event, shortcut) {
 	0% {
 		opacity: 0;
 		transform: translateY(-10px) scale(0.965);
+		animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 	}
-	62% {
+	60% {
 		opacity: 1;
-		transform: translateY(1px) scale(1.012);
+		transform: translateY(1px) scale(1.01);
+		animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1);
 	}
 	100% {
 		opacity: 1;
