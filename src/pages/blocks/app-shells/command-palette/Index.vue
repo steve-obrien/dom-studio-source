@@ -12,17 +12,18 @@ import CommandPaletteShellSrc from './examples/CommandPaletteShell.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Command Palette Block"
-			tagline="A responsive product shell pattern for global command search, quick navigation, recent work, and keyboard-first actions."
-			tag="App Shell UI"
+			tagline="A viewport-owned command workspace for keyboard-first navigation, recent work, and high-frequency product actions."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="App Shells" title="Command palette shell">
+			<DocSection eyebrow="App shell" title="Responsive command workspace">
 				<Example
 					:source="CommandPaletteShellSrc"
 					filename="CommandPaletteShell.vue"
 					presentation="iframe"
 					frame-src="/blocks/app-shells/command-palette/preview/CommandPaletteShell"
-					description="Copy this into a SaaS app shell, internal tool, developer dashboard, productivity app, or admin console. Replace the sample command list with route, entity, and action records from your product."
+					description="Copy this into a SaaS app shell, internal tool, developer dashboard, productivity app, or admin console. The desktop rail becomes a flush-edge DomDrawer inside narrow iframes, while DomSelect, DomProfileMenu, DomTabs, DomStatusPill, and DomCommandPalette compose the working launcher."
+					frame-flush-edges
 					default-open
 					:preview-lines="16"
 				>
@@ -77,7 +78,7 @@ import CommandPaletteShellSrc from './examples/CommandPaletteShell.vue?raw';
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include grouped command sections, remote search loading states, command aliases, and admin-managed shortcuts.</p>
+						<p class="mt-2">Useful follow-ups include grouped command sections, remote search loading states, aliases, admin-managed shortcuts, and command-specific confirmation dialogs.</p>
 					</div>
 				</div>
 			</DocSection>

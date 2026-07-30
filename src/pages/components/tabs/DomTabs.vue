@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 const props = defineProps({
 	modelValue: { type: String, default: '' },
@@ -38,14 +38,70 @@ const panelClass = computed(() => {
 	return props.variant === 'page' ? 'mt-0' : 'mt-6';
 });
 
-onMounted(async () => {
-	await import('../../lib/headless/tabs.js');
-	root.value?.addEventListener('dom:change', (e) => emit('update:modelValue', e.detail.value));
-});
+onMounted(mountTabs);
+onUnmounted(removeTabsListeners);
+watch(getModelValue, syncModelValue);
 
-watch(() => props.modelValue, (v) => {
-	if (root.value && v && root.value.value !== v) root.value.value = v;
-});
+/**
+ * Load the headless tabs behavior and subscribe to changes from this tab host.
+ *
+ * @returns {Promise<void>} Resolves after the headless element is registered.
+ */
+async function mountTabs() {
+	await import('../../lib/headless/tabs.js');
+	root.value?.addEventListener('dom:change', onTabChange);
+}
+
+/**
+ * Remove the host-level change listener when the Vue component unmounts.
+ *
+ * @returns {void}
+ */
+function removeTabsListeners() {
+	root.value?.removeEventListener('dom:change', onTabChange);
+}
+
+/**
+ * Return the externally controlled tab value for Vue's watcher.
+ *
+ * @returns {string} Controlled active tab value.
+ */
+function getModelValue() {
+	return props.modelValue;
+}
+
+/**
+ * Commit only changes dispatched by the tab host itself.
+ *
+ * Nested DOM Studio controls can also emit bubbling `dom:change` events. Those
+ * events must not reset the active tab.
+ *
+ * @param {CustomEvent<{ value?: string }>} event Headless change event.
+ * @returns {void}
+ */
+function onTabChange(event) {
+	if (event.target !== root.value) return;
+	const value = event.detail?.value;
+	let isKnownTab = false;
+	for (const tab of props.tabs) {
+		if (tab.key === value) {
+			isKnownTab = true;
+			break;
+		}
+	}
+	if (!isKnownTab) return;
+	emit('update:modelValue', value);
+}
+
+/**
+ * Keep the headless tab host aligned with the controlled Vue model.
+ *
+ * @param {string} value Active tab value.
+ * @returns {void}
+ */
+function syncModelValue(value) {
+	if (root.value && value && root.value.value !== value) root.value.value = value;
+}
 </script>
 
 <template>

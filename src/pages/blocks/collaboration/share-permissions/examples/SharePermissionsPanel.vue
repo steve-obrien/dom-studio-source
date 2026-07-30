@@ -1,489 +1,916 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
-import { DomButton, DomCheckbox, DomEmailInput, DomNativeSelect, DomTabs, DomToggle } from '@getdom/studio/vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import {
+	DomAlert,
+	DomAvatar,
+	DomBadge,
+	DomButton,
+	DomDialog,
+	DomEmailInput,
+	DomEmptyState,
+	DomProgress,
+	DomSelect,
+	DomStatusPill,
+	DomTabs,
+	DomToggle,
+	DomToggleButtonGroup,
+} from '@getdom/studio/vue';
 
-const roleOptions = [
-	{ label: 'Owner', value: 'Owner' },
-	{ label: 'Can edit', value: 'Can edit' },
-	{ label: 'Can comment', value: 'Can comment' },
-	{ label: 'Can view', value: 'Can view' },
+const emptyResource = {
+	id: 'report_q3_pipeline',
+	name: 'Loading shared item',
+	type: 'Resource',
+	owner: 'Loading owner',
+	workspace: 'Loading workspace',
+	sensitivity: 'Loading',
+	linkAccess: 'restricted',
+	lastShared: '',
+};
+
+const resources = ref([]);
+
+const inviteRoleOptions = [
+	{ value: 'Can edit', label: 'Can edit', description: 'Change content and invite collaborators.' },
+	{ value: 'Can comment', label: 'Can comment', description: 'Add feedback without changing content.' },
+	{ value: 'Can view', label: 'Can view', description: 'Open and read this item.' },
 ];
 
-const linkAccessOptions = [
-	{ label: 'Restricted', value: 'restricted' },
-	{ label: 'Workspace can view', value: 'workspace' },
-	{ label: 'Anyone with link', value: 'public' },
+const memberRoleOptions = [
+	{ value: 'Owner', label: 'Owner', description: 'Transfer ownership in a dedicated owner workflow.', disabled: true },
+	...inviteRoleOptions,
 ];
 
 const expiryOptions = [
-	{ label: 'No expiry', value: 'none' },
-	{ label: '7 days', value: '7d' },
-	{ label: '30 days', value: '30d' },
+	{ value: 'none', label: 'No expiry', description: 'Access remains active until it is changed.' },
+	{ value: '7d', label: '7 days', description: 'The link expires automatically next week.' },
+	{ value: '30d', label: '30 days', description: 'The link expires automatically next month.' },
 ];
 
-const resources = [
-	{
-		id: 'report_q3_pipeline',
-		name: 'Q3 enterprise pipeline review',
-		type: 'Report',
-		owner: 'Maya Chen',
-		workspace: 'Revenue operations',
-		sensitivity: 'Internal',
-		linkAccess: 'restricted',
-		lastShared: 'Today 10:24',
-		views: 184,
-	},
-	{
-		id: 'roadmap_ai_assist',
-		name: 'AI assist rollout plan',
-		type: 'Roadmap',
-		owner: 'Jon Bell',
-		workspace: 'Product delivery',
-		sensitivity: 'Confidential',
-		linkAccess: 'workspace',
-		lastShared: 'Yesterday',
-		views: 97,
-	},
-	{
-		id: 'brief_client_alpha',
-		name: 'Client Alpha success brief',
-		type: 'Client brief',
-		owner: 'Ari Grant',
-		workspace: 'Customer success',
-		sensitivity: 'External ready',
-		linkAccess: 'restricted',
-		lastShared: 'Jun 08, 2026',
-		views: 42,
-	},
+const mobileSectionOptions = [
+	{ value: 'people', label: 'People' },
+	{ value: 'access', label: 'Access' },
 ];
 
-const collaboratorSeeds = {
-	report_q3_pipeline: [
-		{ id: 'maya', name: 'Maya Chen', email: 'maya@getdom.studio', role: 'Owner', source: 'Owner', status: 'Active', avatar: 'MC', external: false },
-		{ id: 'jon', name: 'Jon Bell', email: 'jon@getdom.studio', role: 'Can edit', source: 'Direct', status: 'Active', avatar: 'JB', external: false },
-		{ id: 'revops', name: 'Revenue team', email: '12 members', role: 'Can view', source: 'Group', status: 'Active', avatar: 'RT', external: false },
-		{ id: 'client', name: 'Elena Ramos', email: 'elena@northstar.example', role: 'Can comment', source: 'Direct', status: 'External', avatar: 'ER', external: true },
-	],
-	roadmap_ai_assist: [
-		{ id: 'jon', name: 'Jon Bell', email: 'jon@getdom.studio', role: 'Owner', source: 'Owner', status: 'Active', avatar: 'JB', external: false },
-		{ id: 'product', name: 'Product leads', email: '8 members', role: 'Can edit', source: 'Group', status: 'Active', avatar: 'PL', external: false },
-		{ id: 'support', name: 'Support managers', email: '5 members', role: 'Can comment', source: 'Group', status: 'Active', avatar: 'SM', external: false },
-	],
-	brief_client_alpha: [
-		{ id: 'ari', name: 'Ari Grant', email: 'ari@getdom.studio', role: 'Owner', source: 'Owner', status: 'Active', avatar: 'AG', external: false },
-		{ id: 'clientteam', name: 'Client Alpha team', email: '4 guests', role: 'Can view', source: 'Guest group', status: 'External', avatar: 'CA', external: true },
-	],
-};
-
-const inviteSeeds = {
-	report_q3_pipeline: [
-		{ id: 'invite_finance', email: 'finance-leads@getdom.studio', role: 'Can view', expiresAt: 'Jun 17, 2026', status: 'Sent' },
-	],
-	roadmap_ai_assist: [
-		{ id: 'invite_legal', email: 'legal-review@getdom.studio', role: 'Can comment', expiresAt: 'Jun 13, 2026', status: 'Pending approval' },
-	],
-	brief_client_alpha: [
-		{ id: 'invite_sponsor', email: 'sponsor@client-alpha.example', role: 'Can view', expiresAt: 'Jun 20, 2026', status: 'Sent' },
-	],
-};
-
-const activitySeeds = {
-	report_q3_pipeline: [
-		{ label: 'Link access changed to restricted', actor: 'Maya Chen', time: 'Today 10:24' },
-		{ label: 'Elena Ramos added as commenter', actor: 'Jon Bell', time: 'Yesterday' },
-		{ label: 'Revenue team granted view access', actor: 'Maya Chen', time: 'Jun 07, 2026' },
-	],
-	roadmap_ai_assist: [
-		{ label: 'Workspace link enabled', actor: 'Jon Bell', time: 'Yesterday' },
-		{ label: 'Support managers added', actor: 'Maya Chen', time: 'Jun 08, 2026' },
-	],
-	brief_client_alpha: [
-		{ label: 'Guest group added', actor: 'Ari Grant', time: 'Jun 08, 2026' },
-		{ label: 'Download permission disabled', actor: 'Ari Grant', time: 'Jun 08, 2026' },
-	],
-};
-
-const tabs = [
-	{ key: 'people', label: 'People' },
-	{ key: 'pending', label: 'Pending' },
-	{ key: 'activity', label: 'Activity' },
-];
-
-const selectedResourceId = ref(resources[0].id);
+const selectedResourceId = ref(emptyResource.id);
+const resourceDetail = ref(null);
 const activeTab = ref('people');
+const mobileSection = ref('people');
 const inviteEmail = ref('');
 const inviteRole = ref('Can comment');
-const linkAccess = ref(resources[0].linkAccess);
+const linkAccess = ref(emptyResource.linkAccess);
 const linkExpiry = ref('30d');
 const requireApproval = ref(true);
 const allowDownload = ref(false);
 const notifyPeople = ref(true);
-const collaborators = ref(cloneList(collaboratorSeeds[resources[0].id]));
-const pendingInvites = ref(cloneList(inviteSeeds[resources[0].id]));
+const collaborators = ref([]);
+const pendingInvites = ref([]);
+const activityEvents = ref([]);
+const pendingChanges = ref([]);
+const feedback = ref(null);
+const reviewDialogOpen = ref(false);
+const savedPermissionState = ref(createPermissionSnapshot());
+const isLoading = ref(true);
+const isSaving = ref(false);
+const isInviting = ref(false);
+const revokingInviteId = ref('');
+const loadError = ref('');
+let resourceRequestSequence = 0;
 
-const selectedResource = computed(() => resources.find((resource) => resource.id === selectedResourceId.value) || resources[0]);
-const activeCollaborators = computed(() => collaborators.value.filter((person) => person.status === 'Active').length);
+const selectedResource = computed(() => resourceDetail.value || resources.value.find((resource) => resource.id === selectedResourceId.value) || emptyResource);
+const resourceOptions = computed(() => resources.value.map((resource) => ({
+	value: resource.id,
+	label: resource.name,
+	description: `${resource.type} · ${resource.workspace}`,
+	sensitivity: resource.sensitivity,
+})));
+const linkAccessOptions = computed(() => [
+	{ value: 'restricted', label: 'Restricted', description: 'Only people and groups listed here can open it.' },
+	{ value: 'workspace', label: selectedResource.value.workspace, description: `Anyone in ${selectedResource.value.workspace} with the link can view.` },
+	{ value: 'public', label: 'Anyone with the link', description: 'No sign-in required. Use only for approved content.' },
+]);
 const externalCollaborators = computed(() => collaborators.value.filter((person) => person.external).length);
-const editableCollaborators = computed(() => collaborators.value.filter((person) => ['Owner', 'Can edit'].includes(person.role)).length);
+const sectionTabs = computed(() => [
+	{ key: 'people', label: `People ${collaborators.value.length}` },
+	{ key: 'pending', label: `Pending ${pendingInvites.value.length}` },
+	{ key: 'activity', label: 'Activity' },
+]);
+const hasChanges = computed(() => pendingChanges.value.length > 0);
 const accessScore = computed(() => {
-	let score = 72;
-	if (linkAccess.value === 'restricted') score += 16;
-	if (linkAccess.value === 'public') score -= 24;
+	let score = 78;
+	if (linkAccess.value === 'restricted') score += 14;
+	if (linkAccess.value === 'public') score -= 30;
 	if (requireApproval.value) score += 8;
 	if (allowDownload.value) score -= 10;
 	if (externalCollaborators.value > 0) score -= 8;
-	return Math.max(28, Math.min(100, score));
+	return Math.max(24, Math.min(100, score));
 });
+const accessTone = computed(() => {
+	if (linkAccess.value === 'public') return 'danger';
+	if (externalCollaborators.value > 0 || allowDownload.value) return 'warning';
+	return 'success';
+});
+const accessLabel = computed(() => {
+	if (linkAccess.value === 'public') return 'Public link';
+	if (linkAccess.value === 'workspace') return 'Workspace link';
+	return 'Restricted';
+});
+const accessSummary = computed(() => linkAccessOptions.value.find((option) => option.value === linkAccess.value)?.description || '');
 const policyChecks = computed(() => [
 	{
-		label: 'External collaborator review',
-		detail: externalCollaborators.value ? `${externalCollaborators.value} external collaborator requires owner visibility.` : 'No external collaborators on direct access.',
-		status: externalCollaborators.value ? 'warning' : 'ready',
+		id: 'external',
+		label: externalCollaborators.value ? `${externalCollaborators.value} external collaborator` : 'No external collaborators',
+		detail: externalCollaborators.value ? 'The owner can see and review every external grant.' : 'Direct access is limited to this workspace.',
+		tone: externalCollaborators.value ? 'warning' : 'success',
 	},
 	{
-		label: 'Link exposure',
-		detail: linkAccess.value === 'public' ? 'Anyone with the link can open this resource.' : 'Link access is limited to approved viewers.',
-		status: linkAccess.value === 'public' ? 'danger' : 'ready',
+		id: 'approval',
+		label: requireApproval.value ? 'Approval required' : 'Approval bypassed',
+		detail: requireApproval.value ? 'External invitations wait for an owner decision.' : 'External invitations are sent immediately.',
+		tone: requireApproval.value ? 'success' : 'warning',
 	},
 	{
-		label: 'Download control',
-		detail: allowDownload.value ? 'People with access can export this resource.' : 'Exports are disabled for non-owners.',
-		status: allowDownload.value ? 'warning' : 'ready',
+		id: 'downloads',
+		label: allowDownload.value ? 'Downloads enabled' : 'Downloads blocked',
+		detail: allowDownload.value ? 'Viewers can export files and reports.' : 'Only owners can export this item.',
+		tone: allowDownload.value ? 'warning' : 'success',
 	},
 ]);
-const accessSummary = computed(() => {
-	if (linkAccess.value === 'restricted') return 'Only listed people and groups can open this resource.';
-	if (linkAccess.value === 'workspace') return 'Everyone in this workspace can open the shared link.';
-	return 'Anyone with the link can open this resource.';
-});
-const selectedActivity = computed(() => activitySeeds[selectedResource.value.id] || []);
 
-watch(selectedResource, (resource) => {
-	linkAccess.value = resource.linkAccess;
-	activeTab.value = 'people';
-	collaborators.value = cloneList(collaboratorSeeds[resource.id]);
-	pendingInvites.value = cloneList(inviteSeeds[resource.id]);
+watch(selectedResourceId, (resourceId, previousResourceId) => {
+	if (resourceId && resourceId !== previousResourceId) loadResourceState(resourceId);
 });
 
+onMounted(loadPermissionResources);
+
+/**
+ * Clones a list of flat example records so resource-specific interactions do
+ * not mutate the shared seed data.
+ *
+ * @param {Array<Record<string, unknown>>} list Seed records to clone.
+ * @returns {Array<Record<string, unknown>>} Independent record copies.
+ */
 function cloneList(list) {
-	return list.map((item) => ({ ...item }));
+	return (list || []).map((item) => ({ ...item }));
 }
 
-function selectResource(resource) {
-	selectedResourceId.value = resource.id;
+/**
+ * Captures the currently applied link, safeguard, and collaborator-role state.
+ *
+ * @returns {{ linkAccess: string, linkExpiry: string, requireApproval: boolean, allowDownload: boolean, notifyPeople: boolean, roles: Record<string, string> }} Saved-state snapshot.
+ */
+function createPermissionSnapshot() {
+	return {
+		linkAccess: linkAccess.value,
+		linkExpiry: linkExpiry.value,
+		requireApproval: requireApproval.value,
+		allowDownload: allowDownload.value,
+		notifyPeople: notifyPeople.value,
+		roles: Object.fromEntries(collaborators.value.map((person) => [person.id, person.role])),
+	};
 }
 
-function addInvite() {
-	const email = inviteEmail.value.trim();
-	if (!email) return;
-
-	pendingInvites.value = [
-		{
-			id: `invite_${Date.now()}`,
-			email,
-			role: inviteRole.value,
-			expiresAt: 'Jun 24, 2026',
-			status: requireApproval.value ? 'Pending approval' : 'Sent',
+/**
+ * Requests JSON from the share-permissions API and promotes non-success bodies
+ * into ordinary JavaScript errors for consistent UI recovery.
+ *
+ * @param {string} url API route.
+ * @param {RequestInit} [options] Fetch options.
+ * @returns {Promise<Record<string, unknown>>} Parsed JSON response.
+ */
+async function requestJson(url, options = {}) {
+	const response = await fetch(url, {
+		...options,
+		headers: {
+			Accept: 'application/json',
+			...(options.body ? { 'Content-Type': 'application/json' } : {}),
+			...(options.headers || {}),
 		},
-		...pendingInvites.value,
-	];
-	inviteEmail.value = '';
-	activeTab.value = 'pending';
+	});
+	const payload = await response.json().catch(() => ({}));
+	if (!response.ok) throw new Error(payload.error || `Request failed with status ${response.status}.`);
+	return payload;
 }
 
-function revokeInvite(inviteId) {
-	pendingInvites.value = pendingInvites.value.filter((invite) => invite.id !== inviteId);
+/**
+ * Loads the API resource catalog and then hydrates the initially selected item.
+ *
+ * @returns {Promise<void>}
+ */
+async function loadPermissionResources() {
+	isLoading.value = true;
+	loadError.value = '';
+	try {
+		const payload = await requestJson('/api/block-demos/share-permissions/resources');
+		resources.value = Array.isArray(payload.resources) ? payload.resources : [];
+		if (!resources.value.length) throw new Error('No shareable resources are available.');
+		if (!resources.value.some((resource) => resource.id === selectedResourceId.value)) {
+			selectedResourceId.value = resources.value[0].id;
+		}
+		await loadResourceState(selectedResourceId.value);
+	} catch (error) {
+		loadError.value = error instanceof Error ? error.message : 'Could not load sharing permissions.';
+		isLoading.value = false;
+	}
 }
 
-function roleClasses(role) {
+/**
+ * Loads one complete API resource while ignoring stale responses after a quick
+ * resource switch.
+ *
+ * @param {string} resourceId Canonical resource identifier.
+ * @returns {Promise<void>}
+ */
+async function loadResourceState(resourceId) {
+	const requestSequence = ++resourceRequestSequence;
+	isLoading.value = true;
+	loadError.value = '';
+	try {
+		const payload = await requestJson(`/api/block-demos/share-permissions/${encodeURIComponent(resourceId)}`);
+		if (requestSequence !== resourceRequestSequence) return;
+		applyResourcePayload(payload.resource, { resetView: true });
+	} catch (error) {
+		if (requestSequence !== resourceRequestSequence) return;
+		loadError.value = error instanceof Error ? error.message : 'Could not load this shared item.';
+	} finally {
+		if (requestSequence === resourceRequestSequence) isLoading.value = false;
+	}
+}
+
+/**
+ * Applies a complete API resource payload to the current interactive state.
+ *
+ * @param {Record<string, unknown>} resource API resource payload.
+ * @param {{ resetView?: boolean }} [options] View reset behavior.
+ * @returns {void}
+ */
+function applyResourcePayload(resource, options = {}) {
+	resourceDetail.value = { ...resource };
+	linkAccess.value = String(resource.linkAccess || 'restricted');
+	linkExpiry.value = String(resource.linkExpiry || 'none');
+	requireApproval.value = Boolean(resource.requireApproval);
+	allowDownload.value = Boolean(resource.allowDownload);
+	notifyPeople.value = Boolean(resource.notifyPeople);
+	collaborators.value = cloneList(resource.collaborators);
+	pendingInvites.value = cloneList(resource.pendingInvites);
+	activityEvents.value = cloneList(resource.activityEvents);
+	pendingChanges.value = [];
+	savedPermissionState.value = createPermissionSnapshot();
+	syncResourceSummary(resource);
+	if (options.resetView) {
+		activeTab.value = 'people';
+		mobileSection.value = 'people';
+		inviteEmail.value = '';
+		feedback.value = null;
+	}
+}
+
+/**
+ * Applies only invitation and activity fields so API invitation mutations do
+ * not discard unsaved permission edits in the current form.
+ *
+ * @param {Record<string, unknown>} resource API resource payload.
+ * @returns {void}
+ */
+function applyInvitationPayload(resource) {
+	pendingInvites.value = cloneList(resource.pendingInvites);
+	activityEvents.value = cloneList(resource.activityEvents);
+	syncResourceSummary(resource);
+}
+
+/**
+ * Updates selector metadata after an API mutation changes resource counters or
+ * the saved general-access policy.
+ *
+ * @param {Record<string, unknown>} resource API resource payload.
+ * @returns {void}
+ */
+function syncResourceSummary(resource) {
+	const index = resources.value.findIndex((item) => item.id === resource.id);
+	if (index === -1) return;
+	resources.value = resources.value.map((item, itemIndex) => (itemIndex === index
+		? {
+			...item,
+			linkAccess: resource.linkAccess,
+			lastShared: resource.lastShared,
+			collaboratorCount: resource.collaborators?.length || 0,
+			pendingInviteCount: resource.pendingInvites?.length || 0,
+		}
+		: item));
+}
+
+/**
+ * Stores one current change per permission setting for a concise review diff.
+ *
+ * @param {string} id Stable change identifier.
+ * @param {string} label Human-readable change summary.
+ * @returns {void}
+ */
+function recordChange(id, label) {
+	const existingIndex = pendingChanges.value.findIndex((change) => change.id === id);
+	const nextChange = { id, label };
+	if (existingIndex === -1) {
+		pendingChanges.value = [...pendingChanges.value, nextChange];
+		return;
+	}
+	pendingChanges.value = pendingChanges.value.map((change, index) => (index === existingIndex ? nextChange : change));
+}
+
+/**
+ * Adds, updates, or removes a pending change when a setting moves away from or
+ * back to its resource baseline.
+ *
+ * @param {string} id Stable change identifier.
+ * @param {string} label Human-readable change summary.
+ * @param {boolean} changed Whether the setting differs from its saved value.
+ * @returns {void}
+ */
+function reconcileChange(id, label, changed) {
+	if (changed) {
+		recordChange(id, label);
+		return;
+	}
+	pendingChanges.value = pendingChanges.value.filter((change) => change.id !== id);
+}
+
+/**
+ * Validates an invitation address enough for the deterministic block example.
+ *
+ * @param {string} email Candidate invitation email.
+ * @returns {boolean} Whether the address has a basic local and domain shape.
+ */
+function isValidEmail(email) {
+	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+/**
+ * Adds a pending invitation and moves the member view to its resulting state.
+ *
+ * @returns {Promise<void>}
+ */
+async function addInvite() {
+	const email = inviteEmail.value.trim();
+	if (!isValidEmail(email)) {
+		feedback.value = {
+			tone: 'danger',
+			title: 'Enter a valid email address',
+			description: 'Use an address such as name@company.com before sending the invitation.',
+		};
+		return;
+	}
+
+	isInviting.value = true;
+	feedback.value = null;
+	try {
+		const payload = await requestJson(
+			`/api/block-demos/share-permissions/${encodeURIComponent(selectedResourceId.value)}/invitations`,
+			{
+				method: 'POST',
+				body: JSON.stringify({
+					email,
+					role: inviteRole.value,
+				}),
+			},
+		);
+		applyInvitationPayload(payload.resource);
+		inviteEmail.value = '';
+		activeTab.value = 'pending';
+		mobileSection.value = 'people';
+		feedback.value = {
+			tone: 'success',
+			title: 'Invitation created',
+			description: payload.invitation.status === 'Pending approval'
+				? `${email} is waiting for owner approval.`
+				: `${email} received an invitation.`,
+		};
+	} catch (error) {
+		feedback.value = {
+			tone: 'danger',
+			title: 'Invitation not sent',
+			description: error instanceof Error ? error.message : 'Try sending the invitation again.',
+		};
+	} finally {
+		isInviting.value = false;
+	}
+}
+
+/**
+ * Revokes one pending invitation from the current resource.
+ *
+ * @param {string} inviteId Pending invitation identifier.
+ * @returns {Promise<void>}
+ */
+async function revokeInvite(inviteId) {
+	const invite = pendingInvites.value.find((item) => item.id === inviteId);
+	revokingInviteId.value = inviteId;
+	feedback.value = null;
+	try {
+		const payload = await requestJson(
+			`/api/block-demos/share-permissions/${encodeURIComponent(selectedResourceId.value)}/invitations/${encodeURIComponent(inviteId)}`,
+			{ method: 'DELETE' },
+		);
+		applyInvitationPayload(payload.resource);
+		feedback.value = {
+			tone: 'success',
+			title: 'Invitation revoked',
+			description: invite ? `${invite.email} can no longer accept this invitation.` : 'The invitation was removed.',
+		};
+	} catch (error) {
+		feedback.value = {
+			tone: 'danger',
+			title: 'Invitation not revoked',
+			description: error instanceof Error ? error.message : 'Try revoking the invitation again.',
+		};
+	} finally {
+		revokingInviteId.value = '';
+	}
+}
+
+/**
+ * Updates one collaborator role and records the effective permission change.
+ *
+ * @param {Record<string, unknown>} person Collaborator being changed.
+ * @param {string} role Newly selected role.
+ * @returns {void}
+ */
+function updateCollaboratorRole(person, role) {
+	if (person.role === 'Owner' || person.role === role) return;
+	person.role = role;
+	const savedRole = savedPermissionState.value.roles[person.id];
+	reconcileChange(`role-${person.id}`, `${person.name} becomes ${role.toLowerCase()}`, role !== savedRole);
+	feedback.value = null;
+}
+
+/**
+ * Updates general link access and records the broader exposure change.
+ *
+ * @param {string} value Selected link-access policy.
+ * @returns {void}
+ */
+function updateLinkAccess(value) {
+	linkAccess.value = value;
+	reconcileChange(
+		'link-access',
+		`General access changes to ${accessLabel.value.toLowerCase()}`,
+		value !== savedPermissionState.value.linkAccess,
+	);
+	feedback.value = null;
+}
+
+/**
+ * Updates link expiry and records the selected access window.
+ *
+ * @param {string} value Selected expiry identifier.
+ * @returns {void}
+ */
+function updateLinkExpiry(value) {
+	linkExpiry.value = value;
+	const option = expiryOptions.find((item) => item.value === value);
+	reconcileChange('link-expiry', `Link expiry changes to ${option?.label.toLowerCase() || value}`, value !== savedPermissionState.value.linkExpiry);
+	feedback.value = null;
+}
+
+/**
+ * Updates a boolean safeguard and records its current effective state.
+ *
+ * @param {'approval'|'download'|'notify'} setting Safeguard identifier.
+ * @param {boolean} value Newly selected state.
+ * @returns {void}
+ */
+function updateSafeguard(setting, value) {
+	const labels = {
+		approval: value ? 'Owner approval is required' : 'Owner approval is bypassed',
+		download: value ? 'Viewer downloads are enabled' : 'Viewer downloads are blocked',
+		notify: value ? 'Permission notifications are enabled' : 'Permission notifications are muted',
+	};
+	if (setting === 'approval') requireApproval.value = value;
+	if (setting === 'download') allowDownload.value = value;
+	if (setting === 'notify') notifyPeople.value = value;
+	const baselines = {
+		approval: savedPermissionState.value.requireApproval,
+		download: savedPermissionState.value.allowDownload,
+		notify: savedPermissionState.value.notifyPeople,
+	};
+	reconcileChange(`safeguard-${setting}`, labels[setting], value !== baselines[setting]);
+	feedback.value = null;
+}
+
+/**
+ * Copies the current share URL and reports browser clipboard failures clearly.
+ *
+ * @returns {Promise<void>}
+ */
+async function copyLink() {
+	try {
+		await navigator.clipboard.writeText(`${window.location.origin}/shared/${selectedResourceId.value}`);
+		feedback.value = {
+			tone: 'success',
+			title: 'Link copied',
+			description: `${selectedResource.value.name} is ready to paste with its current access policy.`,
+		};
+	} catch {
+		feedback.value = {
+			tone: 'warning',
+			title: 'Clipboard access is unavailable',
+			description: 'Copy the share URL from your application after enabling browser clipboard access.',
+		};
+	}
+}
+
+/**
+ * Opens the change-review dialog when at least one permission has changed.
+ *
+ * @returns {void}
+ */
+function reviewChanges() {
+	if (!hasChanges.value) return;
+	reviewDialogOpen.value = true;
+}
+
+/**
+ * Sends the reviewed permission state to the API and refreshes saved state.
+ *
+ * @returns {Promise<void>}
+ */
+async function confirmChanges() {
+	isSaving.value = true;
+	try {
+		const payload = await requestJson(
+			`/api/block-demos/share-permissions/${encodeURIComponent(selectedResourceId.value)}`,
+			{
+				method: 'PATCH',
+				body: JSON.stringify({
+					linkAccess: linkAccess.value,
+					linkExpiry: linkExpiry.value,
+					requireApproval: requireApproval.value,
+					allowDownload: allowDownload.value,
+					notifyPeople: notifyPeople.value,
+					roles: collaborators.value.map((person) => ({
+						id: person.id,
+						role: person.role,
+					})),
+				}),
+			},
+		);
+		applyResourcePayload(payload.resource);
+		reviewDialogOpen.value = false;
+		feedback.value = {
+			tone: 'success',
+			title: 'Permissions updated',
+			description: notifyPeople.value
+				? 'The access policy is saved and affected collaborators will be notified.'
+				: 'The access policy is saved without sending collaborator notifications.',
+		};
+	} catch (error) {
+		reviewDialogOpen.value = false;
+		feedback.value = {
+			tone: 'danger',
+			title: 'Permissions not updated',
+			description: error instanceof Error ? error.message : 'Review the changes and try again.',
+		};
+	} finally {
+		isSaving.value = false;
+	}
+}
+
+/**
+ * Maps a collaborator role to a semantic DOM Studio badge tone.
+ *
+ * @param {string} role Collaborator role label.
+ * @returns {'primary'|'info'|'neutral'|'success'} Semantic badge tone.
+ */
+function roleTone(role) {
 	return {
-		Owner: 'bg-primary/15 text-primary',
-		'Can edit': 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-		'Can comment': 'bg-sky-500/15 text-sky-700 dark:text-sky-300',
-		'Can view': 'bg-secondary text-muted-fg',
-	}[role] || 'bg-secondary text-muted-fg';
-}
-
-function policyClasses(status) {
-	return {
-		ready: 'bg-emerald-500',
-		warning: 'bg-warning',
-		danger: 'bg-destructive',
-	}[status] || 'bg-muted-fg';
+		Owner: 'primary',
+		'Can edit': 'success',
+		'Can comment': 'info',
+		'Can view': 'neutral',
+	}[role] || 'neutral';
 }
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
-		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border skin-card px-4 py-4 sm:px-5">
-			<div>
-				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Object sharing</p>
-				<h3 class="mt-1 text-xl font-semibold tracking-tight">Share permissions</h3>
-			</div>
-			<div class="flex flex-wrap items-center gap-2">
-				<DomButton variant="ghost" size="sm">
-					<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-						<path d="M8 12h8M12 8v8M5 5h14v14H5V5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-					</svg>
-					Copy link
-				</DomButton>
-				<DomButton size="sm">Apply changes</DomButton>
-			</div>
-		</header>
-
-		<div class="grid min-h-[45rem] lg:grid-cols-[18rem_minmax(0,1fr)_19rem]">
-			<aside class="border-b border-border skin-card p-3 lg:border-b-0 lg:border-r">
-				<div class="mb-3 grid grid-cols-3 gap-2 text-center">
-					<div class="rounded-lg border border-border bg-canvas p-2">
-						<p class="text-lg font-semibold">{{ activeCollaborators }}</p>
-						<p class="text-[11px] text-muted-fg">Active</p>
-					</div>
-					<div class="rounded-lg border border-border bg-canvas p-2">
-						<p class="text-lg font-semibold">{{ pendingInvites.length }}</p>
-						<p class="text-[11px] text-muted-fg">Invites</p>
-					</div>
-					<div class="rounded-lg border border-border bg-canvas p-2">
-						<p class="text-lg font-semibold">{{ accessScore }}</p>
-						<p class="text-[11px] text-muted-fg">Safety</p>
-					</div>
-				</div>
-
-				<div class="space-y-2">
-					<button
-						v-for="resource in resources"
-						:key="resource.id"
-						type="button"
-						class="w-full rounded-lg border p-3 text-left transition hover:border-primary/50"
-						:class="resource.id === selectedResource.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-canvas'"
-						@click="selectResource(resource)"
-					>
-						<div class="flex items-start justify-between gap-2">
-							<div class="min-w-0">
-								<p class="truncate text-sm font-semibold">{{ resource.name }}</p>
-								<p class="mt-1 text-xs text-muted-fg">{{ resource.type }} / {{ resource.workspace }}</p>
-							</div>
-							<span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-fg">
-								{{ resource.sensitivity }}
-							</span>
-						</div>
-						<div class="mt-3 flex items-center justify-between text-xs text-muted-fg">
-							<span>{{ resource.owner }}</span>
-							<span>{{ resource.views }} views</span>
-						</div>
-					</button>
-				</div>
-			</aside>
-
-			<main class="min-w-0">
-				<section class="border-b border-border p-4 sm:p-5">
-					<div class="flex flex-wrap items-start justify-between gap-4">
+	<div class="min-h-dvh bg-secondary/35 text-canvas-fg sm:p-5 lg:grid lg:place-items-center">
+		<section class="min-h-dvh w-full bg-canvas sm:min-h-0 sm:max-w-5xl sm:overflow-hidden sm:rounded-2xl sm:border sm:border-border sm:shadow-xl">
+			<header class="border-b border-border px-4 py-4 sm:px-6 sm:py-5">
+				<div class="flex flex-col gap-4">
+					<div class="flex items-start justify-between gap-4">
 						<div class="min-w-0">
-							<div class="flex flex-wrap items-center gap-2">
-								<h4 class="text-lg font-semibold">{{ selectedResource.name }}</h4>
-								<span class="rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold text-muted-fg">{{ selectedResource.type }}</span>
-								<span class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{{ selectedResource.sensitivity }}</span>
-							</div>
-							<p class="mt-1 max-w-2xl text-sm leading-6 text-muted-fg">
-								Owned by {{ selectedResource.owner }} in {{ selectedResource.workspace }}. Last shared {{ selectedResource.lastShared }}.
+							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Share and permissions</p>
+							<h1 class="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">{{ selectedResource.name }}</h1>
+							<p class="mt-1 text-sm leading-6 text-muted-fg">
+								{{ selectedResource.type }} in {{ selectedResource.workspace }} · Owned by {{ selectedResource.owner }}
 							</p>
 						</div>
-						<div class="grid grid-cols-3 gap-3 text-right text-sm">
-							<div>
-								<p class="font-semibold">{{ collaborators.length }}</p>
-								<p class="text-xs text-muted-fg">Grants</p>
-							</div>
-							<div>
-								<p class="font-semibold">{{ editableCollaborators }}</p>
-								<p class="text-xs text-muted-fg">Editors</p>
-							</div>
-							<div>
-								<p class="font-semibold">{{ externalCollaborators }}</p>
-								<p class="text-xs text-muted-fg">External</p>
-							</div>
-						</div>
-					</div>
-				</section>
-
-				<section class="border-b border-border p-4 sm:p-5">
-					<div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_14rem]">
-						<div>
-							<h4 class="font-semibold">Invite people</h4>
-							<p class="mt-1 text-sm text-muted-fg">Invite a person or group, then choose the role they receive after policy checks pass.</p>
-							<div class="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_10rem_auto]">
-								<DomEmailInput v-model="inviteEmail" placeholder="name@company.com" aria-label="Invite email" />
-								<DomNativeSelect v-model="inviteRole" :options="roleOptions.filter((role) => role.value !== 'Owner')" />
-								<DomButton @click="addInvite">Invite</DomButton>
-							</div>
-						</div>
-						<div class="rounded-xl bg-secondary/60 p-3">
-							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Current access</p>
-							<p class="mt-2 text-sm leading-6">{{ accessSummary }}</p>
-						</div>
-					</div>
-				</section>
-
-				<section class="border-b border-border p-4 sm:p-5">
-					<div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_12rem] md:items-end">
-						<label class="block text-sm font-medium">
-							Link access
-							<DomNativeSelect v-model="linkAccess" :options="linkAccessOptions" class="mt-2 w-full" />
-						</label>
-						<label class="block text-sm font-medium">
-							Link expiry
-							<DomNativeSelect v-model="linkExpiry" :options="expiryOptions" class="mt-2 w-full" />
-						</label>
-					</div>
-					<div class="mt-4 grid gap-3 md:grid-cols-3">
-						<label class="flex items-start gap-3 rounded-xl bg-secondary/50 p-3 text-sm">
-							<DomCheckbox v-model="requireApproval" aria-label="Require approval" />
-							<span>
-								<span class="block font-medium">Require approval</span>
-								<span class="mt-1 block text-xs leading-5 text-muted-fg">External invites wait for owner approval.</span>
-							</span>
-						</label>
-						<label class="flex items-start gap-3 rounded-xl bg-secondary/50 p-3 text-sm">
-							<DomCheckbox v-model="allowDownload" aria-label="Allow downloads" />
-							<span>
-								<span class="block font-medium">Allow downloads</span>
-								<span class="mt-1 block text-xs leading-5 text-muted-fg">Viewers can export files and reports.</span>
-							</span>
-						</label>
-						<label class="flex items-start justify-between gap-3 rounded-xl bg-secondary/50 p-3 text-sm">
-							<span>
-								<span class="block font-medium">Notify people</span>
-								<span class="mt-1 block text-xs leading-5 text-muted-fg">Send email when access changes.</span>
-							</span>
-							<DomToggle v-model="notifyPeople" aria-label="Notify people" />
-						</label>
-					</div>
-				</section>
-
-				<section class="p-4 sm:p-5">
-					<div class="border-b border-border">
-						<DomTabs v-model="activeTab" :tabs="tabs" />
+						<DomStatusPill :tone="accessTone" size="sm">{{ accessLabel }}</DomStatusPill>
 					</div>
 
-					<div v-if="activeTab === 'people'" class="mt-4 divide-y divide-border overflow-hidden rounded-xl border border-border">
-						<div
-							v-for="person in collaborators"
-							:key="person.id"
-							class="grid gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_8rem_10rem] sm:items-center"
+					<div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+						<DomSelect
+							v-model="selectedResourceId"
+							:options="resourceOptions"
+							label="Shared item"
+							:disabled="isLoading"
+							list-width-class="w-[min(26rem,calc(100vw-2rem))]"
 						>
-							<div class="flex min-w-0 items-center gap-3">
-								<div class="grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-xs font-semibold">{{ person.avatar }}</div>
-								<div class="min-w-0">
-									<div class="flex flex-wrap items-center gap-2">
-										<p class="truncate text-sm font-semibold">{{ person.name }}</p>
-										<span v-if="person.external" class="rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-semibold text-warning">External</span>
-									</div>
-									<p class="truncate text-xs text-muted-fg">{{ person.email }} / {{ person.source }}</p>
+							<template #option="{ option, selected }">
+								<div class="flex items-start justify-between gap-3">
+									<span class="min-w-0">
+										<span class="block truncate font-medium">{{ option.label }}</span>
+										<span class="mt-0.5 block text-xs text-muted-fg">{{ option.description }}</span>
+									</span>
+									<DomBadge :tone="selected ? 'primary' : 'neutral'" size="sm">{{ option.sensitivity }}</DomBadge>
 								</div>
+							</template>
+						</DomSelect>
+
+						<div class="flex gap-2">
+							<DomButton variant="secondary" class="flex-1 sm:flex-none" :disabled="isLoading" @click="copyLink">Copy link</DomButton>
+							<DomButton
+								class="flex-1 sm:flex-none"
+								:disabled="!hasChanges || isLoading"
+								@click="reviewChanges"
+							>
+								{{ hasChanges ? `Review ${pendingChanges.length}` : 'Up to date' }}
+							</DomButton>
+						</div>
+					</div>
+				</div>
+			</header>
+
+			<div v-if="isLoading" class="border-b border-border px-4 py-3 sm:px-6">
+				<DomProgress
+					indeterminate
+					label="Loading sharing permissions"
+					size="sm"
+				/>
+			</div>
+
+			<div v-else-if="loadError" class="border-b border-border px-4 py-3 sm:px-6">
+				<DomAlert
+					tone="danger"
+					title="Sharing permissions unavailable"
+					:description="loadError"
+				>
+					<template #actions>
+						<DomButton size="sm" variant="secondary" @click="loadPermissionResources">Try again</DomButton>
+					</template>
+				</DomAlert>
+			</div>
+
+			<div v-if="feedback" class="border-b border-border px-4 py-3 sm:px-6">
+				<DomAlert
+					:tone="feedback.tone"
+					variant="soft"
+					:title="feedback.title"
+					:description="feedback.description"
+					dismissible
+					@dismiss="feedback = null"
+				/>
+			</div>
+
+			<div class="border-b border-border px-4 py-3 lg:hidden">
+				<DomToggleButtonGroup
+					v-model="mobileSection"
+					:options="mobileSectionOptions"
+					size="sm"
+					variant="switch"
+					aria-label="Permission section"
+				/>
+			</div>
+
+			<div class="grid lg:grid-cols-[minmax(0,1fr)_20rem]">
+				<main
+					class="min-w-0"
+					:class="mobileSection === 'people' ? 'block' : 'hidden lg:!block'"
+				>
+					<section class="border-b border-border px-4 py-5 sm:px-6">
+						<div class="flex flex-wrap items-start justify-between gap-3">
+							<div>
+								<h2 class="font-semibold">Invite people</h2>
+								<p class="mt-1 text-sm leading-6 text-muted-fg">Add a person or group, then choose what they can do.</p>
 							</div>
-							<span class="w-fit rounded-full px-2 py-0.5 text-xs font-semibold" :class="roleClasses(person.role)">
-								{{ person.role }}
-							</span>
-							<DomNativeSelect
-								v-model="person.role"
-								:options="roleOptions"
-								:disabled="person.role === 'Owner'"
-								aria-label="Change role"
+							<DomBadge tone="neutral" size="sm">{{ externalCollaborators }} external</DomBadge>
+						</div>
+
+						<div class="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem_auto] sm:items-end">
+							<DomEmailInput
+								v-model="inviteEmail"
+								label="Email or group"
+								placeholder="name@company.com"
+								@keydown.enter.prevent="addInvite"
+							/>
+							<DomSelect
+								v-model="inviteRole"
+								:options="inviteRoleOptions"
+								label="Permission"
+								list-width-class="w-72"
+							/>
+							<DomButton class="sm:mb-0" :loading="isInviting" @click="addInvite">Send invite</DomButton>
+						</div>
+					</section>
+
+					<section class="px-4 py-5 sm:px-6">
+						<div class="border-b border-border">
+							<DomTabs v-model="activeTab" :tabs="sectionTabs" />
+						</div>
+
+						<div v-if="activeTab === 'people'" class="divide-y divide-border">
+							<div
+								v-for="person in collaborators"
+								:key="person.id"
+								class="grid gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_11rem] sm:items-center"
+							>
+								<div class="flex min-w-0 items-center gap-3">
+									<DomAvatar :name="person.name" size="md" />
+									<div class="min-w-0">
+										<div class="flex flex-wrap items-center gap-2">
+											<p class="truncate text-sm font-semibold">{{ person.name }}</p>
+											<DomBadge v-if="person.external" tone="warning" size="sm">External</DomBadge>
+											<DomBadge :tone="roleTone(person.role)" size="sm">{{ person.role }}</DomBadge>
+										</div>
+										<p class="mt-1 truncate text-xs text-muted-fg">{{ person.email }} · {{ person.source }}</p>
+									</div>
+								</div>
+
+								<DomSelect
+									:model-value="person.role"
+									:options="memberRoleOptions"
+									:disabled="person.role === 'Owner'"
+									:aria-label="`Permission for ${person.name}`"
+									list-width-class="w-72"
+									@update:model-value="updateCollaboratorRole(person, $event)"
+								/>
+							</div>
+						</div>
+
+						<div v-else-if="activeTab === 'pending'" class="divide-y divide-border">
+							<div
+								v-for="invite in pendingInvites"
+								:key="invite.id"
+								class="flex flex-col gap-3 py-4 sm:flex-row sm:items-center"
+							>
+								<div class="flex min-w-0 flex-1 items-center gap-3">
+									<DomAvatar :name="invite.email" size="md" />
+									<div class="min-w-0">
+										<p class="truncate text-sm font-semibold">{{ invite.email }}</p>
+										<p class="mt-1 text-xs text-muted-fg">{{ invite.role }} · Expires {{ invite.expiresAt }}</p>
+									</div>
+								</div>
+								<DomStatusPill :tone="invite.status === 'Sent' ? 'success' : 'warning'" size="sm">{{ invite.status }}</DomStatusPill>
+								<DomButton
+									variant="ghost"
+									size="sm"
+									:loading="revokingInviteId === invite.id"
+									:disabled="Boolean(revokingInviteId) && revokingInviteId !== invite.id"
+									@click="revokeInvite(invite.id)"
+								>
+									Revoke
+								</DomButton>
+							</div>
+
+							<DomEmptyState
+								v-if="!pendingInvites.length"
+								title="No pending invitations"
+								description="New invitations will appear here until they are accepted or revoked."
+								size="sm"
 							/>
 						</div>
-					</div>
 
-					<div v-else-if="activeTab === 'pending'" class="mt-4 divide-y divide-border overflow-hidden rounded-xl border border-border">
-						<div
-							v-for="invite in pendingInvites"
-							:key="invite.id"
-							class="grid gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_8rem_8rem_auto] sm:items-center"
-						>
-							<div class="min-w-0">
-								<p class="truncate text-sm font-semibold">{{ invite.email }}</p>
-								<p class="mt-1 text-xs text-muted-fg">Expires {{ invite.expiresAt }}</p>
-							</div>
-							<span class="w-fit rounded-full px-2 py-0.5 text-xs font-semibold" :class="roleClasses(invite.role)">
-								{{ invite.role }}
-							</span>
-							<span class="text-sm text-muted-fg">{{ invite.status }}</span>
-							<DomButton variant="ghost" size="sm" @click="revokeInvite(invite.id)">Revoke</DomButton>
-						</div>
-						<div v-if="!pendingInvites.length" class="p-6 text-center text-sm text-muted-fg">
-							No pending invites for this resource.
-						</div>
-					</div>
-
-					<div v-else class="mt-4 divide-y divide-border overflow-hidden rounded-xl border border-border">
-						<div
-							v-for="event in selectedActivity"
-							:key="`${event.label}-${event.time}`"
-							class="flex items-start justify-between gap-3 p-3"
-						>
-							<div>
-								<p class="text-sm font-medium">{{ event.label }}</p>
-								<p class="mt-1 text-xs text-muted-fg">{{ event.actor }}</p>
-							</div>
-							<p class="shrink-0 text-xs text-muted-fg">{{ event.time }}</p>
-						</div>
-					</div>
-				</section>
-			</main>
-
-			<aside class="border-t border-border skin-card p-4 lg:border-l lg:border-t-0">
-				<div class="space-y-5">
-					<section>
-						<div class="flex items-center justify-between gap-3">
-							<h4 class="font-semibold">Safety review</h4>
-							<span class="rounded-full bg-canvas px-2 py-0.5 text-xs font-semibold text-muted-fg">{{ accessScore }}%</span>
-						</div>
-						<div class="mt-3 h-2 rounded-full bg-secondary">
-							<div class="h-full rounded-full bg-primary" :style="{ width: `${accessScore}%` }" />
-						</div>
-						<div class="mt-4 space-y-3">
+						<div v-else class="divide-y divide-border">
 							<div
-								v-for="check in policyChecks"
-								:key="check.label"
-								class="flex gap-3 text-sm"
+								v-for="event in activityEvents"
+								:key="event.id"
+								class="flex items-start gap-3 py-4"
 							>
-								<span class="mt-1.5 size-2 shrink-0 rounded-full" :class="policyClasses(check.status)" />
-								<span>
-									<span class="block font-medium">{{ check.label }}</span>
-									<span class="mt-1 block text-xs leading-5 text-muted-fg">{{ check.detail }}</span>
-								</span>
+								<DomAvatar :name="event.actor" size="sm" />
+								<div class="min-w-0 flex-1">
+									<p class="text-sm font-medium">{{ event.label }}</p>
+									<p class="mt-1 text-xs text-muted-fg">{{ event.actor }}</p>
+								</div>
+								<time class="shrink-0 text-xs text-muted-fg">{{ event.time }}</time>
+							</div>
+						</div>
+					</section>
+				</main>
+
+				<aside
+					class="border-border bg-secondary/25 px-4 py-5 sm:px-6 lg:border-l lg:px-5"
+					:class="mobileSection === 'access' ? 'block' : 'hidden lg:!block'"
+				>
+					<section>
+						<div class="flex items-start justify-between gap-3">
+							<div>
+								<h2 class="font-semibold">General access</h2>
+								<p class="mt-1 text-sm leading-6 text-muted-fg">{{ accessSummary }}</p>
+							</div>
+							<DomStatusPill :tone="accessTone" size="sm">{{ accessLabel }}</DomStatusPill>
+						</div>
+
+						<div class="mt-4 space-y-4">
+							<DomSelect
+								:model-value="linkAccess"
+								:options="linkAccessOptions"
+								label="Who can open the link"
+								list-width-class="w-[min(25rem,calc(100vw-2rem))]"
+								@update:model-value="updateLinkAccess"
+							/>
+							<DomSelect
+								:model-value="linkExpiry"
+								:options="expiryOptions"
+								label="Link expiry"
+								list-width-class="w-72"
+								@update:model-value="updateLinkExpiry"
+							/>
+							<DomButton variant="secondary" class="w-full" @click="copyLink">Copy share link</DomButton>
+						</div>
+					</section>
+
+					<section class="mt-6 border-t border-border pt-5">
+						<h2 class="font-semibold">Safeguards</h2>
+						<div class="mt-3 divide-y divide-border">
+							<div class="flex items-start justify-between gap-4 py-3">
+								<div>
+									<p class="text-sm font-medium">Owner approval</p>
+									<p class="mt-1 text-xs leading-5 text-muted-fg">Review external invitations before they are sent.</p>
+								</div>
+								<DomToggle
+									:model-value="requireApproval"
+									aria-label="Require owner approval"
+									@update:model-value="updateSafeguard('approval', $event)"
+								/>
+							</div>
+							<div class="flex items-start justify-between gap-4 py-3">
+								<div>
+									<p class="text-sm font-medium">Allow downloads</p>
+									<p class="mt-1 text-xs leading-5 text-muted-fg">Let viewers export files and reports.</p>
+								</div>
+								<DomToggle
+									:model-value="allowDownload"
+									aria-label="Allow viewer downloads"
+									@update:model-value="updateSafeguard('download', $event)"
+								/>
+							</div>
+							<div class="flex items-start justify-between gap-4 py-3">
+								<div>
+									<p class="text-sm font-medium">Notify people</p>
+									<p class="mt-1 text-xs leading-5 text-muted-fg">Email collaborators after access changes.</p>
+								</div>
+								<DomToggle
+									:model-value="notifyPeople"
+									aria-label="Notify collaborators"
+									@update:model-value="updateSafeguard('notify', $event)"
+								/>
 							</div>
 						</div>
 					</section>
 
-					<section class="border-t border-border pt-5">
-						<h4 class="font-semibold">Role guide</h4>
-						<div class="mt-3 space-y-2 text-sm">
-							<div class="flex justify-between gap-3">
-								<span class="text-muted-fg">Owner</span>
-								<span class="font-medium">Full control</span>
-							</div>
-							<div class="flex justify-between gap-3">
-								<span class="text-muted-fg">Can edit</span>
-								<span class="font-medium">Change content</span>
-							</div>
-							<div class="flex justify-between gap-3">
-								<span class="text-muted-fg">Can comment</span>
-								<span class="font-medium">Discuss only</span>
-							</div>
-							<div class="flex justify-between gap-3">
-								<span class="text-muted-fg">Can view</span>
-								<span class="font-medium">Read only</span>
+					<section class="mt-6 border-t border-border pt-5">
+						<DomProgress
+							:value="accessScore"
+							label="Sharing safety"
+							:tone="accessTone === 'danger' ? 'danger' : accessTone === 'warning' ? 'warning' : 'success'"
+							show-value
+						/>
+
+						<div class="mt-4 space-y-4">
+							<div v-for="check in policyChecks" :key="check.id">
+								<DomStatusPill :tone="check.tone" size="sm">{{ check.label }}</DomStatusPill>
+								<p class="mt-1.5 text-xs leading-5 text-muted-fg">{{ check.detail }}</p>
 							</div>
 						</div>
 					</section>
+				</aside>
+			</div>
+		</section>
 
-					<section class="border-t border-border pt-5">
-						<h4 class="font-semibold">Recommended next step</h4>
-						<p class="mt-2 text-sm leading-6 text-muted-fg">
-							Save changes after reviewing external access and download controls. Broad links should create an audit event and notify the owner.
-						</p>
-						<DomButton class="mt-4 w-full">Save permission changes</DomButton>
-					</section>
-				</div>
-			</aside>
-		</div>
+		<DomDialog
+			v-model="reviewDialogOpen"
+			title="Review permission changes"
+			description="Confirm the effective access changes before they are applied."
+			size="md"
+		>
+			<DomAlert
+				v-if="linkAccess === 'public'"
+				tone="warning"
+				title="This creates a public link"
+				description="Anyone with the link can open this item without signing in."
+			/>
+
+			<ul class="mt-4 divide-y divide-border rounded-xl border border-border">
+				<li
+					v-for="change in pendingChanges"
+					:key="change.id"
+					class="flex items-start gap-3 px-4 py-3 text-sm"
+				>
+					<DomStatusPill tone="info" size="sm">Change</DomStatusPill>
+					<span class="leading-6">{{ change.label }}</span>
+				</li>
+			</ul>
+
+			<template #footer>
+				<DomButton variant="ghost" @click="reviewDialogOpen = false">Keep editing</DomButton>
+				<DomButton :loading="isSaving" @click="confirmChanges">Apply changes</DomButton>
+			</template>
+		</DomDialog>
 	</div>
 </template>

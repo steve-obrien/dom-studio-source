@@ -14,19 +14,19 @@ import PrivacySignalSrc from './components/PrivacySignal.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Privacy Control Center Block"
-			tagline="A responsive account settings hub for consent, visibility, retention, data export, and sensitive privacy requests."
-			tag="Settings UI"
+			tagline="A responsive, policy-aware settings workflow for privacy choices and auditable data-rights requests."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Account Settings" title="Privacy control center">
+			<DocSection eyebrow="Account Settings" title="Responsive privacy control center">
 				<Example
 					:source="PrivacyControlCenterSrc"
 					filename="PrivacyControlCenter.vue"
 					presentation="iframe"
 					frame-src="/blocks/account-settings/privacy/privacy-control-center/preview/PrivacyControlCenter"
-					description="Copy this into an account settings area when users need transparent privacy controls, data-rights actions, and a reviewable save payload. Replace the sample controls with your own consent, retention, export, and deletion policy data."
+					description="A contained account-settings surface that separates day-to-day privacy choices from sensitive data-rights jobs. It uses DOM Studio tabs, rich selects, toggles, status pills, buttons, and dialogs while keeping the save review human-readable at every viewport."
 					default-open
-					:preview-lines="14"
+					:preview-lines="16"
 				>
 					<PrivacyControlCenter />
 				</Example>
@@ -46,11 +46,13 @@ import PrivacySignalSrc from './components/PrivacySignal.vue?raw';
 						users need to understand and change how their personal data is collected, retained, exported, or deleted.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
+						<li>Separate reversible settings from asynchronous data-rights jobs so the primary task stays focused.</li>
+						<li>Use `DomSelect` for retention and export-format choices that benefit from descriptions and status metadata.</li>
 						<li>Load consent controls from policy-backed server data, not hard-coded client assumptions.</li>
 						<li>Keep required security, billing, fraud, and legal notices separate from optional personalization controls.</li>
 						<li>Require server confirmation for export, deletion, profiling reset, and account-data portability requests.</li>
 						<li>Persist every change with policy version, actor, timestamp, source surface, and effective region.</li>
-						<li>Show a human-readable review payload before saving so users can audit exactly what changed.</li>
+						<li>Render helper rows with DOM Studio buttons and status pills, and show a human-readable review instead of raw payload values.</li>
 					</ul>
 				</div>
 			</DocSection>

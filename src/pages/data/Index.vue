@@ -15,6 +15,11 @@ const componentTypes = [
 		status: 'Reference',
 	},
 	{
+		name: 'Week planner',
+		description: 'Reuses the calendar record contract for fixed-width day swim lanes, precise timed placement, and horizontally scrolling multi-week ranges.',
+		status: 'Reference',
+	},
+	{
 		name: 'Agent chat',
 		description: 'Uses a Pinia store and emulated streaming API for AI conversations, tool calls, reasoning summaries, text/audio handoff, and a resizable app shell.',
 		status: 'Reference',

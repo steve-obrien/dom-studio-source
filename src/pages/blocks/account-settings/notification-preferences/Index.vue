@@ -12,19 +12,19 @@ import NotificationPreferenceCenterSrc from './examples/NotificationPreferenceCe
 	<DomStudioLayout>
 		<DocPage
 			name="Notification Preferences Block"
-			tagline="A responsive account settings surface for channel preferences, quiet hours, digest cadence, required account alerts, and save-state review."
-			tag="Settings UI"
+			tagline="A responsive notification settings surface with topic-level channel controls, rich digest choices, quiet hours, required account alerts, and reviewable save state."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Account Settings" title="Notification preference center">
+			<DocSection eyebrow="Account Settings" title="Responsive notification preference center">
 				<Example
 					:source="NotificationPreferenceCenterSrc"
 					filename="NotificationPreferenceCenter.vue"
 					presentation="iframe"
 					frame-src="/blocks/account-settings/notification-preferences/preview/NotificationPreferenceCenter"
-					description="Copy this into an account settings page, customer portal, SaaS workspace preferences screen, or mobile-first profile area. Replace the sample preference groups, channels, and digest settings with your own notification API data."
+					description="Copy this into an account settings page, customer portal, SaaS workspace preferences screen, or mobile-first profile area. DomSelect handles rich category, cadence, and timezone choices; DomToggle and DomTimeSelector keep every notification control usable without a clipped matrix."
 					default-open
-					:preview-lines="14"
+					:preview-lines="16"
 				>
 					<NotificationPreferenceCenter />
 				</Example>
@@ -34,15 +34,16 @@ import NotificationPreferenceCenterSrc from './examples/NotificationPreferenceCe
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
 						Use this block when users need granular control over product, team, billing, and security messages without
-						accidentally disabling required account notices. The matrix layout makes it easy to scan event groups while
-						the side pane keeps global delivery rules visible.
+						accidentally disabling required account notices. Topic rows reflow their channel switches for narrow
+						iframes, while the delivery pane keeps digest and quiet-hour rules in the same reviewable workflow.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
 						<li>Replace <code>preferenceGroups</code> with notification topics from your backend or customer messaging platform.</li>
 						<li>Persist channel changes as explicit user preferences keyed by topic and channel.</li>
 						<li>Keep required operational alerts separate from optional marketing or workflow notifications.</li>
-						<li>Connect digest cadence, quiet hours, and timezone fields to user profile settings.</li>
-						<li>Show a preview payload before saving so users understand which channels will change.</li>
+						<li>Use rich <code>DomSelect</code> option rows to explain cadence and timezone choices before selection.</li>
+						<li>Connect <code>DomTimeSelector</code> values for digest delivery and quiet hours to user profile settings.</li>
+						<li>Keep the save preview and status live so users can review global rules before persisting changes.</li>
 					</ul>
 				</div>
 			</DocSection>

@@ -12,8 +12,8 @@ import ReportBuilderWorkspaceSrc from './examples/ReportBuilderWorkspace.vue?raw
 	<DomStudioLayout>
 		<DocPage
 			name="Report Builder Block"
-			tagline="A responsive reporting workspace for choosing metrics, breakdowns, date ranges, previewing results, and scheduling exports."
-			tag="Analytics UI"
+			tagline="A focused report workflow with governed metrics, rich setup controls, fresh-preview readiness, scheduled delivery, and working publishing states."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Analytics" title="Report builder workspace">
@@ -22,7 +22,8 @@ import ReportBuilderWorkspaceSrc from './examples/ReportBuilderWorkspace.vue?raw
 					filename="ReportBuilderWorkspace.vue"
 					presentation="iframe"
 					frame-src="/blocks/analytics/report-builder/preview/ReportBuilderWorkspace"
-					description="Copy this into analytics products, admin dashboards, success workspaces, or internal ops tools. Replace the local report definitions with your metrics catalog, query builder, preview endpoint, and sharing model."
+					description="Copy this into analytics products, admin dashboards, success workspaces, or internal ops tools. The preview-first mobile layout and focused Build, Delivery, and Activity workflow remain usable inside narrow iframes as well as full application screens."
+					frame-flush-edges
 					default-open
 					:preview-lines="14"
 				>
@@ -39,6 +40,7 @@ import ReportBuilderWorkspaceSrc from './examples/ReportBuilderWorkspace.vue?raw
 					<ul class="list-disc space-y-2 pl-5">
 						<li>Replace <code>metricCatalog</code>, <code>breakdowns</code>, and <code>savedReports</code> with backend-provided definitions scoped to the current account and user permissions.</li>
 						<li>Wire the preview action to a short-running query endpoint that returns chart points, table rows, totals, sampling status, and warnings.</li>
+						<li>Use rich <code>DomSelect</code> controls for report, dataset, range, breakdown, visibility, cadence, format, and timezone choices so descriptions and metadata remain available at the point of selection.</li>
 						<li>Persist scheduled delivery through a report subscription endpoint with recipients, cadence, export format, timezone, and permission checks.</li>
 						<li>Gate destructive changes, shared reports, and cross-workspace datasets behind explicit review states and audit events.</li>
 					</ul>
@@ -79,12 +81,12 @@ import ReportBuilderWorkspaceSrc from './examples/ReportBuilderWorkspace.vue?raw
 						<p class="mt-2">Keep metric labels, descriptions, compatible datasets, and calculation rules server-owned so copied report definitions stay stable.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Preview safety</h3>
-						<p class="mt-2">Return sampled previews quickly, then run full exports asynchronously with completion notifications and retryable job records.</p>
+						<h3 class="font-semibold text-canvas-fg">Preview freshness</h3>
+						<p class="mt-2">Invalidate readiness when a query-affecting control changes, return sampled previews quickly, and run full exports asynchronously with retryable job records.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Good follow-ups include reusable filter builders, chart editors, query warnings, dashboard pinning, and scheduled export monitors.</p>
+						<h3 class="font-semibold text-canvas-fg">Delivery contract</h3>
+						<p class="mt-2">Keep visibility, recipients, cadence, timezone, and file format attached to the saved definition so preview and scheduled exports cannot drift.</p>
 					</div>
 				</div>
 			</DocSection>

@@ -12,8 +12,8 @@ import FunnelAnalyticsExplorerSrc from './examples/FunnelAnalyticsExplorer.vue?r
 	<DomStudioLayout>
 		<DocPage
 			name="Funnel Analytics Block"
-			tagline="A responsive product analytics workspace for building funnels, comparing segments, finding drop-off, and saving insights."
-			tag="Product analytics"
+			tagline="A responsive funnel workflow with live mock datasets, rich query controls, visible drop-off, segment comparison, and working follow-up actions."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Analytics" title="Funnel analytics explorer">
@@ -34,11 +34,12 @@ import FunnelAnalyticsExplorerSrc from './examples/FunnelAnalyticsExplorer.vue?r
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
 						Use this block when teams need to understand where users drop out of a key journey, such as signup, activation, checkout, upgrade, or invite flows.
-						It is shaped like the funnel tooling users expect from products such as Amplitude, Mixpanel, PostHog, and Stripe analytics, while staying copy-pasteable for a product UI.
+						The focused Conversion, Segments, and Follow-up tabs keep the primary analysis readable inside a full page, documentation iframe, or narrow product panel.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
 						<li>Replace <code>funnelSteps</code> with event definitions from your event catalog, including event names, readable labels, and required properties.</li>
 						<li>Wire range, segment, attribution, and conversion-window controls to a funnel query endpoint that returns step counts, conversion rates, drop-off, and comparison deltas.</li>
+						<li>Use <code>DomSelect</code> for saved funnels, audiences, attribution, and conversion windows when options need descriptions, ownership, freshness, or result metadata.</li>
 						<li>Persist saved insights with the funnel definition, active filters, chosen segments, notes, owner, workspace visibility, and chart/table preferences.</li>
 						<li>Gate export, cohort creation, and audience sync actions behind permissions because funnel results often expose sensitive customer behavior.</li>
 					</ul>
@@ -49,15 +50,20 @@ import FunnelAnalyticsExplorerSrc from './examples/FunnelAnalyticsExplorer.vue?r
 				<CodeBlock lang="js" filename="funnel-definition.js" :code="`{
 \tid: 'fun_activation_to_invite',
 \tname: 'Activation to teammate invite',
-\tdateRange: 'last_30_days',
-\tconversionWindow: '7 days',
-\tattribution: 'first_touch',
-\tsegments: ['All users', 'Paid workspace', 'Invited user'],
+\tfreshness: '2026-07-29T09:44:00Z',
+\tquery: {
+\t\tdateRange: 'last_30_days',
+\t\tconversionWindow: '7 days',
+\t\tattribution: 'exact_order',
+\t\tprimarySegment: 'all_users',
+\t\tcomparisonSegment: 'paid_workspace',
+\t\tincludeBotTraffic: false
+\t},
 \tsteps: [
-\t\t{ event: 'account_created', label: 'Account created', count: 18420 },
-\t\t{ event: 'workspace_created', label: 'Workspace created', count: 13980 },
-\t\t{ event: 'project_created', label: 'First project created', count: 8240 },
-\t\t{ event: 'teammate_invited', label: 'Teammate invited', count: 3910 }
+\t\t{ event: 'account_created', label: 'Account created', count: 18420, conversion: 100 },
+\t\t{ event: 'workspace_created', label: 'Workspace created', count: 13980, conversion: 75.9 },
+\t\t{ event: 'project_created', label: 'First project created', count: 8240, conversion: 44.7 },
+\t\t{ event: 'teammate_invited', label: 'Teammate invited', count: 3910, conversion: 21.2 }
 \t],
 \tfilters: [
 \t\t{ field: 'workspace_plan', operator: 'not_equals', value: 'internal' },
@@ -80,8 +86,8 @@ import FunnelAnalyticsExplorerSrc from './examples/FunnelAnalyticsExplorer.vue?r
 						<p class="mt-2">Return sampled results quickly, include freshness and sampling warnings, then let heavier cohort exports run as asynchronous jobs.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Good follow-ups include reusable event pickers, cohort builders, annotation overlays, query warnings, and audience sync job monitors.</p>
+						<h3 class="font-semibold text-canvas-fg">Action boundaries</h3>
+						<p class="mt-2">Keep saved insights, CSV exports, and cohort creation observable. Show local preparation clearly, then hand durable work to server-owned jobs and permissions.</p>
 					</div>
 				</div>
 			</DocSection>

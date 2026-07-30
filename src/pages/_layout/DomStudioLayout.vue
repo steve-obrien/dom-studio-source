@@ -8,6 +8,8 @@ import SideNav from './SideNav.vue';
 import DomStudioFooter from './DomStudioFooter.vue';
 import AccountMenu from './AccountMenu.vue';
 import { getGlobalSearchCommands } from './globalSearch.js';
+import DomLiquidGlassSurface from '../lib/vue/_internal/DomLiquidGlassSurface.vue';
+import { LIQUID_GLASS_EFFECTS } from '../lib/vue/_internal/liquidGlassConfig.js';
 
 /**
  * Loads the global search surface only after the user opens it.
@@ -31,7 +33,9 @@ const router = useRouter();
 const isMounted = ref(false);
 const mobileMenuOpen = ref(false);
 const searchOpen = ref(false);
+const isHeaderFloating = ref(false);
 const searchCommands = getGlobalSearchCommands();
+const STICKY_HEADER_THRESHOLD = 8;
 const sidebarRoutePrefixes = [
 	'/ai',
 	'/blocks',
@@ -84,6 +88,33 @@ const topLinks = [
 const detailsPanel = ref(null);
 
 /**
+ * Updates the condensed header treatment from either viewport or docs-panel scrolling.
+ *
+ * @returns {void}
+ */
+function updateStickyHeaderState() {
+	if (typeof window === 'undefined') return;
+	const scrollTop = Math.max(
+		window.scrollY || document.documentElement.scrollTop || 0,
+		detailsPanel.value?.scrollTop || 0,
+	);
+	isHeaderFloating.value = scrollTop > STICKY_HEADER_THRESHOLD;
+}
+
+/**
+ * Moves the sticky-header scroll listener when Vue replaces the docs panel.
+ *
+ * @param {HTMLElement|null} nextPanel Newly rendered docs scroll panel.
+ * @param {HTMLElement|null} previousPanel Previously rendered docs scroll panel.
+ * @returns {void}
+ */
+function connectDetailsPanelScroll(nextPanel, previousPanel) {
+	previousPanel?.removeEventListener('scroll', updateStickyHeaderState);
+	nextPanel?.addEventListener('scroll', updateStickyHeaderState, { passive: true });
+	updateStickyHeaderState();
+}
+
+/**
  * Checks whether a top-level navigation item matches the current route.
  *
  * @param {{ exact?: boolean, match?: string, to: string }} link Navigation item.
@@ -125,21 +156,28 @@ function runGlobalSearch(event) {
 	router.push(target);
 }
 
-watch(() => route.fullPath, async () => {
+watch(() => route.path, async () => {
 	mobileMenuOpen.value = false;
 	await nextTick();
 	scrollDetailsToTop();
+	updateStickyHeaderState();
 });
+watch(detailsPanel, connectDetailsPanelScroll, { flush: 'post' });
 
 onMounted(() => {
 	isMounted.value = true;
 	initTheme();
-	if (typeof window !== 'undefined') window.addEventListener(globalSearchOpenEvent, openGlobalSearch);
+	if (typeof window === 'undefined') return;
+	window.addEventListener(globalSearchOpenEvent, openGlobalSearch);
+	window.addEventListener('scroll', updateStickyHeaderState, { passive: true });
+	updateStickyHeaderState();
 });
 
 onBeforeUnmount(() => {
 	if (typeof window === 'undefined') return;
 	window.removeEventListener(globalSearchOpenEvent, openGlobalSearch);
+	window.removeEventListener('scroll', updateStickyHeaderState);
+	detailsPanel.value?.removeEventListener('scroll', updateStickyHeaderState);
 });
 </script>
 
@@ -148,8 +186,26 @@ onBeforeUnmount(() => {
 		class="min-h-screen bg-canvas text-canvas-fg"
 		:class="showSidebar && 'md:fixed md:inset-0 md:overflow-hidden'"
 	>
-		<header class="sticky top-0 z-30 border-b border-border/60 bg-canvas/80 backdrop-blur">
-			<div class="mx-auto flex h-16 w-full min-w-0 items-center justify-between gap-3 px-4 sm:px-6">
+		<header
+			class="sticky z-30 overflow-hidden transition-[top,margin,border-radius,box-shadow,background-color] duration-300 ease-out"
+			:class="LIQUID_GLASS_EFFECTS.stickyHeader && isHeaderFloating
+				? 'top-3 mx-3 rounded-[2rem] shadow-xl'
+				: 'top-0 border-b border-border/60 bg-canvas/80 backdrop-blur'"
+		>
+			<DomLiquidGlassSurface
+				v-if="LIQUID_GLASS_EFFECTS.stickyHeader && isHeaderFloating"
+				:refraction="34"
+				class="pointer-events-none absolute inset-0"
+				:style="{
+					'--dom-liquid-glass-position': 'absolute',
+					'--dom-liquid-glass-radius': '2rem',
+					'--dom-liquid-glass-surface-fill': 'color-mix(in oklch, var(--canvas) 48%, transparent)',
+					'--dom-liquid-glass-shadow': 'none',
+				}"
+				aria-hidden="true"
+			/>
+
+			<div class="relative z-[1] mx-auto flex h-16 w-full min-w-0 items-center justify-between gap-3 px-4 sm:px-6">
 				<RouterLink to="/" class="flex min-w-0 items-center gap-2 text-canvas-fg">
 					<BrandLockup show-badge />
 				</RouterLink>
@@ -232,7 +288,10 @@ onBeforeUnmount(() => {
 			<div
 				v-if="mobileMenuOpen"
 				id="mobile-site-menu"
-				class="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border/60 bg-canvas/95 shadow-lg backdrop-blur md:hidden"
+				class="relative z-[1] max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border/60 shadow-lg md:hidden"
+				:class="LIQUID_GLASS_EFFECTS.stickyHeader && isHeaderFloating
+					? 'bg-transparent'
+					: 'bg-canvas/95 backdrop-blur'"
 			>
 				<nav class="grid gap-1 px-4 py-3 text-sm">
 					<RouterLink
@@ -258,11 +317,11 @@ onBeforeUnmount(() => {
 			</div>
 		</header>
 
-		<div v-if="showSidebar" class="w-full px-4">
-			<div class="flex min-h-0 min-w-0 gap-0 py-10 md:h-[calc(100vh-4rem)] md:gap-12 md:overflow-hidden md:py-0">
-				<SideNav persist-scroll class="docs-sidebar hidden w-56 shrink-0 md:block md:h-full md:overflow-y-auto md:py-10 md:pr-2" />
+		<div v-if="showSidebar" class="w-full px-4 md:-mt-16">
+			<div class="flex min-h-0 min-w-0 gap-0 py-10 md:h-screen md:gap-12 md:overflow-hidden md:py-0">
+				<SideNav persist-scroll class="docs-sidebar hidden w-56 shrink-0 md:block md:h-full md:overflow-y-auto md:pb-10 md:pt-[6.5rem] md:pr-2" />
 
-				<main ref="detailsPanel" class="min-h-0 min-w-0 flex-1 md:h-full md:overflow-y-auto md:py-10 md:pr-2">
+				<main ref="detailsPanel" class="min-h-0 min-w-0 flex-1 md:h-full md:overflow-y-auto md:pb-10 md:pt-[6.5rem] md:pr-2">
 					<div class="mx-auto w-full min-w-0" :class="contentMaxWidthClass">
 						<slot />
 					</div>

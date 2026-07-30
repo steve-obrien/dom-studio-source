@@ -1,5 +1,8 @@
 <script setup>
-defineProps({
+import { computed, useId } from 'vue';
+import { DomButton, DomStatusPill } from '@getdom/studio/vue';
+
+const props = defineProps({
 	title: {
 		type: String,
 		required: true,
@@ -28,36 +31,35 @@ defineProps({
 
 defineEmits(['action']);
 
-const statusClass = {
-	neutral: 'bg-secondary text-muted-fg',
-	success: 'bg-success/10 text-success',
-	warning: 'bg-warning/10 text-warning',
-	destructive: 'bg-destructive/10 text-destructive',
-};
+const titleId = useId();
+
+/**
+ * Normalize legacy destructive tone names to the DomStatusPill tone contract.
+ *
+ * @returns {string} DOM Studio status tone.
+ */
+function getResolvedStatusTone() {
+	return props.statusTone === 'destructive' ? 'danger' : props.statusTone;
+}
+
+const resolvedStatusTone = computed(getResolvedStatusTone);
 </script>
 
 <template>
-	<div class="flex flex-col gap-3 border-b border-border py-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
+	<article class="grid gap-4 border-b border-border py-5 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center" :aria-labelledby="titleId">
 		<div class="min-w-0">
 			<div class="flex flex-wrap items-center gap-2">
-				<h5 class="font-semibold text-canvas-fg">{{ title }}</h5>
-				<span
-					v-if="status"
-					class="rounded-full px-2 py-0.5 text-xs font-semibold"
-					:class="statusClass[statusTone] || statusClass.neutral"
-				>
-					{{ status }}
-				</span>
+				<h5 :id="titleId" class="font-semibold text-canvas-fg">{{ title }}</h5>
+				<DomStatusPill v-if="status" :tone="resolvedStatusTone" size="sm">{{ status }}</DomStatusPill>
 			</div>
 			<p class="mt-1 text-sm leading-6 text-muted-fg">{{ description }}</p>
 		</div>
-		<button
-			type="button"
-			class="inline-flex h-9 shrink-0 items-center justify-center rounded-md border px-3 text-sm font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-ring/40"
-			:class="destructive ? 'border-destructive/30 text-destructive hover:bg-destructive/10' : 'border-border text-canvas-fg hover:border-primary/50 hover:bg-secondary'"
+		<DomButton
+			size="sm"
+			:variant="destructive ? 'danger' : 'secondary'"
 			@click="$emit('action')"
 		>
 			{{ actionLabel }}
-		</button>
-	</div>
+		</DomButton>
+	</article>
 </template>

@@ -19,6 +19,8 @@ export { default as DomMenuSeparator } from '../../components/menu/DomMenuSepara
 export { default as MenuSeparator } from '../../components/menu/DomMenuSeparator.vue';
 export { default as DomMenuLabel } from '../../components/menu/DomMenuLabel.vue';
 export { default as MenuLabel } from '../../components/menu/DomMenuLabel.vue';
+export { default as DomScrollMenu } from '../../components/scroll-menu/DomScrollMenu.vue';
+export { default as DomScrollMenuItem } from '../../components/scroll-menu/DomScrollMenuItem.vue';
 export { default as DomTreeView } from '../../components/tree-view/DomTreeView.vue';
 export { default as DomSplitterPanel } from '../../components/splitter-panel/DomSplitterPanel.vue';
 export {
@@ -43,6 +45,7 @@ export { default as DomCommandPalette } from '../../components/command-palette/D
 export { default as DomContextMenu } from '../../components/context-menu/DomContextMenu.vue';
 export { default as DomDataGrid } from '../../data/data-grid/DomDataGrid.vue';
 export { default as DomMonthCalendar } from '../../data/month-calendar/DomMonthCalendar.vue';
+export { default as DomWeekPlanner } from '../../data/week-planner/DomWeekPlanner.vue';
 export { default as DomMediaBrowser } from '../../data/media-browser/DomMediaBrowser.vue';
 export { default as DomDocumentEditor } from '../../data/document-editor/DomDocumentEditor.vue';
 export { default as DomJsonViewer } from '../../dev/json-viewer/DomJsonViewer.vue';
@@ -59,6 +62,7 @@ export { createAgentChatRestApi, defineAgentChatStore } from '../../data/agent-c
 export { createDocumentEditorRestApi, defineDocumentEditorStore } from '../../data/document-editor/examples/useDocumentEditorDemoStore.js';
 export { createMediaBrowserRestApi, defineMediaBrowserStore } from '../../data/media-browser/examples/useMediaBrowserDemoStore.js';
 export { monthCalendarProps } from '../../data/month-calendar/DomMonthCalendar.vue';
+export { weekPlannerProps } from '../../data/week-planner/DomWeekPlanner.vue';
 export { popoverProps } from '../../components/popover/DomPopover.vue';
 export { useToasts } from '../../components/toast/useToasts.js';
 export { useDialogs } from '../../components/dialog/useDialogs.js';
@@ -134,6 +138,7 @@ export { default as DomDateTimePicker } from '../../forms/date-time-picker/DomDa
 export { dateTimePickerProps } from '../../forms/date-time-picker/DomDateTimePicker.vue';
 export { default as DomBooleanInput } from '../../forms/toggle/DomToggle.vue';
 export { default as DomColorInput } from '../../forms/color-input/DomColorInput.vue';
+export { default as DomConfirmationCodeInput } from '../../forms/confirmation-code-input/DomConfirmationCodeInput.vue';
 export { default as DomJsonListInput } from '../../forms/json-list-input/DomJsonListInput.vue';
 export { default as DomCodeInput } from '../../forms/code-input/DomCodeInput.vue';
 export { default as DomJsonInput } from '../../forms/json-input/DomJsonInput.vue';

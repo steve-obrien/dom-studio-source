@@ -12,8 +12,8 @@ import SharePermissionsPanelSrc from './examples/SharePermissionsPanel.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Share Permissions Block"
-			tagline="A responsive collaboration panel for inviting people, setting object-level roles, controlling link access, and catching risky sharing changes before they go live."
-			tag="Collaboration UI"
+			tagline="An API-backed, people-first sharing panel with rich roles, general access safeguards, reviewable changes, and focused mobile views."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Collaboration" title="Share permissions panel">
@@ -22,7 +22,8 @@ import SharePermissionsPanelSrc from './examples/SharePermissionsPanel.vue?raw';
 					filename="SharePermissionsPanel.vue"
 					presentation="iframe"
 					frame-src="/blocks/collaboration/share-permissions/preview/SharePermissionsPanel"
-					description="Copy this into document editors, project workspaces, customer portals, dashboards, or any SaaS app where people share a record with teammates, guests, or public-link viewers. Replace the local arrays with your resource, members, invites, policy checks, and audit events."
+					description="Copy this working app section into document editors, project workspaces, customer portals, or dashboards where people share a resource with teammates, guests, or link viewers. The example is wired to repository-local read, update, invite, and revoke APIs."
+					frame-flush-edges
 					default-open
 					:preview-lines="14"
 				>
@@ -37,13 +38,41 @@ import SharePermissionsPanelSrc from './examples/SharePermissionsPanel.vue?raw';
 						It separates primary sharing actions from policy warnings, active collaborators, pending invites, and audit history so the permission model is easy to understand.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>resource</code> with the shared object name, owner, sensitivity, and current access mode from your backend.</li>
-						<li>Map <code>collaborators</code> to direct grants, inherited grants, guests, service accounts, or workspace groups.</li>
-						<li>Persist role changes through a permission endpoint and re-fetch the effective access list after policy rules apply.</li>
+						<li>The people-first hierarchy is inspired by mature sharing workflows such as Figma and Google Drive: invite first, effective grants next, and broader link access in a quieter secondary pane.</li>
+						<li>Replace the process-local demo store with your permission tables or service while retaining the resource, collaborator, invitation, and activity payload.</li>
+						<li>Map <code>collaborators</code> to direct grants, inherited grants, guests, service accounts, or workspace groups. Keep the access source visible so users know what they can safely change.</li>
+						<li>Persist role changes through the PATCH endpoint and re-fetch effective access after server-side policy rules apply.</li>
 						<li>Use <code>policyChecks</code> for product-specific safety gates such as external domains, sensitive fields, expiring links, or approval requirements.</li>
 						<li>Connect pending invites to your email invitation flow, including resend, revoke, expiry, and accepted-state transitions.</li>
 					</ul>
 				</div>
+			</DocSection>
+
+			<DocSection eyebrow="API" title="Working app-section contract">
+				<CodeBlock lang="js" filename="share-permissions-api.js" :code="`// Read the selector and one effective permission resource
+GET /api/block-demos/share-permissions/resources
+GET /api/block-demos/share-permissions/:resourceId
+
+// Apply link, safeguard, and collaborator-role changes
+PATCH /api/block-demos/share-permissions/:resourceId
+{
+\tlinkAccess: 'restricted',
+\tlinkExpiry: '30d',
+\trequireApproval: true,
+\tallowDownload: false,
+\tnotifyPeople: true,
+\troles: [{ id: 'jon', role: 'Can comment' }]
+}
+
+// Create or revoke a pending invitation
+POST /api/block-demos/share-permissions/:resourceId/invitations
+{ email: 'client@example.com', role: 'Can view' }
+
+DELETE /api/block-demos/share-permissions/:resourceId/invitations/:inviteId`" />
+				<p class="mt-4 text-sm leading-7 text-muted-fg">
+					The documentation demo uses an in-memory server store so it works without database setup and persists across browser reloads for the lifetime of the dev server.
+					A production integration should put the same routes behind authentication, authorization, durable permission storage, email delivery, and immutable audit events.
+				</p>
 			</DocSection>
 
 			<DocSection eyebrow="Data" title="Recommended permission payload">
@@ -76,15 +105,15 @@ import SharePermissionsPanelSrc from './examples/SharePermissionsPanel.vue?raw';
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Permission model</h3>
-						<p class="mt-2">Keep direct, inherited, group, and link-based access visibly distinct. Users need to know where a permission came from before they can safely change it.</p>
+						<p class="mt-2">Keep direct, inherited, group, and link-based access visibly distinct. The API must return effective access after policy rules apply.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Safety checks</h3>
-						<p class="mt-2">Run server-side checks before broadening access, then show specific warnings for external collaborators, sensitive fields, compliance rules, and public links.</p>
+						<p class="mt-2">Run server-side checks before broadening access, then return specific errors for external collaborators, confidential resources, and public links.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include reusable role badges, group pickers, approval request flows, access expiry controls, and a permission diff preview before saving.</p>
+						<h3 class="font-semibold text-canvas-fg">Production boundary</h3>
+						<p class="mt-2">Replace the demo store with durable grants, policy checks, email delivery, authorization, and append-only audit history without changing the UI contract.</p>
 					</div>
 				</div>
 			</DocSection>

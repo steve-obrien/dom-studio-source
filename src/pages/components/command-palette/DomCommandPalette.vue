@@ -1,5 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useId, watch } from 'vue';
+import DomLiquidGlassSurface from '../../lib/vue/_internal/DomLiquidGlassSurface.vue';
+import { LIQUID_GLASS_EFFECTS } from '../../lib/vue/_internal/liquidGlassConfig.js';
 
 defineOptions({
 	__doc: {
@@ -40,6 +42,7 @@ const emit = defineEmits(['update:modelValue', 'select']);
 const query = ref('');
 const activeIndex = ref(0);
 const input = ref(null);
+const listPanel = ref(null);
 const panel = ref(null);
 const isMounted = ref(false);
 const isRendered = ref(false);
@@ -48,6 +51,7 @@ const motion = ref('closed');
 const teleportTarget = shallowRef(null);
 const listId = `dom-command-palette-${useId()}-list`;
 const dialogLabel = 'Command palette';
+const useLiquidGlass = LIQUID_GLASS_EFFECTS.commandPalette;
 let motionTimer = null;
 
 const filtered = computed(() => {
@@ -77,6 +81,7 @@ watch(() => props.modelValue, async (open) => {
 	query.value = '';
 	activeIndex.value = 0;
 	await nextTick();
+	scrollActiveCommandIntoView();
 	window.requestAnimationFrame(() => {
 		isVisible.value = true;
 		input.value?.focus();
@@ -85,10 +90,29 @@ watch(() => props.modelValue, async (open) => {
 		if (props.modelValue) motion.value = 'open';
 	}, 250);
 });
-watch(query, () => { activeIndex.value = 0; });
-watch(filtered, (items) => {
+watch(query, resetActiveIndex);
+watch(filtered, syncActiveIndex);
+
+/**
+ * Returns keyboard navigation to the first filtered command.
+ *
+ * @returns {void}
+ */
+function resetActiveIndex() {
+	activeIndex.value = 0;
+	scrollActiveCommandIntoView();
+}
+
+/**
+ * Keeps the active index valid when filtering changes the command collection.
+ *
+ * @param {Array<Record<string, unknown>>} items Filtered command collection.
+ * @returns {void}
+ */
+function syncActiveIndex(items) {
 	if (activeIndex.value >= items.length) activeIndex.value = Math.max(0, items.length - 1);
-});
+	scrollActiveCommandIntoView();
+}
 onMounted(() => {
 	teleportTarget.value = panel.value?.ownerDocument?.body || document.body;
 	isMounted.value = true;
@@ -118,6 +142,29 @@ function open() {
 function move(delta) {
 	if (!filtered.value.length) return;
 	activeIndex.value = (activeIndex.value + delta + filtered.value.length) % filtered.value.length;
+	scrollActiveCommandIntoView();
+}
+
+/**
+ * Keeps the highlighted command fully visible inside the scrollable list.
+ *
+ * @returns {void}
+ */
+function scrollActiveCommandIntoView() {
+	nextTick(() => {
+		const list = listPanel.value;
+		const option = list?.querySelector?.('[aria-selected="true"]');
+		if (!list || !option) return;
+
+		const listRect = list.getBoundingClientRect();
+		const optionRect = option.getBoundingClientRect();
+		const edgeInset = 4;
+		if (optionRect.top < listRect.top + edgeInset) {
+			list.scrollTop += optionRect.top - listRect.top - edgeInset;
+		} else if (optionRect.bottom > listRect.bottom - edgeInset) {
+			list.scrollTop += optionRect.bottom - listRect.bottom + edgeInset;
+		}
+	});
 }
 
 function select(command = filtered.value[activeIndex.value]) {
@@ -247,58 +294,75 @@ function matchesShortcut(event, shortcut) {
 				role="dialog"
 				aria-modal="true"
 				:aria-label="dialogLabel"
-				class="skin-overlay relative mx-auto mt-[12vh] w-[min(92vw,38rem)] origin-top overflow-hidden rounded-[1.25rem]"
-				:class="{
-					'command-panel-entering': motion === 'entering',
-					'command-panel-leaving': motion === 'leaving',
-				}"
+				class="relative mx-auto mt-[12vh] w-[min(92vw,38rem)] origin-top rounded-[1.25rem]"
+				:class="[
+					useLiquidGlass ? '' : 'command-panel-blur skin-overlay overflow-hidden',
+					{
+						'command-panel-entering': motion === 'entering',
+						'command-panel-leaving': motion === 'leaving',
+					},
+				]"
 				@keydown="onKeydown"
 			>
-				<input
-					ref="input"
-					v-model="query"
-					type="text"
-					role="combobox"
-					aria-autocomplete="list"
-					aria-expanded="true"
-					:aria-controls="listId"
-					:aria-activedescendant="filtered[activeIndex] ? `${listId}-option-${activeIndex}` : undefined"
-					:placeholder="placeholder"
-					class="h-14 w-full border-b border-border/70 bg-transparent px-5 text-[1.05rem] outline-none placeholder:text-muted-fg"
+				<DomLiquidGlassSurface
+					v-if="useLiquidGlass"
+					:refraction="40"
+					class="pointer-events-none absolute inset-0"
+					:style="{
+						'--dom-liquid-glass-position': 'absolute',
+						'--dom-liquid-glass-radius': '1.25rem',
+						'--dom-liquid-glass-surface-fill': 'color-mix(in oklch, var(--canvas) 46%, transparent)',
+					}"
+					aria-hidden="true"
 				/>
-				<div :id="listId" role="listbox" class="max-h-80 overflow-auto p-2">
-					<button
-						v-for="(command, index) in filtered"
-						:id="`${listId}-option-${index}`"
-						:key="command.value ?? command.label ?? index"
-						role="option"
-						type="button"
-						tabindex="-1"
-						class="block w-full rounded-xl px-3 py-2 text-left transition"
-						:class="index === activeIndex ? 'bg-accent text-accent-fg' : 'text-muted-fg hover:bg-accent hover:text-accent-fg'"
-						:aria-selected="index === activeIndex"
-						@mouseenter="activeIndex = index"
-						@click="select(command)"
-					>
-						<span class="flex min-w-0 items-start gap-3">
-							<span
-								v-if="command.icon"
-								class="grid size-8 shrink-0 place-items-center rounded-lg border border-border/70 bg-secondary text-muted-fg"
-								:class="index === activeIndex ? 'border-accent-fg/20 bg-accent-fg/10 text-accent-fg' : ''"
-								aria-hidden="true"
-							>
-								<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
-									<path :d="command.icon" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-								</svg>
+
+				<div class="relative z-[1] overflow-hidden rounded-[1.25rem]">
+					<input
+						ref="input"
+						v-model="query"
+						type="text"
+						role="combobox"
+						aria-autocomplete="list"
+						aria-expanded="true"
+						:aria-controls="listId"
+						:aria-activedescendant="filtered[activeIndex] ? `${listId}-option-${activeIndex}` : undefined"
+						:placeholder="placeholder"
+						class="h-14 w-full border-b border-border/70 bg-transparent px-5 text-[1.05rem] outline-none placeholder:text-muted-fg"
+					/>
+					<div ref="listPanel" :id="listId" role="listbox" class="max-h-80 overflow-auto p-2">
+						<button
+							v-for="(command, index) in filtered"
+							:id="`${listId}-option-${index}`"
+							:key="command.value ?? command.label ?? index"
+							role="option"
+							type="button"
+							tabindex="-1"
+							class="block w-full rounded-xl px-3 py-2 text-left transition"
+							:class="index === activeIndex ? 'bg-accent text-accent-fg' : 'text-muted-fg hover:bg-accent hover:text-accent-fg'"
+							:aria-selected="index === activeIndex"
+							@mouseenter="activeIndex = index"
+							@click="select(command)"
+						>
+							<span class="flex min-w-0 items-start gap-3">
+								<span
+									v-if="command.icon"
+									class="grid size-8 shrink-0 place-items-center rounded-lg border border-border/70 bg-secondary text-muted-fg"
+									:class="index === activeIndex ? 'border-accent-fg/20 bg-accent-fg/10 text-accent-fg' : ''"
+									aria-hidden="true"
+								>
+									<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
+										<path :d="command.icon" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+									</svg>
+								</span>
+								<span v-else class="size-8 shrink-0" aria-hidden="true"></span>
+								<span class="min-w-0 flex-1 pt-0.5">
+									<span class="block truncate text-sm font-medium">{{ command.label }}</span>
+									<span v-if="command.description" class="mt-0.5 block truncate text-xs text-muted-fg">{{ command.description }}</span>
+								</span>
 							</span>
-							<span v-else class="size-8 shrink-0" aria-hidden="true"></span>
-							<span class="min-w-0 flex-1 pt-0.5">
-								<span class="block truncate text-sm font-medium">{{ command.label }}</span>
-								<span v-if="command.description" class="mt-0.5 block truncate text-xs text-muted-fg">{{ command.description }}</span>
-							</span>
-						</span>
-					</button>
-					<p v-if="!filtered.length" class="px-3 py-6 text-center text-sm text-muted-fg">No commands found.</p>
+						</button>
+						<p v-if="!filtered.length" class="px-3 py-6 text-center text-sm text-muted-fg">No commands found.</p>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -306,6 +370,17 @@ function matchesShortcut(event, shortcut) {
 </template>
 
 <style scoped>
+.command-panel-blur {
+	--skin-overlay-bg: var(
+		--dom-command-palette-background,
+		color-mix(in oklch, var(--canvas) 82%, transparent)
+	);
+	--skin-overlay-backdrop: var(
+		--dom-command-palette-backdrop,
+		blur(20px) saturate(1.12)
+	);
+}
+
 .command-panel-entering {
 	animation: command-panel-in 240ms both;
 }

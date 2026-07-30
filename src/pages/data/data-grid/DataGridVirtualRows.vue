@@ -1,5 +1,6 @@
 <script setup>
 import { computed, watch } from 'vue';
+import { calculateVirtualWindow } from '../_shared/calculateVirtualWindow';
 
 defineOptions({
 	name: 'DataGridVirtualRows',
@@ -81,26 +82,26 @@ const safeBufferRows = computed(() => {
 	return Number.isFinite(value) && value > 0 ? value : 0;
 });
 const rowWindow = computed(() => {
-	const totalRows = props.rows.length;
-	const rowHeight = safeRowHeight.value;
-	const viewportRows = Math.max(1, Math.ceil(Math.max(0, props.viewportHeight) / rowHeight));
-	const firstVisibleIndex = Math.min(totalRows, Math.max(0, Math.floor(Math.max(0, props.scrollTop) / rowHeight)));
-	const lastVisibleIndex = Math.min(totalRows - 1, firstVisibleIndex + viewportRows - 1);
-	const startIndex = Math.max(0, firstVisibleIndex - safeBufferRows.value);
-	const endIndex = Math.min(totalRows, firstVisibleIndex + viewportRows + safeBufferRows.value);
+	const window = calculateVirtualWindow({
+		itemCount: props.rows.length,
+		itemSize: safeRowHeight.value,
+		scrollOffset: props.scrollTop,
+		viewportSize: props.viewportHeight,
+		overscan: safeBufferRows.value,
+	});
 
 	return {
-		startIndex,
-		endIndex,
-		firstVisibleIndex,
-		lastVisibleIndex: totalRows ? lastVisibleIndex : -1,
-		renderedRows: Math.max(0, endIndex - startIndex),
-		totalRows,
-		rowHeight,
-		bufferRows: safeBufferRows.value,
-		viewportRows,
-		topSpacerHeight: startIndex * rowHeight,
-		bottomSpacerHeight: Math.max(0, totalRows - endIndex) * rowHeight,
+		startIndex: window.startIndex,
+		endIndex: window.endIndex,
+		firstVisibleIndex: window.firstVisibleIndex,
+		lastVisibleIndex: window.lastVisibleIndex,
+		renderedRows: window.renderedItems,
+		totalRows: window.totalItems,
+		rowHeight: window.itemSize,
+		bufferRows: window.overscan,
+		viewportRows: window.viewportItems,
+		topSpacerHeight: window.beforeSpacerSize,
+		bottomSpacerHeight: window.afterSpacerSize,
 	};
 });
 const renderedRows = computed(() => {
@@ -115,18 +116,43 @@ watch(rowWindow, (value) => {
 	emit('render-window-change', { ...value });
 }, { immediate: true });
 
+/**
+ * Resolves the stable key for a rendered row.
+ *
+ * @param {unknown} row Row record.
+ * @param {number} index Absolute row index.
+ * @returns {string|number} Consumer-provided row key.
+ */
 function resolvedRowKey(row, index) {
 	return props.rowKey(row, index);
 }
 
+/**
+ * Checks whether a rendered row is selected.
+ *
+ * @param {unknown} row Row record.
+ * @param {number} index Absolute row index.
+ * @returns {boolean} Whether the row key is selected.
+ */
 function rowSelected(row, index) {
 	return selectedKeySet.value.has(resolvedRowKey(row, index));
 }
 
+/**
+ * Builds the fixed-height style for a rendered row.
+ *
+ * @returns {{ height: string }} Row height style.
+ */
 function rowStyle() {
 	return { height: `${safeRowHeight.value}px` };
 }
 
+/**
+ * Builds the fixed-height style for a virtual spacer row.
+ *
+ * @param {number} height Spacer height in pixels.
+ * @returns {{ height: string }} Spacer height style.
+ */
 function spacerStyle(height) {
 	return { height: `${height}px` };
 }

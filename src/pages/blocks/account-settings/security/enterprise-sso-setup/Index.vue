@@ -12,19 +12,19 @@ import EnterpriseSsoSetupSrc from './examples/EnterpriseSsoSetup.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Enterprise SSO Setup Block"
-			tagline="A copyable enterprise security wizard for configuring SAML or OIDC, verifying domains, mapping groups, and testing rollout readiness."
-			tag="Security"
+			tagline="A staged enterprise security workflow for connecting an IdP, approving access, testing claims, and safely activating SSO."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Account Settings / Security" title="Enterprise SSO setup">
+			<DocSection eyebrow="Account Settings / Security" title="Responsive enterprise SSO setup">
 				<Example
 					:source="EnterpriseSsoSetupSrc"
 					filename="EnterpriseSsoSetup.vue"
 					presentation="iframe"
 					frame-src="/blocks/account-settings/security/enterprise-sso-setup/preview/EnterpriseSsoSetup"
-					description="Copy this into workspace administration, enterprise account settings, B2B onboarding, developer platforms, or customer success consoles where admins need to configure identity provider access with confidence."
+					description="A contained three-stage setup surface using DOM Studio tabs, progress, rich role selects, tag comboboxes, toggles, status feedback, dialogs, and code input. The example keeps readiness tied to verified workflow gates and includes working copy, save, test, and activation states."
 					default-open
-					:preview-lines="18"
+					:preview-lines="20"
 				>
 					<EnterpriseSsoSetup />
 				</Example>
@@ -37,10 +37,13 @@ import EnterpriseSsoSetupSrc from './examples/EnterpriseSsoSetup.vue?raw';
 						The pattern keeps provider selection, verified login domains, metadata exchange, group mapping, rollout checks, and connection testing in one sequential admin workflow.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
+						<li>Use short staged tabs so protocol, access mapping, and activation remain reachable in narrow iframe and mobile contexts.</li>
+						<li>Use `DomSelect` for each workspace-role mapping so administrators can review rich descriptions before granting access.</li>
 						<li>Replace the local provider, domain, metadata, and mapping arrays with records from your enterprise account or organization settings API.</li>
 						<li>Keep SSO activation server-owned. The UI should submit a draft configuration, run a test assertion, then require a privileged activation mutation.</li>
 						<li>Store verified domains separately from identity provider metadata so domain ownership checks can be reused for SCIM, email routing, and workspace claims.</li>
 						<li>Model group mappings as stable ids, not display names, because identity provider group names often change after rollout.</li>
+						<li>Calculate readiness from completed verification gates rather than treating populated fields as completed setup.</li>
 						<li>Log every metadata upload, test result, activation, fallback-method change, and forced-login policy update as security audit events.</li>
 					</ul>
 				</div>

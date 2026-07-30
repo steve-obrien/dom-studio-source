@@ -12,8 +12,8 @@ import StepUpVerificationDialogSrc from './examples/StepUpVerificationDialog.vue
 	<DomStudioLayout>
 		<DocPage
 			name="Step-up Verification Dialog Block"
-			tagline="A copyable security workflow for reauthenticating users before privileged or irreversible account actions."
-			tag="Security"
+			tagline="A responsive security workflow for issuing action-scoped unlocks after fresh passkey, code, or password verification."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Account security" title="Step-up verification dialog">
@@ -34,12 +34,12 @@ import StepUpVerificationDialogSrc from './examples/StepUpVerificationDialog.vue
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
 						Use this block for sensitive actions such as disabling MFA, exporting customer data, rotating production keys, changing payout details, deleting workspaces, or promoting admins.
-						The surrounding action surface explains risk, while the dialog captures a fresh proof with method-specific states and an auditable unlock result.
+						The compact action surface explains risk without exposing implementation payloads, while the dialog filters methods through server policy and captures fresh proof with DOM Studio inputs.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
 						<li>Request a server-issued step-up challenge when the user opens the dialog. Do not trust client-only readiness checks for privileged actions.</li>
 						<li>Bind the challenge to the action id, actor, session id, device fingerprint, expiration time, and the target resource being changed.</li>
-						<li>Support multiple verification methods, but let your risk engine decide which methods are allowed for each action.</li>
+						<li>Support multiple verification methods, but only render methods allowed by the current risk policy.</li>
 						<li>After successful verification, return a short-lived authorization token that the final mutation must present.</li>
 						<li>Record every attempt with method, result, risk score, IP, user agent, and policy snapshot for security review.</li>
 					</ul>
@@ -84,11 +84,11 @@ import StepUpVerificationDialogSrc from './examples/StepUpVerificationDialog.vue
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Method policy</h3>
-						<p class="mt-2">Let backend policy choose whether passkey, TOTP, password, recovery code, or admin approval is acceptable for the requested risk level.</p>
+						<p class="mt-2">Let backend policy choose whether passkey, TOTP, password, recovery, or admin approval is acceptable. Use <code>DomConfirmationCodeInput</code> for segmented one-time codes.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include WebAuthn wiring, recovery-code fallback, device trust review, lockout timers, and reusable security event rows.</p>
+						<h3 class="font-semibold text-canvas-fg">Recovery boundary</h3>
+						<p class="mt-2">Keep account recovery separate from step-up authorization. Recovery can restore access, but it should not silently issue a token for the blocked action.</p>
 					</div>
 				</div>
 			</DocSection>

@@ -11,17 +11,18 @@ import ScrollableAppShellSrc from './examples/ScrollableAppShell.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Application Layout Block"
-			tagline="A fixed application shell with a left panel that scrolls independently from the main work area."
-			tag="Application UI"
+			tagline="A responsive customer-health shell with independent navigation, mobile access, and a focused review workflow."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Starter" title="Scrollable app shell">
+			<DocSection eyebrow="App shell" title="Responsive customer-health workspace">
 				<Example
 					:source="ScrollableAppShellSrc"
 					filename="ScrollableAppShell.vue"
 					presentation="iframe"
 					frame-src="/blocks/app-shells/application-layout/preview/ScrollableAppShell"
-					description="Use this when the app needs persistent navigation or layers on the left, while the detail view scrolls on its own."
+					description="Use this composition for application screens with persistent desktop navigation and a viewport-owned work area. At narrow iframe widths the sidebar becomes a flush-edge DomDrawer, while DomSelect, DomProfileMenu, DomStatusPill, DomDialog, and account rows compose a realistic review workflow."
+					frame-flush-edges
 					default-open
 				>
 					<ScrollableAppShell />

@@ -1,5 +1,8 @@
 <script setup>
-defineProps({
+import { computed } from 'vue';
+import { DomBadge, DomStatusPill } from '../../../../../lib/vue';
+
+const props = defineProps({
 	number: {
 		type: [Number, String],
 		required: true,
@@ -8,37 +11,39 @@ defineProps({
 		type: String,
 		required: true,
 	},
-	description: {
-		type: String,
-		default: '',
-	},
 	status: {
 		type: String,
 		default: 'pending',
 	},
 });
 
-const statusClasses = {
-	complete: 'border-success bg-success/10 text-success',
-	current: 'border-primary bg-primary/10 text-primary',
-	pending: 'border-border bg-secondary text-muted-fg',
-};
+const statusPresentation = computed(getStatusPresentation);
+
+/**
+ * Resolve the compact label and tone used for a setup stage.
+ *
+ * @returns {{ label: string, tone: string }} Stage presentation metadata.
+ */
+function getStatusPresentation() {
+	return {
+		complete: { label: 'Complete', tone: 'success' },
+		current: { label: 'In progress', tone: 'info' },
+		attention: { label: 'Review', tone: 'warning' },
+		pending: { label: 'Pending', tone: 'neutral' },
+	}[props.status] || { label: 'Pending', tone: 'neutral' };
+}
 </script>
 
 <template>
-	<div class="flex gap-3">
-		<div
-			class="grid size-8 shrink-0 place-items-center rounded-full border text-xs font-bold"
-			:class="statusClasses[status] || statusClasses.pending"
-		>
-			<svg v-if="status === 'complete'" viewBox="0 0 16 16" class="size-4" fill="none" aria-hidden="true">
-				<path d="M4 8.4 6.5 11 12 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-			</svg>
-			<span v-else>{{ number }}</span>
-		</div>
-		<div class="min-w-0 pb-5">
-			<p class="text-sm font-semibold text-canvas-fg">{{ title }}</p>
-			<p v-if="description" class="mt-1 text-xs leading-5 text-muted-fg">{{ description }}</p>
-		</div>
-	</div>
+	<span class="flex min-w-0 items-center gap-2">
+		<DomBadge tone="neutral" variant="outline" size="sm">{{ number }}</DomBadge>
+		<span class="truncate">{{ title }}</span>
+		<span class="hidden lg:inline">
+			<DomStatusPill
+				:tone="statusPresentation.tone"
+				:label="statusPresentation.label"
+				size="sm"
+			/>
+		</span>
+	</span>
 </template>

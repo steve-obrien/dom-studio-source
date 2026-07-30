@@ -12,8 +12,8 @@ import CohortRetentionHeatmapSrc from './examples/CohortRetentionHeatmap.vue?raw
 	<DomStudioLayout>
 		<DocPage
 			name="Cohort Retention Heatmap Block"
-			tagline="A responsive product analytics block for comparing signup cohorts, drilling into retention cells, and connecting retention movement to product actions."
-			tag="Analytics UI"
+			tagline="A focused retention investigation workspace with responsive cohort comparison, rich selectors, accessible heatmap cells, and a working follow-up flow."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Analytics" title="Cohort retention heatmap">
@@ -22,7 +22,8 @@ import CohortRetentionHeatmapSrc from './examples/CohortRetentionHeatmap.vue?raw
 					filename="CohortRetentionHeatmap.vue"
 					presentation="iframe"
 					frame-src="/blocks/analytics/retention/cohort-retention-heatmap/preview/CohortRetentionHeatmap"
-					description="Copy this into SaaS dashboards, marketplace analytics, consumer subscription tools, AI product consoles, or customer success products where teams need to understand repeat value by cohort."
+					description="Copy this full-screen composition into product analytics and customer success tools where teams need to compare retention, isolate one cohort on smaller screens, and turn a selected cell into a follow-up."
+					frame-flush-edges
 					default-open
 					:preview-lines="20"
 				>
@@ -39,6 +40,8 @@ import CohortRetentionHeatmapSrc from './examples/CohortRetentionHeatmap.vue?raw
 					<ul class="list-disc space-y-2 pl-5">
 						<li>Replace <code>cohorts</code> with server-generated cohort rows keyed by cohort start date, segment, acquisition source, plan, or activation milestone.</li>
 						<li>Calculate retention on the backend from event streams, subscription state, or account activity. The UI should display trusted aggregates, not run analytics queries in the browser.</li>
+						<li>Keep segment and compact-cohort choices in rich <code>DomSelect</code> controls so labels, counts, and explanatory context remain visible.</li>
+						<li>On narrow viewports, show one selected cohort with its insight immediately below instead of shrinking or horizontally clipping the full matrix.</li>
 						<li>Expose both user retention and revenue retention when monetization matters. Keep the same cohort IDs so users can compare behavior and commercial impact.</li>
 						<li>Connect selected cells to saved investigations, experiment links, customer lists, lifecycle campaigns, or product work items so insight can become action.</li>
 						<li>For large datasets, page or virtualize cohort rows and cache heatmap queries by segment, metric, granularity, and timezone.</li>

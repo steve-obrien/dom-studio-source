@@ -12,8 +12,8 @@ import ScreenAnnotationReviewSrc from './examples/ScreenAnnotationReview.vue?raw
 	<DomStudioLayout>
 		<DocPage
 			name="Screen Annotation Review Block"
-			tagline="A copyable collaborative review surface with spatial comment pins, thread triage, reply drafting, and resolve or reopen actions."
-			tag="Collaboration UI"
+			tagline="A responsive screen-review workspace with spatial pins, rich filtering and assignment, focused mobile threads, and complete annotation actions."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Review" title="Screen annotation review">
@@ -22,7 +22,8 @@ import ScreenAnnotationReviewSrc from './examples/ScreenAnnotationReview.vue?raw
 					filename="ScreenAnnotationReview.vue"
 					presentation="iframe"
 					frame-src="/blocks/collaboration/review/screen-annotation-review/preview/ScreenAnnotationReview"
-					description="Copy this into product QA, design review, content approval, customer implementation, internal tooling, or support escalation flows where teams need comments anchored to a visual surface."
+					description="Copy this full-screen composition into product QA, design review, content approval, or implementation workflows where teams need responsive comments anchored to a real application surface."
+					frame-flush-edges
 					default-open
 					:preview-lines="18"
 				>
@@ -38,7 +39,9 @@ import ScreenAnnotationReviewSrc from './examples/ScreenAnnotationReview.vue?raw
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
 						<li>Replace <code>annotations</code> with records from your review API, including target id, normalized pin coordinates, status, priority, author, assignee, comments, and audit events.</li>
-						<li>Persist coordinates as percentages relative to the reviewed asset so pins survive responsive resizing, zoom, and thumbnail generation.</li>
+						<li>Use rich <code>DomSelect</code> controls for filters, build versions, and assignees when options need counts, roles, ownership, or explanatory context.</li>
+						<li>Persist coordinates against a specific target variant and source bounds. When the reviewed screen reflows, store breakpoint-specific coordinates or stable element anchors rather than treating one percentage pair as universal.</li>
+						<li>Keep the reviewed surface and selected discussion side by side at wider widths, then provide an explicit screen or thread view on compact devices instead of stacking the entire workspace.</li>
 						<li>Connect resolve and reopen actions to immutable review events so product, QA, compliance, or client teams can audit who accepted each change.</li>
 						<li>Use thread filters as API query params for large review spaces, then lazy-load comment bodies when a pin or thread is selected.</li>
 						<li>When the reviewed asset changes version, preserve old pins against the original revision and add a migration step before copying unresolved items forward.</li>
@@ -81,7 +84,7 @@ import ScreenAnnotationReviewSrc from './examples/ScreenAnnotationReview.vue?raw
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Coordinate model</h3>
-						<p class="mt-2">Store pin coordinates against the reviewed asset bounds, not the viewport. Convert to pixels only when rendering the current preview size.</p>
+						<p class="mt-2">Store pin coordinates against the reviewed asset bounds and responsive variant, not the outer viewer. Convert to pixels only when rendering that target.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Review lifecycle</h3>

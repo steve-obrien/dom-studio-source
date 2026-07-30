@@ -67,6 +67,7 @@ const props = defineProps({
 	},
 });
 const attrs = useAttrs();
+const interaction = 'select-none active:bg-[linear-gradient(rgb(0_0_0/6%)_0_0)] active:scale-[0.97] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] motion-reduce:active:scale-100';
 
 const variants = {
 	ghost: 'text-muted-fg hover:bg-secondary hover:text-canvas-fg',
@@ -97,7 +98,8 @@ const iconSizes = {
 };
 
 const classes = computed(() => [
-	'inline-grid shrink-0 place-items-center rounded-full outline-none transition active:scale-95',
+	interaction,
+	'inline-grid shrink-0 place-items-center rounded-full outline-none transition',
 	'focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
 	props.active
 		? activeVariants[props.variant] || activeVariants.ghost

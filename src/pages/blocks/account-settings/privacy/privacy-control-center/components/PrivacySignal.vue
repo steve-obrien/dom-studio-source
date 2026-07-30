@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { DomStatusPill } from '@getdom/studio/vue';
 
 const props = defineProps({
 	label: {
@@ -20,18 +21,24 @@ const props = defineProps({
 	},
 });
 
-const toneClass = computed(() => ({
-	neutral: 'border-border bg-secondary text-canvas-fg',
-	success: 'border-success/30 bg-success/10 text-success',
-	warning: 'border-warning/30 bg-warning/10 text-warning',
-	destructive: 'border-destructive/30 bg-destructive/10 text-destructive',
-}[props.tone] || 'border-border bg-secondary text-canvas-fg'));
+/**
+ * Normalize legacy destructive tone names to the DomStatusPill tone contract.
+ *
+ * @returns {string} DOM Studio status tone.
+ */
+function getResolvedTone() {
+	return props.tone === 'destructive' ? 'danger' : props.tone;
+}
+
+const resolvedTone = computed(getResolvedTone);
 </script>
 
 <template>
-	<div class="border-l-4 px-4 py-3" :class="toneClass">
-		<p class="text-xs font-medium text-muted-fg">{{ label }}</p>
-		<p class="mt-1 text-2xl font-semibold">{{ value }}</p>
-		<p v-if="description" class="mt-1 text-xs leading-5 text-muted-fg">{{ description }}</p>
+	<div class="flex min-w-0 items-start gap-2">
+		<DomStatusPill :tone="resolvedTone" size="sm" :dot="false">{{ value }}</DomStatusPill>
+		<span class="min-w-0">
+			<span class="block text-xs font-semibold text-canvas-fg">{{ label }}</span>
+			<span v-if="description" class="mt-0.5 block text-xs leading-5 text-muted-fg">{{ description }}</span>
+		</span>
 	</div>
 </template>

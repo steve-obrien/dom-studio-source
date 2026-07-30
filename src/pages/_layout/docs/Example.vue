@@ -45,6 +45,7 @@ const props = defineProps({
 	frameDefaultWidth: { type: Number, default: 0 },
 	frameHeight: { type: Number, default: 720 },
 	frameSrc: { type: String, default: '' },
+	frameFlushEdges: { type: Boolean, default: false },
 });
 
 const route = useRoute();
@@ -111,6 +112,7 @@ function sourcePathFromRoute() {
 					:max-width="frameMaxWidth"
 					:default-width="resolvedFrameDefaultWidth"
 					:height="frameHeight"
+					:flush-edges="frameFlushEdges"
 					:chrome="resolvedFrameChrome"
 					:device="device"
 				>

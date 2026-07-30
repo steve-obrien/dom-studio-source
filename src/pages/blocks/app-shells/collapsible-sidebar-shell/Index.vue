@@ -11,7 +11,7 @@ import CollapsibleSidebarShellSrc from './examples/CollapsibleSidebarShell.vue?r
 	<DomStudioLayout>
 		<DocPage
 			name="Collapsible Sidebar Shell"
-			tagline="A workspace shell with an expanded sidebar that collapses into an icon rail."
+			tagline="A responsive workspace shell with a desktop icon rail and a mobile navigation drawer."
 			tag="Application UI"
 			eyebrow="Blocks"
 		>
@@ -21,7 +21,8 @@ import CollapsibleSidebarShellSrc from './examples/CollapsibleSidebarShell.vue?r
 					filename="CollapsibleSidebarShell.vue"
 					presentation="iframe"
 					frame-src="/blocks/app-shells/collapsible-sidebar-shell/preview/CollapsibleSidebarShell"
-					description="Use this for SaaS workspaces that need a persistent left navigation, account switcher, and compact focus mode."
+					frame-flush-edges
+					description="Use this for SaaS workspaces that need persistent desktop navigation, a compact focus mode, and a mobile drawer that keeps the full menu available in narrow iframe viewports."
 					:frame-height="820"
 					default-open
 				>

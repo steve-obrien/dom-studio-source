@@ -8,6 +8,7 @@ const props = defineProps({
 	maxWidth: { type: Number, default: 0 },
 	defaultWidth: { type: Number, default: 0 },
 	height: { type: Number, default: 720 },
+	flushEdges: { type: Boolean, default: false },
 	chrome: {
 		type: String,
 		default: 'none',
@@ -567,9 +568,10 @@ onBeforeUnmount(() => {
 		<div ref="canvas" class="iframe-preview-canvas overflow-x-auto overflow-y-hidden bg-secondary/30 p-4">
 			<div
 				ref="viewport"
-				class="iframe-preview-viewport relative mx-auto overflow-visible rounded-lg bg-transparent shadow-sm"
+				class="iframe-preview-viewport relative mx-auto overflow-visible bg-transparent"
 				:class="[
 					hasMobileChrome ? 'iframe-preview-viewport-mobile' : '',
+					flushEdges ? 'rounded-none shadow-none' : 'rounded-lg shadow-sm',
 					{ 'iframe-preview-viewport-dragging': isDragging },
 				]"
 				:style="iframeStyle"

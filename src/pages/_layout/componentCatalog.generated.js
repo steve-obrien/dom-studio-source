@@ -729,6 +729,72 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "components/scroll-menu",
+		"path": "../components/scroll-menu/DomScrollMenu.vue",
+		"section": "components",
+		"slug": "scroll-menu",
+		"exportName": "DomScrollMenu",
+		"route": "/components/scroll-menu",
+		"doc": {
+			"name": "Scroll menu",
+			"tag": "<DomScrollMenu>",
+			"description": "A smooth-scrolling table of contents that keeps real fragment links highlighted as their target headings move through a page or scroll container.",
+			"slots": [
+				{
+					"name": "(default)",
+					"payload": "{ activeHref }",
+					"description": "DomScrollMenuItem rows or equivalent custom content."
+				},
+				{
+					"name": "label",
+					"payload": "{ label }",
+					"description": "Custom visible navigation label."
+				}
+			],
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "href",
+					"description": "Emitted when scrolling or navigation changes the active fragment link."
+				},
+				{
+					"name": "change",
+					"payload": "{ href, target }",
+					"description": "Emitted with the active fragment and its target element."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "components/scroll-menu",
+		"path": "../components/scroll-menu/DomScrollMenuItem.vue",
+		"section": "components",
+		"slug": "scroll-menu",
+		"exportName": "DomScrollMenuItem",
+		"route": "/components/scroll-menu",
+		"doc": {
+			"name": "Scroll menu item",
+			"tag": "<DomScrollMenuItem>",
+			"description": "A fragment-link wrapper that registers either its href prop or a slotted anchor with the parent DomScrollMenu scrollspy.",
+			"slots": [
+				{
+					"name": "(default)",
+					"payload": "{ active, href }",
+					"description": "Link contents when href is set, or one custom fragment anchor when href is omitted."
+				}
+			],
+			"events": [
+				{
+					"name": "navigate",
+					"payload": "{ href, active }",
+					"description": "Emitted when the fragment link is activated with an unmodified primary click."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "components/splitter-panel",
 		"path": "../components/splitter-panel/DomSplitterPanel.vue",
 		"section": "components",
@@ -1707,6 +1773,121 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "data/week-planner",
+		"path": "../data/week-planner/DomWeekPlanner.vue",
+		"section": "data",
+		"slug": "week-planner",
+		"exportName": "DomWeekPlanner",
+		"route": "/data/week-planner",
+		"doc": {
+			"name": "Week planner",
+			"tag": "<DomWeekPlanner>",
+			"description": "A fixed-width week scheduler with days as horizontally scrolling swim lanes and time chunks as rows.",
+			"icon": "M7 4v3M17 4v3M5 8h14M6 6h12v13H6V6Zm4 5h6M9 16h4",
+			"events": [
+				{
+					"name": "day-click",
+					"payload": "({ cell, targetTime, targetMinutes, event })",
+					"typeRef": "WeekPlannerDayClickPayload",
+					"description": "Fired when a clickable day header, all-day cell, or timed row is activated."
+				},
+				{
+					"name": "time-range-select",
+					"payload": "({ cell, value, startTime, endTime, startMinutes, endMinutes, event })",
+					"typeRef": "WeekPlannerTimeRangePayload",
+					"description": "Fired after a mouse or pen drag selects a snapped time range. The planner does not create or persist records."
+				},
+				{
+					"name": "day-drag-start",
+					"payload": "({ cell, sourceValue, sourceTime, data, event })",
+					"typeRef": "WeekPlannerDayDragPayload",
+					"description": "Fired when an item using dragAttrs starts dragging."
+				},
+				{
+					"name": "day-drag-enter",
+					"payload": "({ sourceCell, targetCell, targetValue, targetTime, data, event })",
+					"typeRef": "WeekPlannerDayDragPayload",
+					"description": "Fired when a draggable item previews a day and time."
+				},
+				{
+					"name": "day-drag-leave",
+					"payload": "({ sourceCell, targetCell, targetValue, targetTime, data, event })",
+					"typeRef": "WeekPlannerDayDragPayload",
+					"description": "Fired when a draggable item leaves a day lane."
+				},
+				{
+					"name": "day-drop",
+					"payload": "({ sourceCell, targetCell, sourceValue, targetValue, sourceTime, targetTime, data, event })",
+					"typeRef": "WeekPlannerDayDragPayload",
+					"description": "Fired when an item is dropped. The planner does not mutate records."
+				},
+				{
+					"name": "day-drag-end",
+					"payload": "({ sourceCell, targetCell, sourceValue, targetValue, sourceTime, targetTime, data, event })",
+					"typeRef": "WeekPlannerDayDragPayload",
+					"description": "Fired when a drag started with dragAttrs ends."
+				},
+				{
+					"name": "viewport-scroll",
+					"payload": "({ scrollLeft, scrollWidth, clientWidth, remaining, atStart, atEnd })",
+					"typeRef": "WeekPlannerViewportPayload",
+					"description": "Fired while the internal two-axis viewport scrolls horizontally."
+				},
+				{
+					"name": "viewport-end",
+					"payload": "({ scrollLeft, scrollWidth, clientWidth, remaining, atStart, atEnd })",
+					"typeRef": "WeekPlannerViewportPayload",
+					"description": "Fired when horizontal scrolling reaches the end threshold. Apps can append another date range."
+				},
+				{
+					"name": "render-window-change",
+					"payload": "({ startIndex, endIndex, renderedWeeks, totalWeeks, start, end })",
+					"typeRef": "WeekPlannerRenderWindowPayload",
+					"description": "Fired when the mounted virtual week window changes so apps can fetch its record range."
+				}
+			],
+			"slots": [
+				{
+					"name": "(default)",
+					"payload": "{ cell, month, week, timeSlots, drag, dragAttrs, rangeStyle }",
+					"typeRef": "WeekPlannerDaySlotPayload",
+					"description": "Timed content layer for each day. Use rangeStyle(record) with records containing startTime and endTime."
+				},
+				{
+					"name": "day-header",
+					"payload": "{ cell, month, week }",
+					"description": "Custom day-column header content."
+				},
+				{
+					"name": "all-day",
+					"payload": "{ cell, month, week, drag, dragAttrs }",
+					"description": "All-day content rendered above the timed rows."
+				},
+				{
+					"name": "time-label",
+					"payload": "{ slot }",
+					"description": "Custom sticky time-rail label."
+				},
+				{
+					"name": "corner",
+					"payload": "{ range }",
+					"description": "Content above the sticky time rail."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Tab",
+					"action": "Move through day headers, all-day cells, and time rows when clickable is enabled."
+				},
+				{
+					"keys": "Enter / Space",
+					"action": "Activate the focused day or time row."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "dev/code-block",
 		"path": "../dev/code-block/DomCodeBlock.vue",
 		"section": "dev",
@@ -2020,6 +2201,69 @@ export const componentCatalog = [
 					"name": "select",
 					"payload": "({ item, value, label })",
 					"description": "Fired when an option is selected. item is the original option object."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "forms/confirmation-code-input",
+		"path": "../forms/confirmation-code-input/DomConfirmationCodeInput.vue",
+		"section": "forms",
+		"slug": "confirmation-code-input",
+		"exportName": "DomConfirmationCodeInput",
+		"route": "/forms/confirmation-code-input",
+		"doc": {
+			"name": "Confirmation code input",
+			"tag": "<DomConfirmationCodeInput>",
+			"description": "A segmented confirmation-code field with one character per box, automatic focus movement, and full-code paste support.",
+			"icon": "M4 8h3v3H4V8Zm6 0h3v3h-3V8Zm6 0h3v3h-3V8ZM4 14h3v3H4v-3Zm6 0h3v3h-3v-3Zm6 0h3v3h-3v-3Z",
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "string",
+					"description": "Fired whenever the entered code changes."
+				},
+				{
+					"name": "complete",
+					"payload": "string",
+					"description": "Fired when every character box contains a value."
+				},
+				{
+					"name": "focus",
+					"payload": "FocusEvent",
+					"description": "Fired when focus enters the segmented control."
+				},
+				{
+					"name": "blur",
+					"payload": "FocusEvent",
+					"description": "Fired when focus leaves the segmented control."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Character",
+					"action": "Enter one character and move focus to the next box."
+				},
+				{
+					"keys": "Backspace",
+					"action": "Clear the current box, or move back and clear the previous box when empty."
+				},
+				{
+					"keys": "Delete",
+					"action": "Clear the current box."
+				},
+				{
+					"keys": "Left / Right",
+					"action": "Move between character boxes."
+				},
+				{
+					"keys": "Home / End",
+					"action": "Move to the first or last character box."
+				},
+				{
+					"keys": "Paste",
+					"action": "Distribute a complete or partial code across the boxes."
 				}
 			]
 		},

@@ -551,6 +551,109 @@ export interface MonthCalendarDayDragPayload {
 	types: Array<string>;
 	getData(type: string): string;
 }
+export interface WeekPlannerCell extends MonthCalendarCell {
+	weekNumber: number;
+}
+export type WeekPlannerDayClass = string | Array<unknown> | Record<string, boolean> | ((cell: WeekPlannerCell) => unknown);
+export interface WeekPlannerWeek {
+	index: number;
+	weekNumber: number;
+	label: string;
+	value: string;
+	days: Array<WeekPlannerCell>;
+}
+export interface WeekPlannerMonth {
+	date: Date;
+	value: string;
+	id: string;
+	month: number;
+	year: number;
+	label: string;
+	cells: Array<WeekPlannerCell>;
+	weeks: Array<WeekPlannerWeek>;
+}
+export interface WeekPlannerTimeSlot {
+	index: number;
+	minutes: number;
+	endMinutes: number;
+	time: string;
+	endTime: string;
+	label: string;
+}
+export interface WeekPlannerDragState {
+	active: boolean;
+	source: boolean;
+	over: boolean;
+	sourceCell: WeekPlannerCell | null;
+	overCell: WeekPlannerCell | null;
+	data: unknown;
+	sourceTime: string;
+	overTime: string;
+}
+export interface WeekPlannerDragAttrsOptions {
+	effectAllowed?: DataTransfer['effectAllowed'];
+	sourceTime?: string;
+}
+export type WeekPlannerDragAttrs = (data?: unknown, options?: WeekPlannerDragAttrsOptions) => Record<string, unknown>;
+export type WeekPlannerRangeStyle = (recordOrStartTime: Record<string, unknown> | string, endTime?: string) => Record<string, string>;
+export interface WeekPlannerDaySlotPayload {
+	cell: WeekPlannerCell;
+	month: WeekPlannerMonth;
+	week: WeekPlannerWeek;
+	timeSlots: Array<WeekPlannerTimeSlot>;
+	drag: WeekPlannerDragState;
+	dragAttrs: WeekPlannerDragAttrs;
+	rangeStyle: WeekPlannerRangeStyle;
+}
+export interface WeekPlannerDayClickPayload {
+	cell: WeekPlannerCell;
+	targetTime: string;
+	targetMinutes: number | null;
+	event: MouseEvent;
+}
+export interface WeekPlannerTimeRangePayload {
+	cell: WeekPlannerCell;
+	value: string;
+	startTime: string;
+	endTime: string;
+	startMinutes: number;
+	endMinutes: number;
+	event: PointerEvent;
+}
+export interface WeekPlannerDayDragPayload {
+	cell: WeekPlannerCell;
+	targetCell: WeekPlannerCell;
+	sourceCell: WeekPlannerCell | null;
+	sourceValue: string;
+	targetValue: string;
+	sourceTime: string;
+	targetTime: string;
+	sourceMinutes: number | null;
+	targetMinutes: number | null;
+	data: unknown;
+	event: DragEvent;
+	dataTransfer: DataTransfer | null;
+	types: Array<string>;
+	getData(type: string): string;
+}
+export interface WeekPlannerViewportPayload {
+	scrollLeft: number;
+	scrollWidth: number;
+	clientWidth: number;
+	remaining: number;
+	atStart: boolean;
+	atEnd: boolean;
+}
+export interface WeekPlannerRenderWindowPayload {
+	startIndex: number;
+	endIndex: number;
+	firstVisibleIndex: number;
+	lastVisibleIndex: number;
+	renderedWeeks: number;
+	totalWeeks: number;
+	start: string;
+	end: string;
+}
 export interface TreeItemAction {
 	value?: string;
 	label?: string;
@@ -1210,6 +1313,62 @@ export declare const DomMenuLabel: DomComponent<DomMenuLabelProps>;
 export type MenuLabelProps = DomMenuLabelProps;
 export declare const MenuLabel: typeof DomMenuLabel;
 
+export interface DomScrollMenuProps {
+	/**
+	 * Active fragment href. Use v-model when the surrounding page needs the current section.
+	 */
+	modelValue?: string;
+	/**
+	 * Root element rendered around the scroll menu.
+	 */
+	as?: string;
+	/**
+	 * Element rendered around the menu items.
+	 */
+	listAs?: string;
+	/**
+	 * Accessible navigation label and default visible heading.
+	 */
+	label?: string;
+	/**
+	 * Show the visual navigation label above the item list.
+	 */
+	showLabel?: boolean;
+	/**
+	 * Optional scroll-container element or CSS selector. By default the nearest scrollable ancestor of the first target is used.
+	 */
+	scrollRoot?: string | Record<string, unknown>;
+	/**
+	 * Fragment navigation behavior. Smooth scrolling respects the user’s reduced-motion preference.
+	 */
+	scrollBehavior?: string;
+	/**
+	 * IntersectionObserver root margin defining the activation band. Use a negative top value to account for sticky headers.
+	 */
+	rootMargin?: string;
+}
+export declare const DomScrollMenu: DomComponent<DomScrollMenuProps>;
+
+export interface DomScrollMenuItemProps {
+	/**
+	 * Optional fragment href shorthand, including the leading #. Omit it when the slot provides its own anchor.
+	 */
+	href?: string;
+	/**
+	 * Element wrapping the anchor. Use li with the default DomScrollMenu list.
+	 */
+	as?: string;
+	/**
+	 * Visual nesting depth for subordinate page headings.
+	 */
+	depth?: number;
+	/**
+	 * Remove the fragment link from navigation and scrollspy selection.
+	 */
+	disabled?: boolean;
+}
+export declare const DomScrollMenuItem: DomComponent<DomScrollMenuItemProps>;
+
 /** TreeItemAction, TreeItem, TreeItems, TreeNode, TreeDropPosition, TreeDropKind, TreeSelectionPayload, TreeActionPayload, TreeTogglePayload, TreeLoadChildrenPayload, TreeDragPreviewPayload, TreeDragPreviewEndPayload, TreeReorderPayload, TreeExternalDropPayload payload types are exported from this module. */
 export interface DomTreeViewProps {
 	/**
@@ -1707,6 +1866,143 @@ export interface DomMonthCalendarProps {
 	dayStyle?: string | Record<string, string | number> | ((cell: MonthCalendarCell) => string | Record<string, string | number> | null | undefined);
 }
 export declare const DomMonthCalendar: DomComponent<DomMonthCalendarProps>;
+
+/** WeekPlannerCell, WeekPlannerWeek, WeekPlannerMonth, WeekPlannerTimeSlot, WeekPlannerDragState, WeekPlannerDragAttrs, WeekPlannerDaySlotPayload, WeekPlannerDayClickPayload, WeekPlannerTimeRangePayload, WeekPlannerDayDragPayload, WeekPlannerViewportPayload, WeekPlannerRenderWindowPayload payload types are exported from this module. */
+export interface DomWeekPlannerProps {
+	/**
+	 * Date inside the first rendered week as YYYY-MM-DD.
+	 */
+	startDate?: string;
+	/**
+	 * Initial month, 1-12. Used when startDate is not set.
+	 */
+	initialMonth?: number;
+	/**
+	 * Initial year. Used when startDate is not set.
+	 */
+	initialYear?: number;
+	/**
+	 * Number of consecutive weeks to render as fixed-width day columns.
+	 */
+	weeks?: number;
+	/**
+	 * Date to reveal after mount or a range reset. Useful when a virtual year starts before the focused date.
+	 */
+	initialScrollDate?: string;
+	/**
+	 * Mount only the horizontally visible weeks plus the configured buffer.
+	 */
+	virtualWeeks?: boolean;
+	/**
+	 * Extra weeks mounted before and after the visible horizontal window.
+	 */
+	virtualWeekBuffer?: number;
+	/**
+	 * Locale used for weekday, date, month, and time labels.
+	 */
+	locale?: string;
+	/**
+	 * First day of week. 0 is Sunday, 1 is Monday.
+	 */
+	weekStartsOn?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+	/**
+	 * Weekday label length.
+	 */
+	weekdayFormat?: 'narrow' | 'short' | 'long';
+	/**
+	 * First visible time as HH:mm.
+	 */
+	startTime?: string;
+	/**
+	 * Exclusive final visible time as HH:mm. Use 24:00 to include the full day.
+	 */
+	endTime?: string;
+	/**
+	 * Minutes represented by each horizontal time row.
+	 */
+	timeStep?: number;
+	/**
+	 * Pixel height of each time row.
+	 */
+	slotHeight?: number;
+	/**
+	 * Fixed pixel width of every day swim lane. Additional weeks scroll horizontally.
+	 */
+	dayWidth?: number;
+	/**
+	 * Pixel width of the sticky time-label rail.
+	 */
+	timeRailWidth?: number;
+	/**
+	 * Pixel height of the internal two-axis scroll viewport.
+	 */
+	viewportHeight?: number;
+	/**
+	 * Show the ISO week number on the first day of each week.
+	 */
+	showWeekNumbers?: boolean;
+	/**
+	 * Render a sticky all-day row above the timed grid.
+	 */
+	showAllDayRow?: boolean;
+	/**
+	 * Show a live current-time line in today’s time lane when the current time is visible.
+	 */
+	showCurrentTime?: boolean;
+	/**
+	 * Show an in-viewport loading indicator while the app fetches the requested render window.
+	 */
+	loading?: boolean;
+	/**
+	 * Dates before this YYYY-MM-DD value render muted.
+	 */
+	mutedBefore?: string;
+	/**
+	 * Dates after this YYYY-MM-DD value render muted.
+	 */
+	mutedAfter?: string;
+	/**
+	 * Minimum clickable or droppable date as YYYY-MM-DD.
+	 */
+	min?: string;
+	/**
+	 * Maximum clickable or droppable date as YYYY-MM-DD.
+	 */
+	max?: string;
+	/**
+	 * Emit day-click with the selected day and snapped time.
+	 */
+	clickable?: boolean;
+	/**
+	 * Allow mouse or pen dragging across a time lane and emit time-range-select.
+	 */
+	rangeSelection?: boolean;
+	/**
+	 * Minutes used to snap drag-created time ranges independently of the visible time rows.
+	 */
+	selectionStep?: number;
+	/**
+	 * Expose dragAttrs and emit day-drop with the target day and snapped time.
+	 */
+	dragAndDrop?: boolean;
+	/**
+	 * Native drop effect shown when a time lane can receive a dragged item.
+	 */
+	dropEffect?: 'copy' | 'move' | 'link';
+	/**
+	 * Function that receives a day cell and returns true when the day should not be clickable or droppable.
+	 */
+	disabledDate?: (cell: WeekPlannerCell) => boolean;
+	/**
+	 * Extra classes, or a function that receives a day cell and returns classes for the day lane.
+	 */
+	dayClass?: WeekPlannerDayClass;
+	/**
+	 * Extra styles, or a function that receives a day cell and returns styles for the day lane.
+	 */
+	dayStyle?: string | Record<string, string | number> | ((cell: WeekPlannerCell) => string | Record<string, string | number> | null | undefined);
+}
+export declare const DomWeekPlanner: DomComponent<DomWeekPlannerProps>;
 
 /** MediaBrowserItem, MediaBrowserBreadcrumb, MediaBrowserDroppedFile, MediaBrowserSelectionPayload, MediaBrowserMovePayload, MediaBrowserUploadPayload, MediaBrowserDetailPayload payload types are exported from this module. */
 export interface DomMediaBrowserProps {
@@ -5297,6 +5593,90 @@ export interface DomColorInputProps {
 }
 export declare const DomColorInput: DomComponent<DomColorInputProps>;
 
+export interface DomConfirmationCodeInputProps {
+	/**
+	 * Confirmation code without the visual separator.
+	 */
+	modelValue?: string;
+	/**
+	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
+	 */
+	id?: string;
+	/**
+	 * Local field name. Parent forms derive the full field path and native HTML name from the form hierarchy.
+	 */
+	name?: string;
+	/**
+	 * Visible field label.
+	 */
+	label?: string;
+	/**
+	 * Optional helper copy below the field.
+	 */
+	description?: string;
+	/**
+	 * Placeholder shown when the control is empty.
+	 */
+	placeholder?: string;
+	/**
+	 * Mark the field as required.
+	 */
+	required?: boolean;
+	/**
+	 * Disable field interaction.
+	 */
+	disabled?: boolean;
+	/**
+	 * Show the value but prevent editing.
+	 */
+	readOnly?: boolean;
+	/**
+	 * Mark the field invalid.
+	 */
+	invalid?: boolean;
+	/**
+	 * Validation errors for this field.
+	 */
+	errors?: Array<unknown> | Record<string, unknown> | string;
+	/**
+	 * Show or hide the field.
+	 */
+	visible?: boolean;
+	/**
+	 * Validators attached to this field. Use functions in Vue code, or serializable records such as { name: "minLength", props: { min: 2 } } in generated schemas.
+	 */
+	validators?: Array<unknown>;
+	/**
+	 * Run validators when the field loses focus.
+	 */
+	validateOnBlur?: boolean;
+	/**
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
+	 */
+	chrome?: "field" | "none" | false;
+	/**
+	 * Number of character boxes.
+	 */
+	length?: number;
+	/**
+	 * Box position after which to show a visual separator. Use 0 to hide it.
+	 */
+	separatorAfter?: number;
+	/**
+	 * Characters accepted by the control.
+	 */
+	characterSet?: "alphanumeric" | "numeric";
+	/**
+	 * Convert entered letters to uppercase.
+	 */
+	uppercase?: boolean;
+	/**
+	 * Native autocomplete hint applied to the first box.
+	 */
+	autocomplete?: string;
+}
+export declare const DomConfirmationCodeInput: DomComponent<DomConfirmationCodeInputProps>;
+
 export interface DomJsonListInputProps {
 	modelValue?: Array<Record<string, unknown>>;
 	/**
@@ -5762,6 +6142,7 @@ export declare const DomRenderer: DomComponent<DomRendererProps>;
 export declare const popoverProps: DomRuntimeProps;
 export declare const calendarProps: DomRuntimeProps;
 export declare const monthCalendarProps: DomRuntimeProps;
+export declare const weekPlannerProps: DomRuntimeProps;
 export declare const agentChatShellProps: DomRuntimeProps;
 export declare const agentConversationProps: DomRuntimeProps;
 export declare const agentConversationListProps: DomRuntimeProps;

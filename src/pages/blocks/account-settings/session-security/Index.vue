@@ -12,8 +12,8 @@ import DeviceSecurityCenterSrc from './examples/DeviceSecurityCenter.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Session Security Block"
-			tagline="A responsive account security workspace for reviewing signed-in devices, revoking risky sessions, checking recovery coverage, and tracking recent access activity."
-			tag="Account UI"
+			tagline="A responsive session-security workflow with rich device and activity selection, confirmed revocation, protection checks, and recovery readiness."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Account settings" title="Device security center">
@@ -34,12 +34,13 @@ import DeviceSecurityCenterSrc from './examples/DeviceSecurityCenter.vue?raw';
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
 						Use this block when users need a concrete way to understand account access and act on suspicious activity.
-						It joins device inventory, trust status, session actions, recovery readiness, MFA/passkey controls, and immutable security events in one copyable surface.
+						Focused tabs keep device decisions, protection controls, recovery readiness, and immutable activity understandable inside both a full page and a narrow iframe.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
 						<li>Replace <code>sessions</code> with server-issued session records including device, browser, region, IP, last activity, trust state, and revocation eligibility.</li>
 						<li>Route revoke actions through a session API that invalidates refresh tokens and writes a security event with actor, target session, IP, and reason.</li>
 						<li>Keep passkey, MFA, recovery email, phone, and backup-code state server-owned; the UI should render readiness and start setup flows, not decide policy locally.</li>
+						<li>Use <code>DomSelect</code> when session or activity choices need risk, location, recency, and selection metadata that a native select cannot show.</li>
 						<li>Send high-risk events to email, push, or in-app alerts so account owners can confirm or deny new sign-ins quickly.</li>
 						<li>For regulated products, require fresh authentication before revoking all other sessions, exporting events, changing recovery methods, or disabling MFA.</li>
 					</ul>
@@ -49,7 +50,10 @@ import DeviceSecurityCenterSrc from './examples/DeviceSecurityCenter.vue?raw';
 			<DocSection eyebrow="Data" title="Recommended security payload">
 				<CodeBlock lang="js" filename="account-security.js" :code="`{
 \taccountId: 'acct_olivia',
-\tsecurityScore: 86,
+\treadiness: {
+\t\treadyChecks: 3,
+\t\ttotalChecks: 4
+\t},
 \tsessions: [
 \t\t{
 \t\t\tid: 'sess_macbook_london',
@@ -88,8 +92,8 @@ import DeviceSecurityCenterSrc from './examples/DeviceSecurityCenter.vue?raw';
 						<p class="mt-2">Calculate risk from device fingerprint, impossible travel, IP reputation, MFA result, and recent failed attempts on the backend.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include reusable re-auth dialogs, passkey setup flows, trusted-device naming, security event filters, and exportable audit logs.</p>
+						<h3 class="font-semibold text-canvas-fg">Action boundaries</h3>
+						<p class="mt-2">Keep rename, trust, revoke, recovery setup, and CSV export observable. Confirmation and success states should describe exactly which session or control changed.</p>
 					</div>
 				</div>
 			</DocSection>

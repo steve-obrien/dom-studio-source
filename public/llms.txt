@@ -44,7 +44,9 @@ The package root and `@getdom/studio/vue` export the same Vue surface. Import `@
 - [Document editor](https://getdom.studio/data/document-editor): Rich document editing with collaboration and reviewable AI workflow examples.
 - [Agent chat](https://getdom.studio/data/agent-chat): Reusable agent conversation, conversation list, and chat shell surfaces.
 - [Month calendar](https://getdom.studio/data/month-calendar): Data-backed month planning and customisable calendar workflows.
+- [Week planner](https://getdom.studio/data/week-planner): Fixed-width day swim lanes with internal two-axis scrolling, configurable drag-to-create time ranges, a live current-time line, and virtualized horizontal ranges up to a full year or more.
 - [Data grid](https://getdom.studio/data/data-grid): Sortable, filterable, API-shaped tabular data.
 - [Code block](https://getdom.studio/dev/code-block): Highlighted read-only code for implementation and diagnostic output.
 - [JSON viewer](https://getdom.studio/dev/json-viewer): Structured payload and diagnostic-data inspection.
 - [Text diff](https://getdom.studio/visual/text-diff): Reviewable before-and-after text and code changes.
+- [Scroll menu](https://getdom.studio/components/scroll-menu): Scrollspy page contents built from real fragment links and current-location semantics.
