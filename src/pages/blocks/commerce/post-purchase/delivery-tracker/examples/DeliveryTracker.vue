@@ -1,350 +1,612 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { DomButton, DomCard, DomNativeSelect, DomTextareaInput, DomToggle } from '@getdom/studio/vue';
-
-const statusSteps = [
-	{
-		key: 'confirmed',
-		label: 'Order confirmed',
-		detail: 'Payment accepted and fulfilment queued.',
-		time: '12:04',
-		eta: 'Today, 16:55',
-		courierDistance: '8.4 km away',
-	},
-	{
-		key: 'packed',
-		label: 'Packed',
-		detail: 'Warehouse sealed both items for courier pickup.',
-		time: '13:18',
-		eta: 'Today, 16:45',
-		courierDistance: '5.9 km away',
-	},
-	{
-		key: 'handoff',
-		label: 'Courier handoff',
-		detail: 'Nina collected the parcel from Fulham depot.',
-		time: '15:22',
-		eta: 'Today, 16:40',
-		courierDistance: '2.1 km away',
-	},
-	{
-		key: 'nearby',
-		label: 'Nearby',
-		detail: 'Courier is finishing the previous stop.',
-		time: '16:31',
-		eta: 'Today, 16:35-16:50',
-		courierDistance: '650 m away',
-	},
-	{
-		key: 'delivered',
-		label: 'Delivered',
-		detail: 'Proof of delivery captured at reception.',
-		time: '16:44',
-		eta: 'Delivered',
-		courierDistance: 'Complete',
-	},
-];
-
-const issueOptions = [
-	{ label: 'Access code needed', value: 'Access code needed' },
-	{ label: 'Courier delayed by traffic', value: 'Courier delayed by traffic' },
-	{ label: 'Address confirmation required', value: 'Address confirmation required' },
-];
+import { computed, onMounted, ref, watch } from 'vue';
+import {
+	DomAlert,
+	DomAvatar,
+	DomBadge,
+	DomButton,
+	DomDialog,
+	DomEmptyState,
+	DomProgress,
+	DomSelect,
+	DomStatusPill,
+	DomTextareaInput,
+	DomTextInput,
+	DomToggle,
+} from '@getdom/studio/vue';
 
 const dropoffOptions = [
-	{ label: 'Leave with reception', value: 'Leave with reception' },
-	{ label: 'Meet at entrance', value: 'Meet at entrance' },
-	{ label: 'Leave at front desk', value: 'Leave at front desk' },
-	{ label: 'Call on arrival', value: 'Call on arrival' },
+	{ label: 'Leave with reception', value: 'reception', description: 'The courier can hand the parcel to reception staff.' },
+	{ label: 'Meet at the entrance', value: 'entrance', description: 'Meet the courier at the building entrance.' },
+	{ label: 'Leave at the front desk', value: 'front-desk', description: 'Use the staffed front desk or concierge.' },
+	{ label: 'Call on arrival', value: 'call-on-arrival', description: 'The courier must call before completing delivery.' },
 ];
 
-const orderItems = [
-	{ name: 'Workspace starter kit', detail: 'Oak / 1 unit' },
-	{ name: 'Magnetic cable tray', detail: 'Black / 1 unit' },
-];
-
-const supportEvents = [
-	{ label: 'Customer confirmed access code', time: '16:28' },
-	{ label: 'Courier marked next stop', time: '16:19' },
-	{ label: 'Package scanned at depot', time: '15:22' },
-];
-
-const activeStepIndex = ref(2);
-const selectedIssue = ref('Access code needed');
-const dropoffPreference = ref('Leave with reception');
-const deliveryNote = ref('Access code 2048. Reception closes at 18:00.');
+const orders = ref([]);
+const selectedOrderId = ref('ord_20482');
+const order = ref(null);
+const feedback = ref(null);
+const loadError = ref('');
+const instructionDialogOpen = ref(false);
+const dialogMode = ref('instructions');
+const dropoff = ref('reception');
+const accessCode = ref('');
+const deliveryNote = ref('');
 const contactless = ref(true);
-const proofRequired = ref(true);
-const issueResolved = ref(false);
-const savedInstructions = ref(false);
+const isLoading = ref(true);
+const isSaving = ref(false);
+const isResolving = ref(false);
+const isSyncing = ref(false);
+let orderRequestSequence = 0;
 
-const activeStep = computed(() => statusSteps[activeStepIndex.value]);
-const nextStep = computed(() => statusSteps[Math.min(activeStepIndex.value + 1, statusSteps.length - 1)]);
-const completedCount = computed(() => activeStepIndex.value + 1);
-const progressPercent = computed(() => Math.round((activeStepIndex.value / (statusSteps.length - 1)) * 100));
-const openIssue = computed(() => !issueResolved.value && activeStepIndex.value < statusSteps.length - 1);
-const primaryActionLabel = computed(() => issueResolved.value ? 'Exception resolved' : 'Send delivery update');
-const routeLabel = computed(() => `${activeStep.value.courierDistance} / ETA ${activeStep.value.eta}`);
-const readinessChecks = computed(() => [
-	{ label: 'Drop-off preference selected', passed: Boolean(dropoffPreference.value) },
-	{ label: 'Delivery note has access details', passed: deliveryNote.value.trim().length >= 10 },
-	{ label: 'Contact rule confirmed', passed: contactless.value || dropoffPreference.value === 'Call on arrival' },
-	{ label: 'Open exception acknowledged', passed: !openIssue.value || issueResolved.value },
-]);
-const canSave = computed(() => readinessChecks.value.slice(0, 3).every((check) => check.passed));
+const orderOptions = computed(() => orders.value.map((item) => ({
+	value: item.id,
+	label: `Order ${item.number}`,
+	description: `${item.statusLabel} · ${item.etaLabel}`,
+	actionRequiredCount: item.actionRequiredCount,
+})));
+const openException = computed(() => order.value?.openExceptions?.[0] || null);
+const currentCheckpoint = computed(() => order.value?.activeCheckpoint || null);
+const isDelivered = computed(() => order.value?.status === 'delivered');
+const activeCheckpointIndex = computed(() => order.value?.activeCheckpointIndex || 0);
+const dropoffLabel = computed(() => dropoffOptions.find((option) => option.value === order.value?.instructions?.dropoff)?.label || 'Not set');
+const orderTotal = computed(() => (order.value?.items || []).reduce((total, item) => total + item.price, 0));
+const accessCodeValid = computed(() => /^[A-Za-z0-9-]{4,12}$/.test(accessCode.value.trim()));
+const instructionsDirty = computed(() => {
+	if (!order.value) return false;
+	return dropoff.value !== order.value.instructions.dropoff
+		|| accessCode.value.trim() !== order.value.instructions.accessCode
+		|| deliveryNote.value.trim() !== order.value.instructions.note
+		|| contactless.value !== order.value.instructions.contactless;
+});
+const dialogTitle = computed(() => dialogMode.value === 'exception' ? 'Send the entry code' : 'Edit delivery instructions');
+const dialogDescription = computed(() => dialogMode.value === 'exception'
+	? 'We will send these instructions directly to the courier and clear the delivery blocker.'
+	: 'Changes are validated by the order API and remain available after this preview reloads.');
 
-function setStep(index) {
-	activeStepIndex.value = index;
-	savedInstructions.value = false;
-	if (index >= statusSteps.length - 1) issueResolved.value = true;
+watch(selectedOrderId, (orderId, previousOrderId) => {
+	if (orderId && previousOrderId && orderId !== previousOrderId) loadOrder(orderId);
+});
+
+onMounted(loadOrders);
+
+/**
+ * Requests JSON from the delivery tracker API and promotes non-success
+ * responses into ordinary JavaScript errors for consistent recovery UI.
+ *
+ * @param {string} url API route.
+ * @param {RequestInit} [options] Fetch options.
+ * @returns {Promise<Record<string, unknown>>} Parsed response payload.
+ */
+async function requestJson(url, options = {}) {
+	const response = await fetch(url, {
+		...options,
+		headers: {
+			Accept: 'application/json',
+			...(options.body ? { 'Content-Type': 'application/json' } : {}),
+			...(options.headers || {}),
+		},
+	});
+	const payload = await response.json().catch(() => ({}));
+	if (!response.ok) throw new Error(payload.error || `Request failed with status ${response.status}.`);
+	return payload;
 }
 
-function saveInstructions() {
-	if (!canSave.value) return;
-	savedInstructions.value = true;
+/**
+ * Loads the order catalog before hydrating the initially selected delivery.
+ *
+ * @returns {Promise<void>}
+ */
+async function loadOrders() {
+	isLoading.value = true;
+	loadError.value = '';
+	try {
+		const payload = await requestJson('/api/block-demos/delivery-tracker/orders');
+		orders.value = Array.isArray(payload.orders) ? payload.orders : [];
+		if (!orders.value.length) throw new Error('No tracked deliveries are available.');
+		if (!orders.value.some((item) => item.id === selectedOrderId.value)) {
+			selectedOrderId.value = orders.value[0].id;
+		}
+		await loadOrder(selectedOrderId.value);
+	} catch (error) {
+		loadError.value = error instanceof Error ? error.message : 'Could not load your deliveries.';
+		isLoading.value = false;
+	}
 }
 
-function resolveIssue() {
-	if (!canSave.value) return;
-	issueResolved.value = true;
-	savedInstructions.value = true;
+/**
+ * Loads one delivery while ignoring stale responses after a quick order switch.
+ *
+ * @param {string} orderId Canonical order identifier.
+ * @returns {Promise<void>}
+ */
+async function loadOrder(orderId) {
+	const requestSequence = ++orderRequestSequence;
+	isLoading.value = true;
+	loadError.value = '';
+	feedback.value = null;
+	try {
+		const payload = await requestJson(`/api/block-demos/delivery-tracker/${encodeURIComponent(orderId)}`);
+		if (requestSequence !== orderRequestSequence) return;
+		applyOrder(payload.order);
+	} catch (error) {
+		if (requestSequence !== orderRequestSequence) return;
+		loadError.value = error instanceof Error ? error.message : 'Could not load this delivery.';
+	} finally {
+		if (requestSequence === orderRequestSequence) isLoading.value = false;
+	}
+}
+
+/**
+ * Applies one complete API order and refreshes the editable instruction draft.
+ *
+ * @param {Record<string, unknown>} nextOrder API order payload.
+ * @returns {void}
+ */
+function applyOrder(nextOrder) {
+	order.value = nextOrder;
+	dropoff.value = nextOrder.instructions.dropoff;
+	accessCode.value = nextOrder.instructions.accessCode;
+	deliveryNote.value = nextOrder.instructions.note;
+	contactless.value = nextOrder.instructions.contactless;
+	syncOrderSummary(nextOrder.orderSummary);
+}
+
+/**
+ * Refreshes selector metadata after a delivery mutation.
+ *
+ * @param {Record<string, unknown>} summary Updated order summary.
+ * @returns {void}
+ */
+function syncOrderSummary(summary) {
+	orders.value = orders.value.map((item) => (item.id === summary.id ? { ...item, ...summary } : item));
+}
+
+/**
+ * Opens the instruction dialog with a general or exception-resolution intent.
+ *
+ * @param {'instructions'|'exception'} mode Dialog workflow.
+ * @returns {void}
+ */
+function openInstructions(mode = 'instructions') {
+	dialogMode.value = mode;
+	if (order.value) {
+		dropoff.value = order.value.instructions.dropoff;
+		accessCode.value = order.value.instructions.accessCode;
+		deliveryNote.value = order.value.instructions.note;
+		contactless.value = order.value.instructions.contactless;
+	}
+	feedback.value = null;
+	instructionDialogOpen.value = true;
+}
+
+/**
+ * Saves the current instruction draft through the order API.
+ *
+ * @returns {Promise<void>}
+ */
+async function saveInstructions() {
+	if (!order.value || !instructionsDirty.value) return;
+	isSaving.value = true;
+	feedback.value = null;
+	try {
+		const payload = await requestJson(
+			`/api/block-demos/delivery-tracker/${encodeURIComponent(selectedOrderId.value)}/instructions`,
+			{
+				method: 'PATCH',
+				body: JSON.stringify(instructionPayload()),
+			},
+		);
+		applyOrder(payload.order);
+		instructionDialogOpen.value = false;
+		feedback.value = {
+			tone: 'success',
+			title: 'Instructions updated',
+			description: 'The courier now has your latest drop-off preference and delivery note.',
+		};
+	} catch (error) {
+		feedback.value = {
+			tone: 'danger',
+			title: 'Instructions not saved',
+			description: error instanceof Error ? error.message : 'Check the delivery details and try again.',
+		};
+	} finally {
+		isSaving.value = false;
+	}
+}
+
+/**
+ * Sends the access-code resolution and updated instructions to the API.
+ *
+ * @returns {Promise<void>}
+ */
+async function resolveException() {
+	if (!order.value || !openException.value || !accessCodeValid.value) return;
+	isResolving.value = true;
+	feedback.value = null;
+	try {
+		const payload = await requestJson(
+			`/api/block-demos/delivery-tracker/${encodeURIComponent(selectedOrderId.value)}/exceptions/${encodeURIComponent(openException.value.id)}/resolve`,
+			{
+				method: 'POST',
+				body: JSON.stringify(instructionPayload()),
+			},
+		);
+		applyOrder(payload.order);
+		instructionDialogOpen.value = false;
+		feedback.value = {
+			tone: 'success',
+			title: 'Entry code sent',
+			description: 'The blocker is cleared and the courier can complete the final route.',
+		};
+	} catch (error) {
+		feedback.value = {
+			tone: 'danger',
+			title: 'Code not sent',
+			description: error instanceof Error ? error.message : 'Check the access code and try again.',
+		};
+	} finally {
+		isResolving.value = false;
+	}
+}
+
+/**
+ * Pulls the next deterministic carrier event from the server-owned tracker.
+ *
+ * @returns {Promise<void>}
+ */
+async function syncDelivery() {
+	if (!order.value || isDelivered.value) return;
+	isSyncing.value = true;
+	feedback.value = null;
+	try {
+		const payload = await requestJson(
+			`/api/block-demos/delivery-tracker/${encodeURIComponent(selectedOrderId.value)}/sync`,
+			{
+				method: 'POST',
+				body: JSON.stringify({ revision: order.value.revision }),
+			},
+		);
+		applyOrder(payload.order);
+		feedback.value = {
+			tone: 'success',
+			title: 'Tracking refreshed',
+			description: `${payload.checkpoint.label} is now the latest carrier update.`,
+		};
+	} catch (error) {
+		feedback.value = {
+			tone: 'warning',
+			title: 'Tracking needs your attention',
+			description: error instanceof Error ? error.message : 'Resolve the open delivery action and refresh again.',
+		};
+	} finally {
+		isSyncing.value = false;
+	}
+}
+
+/**
+ * Builds the shared API payload for instruction and exception mutations.
+ *
+ * @returns {{ dropoff: string, accessCode: string, note: string, contactless: boolean, revision: number }} Instruction payload.
+ */
+function instructionPayload() {
+	return {
+		dropoff: dropoff.value,
+		accessCode: accessCode.value.trim(),
+		note: deliveryNote.value.trim(),
+		contactless: contactless.value,
+		revision: order.value.revision,
+	};
+}
+
+/**
+ * Resolves a status tone for an order or checkpoint state.
+ *
+ * @param {string} status Status identifier.
+ * @returns {string} DOM Studio semantic tone.
+ */
+function statusTone(status) {
+	return {
+		delivered: 'success',
+		complete: 'success',
+		current: 'primary',
+		out_for_delivery: 'primary',
+		in_transit: 'info',
+		upcoming: 'neutral',
+	}[status] || 'neutral';
+}
+
+/**
+ * Returns a compact checkpoint label for the five-column mobile progress row.
+ *
+ * @param {string} checkpointKey Checkpoint identifier.
+ * @param {string} fallback Full checkpoint label.
+ * @returns {string} Short customer-readable label.
+ */
+function checkpointCompactLabel(checkpointKey, fallback) {
+	return {
+		confirmed: 'Confirmed',
+		packed: 'Packed',
+		handoff: 'Courier',
+		nearby: 'Nearby',
+		delivered: 'Delivered',
+	}[checkpointKey] || fallback;
+}
+
+/**
+ * Formats a whole-value price in pounds sterling.
+ *
+ * @param {number} value Monetary value.
+ * @returns {string} Localized currency value.
+ */
+function formatCurrency(value) {
+	return new Intl.NumberFormat('en-GB', {
+		style: 'currency',
+		currency: 'GBP',
+		maximumFractionDigits: 0,
+	}).format(value || 0);
 }
 </script>
 
 <template>
-	<div class="w-full bg-secondary/40 px-3 py-4 text-canvas-fg sm:px-6 lg:px-8">
-		<div class="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[minmax(0,1fr)_21rem]">
-			<section class="overflow-hidden rounded-lg border border-border bg-canvas shadow-2xl shadow-black/10">
-				<header class="skin-card border-b border-border px-4 py-4 sm:px-5">
-					<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-						<div>
-							<p class="text-xs font-semibold uppercase text-muted-fg">Live delivery</p>
-							<h3 class="mt-1 text-2xl font-semibold">Order GD-20482</h3>
-							<p class="mt-2 max-w-xl text-sm leading-6 text-muted-fg">
-								Track the courier, confirm drop-off instructions, and resolve delivery blockers before the next stop.
-							</p>
+	<section class="min-h-screen bg-canvas text-canvas-fg" data-testid="delivery-tracker-block">
+		<header class="border-b border-border bg-canvas">
+			<div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:px-8">
+				<div>
+					<p class="text-xs font-semibold uppercase tracking-wide text-muted-fg">DOM Supply</p>
+					<h1 class="mt-1 whitespace-nowrap text-xl font-semibold">Track your delivery</h1>
+				</div>
+
+				<DomSelect
+					v-model="selectedOrderId"
+					label="Delivery order"
+					:options="orderOptions"
+					width="min-w-[22rem]"
+				>
+					<template #value="{ option }">
+						<span class="flex min-w-0 items-center justify-between gap-3">
+							<span class="truncate font-semibold">{{ option?.label || `Order ${order?.number || ''}` }}</span>
+							<DomBadge v-if="order?.orderSummary?.actionRequiredCount" tone="warning" size="sm">Action needed</DomBadge>
+						</span>
+					</template>
+					<template #option="{ option }">
+						<span class="flex min-w-0 items-center justify-between gap-3">
+							<span class="min-w-0">
+								<span class="block truncate font-semibold">{{ option.label }}</span>
+								<span class="block truncate text-xs opacity-75">{{ option.description }}</span>
+							</span>
+							<DomBadge v-if="option.actionRequiredCount" tone="warning" size="sm">{{ option.actionRequiredCount }}</DomBadge>
+						</span>
+					</template>
+				</DomSelect>
+			</div>
+		</header>
+
+		<main class="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
+			<DomAlert
+				v-if="loadError"
+				tone="danger"
+				title="Tracking unavailable"
+				:description="loadError"
+			>
+				<template #actions>
+					<DomButton variant="secondary" size="sm" @click="loadOrders">Try again</DomButton>
+				</template>
+			</DomAlert>
+
+			<DomEmptyState
+				v-else-if="isLoading && !order"
+				title="Loading your delivery"
+				description="Checking the latest courier status and customer instructions."
+				size="sm"
+			/>
+
+			<div v-else-if="order" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
+				<div class="min-w-0">
+					<section aria-labelledby="delivery-status-heading">
+						<div class="flex flex-wrap items-center gap-2">
+							<DomStatusPill :tone="statusTone(order.status)" size="sm">{{ order.statusLabel }}</DomStatusPill>
+							<span class="text-xs text-muted-fg">Updated {{ order.fulfilment.lastUpdatedAt }}</span>
 						</div>
-						<div class="grid min-w-36 gap-1 rounded-lg border border-border bg-canvas px-3 py-2 text-sm">
-							<span class="font-semibold">{{ activeStep.eta }}</span>
-							<span class="text-muted-fg">{{ activeStep.courierDistance }}</span>
-						</div>
-					</div>
-				</header>
 
-				<div class="grid gap-4 p-4 sm:p-5">
-					<div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_17rem]">
-						<section class="overflow-hidden rounded-lg border border-border bg-canvas">
-							<div class="relative min-h-[300px] bg-[linear-gradient(135deg,rgb(240_253_250),rgb(239_246_255)_45%,rgb(248_250_252))] p-4 dark:bg-[linear-gradient(135deg,rgb(15_23_42),rgb(22_78_99)_55%,rgb(15_23_42))]">
-								<div class="absolute left-8 top-8 h-20 w-32 rounded-lg border border-primary/25 bg-primary/10" />
-								<div class="absolute right-8 top-14 h-24 w-28 rounded-lg border border-border bg-canvas/60" />
-								<div class="absolute bottom-8 left-10 h-24 w-40 rounded-lg border border-border bg-canvas/70" />
-								<div class="absolute bottom-12 right-10 h-20 w-28 rounded-lg border border-success/30 bg-success/10" />
-								<svg class="absolute inset-0 h-full w-full" viewBox="0 0 640 340" fill="none" aria-hidden="true">
-									<path d="M72 255C154 232 170 156 250 166C342 178 326 76 430 86C504 93 536 130 572 95" stroke="currentColor" stroke-width="16" stroke-linecap="round" class="text-border" />
-									<path
-										d="M72 255C154 232 170 156 250 166C342 178 326 76 430 86C504 93 536 130 572 95"
-										stroke="currentColor"
-										stroke-width="16"
-										stroke-linecap="round"
-										class="text-primary"
-										:stroke-dasharray="`${progressPercent * 8} 800`"
-									/>
-									<circle cx="72" cy="255" r="18" class="fill-canvas stroke-primary" stroke-width="8" />
-									<circle cx="430" cy="86" r="18" class="fill-canvas stroke-primary" stroke-width="8" />
-									<circle cx="572" cy="95" r="20" class="fill-success stroke-canvas" stroke-width="8" />
-								</svg>
-								<div class="relative flex h-[268px] flex-col justify-between">
-									<div class="flex items-start justify-between gap-3">
-										<div class="rounded-lg border border-border bg-canvas/90 px-3 py-2 text-sm shadow-sm backdrop-blur">
-											<p class="font-semibold">{{ activeStep.label }}</p>
-											<p class="mt-1 text-muted-fg">{{ routeLabel }}</p>
-										</div>
-										<span class="rounded-full bg-canvas/90 px-3 py-1 text-xs font-semibold text-muted-fg shadow-sm">
-											{{ completedCount }} / {{ statusSteps.length }}
-										</span>
-									</div>
-									<div class="rounded-lg border border-border bg-canvas/90 p-3 shadow-sm backdrop-blur">
-										<div class="flex items-start gap-3">
-											<div class="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-primary-fg">
-												<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
-													<path d="M5 17h2m10 0h2M7 17a2 2 0 1 0 0 .1M17 17a2 2 0 1 0 0 .1M6 7h9l3 4v6H4V9a2 2 0 0 1 2-2Zm9 0v4h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-												</svg>
-											</div>
-											<div class="min-w-0">
-												<p class="font-semibold">Nina Patel</p>
-												<p class="text-sm leading-6 text-muted-fg">Relay Courier / Bike 42 / next stop before you</p>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</section>
+						<p class="mt-5 text-sm font-medium text-muted-fg">{{ isDelivered ? 'Delivery complete' : 'Estimated arrival' }}</p>
+						<h2 id="delivery-status-heading" class="mt-1 text-3xl font-semibold tracking-tight sm:text-5xl">{{ order.etaLabel }}</h2>
+						<p class="mt-3 max-w-2xl text-sm leading-6 text-muted-fg sm:text-base">
+							<template v-if="isDelivered">Your order was left at {{ order.proof.location.toLowerCase() }} and received by {{ order.proof.receivedBy }}.</template>
+							<template v-else-if="order.fulfilment.stopsAway">{{ order.fulfilment.courierName }} is {{ order.fulfilment.stopsAway }} {{ order.fulfilment.stopsAway === 1 ? 'stop' : 'stops' }} away · {{ order.fulfilment.distanceLabel }}.</template>
+							<template v-else>{{ order.fulfilment.distanceLabel }} · A local courier will be assigned before the final route.</template>
+						</p>
 
-						<DomCard padding="lg">
-							<p class="text-xs font-semibold uppercase text-muted-fg">Status simulator</p>
-							<div class="mt-3 grid gap-2">
-								<button
-									v-for="(step, index) in statusSteps"
-									:key="step.key"
-									type="button"
-									class="flex items-center gap-3 rounded-lg border px-3 py-2 text-left text-sm transition hover:border-primary/50"
-									:class="index === activeStepIndex ? 'border-primary bg-primary/10' : 'border-border bg-canvas'"
-									@click="setStep(index)"
-								>
-									<span
-										class="grid size-6 shrink-0 place-items-center rounded-full border text-xs font-bold"
-										:class="index <= activeStepIndex ? 'border-primary bg-primary text-primary-fg' : 'border-border text-muted-fg'"
-									>
-										{{ index + 1 }}
-									</span>
-									<span>
-										<span class="block font-semibold">{{ step.label }}</span>
-										<span class="block text-xs text-muted-fg">{{ step.time }}</span>
-									</span>
-								</button>
-							</div>
-						</DomCard>
-					</div>
+						<DomProgress
+							class="mt-6"
+							:value="order.progress"
+							label="Delivery progress"
+							:tone="isDelivered ? 'success' : 'primary'"
+							:size="isDelivered ? 'md' : 'sm'"
+							:show-value="false"
+						/>
 
-					<section class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_19rem]">
-						<DomCard padding="lg">
-							<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-								<div>
-									<p class="text-xs font-semibold uppercase text-muted-fg">Delivery timeline</p>
-									<h4 class="mt-1 text-lg font-semibold">Next up: {{ nextStep.label }}</h4>
-								</div>
+						<ol class="mt-3 grid grid-cols-5 gap-2" aria-label="Delivery checkpoints">
+							<li v-for="(checkpoint, index) in order.checkpoints" :key="checkpoint.key" class="min-w-0">
 								<span
-									class="w-fit rounded-full px-3 py-1 text-xs font-semibold"
-									:class="openIssue ? 'bg-warning/15 text-warning' : 'bg-success/15 text-success'"
+									class="block text-[9px] font-semibold tracking-tight sm:text-xs sm:tracking-normal"
+									:class="index <= activeCheckpointIndex ? 'text-canvas-fg' : 'text-muted-fg'"
+									:title="checkpoint.label"
 								>
-									{{ openIssue ? 'Action needed' : 'On track' }}
+									{{ checkpointCompactLabel(checkpoint.key, checkpoint.label) }}
 								</span>
-							</div>
-							<div class="mt-5 grid gap-4">
-								<div
-									v-for="(step, index) in statusSteps"
-									:key="step.key"
-									class="grid grid-cols-[2rem_minmax(0,1fr)] gap-3"
-								>
-									<div class="grid justify-items-center">
-										<span
-											class="grid size-7 place-items-center rounded-full border text-xs font-bold"
-											:class="{
-												'border-primary bg-primary text-primary-fg': index <= activeStepIndex,
-												'border-border bg-canvas text-muted-fg': index > activeStepIndex,
-											}"
-										>
-											<svg v-if="index < activeStepIndex" viewBox="0 0 24 24" class="size-3.5" fill="none" aria-hidden="true">
-												<path d="m6 12 4 4 8-8" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
-											</svg>
-											<span v-else>{{ index + 1 }}</span>
-										</span>
-										<span v-if="index < statusSteps.length - 1" class="min-h-9 w-px bg-border" />
-									</div>
-									<div class="pb-4">
-										<div class="flex flex-wrap items-center justify-between gap-2">
-											<p class="font-semibold">{{ step.label }}</p>
-											<p class="text-xs font-medium text-muted-fg">{{ index <= activeStepIndex ? step.time : 'Pending' }}</p>
-										</div>
-										<p class="mt-1 text-sm leading-6 text-muted-fg">{{ step.detail }}</p>
-									</div>
-								</div>
-							</div>
-						</DomCard>
+							</li>
+						</ol>
+					</section>
 
-						<DomCard padding="lg">
-							<p class="text-xs font-semibold uppercase text-muted-fg">Order contents</p>
-							<div class="mt-4 grid gap-3">
-								<div v-for="item in orderItems" :key="item.name" class="rounded-lg border border-border bg-canvas p-3">
-									<p class="font-semibold">{{ item.name }}</p>
-									<p class="mt-1 text-sm text-muted-fg">{{ item.detail }}</p>
+					<DomAlert
+						v-if="openException"
+						class="mt-6"
+						tone="warning"
+						:title="openException.title"
+						:description="`${openException.description} ${openException.dueLabel}.`"
+					>
+						<template #actions>
+							<DomButton size="sm" @click="openInstructions('exception')">Add entry code</DomButton>
+						</template>
+					</DomAlert>
+
+					<DomAlert
+						v-if="feedback"
+						class="mt-6"
+						:tone="feedback.tone"
+						:title="feedback.title"
+						:description="feedback.description"
+						dismissible
+						@dismiss="feedback = null"
+					/>
+
+					<section class="mt-7 border-y border-border py-5" aria-label="Courier and tracking actions">
+						<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+							<div class="flex min-w-0 items-center gap-3">
+								<DomAvatar :name="order.fulfilment.courierName" :initials="order.fulfilment.courierInitials" size="lg" />
+								<div class="min-w-0">
+									<p class="truncate font-semibold">{{ order.fulfilment.courierName }}</p>
+									<p class="truncate text-sm text-muted-fg">{{ order.fulfilment.carrier }} · {{ order.fulfilment.vehicle }}</p>
 								</div>
 							</div>
-							<div class="mt-4 rounded-lg bg-secondary/70 p-3 text-sm leading-6 text-muted-fg">
-								<p class="font-semibold text-canvas-fg">Delivery address</p>
-								<p>71 Great Portland Street, London W1W 7LR</p>
+
+							<div class="flex flex-wrap gap-2">
+								<DomButton variant="secondary" size="sm" :disabled="isDelivered" @click="openInstructions('instructions')">Edit instructions</DomButton>
+								<DomButton size="sm" :loading="isSyncing" :disabled="isDelivered" @click="syncDelivery">
+									{{ isDelivered ? 'Delivery complete' : 'Refresh tracking' }}
+								</DomButton>
 							</div>
-						</DomCard>
+						</div>
+					</section>
+
+					<section class="mt-8" aria-labelledby="timeline-heading">
+						<div class="flex items-end justify-between gap-4">
+							<div>
+								<p class="text-xs font-semibold uppercase tracking-wide text-muted-fg">Shipment history</p>
+								<h2 id="timeline-heading" class="mt-1 text-xl font-semibold">{{ currentCheckpoint.label }}</h2>
+							</div>
+							<DomBadge :tone="openException ? 'warning' : 'success'">{{ openException ? 'Action required' : 'On track' }}</DomBadge>
+						</div>
+
+						<ol class="mt-5 divide-y divide-border border-y border-border">
+							<li v-for="checkpoint in [...order.checkpoints].reverse()" :key="checkpoint.key" class="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-3 py-4">
+								<DomStatusPill :tone="statusTone(checkpoint.status)" size="sm">{{ checkpoint.status === 'current' ? 'Now' : checkpoint.status === 'complete' ? 'Done' : 'Next' }}</DomStatusPill>
+								<div>
+									<p class="font-semibold">{{ checkpoint.label }}</p>
+									<p class="mt-1 text-sm leading-6 text-muted-fg">{{ checkpoint.detail }}</p>
+								</div>
+								<time class="text-xs font-medium text-muted-fg">{{ checkpoint.occurredAt || 'Pending' }}</time>
+							</li>
+						</ol>
+					</section>
+
+					<section class="mt-8 lg:hidden" aria-labelledby="mobile-order-heading">
+						<p class="text-xs font-semibold uppercase tracking-wide text-muted-fg">Order details</p>
+						<h2 id="mobile-order-heading" class="mt-1 text-xl font-semibold">{{ order.items.length }} {{ order.items.length === 1 ? 'item' : 'items' }} · {{ formatCurrency(orderTotal) }}</h2>
+						<div class="mt-4 divide-y divide-border border-y border-border">
+							<div v-for="item in order.items" :key="item.id" class="flex items-start justify-between gap-4 py-3 text-sm">
+								<div>
+									<p class="font-semibold">{{ item.name }}</p>
+									<p class="mt-1 text-muted-fg">{{ item.detail }}</p>
+								</div>
+								<span class="font-medium">{{ formatCurrency(item.price) }}</span>
+							</div>
+						</div>
+						<p class="mt-4 text-sm leading-6 text-muted-fg">{{ order.address }}</p>
 					</section>
 				</div>
-			</section>
 
-			<aside class="grid content-start gap-4">
-				<DomCard padding="lg">
-					<div class="flex items-start justify-between gap-3">
-						<div>
-							<p class="text-xs font-semibold uppercase text-muted-fg">Delivery controls</p>
-							<h4 class="mt-1 text-lg font-semibold">Update instructions</h4>
+				<aside class="hidden border-l border-border pl-8 lg:block" aria-label="Delivery details">
+					<section>
+						<div class="flex items-start justify-between gap-3">
+							<div>
+								<p class="text-xs font-semibold uppercase tracking-wide text-muted-fg">Your instructions</p>
+								<h2 class="mt-1 text-lg font-semibold">{{ dropoffLabel }}</h2>
+							</div>
+							<DomStatusPill tone="success" size="sm">Saved</DomStatusPill>
 						</div>
-						<span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Customer view</span>
-					</div>
+						<p class="mt-3 text-sm leading-6 text-muted-fg">{{ order.instructions.note || 'No additional note.' }}</p>
+						<dl class="mt-4 space-y-3 text-sm">
+							<div class="flex justify-between gap-4">
+								<dt class="text-muted-fg">Entry code</dt>
+								<dd class="font-medium">{{ order.instructions.accessCode || 'Not provided' }}</dd>
+							</div>
+							<div class="flex justify-between gap-4">
+								<dt class="text-muted-fg">Contactless</dt>
+								<dd class="font-medium">{{ order.instructions.contactless ? 'Allowed' : 'Handoff required' }}</dd>
+							</div>
+						</dl>
+						<DomButton class="mt-5 w-full" variant="secondary" size="sm" :disabled="isDelivered" @click="openInstructions('instructions')">Edit instructions</DomButton>
+					</section>
 
-					<div class="mt-5 grid gap-4">
-						<DomNativeSelect v-model="dropoffPreference" label="Drop-off preference" :options="dropoffOptions" />
-						<DomTextareaInput
-							v-model="deliveryNote"
-							label="Delivery note"
-							placeholder="Access code, reception details, or pickup instructions"
-							:rows="4"
-						/>
-						<div class="grid gap-3 rounded-lg bg-secondary/60 p-3">
-							<DomToggle v-model="contactless" label="Contactless drop-off" description="Courier can complete the delivery without a handoff." />
-							<DomToggle v-model="proofRequired" label="Require proof photo" description="Ask for a photo before the order is marked delivered." />
+					<section class="mt-7 border-t border-border pt-6">
+						<div class="flex items-end justify-between gap-3">
+							<div>
+								<p class="text-xs font-semibold uppercase tracking-wide text-muted-fg">Order details</p>
+								<h2 class="mt-1 text-lg font-semibold">{{ order.items.length }} {{ order.items.length === 1 ? 'item' : 'items' }}</h2>
+							</div>
+							<span class="font-semibold">{{ formatCurrency(orderTotal) }}</span>
 						</div>
-						<DomButton class="w-full" :disabled="!canSave" @click="saveInstructions">
-							{{ savedInstructions ? 'Instructions saved' : 'Save instructions' }}
-						</DomButton>
-					</div>
-				</DomCard>
 
-				<DomCard padding="lg">
-					<div class="flex items-start gap-3">
-						<div
-							class="grid size-10 shrink-0 place-items-center rounded-full"
-							:class="openIssue ? 'bg-warning/15 text-warning' : 'bg-success/15 text-success'"
-						>
-							<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
-								<path d="M12 9v4m0 4h.01M10.3 4.3 2.7 17.5A2 2 0 0 0 4.4 20h15.2a2 2 0 0 0 1.7-2.5L13.7 4.3a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-							</svg>
-						</div>
-						<div>
-							<h4 class="font-semibold">{{ openIssue ? selectedIssue : 'No open delivery issue' }}</h4>
-							<p class="mt-1 text-sm leading-6 text-muted-fg">
-								{{ openIssue ? 'Resolve this before the courier reaches the address.' : 'The courier has the latest customer instructions.' }}
-							</p>
-						</div>
-					</div>
-
-					<div class="mt-4 grid gap-4">
-						<DomNativeSelect v-model="selectedIssue" label="Exception type" :options="issueOptions" />
-						<div class="grid gap-2 text-sm">
-							<div
-								v-for="check in readinessChecks"
-								:key="check.label"
-								class="flex items-center justify-between gap-3 rounded-lg border border-border bg-canvas px-3 py-2"
-							>
-								<span class="text-muted-fg">{{ check.label }}</span>
-								<span :class="check.passed ? 'text-success' : 'text-warning'" class="font-semibold">
-									{{ check.passed ? 'Ready' : 'Needed' }}
-								</span>
+						<div class="mt-4 divide-y divide-border border-y border-border">
+							<div v-for="item in order.items" :key="item.id" class="py-3 text-sm">
+								<p class="font-semibold">{{ item.name }}</p>
+								<div class="mt-1 flex justify-between gap-4 text-muted-fg">
+									<span>{{ item.detail }}</span>
+									<span>{{ formatCurrency(item.price) }}</span>
+								</div>
 							</div>
 						</div>
-						<DomButton class="w-full" variant="secondary" :disabled="!canSave || issueResolved" @click="resolveIssue">
-							{{ primaryActionLabel }}
-						</DomButton>
-					</div>
-				</DomCard>
+						<p class="mt-4 text-sm leading-6 text-muted-fg">{{ order.address }}</p>
+					</section>
 
-				<DomCard padding="lg">
-					<p class="text-xs font-semibold uppercase text-muted-fg">Support log</p>
-					<div class="mt-4 grid gap-3 text-sm">
-						<div v-for="event in supportEvents" :key="event.label" class="flex items-start justify-between gap-3">
-							<p class="leading-6 text-muted-fg">{{ event.label }}</p>
-							<span class="shrink-0 font-semibold text-canvas-fg">{{ event.time }}</span>
-						</div>
-					</div>
-				</DomCard>
-			</aside>
-		</div>
-	</div>
+					<section v-if="order.proof" class="mt-7 border-t border-border pt-6">
+						<p class="text-xs font-semibold uppercase tracking-wide text-muted-fg">Proof of delivery</p>
+						<p class="mt-2 font-semibold">Received by {{ order.proof.receivedBy }}</p>
+						<p class="mt-1 text-sm text-muted-fg">{{ order.proof.location }} · {{ order.proof.recordedAt }}</p>
+					</section>
+				</aside>
+			</div>
+		</main>
+
+		<DomDialog
+			v-model="instructionDialogOpen"
+			:title="dialogTitle"
+			:description="dialogDescription"
+			size="md"
+		>
+			<form class="space-y-4" @submit.prevent="dialogMode === 'exception' ? resolveException() : saveInstructions()">
+				<DomSelect v-model="dropoff" label="Drop-off preference" :options="dropoffOptions" width="min-w-[22rem]" />
+				<DomTextInput
+					v-model="accessCode"
+					label="Entry or access code"
+					placeholder="For example 2048"
+					:description="dialogMode === 'exception' ? 'Required to clear the current courier blocker.' : 'Optional. Shared only with the delivery team.'"
+				/>
+				<DomTextareaInput
+					v-model="deliveryNote"
+					label="Delivery note"
+					placeholder="Reception details, safe place, or contact instructions"
+					:rows="3"
+				/>
+				<div class="border-y border-border py-3">
+					<DomToggle v-model="contactless" label="Allow contactless delivery" description="The courier can complete delivery without a face-to-face handoff." />
+				</div>
+			</form>
+
+			<template #footer>
+				<DomButton variant="ghost" @click="instructionDialogOpen = false">Cancel</DomButton>
+				<DomButton
+					v-if="dialogMode === 'exception'"
+					:loading="isResolving"
+					:disabled="!accessCodeValid"
+					@click="resolveException"
+				>
+					Send code &amp; resolve
+				</DomButton>
+				<DomButton v-else :loading="isSaving" :disabled="!instructionsDirty" @click="saveInstructions">Save instructions</DomButton>
+			</template>
+		</DomDialog>
+	</section>
 </template>

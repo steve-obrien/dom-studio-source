@@ -12,79 +12,59 @@ import WebhookOperationsConsoleSrc from './examples/WebhookOperationsConsole.vue
 	<DomStudioLayout>
 		<DocPage
 			name="Webhooks Block"
-			tagline="A responsive developer operations console for endpoint setup, event subscriptions, signing-secret rotation, delivery inspection, and replay workflow."
-			tag="Developer UI"
+			tagline="A working webhook delivery section with endpoint contracts, immutable attempt evidence, test sends, guarded replays, one-time secret rotation, and lifecycle controls."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Developer Experience" title="Webhook operations console">
+			<DocSection eyebrow="Developer Experience / Platform" title="Webhook delivery operations">
 				<Example
 					:source="WebhookOperationsConsoleSrc"
 					filename="WebhookOperationsConsole.vue"
 					presentation="iframe"
 					frame-src="/blocks/developer-experience/webhooks/preview/WebhookOperationsConsole"
-					description="Copy this into a developer dashboard, integration settings page, platform admin console, or internal delivery monitor. Replace the sample endpoint, event, and delivery arrays with your webhook API data."
+					description="A Svix-, Stripe-, and GitHub-inspired delivery workspace with responsive Endpoints, Deliveries, and Endpoint views backed by repository-local APIs."
 					default-open
-					:preview-lines="14"
+					:preview-lines="16"
 				>
 					<WebhookOperationsConsole />
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="Included application behavior">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when your product sends events to customer systems and developers need a place to configure,
-						debug, and trust those deliveries. It combines endpoint settings with delivery observability so users can
-						resolve failures without leaving your app.
+						The block treats webhook operations as a delivery investigation and endpoint-lifecycle workflow rather than a settings screenshot.
+						Endpoint discovery, signed test sends, immutable request and response evidence, replay, configuration, secret rotation, disablement, enablement, and reset all cross a server API.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>endpoints</code> with workspace-scoped webhook endpoints from your backend.</li>
-						<li>Load event types from your event catalog so subscriptions stay aligned with server capabilities.</li>
-						<li>Connect delivery rows to immutable delivery attempts and expose retry only for failed or timed-out attempts.</li>
-						<li>Use the signing secret panel for one-time reveal, rotation confirmation, and copy-to-clipboard feedback.</li>
-						<li>Persist test sends, retries, and subscription changes through API calls that also write audit events.</li>
+						<li>Filter an endpoint registry with rich <code>DomSelect</code> controls, then inspect delivery health without leaving the workspace.</li>
+						<li>Review signed request, destination response, and timing evidence for an immutable delivery attempt.</li>
+						<li>Create an endpoint with server-owned event subscriptions and receive its signing secret exactly once.</li>
+						<li>Send a synthetic subscribed event, replay a failed delivery into a new attempt, and preserve the failed source evidence.</li>
+						<li>Save endpoint contracts at exact revisions, rotate signing material with bounded overlap, and guard disablement with exact-name confirmation.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended webhook endpoint shape">
-				<CodeBlock lang="js" filename="webhook-endpoint.js" :code="`{
-\tid: 'we_prod_platform',
-\tname: 'Production platform',
-\turl: 'https://api.acme.example/webhooks/dom',
-\tenvironment: 'Production',
-\tstatus: 'Healthy',
-\tapiVersion: '2026-06-01',
-\tsecretPrefix: 'whsec_4A7K',
-\tevents: ['customer.created', 'invoice.paid', 'subscription.updated'],
-\tdelivery: { successRate: 99.6, latencyMs: 318, failures: 2 },
-\tattempts: [
-\t\t{
-\t\t\tid: 'evt_1092',
-\t\t\tevent: 'invoice.paid',
-\t\t\tstatus: 'Delivered',
-\t\t\tresponseCode: 200,
-\t\t\tlatencyMs: 241,
-\t\t\ttime: '2 minutes ago'
-\t\t}
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Repository-local route contract">
+				<CodeBlock lang="text" filename="webhook-operations.routes" :code="`GET   /api/block-demos/webhook-operations/bootstrap
+POST  /api/block-demos/webhook-operations/endpoints
+GET   /api/block-demos/webhook-operations/endpoints/:endpointId
+PATCH /api/block-demos/webhook-operations/endpoints/:endpointId
+POST  /api/block-demos/webhook-operations/endpoints/:endpointId/test
+POST  /api/block-demos/webhook-operations/endpoints/:endpointId/secret-rotations
+POST  /api/block-demos/webhook-operations/endpoints/:endpointId/disable
+POST  /api/block-demos/webhook-operations/endpoints/:endpointId/enable
+GET   /api/block-demos/webhook-operations/endpoints/:endpointId/deliveries/:deliveryId
+POST  /api/block-demos/webhook-operations/endpoints/:endpointId/deliveries/:deliveryId/replay
+POST  /api/block-demos/webhook-operations/reset`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Delivery model</h3>
-						<p class="mt-2">Store every attempt separately from the logical event so retries keep a complete audit trail.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Security</h3>
-						<p class="mt-2">Mask secrets after creation, sign payloads server-side, and show rotation state before accepting changes.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include event schema docs, endpoint health alerts, retry policy editors, and webhook test fixtures.</p>
-					</div>
+			<DocSection eyebrow="Customization" title="Production boundaries">
+				<div class="grid gap-5 text-sm leading-7 text-muted-fg md:grid-cols-3">
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Dispatch boundary</h3><p class="mt-2">The demo creates deterministic delivery evidence. Production should queue frozen event snapshots, enforce egress allowlists, sign server-side, cap payloads, and isolate per-customer delivery workers.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Secret boundary</h3><p class="mt-2">Keep full signing material encrypted and reveal it only at creation or rotation. Store audit-safe prefixes and fingerprints separately from the delivery worker’s decrypt path.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Evidence boundary</h3><p class="mt-2">Add authentication, organization authorization, durable event and attempt records, retention, redaction, replay idempotency, abuse limits, alert delivery, and immutable operator audit events.</p></div>
 				</div>
 			</DocSection>
 		</DocPage>

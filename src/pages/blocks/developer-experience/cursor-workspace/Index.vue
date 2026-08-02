@@ -12,7 +12,7 @@ import CursorWorkspaceSrc from './examples/CursorWorkspace.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Cursor Workspace Block"
-			tagline="A copyable AI coding workspace with headless navigation, resizing, tabs, menus, drawers, command search, editable files, and agent-driven review."
+			tagline="A working repository change session with revisioned file editing, contextual agent proposals, reviewable diffs, focused tests, and rollback evidence."
 			tag="AI IDE"
 			eyebrow="Blocks"
 		>
@@ -22,7 +22,7 @@ import CursorWorkspaceSrc from './examples/CursorWorkspace.vue?raw';
 					filename="CursorWorkspace.vue"
 					presentation="iframe"
 					frame-src="/blocks/developer-experience/cursor-workspace/preview/CursorWorkspace"
-					description="Copy this into AI developer tools, internal IDEs, web coding sandboxes, documentation playgrounds, or agent review surfaces where teams need file context, editing, and conversational code changes in one app shell."
+					description="A GitHub Codespaces- and Cursor-inspired developer section with responsive Files, Editor, Agent, and Review views backed by repository-local APIs."
 					default-open
 					:preview-lines="16"
 				>
@@ -30,71 +30,39 @@ import CursorWorkspaceSrc from './examples/CursorWorkspace.vue?raw';
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="Included application behavior">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when a product needs to demonstrate an AI-assisted coding loop with realistic workspace density.
-						The example keeps file navigation, editable source, command search, agent planning, review diffs, model controls, and terminal feedback in one surface.
+						The block now models a complete review-safe coding loop. File reads and writes, workspace revisions, agent runs,
+						proposal diffs, explicit patch application, test evidence, settings, activity, and reset all cross a server API.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace the local files array with project files from your sandbox, repo service, template registry, or virtual file system.</li>
-						<li>Route agent messages to your backend and store draft patches as structured operations before applying them to the editor model.</li>
-						<li>Use the drawer for patch review, test output, trace details, or codebase context that should not permanently occupy the editor canvas.</li>
-						<li>Keep command palette actions small and reversible: open files, toggle panes, run tests, stage changes, and launch agent modes.</li>
-						<li>Preserve the headless primitives for keyboard navigation, focus management, popover placement, drawer trapping, tab roving, and split resizing.</li>
+						<li>Browse and search repository files, open tabs, edit source, and save against an exact file revision.</li>
+						<li>Select a rich model, agent mode, and repository context before creating a deterministic proposal.</li>
+						<li>Review each proposed file through `DomTextDiff` and confirm the repository revision before applying it.</li>
+						<li>Run focused checks independently or automatically after apply, then inspect immutable terminal evidence.</li>
+						<li>Exercise stale-file, stale-workspace, validation, and already-applied conflict paths without browser-only state.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended workspace state">
-				<CodeBlock lang="js" filename="ai-workspace-state.js" :code="`{
-\tworkspace: {
-\t\tid: 'wrk_acme_dashboard',
-\t\tbranch: 'feature/mission-control',
-\t\tagentMode: 'composer',
-\t\tmodel: 'Composer 2.5'
-\t},
-\tfiles: [
-\t\t{
-\t\t\tid: 'dashboard-page',
-\t\t\tpath: 'src/app/dashboard/page.tsx',
-\t\t\tlanguage: 'tsx',
-\t\t\tstatus: 'modified',
-\t\t\tcontent: 'export default function Dashboard() { ... }'
-\t\t}
-\t],
-\tpatches: [
-\t\t{
-\t\t\tid: 'patch_agent_layout',
-\t\t\tfileId: 'dashboard-page',
-\t\t\tstatus: 'proposed',
-\t\t\toperations: [{ type: 'insert', line: 18, text: '<MissionControl />' }]
-\t\t}
-\t],
-\tagentMessages: [
-\t\t{
-\t\t\trole: 'assistant',
-\t\t\tbody: 'I found the dashboard shell and can add a task rail.',
-\t\t\tcitations: ['src/app/dashboard/page.tsx']
-\t\t}
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Repository-local route contract">
+				<CodeBlock lang="text" filename="cursor-workspace.routes" :code="`GET   /api/block-demos/cursor-workspace/bootstrap
+GET   /api/block-demos/cursor-workspace/files/:fileId
+PATCH /api/block-demos/cursor-workspace/files/:fileId
+PATCH /api/block-demos/cursor-workspace/settings
+POST  /api/block-demos/cursor-workspace/agent-runs
+GET   /api/block-demos/cursor-workspace/proposals/:proposalId
+POST  /api/block-demos/cursor-workspace/proposals/:proposalId/apply
+POST  /api/block-demos/cursor-workspace/tests
+POST  /api/block-demos/cursor-workspace/reset`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Editor model</h3>
-						<p class="mt-2">Swap the textarea for Monaco, CodeMirror, or your in-house editor once you need syntax tokens, selections, diagnostics, and multi-file edits.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Patch safety</h3>
-						<p class="mt-2">Keep agent changes reviewable. Store proposed diffs, affected files, test commands, and rollback metadata before writing to a project.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include diagnostics gutters, inline completions, streaming terminal output, branch comparison, and a real virtual file system adapter.</p>
-					</div>
+			<DocSection eyebrow="Customization" title="Production boundaries">
+				<div class="grid gap-5 text-sm leading-7 text-muted-fg md:grid-cols-3">
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Repository boundary</h3><p class="mt-2">The demo uses process-local files. Production should resolve every read and write through an isolated workspace, virtual filesystem, or short-lived checkout.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Agent boundary</h3><p class="mt-2">Keep proposals structured and immutable. Model output should never write directly to disk without authorization, exact revisions, and an application receipt.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Execution boundary</h3><p class="mt-2">Run tests and commands inside a constrained worker with allowlisted scripts, resource limits, redacted logs, and workspace-scoped access.</p></div>
 				</div>
 			</DocSection>
 		</DocPage>

@@ -11,34 +11,31 @@ const productTourDraftCode = `{
 \tid: 'tour_activation_v4',
 \tname: 'Trial activation tour',
 \tstatus: 'draft',
+\trevision: 28,
 \tgoal: 'activation',
-\taccentColor: '#2563eb',
 \taudience: {
-\t\tsegments: ['trial-admins', 'no-connected-source'],
-\t\tholdoutPercent: 8,
-\t\tsuppressionRules: ['recently-dismissed-tour', 'converted-workspace']
+\t\tsegment: 'trial_admins',
+\t\tbehavior: 'no_connected_source',
+\t\tholdoutPercent: 10
 \t},
 \tschedule: {
-\t\tlaunchDate: '2026-06-19',
+\t\tlaunchDate: '2026-08-06',
 \t\ttimezone: 'Europe/London'
 \t},
 \tsteps: [
 \t\t{
-\t\t\tid: 'step_connect_source',
-\t\t\ttitle: 'Connect your source data',
-\t\t\tbody: 'Start with the source your team already trusts.',
+\t\t\tid: 'step-connect',
+\t\t\ttitle: 'Connect source data',
+\t\t\tbody: 'Point teams to the source that unlocks dashboards and automations.',
 \t\t\tcta: 'Connect source',
+\t\t\ttargetId: 'connect-data',
 \t\t\ttargetSelector: '[data-tour="connect-data"]',
-\t\t\ttargetLabel: 'Connect data tile',
-\t\t\tplacement: 'start-top',
-\t\t\ttrigger: 'onboarding-home-loaded',
-\t\t\tstatus: 'Ready'
+\t\t\tplacement: 'start',
+\t\t\tstatus: 'review_required'
 \t\t}
 \t],
-\tchecks: [
-\t\t{ id: 'selector-health', status: 'passed', detail: 'All targets exist in production routes.' },
-\t\t{ id: 'audience-policy', status: 'warning', detail: 'Holdout is below recommended 10%.' }
-\t]
+\tlastValidation: null,
+\trelease: null
 }`;
 </script>
 
@@ -46,7 +43,7 @@ const productTourDraftCode = `{
 	<DomStudioLayout>
 		<DocPage
 			name="Product Tour Builder Block"
-			tagline="A responsive product-tour authoring workspace with a live app canvas, target autocomplete, tooltip placement controls, audience rules, launch scheduling, and publish checks."
+			tagline="An API-backed product-tour studio with a live app canvas, registered targets, responsive authoring modes, optimistic revisions, preview sessions, launch checks, and signed publication receipts."
 			tag="Activation UI"
 			eyebrow="Blocks"
 		>
@@ -56,7 +53,7 @@ const productTourDraftCode = `{
 					filename="ProductTourBuilder.vue"
 					presentation="iframe"
 					frame-src="/blocks/conversion/product-tours/product-tour-builder/preview/ProductTourBuilder"
-					description="Copy this into onboarding tools, SaaS admin products, customer education surfaces, feature adoption platforms, or internal growth consoles where teams need to build in-app tours before release."
+					description="An Appcues- and Pendo-inspired authoring section that pairs a real interactive product canvas with revisioned drafts, DOM Studio controls, server validation, preview proof, and a complete scheduling workflow."
 					default-open
 					:preview-lines="18"
 				>
@@ -71,11 +68,11 @@ const productTourDraftCode = `{
 						The pattern keeps step sequence, live target preview, tooltip placement, audience targeting, schedule, and launch checks visible without falling into a dense admin console.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Hydrate <code>steps</code> from a tour draft endpoint with durable target selectors, placement tokens, copy, CTA labels, and status.</li>
-						<li>Back <code>DomAutocomplete</code> with searchable product surfaces, route names, data attributes, or analytics events so builders choose valid targets.</li>
+						<li>Hydrate <code>steps</code> from the bootstrap API, then send every mutation with the current revision so stale browser tabs receive a recoverable conflict.</li>
+						<li>Back rich searchable <code>DomSelect</code> options with product surfaces, route names, data attributes, and device support so builders choose registered targets.</li>
 						<li>Store placement as the same token used by your popover or tour runtime. This block uses <code>DomPositionInput</code> so authors can tune collision-friendly positions visually.</li>
-						<li>Keep audience rules, holdouts, suppression, and eligibility on the server. The client should preview reach and explain blockers, not become the source of truth.</li>
-						<li>Publish tour drafts through a job with preview, scheduled, live, paused, archived, and rollback states so product teams can audit releases.</li>
+						<li>Keep audience rules, reach, holdouts, selector health, and schedule validation on the server. The client explains blockers without becoming the source of truth.</li>
+						<li>Create short-lived preview sessions and require passing validation for the exact revision before publication. The returned receipt provides immutable release proof.</li>
 					</ul>
 				</div>
 			</DocSection>
@@ -88,7 +85,7 @@ const productTourDraftCode = `{
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Target registry</h3>
-						<p class="mt-2">Generate autocomplete options from route metadata, instrumented data attributes, or a crawler that verifies selectors against deploy previews.</p>
+						<p class="mt-2">Generate rich select options from route metadata, instrumented data attributes, or a crawler that verifies selectors against deploy previews.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Runtime contract</h3>

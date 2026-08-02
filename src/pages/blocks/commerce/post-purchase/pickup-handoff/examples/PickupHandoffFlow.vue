@@ -1,353 +1,613 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { DomButton, DomNativeSelect, DomTabs, DomTextInput, DomToggle } from '@getdom/studio/vue';
-
-const tabs = [
-	{ key: 'arrival', label: 'Arrival' },
-	{ key: 'items', label: 'Items' },
-	{ key: 'handoff', label: 'Handoff' },
-];
+import { computed, onMounted, ref, watch } from 'vue';
+import {
+	DomAlert,
+	DomAvatar,
+	DomBadge,
+	DomButton,
+	DomConfirmationCodeInput,
+	DomDialog,
+	DomEmptyState,
+	DomProgress,
+	DomSelect,
+	DomStatusPill,
+	DomTextareaInput,
+	DomToggle,
+} from '@getdom/studio/vue';
 
 const arrivalMethods = [
-	{ label: 'Curbside pickup', value: 'Curbside pickup' },
-	{ label: 'Walk-up counter', value: 'Walk-up counter' },
-	{ label: 'Drive-through lane', value: 'Drive-through lane' },
+	{ label: 'Curbside pickup', value: 'curbside', description: 'Bring the order to the customer’s vehicle.' },
+	{ label: 'Walk-up counter', value: 'walk-up', description: 'Meet the customer at the collection counter.' },
+	{ label: 'Drive-through lane', value: 'drive-through', description: 'Use the dedicated pickup lane.' },
 ];
 
-const bayOptions = [
-	{ label: 'Bay B2', value: 'B2' },
-	{ label: 'Bay B3', value: 'B3' },
-	{ label: 'Front entrance', value: 'Front entrance' },
-	{ label: 'Inside counter', value: 'Inside counter' },
+const pickupSpots = [
+	{ label: 'Bay B2', value: 'B2', description: 'Closest bay to the chilled storage door.' },
+	{ label: 'Bay B3', value: 'B3', description: 'Accessible curbside pickup bay.' },
+	{ label: 'Front entrance', value: 'front-entrance', description: 'Meet beside the main store entrance.' },
+	{ label: 'Inside counter', value: 'inside-counter', description: 'Customer is waiting at the collection desk.' },
 ];
 
-const initialItems = [
-	{
-		id: 'cold-bag',
-		name: 'Chilled meal kit',
-		detail: 'Dinner for two / cold chain',
-		quantity: 1,
-		ready: true,
-		status: 'Packed',
-		note: 'Keep below 5 C until handoff.',
-	},
-	{
-		id: 'oat-milk',
-		name: 'Oat milk multipack',
-		detail: '6 x 1L cartons',
-		quantity: 2,
-		ready: false,
-		status: 'Substitution ready',
-		note: 'Original unavailable. Barista blend staged.',
-	},
-	{
-		id: 'id-check',
-		name: 'Sparkling mixer case',
-		detail: 'Restricted item / ID required',
-		quantity: 1,
-		ready: true,
-		status: 'ID check',
-		note: 'Verify age before loading.',
-	},
-];
-
-const timeline = [
-	{ label: 'Customer checked in', detail: 'Curbside pickup at Bay B2.', time: '16:34' },
-	{ label: 'Cold bag staged', detail: 'Temperature label scanned by fulfilment.', time: '16:29' },
-	{ label: 'Substitution offered', detail: 'Barista blend approved by shopper.', time: '16:21' },
-];
-
-const activeTab = ref('arrival');
-const arrivalMethod = ref('Curbside pickup');
-const bay = ref('B2');
-const pickupCode = ref('4821');
-const customerMessage = ref('Blue hatchback. Trunk is open for contactless loading.');
-const items = ref(initialItems.map((item) => ({ ...item })));
-const contactless = ref(true);
-const substitutionsAccepted = ref(true);
+const orders = ref([]);
+const selectedOrderId = ref('ord_7831');
+const order = ref(null);
+const isLoading = ref(true);
+const loadError = ref('');
+const feedback = ref(null);
+const arrivalDialogOpen = ref(false);
+const verificationDialogOpen = ref(false);
+const arrivalMethod = ref('curbside');
+const pickupSpot = ref('B2');
+const arrivalNote = ref('');
+const pickupCode = ref('');
 const idChecked = ref(false);
-const handoffComplete = ref(false);
-const lastAction = ref('');
+const contactless = ref(true);
+const substitutionsAccepted = ref(false);
+const isSavingArrival = ref(false);
+const stagingItemId = ref('');
+const isSavingVerification = ref(false);
+const isCompleting = ref(false);
+let orderRequestSequence = 0;
 
-const allItemsReady = computed(() => items.value.every((item) => item.ready));
-const verifiedCode = computed(() => pickupCode.value.trim() === '4821');
-const hasRestrictedItem = computed(() => items.value.some((item) => item.status === 'ID check'));
-const requiredChecks = computed(() => [
-	{
-		label: 'Arrival location shared',
-		detail: `${arrivalMethod.value} / ${bay.value}`,
-		passed: Boolean(arrivalMethod.value && bay.value),
-	},
-	{
-		label: 'Pickup code verified',
-		detail: verifiedCode.value ? 'Code 4821 matches this order' : 'Ask customer for the 4 digit code',
-		passed: verifiedCode.value,
-	},
-	{
-		label: 'All items staged',
-		detail: `${items.value.filter((item) => item.ready).length} of ${items.value.length} ready`,
-		passed: allItemsReady.value,
-	},
-	{
-		label: 'Restricted item check',
-		detail: hasRestrictedItem.value ? 'Age or identity check required' : 'No restricted items',
-		passed: !hasRestrictedItem.value || idChecked.value,
-	},
-	{
-		label: 'Substitution decision saved',
-		detail: substitutionsAccepted.value ? 'Customer accepts approved substitutions' : 'Hold substitution for staff review',
-		passed: substitutionsAccepted.value,
-	},
-]);
-const readyToComplete = computed(() => requiredChecks.value.every((check) => check.passed));
-const progressPercent = computed(() => Math.round((requiredChecks.value.filter((check) => check.passed).length / requiredChecks.value.length) * 100));
-const primaryLabel = computed(() => {
-	if (handoffComplete.value) return 'Handoff completed';
-	if (!verifiedCode.value) return 'Verify pickup code';
-	if (!allItemsReady.value) return 'Stage remaining items';
-	if (hasRestrictedItem.value && !idChecked.value) return 'Confirm ID check';
-	return 'Complete handoff';
+const orderOptions = computed(() => orders.value.map((item) => ({
+	value: item.id,
+	label: `Order ${item.number}`,
+	description: `${item.customerName} · ${item.nextAction.label}`,
+	openCheckCount: item.openCheckCount,
+})));
+const openChecks = computed(() => order.value?.checks?.filter((check) => !check.passed) || []);
+const allItemsStaged = computed(() => order.value?.items?.every((item) => item.ready) || false);
+const substitutionItems = computed(() => order.value?.items?.filter((item) => item.substitution) || []);
+const isComplete = computed(() => order.value?.status === 'complete');
+const verificationCodeRequired = computed(() => !order.value?.verification?.codeVerifiedAt);
+const verificationCodeValid = computed(() => !verificationCodeRequired.value || /^\d{4}$/.test(pickupCode.value));
+const verificationDraftDirty = computed(() => {
+	if (!order.value) return false;
+	return contactless.value !== order.value.preferences.contactless
+		|| substitutionsAccepted.value !== order.value.preferences.substitutionsAccepted
+		|| (order.value.verification.requiresIdCheck && idChecked.value !== Boolean(order.value.verification.idCheckedAt))
+		|| (verificationCodeRequired.value && pickupCode.value.length > 0);
 });
-const statusLabel = computed(() => {
-	if (handoffComplete.value) return 'Complete';
-	if (readyToComplete.value) return 'Ready for loading';
-	return 'Needs attention';
+const arrivalDraftDirty = computed(() => {
+	if (!order.value) return false;
+	return arrivalMethod.value !== order.value.arrival.method
+		|| pickupSpot.value !== order.value.arrival.spot
+		|| arrivalNote.value.trim() !== order.value.arrival.note;
+});
+const primaryLabel = computed(() => order.value?.nextAction?.label || 'Review pickup');
+
+watch(selectedOrderId, (orderId, previousOrderId) => {
+	if (orderId && previousOrderId && orderId !== previousOrderId) void loadOrder(orderId);
 });
 
-function toggleItemReady(item) {
-	item.ready = !item.ready;
-	lastAction.value = item.ready ? `${item.name} marked ready` : `${item.name} moved back to staging`;
-	handoffComplete.value = false;
+onMounted(loadOrders);
+
+/**
+ * Requests JSON from the pickup handoff API and promotes failed responses
+ * into ordinary errors for consistent UI recovery.
+ *
+ * @param {string} url API route.
+ * @param {RequestInit} [options] Fetch options.
+ * @returns {Promise<Record<string, unknown>>} Parsed response payload.
+ */
+async function requestJson(url, options = {}) {
+	const response = await fetch(url, {
+		...options,
+		headers: {
+			Accept: 'application/json',
+			...(options.body ? { 'Content-Type': 'application/json' } : {}),
+			...(options.headers || {}),
+		},
+	});
+	const payload = await response.json().catch(() => ({}));
+	if (!response.ok) throw new Error(payload.error || `Request failed with status ${response.status}.`);
+	return payload;
 }
 
-function completeHandoff() {
-	if (!readyToComplete.value) {
-		activeTab.value = !verifiedCode.value ? 'arrival' : !allItemsReady.value ? 'items' : 'handoff';
-		lastAction.value = 'Review the highlighted checks before completing pickup.';
+/**
+ * Loads the pickup queue before hydrating the initially selected order.
+ *
+ * @returns {Promise<void>}
+ */
+async function loadOrders() {
+	isLoading.value = true;
+	loadError.value = '';
+	try {
+		const payload = await requestJson('/api/block-demos/pickup-handoff/orders');
+		orders.value = Array.isArray(payload.orders) ? payload.orders : [];
+		if (!orders.value.length) throw new Error('No pickup orders are available.');
+		if (!orders.value.some((item) => item.id === selectedOrderId.value)) selectedOrderId.value = orders.value[0].id;
+		await loadOrder(selectedOrderId.value);
+	} catch (error) {
+		loadError.value = error instanceof Error ? error.message : 'Could not load the pickup queue.';
+		isLoading.value = false;
+	}
+}
+
+/**
+ * Loads one pickup order while ignoring stale responses after quick switches.
+ *
+ * @param {string} orderId Pickup order identifier.
+ * @returns {Promise<void>}
+ */
+async function loadOrder(orderId) {
+	const requestSequence = ++orderRequestSequence;
+	isLoading.value = true;
+	loadError.value = '';
+	feedback.value = null;
+	try {
+		const payload = await requestJson(`/api/block-demos/pickup-handoff/${encodeURIComponent(orderId)}`);
+		if (requestSequence !== orderRequestSequence) return;
+		applyOrder(payload.order);
+	} catch (error) {
+		if (requestSequence !== orderRequestSequence) return;
+		loadError.value = error instanceof Error ? error.message : 'Could not load this pickup order.';
+	} finally {
+		if (requestSequence === orderRequestSequence) isLoading.value = false;
+	}
+}
+
+/**
+ * Applies a complete API order and synchronizes editable draft state.
+ *
+ * @param {Record<string, unknown>} nextOrder API order payload.
+ * @returns {void}
+ */
+function applyOrder(nextOrder) {
+	order.value = nextOrder;
+	arrivalMethod.value = nextOrder.arrival.method;
+	pickupSpot.value = nextOrder.arrival.spot;
+	arrivalNote.value = nextOrder.arrival.note;
+	contactless.value = nextOrder.preferences.contactless;
+	substitutionsAccepted.value = nextOrder.preferences.substitutionsAccepted;
+	idChecked.value = Boolean(nextOrder.verification.idCheckedAt);
+	syncOrderSummary(nextOrder.orderSummary);
+}
+
+/**
+ * Refreshes the selector metadata after a pickup mutation.
+ *
+ * @param {Record<string, unknown>} summary Updated order summary.
+ * @returns {void}
+ */
+function syncOrderSummary(summary) {
+	orders.value = orders.value.map((item) => (item.id === summary.id ? { ...item, ...summary } : item));
+}
+
+/**
+ * Opens the arrival editor with the latest server-owned values.
+ *
+ * @returns {void}
+ */
+function openArrivalEditor() {
+	if (!order.value || isComplete.value) return;
+	arrivalMethod.value = order.value.arrival.method;
+	pickupSpot.value = order.value.arrival.spot;
+	arrivalNote.value = order.value.arrival.note;
+	feedback.value = null;
+	arrivalDialogOpen.value = true;
+}
+
+/**
+ * Saves the customer's reported arrival method, spot, and note.
+ *
+ * @returns {Promise<void>}
+ */
+async function saveArrival() {
+	if (!order.value || !arrivalDraftDirty.value) return;
+	isSavingArrival.value = true;
+	feedback.value = null;
+	try {
+		const payload = await requestJson(`/api/block-demos/pickup-handoff/${encodeURIComponent(selectedOrderId.value)}/arrival`, {
+			method: 'PATCH',
+			body: JSON.stringify({
+				method: arrivalMethod.value,
+				spot: pickupSpot.value,
+				note: arrivalNote.value.trim(),
+				revision: order.value.revision,
+			}),
+		});
+		applyOrder(payload.order);
+		arrivalDialogOpen.value = false;
+		feedback.value = {
+			tone: 'success',
+			title: 'Arrival updated',
+			description: 'The pickup team now has the customer’s latest location and loading note.',
+		};
+	} catch (error) {
+		feedback.value = {
+			tone: 'danger',
+			title: 'Arrival not saved',
+			description: error instanceof Error ? error.message : 'Check the arrival details and try again.',
+		};
+	} finally {
+		isSavingArrival.value = false;
+	}
+}
+
+/**
+ * Toggles the staged state of one item through the pickup API.
+ *
+ * @param {Record<string, unknown>} item Pickup item.
+ * @returns {Promise<void>}
+ */
+async function toggleItemStage(item) {
+	if (!order.value || isComplete.value) return;
+	stagingItemId.value = item.id;
+	feedback.value = null;
+	try {
+		const payload = await requestJson(
+			`/api/block-demos/pickup-handoff/${encodeURIComponent(selectedOrderId.value)}/items/${encodeURIComponent(item.id)}/stage`,
+			{
+				method: 'POST',
+				body: JSON.stringify({ ready: !item.ready, revision: order.value.revision }),
+			},
+		);
+		applyOrder(payload.order);
+		feedback.value = {
+			tone: 'success',
+			title: item.ready ? 'Item returned to preparation' : 'Item staged',
+			description: `${item.name} has been recorded in the live pickup order.`,
+		};
+	} catch (error) {
+		feedback.value = {
+			tone: 'danger',
+			title: 'Item status not saved',
+			description: error instanceof Error ? error.message : 'Refresh the order and try again.',
+		};
+	} finally {
+		stagingItemId.value = '';
+	}
+}
+
+/**
+ * Opens the customer verification dialog with current preferences.
+ *
+ * @returns {void}
+ */
+function openVerification() {
+	if (!order.value || isComplete.value) return;
+	pickupCode.value = '';
+	idChecked.value = Boolean(order.value.verification.idCheckedAt);
+	contactless.value = order.value.preferences.contactless;
+	substitutionsAccepted.value = order.value.preferences.substitutionsAccepted;
+	feedback.value = null;
+	verificationDialogOpen.value = true;
+}
+
+/**
+ * Saves handoff preferences and verifies the customer in revision order.
+ *
+ * @returns {Promise<void>}
+ */
+async function saveVerification() {
+	if (!order.value || !verificationCodeValid.value || !verificationDraftDirty.value) return;
+	isSavingVerification.value = true;
+	feedback.value = null;
+	try {
+		const draftCode = pickupCode.value;
+		const draftIdChecked = idChecked.value;
+		const draftContactless = contactless.value;
+		const draftSubstitutionsAccepted = substitutionsAccepted.value;
+		const preferencesChanged = draftContactless !== order.value.preferences.contactless
+			|| draftSubstitutionsAccepted !== order.value.preferences.substitutionsAccepted;
+
+		if (preferencesChanged) {
+			const preferencesPayload = await requestJson(
+				`/api/block-demos/pickup-handoff/${encodeURIComponent(selectedOrderId.value)}/preferences`,
+				{
+					method: 'PATCH',
+					body: JSON.stringify({
+						contactless: draftContactless,
+						substitutionsAccepted: draftSubstitutionsAccepted,
+						revision: order.value.revision,
+					}),
+				},
+			);
+			applyOrder(preferencesPayload.order);
+		}
+
+		const needsVerification = verificationCodeRequired.value
+			|| (order.value.verification.requiresIdCheck && draftIdChecked && !order.value.verification.idCheckedAt);
+		if (needsVerification) {
+			const verificationPayload = await requestJson(
+				`/api/block-demos/pickup-handoff/${encodeURIComponent(selectedOrderId.value)}/verify`,
+				{
+					method: 'POST',
+					body: JSON.stringify({
+						code: draftCode,
+						idChecked: draftIdChecked,
+						revision: order.value.revision,
+					}),
+				},
+			);
+			applyOrder(verificationPayload.order);
+		}
+
+		verificationDialogOpen.value = false;
+		feedback.value = {
+			tone: 'success',
+			title: 'Customer checks saved',
+			description: order.value.nextAction.key === 'complete-handoff'
+				? 'Every required check has passed. The pickup can now be completed.'
+				: 'The server recorded the verification details and updated the next action.',
+		};
+	} catch (error) {
+		feedback.value = {
+			tone: 'danger',
+			title: 'Verification not saved',
+			description: error instanceof Error ? error.message : 'Check the customer details and try again.',
+		};
+	} finally {
+		isSavingVerification.value = false;
+	}
+}
+
+/**
+ * Completes the pickup through the server-owned readiness gate.
+ *
+ * @returns {Promise<void>}
+ */
+async function completePickup() {
+	if (!order.value || isComplete.value) return;
+	isCompleting.value = true;
+	feedback.value = null;
+	try {
+		const payload = await requestJson(`/api/block-demos/pickup-handoff/${encodeURIComponent(selectedOrderId.value)}/complete`, {
+			method: 'POST',
+			body: JSON.stringify({ revision: order.value.revision }),
+		});
+		applyOrder(payload.order);
+		feedback.value = {
+			tone: 'success',
+			title: 'Pickup completed',
+			description: 'Final handoff proof is recorded and the order can no longer be changed.',
+		};
+	} catch (error) {
+		feedback.value = {
+			tone: 'warning',
+			title: 'Pickup still has open checks',
+			description: error instanceof Error ? error.message : 'Review the readiness checklist and try again.',
+		};
+	} finally {
+		isCompleting.value = false;
+	}
+}
+
+/**
+ * Routes the persistent primary action to the current server-owned blocker.
+ *
+ * @returns {void}
+ */
+function handlePrimaryAction() {
+	if (!order.value || isComplete.value) return;
+	if (order.value.nextAction.key === 'arrival') {
+		openArrivalEditor();
 		return;
 	}
+	if (order.value.nextAction.key === 'items') {
+		document.getElementById('pickup-items-heading')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		feedback.value = {
+			tone: 'warning',
+			title: 'Stage every item',
+			description: 'Use the item action below to record the remaining bag as ready.',
+		};
+		return;
+	}
+	if (order.value.nextAction.key === 'verification') {
+		openVerification();
+		return;
+	}
+	if (order.value.nextAction.key === 'complete-handoff') void completePickup();
+}
 
-	handoffComplete.value = true;
-	activeTab.value = 'handoff';
-	lastAction.value = 'Pickup completed and order timeline updated.';
+/**
+ * Resolves a semantic status tone for a pickup state.
+ *
+ * @param {string} status Pickup status identifier.
+ * @returns {string} DOM Studio semantic tone.
+ */
+function statusTone(status) {
+	return { arrived: 'warning', complete: 'success' }[status] || 'neutral';
 }
 </script>
 
 <template>
-	<div class="w-full bg-secondary/40 px-3 py-5 text-canvas-fg sm:px-6 lg:px-8">
-		<div class="mx-auto grid max-w-6xl gap-5 lg:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)] lg:items-start">
-			<section class="mx-auto w-full max-w-[28rem] overflow-hidden rounded-[2rem] border border-border bg-canvas shadow-2xl shadow-black/10">
-				<header class="skin-card border-b border-border px-4 py-4">
-					<div class="flex items-start justify-between gap-3">
-						<div class="min-w-0">
-							<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Pickup order</p>
-							<h3 class="mt-1 text-2xl font-semibold tracking-tight">PU-7831</h3>
-							<p class="mt-1 text-sm text-muted-fg">Maya Chen / Soho Market</p>
-						</div>
-						<span
-							class="shrink-0 rounded-full px-3 py-1 text-xs font-semibold"
-							:class="readyToComplete ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'"
-						>
-							{{ statusLabel }}
+	<section class="min-h-screen bg-canvas text-canvas-fg" data-testid="pickup-handoff-block">
+		<header class="border-b border-border bg-canvas">
+			<div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:px-8">
+				<div>
+					<p class="text-xs font-semibold uppercase tracking-wide text-muted-fg">Soho Market</p>
+					<h1 class="mt-1 whitespace-nowrap text-xl font-semibold">Pickup desk</h1>
+				</div>
+
+				<DomSelect v-model="selectedOrderId" label="Active pickup" :options="orderOptions" width="min-w-[22rem]">
+					<template #value="{ option }">
+						<span class="flex min-w-0 items-center justify-between gap-3">
+							<span class="truncate font-semibold">{{ option?.label || `Order ${order?.number || ''}` }}</span>
+							<DomBadge v-if="order?.orderSummary?.openCheckCount" tone="warning" size="sm">{{ order.orderSummary.openCheckCount }} open</DomBadge>
 						</span>
-					</div>
-
-					<div class="mt-4">
-						<div class="flex items-center justify-between text-xs font-semibold text-muted-fg">
-							<span>16:30-17:00</span>
-							<span>{{ progressPercent }}% ready</span>
-						</div>
-						<div class="mt-2 h-2 overflow-hidden rounded-full bg-secondary">
-							<div class="h-full rounded-full bg-primary transition-all" :style="{ width: `${progressPercent}%` }"></div>
-						</div>
-					</div>
-				</header>
-
-				<div class="p-4">
-					<DomTabs v-model="activeTab" :tabs="tabs" />
-
-					<section v-if="activeTab === 'arrival'" class="mt-4 grid gap-4">
-						<div class="grid gap-3 rounded-2xl border border-border bg-canvas p-4">
-							<div class="flex items-start gap-3">
-								<div class="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
-									<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
-										<path d="M12 21s7-5.2 7-11A7 7 0 1 0 5 10c0 5.8 7 11 7 11Zm0-8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-								</div>
-								<div class="min-w-0">
-									<h4 class="font-semibold">Customer arrived</h4>
-									<p class="mt-1 text-sm leading-6 text-muted-fg">Staff can stage the order from the selected bay and loading preference.</p>
-								</div>
-							</div>
-							<div class="grid gap-3 sm:grid-cols-2">
-								<DomNativeSelect v-model="arrivalMethod" label="Arrival method" :options="arrivalMethods" />
-								<DomNativeSelect v-model="bay" label="Pickup spot" :options="bayOptions" />
-							</div>
-						</div>
-
-						<div class="grid gap-3 rounded-2xl border border-border bg-secondary/50 p-4">
-							<DomTextInput v-model="pickupCode" label="Pickup code" inputmode="numeric" maxlength="4" placeholder="4 digit code" />
-							<p class="text-sm leading-6 text-muted-fg">
-								{{ verifiedCode ? 'Code verified for this order.' : 'The expected test code is 4821. In production, validate this server-side.' }}
-							</p>
-						</div>
-
-						<div class="rounded-2xl border border-border bg-canvas p-4">
-							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Customer note</p>
-							<p class="mt-2 text-sm leading-6">{{ customerMessage }}</p>
-						</div>
-					</section>
-
-					<section v-else-if="activeTab === 'items'" class="mt-4 grid gap-3">
-						<button
-							v-for="item in items"
-							:key="item.id"
-							type="button"
-							class="grid w-full gap-3 rounded-2xl border border-border bg-canvas p-4 text-left transition hover:bg-secondary/60"
-							:class="item.ready ? 'border-success/30' : 'border-warning/40'"
-							@click="toggleItemReady(item)"
-						>
-							<span class="flex items-start justify-between gap-3">
-								<span class="min-w-0">
-									<span class="block font-semibold">{{ item.name }}</span>
-									<span class="mt-1 block text-sm leading-6 text-muted-fg">{{ item.detail }} / Qty {{ item.quantity }}</span>
-								</span>
-								<span
-									class="shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold"
-									:class="item.ready ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'"
-								>
-									{{ item.ready ? 'Ready' : 'Stage' }}
-								</span>
+					</template>
+					<template #option="{ option }">
+						<span class="flex min-w-0 items-center justify-between gap-3">
+							<span class="min-w-0">
+								<span class="block truncate font-semibold">{{ option.label }}</span>
+								<span class="block truncate text-xs opacity-75">{{ option.description }}</span>
 							</span>
-							<span class="rounded-xl bg-secondary/70 px-3 py-2 text-sm leading-6 text-muted-fg">{{ item.note }}</span>
-						</button>
+							<DomBadge v-if="option.openCheckCount" tone="warning" size="sm">{{ option.openCheckCount }}</DomBadge>
+						</span>
+					</template>
+				</DomSelect>
+			</div>
+		</header>
+
+		<main class="mx-auto max-w-6xl px-4 py-5 pb-28 sm:px-6 sm:py-8 lg:px-8 lg:pb-10">
+			<DomAlert v-if="loadError" tone="danger" title="Pickup queue unavailable" :description="loadError">
+				<template #actions>
+					<DomButton variant="secondary" size="sm" @click="loadOrders">Try again</DomButton>
+				</template>
+			</DomAlert>
+
+			<DomEmptyState v-else-if="isLoading && !order" title="Loading the pickup desk" description="Checking live arrival, preparation, and verification state." size="sm" />
+
+			<div v-else-if="order" class="grid gap-9 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-10">
+				<div class="min-w-0">
+					<section class="border-b border-border pb-7" aria-labelledby="pickup-status-heading">
+						<div class="flex flex-wrap items-center gap-2">
+							<DomStatusPill :tone="statusTone(order.status)" size="sm">{{ order.statusLabel }}</DomStatusPill>
+							<span class="text-xs text-muted-fg">Order {{ order.number }} · {{ order.pickupWindowLabel }}</span>
+						</div>
+
+						<div class="mt-5 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+							<div>
+								<p class="text-sm font-medium text-muted-fg">{{ isComplete ? 'Completed pickup' : 'Customer waiting' }}</p>
+								<h2 id="pickup-status-heading" class="mt-1 text-4xl font-semibold tracking-tight sm:text-5xl">{{ isComplete ? 'Proof recorded' : `${order.waitMinutes} min` }}</h2>
+							</div>
+							<DomProgress class="max-w-sm" :value="order.progress" label="Handoff readiness" :tone="isComplete ? 'success' : 'primary'" show-value />
+						</div>
+
+						<div class="mt-6 flex items-start justify-between gap-4">
+							<div class="flex min-w-0 items-center gap-3">
+								<DomAvatar :name="order.customer.name" :initials="order.customer.initials" size="lg" />
+								<div class="min-w-0">
+									<p class="truncate font-semibold">{{ order.customer.name }}</p>
+									<p class="mt-1 truncate text-sm text-muted-fg">{{ order.customer.vehicle }} · {{ order.arrival.note }}</p>
+								</div>
+							</div>
+							<DomButton variant="secondary" size="sm" :disabled="isComplete" @click="openArrivalEditor">Edit arrival</DomButton>
+						</div>
+						<p class="mt-4 text-sm leading-6 text-muted-fg">{{ order.location.name }} · {{ order.location.address }} · {{ order.checks[0].detail }}</p>
 					</section>
 
-					<section v-else class="mt-4 grid gap-4">
-						<div class="grid gap-3 rounded-2xl border border-border bg-canvas p-4">
-							<div class="flex items-center justify-between gap-4">
-								<div>
-									<h4 class="font-semibold">Contactless loading</h4>
-									<p class="mt-1 text-sm leading-6 text-muted-fg">Staff loads the order without handling the device.</p>
-								</div>
-								<DomToggle v-model="contactless" aria-label="Use contactless loading" />
-							</div>
-							<div class="flex items-center justify-between gap-4">
-								<div>
-									<h4 class="font-semibold">Accept substitutions</h4>
-									<p class="mt-1 text-sm leading-6 text-muted-fg">Customer approved the staged substitute item.</p>
-								</div>
-								<DomToggle v-model="substitutionsAccepted" aria-label="Accept substitutions" />
-							</div>
-							<div class="flex items-center justify-between gap-4">
-								<div>
-									<h4 class="font-semibold">ID checked</h4>
-									<p class="mt-1 text-sm leading-6 text-muted-fg">Required because this order has a restricted item.</p>
-								</div>
-								<DomToggle v-model="idChecked" aria-label="Confirm ID check" />
-							</div>
+					<DomAlert
+						v-if="!isComplete"
+						class="mt-6"
+						:tone="openChecks.length ? 'warning' : 'success'"
+						:title="order.nextAction.label"
+						:description="order.nextAction.description"
+					>
+						<template #actions>
+							<DomButton size="sm" @click="handlePrimaryAction">{{ primaryLabel }}</DomButton>
+						</template>
+					</DomAlert>
+
+					<DomAlert v-if="feedback" class="mt-6" :tone="feedback.tone" :title="feedback.title" :description="feedback.description" dismissible @dismiss="feedback = null" />
+
+					<section v-if="order.proof" class="mt-6 lg:hidden" aria-labelledby="mobile-pickup-proof-heading">
+						<p class="text-xs font-semibold uppercase tracking-wide text-muted-fg">Handoff proof</p>
+						<h2 id="mobile-pickup-proof-heading" class="mt-1 text-xl font-semibold">{{ order.proof.completedAt }}</h2>
+						<dl class="mt-4 divide-y divide-border border-y border-border text-sm">
+							<div class="flex justify-between gap-4 py-3"><dt class="text-muted-fg">Verification</dt><dd class="text-right font-medium">{{ order.proof.verificationMethod }}</dd></div>
+							<div class="flex justify-between gap-4 py-3"><dt class="text-muted-fg">Handoff</dt><dd class="text-right font-medium">{{ order.proof.handoffMode }}</dd></div>
+							<div class="flex justify-between gap-4 py-3"><dt class="text-muted-fg">Completed by</dt><dd class="text-right font-medium">{{ order.proof.staffName }}</dd></div>
+						</dl>
+					</section>
+
+					<section class="mt-8 scroll-mt-6" aria-labelledby="pickup-items-heading">
+						<div class="flex items-end justify-between gap-4">
+							<div><p class="text-xs font-semibold uppercase tracking-wide text-muted-fg">Prepare order</p><h2 id="pickup-items-heading" class="mt-1 text-xl font-semibold">{{ order.items.length }} pickup {{ order.items.length === 1 ? 'item' : 'items' }}</h2></div>
+							<DomStatusPill :tone="allItemsStaged ? 'success' : 'warning'" size="sm">{{ allItemsStaged ? 'All staged' : 'In preparation' }}</DomStatusPill>
 						</div>
 
-						<div class="rounded-2xl border border-border bg-secondary/50 p-4">
-							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Recent events</p>
-							<div class="mt-3 grid gap-3">
-								<div v-for="event in timeline" :key="event.label" class="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-3 text-sm">
-									<span class="font-semibold text-muted-fg">{{ event.time }}</span>
-									<span>
-										<span class="block font-medium">{{ event.label }}</span>
-										<span class="mt-0.5 block leading-5 text-muted-fg">{{ event.detail }}</span>
-									</span>
+						<div class="mt-5 divide-y divide-border border-y border-border">
+							<article v-for="item in order.items" :key="item.id" class="py-5">
+								<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+									<div class="min-w-0">
+										<div class="flex flex-wrap items-center gap-2"><h3 class="font-semibold">{{ item.name }}</h3><DomStatusPill :tone="item.ready ? 'success' : 'warning'" size="sm">{{ item.statusLabel }}</DomStatusPill></div>
+										<p class="mt-1 text-sm text-muted-fg">{{ item.detail }} · Qty {{ item.quantity }}</p>
+										<p class="mt-2 text-sm leading-6 text-muted-fg">{{ item.note }}</p>
+										<div v-if="item.substitution" class="mt-3 rounded-lg bg-warning/10 px-3 py-2 text-sm"><span class="font-semibold">Replacement:</span> {{ item.substitution.name }} · {{ item.substitution.priceDifference }}</div>
+									</div>
+									<DomButton
+										v-if="!isComplete"
+										variant="secondary"
+										size="sm"
+										:loading="stagingItemId === item.id"
+										:aria-label="`${item.ready ? 'Return' : 'Mark'} ${item.name} ${item.ready ? 'to preparation' : 'as staged'}`"
+										@click="toggleItemStage(item)"
+									>{{ item.ready ? 'Return to prep' : 'Mark staged' }}</DomButton>
 								</div>
-							</div>
+							</article>
 						</div>
+					</section>
+
+					<section class="mt-8" aria-labelledby="pickup-activity-heading">
+						<p class="text-xs font-semibold uppercase tracking-wide text-muted-fg">Live activity</p>
+						<h2 id="pickup-activity-heading" class="mt-1 text-xl font-semibold">Latest handoff events</h2>
+						<ol class="mt-4 divide-y divide-border border-y border-border">
+							<li v-for="event in order.events.slice(0, 5)" :key="event.id" class="grid grid-cols-[4rem_minmax(0,1fr)] gap-3 py-3 text-sm">
+								<time class="font-medium text-muted-fg">{{ event.time }}</time>
+								<div><p class="font-semibold">{{ event.label }}</p><p class="mt-1 leading-6 text-muted-fg">{{ event.detail }} · {{ event.actor }}</p></div>
+							</li>
+						</ol>
 					</section>
 				</div>
 
-				<footer class="sticky bottom-0 border-t border-border bg-canvas/95 p-4 shadow-[0_-18px_45px_rgba(15,23,42,0.12)] backdrop-blur">
-					<div v-if="lastAction" class="mb-3 rounded-xl bg-secondary/70 px-3 py-2 text-sm text-muted-fg">
-						{{ lastAction }}
-					</div>
-					<div class="grid gap-3">
-						<div class="grid gap-2">
-							<div v-for="check in requiredChecks" :key="check.label" class="flex items-start gap-3 text-sm">
-								<span
-									class="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full text-[10px] font-bold"
-									:class="check.passed ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'"
-								>
-									{{ check.passed ? 'OK' : '!' }}
-								</span>
-								<span class="min-w-0">
-									<span class="block font-medium">{{ check.label }}</span>
-									<span class="block leading-5 text-muted-fg">{{ check.detail }}</span>
-								</span>
-							</div>
-						</div>
-						<DomButton class="w-full" :disabled="handoffComplete" @click="completeHandoff">
-							{{ primaryLabel }}
-						</DomButton>
-					</div>
-				</footer>
-			</section>
+				<aside class="hidden lg:block lg:border-l lg:border-border lg:pl-8" aria-label="Pickup readiness">
+					<div class="lg:sticky lg:top-6">
+						<template v-if="order.proof">
+							<DomAlert tone="success" title="Handoff proof recorded" :description="`${order.proof.completedAt} · ${order.proof.staffName}`" />
+							<dl class="mt-5 divide-y divide-border border-y border-border text-sm">
+								<div class="flex justify-between gap-4 py-3"><dt class="text-muted-fg">Verification</dt><dd class="text-right font-medium">{{ order.proof.verificationMethod }}</dd></div>
+								<div class="flex justify-between gap-4 py-3"><dt class="text-muted-fg">Handoff</dt><dd class="text-right font-medium">{{ order.proof.handoffMode }}</dd></div>
+								<div class="flex justify-between gap-4 py-3"><dt class="text-muted-fg">Location</dt><dd class="text-right font-medium">{{ order.proof.spot }}</dd></div>
+							</dl>
+						</template>
 
-			<aside class="grid gap-4">
-				<section class="overflow-hidden rounded-3xl border border-border bg-canvas shadow-2xl shadow-black/10">
-					<div class="border-b border-border skin-card p-5">
-						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Handoff snapshot</p>
-						<h3 class="mt-1 text-xl font-semibold tracking-tight">Order is {{ statusLabel.toLowerCase() }}</h3>
-						<p class="mt-2 text-sm leading-6 text-muted-fg">A companion summary for larger screens, store displays, or embedded staff workflows.</p>
-					</div>
-
-					<div class="grid gap-4 p-5">
-						<div class="grid gap-3 rounded-2xl border border-border bg-secondary/40 p-4">
-							<div class="flex items-center justify-between gap-3">
-								<span class="text-sm font-medium text-muted-fg">Customer</span>
-								<span class="font-semibold">Maya Chen</span>
-							</div>
-							<div class="flex items-center justify-between gap-3">
-								<span class="text-sm font-medium text-muted-fg">Pickup spot</span>
-								<span class="font-semibold">{{ bay }}</span>
-							</div>
-							<div class="flex items-center justify-between gap-3">
-								<span class="text-sm font-medium text-muted-fg">Method</span>
-								<span class="font-semibold">{{ arrivalMethod }}</span>
-							</div>
-						</div>
-
-						<div class="grid gap-3">
-							<div v-for="check in requiredChecks" :key="`desktop-${check.label}`" class="rounded-2xl border border-border bg-canvas p-4">
-								<div class="flex items-start justify-between gap-3">
-									<div class="min-w-0">
-										<p class="font-semibold">{{ check.label }}</p>
-										<p class="mt-1 text-sm leading-6 text-muted-fg">{{ check.detail }}</p>
-									</div>
-									<span
-										class="rounded-full px-2.5 py-1 text-xs font-semibold"
-										:class="check.passed ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'"
-									>
-										{{ check.passed ? 'Passed' : 'Open' }}
-									</span>
+						<template v-else>
+							<p class="text-xs font-semibold uppercase tracking-wide text-muted-fg">Handoff checklist</p>
+							<h2 class="mt-1 text-xl font-semibold">{{ openChecks.length }} {{ openChecks.length === 1 ? 'check' : 'checks' }} remaining</h2>
+							<div class="mt-4 divide-y divide-border border-y border-border">
+								<div v-for="check in order.checks" :key="check.key" class="flex items-start gap-3 py-3">
+									<DomStatusPill :tone="check.passed ? 'success' : 'warning'" size="sm">{{ check.passed ? 'Done' : 'Open' }}</DomStatusPill>
+									<div><p class="text-sm font-semibold">{{ check.label }}</p><p class="mt-1 text-xs leading-5 text-muted-fg">{{ check.detail }}</p></div>
 								</div>
 							</div>
-						</div>
+							<div class="mt-5 flex items-center gap-3 border-b border-border pb-5"><DomAvatar :name="order.staff.name" :initials="order.staff.initials" size="md" /><div><p class="text-sm font-semibold">{{ order.staff.name }}</p><p class="text-xs text-muted-fg">{{ order.staff.role }}</p></div></div>
+							<div class="mt-5 grid gap-2"><DomButton class="w-full" :loading="isCompleting" @click="handlePrimaryAction">{{ primaryLabel }}</DomButton><DomButton variant="secondary" class="w-full" @click="openVerification">Verification details</DomButton></div>
+						</template>
 					</div>
-				</section>
+				</aside>
+			</div>
+		</main>
 
-				<section class="rounded-3xl border border-border bg-canvas p-5 shadow-2xl shadow-black/10">
-					<div class="flex items-start gap-3">
-						<div class="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
-							<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
-								<path d="M5 12h14M12 5v14M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-							</svg>
-						</div>
-						<div>
-							<h4 class="font-semibold">Builder notes</h4>
-							<p class="mt-2 text-sm leading-6 text-muted-fg">
-								Use this as a customer flow, staff kiosk, or embedded order-detail module. The state shape maps cleanly to grocery pickup, rental returns, pharmacy collection, and click-and-collect retail.
-							</p>
-						</div>
-					</div>
-				</section>
-			</aside>
+		<div v-if="order && !isComplete" class="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-canvas/95 px-4 py-3 backdrop-blur lg:hidden">
+			<DomButton class="w-full" :loading="isCompleting" @click="handlePrimaryAction">{{ primaryLabel }}</DomButton>
 		</div>
-	</div>
+
+		<DomDialog v-model="arrivalDialogOpen" title="Update customer arrival" description="Save the exact pickup location so staff can stage and hand off the order." size="md">
+			<form class="space-y-4" @submit.prevent="saveArrival">
+				<DomSelect v-model="arrivalMethod" label="Arrival method" :options="arrivalMethods" width="min-w-[22rem]" />
+				<DomSelect v-model="pickupSpot" label="Pickup spot" :options="pickupSpots" width="min-w-[22rem]" />
+				<DomTextareaInput v-model="arrivalNote" label="Arrival note" placeholder="Vehicle, accessibility, or loading detail" :rows="3" />
+			</form>
+			<template #footer><DomButton variant="ghost" @click="arrivalDialogOpen = false">Cancel</DomButton><DomButton :loading="isSavingArrival" :disabled="!arrivalDraftDirty" @click="saveArrival">Save arrival</DomButton></template>
+		</DomDialog>
+
+		<DomDialog v-model="verificationDialogOpen" title="Verify customer and preferences" description="These checks are validated by the pickup API before staff can complete the handoff." size="md">
+			<form class="space-y-4" @submit.prevent="saveVerification">
+				<DomConfirmationCodeInput
+					v-if="verificationCodeRequired"
+					v-model="pickupCode"
+					label="Four-digit pickup code"
+					description="Ask the customer for the code shown in their order confirmation."
+					:length="4"
+					:separator-after="0"
+					character-set="numeric"
+				/>
+				<DomAlert v-else tone="success" title="Pickup code verified" description="The code is already recorded for this order." />
+				<div v-if="substitutionItems.length" class="border-y border-border py-4">
+					<p class="text-sm font-semibold">{{ substitutionItems[0].substitution.name }}</p>
+					<p class="mt-1 text-sm text-muted-fg">Replacement for {{ substitutionItems[0].name }} · {{ substitutionItems[0].substitution.priceDifference }}</p>
+					<DomToggle v-model="substitutionsAccepted" class="mt-3" label="Customer accepts this substitution" />
+				</div>
+				<DomToggle v-if="order?.verification?.requiresIdCheck" v-model="idChecked" label="Photo ID checked" description="Confirm the customer meets the restricted-item requirement." />
+				<DomToggle v-model="contactless" label="Use contactless loading" description="Place the order in the customer’s vehicle without a device handoff." />
+			</form>
+			<template #footer>
+				<DomButton variant="ghost" @click="verificationDialogOpen = false">Cancel</DomButton>
+				<DomButton :loading="isSavingVerification" :disabled="!verificationCodeValid || !verificationDraftDirty" @click="saveVerification">Save verification</DomButton>
+			</template>
+		</DomDialog>
+	</section>
 </template>

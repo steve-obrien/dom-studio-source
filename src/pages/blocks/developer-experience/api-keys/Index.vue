@@ -12,7 +12,7 @@ import ApiKeyManagementConsoleSrc from './examples/ApiKeyManagementConsole.vue?r
 	<DomStudioLayout>
 		<DocPage
 			name="API Keys Block"
-			tagline="A responsive developer console for creating API credentials, tuning scopes, monitoring usage, and guiding safe key rotation."
+			tagline="A working credential-management section with one-time secret delivery, least-privilege scopes, staged rotation, audit evidence, and optimistic conflict recovery."
 			tag="Developer UI"
 			eyebrow="Blocks"
 		>
@@ -22,7 +22,7 @@ import ApiKeyManagementConsoleSrc from './examples/ApiKeyManagementConsole.vue?r
 					filename="ApiKeyManagementConsole.vue"
 					presentation="iframe"
 					frame-src="/blocks/developer-experience/api-keys/preview/ApiKeyManagementConsole"
-					description="Copy this into a developer dashboard, platform settings page, integration console, or admin surface. Replace the local arrays with credentials, usage, scope, and audit data from your API."
+					description="A full-height, responsive developer-settings section backed by repository API routes. Create, copy, edit, rotate, complete, revoke, reload, and reset credentials without replacing local placeholder arrays."
 					default-open
 					:preview-lines="14"
 				>
@@ -33,35 +33,38 @@ import ApiKeyManagementConsoleSrc from './examples/ApiKeyManagementConsole.vue?r
 			<DocSection eyebrow="Integration" title="How to use this block">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when builders need a practical credential surface that does more than list keys.
-						It puts creation, permissions, rotation, usage limits, audit history, and environment context in one copyable UI.
+						Use this block when developers need to manage a credential through its complete lifecycle rather than inspect a generated dashboard.
+						The inventory, policies, safe key details, audit events, validation errors, and one-time receipts all come from the included block-demo API.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>apiKeys</code> with masked credential records from your backend. Never send full secrets after creation.</li>
-						<li>Connect the create panel to an endpoint that returns the one-time visible secret and stores only a hash server-side.</li>
-						<li>Persist scope changes through a permission update endpoint, then refresh the selected key from the server response.</li>
-						<li>Wire revoke, rotate, and copy actions to confirmation dialogs, audit events, and toast notifications in your app shell.</li>
+						<li><code>POST /api/block-demos/api-keys/keys</code> validates policy, stores only a SHA-256 hash, and returns the full secret once.</li>
+						<li>Permission, rotation, completion, and revocation routes require the loaded revision so stale writes recover from server state.</li>
+						<li>Production credentials require HTTPS origins, and the critical key-administration scope requires separate acknowledgement.</li>
+						<li>The full-height composition owns its scrolling and switches between focused keys, details, and security views inside narrow iframes.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended API key shape">
-				<CodeBlock lang="js" filename="api-key.js" :code="`{
-\tid: 'key_live_checkout',
-\tname: 'Production checkout',
-\tprefix: 'dom_live_9f2a',
-\tenvironment: 'Production',
-\tstatus: 'Active',
-\tcreatedAt: '2026-05-18',
-\tlastUsedAt: '2 minutes ago',
-\texpiresAt: 'Aug 18, 2026',
-\towner: 'Maya Chen',
-\tscopes: ['read:customers', 'write:checkout'],
-\tusage: { requests: 48200, limit: 75000, errorRate: '0.04%' },
-\tallowedOrigins: ['https://app.example.com'],
-\tauditEvents: [
-\t\t{ label: 'Scope updated', actor: 'Maya Chen', time: 'Today 09:42' }
-\t]
+			<DocSection eyebrow="API" title="Server response contract">
+				<CodeBlock lang="js" filename="api-key-response.js" :code="`{
+\tok: true,
+\tmessage: 'API key created. Copy the secret now; it cannot be shown again.',
+\tkey: {
+\t\tid: 'key-844',
+\t\tname: 'Production checkout',
+\t\tprefix: 'dom_live_9f2a',
+\t\tenvironment: 'production',
+\t\tstatus: 'active',
+\t\trevision: 1,
+\t\tscopes: ['customers:read', 'checkout:write'],
+\t\torigins: ['https://app.example.com'],
+\t\tfingerprint: '91C3:40B1:7A29:E6DD'
+\t},
+\tsecretReceipt: {
+\t\tid: 'secret-receipt-1223',
+\t\tsecret: 'dom_live_...',
+\t\tmessage: 'This secret is available in this response only.'
+\t}
 }`" />
 			</DocSection>
 
@@ -69,15 +72,15 @@ import ApiKeyManagementConsoleSrc from './examples/ApiKeyManagementConsole.vue?r
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Secret handling</h3>
-						<p class="mt-2">Show a full secret only once after creation. Use masked prefixes for every later render.</p>
+						<p class="mt-2">The server returns full secret material only in create and rotate receipts. Every later response contains a masked prefix and verification fingerprint.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Scope model</h3>
-						<p class="mt-2">Treat scopes as backend policy, not just UI state. Keep destructive scopes behind additional confirmation.</p>
+						<p class="mt-2">Scope, origin, lifetime, and acknowledgement rules are enforced in the API, then rendered through DOM Studio validation states.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include reusable secret reveal, IP allowlist editor, webhook tester, and key rotation dialogs.</p>
+						<h3 class="font-semibold text-canvas-fg">Production adaptation</h3>
+						<p class="mt-2">Replace the process-local demo store with your credential vault, authentication, rate limits, and organization-level authorization while preserving the response boundary.</p>
 					</div>
 				</div>
 			</DocSection>

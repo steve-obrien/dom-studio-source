@@ -12,8 +12,8 @@ import UsageLimitManagerSrc from './examples/UsageLimitManager.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Usage Limits Block"
-			tagline="A responsive SaaS admin surface for quota configuration, overage policy, customer exceptions, alerting, and billing guardrails."
-			tag="Monetization UI"
+			tagline="A working usage-governance section for forecasting customer impact, editing enforcement policy, proving alert delivery, approving exceptions, and publishing one versioned runtime contract."
+			tag="API-backed governance"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Monetization" title="Usage limit manager">
@@ -22,74 +22,58 @@ import UsageLimitManagerSrc from './examples/UsageLimitManager.vue?raw';
 					filename="UsageLimitManager.vue"
 					presentation="iframe"
 					frame-src="/blocks/monetization/usage-limits/preview/UsageLimitManager"
-					description="Copy this into a billing admin, plan settings page, customer success console, or internal revenue operations tool. Replace the local plan, meter, exception, and audit arrays with your product usage API data."
+					description="Use this Vercel- and Stripe-inspired operations section when product, finance, and customer teams need one auditable path from a metered policy edit to runtime enforcement."
 					default-open
-					:preview-lines="14"
+					:preview-lines="18"
 				>
 					<UsageLimitManager />
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Working journey" title="What this example proves">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when your product sells metered usage and admins need a clear place to set limits before customers hit billing or service surprises.
-						It works for AI credits, workflow runs, seats, storage, messages, API requests, and other product meters.
+						The example is a complete repository-local application section, not a client-only quota screenshot. It loads one server-owned policy workspace and keeps the exact revision attached to impact, notification, approval, validation, and release evidence.
 					</p>
-					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>plans</code> with plan or workspace records from your billing and entitlement service.</li>
-						<li>Replace <code>meters</code> with server-defined usage meters so labels, units, hard caps, and reset windows stay consistent.</li>
-						<li>Persist limit edits through a policy endpoint that validates plan maximums, customer overrides, and billing permissions.</li>
-						<li>Connect exception rows to customer success approvals so temporary increases have owners, expiry dates, and audit history.</li>
-						<li>Send alert thresholds to your notification system so account owners get warnings before usage is blocked or charged.</li>
-					</ul>
+					<ol class="list-decimal space-y-2 pl-5">
+						<li>Select a plan and meter, then edit its hard limit, warning threshold, enforcement action, grace window, approval rule, and notification channels.</li>
+						<li>Save with optimistic revision protection and calculate server-owned account, forecast, billing, and interruption impact.</li>
+						<li>Send a safe threshold test through the configured channels and bind the delivery receipt to the saved revision.</li>
+						<li>Request and decide finance approval when an edit crosses a manual guardrail or can interrupt customer usage.</li>
+						<li>Create independently revisioned customer exceptions with owners, expiry dates, reasons, and approval decisions.</li>
+						<li>Run authoritative checks, acknowledge customer impact, publish an immutable receipt, and advance the usage gateway, billing meter, and notifications to version 6.</li>
+					</ol>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended limit policy shape">
-				<CodeBlock lang="js" filename="usage-limit-policy.js" :code="`{
-\tworkspaceId: 'wrk_northstar',
-\tplanId: 'growth',
-\tmeter: 'workflow_runs',
-\tunit: 'runs',
-\tperiod: 'monthly',
-\tlimit: 120000,
-\tsoftLimit: 96000,
-\toveragePolicy: 'charge',
-\toverageRate: 0.008,
-\tgracePeriodHours: 24,
-\talerts: {
-\t\tenabled: true,
-\t\tthresholds: [80, 95, 100],
-\t\trecipients: ['owner', 'billing_admin']
-\t},
-\texceptions: [
-\t\t{
-\t\t\tcustomerId: 'cus_arcadia',
-\t\t\tlimit: 180000,
-\t\t\texpiresAt: '2026-07-01',
-\t\t\tapprovedBy: 'Revenue ops'
-\t\t}
-\t],
-\tauditEvents: [
-\t\t{ label: 'Workflow run limit raised', actor: 'Maya Chen', time: 'Today 11:20' }
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Repository-local contract">
+				<CodeBlock lang="txt" filename="usage-limits-endpoints.txt" :code="`GET   /api/block-demos/usage-limits/bootstrap
+PATCH /api/block-demos/usage-limits/policies/:planId/:meterId
+POST  /api/block-demos/usage-limits/impact
+POST  /api/block-demos/usage-limits/notifications
+POST  /api/block-demos/usage-limits/approvals/request
+POST  /api/block-demos/usage-limits/approvals/:approvalId/decision
+POST  /api/block-demos/usage-limits/validate
+POST  /api/block-demos/usage-limits/exceptions
+POST  /api/block-demos/usage-limits/exceptions/:exceptionId/decision
+POST  /api/block-demos/usage-limits/publish
+POST  /api/block-demos/usage-limits/advance
+POST  /api/block-demos/usage-limits/reset`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
+			<DocSection eyebrow="Production boundary" title="What to replace in a real application">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Entitlements</h3>
-						<p class="mt-2">Treat the UI value as a draft until the backend confirms the plan cap, override scope, and billing authorization.</p>
+						<h3 class="font-semibold text-canvas-fg">Durable policy storage</h3>
+						<p class="mt-2">The demo store is process-local and deterministic. Replace it with transactional policy versions, authorization, durable audit events, and persisted optimistic revisions.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Customer safety</h3>
-						<p class="mt-2">Show soft limits, hard limits, alert thresholds, and grace windows together so teams understand the user impact of each rule.</p>
+						<h3 class="font-semibold text-canvas-fg">Usage and billing authority</h3>
+						<p class="mt-2">Replace the deterministic forecast and receipts with your usage ledger, billing provider, notification service, customer ownership, and finance approval systems.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include reusable meter charts, entitlement diff previews, approval routing, and forecast-based limit suggestions.</p>
+						<h3 class="font-semibold text-canvas-fg">Enforcement rollout</h3>
+						<p class="mt-2">Replace the deterministic worker steps with queued, idempotent propagation and reconciliation across the gateway, billing meter, notifications, rollback tooling, and incident monitoring.</p>
 					</div>
 				</div>
 			</DocSection>

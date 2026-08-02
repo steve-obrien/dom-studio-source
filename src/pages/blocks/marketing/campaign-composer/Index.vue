@@ -11,88 +11,67 @@ import CampaignComposerSrc from './examples/CampaignComposer.vue?raw';
 <template>
 	<DomStudioLayout>
 		<DocPage
-			name="Campaign Composer Block"
-			tagline="A responsive lifecycle campaign workspace for drafting messages, choosing audiences, previewing channels, scheduling sends, and reviewing launch checks."
-			tag="Marketing UI"
-			eyebrow="Blocks"
+			name="Campaign Operations Block"
+			tagline="A Customer.io- and HubSpot-inspired campaign section with versioned drafts, server-calculated audiences, launch checks, test delivery, scheduling, provider progress, and post-send results."
+			tag="API-backed"
+			eyebrow="Blocks / Marketing"
 		>
-			<DocSection eyebrow="Marketing" title="Campaign composer workspace">
+			<DocSection eyebrow="Working section" title="Campaign operations workspace">
 				<Example
 					:source="CampaignComposerSrc"
 					filename="CampaignComposer.vue"
 					presentation="iframe"
 					frame-src="/blocks/marketing/campaign-composer/preview/CampaignComposer"
-					description="Copy this into lifecycle marketing tools, SaaS admin consoles, creator platforms, ecommerce back offices, or internal growth tools. Replace the sample campaigns, segments, previews, and checks with your messaging API and audience service."
+					description="Open a draft, edit content, choose a rich DOM Studio audience, save with optimistic revision control, send a test, run server-owned checks, schedule delivery, advance the worker, and inspect results. The same section reflows into focused mobile tabs inside its iframe."
 					default-open
-					:preview-lines="18"
+					:preview-lines="22"
 				>
 					<CampaignComposer />
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
-				<div class="space-y-4 text-sm leading-7 text-muted-fg">
-					<p>
-						Use this block when a product team needs to compose and ship lifecycle messages without jumping between a campaign list, audience builder, previewer, and launch checklist.
-						The layout keeps campaign selection, message content, audience reach, channel previews, send safety, and activity visible in one copyable application section.
-					</p>
-					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>campaigns</code>, <code>segments</code>, <code>channels</code>, and <code>activity</code> with records from your campaign service.</li>
-						<li>Persist draft edits through autosave or an explicit save endpoint with subject, preheader, body, CTA, audience rules, channel options, and schedule state.</li>
-						<li>Generate previews server-side when personalization, localization, Liquid variables, or plan-specific copy can change the rendered message.</li>
-						<li>Keep launch checks backend-owned so policy, consent, suppression lists, frequency caps, and required approvals are enforced consistently.</li>
-						<li>Model send actions as jobs with queued, running, paused, failed, completed, and cancelled states so operators can trace every campaign launch.</li>
-					</ul>
+			<DocSection eyebrow="Complete journey" title="What the example actually does">
+				<div class="grid gap-px overflow-hidden rounded-lg border border-border bg-border text-sm leading-6 md:grid-cols-3">
+					<div class="bg-canvas p-5">
+						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-primary">1 · Compose</p>
+						<h3 class="mt-2 font-semibold text-canvas-fg">Revisioned campaign draft</h3>
+						<p class="mt-2 text-muted-fg">Message, verified sender, audience, exclusions, channels, schedule, and holdout are validated and persisted through the repository-local API.</p>
+					</div>
+					<div class="bg-canvas p-5">
+						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-primary">2 · Prove</p>
+						<h3 class="mt-2 font-semibold text-canvas-fg">Server-owned launch evidence</h3>
+						<p class="mt-2 text-muted-fg">Audience math, consent, sender, content, and delivery-window checks are bound to the exact saved revision. Tests return provider-style receipts.</p>
+					</div>
+					<div class="bg-canvas p-5">
+						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-primary">3 · Deliver</p>
+						<h3 class="mt-2 font-semibold text-canvas-fg">Traceable provider lifecycle</h3>
+						<p class="mt-2 text-muted-fg">Acknowledged launches create immutable receipts, per-channel dispatches move through delivery states, and completed campaigns expose useful results.</p>
+					</div>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended campaign payload">
-				<CodeBlock lang="js" filename="campaign-composer.js" :code="`{
-\tcampaign: {
-\t\tid: 'cmp_activation_042',
-\t\tname: 'Activation nudge',
-\t\tstatus: 'draft',
-\t\towner: 'Lifecycle',
-\t\tgoal: 'Increase workspace activation'
-\t},
-\tmessage: {
-\t\tsubject: 'Finish setting up your workspace',
-\t\tpreheader: 'Invite your team and connect your first project.',
-\t\tbody: 'Hi {{first_name}}, your workspace is almost ready.',
-\t\tcta: 'Continue setup'
-\t},
-\taudience: {
-\t\tsegments: ['trial_admins', 'invited_no_project'],
-\t\texclusions: ['unsubscribed', 'recently_messaged'],
-\t\testimatedReach: 18420
-\t},
-\tchannels: ['email', 'in_app'],
-\tschedule: {
-\t\tmode: 'scheduled',
-\t\tsendAt: '2026-06-12T09:00:00Z',
-\t\ttimezone: 'Europe/London'
-\t},
-\tchecks: [
-\t\t{ id: 'consent', label: 'Consent and suppression lists synced', status: 'passed' },
-\t\t{ id: 'frequency', label: 'Frequency cap within policy', status: 'warning' }
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Repository-local endpoints">
+				<CodeBlock lang="text" filename="campaign-composer-api.txt" :code="`GET   /api/block-demos/campaign-composer/campaigns
+GET   /api/block-demos/campaign-composer/:campaignId
+PATCH /api/block-demos/campaign-composer/:campaignId/draft
+POST  /api/block-demos/campaign-composer/:campaignId/test
+POST  /api/block-demos/campaign-composer/:campaignId/validate
+POST  /api/block-demos/campaign-composer/:campaignId/launch
+POST  /api/block-demos/campaign-composer/:campaignId/advance
+POST  /api/block-demos/campaign-composer/:campaignId/reset`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Audience logic</h3>
-						<p class="mt-2">Evaluate segment membership, exclusions, subscription consent, and frequency caps on the server. The UI should preview reach and explain policy blockers.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Preview fidelity</h3>
-						<p class="mt-2">Render real email, push, and in-app previews with personalization data, locale fallbacks, dark mode, and truncation warnings before sending.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Good follow-ups include reusable audience rule builders, template token pickers, A/B test variants, holdout groups, approval gates, and send job monitors.</p>
-					</div>
+			<DocSection eyebrow="Integration boundary" title="Moving this section into production">
+				<div class="space-y-4 text-sm leading-7 text-muted-fg">
+					<p>
+						The example is deliberately process-local and deterministic, so its complete journey works without credentials or customer data. A production implementation should preserve the UI contract while replacing the store with authenticated, organization-scoped persistence and real messaging infrastructure.
+					</p>
+					<ul class="grid gap-3 md:grid-cols-2">
+						<li class="border-l-2 border-primary pl-4"><strong class="text-canvas-fg">Audience service:</strong> evaluate membership, consent, suppression, frequency caps, and holdout from a durable snapshot taken at launch.</li>
+						<li class="border-l-2 border-primary pl-4"><strong class="text-canvas-fg">Delivery provider:</strong> render localized content, sign webhook callbacks, retry transient failures, and retain per-recipient evidence under an appropriate policy.</li>
+						<li class="border-l-2 border-primary pl-4"><strong class="text-canvas-fg">Authorization:</strong> enforce workspace roles, verified sending domains, approval gates, and separate test-recipient permissions on the server.</li>
+						<li class="border-l-2 border-primary pl-4"><strong class="text-canvas-fg">Observability:</strong> make idempotency keys, provider request IDs, worker attempts, immutable launch payloads, and attribution windows queryable.</li>
+					</ul>
 				</div>
 			</DocSection>
 		</DocPage>

@@ -1,144 +1,183 @@
 <script setup>
 import { computed } from 'vue';
-import { DomBadge, DomTooltip } from '@getdom/studio/vue';
+import { DomAvatar, DomBadge, DomButton, DomProgress, DomStatusPill } from '@getdom/studio/vue';
 
 const props = defineProps({
 	step: {
 		type: Object,
 		required: true,
 	},
-	accentColor: {
-		type: String,
-		default: '#2563eb',
-	},
-	previewMode: {
+	device: {
 		type: String,
 		default: 'desktop',
 	},
+	stepNumber: {
+		type: Number,
+		default: 1,
+	},
+	stepCount: {
+		type: Number,
+		default: 1,
+	},
+	previewSession: {
+		type: Object,
+		default: null,
+	},
 });
 
-defineEmits(['select-target']);
+const emit = defineEmits(['select-target', 'previous', 'next']);
 
-const targets = [
-	{ id: 'setup-card', label: 'Setup card', class: 'left-[8%] top-[24%] h-[30%] w-[39%]' },
-	{ id: 'invite-button', label: 'Invite button', class: 'right-[8%] top-[13%] h-10 w-32' },
-	{ id: 'connect-data', label: 'Connect data tile', class: 'right-[9%] top-[28%] h-[24%] w-[34%]' },
-	{ id: 'publish-workflow', label: 'Publish workflow button', class: 'left-[13%] bottom-[15%] h-11 w-44' },
-];
+const appFrameClass = computed(getAppFrameClass);
+const tooltipClass = computed(getTooltipClass);
+const progress = computed(getProgress);
 
-const activeTarget = computed(() => targets.find((target) => target.id === props.step.targetId) || targets[0]);
-const canvasStyle = computed(() => ({
-	'--tour-accent': props.accentColor,
-}));
-const tooltipPositionClass = computed(() => {
-	const placement = props.step.placement || 'bottom';
-	if (placement.startsWith('top')) return 'bottom-full left-1/2 mb-3 -translate-x-1/2';
-	if (placement.startsWith('start')) return 'right-full top-1/2 mr-3 -translate-y-1/2';
-	if (placement.startsWith('end')) return 'left-full top-1/2 ml-3 -translate-y-1/2';
-	return 'left-1/2 top-full mt-3 -translate-x-1/2';
-});
+/**
+ * Returns the app-frame width for the selected preview device.
+ *
+ * @returns {string} Responsive width classes.
+ */
+function getAppFrameClass() {
+	return props.device === 'mobile'
+		? 'w-[21rem] max-w-full min-h-[34rem]'
+		: 'w-full max-w-4xl min-h-[31rem]';
+}
+
+/**
+ * Positions the preview tooltip near the selected target.
+ *
+ * @returns {string} Absolute-position classes.
+ */
+function getTooltipClass() {
+	const targetClasses = {
+		'setup-card': props.device === 'mobile' ? 'left-5 top-[9.5rem]' : 'left-[8%] top-[10rem]',
+		'connect-data': props.device === 'mobile' ? 'left-5 top-[19rem]' : 'right-[8%] top-[11rem]',
+		'invite-button': props.device === 'mobile' ? 'right-4 top-[4.25rem]' : 'right-6 top-[4.4rem]',
+		'publish-workflow': props.device === 'mobile' ? 'left-5 bottom-16' : 'right-[9%] bottom-[4.5rem]',
+		'usage-insights': props.device === 'mobile' ? 'left-5 top-[7rem]' : 'left-[32%] top-[4.4rem]',
+	};
+	return targetClasses[props.step.targetId] || targetClasses['setup-card'];
+}
+
+/**
+ * Calculates preview progress for the active sequence position.
+ *
+ * @returns {number} Percentage from zero to one hundred.
+ */
+function getProgress() {
+	return Math.round((Math.max(1, props.stepNumber) / Math.max(1, props.stepCount)) * 100);
+}
+
+/**
+ * Emits a registered target selection from the app canvas.
+ *
+ * @param {string} targetId Target identifier.
+ * @returns {void}
+ */
+function selectTarget(targetId) {
+	emit('select-target', targetId);
+}
 </script>
 
 <template>
-	<section class="overflow-hidden rounded-lg border border-border skin-card" :style="canvasStyle">
-		<div class="flex flex-col gap-3 border-b border-border bg-canvas/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-			<div>
-				<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Live app preview</p>
-				<h2 class="mt-1 text-sm font-semibold text-canvas-fg">{{ step.title }}</h2>
+	<section class="flex min-h-0 flex-1 flex-col bg-secondary/30">
+		<div class="flex items-center justify-between gap-3 border-b border-border bg-canvas px-4 py-3">
+			<div class="min-w-0">
+				<p class="truncate text-sm font-semibold">Interactive app canvas</p>
+				<p class="truncate text-xs text-muted-fg">{{ step.route }} · {{ step.targetSelector }}</p>
 			</div>
-			<DomBadge tone="neutral" variant="outline">{{ previewMode }} preview</DomBadge>
+			<div class="flex items-center gap-2">
+				<DomStatusPill v-if="previewSession" tone="success" size="sm">Preview linked</DomStatusPill>
+				<DomBadge tone="neutral" variant="outline">{{ device }}</DomBadge>
+			</div>
 		</div>
 
-		<div class="bg-secondary/40 p-4 sm:p-6">
+		<div class="min-h-0 flex-1 overflow-auto p-4 sm:p-6">
 			<div
-				class="relative mx-auto min-h-[28rem] overflow-hidden rounded-lg border border-border bg-canvas shadow-xl shadow-black/10"
-				:class="previewMode === 'mobile' ? 'max-w-[21rem]' : 'max-w-5xl'"
+				class="relative mx-auto overflow-hidden rounded-xl border border-border bg-canvas shadow-2xl shadow-black/10"
+				:class="appFrameClass"
 			>
-				<div class="flex items-center justify-between border-b border-border px-4 py-3">
+				<header class="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+					<div class="flex min-w-0 items-center gap-3">
+						<DomAvatar name="Northstar" initials="N" shape="rounded" size="sm" />
+						<div class="min-w-0">
+							<p class="truncate text-sm font-semibold">Northstar Product</p>
+							<p class="truncate text-xs text-muted-fg">Activation workspace</p>
+						</div>
+					</div>
 					<div class="flex items-center gap-2">
-						<div class="size-8 rounded-lg bg-canvas-fg"></div>
+						<button
+							type="button"
+							data-tour="usage-insights"
+							class="hidden rounded-lg px-3 py-1.5 text-xs font-medium text-muted-fg hover:bg-secondary sm:block"
+							@click="selectTarget('usage-insights')"
+						>
+							Insights
+						</button>
+						<DomButton data-tour="invite-button" size="sm" variant="secondary" @click="selectTarget('invite-button')">Invite team</DomButton>
+					</div>
+				</header>
+
+				<div class="p-4 sm:p-5">
+					<div class="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
 						<div>
-							<p class="text-sm font-semibold text-canvas-fg">Northstar Workspace</p>
-							<p class="text-xs text-muted-fg">Activation dashboard</p>
+							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Workspace home</p>
+							<h2 class="mt-1 text-xl font-semibold tracking-tight">Good morning, Alex</h2>
 						</div>
+						<DomStatusPill tone="warning" size="sm">Trial · 9 days</DomStatusPill>
 					</div>
-					<div class="hidden items-center gap-2 sm:flex">
-						<span class="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-fg">Trial: 9 days</span>
-						<button type="button" class="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-canvas-fg">Invite team</button>
-					</div>
-				</div>
 
-				<div class="grid gap-4 p-4 md:grid-cols-[1.2fr_0.8fr]">
-					<div class="rounded-lg border border-border bg-canvas p-4">
-						<div class="flex items-start justify-between gap-4">
-							<div>
-								<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Setup checklist</p>
-								<h3 class="mt-2 text-xl font-semibold tracking-tight text-canvas-fg">Launch your first workflow</h3>
+					<div class="mt-5 grid gap-4" :class="device === 'mobile' ? 'grid-cols-1' : 'sm:grid-cols-[1.2fr_0.8fr]'">
+						<button
+							type="button"
+							data-tour="setup-card"
+							class="rounded-xl border border-border p-4 text-left transition hover:border-primary/40 hover:bg-secondary/30"
+							@click="selectTarget('setup-card')"
+						>
+							<div class="flex items-start justify-between gap-3">
+								<div><p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Setup checklist</p><h3 class="mt-2 text-lg font-semibold">Launch your first workflow</h3></div>
+								<DomBadge tone="success" variant="soft">68%</DomBadge>
 							</div>
-							<span class="rounded-full bg-success/15 px-2.5 py-1 text-xs font-semibold text-success">68%</span>
-						</div>
-						<div class="mt-5 grid gap-3">
-							<div class="rounded-lg border border-border p-3">
-								<p class="text-sm font-semibold text-canvas-fg">Connect your source data</p>
-								<p class="mt-1 text-xs leading-5 text-muted-fg">Sync events, customers, and account properties.</p>
+							<DomProgress class="mt-4" :value="68" label="Workspace setup" :show-label="false" size="sm" />
+							<p class="mt-4 text-sm leading-6 text-muted-fg">Two actions remain before this workspace is ready for its first customer journey.</p>
+						</button>
+
+						<div class="grid gap-4">
+							<div class="rounded-xl border border-border p-4">
+								<p class="text-sm font-semibold">Connect data</p>
+								<p class="mt-1 text-xs leading-5 text-muted-fg">Bring product events and account properties into Northstar.</p>
+								<DomButton data-tour="connect-data" class="mt-4" size="sm" @click="selectTarget('connect-data')">Connect source</DomButton>
 							</div>
-							<div class="rounded-lg border border-border p-3">
-								<p class="text-sm font-semibold text-canvas-fg">Invite the people who approve launches</p>
-								<p class="mt-1 text-xs leading-5 text-muted-fg">Add design, success, and engineering reviewers.</p>
+							<div class="rounded-xl border border-border p-4">
+								<p class="text-sm font-semibold">First workflow</p>
+								<p class="mt-1 text-xs leading-5 text-muted-fg">Turn the activation plan into a live customer journey.</p>
+								<DomButton data-tour="publish-workflow" class="mt-4" size="sm" variant="secondary" @click="selectTarget('publish-workflow')">Publish workflow</DomButton>
 							</div>
-						</div>
-					</div>
-					<div class="grid gap-4">
-						<div class="rounded-lg border border-border bg-canvas p-4">
-							<p class="text-sm font-semibold text-canvas-fg">Connect data</p>
-							<p class="mt-1 text-xs leading-5 text-muted-fg">Choose a warehouse, API stream, or product analytics source.</p>
-							<button type="button" class="mt-4 rounded-full bg-canvas-fg px-4 py-2 text-xs font-semibold text-canvas">Connect source</button>
-						</div>
-						<div class="rounded-lg border border-border bg-canvas p-4">
-							<p class="text-sm font-semibold text-canvas-fg">Publish workflow</p>
-							<p class="mt-1 text-xs leading-5 text-muted-fg">Send the first activation path to your trial admins.</p>
-							<button type="button" class="mt-4 rounded-full border border-border px-4 py-2 text-xs font-semibold">Publish workflow</button>
 						</div>
 					</div>
 				</div>
 
-				<button
-					v-for="target in targets"
-					:key="target.id"
-					type="button"
-					class="absolute rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-ring/60"
-					:class="[
-						target.class,
-						target.id === activeTarget.id ? 'ring-2 ring-[var(--tour-accent)] ring-offset-2 ring-offset-canvas' : 'ring-1 ring-transparent hover:ring-border',
-					]"
-					:aria-label="`Select ${target.label} as tour target`"
-					@click="$emit('select-target', target)"
-				></button>
-
-				<div :class="[activeTarget.class, 'pointer-events-none absolute']">
-					<div
-						class="absolute z-10 w-72 max-w-[calc(100vw-3rem)] rounded-lg border border-border bg-canvas p-4 text-left shadow-2xl shadow-black/15"
-						:class="tooltipPositionClass"
-					>
+				<div class="pointer-events-none absolute z-20 w-72 max-w-[calc(100%-2rem)]" :class="tooltipClass">
+					<div class="rounded-xl border border-primary/30 bg-canvas p-4 shadow-2xl shadow-black/20 ring-2 ring-primary/20">
 						<div class="flex items-start justify-between gap-3">
-							<div>
-								<p class="text-xs font-semibold uppercase tracking-[0.14em]" style="color: var(--tour-accent)">Step preview</p>
-								<h3 class="mt-1 text-sm font-semibold text-canvas-fg">{{ step.title }}</h3>
-							</div>
-							<DomTooltip text="This tooltip uses the selected placement from DomPositionInput.">
-								<span class="grid size-7 place-items-center rounded-full bg-secondary text-xs font-semibold text-muted-fg">?</span>
-							</DomTooltip>
+							<div><p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-primary">Step {{ stepNumber }} of {{ stepCount }}</p><h3 class="mt-1 text-sm font-semibold">{{ step.title }}</h3></div>
+							<DomBadge tone="neutral" variant="outline">{{ step.placement }}</DomBadge>
 						</div>
 						<p class="mt-2 text-sm leading-6 text-muted-fg">{{ step.body }}</p>
 						<div class="mt-4 flex items-center justify-between gap-3">
 							<span class="text-xs text-muted-fg">{{ step.targetLabel }}</span>
-							<button type="button" class="rounded-full px-3 py-1.5 text-xs font-semibold text-white" style="background: var(--tour-accent)">
-								{{ step.cta }}
-							</button>
+							<DomButton size="sm">{{ step.cta }}</DomButton>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+
+		<footer class="flex items-center justify-between gap-3 border-t border-border bg-canvas px-4 py-3">
+			<DomButton size="sm" variant="secondary" :disabled="stepNumber <= 1" @click="$emit('previous')">Previous</DomButton>
+			<div class="min-w-0 flex-1 px-3">
+				<DomProgress :value="progress" label="Tour sequence" :show-label="false" size="sm" />
+			</div>
+			<DomButton size="sm" variant="secondary" :disabled="stepNumber >= stepCount" @click="$emit('next')">Next</DomButton>
+		</footer>
 	</section>
 </template>

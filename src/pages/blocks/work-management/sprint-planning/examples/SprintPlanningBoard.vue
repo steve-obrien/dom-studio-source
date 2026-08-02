@@ -1,426 +1,622 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { DomButton, DomCard, DomNativeSelect, DomTabs, DomToggleButtonGroup } from '@getdom/studio/vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import {
+	DomAlert,
+	DomAppBottomNav,
+	DomAppShell,
+	DomAppTopBar,
+	DomAvatar,
+	DomBadge,
+	DomButton,
+	DomCheckbox,
+	DomDatePicker,
+	DomEmptyState,
+	DomProgress,
+	DomSelect,
+	DomSkeleton,
+	DomStatusPill,
+	DomTabs,
+	DomTextareaInput,
+} from '@getdom/studio/vue';
 
-const sprintOptions = [
-	{ label: 'Sprint 24', value: 'sprint-24' },
-	{ label: 'Sprint 25', value: 'sprint-25' },
-	{ label: 'Release hardening', value: 'release-hardening' },
+const apiBase = '/api/block-demos/sprint-planning';
+const reviewTabs = [
+	{ key: 'issue', label: 'Issue' },
+	{ key: 'commit', label: 'Commit' },
 ];
 
-const teamOptions = [
-	{ label: 'Core team', value: 'core' },
-	{ label: 'Growth', value: 'growth' },
-	{ label: 'Platform', value: 'platform' },
-];
+const workspace = ref(null);
+const catalog = ref({ sprints: [], teams: [], owners: [], estimates: [], priorities: [] });
+const sprint = ref(null);
+const backlog = ref([]);
+const activity = ref([]);
+const selectedIssueId = ref('');
+const selectedSprintId = ref('cycle_32');
+const selectedTeam = ref('product');
+const selectedPriority = ref('all');
+const activeView = ref('sprint');
+const reviewTab = ref('issue');
+const loading = ref(true);
+const busyAction = ref('');
+const errorMessage = ref('');
+const successMessage = ref('');
+const fieldErrors = ref({});
+const exactMove = ref(null);
+const exactPlan = ref(null);
+const moveReceipt = ref(null);
+const planReceipt = ref(null);
+const moveAcknowledged = ref(false);
+const planAcknowledged = ref(false);
 
-const viewOptions = [
-	{ label: 'Board', value: 'board' },
-	{ label: 'Risk', value: 'risk' },
-];
+const moveDraft = reactive({
+	ownerId: '',
+	estimate: '2',
+});
 
-const lanes = [
-	{ key: 'backlog', label: 'Backlog', description: 'Needs decision' },
-	{ key: 'ready', label: 'Ready', description: 'Scoped for sprint' },
-	{ key: 'active', label: 'In progress', description: 'Being built' },
-	{ key: 'review', label: 'Review', description: 'Needs validation' },
-];
+const planDraft = reactive({
+	goal: '',
+	startsOn: '',
+	endsOn: '',
+});
 
-const sprintIssues = [
-	{
-		id: 'APP-148',
-		title: 'Add workspace invite approval rules',
-		lane: 'ready',
-		priority: 'High',
-		type: 'Feature',
-		owner: 'Priya',
-		estimate: 5,
-		due: 'Jun 14',
-		confidence: 82,
-		blockers: ['Security review'],
-		tags: ['Admin', 'Growth'],
-		description: 'Let admins require approval before new domains join a workspace.',
-	},
-	{
-		id: 'APP-152',
-		title: 'Improve mobile billing receipt layout',
-		lane: 'backlog',
-		priority: 'Medium',
-		type: 'UX',
-		owner: 'Maya',
-		estimate: 3,
-		due: 'Jun 17',
-		confidence: 74,
-		blockers: [],
-		tags: ['Billing', 'Mobile'],
-		description: 'Make payment history and tax details easier to scan on narrow screens.',
-	},
-	{
-		id: 'APP-157',
-		title: 'Ship saved replies for support macros',
-		lane: 'active',
-		priority: 'High',
-		type: 'Feature',
-		owner: 'Sam',
-		estimate: 8,
-		due: 'Jun 13',
-		confidence: 68,
-		blockers: ['Migration review', 'Copy approval'],
-		tags: ['Support', 'Automation'],
-		description: 'Allow support teams to create, share, and apply reusable customer replies.',
-	},
-	{
-		id: 'APP-160',
-		title: 'Add usage alert threshold settings',
-		lane: 'ready',
-		priority: 'Low',
-		type: 'Enhancement',
-		owner: 'Jon',
-		estimate: 2,
-		due: 'Jun 18',
-		confidence: 91,
-		blockers: [],
-		tags: ['Settings', 'Billing'],
-		description: 'Notify account owners before they cross plan or seat limits.',
-	},
-	{
-		id: 'APP-166',
-		title: 'Review release checklist empty states',
-		lane: 'review',
-		priority: 'Medium',
-		type: 'QA',
-		owner: 'Lee',
-		estimate: 2,
-		due: 'Jun 12',
-		confidence: 88,
-		blockers: [],
-		tags: ['Release', 'QA'],
-		description: 'Verify that release checklist states are helpful when teams have no blockers.',
-	},
-	{
-		id: 'APP-171',
-		title: 'Backfill activity timeline events',
-		lane: 'active',
-		priority: 'Urgent',
-		type: 'Bug',
-		owner: 'Nora',
-		estimate: 5,
-		due: 'Jun 11',
-		confidence: 54,
-		blockers: ['Data export'],
-		tags: ['Activity', 'Data'],
-		description: 'Restore missing audit events for imports created before the new timeline schema.',
-	},
-];
+const allIssues = computed(() => [...(sprint.value?.issues || []), ...backlog.value]);
+const selectedIssue = computed(() => allIssues.value.find((issue) => issue.id === selectedIssueId.value) || null);
+const filteredBacklog = computed(() => backlog.value.filter((issue) => {
+	if (selectedPriority.value !== 'all' && issue.priority !== selectedPriority.value) return false;
+	if (selectedTeam.value === 'platform' && !issue.id.startsWith('PLAT')) return false;
+	if (selectedTeam.value === 'experience' && issue.id.startsWith('PLAT')) return false;
+	return true;
+}));
+const mobileNavigation = computed(() => [
+	{ value: 'backlog', label: 'Backlog', badge: String(backlog.value.length) },
+	{ value: 'sprint', label: 'Cycle', badge: String(sprint.value?.issueCount || 0) },
+	{ value: 'review', label: 'Review', badge: sprint.value?.status === 'committed' ? 'Done' : '' },
+]);
+const moveDestination = computed(() => selectedIssue.value?.bucket === 'sprint' ? 'backlog' : 'sprint');
+const canCommitMove = computed(() => Boolean(exactMove.value) && exactMove.value.blockingChecks.length === 0 && moveAcknowledged.value);
+const canCommitPlan = computed(() => Boolean(exactPlan.value) && exactPlan.value.blockingChecks.length === 0 && planAcknowledged.value);
 
-const selectedSprint = ref('sprint-24');
-const selectedTeam = ref('core');
-const activeView = ref('board');
-const activeLane = ref('ready');
-const selectedIssueId = ref('APP-148');
+onMounted(loadWorkspace);
 
-const selectedIssue = computed(() => sprintIssues.find((issue) => issue.id === selectedIssueId.value) || sprintIssues[0]);
-const selectedLane = computed(() => lanes.find((lane) => lane.key === activeLane.value) || lanes[0]);
-const totalEstimate = computed(() => sprintIssues.reduce((total, issue) => total + issue.estimate, 0));
-const blockedIssues = computed(() => sprintIssues.filter((issue) => issue.blockers.length));
-const reviewIssues = computed(() => sprintIssues.filter((issue) => issue.lane === 'review'));
-const laneTabs = computed(() => lanes.map((lane) => ({
-	key: lane.key,
-	label: `${lane.label} (${issuesForLane(lane.key).length})`,
-})));
+watch(() => [moveDraft.ownerId, moveDraft.estimate], () => {
+	exactMove.value = null;
+	moveAcknowledged.value = false;
+	fieldErrors.value = {};
+});
 
-function issuesForLane(laneKey) {
-	return sprintIssues.filter((issue) => issue.lane === laneKey);
+watch(planDraft, () => {
+	exactPlan.value = null;
+	planAcknowledged.value = false;
+	fieldErrors.value = {};
+}, { deep: true });
+
+/**
+ * Loads the authoritative sprint-planning workspace from the local API.
+ *
+ * @param {boolean} clearMessages Whether existing alerts should be cleared.
+ * @returns {Promise<void>}
+ */
+async function loadWorkspace(clearMessages = true) {
+	if (clearMessages) clearFeedback();
+	loading.value = true;
+	try {
+		const data = await requestJson(`${apiBase}/bootstrap`);
+		applyWorkspace(data, data.workspace.selectedIssueId);
+	} catch (requestError) {
+		errorMessage.value = requestError.message || 'Unable to load sprint planning.';
+	} finally {
+		loading.value = false;
+	}
 }
 
-function laneEstimate(laneKey) {
-	return issuesForLane(laneKey).reduce((total, issue) => total + issue.estimate, 0);
+/**
+ * Applies an authoritative workspace response without fabricating client state.
+ *
+ * @param {Record<string, unknown>} data Sprint-planning API payload.
+ * @param {string} preferredIssueId Issue to keep selected when available.
+ * @returns {void}
+ */
+function applyWorkspace(data, preferredIssueId = '') {
+	workspace.value = data.workspace;
+	catalog.value = data.catalog || catalog.value;
+	sprint.value = data.sprint;
+	backlog.value = data.backlog || [];
+	activity.value = data.activity || [];
+	const issueId = preferredIssueId || selectedIssueId.value || data.workspace?.selectedIssueId;
+	selectedIssueId.value = [...(data.sprint?.issues || []), ...(data.backlog || [])].some((issue) => issue.id === issueId)
+		? issueId
+		: data.sprint?.issues?.[0]?.id || data.backlog?.[0]?.id || '';
+	syncIssueDraft();
+	if (!planDraft.goal) syncPlanDraft();
 }
 
-function selectIssue(issue) {
+/**
+ * Copies the selected issue values into the move editor.
+ *
+ * @returns {void}
+ */
+function syncIssueDraft() {
+	if (!selectedIssue.value) return;
+	moveDraft.ownerId = selectedIssue.value.ownerId || '';
+	moveDraft.estimate = String(selectedIssue.value.estimate || 1);
+	exactMove.value = null;
+	moveReceipt.value = null;
+	moveAcknowledged.value = false;
+}
+
+/**
+ * Copies the persisted sprint goal and dates into the commitment editor.
+ *
+ * @returns {void}
+ */
+function syncPlanDraft() {
+	if (!sprint.value) return;
+	planDraft.goal = sprint.value.goal || '';
+	planDraft.startsOn = sprint.value.startsOn || '';
+	planDraft.endsOn = sprint.value.endsOn || '';
+	exactPlan.value = null;
+	planReceipt.value = sprint.value.commitReceipt || null;
+	planAcknowledged.value = false;
+}
+
+/**
+ * Selects an issue and opens its inspector on compact layouts.
+ *
+ * @param {Record<string, unknown>} issue Issue summary selected by the operator.
+ * @param {boolean} openInspector Whether to reveal the review destination.
+ * @returns {void}
+ */
+function selectIssue(issue, openInspector = false) {
 	selectedIssueId.value = issue.id;
-	activeLane.value = issue.lane;
+	reviewTab.value = 'issue';
+	syncIssueDraft();
+	clearFeedback();
+	if (openInspector) activeView.value = 'review';
 }
 
-function priorityClasses(priority) {
+/**
+ * Requests an exact server preview for moving the selected issue.
+ *
+ * @returns {Promise<void>}
+ */
+async function previewMove() {
+	if (!selectedIssue.value || !workspace.value || !sprint.value) return;
+	clearFeedback();
+	busyAction.value = 'preview-move';
+	try {
+		const data = await requestJson(`${apiBase}/issues/${selectedIssue.value.id}/preview-move`, {
+			method: 'POST',
+			body: JSON.stringify({
+				workspaceRevision: workspace.value.revision,
+				sprintVersion: sprint.value.version,
+				issueVersion: selectedIssue.value.version,
+				destination: moveDestination.value,
+				ownerId: moveDraft.ownerId,
+				estimate: Number(moveDraft.estimate),
+			}),
+		});
+		exactMove.value = data.preview;
+		moveAcknowledged.value = false;
+	} catch (requestError) {
+		applyRequestError(requestError, 'Unable to preview this scope move.');
+	} finally {
+		busyAction.value = '';
+	}
+}
+
+/**
+ * Commits the acknowledged issue move from its exact preview.
+ *
+ * @returns {Promise<void>}
+ */
+async function commitMove() {
+	if (!selectedIssue.value || !exactMove.value || !workspace.value || !sprint.value) return;
+	clearFeedback();
+	busyAction.value = 'commit-move';
+	try {
+		const data = await requestJson(`${apiBase}/issues/${selectedIssue.value.id}/move`, {
+			method: 'POST',
+			body: JSON.stringify({
+				workspaceRevision: workspace.value.revision,
+				sprintVersion: sprint.value.version,
+				issueVersion: selectedIssue.value.version,
+				previewChecksum: exactMove.value.checksum,
+				acknowledged: moveAcknowledged.value,
+			}),
+		});
+		applyWorkspace(data, data.selectedIssueId);
+		moveReceipt.value = data.receipt;
+		successMessage.value = data.receipt.to === 'sprint'
+			? `${data.receipt.issueId} is now in Cycle 32 with an audit receipt.`
+			: `${data.receipt.issueId} returned to the backlog.`;
+	} catch (requestError) {
+		applyRequestError(requestError, 'Unable to commit this scope move.');
+	} finally {
+		busyAction.value = '';
+	}
+}
+
+/**
+ * Requests the exact server-owned sprint commitment review.
+ *
+ * @returns {Promise<void>}
+ */
+async function previewPlan() {
+	if (!workspace.value || !sprint.value) return;
+	clearFeedback();
+	busyAction.value = 'preview-plan';
+	try {
+		const data = await requestJson(`${apiBase}/plan/preview`, {
+			method: 'POST',
+			body: JSON.stringify({
+				workspaceRevision: workspace.value.revision,
+				sprintVersion: sprint.value.version,
+				goal: planDraft.goal,
+				startsOn: planDraft.startsOn,
+				endsOn: planDraft.endsOn,
+			}),
+		});
+		exactPlan.value = data.preview;
+		planAcknowledged.value = false;
+	} catch (requestError) {
+		applyRequestError(requestError, 'Unable to prepare the sprint review.');
+	} finally {
+		busyAction.value = '';
+	}
+}
+
+/**
+ * Commits the exact acknowledged sprint plan and preserves its receipts.
+ *
+ * @returns {Promise<void>}
+ */
+async function commitPlan() {
+	if (!workspace.value || !sprint.value || !exactPlan.value) return;
+	clearFeedback();
+	busyAction.value = 'commit-plan';
+	try {
+		const data = await requestJson(`${apiBase}/plan/commit`, {
+			method: 'POST',
+			body: JSON.stringify({
+				workspaceRevision: workspace.value.revision,
+				sprintVersion: sprint.value.version,
+				previewChecksum: exactPlan.value.checksum,
+				acknowledged: planAcknowledged.value,
+			}),
+		});
+		applyWorkspace(data, selectedIssueId.value);
+		planReceipt.value = data.receipt;
+		exactPlan.value = null;
+		successMessage.value = `${data.sprint.name} committed with ${data.receipt.points} points.`;
+	} catch (requestError) {
+		applyRequestError(requestError, 'Unable to commit this sprint.');
+	} finally {
+		busyAction.value = '';
+	}
+}
+
+/**
+ * Opens the sprint commitment destination with the persisted draft values.
+ *
+ * @returns {void}
+ */
+function openPlanReview() {
+	reviewTab.value = 'commit';
+	activeView.value = 'review';
+	clearFeedback();
+}
+
+/**
+ * Restores the deterministic repository-local API state.
+ *
+ * @returns {Promise<void>}
+ */
+async function resetWorkspace() {
+	clearFeedback();
+	busyAction.value = 'reset';
+	try {
+		const data = await requestJson(`${apiBase}/reset`, { method: 'POST' });
+		planDraft.goal = '';
+		applyWorkspace(data, data.workspace.selectedIssueId);
+		exactMove.value = null;
+		exactPlan.value = null;
+		moveReceipt.value = null;
+		planReceipt.value = null;
+		activeView.value = 'sprint';
+		successMessage.value = 'The sprint-planning demo has been restored.';
+	} catch (requestError) {
+		applyRequestError(requestError, 'Unable to reset sprint planning.');
+	} finally {
+		busyAction.value = '';
+	}
+}
+
+/**
+ * Applies structured API errors to the page-level and field-level feedback.
+ *
+ * @param {Error & { fields?: Record<string, string[]> }} requestError Structured request error.
+ * @param {string} fallbackMessage Fallback message when the API omits one.
+ * @returns {void}
+ */
+function applyRequestError(requestError, fallbackMessage) {
+	fieldErrors.value = requestError.fields || {};
+	errorMessage.value = requestError.message || fallbackMessage;
+}
+
+/**
+ * Clears transient API feedback and structured field errors.
+ *
+ * @returns {void}
+ */
+function clearFeedback() {
+	errorMessage.value = '';
+	successMessage.value = '';
+	fieldErrors.value = {};
+}
+
+/**
+ * Sends a JSON request and preserves structured API error details.
+ *
+ * @param {string} url Request URL.
+ * @param {RequestInit} options Fetch options.
+ * @returns {Promise<Record<string, unknown>>} Parsed JSON response.
+ */
+async function requestJson(url, options = {}) {
+	const response = await fetch(url, {
+		headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+		...options,
+	});
+	const data = await response.json();
+	if (!response.ok) throw createRequestError(data, response.status);
+	return data;
+}
+
+/**
+ * Creates a request error with API field validation metadata.
+ *
+ * @param {Record<string, unknown>} data Error response payload.
+ * @param {number} status HTTP response status.
+ * @returns {Error & { status: number, fields: Record<string, string[]> }} Structured request error.
+ */
+function createRequestError(data, status) {
+	const error = new Error(data.message || `Request failed with status ${status}.`);
+	error.status = status;
+	error.fields = data.fields || {};
+	return error;
+}
+
+/**
+ * Returns the DOM Studio tone for an issue priority.
+ *
+ * @param {string} priority Stored issue priority.
+ * @returns {string} DOM Studio tone.
+ */
+function priorityTone(priority) {
 	return {
-		Urgent: 'bg-destructive/15 text-destructive',
-		High: 'bg-warning/15 text-warning',
-		Medium: 'bg-primary/15 text-primary',
-		Low: 'bg-secondary text-muted-fg',
-	}[priority] || 'bg-secondary text-muted-fg';
+		urgent: 'danger',
+		high: 'warning',
+		medium: 'info',
+		low: 'neutral',
+	}[priority] || 'neutral';
 }
 
-function confidenceClasses(confidence) {
-	if (confidence < 60) return 'bg-destructive';
-	if (confidence < 75) return 'bg-warning';
-	return 'bg-primary';
+/**
+ * Returns the DOM Studio tone for an issue readiness state.
+ *
+ * @param {string} readiness Stored issue readiness.
+ * @returns {string} DOM Studio tone.
+ */
+function readinessTone(readiness) {
+	return {
+		ready: 'success',
+		blocked: 'danger',
+		unassigned: 'warning',
+	}[readiness] || 'neutral';
 }
 </script>
 
 <template>
-	<div class="min-h-screen w-full bg-canvas text-canvas-fg">
-		<div class="mx-auto flex w-full max-w-7xl flex-col gap-4 p-3 sm:p-4 lg:p-6">
-			<header class="rounded-2xl border border-border skin-card p-4 shadow-xl shadow-black/5">
-				<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-					<div>
-						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Product planning</p>
-						<h3 class="mt-1 text-2xl font-semibold tracking-tight">Sprint scope board</h3>
-						<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">
-							Prioritize the next sprint, balance capacity, and spot delivery risk before work starts.
-						</p>
-					</div>
-					<div class="flex flex-wrap items-center gap-2">
-						<DomNativeSelect v-model="selectedSprint" :options="sprintOptions" class="w-44" />
-						<DomNativeSelect v-model="selectedTeam" :options="teamOptions" class="w-36" />
-						<DomButton size="sm">
-							<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-								<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-							</svg>
-							Add issue
-						</DomButton>
-					</div>
-				</div>
+	<DomAppShell variant="app" class="!h-dvh bg-canvas text-canvas-fg">
+		<template #top>
+			<DomAppTopBar
+				title="Cycle 32 planning"
+				:subtitle="sprint ? `${sprint.points} of ${sprint.capacity} points · ${sprint.issueCount} committed issues` : 'Product delivery'"
+			>
+				<template #leading>
+					<div class="grid size-9 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-fg" aria-hidden="true">NS</div>
+				</template>
+				<template #trailing>
+					<DomStatusPill v-if="sprint" :tone="sprint.status === 'committed' ? 'success' : 'warning'" size="sm">{{ sprint.status === 'committed' ? 'Committed' : 'Planning' }}</DomStatusPill>
+					<DomButton class="!hidden sm:!inline-flex" size="sm" variant="secondary" :loading="busyAction === 'reset'" @click="resetWorkspace">Reset demo</DomButton>
+				</template>
+			</DomAppTopBar>
+		</template>
 
-				<div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-					<div class="rounded-xl border border-border bg-canvas p-3">
-						<p class="text-xs text-muted-fg">Planned effort</p>
-						<p class="mt-1 text-2xl font-semibold">{{ totalEstimate }} pts</p>
-						<p class="mt-1 text-xs text-muted-fg">24 point team capacity</p>
-					</div>
-					<div class="rounded-xl border border-border bg-canvas p-3">
-						<p class="text-xs text-muted-fg">Release blockers</p>
-						<p class="mt-1 text-2xl font-semibold">{{ blockedIssues.length }}</p>
-						<p class="mt-1 text-xs text-muted-fg">Resolve before sprint close</p>
-					</div>
-					<div class="rounded-xl border border-border bg-canvas p-3">
-						<p class="text-xs text-muted-fg">Ready for QA</p>
-						<p class="mt-1 text-2xl font-semibold">{{ reviewIssues.length }}</p>
-						<p class="mt-1 text-xs text-muted-fg">Waiting on validation</p>
-					</div>
-					<div class="rounded-xl border border-border bg-canvas p-3">
-						<p class="text-xs text-muted-fg">Scope health</p>
-						<p class="mt-1 text-2xl font-semibold">92%</p>
-						<p class="mt-1 text-xs text-muted-fg">Based on estimate confidence</p>
-					</div>
-				</div>
-			</header>
+		<div class="relative h-full min-h-0 overflow-hidden">
+			<div v-if="errorMessage || successMessage" class="absolute inset-x-3 top-3 z-30 mx-auto max-w-2xl">
+				<DomAlert v-if="errorMessage" tone="danger" variant="toast" title="Planning needs attention" :description="errorMessage" dismissible @dismiss="errorMessage = ''" />
+				<DomAlert v-else tone="success" variant="toast" title="Planning updated" :description="successMessage" dismissible @dismiss="successMessage = ''" />
+			</div>
 
-			<div class="flex flex-wrap items-center justify-between gap-3">
-				<DomToggleButtonGroup v-model="activeView" :options="viewOptions" aria-label="Planning view" />
-				<div class="flex flex-wrap gap-2 text-xs text-muted-fg">
-					<span class="rounded-full border border-border bg-canvas px-2.5 py-1">6 issues</span>
-					<span class="rounded-full border border-border bg-canvas px-2.5 py-1">3 owners</span>
-					<span class="rounded-full border border-border bg-canvas px-2.5 py-1">Next release: Jun 20</span>
+			<div v-if="loading" class="grid h-full xl:grid-cols-[18rem_minmax(0,1fr)_23rem]">
+				<div v-for="column in 3" :key="column" class="space-y-3 border-r border-border p-4 last:border-r-0">
+					<DomSkeleton height="h-10" width="w-2/3" />
+					<DomSkeleton v-for="row in 7" :key="row" height="h-14" />
 				</div>
 			</div>
 
-			<section v-if="activeView === 'board'" class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-				<div class="hidden gap-3 lg:grid lg:grid-cols-4">
-					<section
-						v-for="lane in lanes"
-						:key="lane.key"
-						class="min-w-0 rounded-2xl border border-border skin-card p-3"
-					>
-						<div class="mb-3 flex items-start justify-between gap-3">
-							<div>
-								<h4 class="text-sm font-semibold">{{ lane.label }}</h4>
-								<p class="text-xs text-muted-fg">{{ lane.description }}</p>
-							</div>
-							<span class="rounded-full bg-secondary px-2 py-1 text-[11px] font-semibold text-muted-fg">
-								{{ laneEstimate(lane.key) }} pts
-							</span>
-						</div>
+			<DomEmptyState v-else-if="!workspace || !sprint" title="Planning workspace unavailable" description="Reload the repository-local API to restore the product-team sprint.">
+				<DomButton @click="loadWorkspace">Reload workspace</DomButton>
+			</DomEmptyState>
 
-						<div class="space-y-3">
-							<button
-								v-for="issue in issuesForLane(lane.key)"
-								:key="issue.id"
-								type="button"
-								class="w-full rounded-xl border bg-canvas p-3 text-left transition hover:border-primary/40 hover:shadow-md"
-								:class="issue.id === selectedIssue.id ? 'border-primary/60 ring-2 ring-primary/10' : 'border-border'"
-								@click="selectIssue(issue)"
-							>
-								<div class="flex items-start justify-between gap-2">
-									<span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ issue.id }}</span>
-									<span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="priorityClasses(issue.priority)">
-										{{ issue.priority }}
-									</span>
-								</div>
-								<p class="mt-3 text-sm font-semibold leading-5">{{ issue.title }}</p>
-								<p class="mt-2 line-clamp-2 text-xs leading-5 text-muted-fg">{{ issue.description }}</p>
-								<div class="mt-3 flex flex-wrap gap-1">
-									<span
-										v-for="tag in issue.tags"
-										:key="`${issue.id}-${tag}`"
-										class="rounded-full bg-secondary px-2 py-0.5 text-[11px] text-muted-fg"
-									>
-										{{ tag }}
-									</span>
-								</div>
-								<div class="mt-3 flex items-center justify-between text-xs text-muted-fg">
-									<span>{{ issue.owner }}</span>
-									<span>{{ issue.estimate }} pts / {{ issue.due }}</span>
-								</div>
-							</button>
+			<div v-else class="grid h-full min-h-0 min-w-0 grid-cols-1 overflow-hidden xl:grid-cols-[18rem_minmax(0,1fr)_23rem]">
+				<aside
+					class="h-full min-h-0 min-w-0 overflow-y-auto border-r border-border bg-muted/10"
+					:class="activeView === 'backlog' ? 'block' : 'hidden xl:block'"
+					aria-label="Product backlog"
+				>
+					<header class="border-b border-border p-4">
+						<div class="flex items-center justify-between gap-3">
+							<div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Candidate scope</p><h2 class="mt-1 text-lg font-semibold">Backlog</h2></div>
+							<DomBadge tone="neutral" variant="outline">{{ backlog.length }}</DomBadge>
+						</div>
+						<div class="mt-4 grid gap-3">
+							<DomSelect v-model="selectedTeam" label="Team" :options="catalog.teams" width="min-w-0">
+								<template #option="{ option }"><div><p class="font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-70">{{ option.description }}</p></div></template>
+							</DomSelect>
+							<DomSelect v-model="selectedPriority" label="Priority" :options="catalog.priorities" width="min-w-0" />
+						</div>
+					</header>
+
+					<div v-if="filteredBacklog.length" class="divide-y divide-border">
+						<button
+							v-for="issue in filteredBacklog"
+							:key="issue.id"
+							type="button"
+							class="w-full border-l-2 px-4 py-4 text-left transition hover:bg-secondary/40 focus-visible:outline-2 focus-visible:outline-ring"
+							:class="issue.id === selectedIssueId ? 'border-l-primary bg-secondary/45' : 'border-l-transparent'"
+							@click="selectIssue(issue, true)"
+						>
+							<div class="flex items-center justify-between gap-3"><span class="font-mono text-[11px] text-muted-fg">{{ issue.id }}</span><DomBadge :tone="priorityTone(issue.priority)" size="sm">{{ issue.priorityLabel }}</DomBadge></div>
+							<p class="mt-2 text-sm font-semibold leading-5">{{ issue.title }}</p>
+							<p class="mt-2 line-clamp-2 text-xs leading-5 text-muted-fg">{{ issue.description }}</p>
+							<div class="mt-3 flex items-center justify-between gap-3 text-[11px] text-muted-fg"><span>{{ issue.ownerName }}</span><span>{{ issue.estimate }} pts</span></div>
+						</button>
+					</div>
+					<DomEmptyState v-else compact title="No matching candidates" description="Change the team or priority filter to reveal more backlog work." />
+				</aside>
+
+				<main
+					class="flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-canvas"
+					:class="activeView === 'sprint' ? 'flex' : 'hidden xl:flex'"
+					aria-labelledby="sprint-heading"
+				>
+					<header class="shrink-0 border-b border-border px-4 py-4 sm:px-6">
+						<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+							<div class="min-w-0 flex-1">
+								<div class="flex flex-wrap items-center gap-2"><DomBadge tone="neutral" variant="outline">v{{ sprint.version }}</DomBadge><DomBadge :tone="sprint.status === 'committed' ? 'success' : 'warning'" variant="soft">{{ sprint.status }}</DomBadge></div>
+								<h1 id="sprint-heading" class="mt-3 text-xl font-semibold tracking-tight sm:text-2xl">{{ sprint.name }}</h1>
+								<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">{{ sprint.goal }}</p>
+							</div>
+							<div class="grid shrink-0 gap-3 sm:grid-cols-2 lg:w-[25rem]">
+								<DomSelect v-model="selectedSprintId" label="Iteration" :options="catalog.sprints" width="min-w-0">
+									<template #option="{ option }"><div><p class="font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-70">{{ option.description }}</p></div></template>
+								</DomSelect>
+								<DomButton class="w-full self-end lg:w-auto" @click="openPlanReview">Review commitment</DomButton>
+							</div>
+						</div>
+					</header>
+
+					<section class="shrink-0 border-b border-border bg-primary/5 px-4 py-4 sm:px-6" aria-label="Sprint capacity">
+						<div class="flex flex-wrap items-end justify-between gap-4">
+							<div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Forecast capacity</p><p class="mt-1 text-2xl font-semibold">{{ sprint.points }} <span class="text-sm font-normal text-muted-fg">/ {{ sprint.capacity }} points</span></p></div>
+							<div class="text-right"><p class="text-sm font-semibold">{{ sprint.remaining }} points open</p><p class="mt-1 text-xs text-muted-fg">Velocity: {{ sprint.velocity.join(' · ') }}</p></div>
+						</div>
+						<DomProgress class="mt-3" :value="sprint.capacityPercent" size="sm" :tone="sprint.capacityPercent > 100 ? 'danger' : sprint.capacityPercent > 85 ? 'warning' : 'success'" />
+						<div class="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+							<div v-for="owner in sprint.capacityRows" :key="owner.id" class="min-w-0">
+								<div class="flex items-center gap-2"><DomAvatar :name="owner.name" :initials="owner.initials" size="xs" /><div class="min-w-0"><p class="truncate text-xs font-semibold">{{ owner.name }}</p><p class="text-[10px] text-muted-fg">{{ owner.planned }}/{{ owner.capacity }} pts</p></div></div>
+								<DomProgress class="mt-2" :value="owner.percent" size="xs" :tone="owner.percent > 100 ? 'danger' : 'primary'" />
+							</div>
 						</div>
 					</section>
-				</div>
 
-				<div class="lg:hidden">
-					<DomTabs v-model="activeLane" :tabs="laneTabs">
-						<template
-							v-for="lane in lanes"
-							:key="lane.key"
-							#[lane.key]
+					<div class="min-h-0 flex-1 overflow-y-auto">
+						<div class="hidden grid-cols-[5rem_minmax(12rem,1fr)_7rem_6rem_6rem] gap-3 border-b border-border bg-muted/15 px-6 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-fg md:grid">
+							<span>Issue</span><span>Committed scope</span><span>Owner</span><span>Readiness</span><span class="text-right">Estimate</span>
+						</div>
+						<button
+							v-for="issue in sprint.issues"
+							:key="issue.id"
+							type="button"
+							class="grid w-full gap-3 border-b border-border px-4 py-4 text-left transition hover:bg-secondary/35 focus-visible:outline-2 focus-visible:outline-ring sm:px-6 md:grid-cols-[5rem_minmax(12rem,1fr)_7rem_6rem_6rem] md:items-center md:py-3"
+							:class="issue.id === selectedIssueId ? 'bg-secondary/30' : ''"
+							@click="selectIssue(issue, true)"
 						>
-							<div class="space-y-3 rounded-2xl border border-border skin-card p-3">
-								<div class="flex items-start justify-between gap-3">
-									<div>
-										<h4 class="text-sm font-semibold">{{ selectedLane.label }}</h4>
-										<p class="text-xs text-muted-fg">{{ selectedLane.description }}</p>
-									</div>
-									<span class="rounded-full bg-secondary px-2 py-1 text-[11px] font-semibold text-muted-fg">
-										{{ laneEstimate(lane.key) }} pts
-									</span>
-								</div>
-								<button
-									v-for="issue in issuesForLane(lane.key)"
-									:key="issue.id"
-									type="button"
-									class="w-full rounded-xl border bg-canvas p-3 text-left transition hover:border-primary/40"
-									:class="issue.id === selectedIssue.id ? 'border-primary/60 ring-2 ring-primary/10' : 'border-border'"
-									@click="selectIssue(issue)"
-								>
-									<div class="flex items-start justify-between gap-2">
-										<span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ issue.id }}</span>
-										<span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="priorityClasses(issue.priority)">
-											{{ issue.priority }}
-										</span>
-									</div>
-									<p class="mt-3 text-sm font-semibold leading-5">{{ issue.title }}</p>
-									<p class="mt-2 text-xs leading-5 text-muted-fg">{{ issue.description }}</p>
-								</button>
+							<div class="flex items-center justify-between md:block"><span class="font-mono text-xs text-muted-fg">{{ issue.id }}</span><DomBadge class="md:mt-2" :tone="priorityTone(issue.priority)" size="sm">{{ issue.priorityLabel }}</DomBadge></div>
+							<div class="min-w-0"><p class="truncate text-sm font-semibold">{{ issue.title }}</p><p class="mt-1 truncate text-xs text-muted-fg">{{ issue.project }} · {{ issue.labels.join(' · ') }}</p></div>
+							<p class="text-xs text-muted-fg">{{ issue.ownerName }}</p>
+							<DomStatusPill :tone="readinessTone(issue.readiness)" size="sm">{{ issue.readiness }}</DomStatusPill>
+							<p class="text-right text-sm font-semibold">{{ issue.estimate }} pts</p>
+						</button>
+					</div>
+
+					<footer class="hidden shrink-0 border-t border-border px-6 py-3 2xl:block">
+						<div class="flex items-center justify-between gap-4"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Planning activity</p><span class="text-[11px] text-muted-fg">r{{ workspace.revision }}</span></div>
+						<div class="mt-2 grid gap-3 md:grid-cols-3"><div v-for="event in activity.slice(0, 3)" :key="event.id" class="min-w-0 border-l border-border pl-3"><p class="truncate text-xs font-semibold">{{ event.title }}</p><p class="mt-1 truncate text-[11px] text-muted-fg">{{ event.actor }} · {{ event.time }}</p></div></div>
+					</footer>
+				</main>
+
+				<aside
+					class="flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-l border-border bg-muted/10"
+					:class="activeView === 'review' ? 'flex' : 'hidden xl:flex'"
+					aria-label="Sprint review"
+				>
+					<DomTabs v-model="reviewTab" :tabs="reviewTabs" variant="page" fill class="min-h-0 flex-1">
+						<template #issue>
+							<div v-if="selectedIssue" class="h-full min-h-0 overflow-y-auto p-4">
+								<template v-if="moveReceipt">
+									<DomAlert tone="success" title="Scope updated" :description="`${moveReceipt.issueId} moved from ${moveReceipt.from} to ${moveReceipt.to}.`" />
+									<dl class="mt-4 divide-y divide-border border-y border-border text-sm"><div class="py-3"><dt class="text-xs text-muted-fg">Audit receipt</dt><dd class="mt-1 font-mono text-xs">{{ moveReceipt.auditReceipt }}</dd></div><div class="py-3"><dt class="text-xs text-muted-fg">Exact preview</dt><dd class="mt-1 truncate font-mono text-xs">{{ moveReceipt.previewChecksum }}</dd></div><div class="py-3"><dt class="text-xs text-muted-fg">Sprint version</dt><dd class="mt-1 font-semibold">v{{ moveReceipt.sprintVersion }}</dd></div></dl>
+									<DomButton class="mt-4 w-full" variant="secondary" @click="moveReceipt = null">Review issue</DomButton>
+								</template>
+
+								<template v-else-if="exactMove">
+									<div class="flex items-start justify-between gap-3"><div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Exact scope preview</p><h2 class="mt-1 text-lg font-semibold">{{ exactMove.destination === 'sprint' ? 'Add to Cycle 32' : 'Return to backlog' }}</h2></div><DomBadge tone="neutral" variant="outline">{{ exactMove.currentPoints }} → {{ exactMove.nextPoints }}</DomBadge></div>
+									<div class="mt-4 border-y border-border py-4"><p class="text-sm font-semibold">{{ selectedIssue.id }} · {{ selectedIssue.title }}</p><p class="mt-2 text-xs leading-5 text-muted-fg">{{ exactMove.ownerName }} · {{ exactMove.estimate }} points · capacity {{ exactMove.nextPoints }}/{{ exactMove.capacity }}</p><p class="mt-2 truncate font-mono text-[10px] text-muted-fg">{{ exactMove.checksum }}</p></div>
+									<div class="mt-4 space-y-3"><div v-for="check in exactMove.checks" :key="check.key" class="flex items-start justify-between gap-3 text-sm"><span>{{ check.label }}</span><DomStatusPill :tone="check.passed ? 'success' : 'danger'" size="sm">{{ check.passed ? 'Passed' : 'Blocked' }}</DomStatusPill></div></div>
+									<DomCheckbox v-model="moveAcknowledged" class="mt-5" label="Commit this exact move" description="I reviewed ownership, estimate, dependencies, capacity, and the immutable issue version." :errors="fieldErrors.acknowledged || []" />
+									<DomButton class="mt-4 w-full" :disabled="!canCommitMove" :loading="busyAction === 'commit-move'" @click="commitMove">Commit scope change</DomButton>
+									<DomButton class="mt-2 w-full" variant="ghost" @click="exactMove = null">Back to issue</DomButton>
+								</template>
+
+								<template v-else>
+									<div class="flex items-start justify-between gap-3"><div><p class="font-mono text-xs text-muted-fg">{{ selectedIssue.id }} · v{{ selectedIssue.version }}</p><h2 class="mt-2 text-lg font-semibold leading-6">{{ selectedIssue.title }}</h2></div><DomBadge :tone="priorityTone(selectedIssue.priority)">{{ selectedIssue.priorityLabel }}</DomBadge></div>
+									<p class="mt-3 text-sm leading-6 text-muted-fg">{{ selectedIssue.description }}</p>
+									<div class="mt-4 flex flex-wrap gap-2"><DomStatusPill :tone="readinessTone(selectedIssue.readiness)" size="sm">{{ selectedIssue.readiness }}</DomStatusPill><DomBadge v-for="label in selectedIssue.labels" :key="label" tone="neutral" variant="outline">{{ label }}</DomBadge></div>
+									<div v-if="selectedIssue.blockers.length" class="mt-4"><DomAlert tone="warning" title="Dependency unresolved" :description="selectedIssue.blockers.join(', ')" /></div>
+									<section class="mt-5 border-t border-border pt-5"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Move preparation</p><div class="mt-4 grid gap-4"><DomSelect v-model="moveDraft.ownerId" label="Accountable owner" :options="catalog.owners" :errors="fieldErrors.ownerId || []" width="min-w-0"><template #option="{ option }"><div><p class="font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-70">{{ option.description }}</p></div></template></DomSelect><DomSelect v-model="moveDraft.estimate" label="Estimate" :options="catalog.estimates" :errors="fieldErrors.estimate || []" width="min-w-0" /></div></section>
+									<DomButton class="mt-5 w-full" :loading="busyAction === 'preview-move'" @click="previewMove">Preview {{ moveDestination === 'sprint' ? 'move to sprint' : 'return to backlog' }}</DomButton>
+								</template>
+							</div>
+							<DomEmptyState v-else compact title="Choose an issue" description="Select backlog or sprint work to inspect its exact planning state." />
+						</template>
+
+						<template #commit>
+							<div class="h-full min-h-0 overflow-y-auto p-4">
+								<template v-if="planReceipt">
+									<DomAlert tone="success" title="Cycle 32 committed" :description="`${planReceipt.points} points are locked to plan ${planReceipt.planChecksum}.`" />
+									<dl class="mt-4 divide-y divide-border border-y border-border text-sm"><div class="py-3"><dt class="text-xs text-muted-fg">Audit receipt</dt><dd class="mt-1 font-mono text-xs">{{ planReceipt.auditReceipt }}</dd></div><div class="py-3"><dt class="text-xs text-muted-fg">Calendar receipt</dt><dd class="mt-1 font-mono text-xs">{{ planReceipt.calendarReceipt }}</dd></div><div class="py-3"><dt class="text-xs text-muted-fg">Committed issues</dt><dd class="mt-1 text-xs leading-5">{{ planReceipt.issueIds.join(' · ') }}</dd></div></dl>
+									<DomButton class="mt-4 w-full" variant="secondary" @click="planReceipt = null">Review plan</DomButton>
+								</template>
+
+								<template v-else-if="exactPlan">
+									<div class="flex items-start justify-between gap-3"><div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Exact commitment</p><h2 class="mt-1 text-lg font-semibold">Ready to lock scope</h2></div><DomBadge tone="info" variant="soft">{{ exactPlan.points }}/{{ exactPlan.capacity }} pts</DomBadge></div>
+									<blockquote class="mt-4 border-l-2 border-primary pl-3 text-sm leading-6">{{ exactPlan.goal }}</blockquote>
+									<p class="mt-3 font-mono text-[10px] text-muted-fg">{{ exactPlan.startsOn }} → {{ exactPlan.endsOn }}</p>
+									<div class="mt-4 space-y-3 border-y border-border py-4"><div v-for="check in exactPlan.checks" :key="check.key" class="grid grid-cols-[minmax(0,1fr)_auto] gap-3 text-sm"><div><p class="font-medium">{{ check.label }}</p><p class="mt-1 text-xs leading-5 text-muted-fg">{{ check.detail }}</p></div><DomStatusPill :tone="check.passed ? 'success' : 'danger'" size="sm">{{ check.passed ? 'Passed' : 'Blocked' }}</DomStatusPill></div></div>
+									<p class="mt-3 truncate font-mono text-[10px] text-muted-fg">{{ exactPlan.checksum }} · sprint v{{ exactPlan.sprintVersion }}</p>
+									<DomCheckbox v-model="planAcknowledged" class="mt-5" label="Commit this exact sprint" description="I reviewed the goal, dates, ownership, dependencies, capacity, and immutable scope." :errors="fieldErrors.acknowledged || []" />
+									<DomButton class="mt-4 w-full" :disabled="!canCommitPlan" :loading="busyAction === 'commit-plan'" @click="commitPlan">Commit Cycle 32</DomButton>
+									<DomButton class="mt-2 w-full" variant="ghost" @click="exactPlan = null">Back to planning</DomButton>
+								</template>
+
+								<template v-else>
+									<div class="flex items-start justify-between gap-3"><div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Sprint contract</p><h2 class="mt-1 text-lg font-semibold">Review commitment</h2></div><DomBadge :tone="sprint.status === 'committed' ? 'success' : 'warning'" variant="soft">{{ sprint.status }}</DomBadge></div>
+									<p class="mt-3 text-sm leading-6 text-muted-fg">The server rechecks scope, owner capacity, dependencies, dates, and exact revisions before the cycle can be committed.</p>
+									<div class="mt-5 grid gap-4"><DomTextareaInput v-model="planDraft.goal" label="Sprint goal" description="Describe the outcome this scope should produce." :rows="3" :errors="fieldErrors.goal || []" /><div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-1"><DomDatePicker v-model="planDraft.startsOn" label="Starts" :errors="fieldErrors.startsOn || []" /><DomDatePicker v-model="planDraft.endsOn" label="Ends" :errors="fieldErrors.endsOn || []" /></div></div>
+									<section class="mt-5 border-y border-border py-4"><div class="flex items-center justify-between text-sm"><span class="text-muted-fg">Planned capacity</span><span class="font-semibold">{{ sprint.points }}/{{ sprint.capacity }}</span></div><DomProgress class="mt-2" :value="sprint.capacityPercent" size="sm" :tone="sprint.capacityPercent > 100 ? 'danger' : 'primary'" /><div class="mt-3 flex items-center justify-between text-xs text-muted-fg"><span>{{ sprint.issueCount }} issues</span><span>{{ sprint.remaining }} points open</span></div></section>
+									<DomButton class="mt-5 w-full" :loading="busyAction === 'preview-plan'" @click="previewPlan">Generate exact review</DomButton>
+								</template>
 							</div>
 						</template>
 					</DomTabs>
-				</div>
-
-				<aside class="space-y-3">
-					<DomCard padding="sm">
-						<div class="flex items-start justify-between gap-3">
-							<div>
-								<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">{{ selectedIssue.id }}</p>
-								<h4 class="mt-2 text-lg font-semibold leading-6">{{ selectedIssue.title }}</h4>
-							</div>
-							<span class="rounded-full px-2 py-1 text-xs font-semibold" :class="priorityClasses(selectedIssue.priority)">
-								{{ selectedIssue.priority }}
-							</span>
-						</div>
-						<p class="mt-3 text-sm leading-6 text-muted-fg">{{ selectedIssue.description }}</p>
-						<dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
-							<div>
-								<dt class="text-xs text-muted-fg">Owner</dt>
-								<dd class="font-semibold">{{ selectedIssue.owner }}</dd>
-							</div>
-							<div>
-								<dt class="text-xs text-muted-fg">Estimate</dt>
-								<dd class="font-semibold">{{ selectedIssue.estimate }} points</dd>
-							</div>
-							<div>
-								<dt class="text-xs text-muted-fg">Type</dt>
-								<dd class="font-semibold">{{ selectedIssue.type }}</dd>
-							</div>
-							<div>
-								<dt class="text-xs text-muted-fg">Due</dt>
-								<dd class="font-semibold">{{ selectedIssue.due }}</dd>
-							</div>
-						</dl>
-						<div class="mt-4">
-							<div class="flex items-center justify-between text-xs text-muted-fg">
-								<span>Confidence</span>
-								<span>{{ selectedIssue.confidence }}%</span>
-							</div>
-							<div class="mt-2 h-2 overflow-hidden rounded-full bg-secondary">
-								<div
-									class="h-full rounded-full"
-									:class="confidenceClasses(selectedIssue.confidence)"
-									:style="{ width: `${selectedIssue.confidence}%` }"
-								></div>
-							</div>
-						</div>
-					</DomCard>
-
-					<DomCard padding="sm">
-						<h5 class="text-sm font-semibold">Planning checklist</h5>
-						<div class="mt-3 space-y-2">
-							<label class="flex items-start gap-2 text-sm text-muted-fg">
-								<input type="checkbox" checked class="mt-1 size-4 rounded border-input accent-current" />
-								<span>Acceptance criteria written</span>
-							</label>
-							<label class="flex items-start gap-2 text-sm text-muted-fg">
-								<input type="checkbox" :checked="!selectedIssue.blockers.length" class="mt-1 size-4 rounded border-input accent-current" />
-								<span>No open blockers</span>
-							</label>
-							<label class="flex items-start gap-2 text-sm text-muted-fg">
-								<input type="checkbox" checked class="mt-1 size-4 rounded border-input accent-current" />
-								<span>Owner and estimate assigned</span>
-							</label>
-						</div>
-						<div v-if="selectedIssue.blockers.length" class="mt-4 rounded-xl border border-warning/30 bg-warning/10 p-3">
-							<p class="text-xs font-semibold text-warning">Blocked by</p>
-							<ul class="mt-2 space-y-1 text-sm text-muted-fg">
-								<li v-for="blocker in selectedIssue.blockers" :key="blocker">{{ blocker }}</li>
-							</ul>
-						</div>
-						<div class="mt-4 flex flex-wrap gap-2">
-							<DomButton size="sm">Move to sprint</DomButton>
-							<DomButton variant="secondary" size="sm">Edit issue</DomButton>
-						</div>
-					</DomCard>
 				</aside>
-			</section>
-
-			<section v-else class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
-				<DomCard>
-					<div class="flex flex-wrap items-center justify-between gap-3">
-						<div>
-							<h4 class="text-lg font-semibold">Risk review</h4>
-							<p class="mt-1 text-sm text-muted-fg">Focus the planning meeting on blockers, low-confidence estimates, and near-due work.</p>
-						</div>
-						<DomButton variant="secondary" size="sm">Export notes</DomButton>
-					</div>
-					<div class="mt-4 divide-y divide-border">
-						<div
-							v-for="issue in blockedIssues"
-							:key="`risk-${issue.id}`"
-							class="flex flex-col gap-3 py-4 sm:flex-row sm:items-start sm:justify-between"
-						>
-							<div>
-								<div class="flex flex-wrap items-center gap-2">
-									<span class="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-muted-fg">{{ issue.id }}</span>
-									<span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="priorityClasses(issue.priority)">
-										{{ issue.priority }}
-									</span>
-								</div>
-								<p class="mt-2 text-sm font-semibold">{{ issue.title }}</p>
-								<p class="mt-1 text-sm text-muted-fg">{{ issue.blockers.join(', ') }}</p>
-							</div>
-							<DomButton variant="secondary" size="sm" @click="selectIssue(issue)">Review</DomButton>
-						</div>
-					</div>
-				</DomCard>
-
-				<DomCard padding="sm">
-					<h5 class="text-sm font-semibold">Meeting agenda</h5>
-					<ol class="mt-3 space-y-3 text-sm leading-6 text-muted-fg">
-						<li>1. Confirm sprint goal and capacity.</li>
-						<li>2. Remove or split issues over 5 points.</li>
-						<li>3. Assign owners for every blocker.</li>
-						<li>4. Lock scope and publish release notes draft.</li>
-					</ol>
-				</DomCard>
-			</section>
+			</div>
 		</div>
-	</div>
+
+		<template #bottom>
+			<DomAppBottomNav v-model="activeView" :items="mobileNavigation" class="xl:hidden" />
+		</template>
+	</DomAppShell>
 </template>

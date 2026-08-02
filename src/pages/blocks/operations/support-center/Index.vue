@@ -12,17 +12,17 @@ import SupportTicketWorkspaceSrc from './examples/SupportTicketWorkspace.vue?raw
 	<DomStudioLayout>
 		<DocPage
 			name="Support Center Block"
-			tagline="A responsive customer support workspace for triaging tickets, reviewing account context, drafting replies, and closing common operational loops."
+			tagline="A complete customer-support section with a live inbox, focused conversations, rich routing, provider delivery evidence, and a guarded ticket lifecycle."
 			tag="Application UI"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Operations" title="Support ticket workspace">
+			<DocSection eyebrow="Operations" title="Human support service desk">
 				<Example
 					:source="SupportTicketWorkspaceSrc"
 					filename="SupportTicketWorkspace.vue"
 					presentation="iframe"
 					frame-src="/blocks/operations/support-center/preview/SupportTicketWorkspace"
-					description="Copy this into a helpdesk, CRM, admin panel, or customer success app. Replace the local arrays with ticket, account, message, and SLA data from your API."
+					description="An Intercom- and Zendesk-inspired service desk backed by repository-local REST routes. Search saved inbox views, route tickets, send public replies or internal notes, recover failed delivery, and resolve or reopen real server state."
 					default-open
 					:preview-lines="14"
 				>
@@ -30,52 +30,53 @@ import SupportTicketWorkspaceSrc from './examples/SupportTicketWorkspace.vue?raw
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="API contract" title="A working app section, not a screenshot">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when an app needs a focused support console rather than a generic inbox.
-						It combines the high-value pieces teams usually need on one screen: queue priority, SLA state,
-						customer health, conversation history, internal checklist, and a reply composer.
+						Use this block when an app needs a human support console rather than a generic message viewer.
+						The queue, ticket detail, message delivery, routing, and lifecycle all read and mutate through the demo API.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>tickets</code> with records from your support system or backend queue.</li>
-						<li>Map <code>selectedTicket</code> to the active route, query string, or selected table row in your app shell.</li>
-						<li>Send the composer content to your message endpoint, then append the sent message to the conversation list.</li>
-						<li>Connect the checklist actions to macros, internal notes, assignee updates, and close-ticket workflows.</li>
+						<li><code>GET /api/block-demos/support-center/workspace</code> returns saved-view catalogs, aggregate service health, and compact queue rows; <code>GET .../tickets/:ticketId</code> loads the full conversation only when selected.</li>
+						<li><code>PATCH .../triage</code> changes assignee or priority with exact workspace and ticket revisions.</li>
+						<li><code>POST .../messages</code> persists public replies with provider receipts or private internal notes; <code>POST .../messages/:messageId/retry</code> safely recovers a seeded failed delivery without duplicating the body.</li>
+						<li><code>POST .../resolve</code> requires a structured outcome, verified note, acknowledgement, and successful message delivery; <code>POST .../reopen</code> restores the conversation.</li>
+						<li>The demo store is intentionally process-local: mutations survive browser reloads while the server runs. Replace the in-memory map with your ticket database, transactional outbox, provider callbacks, and durable audit ledger in production.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended ticket shape">
-				<CodeBlock lang="js" filename="support-ticket.js" :code="`{
-\tid: 'T-2048',
-\tsubject: 'Cannot invite the design team',
-\tcustomer: 'Northstar Labs',
-\tcontact: 'Priya Shah',
-\tplan: 'Scale',
-\tstatus: 'Waiting on support',
-\tpriority: 'High',
-\tsla: '42m left',
-\ttags: ['access', 'workspace'],
-\tmessages: [
-\t\t{ author: 'Priya Shah', role: 'Customer', time: '09:24', body: 'The invite button fails for two teammates.' }
-\t]
-}`" />
+			<DocSection eyebrow="Mutation" title="Exact-revision reply shape">
+				<CodeBlock lang="js" filename="send-support-reply.js" :code="`const response = await fetch(
+	'/api/block-demos/support-center/tickets/SUP-2048/messages',
+	{
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			workspaceRevision: 1,
+			ticketVersion: 1,
+			mode: 'public',
+			content: 'The domain policy is updated. Please resend both invites.'
+		})
+	}
+);
+
+const { ticket, tickets, summary } = await response.json();`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Queue logic</h3>
-						<p class="mt-2">Keep sort and filter state outside the block when tickets come from server pagination.</p>
+			<DocSection eyebrow="Design review" title="Why this composition is different">
+				<div class="grid gap-5 text-sm leading-7 text-muted-fg md:grid-cols-3">
+					<div class="border-l-2 border-primary/40 pl-4">
+						<h3 class="font-semibold text-canvas-fg">Intercom-style focus</h3>
+						<p class="mt-2">Saved views and edge-to-edge queue rows make attention work scannable without wrapping every ticket in another card.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Reply workflow</h3>
-						<p class="mt-2">Swap the textarea for your rich text editor if you support templates, variables, or attachments.</p>
+					<div class="border-l-2 border-primary/40 pl-4">
+						<h3 class="font-semibold text-canvas-fg">Zendesk-style context</h3>
+						<p class="mt-2">The customer and routing inspector stays adjacent on wide screens and becomes a focused Details destination when width is limited.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
+					<div class="border-l-2 border-primary/40 pl-4">
 						<h3 class="font-semibold text-canvas-fg">Mobile behavior</h3>
-						<p class="mt-2">The queue stacks above the detail view on small screens, keeping the selected ticket visible first.</p>
+						<p class="mt-2">Inbox, Conversation, and Details are separate app views, so a desktop queue never pushes the active customer below the fold.</p>
 					</div>
 				</div>
 			</DocSection>

@@ -12,17 +12,17 @@ import ExpenseCaptureFlowSrc from './examples/ExpenseCaptureFlow.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Expense Capture Block"
-			tagline="A copyable mobile-first flow for reviewing receipts, editing extracted spend details, resolving policy checks, and submitting reimbursement."
-			tag="Application UI"
+			tagline="A working spend inbox for receipt evidence, card matching, policy review, approval, and accounting settlement."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Finance" title="Receipt capture flow">
+			<DocSection eyebrow="Finance" title="Expense operations inbox">
 				<Example
 					:source="ExpenseCaptureFlowSrc"
 					filename="ExpenseCaptureFlow.vue"
 					presentation="iframe"
 					frame-src="/blocks/operations/finance/expense-capture/preview/ExpenseCaptureFlow"
-					description="Copy this into spend management, HR, marketplace, field service, or operations apps that need a fast expense submission pattern with receipt evidence and policy feedback."
+					description="A responsive Ramp-, Brex-, and Expensify-inspired app section. Select an expense, confirm provider evidence, edit accounting fields, preview the immutable route, submit it, record approval, and export or reimburse it through the repository-local API."
 					default-open
 					:preview-lines="20"
 				>
@@ -30,18 +30,17 @@ import ExpenseCaptureFlowSrc from './examples/ExpenseCaptureFlow.vue?raw';
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="Working API journey">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when users need to capture a receipt on mobile, confirm OCR results, and submit spend for reimbursement or company-card reconciliation.
-						The flow keeps the receipt, extracted fields, project coding, policy checks, and final submit action close together so users can finish the task in one pass.
+						This demo is backed by a deterministic, process-memory API rather than client-only fixtures. The server owns revisions, receipt verification, card matches, policy results, immutable previews, approvals, accounting exports, and reimbursement settlement receipts.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Hydrate the extracted merchant, total, date, tax, and currency from your OCR or card transaction matching service, then keep user edits as explicit overrides.</li>
-						<li>Run policy checks on the server whenever amount, category, project, attendees, or reimbursable status changes. The UI should display results, not own the policy rules.</li>
-						<li>Store the receipt asset separately from the expense record so upload retries, virus scanning, and audit retention can happen without blocking field edits.</li>
-						<li>Model reimbursement and corporate-card expenses with the same payload, but use payment method and reimbursable flags to route them to the right ledger workflow.</li>
-						<li>Keep the bottom action area sticky on mobile. Users should always see whether the expense is ready and what remains before submit.</li>
+						<li><code>GET /api/block-demos/expense-capture/bootstrap</code> returns the inbox, catalogs, selected expense, capabilities, policy results, and exact versions.</li>
+						<li><code>POST .../details</code>, <code>.../receipt/refresh</code>, and <code>.../match</code> create authoritative evidence and re-evaluate the expense.</li>
+						<li><code>POST .../preview</code> locks an immutable route and checksum; <code>.../submit</code> requires that exact checksum and an explicit acknowledgement.</li>
+						<li><code>POST .../advance</code> records manager approval, then emits either an accounting export receipt or a reimbursement settlement receipt.</li>
+						<li>Every mutation checks workspace and expense revisions, returns a conflict when stale, and survives browser reloads for the life of the server process.</li>
 					</ul>
 				</div>
 			</DocSection>
@@ -77,19 +76,19 @@ import ExpenseCaptureFlowSrc from './examples/ExpenseCaptureFlow.vue?raw';
 }`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
+			<DocSection eyebrow="Architecture" title="Production boundaries">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Receipt pipeline</h3>
-						<p class="mt-2">Treat upload, OCR, duplicate detection, and transaction matching as asynchronous jobs. Show confidence and missing fields without making the user wait for every enrichment step.</p>
+						<h3 class="font-semibold text-canvas-fg">Evidence adapters</h3>
+						<p class="mt-2">Replace the deterministic camera, upload, email, card, and accounting adapters with signed provider calls. Retain source IDs, checksums, timestamps, and the original receipt asset.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Policy checks</h3>
-						<p class="mt-2">Return structured checks with severity, message, and blocking status. This lets the same rule engine serve mobile capture, manager approval, and finance audit screens.</p>
+						<h3 class="font-semibold text-canvas-fg">Server authority</h3>
+						<p class="mt-2">Keep policy rules, accounting mappings, approver selection, payout routing, and revision checks on the server. The UI explains decisions and submits intentions; it does not manufacture them.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include attendee split entry, mileage capture, duplicate receipt review, receipt crop tools, manager approval cards, and accounting export status.</p>
+						<h3 class="font-semibold text-canvas-fg">Durable storage</h3>
+						<p class="mt-2">Move the in-memory state to expenses, evidence, decisions, audit events, and settlement tables. Use idempotency keys and an outbox for provider delivery and webhook reconciliation.</p>
 					</div>
 				</div>
 			</DocSection>

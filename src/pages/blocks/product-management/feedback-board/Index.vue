@@ -2,27 +2,35 @@
 import DomStudioLayout from '../../../_layout/DomStudioLayout.vue';
 import DocPage from '../../../_layout/DocPage.vue';
 import DocSection from '../../../_layout/DocSection.vue';
-import CodeBlock from '../../../_layout/CodeBlock.vue';
 import Example from '../../../_layout/docs/Example.vue';
 import FeedbackBoardWorkspace from './examples/FeedbackBoardWorkspace.vue';
 import FeedbackBoardWorkspaceSrc from './examples/FeedbackBoardWorkspace.vue?raw';
+
+const endpoints = [
+	['GET', '/bootstrap', 'Read ideas, customer evidence, decisions, catalogs, activity, and board summary.'],
+	['POST', '/insights', 'Validate and capture feedback against an idea or create a new idea.'],
+	['PATCH', '/ideas/:id', 'Persist compatible internal and public status, priority, owner, and rationale at exact revisions.'],
+	['POST', '/ideas/:id/responses', 'Retain an internal note or publish a customer response with delivery evidence.'],
+	['POST', '/ideas/:id/merge-preview', 'Lock both records and calculate the exact duplicate merge impact.'],
+	['POST', '/ideas/:id/merge', 'Commit an acknowledged merge or return a stale-preview conflict.'],
+];
 </script>
 
 <template>
 	<DomStudioLayout>
 		<DocPage
 			name="Feedback Board Block"
-			tagline="A responsive product feedback workspace for collecting requests, measuring customer demand, assigning status, and planning roadmap follow-up."
-			tag="Product UI"
+			tagline="A complete product-feedback section with customer evidence, product decisions, public responses, duplicate merging, and an optimistic API contract."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Product management" title="Feedback board workspace">
+			<DocSection eyebrow="Product management" title="Feedback operations workspace">
 				<Example
 					:source="FeedbackBoardWorkspaceSrc"
 					filename="FeedbackBoardWorkspace.vue"
 					presentation="iframe"
 					frame-src="/blocks/product-management/feedback-board/preview/FeedbackBoardWorkspace"
-					description="Copy this into product portals, internal roadmap tools, customer success workspaces, or admin dashboards. Replace the local request, segment, voter, and activity arrays with your feedback API and CRM data."
+					description="This is a working app section rather than a simulated screenshot: capture a customer insight, update a product decision, notify contacts, merge a duplicate, reload the page, and exercise exact-revision conflicts through the repository-local API."
 					default-open
 					:preview-lines="14"
 				>
@@ -30,62 +38,50 @@ import FeedbackBoardWorkspaceSrc from './examples/FeedbackBoardWorkspace.vue?raw
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Review" title="What changed in this block">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when users, sales teams, support teams, or customer success teams need a shared place to capture product requests and turn them into actionable roadmap decisions.
-						It is shaped for public feedback boards, private customer portals, product operations dashboards, and founder-led SaaS backlogs.
+						The earlier example was a wide three-column dashboard made from static arrays. It became a long stacked page in a narrow iframe, used native selects, and presented buttons that did not perform real work.
+						The reviewed version is a viewport-owned feedback section inspired by the dense evidence workflow in Linear Customer Requests and the public/internal feedback loop in Canny.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>requests</code> with feature request records from your product feedback, CRM, or support system.</li>
-						<li>Connect vote counts to authenticated users or customer accounts so demand can be segmented by plan, revenue, persona, or region.</li>
-						<li>Persist <code>status</code>, <code>owner</code>, <code>priority</code>, and <code>roadmapWindow</code> through a product operations endpoint with audit events.</li>
-						<li>Wire comment and activity rows to customer-facing updates so voters can be notified when a request changes status.</li>
-						<li>Use the segment tabs to scope demand by account type, customer health, plan tier, or strategic opportunity size.</li>
+						<li><code>DomAppShell</code>, content-owned scrolling, and focused mobile destinations make the section fit the expanded viewer, embedded iframe, and phone viewport.</li>
+						<li><code>DomSelect</code> replaces native dropdowns and exposes rich option descriptions for status, priority, owner, source, visibility, and merge selection.</li>
+						<li>Customer quotes remain the primary evidence; customer count, important signals, and unique-account revenue support the decision without replacing it.</li>
+						<li>Internal workflow and public status are separate fields with server-owned compatibility rules.</li>
+						<li>Capture, decision, response, notification, merge preview, merge commit, reload, reset, validation, and conflict states all use real HTTP endpoints.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended feedback request shape">
-				<CodeBlock lang="js" filename="feedback-request.js" :code="`{
-\tid: 'req_audit_exports',
-\ttitle: 'Export audit logs to CSV',
-\tstatus: 'Under review',
-\tpriority: 'High',
-\troadmapWindow: 'Next quarter',
-\towner: 'Product ops',
-\tcategory: 'Compliance',
-\tcreatedAt: '2026-06-10T10:20:00Z',
-\tvotes: {
-\t\ttotal: 184,
-\t\taccounts: 43,
-\t\trevenueInfluenced: 92000,
-\t\tcurrentUserVoted: true
-\t},
-\tsegments: ['Enterprise', 'Security teams'],
-\tlinkedSignals: [
-\t\t{ source: 'Support', count: 18 },
-\t\t{ source: 'Sales', count: 7 }
-\t],
-\tupdates: [
-\t\t{ label: 'Moved to under review', actor: 'Maya Chen', time: 'Today 10:20' }
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Working feedback lifecycle">
+				<div class="overflow-hidden border border-border text-sm">
+					<div class="grid grid-cols-[7rem_minmax(0,1fr)] gap-px bg-border sm:grid-cols-[7rem_15rem_minmax(0,1fr)]">
+						<div class="bg-secondary p-3 font-semibold">Method</div>
+						<div class="hidden bg-secondary p-3 font-semibold sm:block">Endpoint</div>
+						<div class="bg-secondary p-3 font-semibold">Responsibility</div>
+						<template v-for="endpoint in endpoints" :key="endpoint[1]">
+							<div class="bg-canvas p-3 font-mono text-xs">{{ endpoint[0] }}</div>
+							<div class="hidden bg-canvas p-3 font-mono text-xs sm:block">{{ endpoint[1] }}</div>
+							<div class="bg-canvas p-3 leading-6 text-muted-fg">{{ endpoint[2] }}</div>
+						</template>
+					</div>
+				</div>
 			</DocSection>
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
+				<div class="grid gap-px overflow-hidden border border-border bg-border text-sm leading-7 text-muted-fg md:grid-cols-3">
+					<div class="bg-canvas p-4">
 						<h3 class="font-semibold text-canvas-fg">Demand quality</h3>
-						<p class="mt-2">Store both raw votes and account-weighted demand so consumer volume does not hide strategic customer value.</p>
+						<p class="mt-2">Retain the raw quote, source, contact, tier, importance, and account value. Derived totals should never erase the customer’s actual problem.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
+					<div class="bg-canvas p-4">
 						<h3 class="font-semibold text-canvas-fg">Roadmap hygiene</h3>
-						<p class="mt-2">Treat status changes as auditable decisions with owners, reasons, customer visibility, and notification behavior.</p>
+						<p class="mt-2">Treat status changes as versioned decisions with an owner, rationale, compatible public state, and an immutable receipt.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include duplicate request merging, changelog publishing, customer impact scoring, and Jira or Linear sync.</p>
+					<div class="bg-canvas p-4">
+						<h3 class="font-semibold text-canvas-fg">Production adapter</h3>
+						<p class="mt-2">The demo keeps process-local state. Replace the server module with database models, authenticated actors, CRM sync, background delivery, and your issue tracker adapter.</p>
 					</div>
 				</div>
 			</DocSection>

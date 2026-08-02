@@ -12,83 +12,58 @@ import IntegrationMarketplaceSrc from './examples/IntegrationMarketplace.vue?raw
 	<DomStudioLayout>
 		<DocPage
 			name="Integration Marketplace Block"
-			tagline="A responsive app-directory pattern for discovering connectors, reviewing permissions, and launching integration installs."
-			tag="Platform UI"
+			tagline="A working provider-connection workspace with approved discovery, server-owned access contracts, setup proof, runtime evidence, and lifecycle controls."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Developer Experience" title="Integration marketplace">
+			<DocSection eyebrow="Developer Experience / Platform" title="Integration marketplace">
 				<Example
 					:source="IntegrationMarketplaceSrc"
 					filename="IntegrationMarketplace.vue"
 					presentation="iframe"
 					frame-src="/blocks/developer-experience/integration-marketplace/preview/IntegrationMarketplace"
-					description="Copy this into a settings area, developer console, onboarding flow, or platform marketplace where customers need to discover integrations before entering an install workflow."
+					description="A Linear-, Sentry-, and Stripe-inspired connections section with responsive Catalog, Details, and Connection views backed by repository-local APIs."
 					default-open
-					:preview-lines="14"
+					:preview-lines="16"
 				>
 					<IntegrationMarketplace />
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="Included application behavior">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when an app needs a central place for customers to discover integrations, compare provider capabilities, review requested data access, and launch the right install path.
-						The layout keeps discovery tile-first, then moves setup detail into a focused dialog so the catalog does not become another dense admin console.
+						The block treats integrations as operational application infrastructure, not decorative marketplace tiles.
+						Discovery, provider detail, OAuth or credential setup, scope policy, tests, syncs, settings, requests, disconnects, and reset all cross a server API.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>connectors</code> with provider catalog records from your backend, including category, install status, health, scopes, and capabilities.</li>
-						<li>Use the primary dialog action to branch into OAuth, API key entry, admin consent, or reconnect flows based on connector status.</li>
-						<li>Persist optional scope choices and scheduled-sync preference before creating tokens or starting background jobs.</li>
-						<li>Connect the activity tab to audit events such as install, token refresh, failed sync, reconnect, scope change, and provider review.</li>
-						<li>Keep required scopes server-defined so client-side edits cannot weaken the permissions needed for a safe integration.</li>
+						<li>Search and filter an approved provider catalog through rich `DomSelect` controls, then inspect one provider without leaving the workspace.</li>
+						<li>Repair paused connections or create new ones with server-owned required scopes, optional access, ownership, cadence, and processing region.</li>
+						<li>Exercise expiring OAuth grants and restricted-key validation without exposing provider tokens or persisted credentials to the browser.</li>
+						<li>Run connection tests and manual syncs, then inspect immutable run evidence and lifecycle activity.</li>
+						<li>Request an unlisted provider, save revisioned runtime settings, handle stale writes, and disconnect with exact-name confirmation and an audit reason.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended connector shape">
-				<CodeBlock lang="js" filename="integration-connector.js" :code="`{
-\tid: 'salesforce',
-\tname: 'Salesforce',
-\tcategory: 'CRM',
-\tdescription: 'Sync accounts, contacts, owners, opportunities, and lifecycle stages.',
-\tstatus: 'Installed',
-\towner: 'Maya Chen',
-\tlastSyncAt: '8 minutes ago',
-\thealth: 'Healthy',
-\tinstallCount: 18420,
-\trating: '4.9',
-\trecommended: true,
-\tcapabilities: ['Account enrichment', 'Opportunity signals', 'Two-way contacts'],
-\tmetrics: [
-\t\t{ label: 'Success rate', value: '99.2%' },
-\t\t{ label: 'Records synced', value: '18.4k' },
-\t\t{ label: 'Next sync', value: '7m' }
-\t],
-\tscopes: [
-\t\t{ key: 'contacts.read', label: 'Read contacts', enabled: true, required: true },
-\t\t{ key: 'contacts.write', label: 'Write contacts', enabled: false, required: false }
-\t],
-\tactivity: [
-\t\t{ label: 'Contacts synced', actor: 'Sync worker', time: '8 minutes ago' }
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Repository-local route contract">
+				<CodeBlock lang="text" filename="integration-marketplace.routes" :code="`GET   /api/block-demos/integration-marketplace/bootstrap
+GET   /api/block-demos/integration-marketplace/connectors/:connectorId
+POST  /api/block-demos/integration-marketplace/connectors/:connectorId/authorize
+POST  /api/block-demos/integration-marketplace/connectors/:connectorId/connect
+PATCH /api/block-demos/integration-marketplace/connectors/:connectorId/settings
+POST  /api/block-demos/integration-marketplace/connectors/:connectorId/test
+POST  /api/block-demos/integration-marketplace/connectors/:connectorId/sync
+POST  /api/block-demos/integration-marketplace/connectors/:connectorId/disconnect
+POST  /api/block-demos/integration-marketplace/requests
+POST  /api/block-demos/integration-marketplace/reset`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Connection flows</h3>
-						<p class="mt-2">Route each connector to the correct install method from the dialog: OAuth redirect, embedded consent, API key entry, reconnect, or admin-approved installation.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Catalog quality</h3>
-						<p class="mt-2">Store provider capability tags, install counts, setup time, review state, and health in your catalog so search and recommendations stay useful.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include reusable provider icons, OAuth callback states, field mapping steps, compare mode, install-request approvals, and error remediation checklists.</p>
-					</div>
+			<DocSection eyebrow="Customization" title="Production boundaries">
+				<div class="grid gap-5 text-sm leading-7 text-muted-fg md:grid-cols-3">
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Provider boundary</h3><p class="mt-2">The demo uses deterministic grants, credentials, and sync results. Production should use provider SDKs, encrypted tokens, signed OAuth state, refresh handling, and isolated workers.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Policy boundary</h3><p class="mt-2">Keep required scopes, approved regions, accountable owners, and elevated-write acknowledgement server-owned. Client state must not weaken the approved contract.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Audit boundary</h3><p class="mt-2">Add authentication, authorization, durable connection and request storage, immutable audit events, secret rotation, webhook verification, rate limits, and retention controls.</p></div>
 				</div>
 			</DocSection>
 		</DocPage>

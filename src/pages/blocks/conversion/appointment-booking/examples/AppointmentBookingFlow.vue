@@ -1,112 +1,64 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
-import { DomButton, DomCalendar, DomEmailInput, DomNativeSelect, DomTextareaInput, DomTextInput } from '@getdom/studio/vue';
+import { computed, onMounted, ref, watch } from 'vue';
+import {
+	DomAlert,
+	DomAvatar,
+	DomBadge,
+	DomButton,
+	DomCalendar,
+	DomCheckbox,
+	DomDialog,
+	DomEmailInput,
+	DomIconButton,
+	DomRadioGroup,
+	DomSelect,
+	DomSkeleton,
+	DomStatusPill,
+	DomTextInput,
+	DomTextareaInput,
+} from '@getdom/studio/vue';
 
-const meetingTypes = [
-	{
-		id: 'discovery',
-		name: 'Product discovery',
-		duration: 30,
-		description: 'Share goals and get a recommended next step.',
-		accent: 'Qualification',
-		host: 'Maya Chen',
-	},
-	{
-		id: 'implementation',
-		name: 'Implementation planning',
-		duration: 45,
-		description: 'Map requirements, data, and rollout risks.',
-		accent: 'Technical plan',
-		host: 'Elliot Grant',
-	},
-	{
-		id: 'success',
-		name: 'Customer success review',
-		duration: 60,
-		description: 'Review outcomes, usage, blockers, and expansion plans.',
-		accent: 'Account growth',
-		host: 'Priya Shah',
-	},
-];
+const API_BASE = '/api/block-demos/appointment-booking';
+const clockIcon = 'M12 6v6l4 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z';
+const videoIcon = 'M15 10 20 7v10l-5-3M4 6h11v12H4V6Z';
+const calendarIcon = 'M7 3v4M17 3v4M4 9h16M5 5h14v15H5V5Z';
+const checkIcon = 'm5 12 4 4L19 6';
+const shieldIcon = 'M12 3 5 6v5c0 4.6 2.8 8 7 10 4.2-2 7-5.4 7-10V6l-7-3Zm-3 9 2 2 4-4';
+const arrowLeftIcon = 'm15 18-6-6 6-6';
 
-const availabilityByType = {
-	discovery: {
-		'2026-06-16': [
-			{ value: '09:00', status: 'busy', reason: 'Team standup' },
-			{ value: '09:30', status: 'available' },
-			{ value: '10:00', status: 'available' },
-			{ value: '11:30', status: 'busy', reason: 'Customer call' },
-			{ value: '14:00', status: 'available' },
-			{ value: '15:30', status: 'busy', reason: 'Held' },
-		],
-		'2026-06-17': [
-			{ value: '09:00', status: 'available' },
-			{ value: '10:30', status: 'busy', reason: 'Workshop' },
-			{ value: '12:00', status: 'available' },
-			{ value: '14:30', status: 'available' },
-			{ value: '16:00', status: 'busy', reason: 'Internal review' },
-		],
-	},
-	implementation: {
-		'2026-06-16': [
-			{ value: '09:00', status: 'busy', reason: 'Discovery call' },
-			{ value: '09:30', status: 'available' },
-			{ value: '10:30', status: 'busy', reason: 'Reserved' },
-			{ value: '11:00', status: 'available' },
-			{ value: '13:30', status: 'available' },
-			{ value: '14:00', status: 'busy', reason: 'Launch review' },
-			{ value: '15:30', status: 'available' },
-			{ value: '16:00', status: 'busy', reason: 'Held' },
-		],
-		'2026-06-18': [
-			{ value: '09:00', status: 'available' },
-			{ value: '09:30', status: 'busy', reason: 'Partner sync' },
-			{ value: '10:30', status: 'available' },
-			{ value: '11:30', status: 'available' },
-			{ value: '14:00', status: 'busy', reason: 'Booked' },
-			{ value: '15:00', status: 'available' },
-		],
-	},
-	success: {
-		'2026-06-16': [
-			{ value: '09:00', status: 'available' },
-			{ value: '10:00', status: 'busy', reason: 'QBR' },
-			{ value: '11:00', status: 'busy', reason: 'QBR' },
-			{ value: '13:00', status: 'available' },
-			{ value: '14:30', status: 'available' },
-			{ value: '16:00', status: 'busy', reason: 'Held' },
-		],
-		'2026-06-19': [
-			{ value: '09:30', status: 'busy', reason: 'Booked' },
-			{ value: '10:30', status: 'available' },
-			{ value: '12:00', status: 'available' },
-			{ value: '15:00', status: 'busy', reason: 'Account review' },
-			{ value: '16:30', status: 'available' },
-		],
-	},
-};
+const steps = Object.freeze([
+	{ id: 'type', label: 'Appointment' },
+	{ id: 'time', label: 'Date & time' },
+	{ id: 'details', label: 'Your details' },
+	{ id: 'confirmed', label: 'Confirmed' },
+]);
 
-const regions = [
-	{ value: 'Europe/London', label: 'Europe / London' },
-	{ value: 'America/New_York', label: 'America / New York' },
-	{ value: 'America/Los_Angeles', label: 'America / Los Angeles' },
-	{ value: 'Asia/Singapore', label: 'Asia / Singapore' },
-];
+const cancellationOptions = Object.freeze([
+	{ value: 'schedule', label: 'My schedule changed', description: 'The selected time no longer works.' },
+	{ value: 'resolved', label: 'I no longer need the meeting', description: 'The question or project was resolved.' },
+	{ value: 'different-topic', label: 'I need a different appointment', description: 'I will choose another conversation type.' },
+]);
 
-const steps = [
-	{ id: 'type', label: 'Type' },
-	{ id: 'time', label: 'Time' },
-	{ id: 'details', label: 'Details' },
-	{ id: 'done', label: 'Booked' },
-];
-
-const selectedMeetingTypeId = ref('');
-const selectedDate = ref('2026-06-16');
-const selectedTime = ref('');
-const selectedRegion = ref('Europe/London');
+const bootstrap = ref(null);
+const availability = ref(null);
 const activeStep = ref(0);
-const slideDirection = ref('forward');
-const bookingConfirmed = ref(false);
+const selectedMeetingTypeId = ref('');
+const selectedDate = ref('');
+const selectedTimezone = ref('Europe/London');
+const selectedSlotId = ref('');
+const slotHold = ref(null);
+const booking = ref(null);
+const receipt = ref(null);
+const feedback = ref(null);
+const loadError = ref('');
+const isLoading = ref(true);
+const isLoadingAvailability = ref(false);
+const isHolding = ref(false);
+const isBooking = ref(false);
+const isCancelling = ref(false);
+const cancelDialogOpen = ref(false);
+const cancellationReason = ref('schedule');
+const consent = ref(false);
 const attendee = ref({
 	name: '',
 	email: '',
@@ -114,453 +66,759 @@ const attendee = ref({
 	notes: '',
 });
 
-const selectedMeetingType = computed(() => meetingTypes.find((type) => type.id === selectedMeetingTypeId.value) || null);
-const selectedRegionLabel = computed(() => regions.find((region) => region.value === selectedRegion.value)?.label || selectedRegion.value);
-const dateFormatter = new Intl.DateTimeFormat('en-GB', {
-	weekday: 'long',
-	day: 'numeric',
-	month: 'long',
-	year: 'numeric',
-});
-const selectedDateLabel = computed(() => {
-	const date = parseIsoDate(selectedDate.value);
-	return date ? dateFormatter.format(date) : 'Choose a date';
-});
-const availableDateValues = computed(() => availableDatesForType(selectedMeetingTypeId.value));
-const selectedAvailability = computed(() => availabilityByType[selectedMeetingTypeId.value]?.[selectedDate.value] || []);
-const selectedSlot = computed(() => selectedAvailability.value.find((slot) => slot.value === selectedTime.value) || null);
-const availableSlotCount = computed(() => selectedAvailability.value.filter((slot) => slot.status === 'available').length);
-const attendeeComplete = computed(() => Boolean(attendee.value.name.trim() && isValidEmail(attendee.value.email)));
-const canContinueFromType = computed(() => Boolean(selectedMeetingType.value));
-const canContinueFromTime = computed(() => Boolean(selectedDate.value && selectedSlot.value?.status === 'available'));
-const canBook = computed(() => Boolean(canContinueFromType.value && canContinueFromTime.value && attendeeComplete.value));
-const confirmationLabel = computed(() => selectedTime.value ? `${selectedDateLabel.value} at ${selectedTime.value}` : 'Slot not selected');
-const stepTitle = computed(() => steps[activeStep.value]?.label || '');
-const nextDisabled = computed(() => {
-	if (activeStep.value === 0) return !canContinueFromType.value;
-	if (activeStep.value === 1) return !canContinueFromTime.value;
-	if (activeStep.value === 2) return !canBook.value;
+const meetingTypes = computed(() => bootstrap.value?.meetingTypes || []);
+const meetingTypeOptions = computed(() => meetingTypes.value.map(toMeetingTypeOption));
+const selectedMeetingType = computed(() => meetingTypes.value.find((meetingType) => meetingType.id === selectedMeetingTypeId.value) || null);
+const availableDates = computed(() => bootstrap.value?.availableDates || []);
+const selectedSlot = computed(() => availability.value?.slots?.find((slot) => slot.id === selectedSlotId.value) || null);
+const selectedDateLabel = computed(() => formatDateLabel(selectedDate.value));
+const selectedTimeLabel = computed(() => selectedSlot.value?.label || booking.value?.display?.time || 'Choose a time');
+const currentStep = computed(() => steps[activeStep.value] || steps[0]);
+const progressValue = computed(() => Math.round(((activeStep.value + 1) / steps.length) * 100));
+const attendeeReady = computed(() => Boolean(attendee.value.name.trim() && isValidEmail(attendee.value.email)));
+const canContinue = computed(() => {
+	if (activeStep.value === 0) return Boolean(selectedMeetingType.value);
+	if (activeStep.value === 1) return Boolean(selectedDate.value && selectedSlot.value?.status === 'available');
+	if (activeStep.value === 2) return Boolean(slotHold.value && attendeeReady.value && consent.value);
 	return false;
 });
-const bookingRequest = computed(() => ({
-	meetingTypeId: selectedMeetingType.value?.id || '',
-	host: selectedMeetingType.value?.host || '',
-	startsAt: selectedDate.value && selectedTime.value ? `${selectedDate.value}T${selectedTime.value}:00` : '',
-	durationMinutes: selectedMeetingType.value?.duration || 0,
-	timezone: selectedRegion.value,
-	attendee: { ...attendee.value },
-	status: bookingConfirmed.value ? 'confirmed' : 'draft',
-}));
-const bookingRequestJson = computed(() => JSON.stringify(bookingRequest.value, null, 2));
-
-watch([selectedMeetingTypeId, selectedDate], () => {
-	if (selectedSlot.value?.status !== 'available') selectedTime.value = '';
-	bookingConfirmed.value = false;
+const primaryActionLabel = computed(() => {
+	if (activeStep.value === 0) return 'Choose a time';
+	if (activeStep.value === 1) return 'Reserve this time';
+	return 'Confirm appointment';
 });
+const primaryActionLoading = computed(() => isLoadingAvailability.value || isHolding.value || isBooking.value);
+const holdExpiryLabel = computed(() => slotHold.value?.expiresAt ? formatShortTime(slotHold.value.expiresAt, selectedTimezone.value) : '');
+const initialCalendarMonth = computed(() => selectedDate.value ? Number(selectedDate.value.slice(5, 7)) : null);
+const initialCalendarYear = computed(() => selectedDate.value ? Number(selectedDate.value.slice(0, 4)) : null);
+const activeHost = computed(() => selectedMeetingType.value?.host || meetingTypes.value[0]?.host || null);
 
-function parseIsoDate(value) {
-	if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '')) return null;
-	const [year, month, day] = value.split('-').map(Number);
-	const date = new Date(year, month - 1, day);
-	if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
-	return date;
+onMounted(loadBookingExperience);
+watch([selectedMeetingTypeId, selectedDate, selectedTimezone], onAvailabilityInputChange);
+
+/**
+ * Convert a meeting-type API record into a rich DOM Studio radio option.
+ *
+ * @param {Record<string, unknown>} meetingType Meeting-type record.
+ * @returns {Record<string, unknown>} Radio-group option.
+ */
+function toMeetingTypeOption(meetingType) {
+	return {
+		...meetingType,
+		value: meetingType.id,
+	};
 }
 
-function isValidEmail(value) {
-	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+/**
+ * Load the booking configuration and initialize a useful first selection.
+ *
+ * @returns {Promise<void>}
+ */
+async function loadBookingExperience() {
+	isLoading.value = true;
+	loadError.value = '';
+	try {
+		bootstrap.value = await requestJson(`${API_BASE}/bootstrap`);
+		const preferredType = bootstrap.value.meetingTypes.find((meetingType) => meetingType.popular) || bootstrap.value.meetingTypes[0];
+		selectedMeetingTypeId.value = preferredType?.id || '';
+		selectedDate.value = bootstrap.value.defaultDate;
+		selectedTimezone.value = bootstrap.value.viewer.timezone;
+		attendee.value.name = bootstrap.value.viewer.name;
+		attendee.value.email = bootstrap.value.viewer.email;
+	} catch (error) {
+		loadError.value = error instanceof Error ? error.message : 'The booking experience could not be loaded.';
+	} finally {
+		isLoading.value = false;
+	}
 }
 
-function availableDatesForType(typeId) {
-	return Object.entries(availabilityByType[typeId] || {})
-		.filter(([, slots]) => slots.some((slot) => slot.status === 'available'))
-		.map(([date]) => date);
+/**
+ * Refresh availability when a selected scheduling input changes on the time step.
+ *
+ * @returns {void}
+ */
+function onAvailabilityInputChange() {
+	selectedSlotId.value = '';
+	feedback.value = null;
+	if (activeStep.value === 1 && selectedMeetingTypeId.value && selectedDate.value) loadAvailability();
 }
 
-function selectMeetingType(id) {
-	const dates = availableDatesForType(id);
-	selectedMeetingTypeId.value = id;
-	if (!dates.includes(selectedDate.value)) selectedDate.value = dates[0] || '';
-	selectedTime.value = '';
-	bookingConfirmed.value = false;
-	goToStep(1);
+/**
+ * Fetch server-resolved appointment slots for the current selection.
+ *
+ * @param {{ preserveSelection?: boolean }} [options={}] Refresh behavior.
+ * @returns {Promise<void>}
+ */
+async function loadAvailability(options = {}) {
+	const previousSlotId = options.preserveSelection ? selectedSlotId.value : '';
+	isLoadingAvailability.value = true;
+	try {
+		const query = new URLSearchParams({
+			meetingTypeId: selectedMeetingTypeId.value,
+			date: selectedDate.value,
+			timezone: selectedTimezone.value,
+		});
+		availability.value = await requestJson(`${API_BASE}/availability?${query}`);
+		const preservedSlot = availability.value.slots.find((slot) => slot.id === previousSlotId && slot.status === 'available');
+		selectedSlotId.value = preservedSlot?.id || '';
+	} catch (error) {
+		feedback.value = {
+			tone: 'danger',
+			title: 'Times unavailable',
+			description: error instanceof Error ? error.message : 'Refresh the published availability and try again.',
+		};
+	} finally {
+		isLoadingAvailability.value = false;
+	}
 }
 
-function selectTime(slot) {
+/**
+ * Select one available slot from the server response.
+ *
+ * @param {Record<string, unknown>} slot Availability slot.
+ * @returns {void}
+ */
+function selectSlot(slot) {
 	if (slot.status !== 'available') return;
-	selectedTime.value = slot.value;
-	bookingConfirmed.value = false;
+	selectedSlotId.value = slot.id;
+	feedback.value = null;
 }
 
-function goToStep(index) {
-	const next = Math.min(Math.max(index, 0), steps.length - 1);
-	slideDirection.value = next >= activeStep.value ? 'forward' : 'back';
-	activeStep.value = next;
-}
-
-function goBack() {
-	goToStep(activeStep.value - 1);
-}
-
-function goForward() {
-	if (nextDisabled.value) return;
-	if (activeStep.value === 2) {
-		confirmBooking();
+/**
+ * Move the booking journey forward and perform the required API mutation.
+ *
+ * @returns {Promise<void>}
+ */
+async function continueFlow() {
+	if (!canContinue.value || primaryActionLoading.value) return;
+	if (activeStep.value === 0) {
+		activeStep.value = 1;
+		await loadAvailability();
 		return;
 	}
-	goToStep(activeStep.value + 1);
-}
-
-function onDateChange(value) {
-	selectedDate.value = value;
-	selectedTime.value = '';
-	bookingConfirmed.value = false;
-}
-
-function resetBooking() {
-	selectedMeetingTypeId.value = '';
-	selectedTime.value = '';
-	attendee.value = {
-		name: '',
-		email: '',
-		company: '',
-		notes: '',
-	};
-	bookingConfirmed.value = false;
-	goToStep(0);
-}
-
-function editTime() {
-	goToStep(1);
-}
-
-function editDetails() {
-	goToStep(2);
-}
-
-function slotStateLabel(slot) {
-	if (slot.status === 'available') return 'Free';
-	return slot.reason || 'Busy';
-}
-
-function slotButtonClasses(slot) {
-	if (slot.value === selectedTime.value && slot.status === 'available') {
-		return 'border-primary bg-primary text-primary-fg shadow-sm';
+	if (activeStep.value === 1) {
+		await createSlotHold();
+		return;
 	}
-	if (slot.status === 'available') {
-		return 'border-border bg-canvas text-canvas-fg hover:border-primary/50 hover:bg-secondary/60';
-	}
-	return 'cursor-not-allowed border-border bg-secondary/70 text-muted-fg opacity-70';
+	if (activeStep.value === 2) await confirmBooking();
 }
 
-function setExampleDetails() {
+/**
+ * Create an eight-minute server-side hold before collecting final details.
+ *
+ * @returns {Promise<void>}
+ */
+async function createSlotHold() {
+	isHolding.value = true;
+	feedback.value = null;
+	try {
+		const payload = await requestJson(`${API_BASE}/holds`, {
+			method: 'POST',
+			body: JSON.stringify({
+				meetingTypeId: selectedMeetingTypeId.value,
+				date: selectedDate.value,
+				timezone: selectedTimezone.value,
+				slotId: selectedSlotId.value,
+				availabilityRevision: availability.value.revision,
+			}),
+		});
+		slotHold.value = payload.hold;
+		activeStep.value = 2;
+		feedback.value = {
+			tone: 'success',
+			title: 'Time reserved',
+			description: payload.message,
+		};
+	} catch (error) {
+		if (error.payload?.availability) availability.value = error.payload.availability;
+		selectedSlotId.value = '';
+		feedback.value = {
+			tone: 'warning',
+			title: 'Choose another time',
+			description: error instanceof Error ? error.message : 'Availability changed before the slot could be reserved.',
+		};
+	} finally {
+		isHolding.value = false;
+	}
+}
+
+/**
+ * Confirm the appointment and store the immutable API receipt.
+ *
+ * @returns {Promise<void>}
+ */
+async function confirmBooking() {
+	isBooking.value = true;
+	feedback.value = null;
+	try {
+		const payload = await requestJson(`${API_BASE}/bookings`, {
+			method: 'POST',
+			body: JSON.stringify({
+				holdId: slotHold.value.id,
+				attendee: attendee.value,
+				consent: consent.value,
+			}),
+		});
+		booking.value = payload.booking;
+		receipt.value = payload.receipt;
+		slotHold.value = null;
+		activeStep.value = 3;
+		feedback.value = null;
+	} catch (error) {
+		feedback.value = {
+			tone: error.payload?.code === 'hold_expired' ? 'warning' : 'danger',
+			title: error.payload?.code === 'hold_expired' ? 'Time hold expired' : 'Appointment not confirmed',
+			description: error instanceof Error ? error.message : 'Review your details and try again.',
+		};
+		if (error.payload?.code === 'hold_expired') {
+			slotHold.value = null;
+			activeStep.value = 1;
+			await loadAvailability();
+		}
+	} finally {
+		isBooking.value = false;
+	}
+}
+
+/**
+ * Move to the previous step and release a temporary slot hold when necessary.
+ *
+ * @returns {Promise<void>}
+ */
+async function goBack() {
+	feedback.value = null;
+	if (activeStep.value === 2 && slotHold.value) {
+		await releaseSlotHold();
+		activeStep.value = 1;
+		await loadAvailability();
+		return;
+	}
+	activeStep.value = Math.max(0, activeStep.value - 1);
+}
+
+/**
+ * Release the current API hold without interrupting navigation recovery.
+ *
+ * @returns {Promise<void>}
+ */
+async function releaseSlotHold() {
+	if (!slotHold.value) return;
+	try {
+		await requestJson(`${API_BASE}/holds/${encodeURIComponent(slotHold.value.id)}`, { method: 'DELETE' });
+	} catch {
+		// Expired holds are already released server-side, so navigation can continue.
+	} finally {
+		slotHold.value = null;
+	}
+}
+
+/**
+ * Cancel the confirmed appointment through the demo API.
+ *
+ * @returns {Promise<void>}
+ */
+async function cancelBooking() {
+	if (!booking.value) return;
+	isCancelling.value = true;
+	try {
+		const reason = cancellationOptions.find((option) => option.value === cancellationReason.value)?.label || cancellationReason.value;
+		const payload = await requestJson(`${API_BASE}/bookings/${encodeURIComponent(booking.value.id)}/cancel`, {
+			method: 'POST',
+			body: JSON.stringify({ reason }),
+		});
+		booking.value = payload.booking;
+		receipt.value = payload.receipt;
+		cancelDialogOpen.value = false;
+		feedback.value = {
+			tone: 'info',
+			title: 'Appointment cancelled',
+			description: payload.message,
+		};
+	} catch (error) {
+		feedback.value = {
+			tone: 'danger',
+			title: 'Cancellation failed',
+			description: error instanceof Error ? error.message : 'Try cancelling again.',
+		};
+	} finally {
+		isCancelling.value = false;
+	}
+}
+
+/**
+ * Start a fresh booking journey while leaving completed API history intact.
+ *
+ * @returns {void}
+ */
+function resetFlow() {
+	activeStep.value = 0;
+	booking.value = null;
+	receipt.value = null;
+	availability.value = null;
+	selectedSlotId.value = '';
+	feedback.value = null;
+	consent.value = false;
+	attendee.value.notes = '';
+}
+
+/**
+ * Populate realistic attendee details for the interactive demo journey.
+ *
+ * @returns {void}
+ */
+function useExampleDetails() {
 	attendee.value = {
 		name: 'Alex Morgan',
-		email: 'alex@example.com',
+		email: 'alex@northstar.tools',
 		company: 'Northstar Labs',
-		notes: 'We want to understand implementation steps and launch timing for a team workspace.',
+		notes: 'We need a rollout plan for a multi-workspace implementation and two data integrations.',
 	};
+	consent.value = true;
 }
 
-function confirmBooking() {
-	if (!canBook.value) return;
-	bookingConfirmed.value = true;
-	goToStep(3);
+/**
+ * Request JSON and preserve structured API recovery data on errors.
+ *
+ * @param {string} url API path.
+ * @param {RequestInit} [options={}] Fetch options.
+ * @returns {Promise<Record<string, unknown>>} Parsed API payload.
+ */
+async function requestJson(url, options = {}) {
+	const response = await fetch(url, {
+		headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+		...options,
+	});
+	const payload = await response.json();
+	if (!response.ok) {
+		const error = new Error(payload.message || 'The scheduling request failed.');
+		error.payload = payload;
+		throw error;
+	}
+	return payload;
+}
+
+/**
+ * Format an ISO date-only value for a scheduling heading.
+ *
+ * @param {string} value ISO date-only value.
+ * @returns {string} Localized long date.
+ */
+function formatDateLabel(value) {
+	if (!value) return 'Choose a date';
+	return new Intl.DateTimeFormat('en-GB', {
+		weekday: 'long',
+		day: 'numeric',
+		month: 'long',
+	}).format(new Date(`${value}T12:00:00`));
+}
+
+/**
+ * Format an ISO instant as a compact time in the selected timezone.
+ *
+ * @param {string} value ISO instant.
+ * @param {string} timezone IANA timezone.
+ * @returns {string} Localized time.
+ */
+function formatShortTime(value, timezone) {
+	return new Intl.DateTimeFormat('en-GB', {
+		hour: '2-digit',
+		minute: '2-digit',
+		hour12: false,
+		timeZone: timezone,
+	}).format(new Date(value));
+}
+
+/**
+ * Check an attendee email address before enabling confirmation.
+ *
+ * @param {string} value Candidate email address.
+ * @returns {boolean} Whether the address is structurally valid.
+ */
+function isValidEmail(value) {
+	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 }
 </script>
 
 <template>
-	<section class="mx-auto flex min-h-screen w-full max-w-6xl items-center justify-center bg-canvas p-4 text-canvas-fg sm:p-6">
-		<div class="w-full overflow-hidden rounded-lg border border-border bg-canvas shadow-xl">
-			<header class="border-b border-border skin-card px-5 py-5 sm:px-6">
-				<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-					<div>
-						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Scheduling</p>
-						<h3 class="mt-2 text-2xl font-semibold tracking-tight">Book an implementation call</h3>
-						<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">
-							Select a meeting type, compare live availability, and complete the booking once the required details are ready.
-						</p>
-					</div>
-					<div class="rounded-lg border border-border bg-canvas px-4 py-3 text-sm">
-						<p class="font-semibold">{{ selectedMeetingType?.host || 'Host assigned after type' }}</p>
-						<p class="mt-1 text-muted-fg">
-							{{ selectedMeetingType ? `${selectedMeetingType.duration} minute appointment` : 'Choose an appointment type' }}
-						</p>
+	<section class="flex h-dvh min-h-[42rem] w-full flex-col overflow-hidden bg-canvas text-canvas-fg" data-testid="appointment-booking-block">
+		<header class="flex h-14 shrink-0 items-center justify-between border-b border-border px-4 sm:px-6">
+			<div class="flex min-w-0 items-center gap-3">
+				<div class="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-sm font-semibold text-primary-fg">
+					{{ bootstrap?.brand?.mark || 'N' }}
+				</div>
+				<div class="min-w-0">
+					<p class="truncate text-sm font-semibold">{{ bootstrap?.brand?.name || 'Northstar Studio' }}</p>
+					<p class="hidden text-xs text-muted-fg sm:block">Scheduling</p>
+				</div>
+				<DomStatusPill class="hidden sm:inline-flex" tone="success" size="sm" label="Live availability" />
+			</div>
+			<DomButton size="sm" variant="ghost">Need help?</DomButton>
+		</header>
+
+		<div class="flex min-h-0 flex-1">
+			<aside class="hidden w-[19rem] shrink-0 flex-col border-r border-border bg-secondary/20 p-6 lg:flex">
+				<div class="flex items-center gap-3">
+					<DomAvatar :name="activeHost?.name || 'Northstar host'" :initials="activeHost?.initials || 'NS'" size="lg" />
+					<div class="min-w-0">
+						<p class="truncate font-semibold">{{ activeHost?.name || 'Your Northstar host' }}</p>
+						<p class="truncate text-sm text-muted-fg">{{ activeHost?.role || 'Solutions team' }}</p>
 					</div>
 				</div>
 
-				<ol class="mt-5 grid gap-2 sm:grid-cols-4" aria-label="Booking progress">
-					<li v-for="(step, index) in steps" :key="step.id">
-						<button
-							type="button"
-							class="flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition"
-							:class="[
-								index === activeStep && 'border-primary bg-primary text-primary-fg',
-								index < activeStep && 'border-border bg-secondary text-canvas-fg',
-								index > activeStep && 'border-border bg-canvas text-muted-fg',
-								index <= activeStep ? 'hover:border-primary/50' : 'cursor-default opacity-70',
-							]"
-							:disabled="index > activeStep || activeStep === 3"
-							@click="goToStep(index)"
+				<div class="mt-8">
+					<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Appointment</p>
+					<h1 class="mt-2 text-2xl font-semibold tracking-tight">Plan your next move</h1>
+					<p class="mt-3 text-sm leading-6 text-muted-fg">Choose a conversation, see the team’s actual availability, and leave with a calendar-ready confirmation.</p>
+				</div>
+
+				<div v-if="selectedMeetingType" class="mt-7 divide-y divide-border border-y border-border text-sm">
+					<div class="flex items-center gap-3 py-3">
+						<DomIconButton as="span" :icon="clockIcon" label="Duration" size="sm" />
+						<span>{{ selectedMeetingType.durationMinutes }} minutes</span>
+					</div>
+					<div class="flex items-center gap-3 py-3">
+						<DomIconButton as="span" :icon="videoIcon" label="Location" size="sm" />
+						<span>{{ selectedMeetingType.location }}</span>
+					</div>
+					<div class="flex items-center gap-3 py-3">
+						<DomIconButton as="span" :icon="calendarIcon" label="Current selection" size="sm" />
+						<span class="min-w-0 truncate">{{ activeStep > 1 ? `${selectedDateLabel}, ${selectedTimeLabel}` : 'Choose a time next' }}</span>
+					</div>
+				</div>
+
+				<ol class="mt-8 space-y-4" aria-label="Booking progress">
+					<li v-for="(step, index) in steps" :key="step.id" class="flex items-center gap-3 text-sm">
+						<DomIconButton
+							v-if="index < activeStep"
+							as="span"
+							:icon="checkIcon"
+							label="Completed"
+							size="sm"
+							class="shrink-0 border-success bg-success text-success-fg"
+						/>
+						<span
+							v-else
+							class="grid size-7 shrink-0 place-items-center rounded-full border text-xs font-semibold"
+							:class="index === activeStep ? 'border-primary bg-primary text-primary-fg' : 'border-border text-muted-fg'"
 						>
-							<span class="grid size-6 shrink-0 place-items-center rounded-full bg-current/10 text-xs font-semibold">
-								{{ index + 1 }}
-							</span>
-							<span class="min-w-0 truncate font-medium">{{ step.label }}</span>
-						</button>
+							{{ index + 1 }}
+						</span>
+						<span :class="index === activeStep ? 'font-semibold text-canvas-fg' : 'text-muted-fg'">{{ step.label }}</span>
 					</li>
 				</ol>
-			</header>
 
-			<div class="grid min-h-[36rem] lg:grid-cols-[minmax(0,1fr)_20rem]">
-				<main class="min-w-0 overflow-hidden p-5 sm:p-6">
-					<Transition :name="slideDirection === 'forward' ? 'booking-slide-forward' : 'booking-slide-back'" mode="out-in">
-						<div :key="stepTitle" class="min-w-0">
-							<div v-if="activeStep === 0" class="grid gap-3 md:grid-cols-3">
-								<button
-									v-for="type in meetingTypes"
-									:key="type.id"
-									type="button"
-									class="min-h-44 rounded-lg border p-4 text-left transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-									:class="type.id === selectedMeetingTypeId ? 'border-primary bg-primary text-primary-fg shadow-md' : 'border-border bg-canvas'"
-									@click="selectMeetingType(type.id)"
-								>
-									<div class="flex items-start justify-between gap-3">
-										<p class="text-xs font-semibold uppercase tracking-[0.14em]" :class="type.id === selectedMeetingTypeId ? 'text-primary-fg/70' : 'text-muted-fg'">
-											{{ type.accent }}
-										</p>
-										<span class="rounded-full border px-2 py-0.5 text-xs font-semibold" :class="type.id === selectedMeetingTypeId ? 'border-primary-fg/30 text-primary-fg' : 'border-border text-muted-fg'">
-											{{ type.duration }}m
-										</span>
-									</div>
-									<h4 class="mt-7 text-lg font-semibold tracking-tight">{{ type.name }}</h4>
-									<p class="mt-2 text-sm leading-6" :class="type.id === selectedMeetingTypeId ? 'text-primary-fg/75' : 'text-muted-fg'">
-										{{ type.description }}
-									</p>
-									<p class="mt-5 text-sm font-medium">{{ type.host }}</p>
-								</button>
-							</div>
+				<div class="mt-auto flex items-start gap-3 border-t border-border pt-5 text-xs leading-5 text-muted-fg">
+					<DomIconButton as="span" :icon="shieldIcon" label="Privacy" size="sm" />
+					<p>Your details are used only to coordinate this appointment and its follow-up.</p>
+				</div>
+			</aside>
 
-							<div v-else-if="activeStep === 1" class="grid gap-5 xl:grid-cols-[minmax(20rem,1fr)_18rem]">
-								<section class="min-w-0 rounded-lg border border-border bg-canvas p-4">
-									<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-										<div>
-											<h4 class="font-semibold tracking-tight">Choose a date</h4>
-											<p class="mt-1 text-sm leading-6 text-muted-fg">{{ selectedMeetingType?.name }} with {{ selectedMeetingType?.host }}</p>
-										</div>
-										<DomNativeSelect
-											v-model="selectedRegion"
-											:options="regions"
-											placeholder=""
-											class="w-full sm:w-56"
-										/>
-									</div>
-									<div v-if="availableDateValues.length" class="mt-4 min-w-[18rem] overflow-hidden rounded-lg border border-border">
-										<DomCalendar
-											:model-value="selectedDate"
-											:min="'2026-06-10'"
-											:max="'2026-07-31'"
-											:enabled-dates="availableDateValues"
-											:initial-month="6"
-											:initial-year="2026"
-											:register-field="false"
-											:native-input="false"
-											@update:model-value="onDateChange"
-										/>
-									</div>
-									<div v-else class="mt-4 rounded-lg border border-dashed border-border bg-secondary/60 p-4 text-sm leading-6 text-muted-fg">
-										No bookable days are available for this appointment type.
-									</div>
-								</section>
-
-								<section class="rounded-lg border border-border bg-canvas p-4">
-									<div class="flex items-start justify-between gap-3">
-										<div>
-											<h4 class="font-semibold tracking-tight">Available times</h4>
-											<p class="mt-1 text-sm leading-6 text-muted-fg">{{ selectedDateLabel }}</p>
-										</div>
-										<span class="rounded-full bg-secondary px-2 py-1 text-xs font-semibold text-muted-fg">
-											{{ availableSlotCount }} free
-										</span>
-									</div>
-
-									<div v-if="selectedAvailability.length" class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-1">
-										<button
-											v-for="slot in selectedAvailability"
-											:key="slot.value"
-											type="button"
-											class="flex min-h-12 items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:pointer-events-none"
-											:class="slotButtonClasses(slot)"
-											:disabled="slot.status !== 'available'"
-											:aria-pressed="slot.value === selectedTime"
-											@click="selectTime(slot)"
-										>
-											<span>{{ slot.value }}</span>
-											<span class="text-xs font-medium opacity-75">{{ slotStateLabel(slot) }}</span>
-										</button>
-									</div>
-									<div v-else class="mt-4 rounded-lg border border-dashed border-border bg-secondary/60 p-4 text-sm leading-6 text-muted-fg">
-										No provider slots are published for this date.
-									</div>
-								</section>
-							</div>
-
-							<div v-else-if="activeStep === 2" class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]">
-								<section class="rounded-lg border border-border bg-canvas p-4">
-									<div class="grid gap-4 md:grid-cols-2">
-										<DomTextInput v-model="attendee.name" label="Your name" autocomplete="name" placeholder="Full name" />
-										<DomEmailInput v-model="attendee.email" label="Work email" />
-										<DomTextInput v-model="attendee.company" label="Company" autocomplete="organization" placeholder="Company name" />
-										<button
-											type="button"
-											class="rounded-lg border border-dashed border-border bg-secondary/60 p-3 text-left text-sm transition hover:border-primary/50 hover:bg-secondary"
-											@click="setExampleDetails"
-										>
-											<span class="font-semibold text-canvas-fg">Use sample invitee</span>
-											<span class="mt-1 block leading-6 text-muted-fg">Alex Morgan, alex@example.com</span>
-										</button>
-										<DomTextareaInput
-											v-model="attendee.notes"
-											label="What should we prepare?"
-											placeholder="Goals, constraints, current stack, or questions"
-											:rows="5"
-											class="md:col-span-2"
-										/>
-									</div>
-								</section>
-
-								<section class="rounded-lg border border-border bg-canvas p-4">
-									<h4 class="font-semibold tracking-tight">Ready to book</h4>
-									<div class="mt-4 grid gap-3 text-sm">
-										<div class="rounded-lg border border-border bg-secondary/50 p-3">
-											<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Appointment</p>
-											<p class="mt-1 font-semibold">{{ selectedMeetingType?.name }}</p>
-											<p class="text-muted-fg">{{ selectedMeetingType?.duration }} minutes</p>
-										</div>
-										<div class="rounded-lg border border-border bg-secondary/50 p-3">
-											<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">When</p>
-											<p class="mt-1 font-semibold">{{ confirmationLabel }}</p>
-											<p class="text-muted-fg">{{ selectedRegionLabel }}</p>
-										</div>
-									</div>
-									<p v-if="!canBook" class="mt-4 rounded-lg bg-warning/15 p-3 text-sm font-medium leading-6 text-warning-fg">
-										Add a valid name, email, and available slot to enable confirmation.
-									</p>
-								</section>
-							</div>
-
-							<div v-else class="mx-auto max-w-2xl rounded-lg border border-border bg-canvas p-5 text-center">
-								<div class="mx-auto grid size-12 place-items-center rounded-full bg-success/15 text-success">
-									<svg viewBox="0 0 24 24" class="size-6" fill="none" aria-hidden="true">
-										<path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-								</div>
-								<h4 class="mt-4 text-xl font-semibold tracking-tight">Booking confirmed</h4>
-								<p class="mt-2 text-sm leading-6 text-muted-fg">
-									{{ selectedMeetingType?.name }} with {{ selectedMeetingType?.host }} is booked for {{ confirmationLabel }}.
-								</p>
-								<pre class="mt-5 overflow-auto rounded-lg border border-border bg-secondary/50 p-3 text-left text-xs leading-5 text-muted-fg"><code>{{ bookingRequestJson }}</code></pre>
-								<DomButton variant="secondary" class="mt-5" @click="resetBooking">Book another appointment</DomButton>
-							</div>
+			<main class="flex min-w-0 flex-1 flex-col">
+				<div class="shrink-0 border-b border-border px-4 py-3 sm:px-6 lg:px-8">
+					<div class="mx-auto flex max-w-[54rem] items-center justify-between gap-4">
+						<div>
+							<p class="text-xs font-medium text-muted-fg">Step {{ activeStep + 1 }} of {{ steps.length }}</p>
+							<p class="mt-0.5 text-sm font-semibold">{{ currentStep.label }}</p>
 						</div>
-					</Transition>
-				</main>
-
-				<aside class="border-t border-border bg-secondary/35 p-5 lg:border-l lg:border-t-0">
-					<div class="rounded-lg border border-border bg-canvas p-4">
-						<div class="flex items-start gap-3">
-							<div class="grid size-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-								<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
-									<path d="M7 4v3M17 4v3M5 8h14M6 6h12v13H6V6Zm4 7h4M10 16h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-								</svg>
-							</div>
-							<div>
-								<h4 class="font-semibold tracking-tight">Booking summary</h4>
-								<p class="mt-1 text-sm leading-6 text-muted-fg">{{ selectedMeetingType?.duration || '--' }} minute call</p>
-							</div>
-						</div>
-
-						<div class="mt-5 grid gap-3 text-sm">
-							<div class="rounded-lg border border-border bg-secondary/50 p-3">
-								<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Type</p>
-								<p class="mt-1 font-semibold">{{ selectedMeetingType?.name || 'Not selected' }}</p>
-								<p class="text-muted-fg">{{ selectedMeetingType?.host || 'Choose type first' }}</p>
-							</div>
-							<div class="rounded-lg border border-border bg-secondary/50 p-3">
-								<div class="flex items-start justify-between gap-2">
-									<div>
-										<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">When</p>
-										<p class="mt-1 font-semibold">{{ confirmationLabel }}</p>
-										<p class="text-muted-fg">{{ selectedRegionLabel }}</p>
-									</div>
-									<button
-										v-if="selectedMeetingType"
-										type="button"
-										class="rounded-md px-2 py-1 text-xs font-semibold text-muted-fg transition hover:bg-canvas hover:text-canvas-fg"
-										@click="editTime"
-									>
-										Edit
-									</button>
-								</div>
-							</div>
-							<div class="rounded-lg border border-border bg-secondary/50 p-3">
-								<div class="flex items-start justify-between gap-2">
-									<div class="min-w-0">
-										<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Invitee</p>
-										<p class="mt-1 truncate font-semibold">{{ attendee.name || 'Name required' }}</p>
-										<p class="truncate text-muted-fg">{{ attendee.email || 'Email required' }}</p>
-									</div>
-									<button
-										v-if="canContinueFromTime"
-										type="button"
-										class="rounded-md px-2 py-1 text-xs font-semibold text-muted-fg transition hover:bg-canvas hover:text-canvas-fg"
-										@click="editDetails"
-									>
-										Edit
-									</button>
-								</div>
-							</div>
+						<div class="h-1.5 w-28 overflow-hidden rounded-full bg-secondary sm:w-44" aria-hidden="true">
+							<div class="h-full rounded-full bg-primary transition-[width] duration-300" :style="{ width: `${progressValue}%` }"></div>
 						</div>
 					</div>
-				</aside>
-			</div>
+				</div>
 
-			<footer v-if="activeStep < 3" class="flex flex-col-reverse gap-3 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-				<DomButton variant="secondary" :disabled="activeStep === 0" @click="goBack">
-					<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
-						<path d="m15 18-6-6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-					</svg>
-					Back
-				</DomButton>
-				<DomButton :disabled="nextDisabled" @click="goForward">
-					{{ activeStep === 2 ? 'Confirm booking' : 'Continue' }}
-					<svg v-if="activeStep < 2" viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
-						<path d="m9 18 6-6-6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-					</svg>
-				</DomButton>
-			</footer>
+				<div class="min-h-0 flex-1 overflow-y-auto">
+					<div class="mx-auto w-full max-w-[54rem] px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
+						<DomAlert
+							v-if="loadError"
+							tone="danger"
+							title="Scheduling unavailable"
+							:description="loadError"
+						>
+							<template #actions>
+								<DomButton size="sm" variant="secondary" @click="loadBookingExperience">Try again</DomButton>
+							</template>
+						</DomAlert>
+
+						<div v-else-if="isLoading" class="space-y-5" aria-label="Loading booking experience">
+							<DomSkeleton class="h-8 w-72" />
+							<DomSkeleton class="h-5 w-full max-w-xl" />
+							<DomSkeleton v-for="index in 3" :key="index" class="h-24 w-full" />
+						</div>
+
+						<template v-else>
+							<div class="mb-5 flex items-center gap-3 border-b border-border pb-4 lg:hidden">
+								<DomAvatar :name="activeHost?.name || 'Northstar host'" :initials="activeHost?.initials || 'NS'" size="md" />
+								<div class="min-w-0 flex-1">
+									<p class="truncate text-sm font-semibold">{{ activeHost?.name || 'Your Northstar host' }}</p>
+									<p class="truncate text-xs text-muted-fg">{{ selectedMeetingType ? `${selectedMeetingType.durationMinutes} min · ${selectedMeetingType.location}` : 'Choose an appointment type' }}</p>
+								</div>
+							</div>
+
+							<DomAlert
+								v-if="feedback"
+								class="mb-5"
+								:tone="feedback.tone"
+								:title="feedback.title"
+								:description="feedback.description"
+								dismissible
+								@dismiss="feedback = null"
+							/>
+
+							<Transition name="booking-step" mode="out-in">
+								<section v-if="activeStep === 0" key="appointment-type">
+									<p class="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Find the right conversation</p>
+									<h2 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">What would you like to plan?</h2>
+									<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">Each appointment is routed to the teammate best placed to help. You can review the exact host and duration before choosing a time.</p>
+
+									<DomRadioGroup
+										v-model="selectedMeetingTypeId"
+										class="mt-6"
+										label="Appointment type"
+										:options="meetingTypeOptions"
+									>
+										<template #option="{ option }">
+											<span class="flex min-w-0 flex-1 items-start justify-between gap-4 py-1">
+												<span class="min-w-0">
+													<span class="flex flex-wrap items-center gap-2">
+														<strong class="font-semibold">{{ option.label }}</strong>
+														<DomBadge v-if="option.popular" tone="primary" size="sm">Most popular</DomBadge>
+													</span>
+													<span class="mt-1 block text-sm leading-5 text-muted-fg">{{ option.description }}</span>
+													<span class="mt-2 block text-xs font-medium text-muted-fg">{{ option.host.name }} · {{ option.host.role }}</span>
+												</span>
+												<span class="shrink-0 text-sm font-semibold">{{ option.durationMinutes }} min</span>
+											</span>
+										</template>
+									</DomRadioGroup>
+								</section>
+
+								<section v-else-if="activeStep === 1" key="date-time">
+									<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+										<div>
+											<p class="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Live team availability</p>
+											<h2 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Choose a date and time</h2>
+											<p class="mt-2 text-sm text-muted-fg">Times update when you change timezone.</p>
+										</div>
+										<DomSelect
+											v-model="selectedTimezone"
+											label="Timezone"
+											:options="bootstrap.timezoneOptions"
+											width="min-w-[18rem]"
+										>
+											<template #option="{ option }">
+												<span class="block">
+													<span class="block font-semibold">{{ option.label }}</span>
+													<span class="mt-0.5 block text-xs opacity-75">{{ option.description }}</span>
+												</span>
+											</template>
+										</DomSelect>
+									</div>
+
+									<div class="mt-6 grid gap-6 md:grid-cols-[minmax(17rem,1fr)_18rem]">
+										<div class="min-w-0 overflow-hidden border-y border-border md:border-y-0 md:border-r md:pr-6">
+											<DomCalendar
+												v-model="selectedDate"
+												:min="bootstrap.minDate"
+												:max="bootstrap.maxDate"
+												:enabled-dates="availableDates"
+												:initial-month="initialCalendarMonth"
+												:initial-year="initialCalendarYear"
+												:register-field="false"
+												:native-input="false"
+											/>
+										</div>
+
+										<div class="min-w-0">
+											<div class="flex items-start justify-between gap-3">
+												<div>
+													<h3 class="font-semibold">{{ selectedDateLabel }}</h3>
+													<p class="mt-1 text-xs text-muted-fg">{{ bootstrap.timezoneOptions.find((option) => option.value === selectedTimezone)?.label }}</p>
+												</div>
+												<DomStatusPill v-if="availability" tone="success" size="sm" :label="`${availability.availableCount} available`" />
+											</div>
+
+											<div v-if="isLoadingAvailability" class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-1">
+												<DomSkeleton v-for="index in 5" :key="index" class="h-11 w-full" />
+											</div>
+											<div v-else-if="availability?.slots?.length" class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-1">
+												<button
+													v-for="slot in availability.slots"
+													:key="slot.id"
+													type="button"
+													class="flex min-h-11 items-center justify-between gap-3 rounded-lg border px-3 text-sm font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50"
+													:class="slot.id === selectedSlotId ? 'border-primary bg-primary text-primary-fg' : slot.status === 'available' ? 'border-border bg-canvas hover:border-primary/60 hover:bg-secondary/50' : 'cursor-not-allowed border-border bg-secondary/40 text-muted-fg opacity-65'"
+													:disabled="slot.status !== 'available'"
+													:aria-pressed="slot.id === selectedSlotId"
+													@click="selectSlot(slot)"
+												>
+													<span>{{ slot.label }}</span>
+													<span class="text-xs font-medium opacity-75">{{ slot.status === 'available' ? 'Open' : slot.reason }}</span>
+												</button>
+											</div>
+											<DomAlert v-else class="mt-4" tone="info" title="No times published" description="Choose another available date or appointment type." />
+										</div>
+									</div>
+								</section>
+
+								<section v-else-if="activeStep === 2" key="details">
+									<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+										<div>
+											<p class="text-xs font-semibold uppercase tracking-[0.14em] text-primary">Almost finished</p>
+											<h2 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Tell {{ selectedMeetingType.host.name.split(' ')[0] }} who’s joining</h2>
+											<p class="mt-2 text-sm text-muted-fg">We’ll use this to send the invitation and prepare for your goals.</p>
+										</div>
+										<DomStatusPill tone="success" size="sm" :label="`Held until ${holdExpiryLabel}`" />
+									</div>
+
+									<div class="mt-6 grid gap-6 md:grid-cols-[minmax(0,1fr)_17rem]">
+										<div class="grid gap-4 sm:grid-cols-2">
+											<DomTextInput v-model="attendee.name" label="Your name" autocomplete="name" placeholder="Full name" />
+											<DomEmailInput v-model="attendee.email" label="Work email" autocomplete="email" />
+											<DomTextInput v-model="attendee.company" label="Company" autocomplete="organization" placeholder="Company name" />
+											<div class="flex items-end">
+												<DomButton class="w-full" size="sm" variant="secondary" @click="useExampleDetails">Use sample details</DomButton>
+											</div>
+											<DomTextareaInput v-model="attendee.notes" class="sm:col-span-2" label="What should we prepare?" placeholder="Goals, constraints, current stack, or questions" :rows="4" />
+											<DomCheckbox
+												v-model="consent"
+												class="sm:col-span-2"
+												label="Send me appointment updates"
+												description="Required for the calendar invitation, changes, and joining link."
+											/>
+										</div>
+
+										<aside class="divide-y divide-border border-y border-border py-1 text-sm md:border-y-0 md:border-l md:py-0 md:pl-5" aria-label="Appointment summary">
+											<div class="py-3 md:pt-0">
+												<p class="text-xs font-medium text-muted-fg">Appointment</p>
+												<p class="mt-1 font-semibold">{{ selectedMeetingType.label }}</p>
+												<p class="mt-0.5 text-muted-fg">{{ selectedMeetingType.durationMinutes }} min · {{ selectedMeetingType.location }}</p>
+											</div>
+											<div class="py-3">
+												<p class="text-xs font-medium text-muted-fg">When</p>
+												<p class="mt-1 font-semibold">{{ selectedDateLabel }}</p>
+												<p class="mt-0.5 text-muted-fg">{{ selectedTimeLabel }} · {{ bootstrap.timezoneOptions.find((option) => option.value === selectedTimezone)?.label }}</p>
+											</div>
+											<div class="py-3">
+												<p class="text-xs font-medium text-muted-fg">Host</p>
+												<p class="mt-1 font-semibold">{{ selectedMeetingType.host.name }}</p>
+												<p class="mt-0.5 text-muted-fg">{{ selectedMeetingType.host.role }}</p>
+											</div>
+										</aside>
+									</div>
+								</section>
+
+								<section v-else key="confirmed" class="mx-auto max-w-2xl text-center">
+									<div class="mx-auto grid size-14 place-items-center rounded-full" :class="booking?.status === 'cancelled' ? 'bg-secondary text-muted-fg' : 'bg-success/15 text-success'">
+										<DomIconButton as="span" :icon="checkIcon" :label="booking?.status === 'cancelled' ? 'Cancelled' : 'Confirmed'" size="lg" />
+									</div>
+									<p class="mt-5 text-xs font-semibold uppercase tracking-[0.14em]" :class="booking?.status === 'cancelled' ? 'text-muted-fg' : 'text-success'">
+										{{ booking?.status === 'cancelled' ? 'Appointment cancelled' : 'You’re booked' }}
+									</p>
+									<h2 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+										{{ booking?.status === 'cancelled' ? 'The time is available again' : `See you ${booking?.display?.date}` }}
+									</h2>
+									<p class="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-fg">
+										{{ booking?.status === 'cancelled' ? 'The API released your reserved slot and updated the booking receipt.' : `A calendar invitation and joining link are being sent to ${booking?.attendee?.email}.` }}
+									</p>
+
+									<div class="mt-7 grid text-left sm:grid-cols-2">
+										<div class="border-y border-border py-4 sm:border-r sm:pr-5">
+											<p class="text-xs font-medium text-muted-fg">Appointment</p>
+											<p class="mt-1 font-semibold">{{ booking?.meetingType?.label }}</p>
+											<p class="mt-1 text-sm text-muted-fg">{{ booking?.durationMinutes }} min · {{ booking?.location }}</p>
+										</div>
+										<div class="border-b border-border py-4 sm:border-y sm:pl-5">
+											<p class="text-xs font-medium text-muted-fg">Date & time</p>
+											<p class="mt-1 font-semibold">{{ booking?.display?.date }}</p>
+											<p class="mt-1 text-sm text-muted-fg">{{ booking?.display?.time }} · {{ booking?.display?.timezone }}</p>
+										</div>
+									</div>
+
+									<div v-if="receipt" class="mt-5 flex flex-col gap-2 rounded-lg bg-secondary/45 p-4 text-left text-xs sm:flex-row sm:items-center sm:justify-between">
+										<div>
+											<p class="font-semibold text-canvas-fg">Reference {{ receipt.reference }}</p>
+											<p class="mt-1 text-muted-fg">Receipt {{ receipt.id }}</p>
+										</div>
+										<code class="font-mono text-muted-fg">{{ receipt.checksum }}</code>
+									</div>
+
+									<div class="mt-6 flex flex-col-reverse justify-center gap-2 sm:flex-row">
+										<DomButton v-if="booking?.status === 'confirmed'" variant="secondary" @click="cancelDialogOpen = true">Cancel appointment</DomButton>
+										<DomButton @click="resetFlow">Book another appointment</DomButton>
+									</div>
+								</section>
+							</Transition>
+						</template>
+					</div>
+				</div>
+
+				<footer v-if="!isLoading && !loadError && activeStep < 3" class="shrink-0 border-t border-border bg-canvas px-4 py-3 sm:px-6 lg:px-8">
+					<div class="mx-auto flex max-w-[54rem] items-center justify-between gap-3">
+						<DomButton variant="ghost" :disabled="activeStep === 0" @click="goBack">
+							<DomIconButton as="span" :icon="arrowLeftIcon" label="Back" size="xs" />
+							<span class="hidden sm:inline">Back</span>
+						</DomButton>
+						<div class="min-w-0 text-right">
+							<p v-if="activeStep === 1 && !selectedSlot" class="hidden text-xs text-muted-fg sm:block">Choose an open time to continue</p>
+							<p v-else-if="activeStep === 2 && !canContinue" class="hidden text-xs text-muted-fg sm:block">Name, valid email, and updates consent are required</p>
+						</div>
+						<DomButton :loading="primaryActionLoading" :disabled="!canContinue" @click="continueFlow">
+							{{ primaryActionLabel }}
+						</DomButton>
+					</div>
+				</footer>
+			</main>
 		</div>
+
+		<DomDialog
+			v-model="cancelDialogOpen"
+			title="Cancel this appointment?"
+			description="The booking API will release the reserved time and issue a cancellation receipt."
+			size="sm"
+		>
+			<DomSelect
+				v-model="cancellationReason"
+				label="Reason"
+				:options="cancellationOptions"
+				width="min-w-[18rem]"
+			>
+				<template #option="{ option }">
+					<span class="block">
+						<span class="block font-semibold">{{ option.label }}</span>
+						<span class="mt-0.5 block text-xs opacity-75">{{ option.description }}</span>
+					</span>
+				</template>
+			</DomSelect>
+			<template #footer>
+				<DomButton size="sm" variant="secondary" @click="cancelDialogOpen = false">Keep appointment</DomButton>
+				<DomButton size="sm" variant="danger" :loading="isCancelling" @click="cancelBooking">Cancel appointment</DomButton>
+			</template>
+		</DomDialog>
 	</section>
 </template>
 
 <style scoped>
-.booking-slide-forward-enter-active,
-.booking-slide-forward-leave-active,
-.booking-slide-back-enter-active,
-.booking-slide-back-leave-active {
+.booking-step-enter-active,
+.booking-step-leave-active {
 	transition:
-		opacity 180ms ease,
-		transform 180ms ease;
+		opacity 160ms ease,
+		transform 160ms ease;
 }
 
-.booking-slide-forward-enter-from,
-.booking-slide-back-leave-to {
+.booking-step-enter-from {
 	opacity: 0;
-	transform: translateX(1.5rem);
+	transform: translateY(0.5rem);
 }
 
-.booking-slide-forward-leave-to,
-.booking-slide-back-enter-from {
+.booking-step-leave-to {
 	opacity: 0;
-	transform: translateX(-1.5rem);
+	transform: translateY(-0.25rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.booking-step-enter-active,
+	.booking-step-leave-active {
+		transition: none;
+	}
 }
 </style>

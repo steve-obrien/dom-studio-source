@@ -12,7 +12,7 @@ import AgentRunTraceSrc from './examples/AgentRunTrace.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Agent Run Trace Block"
-			tagline="A copyable AI agent observability workspace for filtering nested spans, inspecting model and tool calls, and preparing retry decisions."
+			tagline="A working agent-observability section with a trace queue, redacted payload access, investigation handoff, and receipt-backed replay, eval, and export actions."
 			tag="AI agents"
 			eyebrow="Blocks"
 		>
@@ -22,7 +22,7 @@ import AgentRunTraceSrc from './examples/AgentRunTrace.vue?raw';
 					filename="AgentRunTrace.vue"
 					presentation="iframe"
 					frame-src="/blocks/developer-experience/ai-agents/agent-run-trace/preview/AgentRunTrace"
-					description="Copy this into AI product dashboards, agent builders, evaluation tools, support debugging consoles, or internal developer platforms where teams need to understand what an agent did before retrying or shipping changes."
+					description="A Sentry- and LangSmith-inspired investigation workspace that uses DOM Studio controls and a repository API to turn a failed run into payload evidence, ownership, and an auditable next action."
 					default-open
 					:preview-lines="18"
 				>
@@ -30,68 +30,45 @@ import AgentRunTraceSrc from './examples/AgentRunTrace.vue?raw';
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="Included API contract">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when an AI application needs explainable execution history, not just a raw log stream.
-						The pattern keeps run selection, span filters, nested trace structure, latency and cost signals, payload inspection, and retry policy decisions in one workflow.
+						Use this block when an AI product needs a working investigation surface rather than a trace screenshot. The example ships with process-local state and focused endpoints so every important interaction can be exercised, reloaded, rejected, and recovered.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace the local <code>runs</code> and <code>spans</code> arrays with trace data from your agent runtime, queue worker, eval service, or observability pipeline.</li>
-						<li>Persist spans as immutable events with parent ids, timestamps, duration, token usage, cost, status, input, output, and redaction metadata.</li>
-						<li>Fetch model and tool payloads lazily when the drawer opens if your traces contain sensitive or large data.</li>
-						<li>Keep retry actions server-owned. The UI should submit a replay request with run id, span id, retry policy, operator identity, and reason.</li>
-						<li>Connect the tag filters to trace attributes such as model, tool, tenant, environment, prompt version, safety policy, and eval suite.</li>
+						<li><code>GET /api/block-demos/agent-run-trace/bootstrap</code> returns the run queue and rich environment, outcome, span-type, ownership, review-state, and replay choices.</li>
+						<li><code>GET .../runs/:runId</code> returns safe span metadata. <code>GET .../payload?spanId=...</code> is a separate lazy boundary that returns redacted content and immutable access proof.</li>
+						<li><code>PATCH .../review</code> persists ownership and investigation state with optimistic revision checks and resolution-note validation.</li>
+						<li><code>POST .../actions</code> validates issue selection, reason, acknowledgement, replay scope, and source revision before creating replay, eval, or redacted export evidence.</li>
+						<li><code>POST /api/block-demos/agent-run-trace/reset</code> restores the seeded queue so conflict, validation, and recovery paths remain repeatable.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended trace shape">
-				<CodeBlock lang="js" filename="agent-trace.js" :code="`{
-\trun: {
-\t\tid: 'run_support_triage_2841',
-\t\tappId: 'app_support_agent',
-\t\tstatus: 'warning',
-\t\tstartedAt: '2026-06-12T08:20:04Z',
-\t\tdurationMs: 6840,
-\t\tcostUsd: 0.183,
-\t\tpromptVersion: 'support-triage-v17'
-\t},
-\tspans: [
-\t\t{
-\t\t\tid: 'span_tool_lookup_customer',
-\t\t\tparentId: 'span_root',
-\t\t\ttype: 'tool',
-\t\t\tname: 'lookup_customer',
-\t\t\tstatus: 'ok',
-\t\t\tstartMs: 1480,
-\t\t\tdurationMs: 620,
-\t\t\tcostUsd: 0.002,
-\t\t\tinput: { customerId: 'cus_1842' },
-\t\t\toutput: { plan: 'Enterprise', risk: 'low' },
-\t\t\tmetadata: {
-\t\t\t\ttenantId: 'wrk_northstar',
-\t\t\t\tredacted: true,
-\t\t\t\tpromptVersion: 'support-triage-v17'
-\t\t\t}
-\t\t}
-\t]
+			<DocSection eyebrow="Data" title="Action request shape">
+				<CodeBlock lang="js" filename="trace-action.js" :code="`{
+\trevision: 7,
+\tspanId: 'risk-policy',
+\taction: 'replay',
+\tmode: 'from_span',
+\treason: 'Retry after the policy service recovers.',
+\tacknowledged: true
 }`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
+			<DocSection eyebrow="Customization" title="Production adapter seams">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Trace storage</h3>
-						<p class="mt-2">Store the tree as parent-linked spans instead of nested JSON only. That makes server filtering, pagination, redaction, and partial payload loading easier.</p>
+						<p class="mt-2">Replace the process-local map with parent-linked immutable spans. Keep list responses payload-free so filtering and pagination do not broaden data access.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Safety boundary</h3>
-						<p class="mt-2">Treat the drawer as privileged. Redact customer data by default, and show who can view prompts, tool arguments, model responses, and replay controls.</p>
+						<p class="mt-2">Connect payload access to authorization and audit storage. Preserve the separate access receipt even when your observability vendor already stores raw spans.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include side-by-side trace diffs, eval case links, streaming spans, reusable cost chips, and a promoted trace waterfall primitive.</p>
+						<h3 class="font-semibold text-canvas-fg">Queue adapter</h3>
+						<p class="mt-2">Exchange demo action receipts for durable replay jobs, eval records, and object-storage exports while retaining source revision, actor, scope, reason, and proof.</p>
 					</div>
 				</div>
 			</DocSection>

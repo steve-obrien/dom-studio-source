@@ -12,94 +12,62 @@ import DocumentSigningPacketSrc from './examples/DocumentSigningPacket.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Document Signing Block"
-			tagline="A responsive packet builder for preparing signers, placing required fields, checking delivery rules, and sending documents for signature."
-			tag="Documents"
+			tagline="A working signing-envelope section with version approval, exact-revision preparation, provider handoff, recipient reminders, deterministic callbacks, and completion certificates."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Preparation" title="Document signing packet">
+			<DocSection eyebrow="Documents / Agreements" title="Document signing envelope room">
 				<Example
 					:source="DocumentSigningPacketSrc"
 					filename="DocumentSigningPacket.vue"
 					presentation="iframe"
 					frame-src="/blocks/documents/document-signing/preview/DocumentSigningPacket"
-					description="Copy this into HR onboarding, sales contracts, legal approvals, marketplace agreements, fintech consent flows, or any app that prepares documents for signature."
+					description="A DocuSign-, Dropbox Sign-, and Adobe Sign-inspired envelope workspace with focused Envelopes, Document, and Details views backed by repository-local APIs."
 					default-open
-					:preview-lines="18"
+					:preview-lines="16"
 				>
 					<DocumentSigningPacket />
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="Included application behavior">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when users need to assemble a signature packet without leaving the app. It keeps document context, recipients, field placement,
-						delivery settings, send readiness, and activity history visible in one copyable workflow.
+						The block treats document signing as a complete envelope lifecycle rather than a packet-builder screenshot.
+						Document selection, exact-version approval, recipients, fields, readiness, delivery, reminders, callbacks, evidence, certificate retrieval, voiding, and reset all cross a server API.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace the local <code>signers</code>, <code>documents</code>, and <code>placedFields</code> arrays with packet data from your document API.</li>
-						<li>Persist field coordinates as page-relative percentages so placement survives responsive scaling and PDF rendering changes.</li>
-						<li>Validate signer identity, required fields, message copy, reminder rules, and signing order on the server before sending.</li>
-						<li>Send packets through providers such as DocuSign, Dropbox Sign, PandaDoc, Adobe Acrobat Sign, or your own certificate-backed signing service.</li>
-						<li>Store immutable audit events for viewed, signed, declined, reassigned, reminder-sent, completed, and voided states.</li>
+						<li>Move between draft, in-progress, and completed envelopes while keeping the active document and evidence in context.</li>
+						<li>Prepare recipients and delivery settings with rich <code>DomSelect</code> controls and exact-revision conflict protection.</li>
+						<li>Place server-owned field templates on meaningful agreement content and gate sending on checksum-specific document approval.</li>
+						<li>Send through a provider-style handoff, enforce signing order, issue guarded reminders, and simulate deterministic recipient callbacks.</li>
+						<li>Preserve immutable activity evidence, void receipts, completion state, and a downloadable certificate across reloads.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended signing packet payload">
-				<CodeBlock lang="js" filename="document-signing-packet.js" :code="`{
-\tpacket: {
-\t\tid: 'pkt_2048',
-\t\tname: 'Offer letter and NDA',
-\t\tstatus: 'draft',
-\t\tdeliveryMode: 'Signing order',
-\t\tmessage: 'Please review and sign before Friday.'
-\t},
-\tdocuments: [
-\t\t{ id: 'offer', name: 'Offer Letter.pdf', pages: 4, version: 'v3' }
-\t],
-\tsigners: [
-\t\t{
-\t\t\tid: 'candidate',
-\t\t\tname: 'Riley Chen',
-\t\t\temail: 'riley@example.com',
-\t\t\trole: 'Candidate',
-\t\t\torder: 1,
-\t\t\tidentityCheck: true
-\t\t}
-\t],
-\tfields: [
-\t\t{
-\t\t\tid: 'field_1',
-\t\t\tdocumentId: 'offer',
-\t\t\tsignerId: 'candidate',
-\t\t\ttype: 'signature',
-\t\t\tpage: 4,
-\t\t\trequired: true,
-\t\t\tx: 63,
-\t\t\ty: 78
-\t\t}
-\t],
-\tauditEvents: [
-\t\t{ actor: 'Mina Cook', action: 'Prepared packet', at: '2026-06-10T19:42:00Z' }
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Repository-local route contract">
+				<CodeBlock lang="text" filename="document-signing.routes" :code="`GET    /api/block-demos/document-signing/bootstrap
+GET    /api/block-demos/document-signing/envelopes/:envelopeId
+PATCH  /api/block-demos/document-signing/envelopes/:envelopeId/settings
+PATCH  /api/block-demos/document-signing/envelopes/:envelopeId/recipients/:recipientId
+POST   /api/block-demos/document-signing/envelopes/:envelopeId/fields
+DELETE /api/block-demos/document-signing/envelopes/:envelopeId/fields/:fieldId
+POST   /api/block-demos/document-signing/envelopes/:envelopeId/documents/:documentId/approve
+POST   /api/block-demos/document-signing/envelopes/:envelopeId/preflight
+POST   /api/block-demos/document-signing/envelopes/:envelopeId/send
+POST   /api/block-demos/document-signing/envelopes/:envelopeId/recipients/:recipientId/reminders
+POST   /api/block-demos/document-signing/envelopes/:envelopeId/recipients/:recipientId/sign
+POST   /api/block-demos/document-signing/envelopes/:envelopeId/void
+GET    /api/block-demos/document-signing/envelopes/:envelopeId/certificate
+POST   /api/block-demos/document-signing/reset`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Field placement</h3>
-						<p class="mt-2">Store coordinates against a canonical PDF page size. The example uses percentages so fields stay attached while the preview scales.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Send safety</h3>
-						<p class="mt-2">Treat client checks as guidance only. The final send endpoint should verify signer emails, required fields, document versions, and permissions.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include a PDF page renderer, drag field handles, reusable signer rows, provider adapters, certificate evidence, and decline reason flows.</p>
-					</div>
+			<DocSection eyebrow="Customization" title="Production boundaries">
+				<div class="grid gap-5 text-sm leading-7 text-muted-fg md:grid-cols-3">
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Document boundary</h3><p class="mt-2">The demo serves deterministic agreement content. Production should ingest and render real PDFs, scan uploads, encrypt originals and derivatives, version checksums, and keep field coordinates tied to canonical pages.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Provider boundary</h3><p class="mt-2">Replace simulated handoff and callbacks with an idempotent provider adapter, verified webhooks, signed recipient sessions, email delivery, reminder policy, identity checks, and retry-safe status reconciliation.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Evidence boundary</h3><p class="mt-2">Add authentication, organization authorization, durable encrypted storage, immutable audit retention, certificate verification, privacy controls, rate limits, legal review, and jurisdiction-specific consent rules.</p></div>
 				</div>
 			</DocSection>
 		</DocPage>

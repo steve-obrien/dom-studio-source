@@ -1,425 +1,671 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { DomButton, DomDialog, DomNativeSelect, DomTextInput, DomToggle, DomTooltip } from '@getdom/studio/vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import {
+	DomAlert,
+	DomAvatar,
+	DomButton,
+	DomDialog,
+	DomDrawer,
+	DomIconButton,
+	DomPagination,
+	DomSelect,
+	DomStatusPill,
+	DomTextInput,
+	DomToggle,
+} from '@getdom/studio/vue';
+import AuditEventInspector from './AuditEventInspector.vue';
 
-const environmentOptions = [
-	{ label: 'All environments', value: 'all' },
-	{ label: 'Production', value: 'Production' },
-	{ label: 'Staging', value: 'Staging' },
-	{ label: 'Development', value: 'Development' },
-];
+const searchIcon = 'M21 21l-4.35-4.35M19 11a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z';
+const filterIcon = 'M4 6h16M7 12h10M10 18h4';
+const exportIcon = 'M12 4v10m0 0 4-4m-4 4-4-4M5 20h14';
+const alertIcon = 'M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4';
+const bookmarkIcon = 'M6 4h12v17l-6-4-6 4V4Z';
+const refreshIcon = 'M20 7h-5V2M4 17h5v5M5.5 9A7 7 0 0 1 17 5l3 2M18.5 15A7 7 0 0 1 7 19l-3-2';
+const chevronIcon = 'M9 6l6 6-6 6';
 
-const categoryOptions = [
-	{ label: 'All categories', value: 'all' },
-	{ label: 'Access', value: 'Access' },
-	{ label: 'Billing', value: 'Billing' },
-	{ label: 'Security', value: 'Security' },
-	{ label: 'Data', value: 'Data' },
-];
-
-const outcomeOptions = [
-	{ label: 'Any outcome', value: 'all' },
-	{ label: 'Success', value: 'Success' },
-	{ label: 'Denied', value: 'Denied' },
-	{ label: 'Failed', value: 'Failed' },
-];
-
-const auditEvents = [
-	{
-		id: 'evt_84201',
-		time: '14:36',
-		date: 'Today',
-		actor: 'Priya Shah',
-		email: 'priya@example.com',
-		action: 'member.role.updated',
-		description: 'Changed Jon Bell from Member to Admin',
-		resource: 'Jon Bell',
-		resourceType: 'Member',
-		category: 'Access',
-		environment: 'Production',
-		outcome: 'Success',
-		severity: 'High',
-		ip: '203.0.113.24',
-		region: 'London',
-		requestId: 'req_7ae921',
-		retained: true,
-		metadata: [
-			{ label: 'Before', value: 'Member' },
-			{ label: 'After', value: 'Admin' },
-			{ label: 'Reason', value: 'Temporary migration access' },
-		],
-	},
-	{
-		id: 'evt_84182',
-		time: '13:12',
-		date: 'Today',
-		actor: 'System policy',
-		email: 'security@acme.example',
-		action: 'session.mfa_challenge.failed',
-		description: 'Blocked sign-in after repeated failed MFA challenges',
-		resource: 'Ari Patel',
-		resourceType: 'Session',
-		category: 'Security',
-		environment: 'Production',
-		outcome: 'Denied',
-		severity: 'Critical',
-		ip: '198.51.100.18',
-		region: 'Frankfurt',
-		requestId: 'req_e5c043',
-		retained: true,
-		metadata: [
-			{ label: 'Attempts', value: '5' },
-			{ label: 'Rule', value: 'mfa_lockout' },
-			{ label: 'Device', value: 'Untrusted browser' },
-		],
-	},
-	{
-		id: 'evt_84144',
-		time: '11:48',
-		date: 'Today',
-		actor: 'Maya Chen',
-		email: 'maya@example.com',
-		action: 'invoice.credit.applied',
-		description: 'Applied goodwill credit to annual renewal invoice',
-		resource: 'Acme Renewal',
-		resourceType: 'Invoice',
-		category: 'Billing',
-		environment: 'Production',
-		outcome: 'Success',
-		severity: 'Medium',
-		ip: '192.0.2.44',
-		region: 'Dublin',
-		requestId: 'req_44f120',
-		retained: false,
-		metadata: [
-			{ label: 'Amount', value: 'USD 1,200.00' },
-			{ label: 'Approver', value: 'Deal desk' },
-			{ label: 'Invoice', value: 'inv_21044' },
-		],
-	},
-	{
-		id: 'evt_84097',
-		time: '10:22',
-		date: 'Today',
-		actor: 'Jon Bell',
-		email: 'jon@example.com',
-		action: 'api_key.created',
-		description: 'Created production API key with write scopes',
-		resource: 'Server import key',
-		resourceType: 'API key',
-		category: 'Security',
-		environment: 'Production',
-		outcome: 'Success',
-		severity: 'High',
-		ip: '203.0.113.88',
-		region: 'London',
-		requestId: 'req_c620ab',
-		retained: true,
-		metadata: [
-			{ label: 'Scopes', value: 'customers:write, invoices:read' },
-			{ label: 'Expires', value: '2026-09-11' },
-			{ label: 'Rotation', value: 'Required in 92 days' },
-		],
-	},
-	{
-		id: 'evt_84041',
-		time: 'Yesterday',
-		date: 'Jun 10',
-		actor: 'Import worker',
-		email: 'jobs@acme.example',
-		action: 'customer.export.failed',
-		description: 'Customer CSV export failed after schema validation',
-		resource: 'Enterprise accounts export',
-		resourceType: 'Export job',
-		category: 'Data',
-		environment: 'Staging',
-		outcome: 'Failed',
-		severity: 'Medium',
-		ip: '10.0.4.12',
-		region: 'Internal',
-		requestId: 'req_stage_881',
-		retained: false,
-		metadata: [
-			{ label: 'Rows', value: '18,402' },
-			{ label: 'Error', value: 'missing required column: account_id' },
-			{ label: 'Retryable', value: 'Yes' },
-		],
-	},
-	{
-		id: 'evt_83988',
-		time: 'Yesterday',
-		date: 'Jun 10',
-		actor: 'Local tunnel',
-		email: 'dev@acme.example',
-		action: 'webhook.endpoint.updated',
-		description: 'Changed development webhook URL for invoice events',
-		resource: 'Checkout sandbox',
-		resourceType: 'Webhook',
-		category: 'Data',
-		environment: 'Development',
-		outcome: 'Success',
-		severity: 'Low',
-		ip: '127.0.0.1',
-		region: 'Local',
-		requestId: 'req_dev_112',
-		retained: false,
-		metadata: [
-			{ label: 'Before', value: 'https://old-tunnel.example/hooks' },
-			{ label: 'After', value: 'https://new-tunnel.example/hooks' },
-			{ label: 'Events', value: 'invoice.paid, invoice.payment_failed' },
-		],
-	},
-];
-
+const bootstrap = ref(null);
+const result = ref(null);
+const events = ref([]);
+const page = ref(1);
+const pageSize = 6;
 const searchQuery = ref('');
-const selectedEnvironment = ref('all');
-const selectedCategory = ref('all');
-const selectedOutcome = ref('all');
-const includeSensitive = ref(true);
-const expandedEventId = ref(auditEvents[0].id);
-const exportDialogOpen = ref(false);
-const exportIncludesJson = ref(true);
+const environment = ref('all');
+const severity = ref('all');
+const outcome = ref('all');
+const category = ref('all');
+const timeWindow = ref('7d');
+const selectedViewId = ref('custom');
+const selectedEventId = ref('');
+const selectedEvent = ref(null);
+const loading = ref(true);
+const querying = ref(false);
+const loadingEvent = ref(false);
+const actionBusy = ref(false);
+const errorMessage = ref('');
+const actionMessage = ref('');
+const mobileFiltersOpen = ref(false);
+const mobileInspectorOpen = ref(false);
+const saveViewOpen = ref(false);
+const exportOpen = ref(false);
+const alertOpen = ref(false);
+const saveViewName = ref('');
+const saveViewError = ref('');
+const exportError = ref('');
+const exportResult = ref(null);
+const exportFormat = ref('csv');
+const exportSensitive = ref(true);
+const exportAcknowledged = ref(false);
+const alertError = ref('');
+const alertResult = ref(null);
+const alertName = ref('Production risk spike');
+const alertChannel = ref('#security-alerts');
+const alertThreshold = ref('3');
+const alertSeverity = ref('high');
+let searchTimer = 0;
+let applyingSavedView = false;
 
-const filteredEvents = computed(() => {
-	const query = searchQuery.value.trim().toLowerCase();
+const controls = computed(() => bootstrap.value?.controls || {});
+const savedViews = computed(() => bootstrap.value?.savedViews || []);
+const viewOptions = computed(() => [
+	{ value: 'custom', label: 'Custom investigation', description: 'Current unsaved filters.' },
+	...savedViews.value.map((view) => ({ value: view.id, label: view.name, description: summarizeView(view) })),
+]);
+const activeFilterCount = computed(() => [
+	environment.value !== 'all',
+	severity.value !== 'all',
+	outcome.value !== 'all',
+	category.value !== 'all',
+	timeWindow.value !== '7d',
+	Boolean(searchQuery.value.trim()),
+].filter(Boolean).length);
+const indexedLabel = computed(() => formatRelativeTime(result.value?.indexedAt || bootstrap.value?.indexedAt));
+const selectedSummary = computed(() => events.value.find((event) => event.id === selectedEventId.value));
 
-	return auditEvents.filter((event) => {
-		const matchesQuery = !query || [
-			event.actor,
-			event.email,
-			event.action,
-			event.description,
-			event.resource,
-			event.requestId,
-			event.ip,
-		].join(' ').toLowerCase().includes(query);
-		const matchesEnvironment = selectedEnvironment.value === 'all' || event.environment === selectedEnvironment.value;
-		const matchesCategory = selectedCategory.value === 'all' || event.category === selectedCategory.value;
-		const matchesOutcome = selectedOutcome.value === 'all' || event.outcome === selectedOutcome.value;
-		const matchesSensitivity = includeSensitive.value || !['High', 'Critical'].includes(event.severity);
+onMounted(loadExplorer);
+onBeforeUnmount(clearSearchTimer);
+watch(searchQuery, scheduleSearch);
 
-		return matchesQuery && matchesEnvironment && matchesCategory && matchesOutcome && matchesSensitivity;
+/**
+ * Loads control metadata and the first server-side audit query.
+ *
+ * @returns {Promise<void>}
+ */
+async function loadExplorer() {
+	loading.value = true;
+	errorMessage.value = '';
+	try {
+		bootstrap.value = await requestJson('/api/block-demos/audit-log-explorer/bootstrap');
+		await runQuery(true);
+	} catch (error) {
+		errorMessage.value = error.message || 'The audit workspace could not be loaded.';
+	} finally {
+		loading.value = false;
+	}
+}
+
+/**
+ * Queries server-owned audit records using the active filters and page.
+ *
+ * @param {boolean} [openFirst=false] Whether to inspect the first matching event.
+ * @returns {Promise<void>}
+ */
+async function runQuery(openFirst = false) {
+	if (querying.value) return;
+	querying.value = true;
+	errorMessage.value = '';
+	try {
+		const payload = await requestJson('/api/block-demos/audit-log-explorer/query', {
+			method: 'POST',
+			body: { ...currentFilters(), page: page.value, pageSize },
+		});
+		result.value = payload;
+		events.value = payload.events;
+		page.value = payload.page;
+		const selectionExists = payload.events.some((event) => event.id === selectedEventId.value);
+		if ((openFirst || !selectionExists) && payload.events[0]) await openEvent(payload.events[0].id, false);
+		if (!payload.events.length) {
+			selectedEventId.value = '';
+			selectedEvent.value = null;
+		}
+	} catch (error) {
+		errorMessage.value = error.message || 'Audit events could not be queried.';
+	} finally {
+		querying.value = false;
+	}
+}
+
+/**
+ * Resets pagination before executing a changed filter query.
+ *
+ * @returns {Promise<void>}
+ */
+async function runQueryFromStart() {
+	page.value = 1;
+	selectedViewId.value = 'custom';
+	await runQuery(true);
+}
+
+/**
+ * Debounces free-text server searches while the operator types.
+ *
+ * @returns {void}
+ */
+function scheduleSearch() {
+	if (applyingSavedView) return;
+	selectedViewId.value = 'custom';
+	clearSearchTimer();
+	searchTimer = window.setTimeout(runQueryFromStart, 320);
+}
+
+/**
+ * Clears the pending search timer during changes and component teardown.
+ *
+ * @returns {void}
+ */
+function clearSearchTimer() {
+	if (!searchTimer) return;
+	window.clearTimeout(searchTimer);
+	searchTimer = 0;
+}
+
+/**
+ * Loads full evidence for an event and optionally opens the compact inspector.
+ *
+ * @param {string} eventId Audit event identifier.
+ * @param {boolean} [showMobile=true] Whether to reveal the mobile evidence drawer.
+ * @returns {Promise<void>}
+ */
+async function openEvent(eventId, showMobile = true) {
+	selectedEventId.value = eventId;
+	loadingEvent.value = true;
+	if (showMobile) mobileInspectorOpen.value = true;
+	try {
+		const payload = await requestJson(`/api/block-demos/audit-log-explorer/events/${eventId}`);
+		selectedEvent.value = payload.event;
+	} catch (error) {
+		errorMessage.value = error.message || 'Event evidence could not be loaded.';
+	} finally {
+		loadingEvent.value = false;
+	}
+}
+
+/**
+ * Applies server-defined filters from a selected saved investigation.
+ *
+ * @param {string} viewId Saved view identifier.
+ * @returns {Promise<void>}
+ */
+async function applySavedView(viewId) {
+	selectedViewId.value = viewId;
+	if (viewId === 'custom') return;
+	const view = savedViews.value.find((item) => item.id === viewId);
+	if (!view) return;
+	applyingSavedView = true;
+	searchQuery.value = view.filters.query || '';
+	environment.value = view.filters.environment || 'all';
+	severity.value = view.filters.severity || 'all';
+	outcome.value = view.filters.outcome || 'all';
+	category.value = view.filters.category || 'all';
+	timeWindow.value = view.filters.timeWindow || '7d';
+	clearSearchTimer();
+	page.value = 1;
+	await runQuery(true);
+	applyingSavedView = false;
+}
+
+/**
+ * Clears all investigation filters and restores the default seven-day view.
+ *
+ * @returns {Promise<void>}
+ */
+async function clearFilters() {
+	searchQuery.value = '';
+	environment.value = 'all';
+	severity.value = 'all';
+	outcome.value = 'all';
+	category.value = 'all';
+	timeWindow.value = '7d';
+	selectedViewId.value = 'custom';
+	mobileFiltersOpen.value = false;
+	clearSearchTimer();
+	page.value = 1;
+	await runQuery(true);
+}
+
+/**
+ * Changes the active server result page.
+ *
+ * @param {number} nextPage One-based page number.
+ * @returns {Promise<void>}
+ */
+async function changePage(nextPage) {
+	page.value = nextPage;
+	await runQuery(true);
+}
+
+/**
+ * Persists the current filter set as a reusable workspace view.
+ *
+ * @returns {Promise<void>}
+ */
+async function saveCurrentView() {
+	if (actionBusy.value) return;
+	actionBusy.value = true;
+	saveViewError.value = '';
+	try {
+		const payload = await requestJson('/api/block-demos/audit-log-explorer/saved-views', {
+			method: 'POST',
+			body: { name: saveViewName.value, filters: currentFilters() },
+		});
+		bootstrap.value.savedViews.unshift(payload.view);
+		selectedViewId.value = payload.view.id;
+		actionMessage.value = payload.message;
+		saveViewName.value = '';
+		saveViewOpen.value = false;
+	} catch (error) {
+		saveViewError.value = error.message || 'The saved view could not be created.';
+	} finally {
+		actionBusy.value = false;
+	}
+}
+
+/**
+ * Generates an API-backed evidence export and displays its verification proof.
+ *
+ * @returns {Promise<void>}
+ */
+async function createExport() {
+	if (actionBusy.value) return;
+	actionBusy.value = true;
+	exportError.value = '';
+	exportResult.value = null;
+	try {
+		const payload = await requestJson('/api/block-demos/audit-log-explorer/exports', {
+			method: 'POST',
+			body: {
+				filters: currentFilters(),
+				format: exportFormat.value,
+				includeSensitive: exportSensitive.value,
+				acknowledgedSensitive: exportAcknowledged.value,
+			},
+		});
+		exportResult.value = payload.job;
+		actionMessage.value = payload.message;
+	} catch (error) {
+		exportError.value = error.message || 'The evidence export could not be created.';
+	} finally {
+		actionBusy.value = false;
+	}
+}
+
+/**
+ * Creates a server-persisted alert rule from the current risk context.
+ *
+ * @returns {Promise<void>}
+ */
+async function createAlertRule() {
+	if (actionBusy.value) return;
+	actionBusy.value = true;
+	alertError.value = '';
+	alertResult.value = null;
+	try {
+		const payload = await requestJson('/api/block-demos/audit-log-explorer/alert-rules', {
+			method: 'POST',
+			body: {
+				name: alertName.value,
+				channel: alertChannel.value,
+				threshold: alertThreshold.value,
+				severity: alertSeverity.value,
+			},
+		});
+		alertResult.value = payload.rule;
+		actionMessage.value = payload.message;
+	} catch (error) {
+		alertError.value = error.message || 'The alert rule could not be created.';
+	} finally {
+		actionBusy.value = false;
+	}
+}
+
+/**
+ * Synchronizes legal hold evidence returned by the inspector.
+ *
+ * @param {Record<string, unknown>} event Updated event detail.
+ * @returns {Promise<void>}
+ */
+async function handleHoldUpdated(event) {
+	selectedEvent.value = event;
+	await runQuery(false);
+}
+
+/**
+ * Returns active filter values in the API contract shape.
+ *
+ * @returns {Record<string, string>} Current audit filters.
+ */
+function currentFilters() {
+	return {
+		query: searchQuery.value,
+		environment: environment.value,
+		severity: severity.value,
+		outcome: outcome.value,
+		category: category.value,
+		timeWindow: timeWindow.value,
+	};
+}
+
+/**
+ * Performs a JSON request and surfaces API validation messages.
+ *
+ * @param {string} url Request URL.
+ * @param {{method?: string, body?: Record<string, unknown>}} [options={}] Request options.
+ * @returns {Promise<Record<string, unknown>>} Parsed response payload.
+ */
+async function requestJson(url, options = {}) {
+	const response = await fetch(url, {
+		method: options.method || 'GET',
+		headers: options.body ? { 'content-type': 'application/json' } : undefined,
+		body: options.body ? JSON.stringify(options.body) : undefined,
 	});
-});
-
-const expandedEvent = computed(() => filteredEvents.value.find((event) => event.id === expandedEventId.value) || filteredEvents.value[0]);
-const highRiskCount = computed(() => filteredEvents.value.filter((event) => ['High', 'Critical'].includes(event.severity)).length);
-const retainedCount = computed(() => filteredEvents.value.filter((event) => event.retained).length);
-const successRate = computed(() => {
-	if (!filteredEvents.value.length) return 0;
-	return Math.round((filteredEvents.value.filter((event) => event.outcome === 'Success').length / filteredEvents.value.length) * 100);
-});
-const exportSummary = computed(() => `${filteredEvents.value.length} events / ${retainedCount.value} retained / ${highRiskCount.value} high risk`);
-
-function toggleEvent(event) {
-	expandedEventId.value = expandedEventId.value === event.id ? '' : event.id;
+	const payload = await response.json().catch(() => ({}));
+	if (!response.ok) throw new Error(payload.error || `Request failed with status ${response.status}.`);
+	return payload;
 }
 
-function severityClasses(severity) {
-	return {
-		Critical: 'bg-destructive text-destructive-fg',
-		High: 'bg-rose-500/15 text-rose-700 dark:text-rose-300',
-		Medium: 'bg-warning/15 text-warning',
-		Low: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-	}[severity] || 'bg-secondary text-muted-fg';
+/**
+ * Summarizes a saved view for rich select option copy.
+ *
+ * @param {Record<string, unknown>} view Saved view record.
+ * @returns {string} Short filter summary.
+ */
+function summarizeView(view) {
+	const labels = Object.entries(view.filters || {})
+		.filter(([key, value]) => key !== 'query' && !['all', '7d', ''].includes(value))
+		.map(([, value]) => titleCase(value));
+	if (view.filters?.query) labels.push(`“${view.filters.query}”`);
+	return labels.join(' · ') || 'Default investigation filters';
 }
 
-function outcomeClasses(outcome) {
-	return {
-		Success: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-		Denied: 'bg-amber-500/15 text-amber-700 dark:text-amber-300',
-		Failed: 'bg-destructive/15 text-destructive',
-	}[outcome] || 'bg-secondary text-muted-fg';
+/**
+ * Converts a machine value into a readable label.
+ *
+ * @param {string} value Machine-readable value.
+ * @returns {string} Human-readable label.
+ */
+function titleCase(value) {
+	const text = String(value || '').replaceAll('_', ' ');
+	return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}` : '';
+}
+
+/**
+ * Maps event severity to a DOM Studio semantic tone.
+ *
+ * @param {string} value Event severity.
+ * @returns {string} Status pill tone.
+ */
+function severityTone(value) {
+	return { critical: 'danger', high: 'warning', medium: 'info', low: 'neutral' }[value] || 'neutral';
+}
+
+/**
+ * Maps event outcome to a DOM Studio semantic tone.
+ *
+ * @param {string} value Event outcome.
+ * @returns {string} Status pill tone.
+ */
+function outcomeTone(value) {
+	return { success: 'success', denied: 'warning', failed: 'danger' }[value] || 'neutral';
+}
+
+/**
+ * Formats an event timestamp as a compact list value.
+ *
+ * @param {string} value ISO timestamp.
+ * @returns {string} Readable date and time.
+ */
+function formatEventTime(value) {
+	if (!value) return '';
+	return new Intl.DateTimeFormat('en-GB', {
+		day: 'numeric',
+		month: 'short',
+		hour: '2-digit',
+		minute: '2-digit',
+	}).format(new Date(value));
+}
+
+/**
+ * Formats an indexed timestamp as a concise recency label.
+ *
+ * @param {string} value ISO timestamp.
+ * @returns {string} Relative index freshness.
+ */
+function formatRelativeTime(value) {
+	if (!value) return 'index pending';
+	const seconds = Math.max(1, Math.round((Date.now() - new Date(value).getTime()) / 1000));
+	if (seconds < 60) return `indexed ${seconds}s ago`;
+	return `indexed ${Math.round(seconds / 60)}m ago`;
 }
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
-			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+	<div class="flex h-dvh min-h-[38rem] w-full flex-col overflow-hidden bg-canvas text-canvas-fg">
+		<header class="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border px-3 sm:px-5">
+			<div class="flex min-w-0 items-center gap-3">
+				<div class="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-fg">T</div>
 				<div class="min-w-0">
-					<p class="text-xs font-semibold uppercase text-muted-fg">Enterprise security</p>
-					<h3 class="mt-1 text-2xl font-semibold tracking-tight">Audit log explorer</h3>
-					<p class="mt-2 max-w-3xl text-sm leading-6 text-muted-fg">
-						Filter account activity, inspect request evidence, and prepare audit exports without leaving the admin workspace.
-					</p>
-				</div>
-
-				<div class="flex flex-wrap items-center gap-2">
-					<DomTooltip text="Exports are generated as background jobs and recorded as audit events.">
-						<DomButton variant="ghost" size="sm" @click="exportDialogOpen = true">
-							<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-								<path d="M12 4v10m0 0 4-4m-4 4-4-4M5 20h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-							</svg>
-							Export
-						</DomButton>
-					</DomTooltip>
-					<DomButton size="sm">
-						<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-						</svg>
-						Create alert
-					</DomButton>
+					<div class="flex items-center gap-2">
+						<h1 class="truncate text-sm font-semibold">Audit trail</h1>
+						<span class="hidden text-xs text-muted-fg sm:inline">/ {{ bootstrap?.workspace?.name || 'Tempo' }}</span>
+					</div>
+					<p class="truncate text-[0.68rem] text-muted-fg">Immutable security evidence · {{ indexedLabel }}</p>
 				</div>
 			</div>
 
-			<div class="mt-5 grid gap-3 sm:grid-cols-3">
-				<div class="rounded-2xl border border-border bg-canvas p-4">
-					<p class="text-xs font-medium text-muted-fg">Matching events</p>
-					<p class="mt-2 text-2xl font-semibold">{{ filteredEvents.length }}</p>
-				</div>
-				<div class="rounded-2xl border border-border bg-canvas p-4">
-					<p class="text-xs font-medium text-muted-fg">Success rate</p>
-					<p class="mt-2 text-2xl font-semibold">{{ successRate }}%</p>
-				</div>
-				<div class="rounded-2xl border border-border bg-canvas p-4">
-					<p class="text-xs font-medium text-muted-fg">High risk</p>
-					<p class="mt-2 text-2xl font-semibold">{{ highRiskCount }}</p>
-				</div>
+			<div class="flex shrink-0 items-center gap-1 sm:gap-2">
+				<DomIconButton class="sm:hidden" :icon="filterIcon" label="Open filters" size="sm" :active="activeFilterCount > 0" @click="mobileFiltersOpen = true" />
+				<DomIconButton :icon="refreshIcon" label="Refresh audit events" size="sm" :loading="querying" @click="runQuery(false)" />
+				<DomButton class="hidden sm:inline-flex" variant="secondary" size="sm" @click="alertOpen = true">
+					<DomIconButton as="span" :icon="alertIcon" label="" size="xs" class="pointer-events-none -ml-1" aria-hidden="true" />
+					Alert
+				</DomButton>
+				<DomButton size="sm" @click="exportOpen = true">
+					<DomIconButton as="span" :icon="exportIcon" label="" size="xs" class="pointer-events-none -ml-1" aria-hidden="true" />
+					Export
+				</DomButton>
 			</div>
 		</header>
 
-		<section class="border-b border-border px-4 py-4 sm:px-6">
-			<div class="grid gap-3 lg:grid-cols-[minmax(12rem,1fr)_12rem_12rem_12rem_auto] lg:items-end">
-				<DomTextInput v-model="searchQuery" label="Search events" placeholder="Actor, action, request id, IP..." />
-				<DomNativeSelect v-model="selectedEnvironment" label="Environment" :options="environmentOptions" />
-				<DomNativeSelect v-model="selectedCategory" label="Category" :options="categoryOptions" />
-				<DomNativeSelect v-model="selectedOutcome" label="Outcome" :options="outcomeOptions" />
-				<div class="rounded-2xl border border-border bg-secondary px-3 py-2">
-					<DomToggle v-model="includeSensitive" label="Sensitive" />
-				</div>
-			</div>
+		<section class="flex shrink-0 flex-wrap items-center gap-x-5 gap-y-2 border-b border-border bg-secondary/25 px-3 py-2 text-xs sm:px-5" aria-label="Audit query summary">
+			<p><span class="font-semibold text-canvas-fg">{{ result?.total ?? 0 }}</span> <span class="text-muted-fg">matching</span></p>
+			<p><span class="font-semibold text-destructive">{{ result?.stats?.critical ?? 0 }}</span> <span class="text-muted-fg">critical</span></p>
+			<p><span class="font-semibold text-canvas-fg">{{ result?.stats?.highRisk ?? 0 }}</span> <span class="text-muted-fg">high risk</span></p>
+			<p><span class="font-semibold text-canvas-fg">{{ result?.stats?.successRate ?? 0 }}%</span> <span class="text-muted-fg">successful</span></p>
+			<p class="ml-auto hidden text-muted-fg sm:block">Query {{ result?.queryId || 'pending' }}</p>
 		</section>
 
-		<section class="overflow-x-auto">
-			<table class="min-w-[58rem] w-full border-collapse text-left text-sm">
-				<thead class="border-b border-border bg-secondary/70 text-xs uppercase text-muted-fg">
-					<tr>
-						<th class="px-4 py-3 font-semibold sm:px-6">Event</th>
-						<th class="px-4 py-3 font-semibold">Actor</th>
-						<th class="px-4 py-3 font-semibold">Resource</th>
-						<th class="px-4 py-3 font-semibold">Signal</th>
-						<th class="px-4 py-3 font-semibold">Request</th>
-						<th class="px-4 py-3 text-right font-semibold">Time</th>
-					</tr>
-				</thead>
-				<tbody class="divide-y divide-border">
-					<template v-for="event in filteredEvents" :key="event.id">
-						<tr class="cursor-pointer transition hover:bg-secondary/50" @click="toggleEvent(event)">
-							<td class="px-4 py-4 sm:px-6">
-								<div class="flex min-w-0 items-start gap-3">
-									<span class="mt-1 flex size-8 shrink-0 items-center justify-center rounded-xl border border-border bg-canvas text-muted-fg">
-										<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-											<path d="M7 4h10v16H7V4Zm3 5h4M10 13h4M10 17h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-										</svg>
-									</span>
-									<span class="min-w-0">
-										<span class="block truncate font-mono text-xs text-muted-fg">{{ event.action }}</span>
-										<span class="mt-1 block max-w-[24rem] truncate font-medium">{{ event.description }}</span>
-									</span>
-								</div>
-							</td>
-							<td class="px-4 py-4">
-								<p class="font-medium">{{ event.actor }}</p>
-								<p class="mt-1 max-w-[11rem] truncate text-xs text-muted-fg">{{ event.email }}</p>
-							</td>
-							<td class="px-4 py-4">
-								<p class="font-medium">{{ event.resource }}</p>
-								<p class="mt-1 text-xs text-muted-fg">{{ event.resourceType }} / {{ event.environment }}</p>
-							</td>
-							<td class="px-4 py-4">
-								<div class="flex flex-wrap gap-1.5">
-									<span class="rounded-full px-2 py-1 text-[11px] font-semibold" :class="severityClasses(event.severity)">
-										{{ event.severity }}
-									</span>
-									<span class="rounded-full px-2 py-1 text-[11px] font-semibold" :class="outcomeClasses(event.outcome)">
-										{{ event.outcome }}
-									</span>
-								</div>
-							</td>
-							<td class="px-4 py-4">
-								<p class="font-mono text-xs">{{ event.requestId }}</p>
-								<p class="mt-1 text-xs text-muted-fg">{{ event.ip }}</p>
-							</td>
-							<td class="px-4 py-4 text-right">
-								<p class="font-medium">{{ event.time }}</p>
-								<p class="mt-1 text-xs text-muted-fg">{{ event.date }}</p>
-							</td>
-						</tr>
-						<tr v-if="expandedEvent?.id === event.id" class="bg-secondary/35">
-							<td colspan="6" class="px-4 py-4 sm:px-6">
-								<div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-									<div class="rounded-2xl border border-border bg-canvas p-4">
-										<div class="flex flex-wrap items-center justify-between gap-3">
-											<div>
-												<p class="text-xs font-semibold uppercase text-muted-fg">Event metadata</p>
-												<h4 class="mt-1 font-semibold">{{ event.id }}</h4>
-											</div>
-											<span class="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-fg">
-												{{ event.category }}
-											</span>
-										</div>
-										<div class="mt-4 grid gap-3 sm:grid-cols-3">
-											<div
-												v-for="item in event.metadata"
-												:key="item.label"
-												class="rounded-xl border border-border bg-secondary/50 p-3"
-											>
-												<p class="text-xs font-medium text-muted-fg">{{ item.label }}</p>
-												<p class="mt-1 break-words text-sm font-medium">{{ item.value }}</p>
-											</div>
-										</div>
-									</div>
-									<div class="rounded-2xl border border-border bg-canvas p-4">
-										<p class="text-xs font-semibold uppercase text-muted-fg">Request context</p>
-										<dl class="mt-3 space-y-2 text-sm">
-											<div class="flex justify-between gap-3">
-												<dt class="text-muted-fg">Region</dt>
-												<dd class="font-medium">{{ event.region }}</dd>
-											</div>
-											<div class="flex justify-between gap-3">
-												<dt class="text-muted-fg">Retained</dt>
-												<dd class="font-medium">{{ event.retained ? 'Yes' : 'Standard' }}</dd>
-											</div>
-											<div class="flex justify-between gap-3">
-												<dt class="text-muted-fg">Environment</dt>
-												<dd class="font-medium">{{ event.environment }}</dd>
-											</div>
-										</dl>
-									</div>
-								</div>
-							</td>
-						</tr>
-					</template>
-				</tbody>
-			</table>
-
-			<div v-if="!filteredEvents.length" class="p-10 text-center">
-				<p class="font-medium">No audit events match these filters.</p>
-				<p class="mt-2 text-sm text-muted-fg">Try widening the environment, category, or sensitive-event filter.</p>
-			</div>
+		<section class="hidden shrink-0 items-end gap-2 border-b border-border px-4 py-3 md:flex">
+			<DomTextInput v-model="searchQuery" class="min-w-52 flex-1" label="Search events" placeholder="Actor, action, request, IP…" />
+			<DomSelect v-model="selectedViewId" label="Saved view" :options="viewOptions" width="min-w-[18rem]" @update:model-value="applySavedView">
+				<template #option="{ option }">
+					<p class="font-medium">{{ option.label }}</p>
+					<p class="mt-1 text-xs opacity-75">{{ option.description }}</p>
+				</template>
+			</DomSelect>
+			<DomSelect v-model="environment" label="Environment" :options="controls.environments || []" width="min-w-[16rem]" @update:model-value="runQueryFromStart">
+				<template #option="{ option }"><p class="font-medium">{{ option.label }}</p><p class="mt-1 text-xs opacity-75">{{ option.description }}</p></template>
+			</DomSelect>
+			<DomSelect v-model="severity" label="Severity" :options="controls.severities || []" width="min-w-[16rem]" @update:model-value="runQueryFromStart">
+				<template #option="{ option }"><p class="font-medium">{{ option.label }}</p><p class="mt-1 text-xs opacity-75">{{ option.description }}</p></template>
+			</DomSelect>
+			<DomIconButton :icon="bookmarkIcon" label="Save current view" variant="secondary" @click="saveViewOpen = true" />
 		</section>
 
-		<footer class="flex flex-col gap-3 border-t border-border px-4 py-4 text-sm text-muted-fg sm:flex-row sm:items-center sm:justify-between sm:px-6">
-			<p>{{ exportSummary }}</p>
-			<p>Cursor page 1 of 8 / 15 minute retention delay</p>
-		</footer>
+		<DomAlert
+			v-if="errorMessage"
+			class="m-3 shrink-0"
+			tone="danger"
+			title="Audit data needs attention"
+			:description="errorMessage"
+		/>
+		<DomAlert
+			v-if="actionMessage"
+			class="m-3 shrink-0"
+			tone="success"
+			title="Workspace updated"
+			:description="actionMessage"
+			dismissible
+			@dismiss="actionMessage = ''"
+		/>
 
-		<DomDialog v-model="exportDialogOpen" title="Export audit events">
-			<div class="space-y-4 text-sm">
-				<p class="leading-6 text-muted-fg">
-					Generate a compliance export for the current filters. The export job should be written back into the audit log.
-				</p>
-				<div class="rounded-2xl border border-border bg-secondary p-4">
-					<p class="font-semibold">{{ exportSummary }}</p>
-					<p class="mt-1 text-muted-fg">Production-safe exports should expire and require admin permissions.</p>
+		<div class="flex min-h-0 flex-1">
+			<main class="flex min-w-0 flex-1 flex-col" aria-label="Audit events">
+				<div class="flex shrink-0 items-center justify-between gap-3 border-b border-border px-3 py-2.5 md:hidden">
+					<div class="relative min-w-0 flex-1">
+						<DomTextInput v-model="searchQuery" label="Search audit events" placeholder="Search events…" />
+					</div>
+					<DomButton variant="secondary" size="sm" @click="mobileFiltersOpen = true">
+						Filters<span v-if="activeFilterCount"> · {{ activeFilterCount }}</span>
+					</DomButton>
 				</div>
-				<DomToggle v-model="exportIncludesJson" label="Include raw JSON metadata" />
-				<div class="flex justify-end gap-2">
-					<DomButton variant="ghost" @click="exportDialogOpen = false">Cancel</DomButton>
-					<DomButton @click="exportDialogOpen = false">Start export</DomButton>
+
+				<div class="min-h-0 flex-1 overflow-y-auto">
+					<div v-if="loading" class="grid min-h-72 place-items-center text-sm text-muted-fg">Loading audit evidence…</div>
+					<div v-else-if="events.length" class="divide-y divide-border">
+						<button
+							v-for="event in events"
+							:key="event.id"
+							type="button"
+							class="group grid w-full gap-3 px-3 py-3 text-left transition hover:bg-secondary/45 sm:grid-cols-[8.5rem_minmax(0,1fr)_10rem_7rem] sm:items-center sm:px-5"
+							:class="selectedEventId === event.id ? 'bg-primary/7 shadow-[inset_3px_0_0_var(--primary)]' : ''"
+							@click="openEvent(event.id)"
+						>
+							<div class="flex min-w-0 items-center gap-2 sm:block">
+								<p class="shrink-0 text-xs font-medium sm:text-sm">{{ formatEventTime(event.createdAt) }}</p>
+								<p class="truncate font-mono text-[0.65rem] text-muted-fg sm:mt-1">{{ event.id }}</p>
+							</div>
+							<div class="min-w-0">
+								<div class="flex items-center gap-2">
+									<DomAvatar :name="event.actor.name" :initials="event.actor.initials" size="xs" />
+									<p class="truncate text-sm font-semibold">{{ event.description }}</p>
+								</div>
+								<p class="mt-1 truncate pl-8 font-mono text-[0.68rem] text-muted-fg">{{ event.action }} · {{ event.actor.name }}</p>
+							</div>
+							<div class="hidden min-w-0 sm:block">
+								<p class="truncate text-xs font-medium">{{ event.resource.name }}</p>
+								<p class="mt-1 truncate text-[0.68rem] text-muted-fg">{{ event.resource.type }} · {{ event.environment }}</p>
+							</div>
+							<div class="flex items-center justify-between gap-2 sm:justify-end">
+								<div class="flex flex-wrap items-center gap-1.5">
+									<DomStatusPill :tone="severityTone(event.severity)" :label="titleCase(event.severity)" size="sm" />
+									<DomStatusPill :tone="outcomeTone(event.outcome)" :label="titleCase(event.outcome)" size="sm" :dot="false" />
+								</div>
+								<DomIconButton as="span" :icon="chevronIcon" label="" size="xs" class="pointer-events-none sm:hidden" aria-hidden="true" />
+							</div>
+						</button>
+					</div>
+					<div v-else class="grid min-h-72 place-items-center p-8 text-center">
+						<div>
+							<p class="text-sm font-semibold">No events match this investigation</p>
+							<p class="mt-2 text-sm text-muted-fg">Clear a filter or broaden the search window.</p>
+							<DomButton class="mt-4" variant="secondary" size="sm" @click="clearFilters">Clear filters</DomButton>
+						</div>
+					</div>
+				</div>
+
+				<footer class="shrink-0 border-t border-border px-3 py-3 sm:px-5">
+					<DomPagination
+						:page="page"
+						:page-size="pageSize"
+						:total="result?.total || 0"
+						:disabled="querying"
+						compact
+						@update:page="changePage"
+					/>
+				</footer>
+			</main>
+
+			<aside class="hidden min-h-0 w-[34rem] shrink-0 overflow-y-auto border-l border-border lg:block" aria-label="Selected event evidence">
+				<AuditEventInspector :event="selectedEvent" :loading="loadingEvent" @hold-updated="handleHoldUpdated" />
+			</aside>
+		</div>
+
+		<DomDrawer v-model="mobileFiltersOpen" title="Investigation filters" side="right" width="min(92vw, 25rem)">
+			<div class="space-y-5 p-4">
+				<DomSelect v-model="selectedViewId" label="Saved view" :options="viewOptions" width="min-w-[18rem] max-w-[calc(100vw-3rem)]" @update:model-value="applySavedView">
+					<template #option="{ option }"><p class="font-medium">{{ option.label }}</p><p class="mt-1 text-xs opacity-75">{{ option.description }}</p></template>
+				</DomSelect>
+				<DomSelect v-model="environment" label="Environment" :options="controls.environments || []" width="min-w-[18rem] max-w-[calc(100vw-3rem)]" />
+				<DomSelect v-model="severity" label="Severity" :options="controls.severities || []" width="min-w-[18rem] max-w-[calc(100vw-3rem)]" />
+				<DomSelect v-model="outcome" label="Outcome" :options="controls.outcomes || []" width="min-w-[18rem] max-w-[calc(100vw-3rem)]" />
+				<DomSelect v-model="category" label="Category" :options="controls.categories || []" width="min-w-[18rem] max-w-[calc(100vw-3rem)]" searchable />
+				<DomSelect v-model="timeWindow" label="Time window" :options="controls.timeWindows || []" width="min-w-[18rem] max-w-[calc(100vw-3rem)]" />
+			</div>
+			<template #footer>
+				<div class="flex items-center justify-between gap-3">
+					<DomButton variant="ghost" size="sm" @click="clearFilters">Clear</DomButton>
+					<DomButton size="sm" @click="mobileFiltersOpen = false; runQueryFromStart()">Apply {{ activeFilterCount ? `${activeFilterCount} filters` : 'filters' }}</DomButton>
+				</div>
+			</template>
+		</DomDrawer>
+
+		<DomDrawer v-model="mobileInspectorOpen" :title="selectedSummary?.action || 'Event evidence'" side="right" width="min(96vw, 34rem)" class="lg:hidden">
+			<AuditEventInspector :event="selectedEvent" :loading="loadingEvent" @hold-updated="handleHoldUpdated" />
+		</DomDrawer>
+
+		<DomDialog v-model="saveViewOpen" title="Save investigation view" description="Keep this server-side filter set available to every security admin." size="sm">
+			<DomAlert v-if="saveViewError" class="mb-4" tone="danger" title="View was not saved" :description="saveViewError" />
+			<DomTextInput v-model="saveViewName" label="View name" placeholder="e.g. Quarterly access review" />
+			<div class="mt-4 border-y border-border py-3 text-xs text-muted-fg">
+				{{ result?.total || 0 }} matching events · {{ activeFilterCount }} active filters
+			</div>
+			<template #footer>
+				<DomButton variant="secondary" @click="saveViewOpen = false">Cancel</DomButton>
+				<DomButton :loading="actionBusy" @click="saveCurrentView">Save view</DomButton>
+			</template>
+		</DomDialog>
+
+		<DomDialog v-model="exportOpen" title="Export audit evidence" description="Generate a verified evidence file from the current server-side investigation." size="md">
+			<div v-if="!exportResult" class="space-y-5">
+				<DomAlert v-if="exportError" tone="danger" title="Export needs attention" :description="exportError" />
+				<DomSelect v-model="exportFormat" label="File format" :options="[{ value: 'csv', label: 'CSV', description: 'Review in a spreadsheet or upload to a GRC tool.' }, { value: 'json', label: 'JSON', description: 'Preserve nested metadata for programmatic analysis.' }]" width="min-w-[20rem] max-w-[calc(100vw-4rem)]">
+					<template #option="{ option }"><p class="font-medium">{{ option.label }}</p><p class="mt-1 text-xs opacity-75">{{ option.description }}</p></template>
+				</DomSelect>
+				<DomToggle v-model="exportSensitive" label="Include sensitive metadata" description="Adds actor email, IP address, user agent, and raw provider metadata." />
+				<DomToggle v-if="exportSensitive" v-model="exportAcknowledged" label="I am authorised to export sensitive evidence" description="This acknowledgement is stored with the export job." />
+				<div class="border-y border-border py-3 text-sm">
+					<p class="font-medium">{{ result?.total || 0 }} matching events</p>
+					<p class="mt-1 text-xs text-muted-fg">Current filters and a SHA-256 verification checksum will be included.</p>
 				</div>
 			</div>
+			<DomAlert v-else tone="success" title="Evidence package is ready" :description="`${exportResult.filename} · ${exportResult.eventCount} events`">
+				<template #actions>
+					<div class="mt-3 space-y-1 font-mono text-xs">
+						<p>{{ exportResult.id }}</p>
+						<p class="break-all text-muted-fg">{{ exportResult.checksum }}</p>
+					</div>
+				</template>
+			</DomAlert>
+			<template #footer>
+				<DomButton variant="secondary" @click="exportOpen = false">{{ exportResult ? 'Close' : 'Cancel' }}</DomButton>
+				<DomButton v-if="!exportResult" :loading="actionBusy" @click="createExport">Generate export</DomButton>
+			</template>
+		</DomDialog>
+
+		<DomDialog v-model="alertOpen" title="Create audit alert" description="Notify a security channel when high-risk audit traffic crosses a threshold." size="md">
+			<div v-if="!alertResult" class="space-y-5">
+				<DomAlert v-if="alertError" tone="danger" title="Alert rule needs attention" :description="alertError" />
+				<DomTextInput v-model="alertName" label="Rule name" />
+				<div class="grid gap-4 sm:grid-cols-2">
+					<DomSelect v-model="alertSeverity" label="Minimum severity" :options="(controls.severities || []).filter((option) => option.value !== 'all')" width="min-w-[16rem] max-w-[calc(100vw-4rem)]" />
+					<DomTextInput v-model="alertThreshold" label="Events in 15 minutes" type="number" />
+				</div>
+				<DomTextInput v-model="alertChannel" label="Notification channel" description="Use an email address or a channel beginning with #." />
+			</div>
+			<DomAlert v-else tone="success" title="Alert monitoring is active" :description="`${alertResult.name} · ${alertResult.threshold} events / ${alertResult.window} · ${alertResult.channel}`" />
+			<template #footer>
+				<DomButton variant="secondary" @click="alertOpen = false">{{ alertResult ? 'Close' : 'Cancel' }}</DomButton>
+				<DomButton v-if="!alertResult" :loading="actionBusy" @click="createAlertRule">Create alert</DomButton>
+			</template>
 		</DomDialog>
 	</div>
 </template>

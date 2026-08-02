@@ -12,8 +12,8 @@ import MediaAssetPickerSrc from './examples/MediaAssetPicker.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Media Asset Picker Block"
-			tagline="A responsive gallery-first media picker with collection filters, asset preview, selection state, usage metadata, and an insertion tray."
-			tag="Content UI"
+			tagline="A Cloudinary- and Contentful-inspired media workspace with API-backed search, ingestion recovery, metadata approval, archiving, and receipt-backed insertion."
+			tag="Working API"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Content management" title="Media asset picker">
@@ -22,9 +22,9 @@ import MediaAssetPickerSrc from './examples/MediaAssetPicker.vue?raw';
 					filename="MediaAssetPicker.vue"
 					presentation="iframe"
 					frame-src="/blocks/content-management/media/media-asset-picker/preview/MediaAssetPicker"
-					description="Copy this into a CMS, product editor, marketing builder, commerce admin, or profile customization flow. Replace the sample assets with your media API, upload pipeline, file permissions, and CDN metadata."
+					description="Copy this complete app section into a CMS, product editor, marketing builder, or commerce admin where teams need to find, review, and insert publish-ready media."
 					default-open
-					:preview-lines="14"
+					:preview-lines="18"
 				>
 					<MediaAssetPicker />
 				</Example>
@@ -33,16 +33,17 @@ import MediaAssetPickerSrc from './examples/MediaAssetPicker.vue?raw';
 			<DocSection eyebrow="Integration" title="How to use this block">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block anywhere a user needs to find, inspect, and insert existing media without leaving the workflow.
-						The composition prioritizes fast visual scanning, styled filter choices, metadata confidence, and an always-visible selected-assets tray instead of a heavy admin console.
+						Use this block when media selection includes real publishing responsibility, not only browsing.
+						The composition pairs the reusable <code>DomMediaBrowser</code> with server-filtered collections, focused metadata review, an ingestion pipeline, and an always-visible insertion action.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>assets</code> with records from your CMS, DAM, file service, object storage bucket, or upload API.</li>
-						<li>Persist selections as asset ids, not public URLs, so later CDN transformations, permissions, and replacements remain server-controlled.</li>
-						<li>Use collection and type filters as API query params when the asset library becomes too large to filter client-side.</li>
-						<li>Render custom filter options with counts, file-type icons, and operational context so editors understand the result set before searching.</li>
-						<li>Connect the preview dialog to alt text, focal point, license, transformation, and usage controls when your product needs publishing safety.</li>
-						<li>Keep the bottom tray mounted on mobile so users can select several assets without losing confirmation or insert context.</li>
+						<li>Load filter options and collection counts from <code>/api/block-demos/media-asset-library/bootstrap</code>, then query assets server-side by collection, type, readiness, sort, and search text.</li>
+						<li>Persist selections as asset ids, not public URLs, so CDN transformations, permissions, and file replacements stay server-controlled.</li>
+						<li>Run uploads through explicit validation, malware scanning, duplicate detection, and metadata extraction states; the demo includes a recoverable scanner outage.</li>
+						<li>Save title, alt text, license, and tags with optimistic revisions. The server recalculates publishing readiness after every metadata mutation.</li>
+						<li>Archive and restore through dedicated routes so placements, metadata, and activity remain auditable.</li>
+						<li>Insert only approved assets and return a destination, timestamp, stable receipt id, and checksum as proof.</li>
+						<li>The demo API is intentionally process-local. Production integrations should add authentication, authorization, durable storage, real binary upload, worker queues, provider webhooks, CDN signing, and immutable audit events.</li>
 					</ul>
 				</div>
 			</DocSection>
@@ -50,39 +51,40 @@ import MediaAssetPickerSrc from './examples/MediaAssetPicker.vue?raw';
 			<DocSection eyebrow="Data" title="Recommended asset shape">
 				<CodeBlock lang="js" filename="media-asset.js" :code="`{
 \tid: 'asset-hero-dashboard',
+\trevision: 4,
 \ttitle: 'Workspace dashboard hero',
-\ttype: 'image',
-\tcollection: 'Product',
+\tname: 'workspace-dashboard.jpg',
+\tmimeType: 'image/jpeg',
+\tcollection: 'product',
 \tstatus: 'Approved',
-\treview: 'Alt text and license verified',
-\tplacement: 'Hero',
-\tsourceUrl: 'https://cdn.example.com/assets/workspace-dashboard.jpg',
-\tthumbnailUrl: 'https://cdn.example.com/assets/workspace-dashboard_thumb.jpg',
 \talt: 'Dashboard screen showing project health metrics and tasks.',
-\tdimensions: { width: 2400, height: 1600 },
-\tsizeBytes: 842000,
-\townerId: 'user_123',
-\tusageCount: 12,
-\tupdatedAt: '2026-06-09T13:20:00Z',
 \tlicense: 'Company owned',
+\twidth: 2400,
+\theight: 1600,
+\tsize: 842000,
+\towner: 'Maya Chen',
+\tusage: 12,
+\tplacements: ['Homepage hero', 'Launch overview'],
+\tupdatedAt: '2026-06-09T13:20:00Z',
 \ttags: ['dashboard', 'product', 'launch'],
-\tfocalPoint: { x: 0.46, y: 0.38 }
+\tthumbnailUrl: 'https://cdn.example.com/assets/workspace-dashboard_thumb.jpg',
+\tpublicUrl: 'https://cdn.example.com/assets/workspace-dashboard.jpg'
 }`" />
 			</DocSection>
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Selection contract</h3>
-						<p class="mt-2">Emit selected asset ids with ordered insert positions. Let the parent editor decide whether assets become images, attachments, gallery items, or references.</p>
+						<h3 class="font-semibold text-canvas-fg">DOM Studio composition</h3>
+						<p class="mt-2">Use <code>DomMediaBrowser</code> for selection and view modes, <code>DomSelect</code> for rich filters, and DOM Studio drawers, dialogs, alerts, upload, tags, status, and form controls for the surrounding workflow.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Publishing safety</h3>
-						<p class="mt-2">Gate insertion on approval status, missing alt text, license coverage, or workspace permissions when assets can be exposed publicly.</p>
+						<p class="mt-2">Keep readiness server-owned. A non-empty form is not proof that an asset passed accessibility, license, permission, malware, and duplicate checks.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include drag-to-reorder selection, upload drop zones, focal-point editors, duplicate detection, and promoting the asset tile once more blocks need gallery rows.</p>
+						<p class="mt-2">Useful follow-ups include signed direct-upload sessions, background processing progress, focal-point editing, asset replacement, version comparison, and provider-specific storage adapters.</p>
 					</div>
 				</div>
 			</DocSection>

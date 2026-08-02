@@ -12,90 +12,61 @@ import ProposalEditorSrc from './examples/ProposalEditor.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Proposal Editor Block"
-			tagline="A responsive document editor for drafting proposals, reviewing comments, checking approval gates, and publishing a client-ready packet."
-			tag="Documents"
+			tagline="A working proposal room with exact-revision authoring, anchored review, server-owned readiness, client delivery, view callbacks, and acceptance evidence."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Editor" title="Collaborative proposal editor">
+			<DocSection eyebrow="Documents / Proposals" title="Client proposal room">
 				<Example
 					:source="ProposalEditorSrc"
 					filename="ProposalEditor.vue"
 					presentation="iframe"
 					frame-src="/blocks/documents/proposal-editor/preview/ProposalEditor"
-					description="Copy this into sales, consulting, onboarding, procurement, knowledge-base, or internal planning apps where teams need a focused editor with review workflow and publication readiness."
+					description="A Qwilr-, PandaDoc-, and Notion-inspired proposal workspace with focused Proposals, Content, and Details views backed by repository-local APIs."
 					default-open
-					:preview-lines="18"
+					:preview-lines="16"
 				>
 					<ProposalEditor />
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="Included application behavior">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when an app needs more than a plain textarea but less than a full document product. It keeps the proposal canvas, section outline,
-						active draft controls, comments, and approval gates together so teams can move from draft to client-ready output without switching tools.
+						The block treats proposal authoring as a complete client-delivery lifecycle rather than a document-editor screenshot.
+						Sections, commercial line items, reviewer decisions, readiness, delivery, client views, acceptance, evidence, and reset all cross a server API.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace the local <code>sections</code>, <code>comments</code>, and <code>approvalGates</code> arrays with document state from your backend.</li>
-						<li>Persist each section independently so autosave, permissions, review status, and version history can be scoped to the edited block.</li>
-						<li>Store comments with anchors such as <code>sectionId</code>, text range, author, state, and timestamps so review notes survive document reordering.</li>
-						<li>Run final approval checks server-side before publishing or exporting to PDF. Client-side readiness should be treated as guidance only.</li>
-						<li>Connect publish actions to your PDF renderer, CRM opportunity, e-signature packet, or customer portal delivery workflow.</li>
+						<li>Move between draft, sent, and accepted examples while keeping client-facing content and evidence in context.</li>
+						<li>Edit sections and delivery settings with rich <code>DomSelect</code> controls and optimistic exact-revision protection.</li>
+						<li>Resolve anchored comments, record required reviewer decisions, and let the server calculate six readiness gates.</li>
+						<li>Add and remove line-item commercials while preserving minor-unit prices, currency, and frozen send totals.</li>
+						<li>Send through a provider-style handoff, record deterministic client callbacks, and retain immutable acceptance evidence across reloads.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended proposal payload">
-				<CodeBlock lang="js" filename="proposal-editor.js" :code="`{
-\tdocument: {
-\t\tid: 'proposal_2048',
-\t\ttitle: 'Northstar onboarding proposal',
-\t\tclient: 'Northstar Labs',
-\t\tstatus: 'review',
-\t\townerId: 'usr_maya',
-\t\tlastSavedAt: '2026-06-11T15:58:00Z'
-\t},
-\tsections: [
-\t\t{
-\t\t\tid: 'scope',
-\t\t\ttitle: 'Scope of work',
-\t\t\tstatus: 'review',
-\t\t\tbody: 'Migration planning, workspace setup, and enablement for the customer success team.',
-\t\t\twordCount: 84
-\t\t}
-\t],
-\tcomments: [
-\t\t{
-\t\t\tid: 'comment_1',
-\t\t\tsectionId: 'scope',
-\t\t\tauthor: 'Ari Patel',
-\t\t\tbody: 'Confirm whether analytics migration is included in phase one.',
-\t\t\tstate: 'open',
-\t\t\tcreatedAt: '2026-06-11T15:42:00Z'
-\t\t}
-\t],
-\tapprovalGates: [
-\t\t{ key: 'pricing', label: 'Pricing approved', complete: true },
-\t\t{ key: 'legal', label: 'Legal review complete', complete: false }
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Repository-local route contract">
+				<CodeBlock lang="text" filename="proposal-editor.routes" :code="`GET    /api/block-demos/proposal-editor/bootstrap
+GET    /api/block-demos/proposal-editor/proposals/:proposalId
+PATCH  /api/block-demos/proposal-editor/proposals/:proposalId/settings
+PATCH  /api/block-demos/proposal-editor/proposals/:proposalId/sections/:sectionId
+POST   /api/block-demos/proposal-editor/proposals/:proposalId/comments/:commentId/resolve
+POST   /api/block-demos/proposal-editor/proposals/:proposalId/reviewers/:reviewerId/decision
+POST   /api/block-demos/proposal-editor/proposals/:proposalId/pricing
+DELETE /api/block-demos/proposal-editor/proposals/:proposalId/pricing/:itemId
+POST   /api/block-demos/proposal-editor/proposals/:proposalId/preflight
+POST   /api/block-demos/proposal-editor/proposals/:proposalId/send
+POST   /api/block-demos/proposal-editor/proposals/:proposalId/view
+POST   /api/block-demos/proposal-editor/proposals/:proposalId/accept
+POST   /api/block-demos/proposal-editor/reset`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Autosave model</h3>
-						<p class="mt-2">Save section deltas instead of the full document when possible. This keeps collaboration, undo history, and conflict handling easier to reason about.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Review anchors</h3>
-						<p class="mt-2">Attach comments to stable section IDs and optional text ranges. Recompute display positions after reorder, insert, or export operations.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include rich text marks, presence cursors, compare versions, reusable approval gates, export progress, and reusable comment threads.</p>
-					</div>
+			<DocSection eyebrow="Customization" title="Production boundaries">
+				<div class="grid gap-5 text-sm leading-7 text-muted-fg md:grid-cols-3">
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Document boundary</h3><p class="mt-2">The demo stores structured text in process memory. Production should use durable document storage, a versioned rich-text schema, permissions, autosave or collaboration, PDF rendering, and stable comment anchors.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Client delivery boundary</h3><p class="mt-2">Replace simulated sending and callbacks with a retry-safe provider adapter, verified webhooks, expiring client sessions, email delivery, CRM synchronization, idempotency, and status reconciliation.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Commercial evidence boundary</h3><p class="mt-2">Add authentication, organization authorization, currency and tax policy, discounts, payment or e-sign adapters, immutable audit retention, privacy controls, rate limits, and jurisdiction-specific acceptance rules.</p></div>
 				</div>
 			</DocSection>
 		</DocPage>

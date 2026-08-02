@@ -152,7 +152,7 @@ Recommended future components:
 
 ### Identity Verification
 
-`src/pages/blocks/identity-verification` adds a copy/paste KYC and identity verification flow. It is intended for fintech onboarding, marketplaces, age-gated apps, healthcare portals, creator payouts, and compliance-heavy products where teams need to collect profile details, secure evidence, consent, risk signals, and reviewer notes before account activation.
+`src/pages/blocks/compliance/identity-verification` adds a complete, API-backed KYC and identity verification section. It is intended for fintech onboarding, marketplaces, age-gated apps, healthcare portals, creator payouts, and compliance-heavy products where teams need resumable profile collection, provider evidence capture, consent, server-owned screening, support handoff, and receipt-backed submission before account activation.
 
 Recommended future components:
 
@@ -160,6 +160,116 @@ Recommended future components:
 - Camera capture step: provide mobile document framing, glare guidance, retake handling, and liveness capture states.
 - Rejection reason templates: help reviewers send clear, localized retry instructions for expired IDs, blurry uploads, address mismatches, and unsupported countries.
 - Re-verification scheduler: trigger renewal when documents expire, risk policy changes, payouts increase, or regulatory rules require refresh checks.
+
+### Localization Review Workbench
+
+`src/pages/blocks/content-management/localization/localization-review-workbench` adds a complete, API-backed translation review section. It is intended for SaaS admin tools, content platforms, ecommerce back offices, developer portals, and release consoles where reviewers need source context, editable locale strings, translation memory, server-owned quality checks, glossary handoff, approval gates, and receipt-backed bundle publishing.
+
+Recommended future components:
+
+- Translation provider adapter: normalize Lokalise, Phrase, Crowdin, Transifex, GitHub, or an internal catalogue behind the demonstrated release and segment routes.
+- Screenshot context panel: connect a string key to the exact product frame and breakpoint where its translation appears.
+- Plural-form editor: provide locale-aware plural categories, placeholder protection, and per-form approval state.
+- Reviewer comment thread: attach versioned discussion, mentions, and resolution evidence to a translation segment without mixing comments into the translated copy.
+
+### Media Asset Picker
+
+`src/pages/blocks/content-management/media/media-asset-picker` adds a complete, API-backed media selection and publishing section. It is intended for CMS products, marketing builders, ecommerce admin, product editors, and digital asset workflows where teams need server-filtered discovery, upload recovery, accessibility and license review, archiving, and receipt-backed insertion without leaving the editor.
+
+Recommended future components:
+
+- Direct-upload session adapter: issue signed provider uploads, track multipart progress, and hand completed file references into the demonstrated ingestion contract.
+- Processing job timeline: expose malware scan, duplicate detection, metadata extraction, thumbnail generation, transcription, and retry states from background workers.
+- Focal-point editor: store responsive crop intent for CDN transformations without destructively editing the source asset.
+- Asset version comparison: replace a file while preserving its stable id, placements, metadata history, and rollback choices.
+
+### App Navigation Builder
+
+`src/pages/blocks/content-management/navigation/app-navigation-builder` adds a complete, API-backed navigation operations section. It is intended for SaaS admin, CMS tooling, app builders, customer portals, and internal platforms where teams need to edit nested destinations, preview role visibility, check application routes and feature flags, and publish a versioned menu without editing source code.
+
+Recommended future components:
+
+- Route-registry adapter: discover destinations, route parameters, owners, deprecations, and redirect targets directly from the application router.
+- Scheduled navigation release: approve and publish a menu version at a future time with cancellation, rollback, and deployment status.
+- Localization editor: manage translated menu labels with source-locale fallbacks, truncation warnings, and locale-specific preview personas.
+- Version comparison: show hierarchy and metadata diffs between the active menu and a proposed draft before publication.
+
+### Appointment Booking
+
+`src/pages/blocks/conversion/appointment-booking` adds a complete API-backed scheduling journey for embedded sales, onboarding, services, clinic, and customer-success experiences. It combines rolling future availability, timezone-aware slots, optimistic contention checks, expiring holds, attendee details, confirmation proof, and cancellation in one responsive section.
+
+Recommended future components:
+
+- Calendar-provider adapter: connect Google Calendar, Microsoft Graph, Cal.com, or application-owned availability without changing the demonstrated client contract.
+- Reminder policy editor: configure email, SMS, and in-app reminders with locale, consent, and delivery-state handling.
+- Reschedule flow: reuse the booking management receipt to hold a replacement slot before releasing the original appointment.
+- Booking management link: issue scoped, expiring attendee tokens for cancellation, rescheduling, guest updates, and joining instructions.
+
+### Login Gateway
+
+`src/pages/blocks/conversion/login` adds a complete API-backed authentication gateway for SaaS products, internal platforms, customer portals, and multi-workspace applications. It combines password and passwordless entry, second-factor verification, failed-attempt recovery, remembered-session policy, workspace authorization, signed handoff proof, reloadable session reads, and explicit revocation in one responsive section.
+
+Recommended future components:
+
+- Identity-provider adapter: normalize Auth0, Clerk, WorkOS, Cognito, OIDC, SAML, and application-owned authentication behind the demonstrated session and challenge contracts.
+- Passkey enrolment: add WebAuthn registration, device naming, backup eligibility, and recoverable passkey errors without replacing the existing verification state model.
+- Trusted-device manager: show remembered browsers, expiry, last activity, risk state, and remote revocation from the same session service.
+- Organization discovery: resolve verified email domains into SSO, invite, or account-creation routes before accepting a password.
+
+### Workspace Onboarding
+
+`src/pages/blocks/conversion/onboarding` adds a complete API-backed activation section for SaaS products, collaboration tools, internal platforms, and multi-workspace applications. It resumes at the first incomplete task and combines revisioned workspace identity, rich role, region, team-size, and source selection, prioritized outcomes, provider connection, scoped teammate invitations, readiness calculation, immutable launch proof, reload persistence, and a useful post-launch handoff in one responsive section.
+
+Recommended future components:
+
+- Provider OAuth adapter: exchange the demonstrated source decision for real Linear, Notion, Jira, or application-owned authorization without changing the session contract.
+- Background import monitor: expose queued, running, partial, failed, and completed import batches with retry and item-level failure evidence.
+- Domain verification: verify workspace ownership before accepting vanity URLs, SSO discovery, or organization-wide invitation policies.
+- Onboarding experiment adapter: vary task ordering and defaults while preserving server-owned completion and comparable activation analytics.
+
+### Product Tour Builder
+
+`src/pages/blocks/conversion/product-tours/product-tour-builder` adds a complete API-backed authoring section for onboarding platforms, feature-adoption products, growth consoles, and application-owned education tooling. It combines an interactive product canvas, registered target selection, visual tooltip placement, responsive step and inspector modes, revisioned draft mutations, server-calculated reach, short-lived preview sessions, exact-revision launch checks, and signed scheduling proof in one viewport-owned workspace.
+
+Recommended future components:
+
+- Selector-health crawler: verify registered targets against production and deploy-preview routes, capture screenshots, and flag device-specific drift before authors can publish.
+- Tour runtime adapter: render the same placement, trigger, eligibility, progress, dismissal, and completion contracts inside the host application.
+- Localization workbench: manage translated step copy, expansion warnings, locale fallbacks, and per-language review state without forking the tour sequence.
+- Experiment analytics: connect exposure, holdout, completion, activation, and downstream conversion metrics to the immutable release reference returned by publication.
+
+### Customer Data Import
+
+`src/pages/blocks/data-capture/data-import` adds a complete API-backed customer-import section for CRM migrations, admin tools, billing platforms, marketplaces, and customer operations products. It combines rich target-to-source field mapping, responsive record review, server-owned readiness checks, optimistic revisions, downloadable blocked-row receipts, acknowledgement-gated job creation, deterministic worker progress, reload persistence, and an immutable completion proof in one viewport-owned workspace.
+
+Recommended future components:
+
+- Upload parser adapter: connect object storage, virus scanning, delimiter detection, encoding recovery, and schema inference without changing the demonstrated session contract.
+- Saved mapping library: persist organization-owned presets, confidence, author, source system, and field-schema version for recurring imports.
+- Import job worker: replace manual deterministic batches with queue-driven progress, item-level retries, cancellation, and dead-letter recovery.
+- Error correction workbench: edit blocked cells inline, revalidate only changed rows, and merge the corrected subset into the original immutable source artifact.
+
+### Form Operations
+
+`src/pages/blocks/data-capture/forms` adds a complete API-backed form operations section for SaaS products, research tooling, customer-intake workflows, internal platforms, and embedded lead capture. It combines revisioned form settings, authoritative publication checks, acknowledgement-gated publishing, a working public response path, server validation and spam policy, immutable submission proof, response triage, reload persistence, and responsive Compose, Live form, and Responses views in one viewport-owned workspace.
+
+Recommended future components:
+
+- Field schema editor: add, remove, reorder, and configure conditional fields while preserving stable field ids and published-version compatibility.
+- Embed and delivery adapter: generate signed embed configuration, webhook destinations, retry state, and provider-specific delivery logs from the demonstrated publication contract.
+- Draft-resume token service: replace the documented draft seam with signed, expiring respondent sessions and cross-device recovery.
+
+### Agent Run Trace
+
+`src/pages/blocks/developer-experience/ai-agents/agent-run-trace` adds a complete API-backed trace investigation section for agent builders, AI operations consoles, evaluation products, and internal developer platforms. It combines a dense recent-run queue, nested trace waterfall, rich environment and span filtering, payload-free list reads, lazy redacted payload access, investigation ownership, optimistic revisions, server-validated replay and eval actions, immutable export evidence, reload persistence, and focused Runs, Trace, and Inspector layouts.
+
+Recommended future components:
+
+- Trace ingestion adapter: normalize OpenTelemetry, LangSmith, Phoenix, Braintrust, or application-owned spans into the demonstrated parent-linked run contract.
+- Live run stream: append queued and running spans through server events while preserving stable selection, scroll position, and terminal-state evidence.
+- Trace comparison: align two run revisions by span identity and expose prompt, model, latency, cost, tool result, and evaluation differences.
+- Evaluation runner: replace the demo eval receipt with versioned datasets, graders, batch progress, regression thresholds, and links back to source traces.
+- Response export job: create filtered CSV or JSON exports with background progress, audit evidence, retention rules, and expiring download receipts.
 
 ### Bulk Actions
 

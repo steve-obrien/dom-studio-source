@@ -12,88 +12,57 @@ import CardDisputeFlowSrc from './examples/CardDisputeFlow.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Card Dispute Flow Block"
-			tagline="A copyable fintech dispute intake flow for reviewing a card transaction, selecting a reason, collecting evidence, and submitting a case with clear eligibility checks."
-			tag="Fintech UI"
+			tagline="A working dispute-resolution workspace with transaction triage, exact-revision intake, verified evidence, server eligibility, card protection, provisional credit, and immutable case receipts."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Disputes" title="Card dispute flow">
+			<DocSection eyebrow="Financial services / Disputes" title="Card dispute resolution workspace">
 				<Example
 					:source="CardDisputeFlowSrc"
 					filename="CardDisputeFlow.vue"
 					presentation="iframe"
 					frame-src="/blocks/financial-services/disputes/card-dispute-flow/preview/CardDisputeFlow"
-					description="Copy this into banking, wallet, marketplace, subscription, expense, or commerce apps where customers need to dispute a charge without opening a generic support ticket."
+					description="A Monzo-, Revolut-, and Stripe disputes-inspired workspace with focused Transactions, Claim, Evidence, and Case views backed by repository-local APIs."
 					default-open
-					:preview-lines="18"
+					:preview-lines="16"
 				>
 					<CardDisputeFlow />
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="Included application behavior">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when a transaction needs a guided, auditable dispute path rather than a free-form support form.
-						The mobile view keeps the selected charge, dispute reason, customer evidence, temporary card controls, and final submit action close together, while the companion case packet gives support and risk teams a larger-screen summary.
+						The block treats charge disputes as a complete resolution workflow rather than a local support form.
+						Transaction detail, exact-revision intake, typed evidence, eligibility checks, card protection, filing, provisional credit, immutable receipts, and reset all cross a server API.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Hydrate <code>transactions</code> from your card ledger, payment processor, or billing system with stable IDs, merchant descriptors, amount, status, card, and dispute deadline fields.</li>
-						<li>Return eligibility from the server. The client can explain missing evidence, deadlines, provisional credit, or card replacement options, but should not decide network dispute rules alone.</li>
-						<li>Keep dispute answers structured by reason code so they can map to card-network evidence packages, merchant inquiries, billing support queues, or internal fraud review.</li>
-						<li>Store uploaded evidence as separate file records linked to the case. Run malware scanning, retention policy, and redaction asynchronously without blocking the form draft.</li>
-						<li>Persist every submission and card-control change as an event with actor, device context, old state, new state, and policy snapshot for audit and customer support.</li>
+						<li>Move between untouched, draft, submitted, and pending transaction examples while preserving claim and case lifecycle state.</li>
+						<li>Capture network-mappable reason codes and structured answers through rich <code>DomSelect</code> and DOM Studio form controls.</li>
+						<li>Add and remove typed evidence records with verification status, notes, checksums, exact revisions, and immutable mutation receipts.</li>
+						<li>Run server-owned filing-window, statement, evidence, merchant-contact, reason-proof, and card-protection checks before submission.</li>
+						<li>Freeze or replace compromised credentials immediately, then create a locked case, operations queue handoff, and provisional-credit decision.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended dispute payload">
-				<CodeBlock lang="js" filename="card-dispute-case.js" :code="`{
-\tid: 'disp_2048',
-\ttransactionId: 'txn_9384',
-\taccountId: 'acct_4412',
-\tcardId: 'card_ending_2048',
-\tstatus: 'draft',
-\treasonCode: 'unauthorized',
-\tamount: {
-\t\tvalue: 128.40,
-\t\tcurrency: 'GBP'
-\t},
-\tmerchant: {
-\t\tdescriptor: 'Luma Cloud Services',
-\t\tcategory: 'Software',
-\t\tcontactedAt: null
-\t},
-\tanswers: {
-\t\tcardInPossession: true,
-\t\trecognizesMerchant: false,
-\t\tdetails: 'I did not authorize this subscription charge.'
-\t},
-\tevidence: [
-\t\t{ id: 'file_1', type: 'screenshot', status: 'uploaded' }
-\t],
-\tcontrols: {
-\t\tfreezeCard: true,
-\t\treplaceCard: false,
-\t\tprovisionalCreditEligible: true
-\t},
-\tsubmittedAt: null
-}`" />
+			<DocSection eyebrow="API" title="Repository-local route contract">
+				<CodeBlock lang="text" filename="card-dispute-flow.routes" :code="`GET    /api/block-demos/card-dispute-flow/bootstrap
+GET    /api/block-demos/card-dispute-flow/transactions/:transactionId
+PATCH  /api/block-demos/card-dispute-flow/transactions/:transactionId/claim
+POST   /api/block-demos/card-dispute-flow/transactions/:transactionId/evidence
+DELETE /api/block-demos/card-dispute-flow/transactions/:transactionId/evidence/:evidenceId
+POST   /api/block-demos/card-dispute-flow/transactions/:transactionId/preflight
+POST   /api/block-demos/card-dispute-flow/transactions/:transactionId/protection
+POST   /api/block-demos/card-dispute-flow/transactions/:transactionId/submit
+POST   /api/block-demos/card-dispute-flow/reset`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Eligibility service</h3>
-						<p class="mt-2">Calculate deadlines, provisional credit, card-network reason codes, and merchant-contact requirements in a backend service that the UI mirrors.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Evidence mapping</h3>
-						<p class="mt-2">Normalize evidence into typed records such as receipt, cancellation proof, merchant conversation, tracking, and screenshot so operations teams can package cases quickly.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include file upload thumbnails, card replacement shipping, live chat escalation, network reason-code mapping, and support-agent case review variants.</p>
-					</div>
+			<DocSection eyebrow="Customization" title="Production boundaries">
+				<div class="grid gap-5 text-sm leading-7 text-muted-fg md:grid-cols-3">
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Network boundary</h3><p class="mt-2">The demo uses deterministic policy decisions. Production should authenticate the actor, authorize the account and card, reconcile processor data, map current network rules, manage representment deadlines, and make every filing idempotent.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Evidence boundary</h3><p class="mt-2">Store real files privately with signed upload sessions, malware scanning, MIME validation, redaction, retention, legal hold, immutable checksums, access logging, and case-scoped authorization.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Money and support boundary</h3><p class="mt-2">Connect provisional credits to a double-entry ledger, issuer policy, regulatory timing, clawback handling, customer notifications, escalation queues, durable audit storage, and operations decision tooling.</p></div>
 				</div>
 			</DocSection>
 		</DocPage>

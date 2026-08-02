@@ -1,372 +1,751 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { DomButton, DomCheckbox, DomNativeSelect, DomTextareaInput } from '@getdom/studio/vue';
+import { computed, onMounted, ref } from 'vue';
+import {
+	DomAlert,
+	DomAppBottomNav,
+	DomAppListItem,
+	DomAppShell,
+	DomAppTopBar,
+	DomAvatar,
+	DomBadge,
+	DomButton,
+	DomCheckbox,
+	DomDatePicker,
+	DomDialog,
+	DomEmptyState,
+	DomJsonViewer,
+	DomProgress,
+	DomSelect,
+	DomSkeleton,
+	DomStatusPill,
+	DomTabs,
+	DomTextareaInput,
+	DomTextInput,
+} from '@getdom/studio/vue';
 
-const accounts = [
-	{
-		id: 'zephyr',
-		name: 'Zephyr Health',
-		segment: 'Enterprise',
-		owner: 'Maya Patel',
-		renewal: 'Sep 18, 2026',
-		arr: 184000,
-		score: 74,
-		trend: -8,
-		status: 'At risk',
-		statusTone: 'warning',
-		plan: 'Enterprise annual',
-		champion: 'Elena Ruiz, VP Operations',
-		licenses: { active: 118, total: 180 },
-		teams: 9,
-		integrations: 4,
-		tickets: 7,
-		p1Tickets: 2,
-		nps: 18,
-		lastTouch: '2 days ago',
-		riskDrivers: [
-			{ label: 'Core workflow adoption dropped 12%', detail: 'Three large teams stopped using approvals last week.', tone: 'warning' },
-			{ label: 'Two unresolved P1 tickets', detail: 'Escalation owner assigned but no customer-facing update since Monday.', tone: 'danger' },
-			{ label: 'Procurement review pending', detail: 'Security addendum was requested before renewal paperwork.', tone: 'neutral' },
-		],
-		opportunities: [
-			{ label: 'Add field operations team', value: '+42 seats', confidence: 'High' },
-			{ label: 'Activate Slack integration', value: '12 teams waiting', confidence: 'Medium' },
-		],
-		activity: [
-			{ type: 'Support', title: 'Escalated export timeout', detail: 'Engineering linked the incident to a large account sync.', time: 'Today' },
-			{ type: 'Call', title: 'Champion requested rollout guidance', detail: 'New regional managers need approval workflow training.', time: 'Jun 09' },
-			{ type: 'Billing', title: 'Renewal quote opened', detail: 'Procurement viewed annual terms and security addendum.', time: 'Jun 07' },
-		],
-	},
-	{
-		id: 'northstar',
-		name: 'Northstar Finance',
-		segment: 'Mid-market',
-		owner: 'Jon Bell',
-		renewal: 'Aug 04, 2026',
-		arr: 76000,
-		score: 91,
-		trend: 6,
-		status: 'Healthy',
-		statusTone: 'success',
-		plan: 'Scale annual',
-		champion: 'Priya Shah, RevOps Lead',
-		licenses: { active: 63, total: 70 },
-		teams: 6,
-		integrations: 7,
-		tickets: 1,
-		p1Tickets: 0,
-		nps: 52,
-		lastTouch: '5 days ago',
-		riskDrivers: [
-			{ label: 'Usage expanded across teams', detail: 'Weekly active teams increased from 4 to 6.', tone: 'success' },
-			{ label: 'Low support pressure', detail: 'Only one low-severity ticket remains open.', tone: 'success' },
-			{ label: 'Renewal paperwork not started', detail: 'Owner should confirm budget cycle before July.', tone: 'neutral' },
-		],
-		opportunities: [
-			{ label: 'Introduce audit log add-on', value: '+GBP 14k', confidence: 'High' },
-			{ label: 'Invite finance admins', value: '+8 seats', confidence: 'Medium' },
-		],
-		activity: [
-			{ type: 'Usage', title: 'Forecast report adopted', detail: 'Finance leadership opened the report 38 times this week.', time: 'Yesterday' },
-			{ type: 'Success', title: 'QBR deck approved', detail: 'Champion approved value summary for executive review.', time: 'Jun 08' },
-			{ type: 'Product', title: 'Audit log trial started', detail: 'Admin accepted a 14 day add-on trial.', time: 'Jun 03' },
-		],
-	},
-	{
-		id: 'atlas',
-		name: 'Atlas Retail Group',
-		segment: 'Enterprise',
-		owner: 'Sam Rivera',
-		renewal: 'Jul 22, 2026',
-		arr: 221000,
-		score: 58,
-		trend: -16,
-		status: 'Critical',
-		statusTone: 'danger',
-		plan: 'Enterprise annual',
-		champion: 'Jordan Lee, CIO',
-		licenses: { active: 96, total: 240 },
-		teams: 4,
-		integrations: 2,
-		tickets: 13,
-		p1Tickets: 3,
-		nps: -12,
-		lastTouch: '12 days ago',
-		riskDrivers: [
-			{ label: 'Seat activation below 45%', detail: 'Retail operations team has not completed rollout.', tone: 'danger' },
-			{ label: 'Executive sponsor is inactive', detail: 'No executive touchpoint since April.', tone: 'danger' },
-			{ label: 'Support backlog rising', detail: 'Three critical tickets are linked to identity provisioning.', tone: 'warning' },
-		],
-		opportunities: [
-			{ label: 'Recover dormant stores', value: '31 locations', confidence: 'Medium' },
-			{ label: 'Identity provisioning project', value: 'Blocks churn', confidence: 'High' },
-		],
-		activity: [
-			{ type: 'Risk', title: 'Usage alert triggered', detail: 'Only 4 of 12 target teams were active this week.', time: 'Today' },
-			{ type: 'Support', title: 'Identity ticket reopened', detail: 'Customer says SSO rollout still blocks new store managers.', time: 'Yesterday' },
-			{ type: 'CRM', title: 'Renewal close date moved', detail: 'Forecast changed from commit to best case.', time: 'Jun 05' },
-		],
-	},
+const apiBase = '/api/block-demos/customer-health';
+const tabs = [
+	{ key: 'portfolio', label: 'Portfolio' },
+	{ key: 'health', label: 'Health evidence' },
+	{ key: 'timeline', label: 'Timeline' },
+	{ key: 'plan', label: 'Recovery plan' },
 ];
 
-const playbookOptions = [
-	{ label: 'Renewal save plan', value: 'Renewal save plan' },
-	{ label: 'Executive business review', value: 'Executive business review' },
-	{ label: 'Expansion discovery', value: 'Expansion discovery' },
-	{ label: 'Adoption rescue', value: 'Adoption rescue' },
-];
+const workspace = ref(null);
+const loading = ref(true);
+const busyAction = ref('');
+const error = ref('');
+const notice = ref('');
+const activeView = ref('health');
+const segment = ref('my-book');
+const search = ref('');
+const planDialogOpen = ref(false);
+const planTemplateId = ref('renewal-recovery');
+const planOwnerId = ref('usr_maya');
+const planDueDate = ref('2026-08-28');
+const planObjective = ref('Restore executive confidence and prove a credible path to renewal.');
+const planNote = ref('Coordinate the sponsor, support escalation, adoption recovery, and commercial evidence in one accountable plan.');
+const planAcknowledged = ref(false);
+const taskDialogOpen = ref(false);
+const selectedTask = ref(null);
+const taskCompletionNote = ref('Elena confirmed the executive sponsor meeting and accepted the recovery agenda.');
+const activityDialogOpen = ref(false);
+const activityType = ref('customer-call');
+const activityTitle = ref('Sponsor recovery call confirmed');
+const activityDetail = ref('Elena confirmed the executive sponsor and the August 12 working session.');
 
-const selectedAccountId = ref('zephyr');
-const selectedTab = ref('signals');
-const playbook = ref('Renewal save plan');
-const ownerNote = ref('Confirm sponsor availability, summarize unresolved P1 tickets, and propose a two-week adoption recovery plan.');
-const showOnlyRisks = ref(false);
-const tasks = ref([
-	{ id: 'sponsor', label: 'Book sponsor call with current champion', done: false },
-	{ id: 'support', label: 'Send escalation update for unresolved P1 tickets', done: true },
-	{ id: 'adoption', label: 'Prepare adoption rescue plan for inactive teams', done: false },
-	{ id: 'renewal', label: 'Attach risk summary to renewal opportunity', done: false },
-]);
+const selectedAccount = computed(() => workspace.value?.selectedAccount || null);
+const filteredAccounts = computed(getFilteredAccounts);
+const mobileNavigation = computed(getMobileNavigation);
+const planEvidence = computed(getPlanEvidence);
+const healthEvidence = computed(getHealthEvidence);
+const completedTasks = computed(() => selectedAccount.value?.plan?.tasks?.filter((task) => task.status === 'completed').length || 0);
+const canRefreshHealth = computed(() => Boolean(selectedAccount.value?.plan && completedTasks.value > 0 && !selectedAccount.value.lastHealthRefreshReceipt));
 
-const selectedAccount = computed(() => accounts.find((account) => account.id === selectedAccountId.value) || accounts[0]);
-const adoptionRate = computed(() => Math.round((selectedAccount.value.licenses.active / selectedAccount.value.licenses.total) * 100));
-const visibleDrivers = computed(() => {
-	if (!showOnlyRisks.value) return selectedAccount.value.riskDrivers;
-	return selectedAccount.value.riskDrivers.filter((driver) => driver.tone === 'warning' || driver.tone === 'danger');
-});
-const completedTaskCount = computed(() => tasks.value.filter((task) => task.done).length);
-const readiness = computed(() => Math.round((completedTaskCount.value / tasks.value.length) * 100));
-const summaryMetrics = computed(() => [
-	{ label: 'ARR', value: money(selectedAccount.value.arr), detail: selectedAccount.value.plan },
-	{ label: 'Renewal', value: selectedAccount.value.renewal, detail: `${selectedAccount.value.lastTouch} since last touch` },
-	{ label: 'Adoption', value: `${adoptionRate.value}%`, detail: `${selectedAccount.value.licenses.active}/${selectedAccount.value.licenses.total} seats active` },
-	{ label: 'Support', value: `${selectedAccount.value.tickets} open`, detail: `${selectedAccount.value.p1Tickets} priority incidents` },
-]);
+onMounted(loadWorkspace);
 
-function money(value) {
+/**
+ * Loads the customer health workspace from the repository-local API.
+ *
+ * @param {boolean} clearMessages Whether feedback should be cleared before loading.
+ * @returns {Promise<void>}
+ */
+async function loadWorkspace(clearMessages = true) {
+	if (clearMessages) clearFeedback();
+	loading.value = true;
+	try {
+		const response = await fetch(`${apiBase}/bootstrap`);
+		const data = await response.json();
+		if (!response.ok) throw createRequestError(data, response.status);
+		setWorkspace(data);
+	} catch (requestError) {
+		error.value = requestError.message || 'Unable to load the customer health workspace.';
+	} finally {
+		loading.value = false;
+	}
+}
+
+/**
+ * Sends one workspace mutation and applies its authoritative response.
+ *
+ * @param {string} path API path below the customer-health base URL.
+ * @param {Record<string, unknown>} body JSON request body.
+ * @param {string} action Stable busy-state key.
+ * @returns {Promise<object|null>} Updated workspace or null after failure.
+ */
+async function mutateWorkspace(path, body, action) {
+	clearFeedback();
+	busyAction.value = action;
+	try {
+		const response = await fetch(`${apiBase}${path}`, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify(body),
+		});
+		const data = await response.json();
+		if (!response.ok) throw createRequestError(data, response.status);
+		setWorkspace(data);
+		return data;
+	} catch (requestError) {
+		error.value = requestError.message || 'Customer health action failed.';
+		if (requestError.status === 409) await refreshAfterConflict();
+		return null;
+	} finally {
+		busyAction.value = '';
+	}
+}
+
+/**
+ * Reloads current state after an exact-revision conflict.
+ *
+ * @returns {Promise<void>}
+ */
+async function refreshAfterConflict() {
+	try {
+		const response = await fetch(`${apiBase}/bootstrap`);
+		const data = await response.json();
+		if (response.ok) setWorkspace(data);
+	} catch {
+		// Preserve the original conflict message when the recovery read also fails.
+	}
+}
+
+/**
+ * Replaces client workspace state and keeps form defaults aligned.
+ *
+ * @param {object} data Authoritative API workspace.
+ * @returns {void}
+ */
+function setWorkspace(data) {
+	workspace.value = data;
+	planOwnerId.value = data.selectedAccount.ownerId || data.currentOperator.id;
+	if (data.preview) {
+		planTemplateId.value = data.preview.templateId;
+		planOwnerId.value = data.preview.ownerId;
+		planDueDate.value = data.preview.dueDate;
+		planObjective.value = data.preview.objective;
+		planNote.value = data.preview.note;
+		activeView.value = 'plan';
+	}
+}
+
+/**
+ * Selects one account and opens its health evidence.
+ *
+ * @param {string} accountId Customer account identifier.
+ * @returns {Promise<void>}
+ */
+async function selectAccount(accountId) {
+	if (!workspace.value || accountId === workspace.value.selectedAccountId || busyAction.value) {
+		activeView.value = 'health';
+		return;
+	}
+	const data = await mutateWorkspace('/accounts/select', {
+		revision: workspace.value.revision,
+		accountId,
+	}, 'select-account');
+	if (data) {
+		activeView.value = 'health';
+		notice.value = `${data.selectedAccount.name} opened with evidence version ${data.selectedAccount.version}.`;
+	}
+}
+
+/**
+ * Opens the success-plan configuration dialog with contextual defaults.
+ *
+ * @returns {void}
+ */
+function openPlanDialog() {
+	if (!selectedAccount.value) return;
+	planOwnerId.value = selectedAccount.value.ownerId;
+	planAcknowledged.value = false;
+	planDialogOpen.value = true;
+}
+
+/**
+ * Creates an immutable success-plan preview.
+ *
+ * @returns {Promise<void>}
+ */
+async function previewPlan() {
+	if (!workspace.value || !selectedAccount.value) return;
+	const data = await mutateWorkspace('/plans/preview', {
+		revision: workspace.value.revision,
+		accountId: selectedAccount.value.id,
+		accountVersion: selectedAccount.value.version,
+		templateId: planTemplateId.value,
+		ownerId: planOwnerId.value,
+		dueDate: planDueDate.value,
+		objective: planObjective.value,
+		note: planNote.value,
+	}, 'preview-plan');
+	if (data) {
+		planDialogOpen.value = false;
+		activeView.value = 'plan';
+		notice.value = `${data.preview.receipt} locks the account evidence, owner, dates, and tasks.`;
+	}
+}
+
+/**
+ * Launches the acknowledged immutable plan preview.
+ *
+ * @returns {Promise<void>}
+ */
+async function launchPlan() {
+	if (!workspace.value?.preview) return;
+	const data = await mutateWorkspace('/plans', {
+		revision: workspace.value.revision,
+		previewId: workspace.value.preview.id,
+		acknowledged: planAcknowledged.value,
+	}, 'launch-plan');
+	if (data) {
+		planAcknowledged.value = false;
+		activeView.value = 'plan';
+		notice.value = `${data.selectedAccount.plan.receipt} launched ${data.selectedAccount.plan.tasks.length} accountable tasks.`;
+	}
+}
+
+/**
+ * Opens the completion dialog for one exact-version plan task.
+ *
+ * @param {object} task Success-plan task.
+ * @returns {void}
+ */
+function openTaskDialog(task) {
+	selectedTask.value = task;
+	taskCompletionNote.value = task.key === 'support'
+		? 'Support published the P1 recovery update and confirmed the next customer checkpoint.'
+		: 'Elena confirmed the executive sponsor meeting and accepted the recovery agenda.';
+	taskDialogOpen.value = true;
+}
+
+/**
+ * Completes one exact-version success-plan task.
+ *
+ * @returns {Promise<void>}
+ */
+async function completeTask() {
+	const account = selectedAccount.value;
+	const task = selectedTask.value;
+	if (!workspace.value || !account?.plan || !task) return;
+	const data = await mutateWorkspace(`/plans/${account.plan.id}/tasks/${task.id}`, {
+		revision: workspace.value.revision,
+		accountId: account.id,
+		accountVersion: account.version,
+		planVersion: account.plan.version,
+		taskVersion: task.version,
+		note: taskCompletionNote.value,
+	}, 'complete-task');
+	if (data) {
+		taskDialogOpen.value = false;
+		selectedTask.value = null;
+		activeView.value = 'plan';
+		notice.value = `Task completed. Plan progress is now ${data.selectedAccount.plan.progress}%.`;
+	}
+}
+
+/**
+ * Synchronizes the active success plan to the CRM adapter.
+ *
+ * @returns {Promise<void>}
+ */
+async function syncPlan() {
+	const account = selectedAccount.value;
+	if (!workspace.value || !account?.plan) return;
+	const data = await mutateWorkspace(`/plans/${account.plan.id}/sync`, {
+		revision: workspace.value.revision,
+		accountId: account.id,
+		accountVersion: account.version,
+	}, 'sync-plan');
+	if (data) notice.value = `${data.selectedAccount.plan.crmSync.receipt} linked the plan to ${data.selectedAccount.plan.crmSync.recordId}.`;
+}
+
+/**
+ * Opens the account activity dialog.
+ *
+ * @returns {void}
+ */
+function openActivityDialog() {
+	activityDialogOpen.value = true;
+}
+
+/**
+ * Adds a validated activity to the customer timeline.
+ *
+ * @returns {Promise<void>}
+ */
+async function logActivity() {
+	const account = selectedAccount.value;
+	if (!workspace.value || !account) return;
+	const data = await mutateWorkspace('/activities', {
+		revision: workspace.value.revision,
+		accountId: account.id,
+		accountVersion: account.version,
+		type: activityType.value,
+		title: activityTitle.value,
+		detail: activityDetail.value,
+	}, 'log-activity');
+	if (data) {
+		activityDialogOpen.value = false;
+		activeView.value = 'timeline';
+		notice.value = `${data.selectedAccount.activity[0].receipt} added the customer update.`;
+	}
+}
+
+/**
+ * Recalculates health from current source evidence after recovery work.
+ *
+ * @returns {Promise<void>}
+ */
+async function refreshHealth() {
+	const account = selectedAccount.value;
+	if (!workspace.value || !account) return;
+	const previousScore = account.healthScore;
+	const data = await mutateWorkspace('/health/refresh', {
+		revision: workspace.value.revision,
+		accountId: account.id,
+		accountVersion: account.version,
+	}, 'refresh-health');
+	if (data) {
+		activeView.value = 'health';
+		notice.value = `${data.selectedAccount.lastHealthRefreshReceipt} moved health from ${previousScore} to ${data.selectedAccount.healthScore}.`;
+	}
+}
+
+/**
+ * Restores the deterministic demo and its original account evidence.
+ *
+ * @returns {Promise<void>}
+ */
+async function resetDemo() {
+	const data = await mutateWorkspace('/reset', {}, 'reset');
+	if (data) {
+		activeView.value = 'health';
+		segment.value = 'my-book';
+		search.value = '';
+		planAcknowledged.value = false;
+		notice.value = 'Customer health demo restored.';
+	}
+}
+
+/**
+ * Applies a mobile bottom-navigation destination.
+ *
+ * @param {object|string} item Navigation item or key.
+ * @returns {void}
+ */
+function changeMobileDestination(item) {
+	activeView.value = typeof item === 'string' ? item : item?.value || item?.key || activeView.value;
+}
+
+/**
+ * Filters the server portfolio by the selected segment and search query.
+ *
+ * @returns {object[]} Visible accounts.
+ */
+function getFilteredAccounts() {
+	if (!workspace.value) return [];
+	const query = search.value.trim().toLowerCase();
+	return workspace.value.accounts.filter((account) => {
+		const matchesSegment = segment.value === 'all'
+			|| (segment.value === 'my-book' && account.ownerId === workspace.value.currentOperator.id)
+			|| (segment.value === 'needs-attention' && ['critical', 'at-risk'].includes(account.status))
+			|| (segment.value === 'renewing-soon' && account.daysToRenewal <= 90);
+		const matchesSearch = !query || [account.name, account.segment, account.owner, account.industry].some((value) => String(value).toLowerCase().includes(query));
+		return matchesSegment && matchesSearch;
+	});
+}
+
+/**
+ * Returns mobile navigation items with useful account-state metadata.
+ *
+ * @returns {object[]} Bottom-navigation items.
+ */
+function getMobileNavigation() {
+	return [
+		{ value: 'portfolio', label: 'Accounts' },
+		{ value: 'health', label: 'Health', badge: selectedAccount.value?.healthScore },
+		{ value: 'timeline', label: 'Timeline' },
+		{ value: 'plan', label: 'Plan', badge: selectedAccount.value?.plan ? `${selectedAccount.value.plan.progress}%` : undefined },
+	];
+}
+
+/**
+ * Returns immutable success-plan evidence for DOM Studio JSON inspection.
+ *
+ * @returns {object} Preview or active-plan evidence.
+ */
+function getPlanEvidence() {
+	if (workspace.value?.preview) {
+		return {
+			previewId: workspace.value.preview.id,
+			previewReceipt: workspace.value.preview.receipt,
+			accountVersion: workspace.value.preview.accountVersion,
+			owner: workspace.value.preview.owner,
+			dueDate: workspace.value.preview.dueDate,
+			checks: workspace.value.preview.checks,
+			tasks: workspace.value.preview.tasks,
+		};
+	}
+	const plan = selectedAccount.value?.plan;
+	if (!plan) return {};
+	return {
+		planId: plan.id,
+		version: plan.version,
+		status: plan.status,
+		previewReceipt: plan.previewReceipt,
+		planReceipt: plan.receipt,
+		progress: plan.progress,
+		crmSync: plan.crmSync,
+		lastHealthRefreshReceipt: plan.lastHealthRefreshReceipt,
+		tasks: plan.tasks,
+	};
+}
+
+/**
+ * Returns scorecard evidence with source freshness and weights.
+ *
+ * @returns {object} Selected account scorecard evidence.
+ */
+function getHealthEvidence() {
+	const account = selectedAccount.value;
+	if (!account) return {};
+	return {
+		accountId: account.id,
+		accountVersion: account.version,
+		healthScore: account.healthScore,
+		previousScore: account.previousScore,
+		status: account.status,
+		measures: account.measures.map((measure) => ({
+			id: measure.id,
+			score: measure.score,
+			weight: measure.weight,
+			source: measure.source,
+			freshness: measure.freshness,
+		})),
+		lastHealthRefreshReceipt: account.lastHealthRefreshReceipt,
+	};
+}
+
+/**
+ * Clears visible request feedback.
+ *
+ * @returns {void}
+ */
+function clearFeedback() {
+	error.value = '';
+	notice.value = '';
+}
+
+/**
+ * Creates an error carrying the HTTP status for conflict recovery.
+ *
+ * @param {object} data API response payload.
+ * @param {number} status HTTP status.
+ * @returns {Error & {status: number}} Request error.
+ */
+function createRequestError(data, status) {
+	const requestError = new Error(data?.error || `Request failed with status ${status}.`);
+	requestError.status = status;
+	return requestError;
+}
+
+/**
+ * Formats annual recurring revenue in British pounds.
+ *
+ * @param {number} value Currency value.
+ * @returns {string} Formatted currency.
+ */
+function formatCurrency(value) {
 	return new Intl.NumberFormat('en-GB', {
 		style: 'currency',
 		currency: 'GBP',
 		maximumFractionDigits: 0,
-	}).format(value);
+	}).format(Number(value || 0));
 }
 
-function scoreToneClass(tone) {
-	if (tone === 'success') return 'bg-success/15 text-success';
-	if (tone === 'danger') return 'bg-destructive/15 text-destructive';
-	if (tone === 'warning') return 'bg-warning/15 text-warning';
-	return 'bg-secondary text-muted-fg';
+/**
+ * Formats an ISO date for concise customer-success UI.
+ *
+ * @param {string} value ISO date.
+ * @returns {string} Human-readable date.
+ */
+function formatDate(value) {
+	if (!value) return 'Not set';
+	return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(`${value}T12:00:00.000Z`));
 }
 
-function scoreBarClass(score) {
-	if (score >= 85) return 'bg-success';
-	if (score >= 65) return 'bg-warning';
-	return 'bg-destructive';
+/**
+ * Maps internal status keys to readable labels.
+ *
+ * @param {string} status Status key.
+ * @returns {string} Human-readable label.
+ */
+function statusLabel(status) {
+	const labels = {
+		'active': 'Active',
+		'advisory': 'Advisory',
+		'at-risk': 'At risk',
+		'blocked-by-risk': 'Blocked by risk',
+		'completed': 'Completed',
+		'critical': 'Critical',
+		'discovery': 'Discovery',
+		'healthy': 'Healthy',
+		'mitigating': 'Mitigating',
+		'monitoring': 'Monitoring',
+		'not-started': 'Not started',
+		'open': 'Open',
+		'passed': 'Passed',
+		'pending': 'Pending',
+		'synced': 'Synced',
+	};
+	return labels[status] || String(status || 'Unknown').replaceAll('-', ' ');
+}
+
+/**
+ * Maps account and workflow statuses to semantic DOM Studio tones.
+ *
+ * @param {string} status Status key.
+ * @returns {string} DOM Studio tone.
+ */
+function statusTone(status) {
+	if (['healthy', 'completed', 'passed', 'synced'].includes(status)) return 'success';
+	if (['critical', 'blocked-by-risk'].includes(status)) return 'danger';
+	if (['at-risk', 'high', 'open', 'pending'].includes(status)) return 'warning';
+	if (['active', 'medium', 'mitigating', 'monitoring', 'discovery'].includes(status)) return 'info';
+	return 'neutral';
 }
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
-			<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-				<div>
-					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Customer health</p>
-					<h3 class="mt-1 text-2xl font-semibold tracking-tight">Renewal risk and account recovery</h3>
-					<p class="mt-2 max-w-3xl text-sm leading-6 text-muted-fg">
-						Review customer health, adoption signals, support pressure, and action readiness from one success workspace.
-					</p>
+	<DomAppShell class="h-dvh">
+		<template #top>
+			<DomAppTopBar
+				v-if="workspace"
+				class="md:hidden"
+				:title="selectedAccount?.name || 'Customer health'"
+				:subtitle="selectedAccount ? `${statusLabel(selectedAccount.status)} · ${selectedAccount.healthScore} health` : 'Portfolio loading'"
+				large
+			>
+				<template #trailing><DomButton size="sm" variant="ghost" :loading="busyAction === 'reset'" @click="resetDemo">Reset</DomButton></template>
+			</DomAppTopBar>
+			<header v-if="workspace" class="hidden min-w-0 items-center justify-between gap-5 border-b border-border px-5 py-3 md:flex">
+				<div class="min-w-0">
+					<div class="flex items-center gap-2"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Customer success</p><DomStatusPill :tone="statusTone(selectedAccount?.status)" :label="statusLabel(selectedAccount?.status)" size="sm" /></div>
+					<h1 class="mt-1 truncate text-xl font-semibold">Account recovery desk</h1>
 				</div>
-				<div class="grid gap-2 sm:grid-cols-[13rem_auto] sm:items-end">
-					<DomNativeSelect
-						v-model="selectedAccountId"
-						label="Account"
-						:options="accounts.map((account) => ({ label: account.name, value: account.id }))"
-					/>
-					<DomButton>Open CRM record</DomButton>
+				<div class="flex shrink-0 items-center gap-3">
+					<p class="hidden text-xs text-muted-fg lg:block">Workspace revision {{ workspace.revision }}</p>
+					<DomButton size="sm" variant="secondary" :loading="busyAction === 'reset'" @click="resetDemo">Reset demo</DomButton>
 				</div>
-			</div>
-		</header>
+			</header>
+		</template>
 
-		<div class="grid xl:grid-cols-[16rem_minmax(0,1fr)_22rem]">
-			<aside class="border-b border-border skin-card xl:border-b-0 xl:border-r">
-				<div class="flex gap-2 overflow-x-auto p-3 xl:grid xl:gap-1">
+		<div v-if="loading" class="grid h-full min-h-0 gap-4 p-4 md:grid-cols-[minmax(0,1fr)_18rem]">
+			<div class="space-y-3"><DomSkeleton class="h-20" /><DomSkeleton class="h-96" /></div>
+			<DomSkeleton class="hidden h-full md:block" />
+		</div>
+
+		<DomEmptyState v-else-if="!workspace" title="Customer health unavailable" description="Reload the API-backed workspace to continue.">
+			<template #actions><DomButton @click="loadWorkspace">Retry</DomButton></template>
+		</DomEmptyState>
+
+		<div v-else class="grid h-full min-h-0 min-w-0 md:grid-cols-[minmax(0,1fr)_18rem] xl:grid-cols-[15rem_minmax(0,1fr)_19rem]">
+			<aside class="hidden min-h-0 flex-col overflow-hidden border-r border-border xl:flex">
+				<div class="shrink-0 border-b border-border p-3">
+					<DomSelect v-model="segment" label="Portfolio" :options="workspace.catalog.segments" width="min-w-0" />
+					<DomTextInput v-model="search" class="mt-3" label="Search accounts" placeholder="Name, owner, segment" />
+				</div>
+				<div class="min-h-0 flex-1 overflow-y-auto">
 					<button
-						v-for="account in accounts"
+						v-for="account in filteredAccounts"
 						:key="account.id"
 						type="button"
-						class="min-w-56 rounded-2xl px-3 py-3 text-left transition hover:bg-canvas xl:min-w-0"
-						:class="selectedAccountId === account.id ? 'bg-canvas shadow-sm ring-1 ring-border' : ''"
-						@click="selectedAccountId = account.id"
+						class="w-full border-b border-border px-3 py-3 text-left transition hover:bg-secondary/50"
+						:class="account.id === workspace.selectedAccountId ? 'bg-secondary/80' : ''"
+						@click="selectAccount(account.id)"
 					>
-						<div class="flex items-start justify-between gap-3">
-							<span class="min-w-0">
-								<span class="block truncate text-sm font-semibold">{{ account.name }}</span>
-								<span class="mt-1 block text-xs text-muted-fg">{{ account.segment }} / {{ account.owner }}</span>
-							</span>
-							<span class="rounded-full px-2 py-0.5 text-xs font-semibold" :class="scoreToneClass(account.statusTone)">
-								{{ account.score }}
-							</span>
-						</div>
-						<div class="mt-3 h-1.5 overflow-hidden rounded-full bg-secondary">
-							<div class="h-full rounded-full" :class="scoreBarClass(account.score)" :style="{ width: `${account.score}%` }"></div>
-						</div>
+						<div class="flex items-start justify-between gap-3"><div class="min-w-0"><p class="truncate text-sm font-semibold">{{ account.name }}</p><p class="mt-1 truncate text-xs text-muted-fg">{{ account.owner }} · {{ account.segment }}</p></div><DomStatusPill :tone="statusTone(account.status)" :label="account.healthScore" size="sm" /></div>
+						<div class="mt-3 flex items-center justify-between gap-3 text-[11px] text-muted-fg"><span>{{ formatCurrency(account.arr) }}</span><span>{{ account.daysToRenewal }}d to renewal</span></div>
 					</button>
+				</div>
+				<div class="shrink-0 border-t border-border p-4">
+					<DomAvatar :name="workspace.currentOperator.name" :initials="workspace.currentOperator.initials" size="sm" />
+					<p class="mt-3 text-sm font-semibold">{{ workspace.currentOperator.name }}</p>
+					<p class="mt-1 text-xs leading-5 text-muted-fg">{{ workspace.currentOperator.role }}</p>
 				</div>
 			</aside>
 
-			<main class="min-w-0 border-b border-border xl:border-b-0 xl:border-r">
-				<section class="border-b border-border p-4 sm:p-6">
-					<div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-						<div>
-							<div class="flex flex-wrap items-center gap-2">
-								<h4 class="text-xl font-semibold tracking-tight">{{ selectedAccount.name }}</h4>
-								<span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="scoreToneClass(selectedAccount.statusTone)">
-									{{ selectedAccount.status }}
-								</span>
-								<span class="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-fg">
-									{{ selectedAccount.trend > 0 ? '+' : '' }}{{ selectedAccount.trend }} this month
-								</span>
+			<main class="flex min-h-0 min-w-0 flex-col overflow-hidden">
+				<DomAlert v-if="error" class="mx-3 mt-3 sm:mx-4" tone="danger" title="Customer health action failed" :description="error" dismissible @dismiss="error = ''" />
+				<DomAlert v-else-if="notice" class="mx-3 mt-3 sm:mx-4" tone="success" title="Account workspace updated" :description="notice" dismissible @dismiss="notice = ''" />
+
+				<DomTabs v-model="activeView" :tabs="tabs" class="customer-health-tabs flex min-h-0 flex-1 flex-col overflow-hidden">
+					<template #portfolio>
+						<div class="flex h-full min-h-0 flex-col overflow-hidden">
+							<div class="shrink-0 border-b border-border p-4 sm:p-5">
+								<div class="flex flex-wrap items-end justify-between gap-3"><div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Portfolio triage</p><h2 class="mt-1 text-xl font-semibold">Decide where attention goes next</h2><p class="mt-2 text-sm text-muted-fg">Server evidence is summarized without hiding the account-level scorecard.</p></div><DomBadge tone="warning" variant="soft">{{ workspace.portfolio.needsAttention }} need attention</DomBadge></div>
+								<div class="mt-4 grid grid-cols-2 gap-px overflow-hidden border border-border bg-border sm:grid-cols-4">
+									<div class="bg-canvas p-3"><p class="text-xs text-muted-fg">Accounts</p><p class="mt-1 text-xl font-semibold">{{ workspace.portfolio.totalAccounts }}</p></div>
+									<div class="bg-canvas p-3"><p class="text-xs text-muted-fg">Needs attention</p><p class="mt-1 text-xl font-semibold text-warning">{{ workspace.portfolio.needsAttention }}</p></div>
+									<div class="bg-canvas p-3"><p class="text-xs text-muted-fg">ARR at risk</p><p class="mt-1 text-xl font-semibold">{{ formatCurrency(workspace.portfolio.arrAtRisk) }}</p></div>
+									<div class="bg-canvas p-3"><p class="text-xs text-muted-fg">Renewing in 90d</p><p class="mt-1 text-xl font-semibold">{{ workspace.portfolio.renewingSoon }}</p></div>
+								</div>
+								<div class="mt-4 grid gap-3 xl:hidden sm:grid-cols-2"><DomSelect v-model="segment" label="Portfolio" :options="workspace.catalog.segments" /><DomTextInput v-model="search" label="Search accounts" placeholder="Name, owner, segment" /></div>
 							</div>
-							<p class="mt-2 text-sm leading-6 text-muted-fg">
-								Owned by {{ selectedAccount.owner }}. Champion: {{ selectedAccount.champion }}.
-							</p>
-						</div>
-						<div class="grid min-w-40 gap-2">
-							<div class="flex items-end gap-3">
-								<span class="text-5xl font-semibold tracking-tight">{{ selectedAccount.score }}</span>
-								<span class="pb-2 text-sm font-medium text-muted-fg">health score</span>
-							</div>
-							<div class="h-2 overflow-hidden rounded-full bg-secondary">
-								<div class="h-full rounded-full" :class="scoreBarClass(selectedAccount.score)" :style="{ width: `${selectedAccount.score}%` }"></div>
+							<div class="min-h-0 flex-1 overflow-y-auto">
+								<DomEmptyState v-if="!filteredAccounts.length" title="No accounts match" description="Change the portfolio filter or search text." />
+								<DomAppListItem v-for="account in filteredAccounts" v-else :key="account.id" :label="account.name" :description="`${account.owner} · ${account.segment} · ${formatCurrency(account.arr)}`" :meta="`${account.daysToRenewal}d`" :selected="account.id === workspace.selectedAccountId" @click="selectAccount(account.id)">
+									<template #icon><DomAvatar :name="account.name" :initials="account.initials" size="sm" /></template>
+									<template #trailing><div class="flex items-center gap-2"><DomStatusPill :tone="statusTone(account.status)" :label="statusLabel(account.status)" size="sm" /><span class="w-7 text-right text-sm font-semibold">{{ account.healthScore }}</span></div></template>
+								</DomAppListItem>
 							</div>
 						</div>
-					</div>
+					</template>
 
-					<div class="mt-6 grid divide-y divide-border overflow-hidden rounded-2xl border border-border sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">
-						<div v-for="metric in summaryMetrics" :key="metric.label" class="bg-canvas p-4">
-							<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">{{ metric.label }}</p>
-							<p class="mt-2 text-lg font-semibold">{{ metric.value }}</p>
-							<p class="mt-1 text-sm leading-6 text-muted-fg">{{ metric.detail }}</p>
-						</div>
-					</div>
-				</section>
+					<template #health>
+						<div class="h-full min-h-0 overflow-y-auto">
+							<div class="mx-auto grid w-full max-w-5xl gap-5 p-4 sm:p-5">
+								<section class="grid gap-4 border-b border-border pb-5 sm:grid-cols-[minmax(0,1fr)_12rem] sm:items-start">
+									<div><div class="flex flex-wrap items-center gap-2"><DomStatusPill :tone="statusTone(selectedAccount.status)" :label="statusLabel(selectedAccount.status)" /><DomBadge tone="neutral" variant="soft">Account v{{ selectedAccount.version }}</DomBadge></div><h2 class="mt-3 text-2xl font-semibold">{{ selectedAccount.name }}</h2><p class="mt-2 text-sm leading-6 text-muted-fg">{{ selectedAccount.segment }} · {{ selectedAccount.industry }} · owned by {{ selectedAccount.owner }}</p><p class="text-sm leading-6 text-muted-fg">Champion: {{ selectedAccount.champion }}</p></div>
+									<div><div class="flex items-end gap-2"><p class="text-5xl font-semibold tracking-tight">{{ selectedAccount.healthScore }}</p><p class="pb-2 text-xs text-muted-fg">weighted health</p></div><DomProgress class="mt-2" :value="selectedAccount.healthScore" :label="`${selectedAccount.name} health`" :tone="statusTone(selectedAccount.status)" /><p class="mt-2 text-xs text-muted-fg">{{ selectedAccount.healthScore - selectedAccount.previousScore > 0 ? '+' : '' }}{{ selectedAccount.healthScore - selectedAccount.previousScore }} since prior score</p></div>
+								</section>
 
-				<section class="border-b border-border px-4 sm:px-6">
-					<div class="flex gap-2 overflow-x-auto py-3">
-						<button
-							v-for="tab in [
-								{ id: 'signals', label: 'Health signals' },
-								{ id: 'timeline', label: 'Timeline' },
-								{ id: 'expansion', label: 'Expansion' },
-							]"
-							:key="tab.id"
-							type="button"
-							class="rounded-full px-3 py-1.5 text-sm font-medium transition"
-							:class="selectedTab === tab.id ? 'bg-primary text-primary-fg' : 'bg-secondary text-muted-fg hover:text-canvas-fg'"
-							@click="selectedTab = tab.id"
-						>
-							{{ tab.label }}
-						</button>
-					</div>
-				</section>
+								<section class="grid grid-cols-2 gap-px overflow-hidden border border-border bg-border sm:grid-cols-4">
+									<div class="bg-canvas p-3"><p class="text-xs text-muted-fg">ARR</p><p class="mt-1 font-semibold">{{ formatCurrency(selectedAccount.arr) }}</p><p class="mt-1 text-xs text-muted-fg">{{ selectedAccount.integrations }} connected sources</p></div>
+									<div class="bg-canvas p-3"><p class="text-xs text-muted-fg">Renewal</p><p class="mt-1 font-semibold">{{ formatDate(selectedAccount.renewalDate) }}</p><p class="mt-1 text-xs text-muted-fg">{{ selectedAccount.daysToRenewal }} days</p></div>
+									<div class="bg-canvas p-3"><p class="text-xs text-muted-fg">Adoption</p><p class="mt-1 font-semibold">{{ selectedAccount.activeSeats }}/{{ selectedAccount.licensedSeats }}</p><p class="mt-1 text-xs text-muted-fg">{{ selectedAccount.weeklyActiveTeams }} active teams</p></div>
+									<div class="bg-canvas p-3"><p class="text-xs text-muted-fg">Support</p><p class="mt-1 font-semibold">{{ selectedAccount.openTickets }} open</p><p class="mt-1 text-xs text-muted-fg">{{ selectedAccount.priorityTickets }} priority</p></div>
+								</section>
 
-				<section v-if="selectedTab === 'signals'" class="p-4 sm:p-6">
-					<div class="flex flex-wrap items-center justify-between gap-3">
-						<div>
-							<h4 class="font-semibold tracking-tight">Score drivers</h4>
-							<p class="mt-1 text-sm text-muted-fg">Explain why the account moved and what an owner should inspect first.</p>
-						</div>
-						<DomCheckbox v-model="showOnlyRisks" label="Risks only" />
-					</div>
-					<div class="mt-4 divide-y divide-border overflow-hidden rounded-2xl border border-border">
-						<div v-for="driver in visibleDrivers" :key="driver.label" class="grid gap-3 bg-canvas p-4 sm:grid-cols-[auto_minmax(0,1fr)]">
-							<span class="mt-1 size-3 rounded-full" :class="scoreBarClass(driver.tone === 'success' ? 90 : driver.tone === 'warning' ? 72 : 42)"></span>
-							<span>
-								<span class="block font-semibold">{{ driver.label }}</span>
-								<span class="mt-1 block text-sm leading-6 text-muted-fg">{{ driver.detail }}</span>
-							</span>
-						</div>
-					</div>
-				</section>
+								<DomAlert v-if="selectedAccount.risk" :tone="statusTone(selectedAccount.risk.severity)" :title="selectedAccount.risk.label" :description="selectedAccount.risk.detail">
+									<div class="flex flex-wrap items-center gap-2"><DomStatusPill :tone="statusTone(selectedAccount.risk.status)" :label="statusLabel(selectedAccount.risk.status)" size="sm" /><span class="text-xs text-muted-fg">Owner {{ selectedAccount.risk.owner }} · due {{ formatDate(selectedAccount.risk.dueDate) }}</span><DomButton v-if="!selectedAccount.plan" size="sm" @click="openPlanDialog">Create recovery plan</DomButton></div>
+								</DomAlert>
 
-				<section v-else-if="selectedTab === 'timeline'" class="p-4 sm:p-6">
-					<h4 class="font-semibold tracking-tight">Recent activity</h4>
-					<div class="mt-4 grid gap-4">
-						<div v-for="event in selectedAccount.activity" :key="`${event.type}-${event.title}`" class="grid grid-cols-[auto_minmax(0,1fr)_auto] gap-3 text-sm">
-							<span class="mt-1 rounded-full bg-secondary px-2 py-1 text-xs font-semibold text-muted-fg">{{ event.type }}</span>
-							<span>
-								<span class="block font-semibold">{{ event.title }}</span>
-								<span class="mt-1 block leading-6 text-muted-fg">{{ event.detail }}</span>
-							</span>
-							<span class="text-xs font-medium text-muted-fg">{{ event.time }}</span>
-						</div>
-					</div>
-				</section>
+								<section>
+									<div class="flex flex-wrap items-end justify-between gap-3"><div><h3 class="font-semibold">Weighted scorecard</h3><p class="mt-1 text-xs text-muted-fg">Every measure includes its contribution, source, and freshness.</p></div><DomButton size="sm" variant="secondary" :disabled="!canRefreshHealth" :loading="busyAction === 'refresh-health'" @click="refreshHealth">Refresh after intervention</DomButton></div>
+									<div class="mt-3 divide-y divide-border border-y border-border">
+										<div v-for="measure in selectedAccount.measures" :key="measure.id" class="grid gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_9rem] sm:items-center">
+											<div><div class="flex flex-wrap items-center gap-2"><p class="text-sm font-semibold">{{ measure.label }}</p><DomStatusPill :tone="statusTone(measure.status)" :label="statusLabel(measure.status)" size="sm" /><span class="text-xs text-muted-fg">{{ measure.weight }}% weight</span></div><p class="mt-2 text-sm leading-6 text-muted-fg">{{ measure.detail }}</p><p class="mt-2 text-[11px] text-muted-fg">{{ measure.source }} · {{ measure.freshness }}</p></div>
+											<div><div class="flex items-baseline justify-between"><span class="text-2xl font-semibold">{{ measure.score }}</span><span class="text-xs" :class="measure.trend < 0 ? 'text-destructive' : 'text-success'">{{ measure.trend > 0 ? '+' : '' }}{{ measure.trend }}</span></div><DomProgress class="mt-2" :value="measure.score" :label="`${measure.label} score`" :tone="statusTone(measure.status)" /></div>
+										</div>
+									</div>
+								</section>
 
-				<section v-else class="p-4 sm:p-6">
-					<h4 class="font-semibold tracking-tight">Expansion and save opportunities</h4>
-					<div class="mt-4 divide-y divide-border overflow-hidden rounded-2xl border border-border">
-						<div v-for="opportunity in selectedAccount.opportunities" :key="opportunity.label" class="flex flex-wrap items-center justify-between gap-3 bg-canvas p-4">
-							<span>
-								<span class="block font-semibold">{{ opportunity.label }}</span>
-								<span class="mt-1 block text-sm text-muted-fg">Confidence: {{ opportunity.confidence }}</span>
-							</span>
-							<span class="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">{{ opportunity.value }}</span>
+								<section><div class="flex items-center justify-between gap-3"><h3 class="font-semibold">Score history</h3><p class="text-xs text-muted-fg">Six evidence checkpoints</p></div><div class="mt-3 grid grid-cols-3 gap-px overflow-hidden border border-border bg-border sm:grid-cols-6"><div v-for="point in selectedAccount.scoreHistory" :key="`${point.label}-${point.score}`" class="bg-canvas p-3 text-center"><p class="text-xs text-muted-fg">{{ point.label }}</p><p class="mt-1 text-lg font-semibold">{{ point.score }}</p></div></div></section>
+
+								<DomJsonViewer :value="healthEvidence" title="Health source contract" :filename="`${selectedAccount.id}-health.json`" :preview-lines="10" density="compact" />
+							</div>
 						</div>
-					</div>
-				</section>
+					</template>
+
+					<template #timeline>
+						<div class="h-full min-h-0 overflow-y-auto">
+							<div class="mx-auto w-full max-w-4xl p-4 sm:p-5">
+								<div class="flex flex-wrap items-end justify-between gap-3 border-b border-border pb-4"><div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Official account record</p><h2 class="mt-1 text-xl font-semibold">{{ selectedAccount.name }} timeline</h2><p class="mt-2 text-sm text-muted-fg">Customer interactions, automatic evidence, plan work, and connector receipts in one ordered record.</p></div><DomButton @click="openActivityDialog">Log activity</DomButton></div>
+								<div class="divide-y divide-border">
+									<article v-for="activity in selectedAccount.activity" :key="activity.id" class="grid gap-3 py-4 sm:grid-cols-[7rem_minmax(0,1fr)]">
+										<div><DomStatusPill tone="neutral" :label="activity.type" size="sm" /><p class="mt-2 text-xs text-muted-fg">{{ activity.time }}</p></div>
+										<div><div class="flex flex-wrap items-start justify-between gap-2"><h3 class="text-sm font-semibold">{{ activity.title }}</h3><DomBadge tone="neutral" variant="soft">{{ activity.source }}</DomBadge></div><p class="mt-2 text-sm leading-6 text-muted-fg">{{ activity.detail }}</p><p class="mt-2 text-[11px] text-muted-fg">{{ activity.actor }} · {{ activity.receipt }}</p></div>
+									</article>
+								</div>
+							</div>
+						</div>
+					</template>
+
+					<template #plan>
+						<div class="h-full min-h-0 overflow-y-auto">
+							<div class="mx-auto grid w-full max-w-5xl gap-5 p-4 sm:p-5">
+								<DomEmptyState v-if="!selectedAccount.plan && !workspace.preview" title="No active recovery plan" description="Create an accountable plan from the current health evidence, open risk, renewal date, and playbook template.">
+									<template #actions><DomButton @click="openPlanDialog">Create recovery plan</DomButton></template>
+								</DomEmptyState>
+
+								<template v-else-if="workspace.preview">
+									<section class="grid gap-4 border-b border-border pb-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start"><div><div class="flex flex-wrap items-center gap-2"><DomStatusPill tone="warning" label="Preview" /><DomBadge tone="neutral" variant="soft">{{ workspace.preview.receipt }}</DomBadge></div><h2 class="mt-3 text-xl font-semibold">{{ workspace.preview.templateLabel }}</h2><p class="mt-2 text-sm leading-6 text-muted-fg">{{ workspace.preview.objective }}</p><p class="mt-2 text-xs text-muted-fg">{{ workspace.preview.owner }} · due {{ formatDate(workspace.preview.dueDate) }} · account v{{ workspace.preview.accountVersion }}</p></div><DomButton size="sm" variant="secondary" @click="openPlanDialog">Edit configuration</DomButton></section>
+									<section class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
+										<div><div class="flex items-center justify-between gap-3"><h3 class="font-semibold">Plan tasks</h3><p class="text-xs text-muted-fg">{{ workspace.preview.tasks.length }} owned actions</p></div><div class="mt-3 divide-y divide-border border-y border-border"><div v-for="task in workspace.preview.tasks" :key="task.id" class="grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div><p class="text-sm font-medium">{{ task.label }}</p><p class="mt-1 text-xs text-muted-fg">{{ task.category }} · {{ task.owner }}</p></div><p class="text-xs font-medium">{{ formatDate(task.dueDate) }}</p></div></div></div>
+										<div><h3 class="font-semibold">Server checks</h3><div class="mt-3 divide-y divide-border border-y border-border"><div v-for="check in workspace.preview.checks" :key="check.id" class="py-3"><div class="flex items-start justify-between gap-3"><p class="text-sm font-medium">{{ check.label }}</p><DomStatusPill :tone="statusTone(check.state)" :label="statusLabel(check.state)" size="sm" /></div><p class="mt-1 text-xs leading-5 text-muted-fg">{{ check.detail }}</p></div></div></div>
+									</section>
+									<DomAlert tone="warning" title="Launch this immutable plan?" description="Launching creates accountable tasks, links the current risk, and writes an audit receipt."><DomCheckbox v-model="planAcknowledged" label="I reviewed the outcome, owner, tasks, and recovery dates" /><DomButton class="mt-3" :disabled="!planAcknowledged" :loading="busyAction === 'launch-plan'" @click="launchPlan">Launch recovery plan</DomButton></DomAlert>
+									<DomJsonViewer :value="planEvidence" title="Immutable plan preview" :filename="`${workspace.preview.id}.json`" :preview-lines="12" density="compact" />
+								</template>
+
+								<template v-else-if="selectedAccount.plan">
+									<section class="grid gap-4 border-b border-border pb-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start"><div><div class="flex flex-wrap items-center gap-2"><DomStatusPill tone="success" :label="statusLabel(selectedAccount.plan.status)" /><DomBadge tone="neutral" variant="soft">{{ selectedAccount.plan.receipt }}</DomBadge></div><h2 class="mt-3 text-xl font-semibold">{{ selectedAccount.plan.name }}</h2><p class="mt-2 text-sm leading-6 text-muted-fg">{{ selectedAccount.plan.objective }}</p><p class="mt-2 text-xs text-muted-fg">{{ selectedAccount.plan.owner }} · due {{ formatDate(selectedAccount.plan.dueDate) }} · plan v{{ selectedAccount.plan.version }}</p></div><div class="flex flex-wrap gap-2"><DomButton v-if="selectedAccount.plan.crmSync.status !== 'synced'" size="sm" variant="secondary" :loading="busyAction === 'sync-plan'" @click="syncPlan">Sync to CRM</DomButton><DomButton size="sm" :disabled="!canRefreshHealth" :loading="busyAction === 'refresh-health'" @click="refreshHealth">Refresh health</DomButton></div></section>
+									<DomProgress :value="selectedAccount.plan.progress" label="Recovery plan progress" show-value tone="primary" />
+									<DomAlert v-if="selectedAccount.plan.crmSync.status === 'synced'" tone="success" title="Plan synchronized to CRM" :description="`${selectedAccount.plan.crmSync.receipt} linked ${selectedAccount.plan.crmSync.recordId}.`" />
+									<section><div class="flex items-center justify-between gap-3"><h3 class="font-semibold">Accountable tasks</h3><p class="text-xs text-muted-fg">{{ completedTasks }} of {{ selectedAccount.plan.tasks.length }} complete</p></div><div class="mt-3 divide-y divide-border border-y border-border"><div v-for="task in selectedAccount.plan.tasks" :key="task.id" class="grid gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div><div class="flex flex-wrap items-center gap-2"><p class="text-sm font-medium">{{ task.label }}</p><DomStatusPill :tone="statusTone(task.status)" :label="statusLabel(task.status)" size="sm" /></div><p class="mt-1 text-xs text-muted-fg">{{ task.category }} · {{ task.owner }} · due {{ formatDate(task.dueDate) }}</p><p v-if="task.completionReceipt" class="mt-1 text-[11px] text-muted-fg">{{ task.completionReceipt }} · {{ task.completedAt }}</p></div><DomButton v-if="task.status !== 'completed'" size="sm" variant="secondary" @click="openTaskDialog(task)">Complete task</DomButton></div></div></section>
+									<DomAlert v-if="selectedAccount.lastHealthRefreshReceipt" tone="success" title="Health checkpoint refreshed" :description="`${selectedAccount.lastHealthRefreshReceipt} records the intervention recalculation at ${selectedAccount.healthScore}.`" />
+									<DomJsonViewer :value="planEvidence" title="Success plan and provider receipts" :filename="`${selectedAccount.plan.id}.json`" :preview-lines="12" density="compact" />
+								</template>
+							</div>
+						</div>
+					</template>
+				</DomTabs>
 			</main>
 
-			<aside class="grid content-start skin-card">
-				<section class="border-b border-border p-4 sm:p-6">
-					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Next best action</p>
-					<h4 class="mt-1 text-lg font-semibold">Launch {{ playbook.toLowerCase() }}</h4>
-					<div class="mt-4">
-						<DomNativeSelect v-model="playbook" label="Playbook" :options="playbookOptions" />
-					</div>
-					<div class="mt-4">
-						<DomTextareaInput v-model="ownerNote" label="Owner note" :rows="5" />
-					</div>
-				</section>
-
-				<section class="border-b border-border p-4 sm:p-6">
-					<div class="flex items-center justify-between gap-3">
-						<h4 class="font-semibold tracking-tight">Readiness</h4>
-						<span class="text-sm font-semibold">{{ readiness }}%</span>
-					</div>
-					<div class="mt-3 h-2 overflow-hidden rounded-full bg-canvas">
-						<div class="h-full rounded-full bg-primary" :style="{ width: `${readiness}%` }"></div>
-					</div>
-					<div class="mt-4 grid gap-3">
-						<DomCheckbox
-							v-for="task in tasks"
-							:key="task.id"
-							v-model="task.done"
-							:label="task.label"
-						/>
-					</div>
-				</section>
-
-				<section class="p-4 sm:p-6">
-					<h4 class="font-semibold tracking-tight">Account context</h4>
-					<div class="mt-4 grid gap-3 text-sm">
-						<div class="flex items-center justify-between gap-3">
-							<span class="text-muted-fg">Weekly active teams</span>
-							<span class="font-semibold">{{ selectedAccount.teams }}</span>
-						</div>
-						<div class="flex items-center justify-between gap-3">
-							<span class="text-muted-fg">Connected integrations</span>
-							<span class="font-semibold">{{ selectedAccount.integrations }}</span>
-						</div>
-						<div class="flex items-center justify-between gap-3">
-							<span class="text-muted-fg">NPS</span>
-							<span class="font-semibold">{{ selectedAccount.nps }}</span>
-						</div>
-					</div>
-					<DomButton class="mt-5 w-full">Create success plan</DomButton>
-				</section>
+			<aside class="hidden min-h-0 flex-col overflow-y-auto border-l border-border md:flex">
+				<div class="border-b border-border p-4"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Current account</p><div class="mt-3 flex items-center gap-3"><DomAvatar :name="selectedAccount.name" :initials="selectedAccount.initials" size="md" /><div class="min-w-0"><p class="truncate text-sm font-semibold">{{ selectedAccount.name }}</p><p class="mt-1 text-xs text-muted-fg">{{ selectedAccount.segment }} · {{ selectedAccount.owner }}</p></div></div><dl class="mt-3 divide-y divide-border text-sm"><div class="flex justify-between gap-3 py-3"><dt class="text-muted-fg">ARR</dt><dd class="font-semibold">{{ formatCurrency(selectedAccount.arr) }}</dd></div><div class="flex justify-between gap-3 py-3"><dt class="text-muted-fg">Renewal</dt><dd class="font-semibold">{{ selectedAccount.daysToRenewal }} days</dd></div><div class="flex justify-between gap-3 py-3"><dt class="text-muted-fg">NPS</dt><dd class="font-semibold">{{ selectedAccount.nps }}</dd></div><div class="flex justify-between gap-3 py-3"><dt class="text-muted-fg">Last touch</dt><dd class="text-right font-semibold">{{ selectedAccount.lastTouch }}</dd></div></dl></div>
+				<div class="border-b border-border p-4"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Next best action</p><template v-if="selectedAccount.plan"><p class="mt-3 text-sm font-semibold">Continue {{ selectedAccount.plan.templateLabel.toLowerCase() }}</p><p class="mt-2 text-xs leading-5 text-muted-fg">{{ selectedAccount.plan.progress }}% complete with {{ selectedAccount.plan.tasks.length - completedTasks }} tasks remaining.</p><DomButton class="mt-4 w-full" size="sm" @click="activeView = 'plan'">Open recovery plan</DomButton></template><template v-else><p class="mt-3 text-sm font-semibold">Create a recovery plan</p><p class="mt-2 text-xs leading-5 text-muted-fg">Lock the current scorecard, risk, owner, and renewal window into accountable tasks.</p><DomButton class="mt-4 w-full" size="sm" @click="openPlanDialog">Create plan</DomButton></template></div>
+				<div class="border-b border-border p-4"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Source freshness</p><div class="mt-3 divide-y divide-border border-y border-border"><div v-for="measure in selectedAccount.measures" :key="measure.id" class="py-3"><div class="flex items-start justify-between gap-3"><p class="text-xs font-medium">{{ measure.source }}</p><DomStatusPill tone="success" label="Current" size="sm" /></div><p class="mt-1 text-[11px] text-muted-fg">{{ measure.freshness }}</p></div></div></div>
+				<div class="p-4"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Account actions</p><div class="mt-3 grid gap-2"><DomButton size="sm" variant="secondary" @click="openActivityDialog">Log activity</DomButton><DomButton size="sm" variant="ghost" @click="activeView = 'timeline'">View timeline</DomButton></div></div>
 			</aside>
 		</div>
-	</div>
+
+		<template #bottom>
+			<DomAppBottomNav v-if="workspace" v-model="activeView" class="md:hidden" :items="mobileNavigation" @change="changeMobileDestination" />
+		</template>
+	</DomAppShell>
+
+	<DomDialog v-if="workspace && selectedAccount" v-model="planDialogOpen" title="Create recovery plan" :description="`Preview an exact plan for ${selectedAccount.name} before launching any tasks.`" size="lg">
+		<div class="grid gap-4">
+			<DomSelect v-model="planTemplateId" label="Playbook template" :options="workspace.catalog.playbooks" width="min-w-0"><template #option="{ option }"><div class="py-0.5"><p class="text-sm font-semibold">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-75">{{ option.description }} · {{ option.taskCount }} tasks</p></div></template></DomSelect>
+			<div class="grid gap-4 sm:grid-cols-2"><DomSelect v-model="planOwnerId" label="Accountable owner" :options="workspace.catalog.owners" width="min-w-0"><template #option="{ option }"><div class="py-0.5"><p class="text-sm font-semibold">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-75">{{ option.description }}</p></div></template></DomSelect><DomDatePicker v-model="planDueDate" label="Plan due date" /></div>
+			<DomTextareaInput v-model="planObjective" label="Customer outcome" description="The measurable outcome the account team and customer should understand." :rows="3" />
+			<DomTextareaInput v-model="planNote" label="Internal context" description="Stored with the immutable preview and plan receipt." :rows="3" />
+		</div>
+		<template #footer><DomButton variant="secondary" @click="planDialogOpen = false">Cancel</DomButton><DomButton :loading="busyAction === 'preview-plan'" @click="previewPlan">Preview plan</DomButton></template>
+	</DomDialog>
+
+	<DomDialog v-if="selectedTask" v-model="taskDialogOpen" title="Complete success-plan task" :description="selectedTask.label" size="md">
+		<div class="space-y-4"><div class="grid grid-cols-2 gap-3 border-y border-border py-4 text-sm"><div><p class="text-xs text-muted-fg">Owner</p><p class="mt-1 font-semibold">{{ selectedTask.owner }}</p></div><div><p class="text-xs text-muted-fg">Due</p><p class="mt-1 font-semibold">{{ formatDate(selectedTask.dueDate) }}</p></div></div><DomTextareaInput v-model="taskCompletionNote" label="Completion note" description="Written to the official account timeline with a receipt." :rows="4" /></div>
+		<template #footer><DomButton variant="secondary" @click="taskDialogOpen = false">Cancel</DomButton><DomButton :loading="busyAction === 'complete-task'" @click="completeTask">Complete task</DomButton></template>
+	</DomDialog>
+
+	<DomDialog v-if="workspace && selectedAccount" v-model="activityDialogOpen" title="Log customer activity" :description="`Add a durable update to ${selectedAccount.name}.`" size="md">
+		<div class="grid gap-4"><DomSelect v-model="activityType" label="Activity type" :options="workspace.catalog.activities" /><DomTextInput v-model="activityTitle" label="Activity title" /><DomTextareaInput v-model="activityDetail" label="Account update" description="Include the customer commitment, decision, or next checkpoint." :rows="4" /></div>
+		<template #footer><DomButton variant="secondary" @click="activityDialogOpen = false">Cancel</DomButton><DomButton :loading="busyAction === 'log-activity'" @click="logActivity">Log activity</DomButton></template>
+	</DomDialog>
 </template>
+
+<style scoped>
+.customer-health-tabs :deep([role="tablist"]) {
+	display: none;
+}
+
+@media (min-width: 768px) {
+	.customer-health-tabs :deep([role="tablist"]) {
+		display: flex;
+	}
+}
+</style>

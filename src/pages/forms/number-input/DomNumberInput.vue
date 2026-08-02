@@ -14,9 +14,15 @@ const props = defineProps({
 	max: Number,
 	step: Number,
 });
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'focus', 'blur']);
 const field = useField(props, emit, { idPrefix: 'dom-number-input' });
 
+/**
+ * Normalizes numeric input text while preserving a deliberately empty value.
+ *
+ * @param {string|number} value Current input value.
+ * @returns {string|number} Parsed number, empty string, or original invalid value.
+ */
 function toNumber(value) {
 	if (value === '') return '';
 	const number = Number(value);

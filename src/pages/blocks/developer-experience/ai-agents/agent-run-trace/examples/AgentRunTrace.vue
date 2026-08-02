@@ -1,383 +1,259 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import {
+	DomAlert,
 	DomBadge,
 	DomButton,
+	DomCheckbox,
 	DomCodeInput,
-	DomCombobox,
-	DomDrawer,
-	DomRadioGroup,
-	DomRangeInput,
+	DomDialog,
+	DomEmptyState,
+	DomSelect,
+	DomSkeleton,
 	DomStatusPill,
-	DomTagCombobox,
+	DomTabs,
+	DomTextareaInput,
+	DomTextInput,
 	DomToggleButtonGroup,
 	DomTreeView,
 } from '@getdom/studio/vue';
-import TraceMetric from '../components/TraceMetric.vue';
 import TraceSpanRow from '../components/TraceSpanRow.vue';
 
-const runOptions = [
-	{
-		label: 'Support triage handoff',
-		value: 'support-triage',
-		app: 'Customer support agent',
-		status: 'warning',
-		statusLabel: 'Needs review',
-		durationMs: 6840,
-		cost: '$0.183',
-		description: 'Classified a ticket, looked up account context, and drafted a handoff with one guarded tool call.',
-	},
-	{
-		label: 'Invoice recovery agent',
-		value: 'invoice-recovery',
-		app: 'Billing operations',
-		status: 'ok',
-		statusLabel: 'Completed',
-		durationMs: 4920,
-		cost: '$0.097',
-		description: 'Found payment history, checked invoice state, and sent a recovery recommendation to finance.',
-	},
-	{
-		label: 'Workspace risk review',
-		value: 'risk-review',
-		app: 'Trust workflow',
-		status: 'failed',
-		statusLabel: 'Failed',
-		durationMs: 7210,
-		cost: '$0.211',
-		description: 'Stopped during a policy check because the moderation service returned a scoped timeout.',
-	},
-];
-
-const traceSpansByRun = {
-	'support-triage': [
-		{
-			id: 'support-root',
-			parentId: null,
-			type: 'agent',
-			name: 'Support triage agent',
-			status: 'warning',
-			statusLabel: 'Needs review',
-			startMs: 0,
-			durationMs: 6840,
-			cost: '$0.183',
-			tokens: '7.8k',
-			description: 'Routes the incoming enterprise ticket and prepares a human handoff.',
-			tags: ['agent', 'prod', 'handoff'],
-			input: { ticketId: 'tic_9182', workspaceId: 'wrk_northstar', channel: 'priority-support' },
-			output: { queue: 'enterprise-success', confidence: 0.82, escalation: true },
-		},
-		{
-			id: 'support-classify',
-			parentId: 'support-root',
-			type: 'model',
-			name: 'Classify ticket intent',
-			status: 'ok',
-			statusLabel: 'Completed',
-			startMs: 220,
-			durationMs: 1160,
-			cost: '$0.044',
-			tokens: '2.1k',
-			description: 'Identifies billing-impact urgency and extracts customer promises from the thread.',
-			tags: ['model', 'classification'],
-			input: { model: 'gpt-4.1-mini', promptVersion: 'support-triage-v17' },
-			output: { intent: 'billing-access-risk', urgency: 'high', confidence: 0.89 },
-		},
-		{
-			id: 'support-lookup',
-			parentId: 'support-root',
-			type: 'tool',
-			name: 'lookup_customer',
-			status: 'ok',
-			statusLabel: 'Completed',
-			startMs: 1480,
-			durationMs: 620,
-			cost: '$0.002',
-			tokens: '0',
-			description: 'Reads plan, renewal date, account owner, and open escalation context.',
-			tags: ['tool', 'crm'],
-			input: { customerId: 'cus_northstar', include: ['plan', 'owner', 'risk'] },
-			output: { plan: 'Enterprise', renewal: '2026-07-01', owner: 'Ari Patel', risk: 'low' },
-		},
-		{
-			id: 'support-guardrail',
-			parentId: 'support-root',
-			type: 'guardrail',
-			name: 'PII redaction check',
-			status: 'warning',
-			statusLabel: 'Masked output',
-			startMs: 2280,
-			durationMs: 780,
-			cost: '$0.009',
-			tokens: '840',
-			description: 'Masks contract terms before the draft is sent into a shared queue.',
-			tags: ['safety', 'redaction'],
-			input: { policy: 'customer-data-v4', fields: ['contractMinimum', 'billingEmail'] },
-			output: { maskedFields: 2, publishable: true },
-		},
-		{
-			id: 'support-draft',
-			parentId: 'support-root',
-			type: 'model',
-			name: 'Draft human handoff',
-			status: 'ok',
-			statusLabel: 'Completed',
-			startMs: 3280,
-			durationMs: 2440,
-			cost: '$0.116',
-			tokens: '4.9k',
-			description: 'Writes the escalation summary, next best action, and customer-safe notes.',
-			tags: ['model', 'handoff'],
-			input: { model: 'gpt-4.1', format: 'support_handoff' },
-			output: { sections: 4, action: 'assign_success_manager', confidence: 0.86 },
-		},
-		{
-			id: 'support-queue',
-			parentId: 'support-root',
-			type: 'tool',
-			name: 'create_queue_item',
-			status: 'ok',
-			statusLabel: 'Queued',
-			startMs: 5940,
-			durationMs: 510,
-			cost: '$0.001',
-			tokens: '0',
-			description: 'Creates a queue item with masked context and audit metadata.',
-			tags: ['tool', 'queue'],
-			input: { queue: 'enterprise-success', priority: 'high' },
-			output: { itemId: 'queue_7741', sla: '2h' },
-		},
-	],
-	'invoice-recovery': [
-		{
-			id: 'invoice-root',
-			parentId: null,
-			type: 'agent',
-			name: 'Invoice recovery agent',
-			status: 'ok',
-			statusLabel: 'Completed',
-			startMs: 0,
-			durationMs: 4920,
-			cost: '$0.097',
-			tokens: '4.6k',
-			description: 'Reviews overdue invoice context and prepares a finance-safe recovery action.',
-			tags: ['agent', 'billing'],
-			input: { invoiceId: 'in_2048', workspaceId: 'wrk_boreal' },
-			output: { recommendation: 'send_manager_note', confidence: 0.91 },
-		},
-		{
-			id: 'invoice-load',
-			parentId: 'invoice-root',
-			type: 'tool',
-			name: 'get_invoice_state',
-			status: 'ok',
-			statusLabel: 'Completed',
-			startMs: 260,
-			durationMs: 530,
-			cost: '$0.001',
-			tokens: '0',
-			description: 'Checks invoice balance, dunning state, payment method, and credits.',
-			tags: ['tool', 'billing-api'],
-			input: { invoiceId: 'in_2048' },
-			output: { balance: 2280, dunning: 'paused', credits: 400 },
-		},
-		{
-			id: 'invoice-policy',
-			parentId: 'invoice-root',
-			type: 'guardrail',
-			name: 'Collections policy',
-			status: 'ok',
-			statusLabel: 'Passed',
-			startMs: 940,
-			durationMs: 480,
-			cost: '$0.006',
-			tokens: '620',
-			description: 'Confirms outreach is permitted for the customer tier and invoice age.',
-			tags: ['safety', 'finance'],
-			input: { policy: 'collections-v2', invoiceAgeDays: 18 },
-			output: { permitted: true, tone: 'collaborative' },
-		},
-		{
-			id: 'invoice-compose',
-			parentId: 'invoice-root',
-			type: 'model',
-			name: 'Compose recovery note',
-			status: 'ok',
-			statusLabel: 'Completed',
-			startMs: 1540,
-			durationMs: 2200,
-			cost: '$0.086',
-			tokens: '3.9k',
-			description: 'Drafts a payment-resolution note with account context and approved language.',
-			tags: ['model', 'copy'],
-			input: { model: 'gpt-4.1-mini', promptVersion: 'invoice-recovery-v9' },
-			output: { tone: 'helpful', links: 2, approvalRequired: false },
-		},
-	],
-	'risk-review': [
-		{
-			id: 'risk-root',
-			parentId: null,
-			type: 'agent',
-			name: 'Workspace risk review',
-			status: 'failed',
-			statusLabel: 'Failed',
-			startMs: 0,
-			durationMs: 7210,
-			cost: '$0.211',
-			tokens: '8.3k',
-			description: 'Reviews suspicious workspace activity before allowing a bulk invite campaign.',
-			tags: ['agent', 'trust'],
-			input: { workspaceId: 'wrk_kite', action: 'bulk_invite' },
-			output: { stoppedAt: 'policy_lookup', retryable: true },
-		},
-		{
-			id: 'risk-profile',
-			parentId: 'risk-root',
-			type: 'tool',
-			name: 'load_workspace_profile',
-			status: 'ok',
-			statusLabel: 'Completed',
-			startMs: 180,
-			durationMs: 840,
-			cost: '$0.002',
-			tokens: '0',
-			description: 'Loads workspace age, verified domain, seats, and recent invite volume.',
-			tags: ['tool', 'workspace'],
-			input: { workspaceId: 'wrk_kite' },
-			output: { seats: 42, domainVerified: false, inviteSpike: true },
-		},
-		{
-			id: 'risk-model',
-			parentId: 'risk-root',
-			type: 'model',
-			name: 'Assess campaign risk',
-			status: 'ok',
-			statusLabel: 'Completed',
-			startMs: 1240,
-			durationMs: 2860,
-			cost: '$0.164',
-			tokens: '6.8k',
-			description: 'Scores invite behavior and recommends whether to pause the campaign.',
-			tags: ['model', 'risk'],
-			input: { model: 'gpt-4.1', examples: 12 },
-			output: { riskScore: 78, recommendation: 'manual_review' },
-		},
-		{
-			id: 'risk-policy',
-			parentId: 'risk-root',
-			type: 'guardrail',
-			name: 'moderation_policy_lookup',
-			status: 'failed',
-			statusLabel: 'Timed out',
-			startMs: 4340,
-			durationMs: 2540,
-			cost: '$0.031',
-			tokens: '420',
-			description: 'Policy service timeout stopped the run before it could write an enforcement decision.',
-			tags: ['safety', 'policy', 'timeout'],
-			input: { policy: 'bulk-invite-v5', timeoutMs: 2400 },
-			output: { error: 'policy_service_timeout', retryAfterMs: 30000 },
-		},
-	],
-};
-
-const statusOptions = [
-	{ label: 'All', value: 'all' },
-	{ label: 'OK', value: 'ok' },
-	{ label: 'Warnings', value: 'warning' },
-	{ label: 'Failed', value: 'failed' },
-];
-
-const retryOptions = [
-	{
-		label: 'Replay from selected span',
-		value: 'span',
-		description: 'Reuses prior successful context and starts from this span.',
-	},
-	{
-		label: 'Replay full run',
-		value: 'full',
-		description: 'Runs the agent from the original input with current tools.',
-	},
-	{
-		label: 'Create eval case',
-		value: 'eval',
-		description: 'Turns this run into a regression test before retrying.',
-	},
-];
-
-const selectedRunId = ref('support-triage');
-const selectedSpanId = ref('support-guardrail');
+const loading = ref(true);
+const busy = ref(false);
+const bootstrap = ref(null);
+const runs = ref([]);
+const run = ref(null);
+const selectedRunId = ref('');
+const selectedSpanId = ref('');
+const mobileView = ref('trace');
+const inspectorTab = ref('overview');
+const environmentFilter = ref('all');
 const statusFilter = ref('all');
-const activeTags = ref(['model', 'tool']);
-const minDuration = ref(0);
-const jumpSpanId = ref('');
-const retryMode = ref('span');
-const isInspectorOpen = ref(false);
-const replayCount = ref(3);
-const lastAction = ref('No replay queued');
+const spanTypeFilter = ref('all');
+const searchQuery = ref('');
+const payload = ref(null);
+const payloadAccess = ref(null);
+const reviewDraft = ref(createReviewDraft());
+const actionDraft = ref(createActionDraft());
+const actionReceipt = ref(null);
+const fieldErrors = ref({});
+const errorMessage = ref('');
+const successMessage = ref('');
+const resetDialogOpen = ref(false);
 
-const selectedRun = computed(() => runOptions.find((run) => run.value === selectedRunId.value) || runOptions[0]);
-const allSpans = computed(() => traceSpansByRun[selectedRunId.value] || []);
-const tagOptions = computed(() => {
-	const tags = new Map();
-	for (const span of allSpans.value) {
-		for (const tag of span.tags || []) {
-			tags.set(tag, {
-				label: tag,
-				value: tag,
-				description: `${allSpans.value.filter((candidate) => candidate.tags?.includes(tag)).length} matching spans`,
-			});
-		}
+const mobileTabs = [
+	{ key: 'runs', label: 'Runs' },
+	{ key: 'trace', label: 'Trace' },
+	{ key: 'inspector', label: 'Inspector' },
+];
+
+const inspectorTabs = [
+	{ key: 'overview', label: 'Overview' },
+	{ key: 'payload', label: 'Payload' },
+	{ key: 'action', label: 'Action' },
+];
+
+const actionOptions = [
+	{ value: 'replay', label: 'Replay', description: 'Queue an exact-revision retry from the selected failure.' },
+	{ value: 'eval', label: 'Create eval case', description: 'Turn this span into a regression case before changing production.' },
+	{ value: 'export', label: 'Export trace', description: 'Create a redacted trace bundle with immutable proof.' },
+];
+
+const filteredRuns = computed(getFilteredRuns);
+const traceItems = computed(getTraceItems);
+const visibleSpans = computed(getVisibleSpans);
+const selectedSpan = computed(getSelectedSpan);
+const payloadJson = computed(getPayloadJson);
+const actionTitle = computed(getActionTitle);
+const issueSpans = computed(getIssueSpans);
+
+/**
+ * Creates an empty investigation handoff draft.
+ *
+ * @returns {{ ownerId: string, reviewState: string, note: string }} Review values.
+ */
+function createReviewDraft() {
+	return { ownerId: 'unassigned', reviewState: 'open', note: '' };
+}
+
+/**
+ * Creates a safe default trace action draft.
+ *
+ * @returns {{ action: string, mode: string, reason: string, acknowledged: boolean }} Action values.
+ */
+function createActionDraft() {
+	return {
+		action: 'replay',
+		mode: 'from_span',
+		reason: '',
+		acknowledged: false,
+	};
+}
+
+/**
+ * Loads the API-backed run queue and its default incident.
+ *
+ * @returns {Promise<void>}
+ */
+async function loadWorkspace() {
+	loading.value = true;
+	clearFeedback();
+	try {
+		const result = await requestJson('/api/block-demos/agent-run-trace/bootstrap');
+		bootstrap.value = result;
+		runs.value = result.runs || [];
+		selectedRunId.value = result.defaultRunId || runs.value[0]?.id || '';
+		await loadRun(selectedRunId.value);
+	} catch (error) {
+		errorMessage.value = error.message || 'The trace workspace could not be loaded.';
+	} finally {
+		loading.value = false;
 	}
-	return [...tags.values()].sort((a, b) => a.label.localeCompare(b.label));
-});
-const spanOptions = computed(() => allSpans.value.map((span) => ({
-	label: span.name,
-	value: span.id,
-	description: `${span.type} / ${span.durationMs}ms / ${span.statusLabel}`,
-	status: span.status,
-})));
-const traceItems = computed(() => filterTree(buildTree(allSpans.value)));
-const visibleSpans = computed(() => flattenSpans(traceItems.value));
-const selectedSpan = computed(() => allSpans.value.find((span) => span.id === selectedSpanId.value) || visibleSpans.value[0] || allSpans.value[0]);
-const totalDuration = computed(() => Math.max(1, ...allSpans.value.map((span) => span.startMs + span.durationMs)));
-const failedCount = computed(() => allSpans.value.filter((span) => span.status === 'failed').length);
-const warningCount = computed(() => allSpans.value.filter((span) => span.status === 'warning').length);
-const modelSpanCount = computed(() => allSpans.value.filter((span) => span.type === 'model').length);
-const criticalPath = computed(() => allSpans.value.reduce((longest, span) => span.durationMs > longest.durationMs ? span : longest, allSpans.value[0] || {}));
-const inspectorPayload = computed(() => JSON.stringify({
-	runId: selectedRun.value.value,
-	spanId: selectedSpan.value?.id,
-	type: selectedSpan.value?.type,
-	status: selectedSpan.value?.status,
-	timing: {
-		startMs: selectedSpan.value?.startMs,
-		durationMs: selectedSpan.value?.durationMs,
-	},
-	input: selectedSpan.value?.input,
-	output: selectedSpan.value?.output,
-	retry: {
-		mode: retryMode.value,
-		replayCount: replayCount.value,
-	},
-}, null, 2));
+}
 
-watch(traceItems, (items) => {
-	const spans = flattenSpans(items);
-	if (!spans.length) return;
-	if (!spans.some((span) => span.id === selectedSpanId.value)) selectedSpanId.value = spans[0].id;
-}, { immediate: true });
+/**
+ * Loads one run and resets span-specific transient state.
+ *
+ * @param {string} runId Run identifier.
+ * @returns {Promise<void>}
+ */
+async function loadRun(runId) {
+	if (!runId) return;
+	busy.value = true;
+	clearFeedback();
+	try {
+		const result = await requestJson(`/api/block-demos/agent-run-trace/runs/${runId}`);
+		applyRun(result.run);
+		selectedSpanId.value = defaultSpanId(result.run);
+		inspectorTab.value = 'overview';
+	} catch (error) {
+		errorMessage.value = error.message || 'The selected run could not be loaded.';
+	} finally {
+		busy.value = false;
+	}
+}
 
-watch(selectedRunId, () => {
-	statusFilter.value = 'all';
-	activeTags.value = [];
-	minDuration.value = 0;
-	jumpSpanId.value = '';
-	isInspectorOpen.value = false;
-});
+/**
+ * Applies authoritative run state and synchronizes editable review values.
+ *
+ * @param {Record<string, unknown>} nextRun Updated run.
+ * @returns {void}
+ */
+function applyRun(nextRun) {
+	run.value = nextRun;
+	selectedRunId.value = nextRun.id;
+	reviewDraft.value = {
+		ownerId: nextRun.ownerId,
+		reviewState: nextRun.reviewState,
+		note: '',
+	};
+	const index = runs.value.findIndex((item) => item.id === nextRun.id);
+	const summary = summarizeRun(nextRun);
+	if (index >= 0) runs.value.splice(index, 1, summary);
+	else runs.value.unshift(summary);
+}
 
+/**
+ * Returns a list-compatible summary from a run detail response.
+ *
+ * @param {Record<string, unknown>} value Run detail.
+ * @returns {Record<string, unknown>} Run summary.
+ */
+function summarizeRun(value) {
+	const { spans, actions, activity, ...summary } = value;
+	return summary;
+}
+
+/**
+ * Chooses the most useful initial span for an investigation.
+ *
+ * @param {Record<string, unknown>} value Run detail.
+ * @returns {string} Span identifier.
+ */
+function defaultSpanId(value) {
+	return value.spans?.find((span) => span.status === 'failed' && span.parentId)?.id
+		|| value.spans?.find((span) => span.status === 'failed')?.id
+		|| value.spans?.find((span) => span.status === 'warning')?.id
+		|| value.spans?.[0]?.id
+		|| '';
+}
+
+/**
+ * Filters the run rail by environment and outcome.
+ *
+ * @returns {Array<Record<string, unknown>>} Visible run summaries.
+ */
+function getFilteredRuns() {
+	return runs.value.filter((item) => {
+		const environmentMatches = environmentFilter.value === 'all' || item.environment === environmentFilter.value;
+		const statusMatches = statusFilter.value === 'all' || item.status === statusFilter.value;
+		return environmentMatches && statusMatches;
+	});
+}
+
+/**
+ * Builds and filters the trace tree for the selected run.
+ *
+ * @returns {Array<Record<string, unknown>>} DOM Studio tree items.
+ */
+function getTraceItems() {
+	if (!run.value?.spans) return [];
+	return filterTree(buildTree(run.value.spans));
+}
+
+/**
+ * Flattens the filtered trace for count and selection recovery.
+ *
+ * @returns {Array<Record<string, unknown>>} Visible flat span list.
+ */
+function getVisibleSpans() {
+	return flattenSpans(traceItems.value);
+}
+
+/**
+ * Resolves the selected span from current authoritative run state.
+ *
+ * @returns {Record<string, unknown>|null} Selected span.
+ */
+function getSelectedSpan() {
+	return run.value?.spans?.find((span) => span.id === selectedSpanId.value) || visibleSpans.value[0] || null;
+}
+
+/**
+ * Serializes a loaded redacted payload for the code input.
+ *
+ * @returns {string} Formatted payload JSON.
+ */
+function getPayloadJson() {
+	if (!payload.value) return '';
+	return JSON.stringify(payload.value, null, 2);
+}
+
+/**
+ * Returns the contextual action-panel title.
+ *
+ * @returns {string} Action title.
+ */
+function getActionTitle() {
+	return actionOptions.find((option) => option.value === actionDraft.value.action)?.label || 'Trace action';
+}
+
+/**
+ * Returns warning and failed spans that are safe retry candidates.
+ *
+ * @returns {Array<Record<string, unknown>>} Open issue spans.
+ */
+function getIssueSpans() {
+	return run.value?.spans?.filter((span) => span.status !== 'ok') || [];
+}
+
+/**
+ * Builds parent-linked spans into a DOM Studio tree shape.
+ *
+ * @param {Array<Record<string, unknown>>} spans Flat spans.
+ * @returns {Array<Record<string, unknown>>} Nested spans.
+ */
 function buildTree(spans) {
 	const nodes = new Map(spans.map((span) => [span.id, {
 		...span,
@@ -387,303 +263,530 @@ function buildTree(spans) {
 		children: [],
 	}]));
 	const roots = [];
-
 	for (const span of spans) {
 		const node = nodes.get(span.id);
 		if (span.parentId && nodes.has(span.parentId)) nodes.get(span.parentId).children.push(node);
 		else roots.push(node);
 	}
-
 	return roots;
 }
 
+/**
+ * Preserves parent context while filtering span descendants.
+ *
+ * @param {Array<Record<string, unknown>>} nodes Trace tree nodes.
+ * @returns {Array<Record<string, unknown>>} Filtered tree.
+ */
 function filterTree(nodes) {
-	return nodes
-		.map((node) => {
-			const children = filterTree(node.children || []);
-			if (spanMatches(node) || children.length) return { ...node, children };
-			return null;
-		})
-		.filter(Boolean);
+	return nodes.map((node) => {
+		const children = filterTree(node.children || []);
+		if (spanMatches(node) || children.length) return { ...node, children };
+		return null;
+	}).filter(Boolean);
 }
 
+/**
+ * Tests a span against type and text filters.
+ *
+ * @param {Record<string, unknown>} span Trace span.
+ * @returns {boolean} Whether the span should remain visible.
+ */
 function spanMatches(span) {
-	const statusMatches = statusFilter.value === 'all' || span.status === statusFilter.value;
-	const tagsMatch = !activeTags.value.length || activeTags.value.some((tag) => span.tags?.includes(tag));
-	const durationMatches = Number(span.durationMs) >= Number(minDuration.value || 0);
-
-	return statusMatches && tagsMatch && durationMatches;
+	const typeMatches = spanTypeFilter.value === 'all' || span.type === spanTypeFilter.value;
+	const query = searchQuery.value.trim().toLowerCase();
+	const textMatches = !query || [span.name, span.summary, ...(span.tags || [])].join(' ').toLowerCase().includes(query);
+	return typeMatches && textMatches;
 }
 
+/**
+ * Flattens nested trace nodes in visible order.
+ *
+ * @param {Array<Record<string, unknown>>} nodes Trace tree nodes.
+ * @returns {Array<Record<string, unknown>>} Flat visible spans.
+ */
 function flattenSpans(nodes) {
 	return nodes.flatMap((node) => [node, ...flattenSpans(node.children || [])]);
 }
 
-function selectSpan(value) {
-	if (!value) return;
-	selectedSpanId.value = value;
-	jumpSpanId.value = value;
-	isInspectorOpen.value = true;
+/**
+ * Selects and loads a run from the run rail or rich select.
+ *
+ * @param {string} runId Run identifier.
+ * @returns {Promise<void>}
+ */
+async function selectRun(runId) {
+	if (!runId || runId === run.value?.id) return;
+	selectedRunId.value = runId;
+	await loadRun(runId);
+	mobileView.value = 'trace';
 }
 
-function inspectCurrentSpan() {
-	if (!selectedSpan.value) return;
-	isInspectorOpen.value = true;
+/**
+ * Selects one trace span without forcing desktop-style navigation on mobile.
+ *
+ * @param {string} spanId Span identifier.
+ * @returns {void}
+ */
+function selectSpan(spanId) {
+	if (!spanId) return;
+	selectedSpanId.value = spanId;
 }
 
-function queueReplay() {
-	replayCount.value += 1;
-	lastAction.value = `${retryMode.value === 'eval' ? 'Eval case' : 'Replay'} queued for ${selectedSpan.value?.name || 'selected span'}`;
-	isInspectorOpen.value = false;
+/**
+ * Opens the inspector on the current responsive surface.
+ *
+ * @param {string} tab Inspector tab.
+ * @returns {void}
+ */
+function openInspector(tab = 'overview') {
+	inspectorTab.value = tab;
+	mobileView.value = 'inspector';
 }
 
-function exportTrace() {
-	lastAction.value = `Trace export prepared for ${selectedRun.value.label}`;
+/**
+ * Clears stale payload and action evidence when span selection changes.
+ *
+ * @returns {void}
+ */
+function handleSelectedSpanChange() {
+	payload.value = null;
+	payloadAccess.value = null;
+	actionReceipt.value = null;
+	fieldErrors.value = {};
+	actionDraft.value = createActionDraft();
 }
 
-function toneForStatus(status) {
-	return {
-		ok: 'success',
-		warning: 'warning',
-		failed: 'danger',
-		running: 'info',
-	}[status] || 'neutral';
+/**
+ * Returns the selected span id for the watcher dependency.
+ *
+ * @returns {string} Selected span identifier.
+ */
+function getSelectedSpanId() {
+	return selectedSpanId.value;
 }
+
+/**
+ * Loads a redacted span payload through its privileged API seam.
+ *
+ * @returns {Promise<void>}
+ */
+async function loadPayload() {
+	if (!run.value || !selectedSpan.value || busy.value) return;
+	busy.value = true;
+	clearFeedback();
+	try {
+		const result = await requestJson(`/api/block-demos/agent-run-trace/runs/${run.value.id}/payload?spanId=${encodeURIComponent(selectedSpan.value.id)}`);
+		payload.value = result.payload;
+		payloadAccess.value = result.access;
+		successMessage.value = result.message;
+	} catch (error) {
+		errorMessage.value = error.message || 'The redacted payload could not be loaded.';
+	} finally {
+		busy.value = false;
+	}
+}
+
+/**
+ * Saves investigation ownership and state through the optimistic API.
+ *
+ * @returns {Promise<void>}
+ */
+async function saveReview() {
+	if (!run.value || busy.value) return;
+	busy.value = true;
+	clearFeedback();
+	try {
+		const result = await requestJson(`/api/block-demos/agent-run-trace/runs/${run.value.id}/review`, {
+			method: 'PATCH',
+			body: { revision: run.value.revision, ...reviewDraft.value },
+		});
+		applyRun(result.run);
+		if (result.runs) runs.value = result.runs;
+		successMessage.value = result.message;
+	} catch (error) {
+		applyRequestError(error, 'The investigation handoff could not be saved.');
+	} finally {
+		busy.value = false;
+	}
+}
+
+/**
+ * Creates the selected replay, eval, or export action.
+ *
+ * @param {string|null} directAction Optional action shortcut.
+ * @returns {Promise<void>}
+ */
+async function createAction(directAction = null) {
+	if (!run.value || !selectedSpan.value || busy.value) return;
+	busy.value = true;
+	clearFeedback();
+	const action = directAction || actionDraft.value.action;
+	try {
+		const result = await requestJson(`/api/block-demos/agent-run-trace/runs/${run.value.id}/actions`, {
+			method: 'POST',
+			body: {
+				revision: run.value.revision,
+				spanId: selectedSpan.value.id,
+				action,
+				mode: actionDraft.value.mode,
+				reason: actionDraft.value.reason,
+				acknowledged: directAction === 'export' ? false : actionDraft.value.acknowledged,
+			},
+		});
+		applyRun(result.run);
+		if (result.runs) runs.value = result.runs;
+		actionReceipt.value = result.receipt;
+		actionDraft.value = createActionDraft();
+		inspectorTab.value = 'action';
+		successMessage.value = result.message;
+	} catch (error) {
+		applyRequestError(error, 'The trace action could not be created.');
+	} finally {
+		busy.value = false;
+	}
+}
+
+/**
+ * Opens the replay action with a useful issue span selected.
+ *
+ * @returns {void}
+ */
+function prepareReplay() {
+	const issue = issueSpans.value.find((span) => span.id === selectedSpanId.value) || issueSpans.value[0];
+	if (issue) selectedSpanId.value = issue.id;
+	actionDraft.value = createActionDraft();
+	openInspector('action');
+}
+
+/**
+ * Resets all process-local run mutations and returns to the default incident.
+ *
+ * @returns {Promise<void>}
+ */
+async function resetWorkspace() {
+	if (busy.value) return;
+	busy.value = true;
+	clearFeedback();
+	try {
+		const result = await requestJson('/api/block-demos/agent-run-trace/reset', { method: 'POST' });
+		bootstrap.value = { ...bootstrap.value, ...result };
+		runs.value = result.runs || [];
+		applyRun(result.run);
+		selectedSpanId.value = defaultSpanId(result.run);
+		payload.value = null;
+		payloadAccess.value = null;
+		actionReceipt.value = null;
+		actionDraft.value = createActionDraft();
+		mobileView.value = 'trace';
+		inspectorTab.value = 'overview';
+		resetDialogOpen.value = false;
+		successMessage.value = result.message;
+	} catch (error) {
+		errorMessage.value = error.message || 'The trace workspace could not be reset.';
+	} finally {
+		busy.value = false;
+	}
+}
+
+/**
+ * Promotes structured API errors into visible recovery state.
+ *
+ * @param {Error & { fields?: Array<Record<string, string>>, payload?: Record<string, unknown> }} error Request error.
+ * @param {string} fallback Fallback message.
+ * @returns {void}
+ */
+function applyRequestError(error, fallback) {
+	errorMessage.value = error.message || fallback;
+	fieldErrors.value = Object.fromEntries((error.fields || []).map((field) => [field.field, [field.message]]));
+	if (error.payload?.run) applyRun(error.payload.run);
+	if (error.payload?.runs) runs.value = error.payload.runs;
+}
+
+/**
+ * Clears transient success, error, and field-level feedback.
+ *
+ * @returns {void}
+ */
+function clearFeedback() {
+	errorMessage.value = '';
+	successMessage.value = '';
+	fieldErrors.value = {};
+}
+
+/**
+ * Formats milliseconds into a compact trace duration.
+ *
+ * @param {number} value Milliseconds.
+ * @returns {string} Compact duration.
+ */
+function formatDuration(value) {
+	return Number(value) >= 1000 ? `${(Number(value) / 1000).toFixed(2)}s` : `${value}ms`;
+}
+
+/**
+ * Formats a US-dollar amount for trace cost display.
+ *
+ * @param {number} value Dollar amount.
+ * @returns {string} Currency label.
+ */
+function formatCost(value) {
+	return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', minimumFractionDigits: 3 }).format(Number(value || 0));
+}
+
+/**
+ * Formats a token count with a compact suffix.
+ *
+ * @param {number} value Token count.
+ * @returns {string} Compact count.
+ */
+function formatTokens(value) {
+	return Number(value) >= 1000 ? `${(Number(value) / 1000).toFixed(1)}k` : String(value || 0);
+}
+
+/**
+ * Formats an ISO timestamp as local time.
+ *
+ * @param {string} value ISO timestamp.
+ * @returns {string} Localized time.
+ */
+function formatTime(value) {
+	if (!value) return 'Unknown time';
+	return new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(value));
+}
+
+/**
+ * Resolves a review-state tone for DOM Studio status components.
+ *
+ * @param {string} value Review state.
+ * @returns {string} Semantic tone.
+ */
+function reviewTone(value) {
+	return { open: 'warning', investigating: 'info', resolved: 'success' }[value] || 'neutral';
+}
+
+/**
+ * Resolves an option label from a bootstrap collection.
+ *
+ * @param {Array<Record<string, string>>} options Option collection.
+ * @param {string} value Selected value.
+ * @returns {string} Option label.
+ */
+function optionLabel(options, value) {
+	return options?.find((option) => option.value === value)?.label || value;
+}
+
+/**
+ * Sends JSON requests and converts structured errors into exceptions.
+ *
+ * @param {string} url API route.
+ * @param {{ method?: string, body?: Record<string, unknown> }} options Request options.
+ * @returns {Promise<Record<string, unknown>>} Parsed response.
+ */
+async function requestJson(url, options = {}) {
+	const response = await fetch(url, {
+		method: options.method || 'GET',
+		headers: options.body ? { 'Content-Type': 'application/json' } : undefined,
+		body: options.body ? JSON.stringify(options.body) : undefined,
+	});
+	const result = await response.json();
+	if (!response.ok || result.error) {
+		const error = new Error(result.error?.message || `Request failed with ${response.status}.`);
+		error.fields = result.error?.fields || [];
+		error.payload = result.error || result;
+		throw error;
+	}
+	return result;
+}
+
+watch(getSelectedSpanId, handleSelectedSpanChange);
+onMounted(loadWorkspace);
 </script>
 
 <template>
-	<div class="w-[86rem] max-w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-card px-4 py-4 sm:px-5">
-			<div class="flex flex-wrap items-start justify-between gap-4">
-				<div class="min-w-0">
-					<div class="flex flex-wrap items-center gap-2">
-						<p class="text-xs font-semibold uppercase text-muted-fg">AI observability</p>
-						<DomStatusPill :tone="toneForStatus(selectedRun.status)" size="sm" :pulse="selectedRun.status === 'running'">
-							{{ selectedRun.statusLabel }}
-						</DomStatusPill>
+	<div class="h-dvh min-h-0 overflow-hidden bg-canvas text-canvas-fg">
+		<div v-if="loading" class="flex h-full flex-col">
+			<div class="flex h-16 items-center border-b border-border px-4"><DomSkeleton variant="text" :lines="1" width="28rem" /></div>
+			<div class="grid min-h-0 flex-1 xl:grid-cols-[17rem_minmax(0,1fr)_21rem]">
+				<div class="hidden border-r border-border p-4 xl:block"><DomSkeleton variant="text" :lines="10" /></div>
+				<div class="p-5"><DomSkeleton variant="text" :lines="14" /></div>
+				<div class="hidden border-l border-border p-4 xl:block"><DomSkeleton variant="text" :lines="10" /></div>
+			</div>
+		</div>
+
+		<div v-else-if="run && bootstrap" class="flex h-full min-h-0 flex-col">
+			<header class="shrink-0 border-b border-border bg-canvas">
+				<div class="flex min-h-16 items-center gap-3 px-3 py-2 sm:px-4">
+					<div class="min-w-0 flex-1">
+						<div class="flex min-w-0 items-center gap-2">
+							<h1 class="truncate text-sm font-semibold sm:text-base">{{ run.title }}</h1>
+							<DomStatusPill :tone="run.statusTone" size="sm">{{ run.statusLabel }}</DomStatusPill>
+						</div>
+						<p class="truncate text-xs text-muted-fg">{{ run.id }} · {{ run.environment }} · rev {{ run.revision }}</p>
 					</div>
-					<h3 class="mt-1 text-xl font-semibold">Agent run trace</h3>
-					<p class="mt-1 max-w-3xl text-sm leading-6 text-muted-fg">
-						Inspect model calls, tool spans, safety checks, latency, and retry decisions from one nested trace.
-					</p>
+					<div class="hidden w-72 xl:block">
+						<DomSelect :model-value="selectedRunId" label="Current run" :options="runs.map((item) => ({ value: item.id, label: item.title, description: `${item.statusLabel} · ${formatDuration(item.durationMs)}`, tone: item.statusTone }))" searchable width="min-w-[20rem]" @update:model-value="selectRun">
+							<template #option="{ option }"><div class="flex items-start justify-between gap-3"><div><p class="font-medium">{{ option.label }}</p><p class="mt-1 text-xs opacity-70">{{ option.description }}</p></div><span class="mt-1 size-2 rounded-full" :class="option.tone === 'danger' ? 'bg-destructive' : option.tone === 'warning' ? 'bg-warning' : 'bg-success'"></span></div></template>
+						</DomSelect>
+					</div>
+					<div class="flex shrink-0 items-center gap-2">
+						<DomButton class="hidden sm:inline-flex" size="sm" variant="secondary" :loading="busy" @click="createAction('export')">Export</DomButton>
+						<DomButton size="sm" @click="prepareReplay">Replay</DomButton>
+					</div>
 				</div>
-				<div class="flex flex-wrap items-center gap-2">
-					<DomButton variant="secondary" size="sm" @click="exportTrace">
-						<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path d="M12 4v10m0 0 4-4m-4 4-4-4M5 18h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-						</svg>
-						Export
-					</DomButton>
-					<DomButton size="sm" @click="inspectCurrentSpan">
-						<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path d="M6 5h12v14H6V5Zm3 4h6M9 13h6M9 17h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-						</svg>
-						Inspect span
-					</DomButton>
-				</div>
+			</header>
+
+			<div v-if="errorMessage || successMessage" class="shrink-0 border-b border-border px-3 py-2 sm:px-4">
+				<DomAlert v-if="errorMessage" tone="danger" variant="soft" title="Check this trace" :description="errorMessage" dismissible @dismiss="errorMessage = ''" />
+				<DomAlert v-else tone="success" variant="soft" title="Trace updated" :description="successMessage" dismissible @dismiss="successMessage = ''" />
 			</div>
 
-			<div class="mt-4 grid gap-3 lg:grid-cols-[minmax(17rem,0.9fr)_minmax(0,1.2fr)_minmax(12rem,0.6fr)]">
-				<DomCombobox v-model="selectedRunId" :options="runOptions" label="Run" placeholder="Pick a run">
-					<template #item="{ item }">
-						<div class="min-w-0">
-							<div class="flex items-center justify-between gap-3">
-								<span class="truncate font-medium text-canvas-fg">{{ item.label }}</span>
-								<DomBadge :tone="toneForStatus(item.status)" size="sm">{{ item.statusLabel }}</DomBadge>
-							</div>
-							<p class="mt-1 truncate text-xs text-muted-fg">{{ item.app }} / {{ item.durationMs }}ms / {{ item.cost }}</p>
-						</div>
-					</template>
-				</DomCombobox>
+			<DomTabs v-model="mobileView" :tabs="mobileTabs" variant="page" class="shrink-0 xl:hidden [&>div:last-child]:hidden" />
 
-				<DomCombobox v-model="jumpSpanId" :options="spanOptions" label="Jump to span" placeholder="Search spans..." @select="selectSpan($event.value)">
-					<template #item="{ item }">
-						<div class="flex min-w-0 items-center justify-between gap-3">
+			<div class="flex min-h-0 flex-1">
+				<aside class="min-h-0 w-full shrink-0 flex-col border-r border-border bg-secondary/10 xl:flex xl:w-68" :class="mobileView === 'runs' ? 'flex' : 'hidden'">
+					<div class="shrink-0 border-b border-border p-4">
+						<div class="flex items-center justify-between gap-3">
+							<div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Run queue</p><p class="mt-1 text-sm font-semibold">{{ filteredRuns.length }} recent runs</p></div>
+							<DomBadge tone="neutral" variant="outline">30d</DomBadge>
+						</div>
+						<div class="mt-4 grid gap-3">
+							<DomSelect v-model="environmentFilter" label="Environment" :options="bootstrap.options.environments" width="min-w-[16rem]"><template #option="{ option }"><div><p class="font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-70">{{ option.description }}</p></div></template></DomSelect>
+							<DomSelect v-model="statusFilter" label="Outcome" :options="bootstrap.options.statuses" width="min-w-[16rem]"><template #option="{ option }"><div><p class="font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-70">{{ option.description }}</p></div></template></DomSelect>
+						</div>
+					</div>
+					<nav v-if="filteredRuns.length" class="min-h-0 flex-1 divide-y divide-border overflow-y-auto" aria-label="Agent runs">
+						<button v-for="item in filteredRuns" :key="item.id" type="button" class="w-full border-l-2 px-4 py-4 text-left transition hover:bg-secondary/45" :class="item.id === run.id ? 'border-l-primary bg-secondary/55' : 'border-l-transparent'" @click="selectRun(item.id)">
+							<div class="flex items-start justify-between gap-3"><p class="min-w-0 truncate text-sm font-semibold">{{ item.title }}</p><DomStatusPill :tone="item.statusTone" size="sm">{{ item.statusLabel }}</DomStatusPill></div>
+							<p class="mt-1 truncate text-xs text-muted-fg">{{ item.agent }}</p>
+							<div class="mt-3 flex items-center justify-between text-[11px] text-muted-fg"><span>{{ formatTime(item.startedAt) }}</span><span>{{ formatDuration(item.durationMs) }} · {{ formatCost(item.costUsd) }}</span></div>
+						</button>
+					</nav>
+					<DomEmptyState v-else class="m-auto" title="No runs match" description="Change an environment or outcome filter." />
+					<div class="shrink-0 border-t border-border p-3"><DomButton class="w-full" size="sm" variant="ghost" @click="resetDialogOpen = true">Reset demo data</DomButton></div>
+				</aside>
+
+				<main class="min-h-0 min-w-0 flex-1 flex-col" :class="mobileView === 'trace' ? 'flex' : 'hidden xl:flex'">
+					<div class="shrink-0 border-b border-border px-4 py-4 sm:px-5">
+						<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 							<div class="min-w-0">
-								<p class="truncate font-medium text-canvas-fg">{{ item.label }}</p>
-								<p class="mt-1 truncate text-xs text-muted-fg">{{ item.description }}</p>
+								<div class="flex flex-wrap items-center gap-2"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Trace waterfall</p><DomStatusPill :tone="reviewTone(run.reviewState)" size="sm">{{ optionLabel(bootstrap.options.reviewStates, run.reviewState) }}</DomStatusPill></div>
+								<h2 class="mt-1 text-lg font-semibold tracking-tight">{{ run.agent }}</h2>
+								<p class="mt-1 max-w-3xl text-xs leading-5 text-muted-fg sm:text-sm">{{ run.summary }}</p>
 							</div>
-							<span class="size-2 shrink-0 rounded-full" :class="{
-								'bg-success': item.status === 'ok',
-								'bg-warning': item.status === 'warning',
-								'bg-destructive': item.status === 'failed',
-								'bg-primary': item.status === 'running',
-							}"></span>
-						</div>
-					</template>
-				</DomCombobox>
-
-				<DomRangeInput v-model="minDuration" label="Minimum duration" :min="0" :max="3000" :step="100" suffix="ms" />
-			</div>
-
-			<div class="mt-4 grid gap-3 xl:grid-cols-[minmax(15rem,0.45fr)_minmax(0,1fr)]">
-				<DomToggleButtonGroup v-model="statusFilter" :options="statusOptions" label="Status" size="sm" chrome="none" />
-				<DomTagCombobox
-					v-model="activeTags"
-					:options="tagOptions"
-					label="Trace tags"
-					placeholder="Filter by model, tool, safety..."
-					clearable
-				>
-					<template #item="{ item }">
-						<div class="min-w-0">
-							<p class="truncate font-medium text-canvas-fg">{{ item.label }}</p>
-							<p class="truncate text-xs text-muted-fg">{{ item.description }}</p>
-						</div>
-					</template>
-					<template #tag="{ label, remove }">
-						<span class="inline-flex items-center gap-1 rounded-full border border-border bg-secondary px-2 py-1 text-xs font-medium text-canvas-fg">
-							{{ label }}
-							<button type="button" class="rounded-full text-muted-fg hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" :aria-label="`Remove ${label}`" @click="remove">
-								<svg viewBox="0 0 16 16" class="size-3" fill="none" aria-hidden="true">
-									<path d="M5 5l6 6m0-6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-								</svg>
-							</button>
-						</span>
-					</template>
-				</DomTagCombobox>
-			</div>
-		</header>
-
-		<main class="grid gap-4 p-4 lg:p-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
-			<section class="min-w-0 rounded-2xl border border-border bg-canvas">
-				<div class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-					<div>
-						<p class="text-sm font-semibold text-canvas-fg">{{ selectedRun.label }}</p>
-						<p class="mt-1 text-xs text-muted-fg">{{ selectedRun.description }}</p>
-					</div>
-					<div class="flex flex-wrap items-center gap-2 text-xs text-muted-fg">
-						<DomBadge variant="outline">{{ visibleSpans.length }} visible spans</DomBadge>
-						<span>{{ lastAction }}</span>
-					</div>
-				</div>
-
-				<div class="grid grid-cols-[minmax(15rem,0.95fr)_minmax(14rem,1fr)] gap-3 border-b border-border bg-secondary/40 px-4 py-2 text-[11px] font-medium uppercase tracking-wide text-muted-fg">
-					<span>Span</span>
-					<div class="grid grid-cols-4">
-						<span>0ms</span>
-						<span class="text-center">{{ Math.round(totalDuration * 0.33) }}ms</span>
-						<span class="text-center">{{ Math.round(totalDuration * 0.66) }}ms</span>
-						<span class="text-right">{{ totalDuration }}ms</span>
-					</div>
-				</div>
-
-				<div class="max-h-[34rem] overflow-auto p-2">
-					<DomTreeView
-						v-if="traceItems.length"
-						v-model="selectedSpanId"
-						:items="traceItems"
-						:draggable="false"
-						:chrome="false"
-						label="Agent run trace spans"
-						@select="selectSpan($event.value)"
-					>
-						<template #row="{ item, open, selected, toggle }">
-							<TraceSpanRow
-								:item="item"
-								:open="open"
-								:selected="selected"
-								:toggle="toggle"
-								:total-duration="totalDuration"
-							/>
-						</template>
-					</DomTreeView>
-					<div v-else class="rounded-2xl border border-dashed border-border p-8 text-center">
-						<p class="text-sm font-semibold text-canvas-fg">No spans match these filters</p>
-						<p class="mt-1 text-sm text-muted-fg">Clear a status, tag, or duration filter to bring the trace back.</p>
-					</div>
-				</div>
-			</section>
-
-			<aside class="grid content-start gap-3">
-				<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-					<TraceMetric label="Duration" :value="`${selectedRun.durationMs}ms`" :detail="`${allSpans.length} spans captured`" tone="info" />
-					<TraceMetric label="Model spans" :value="modelSpanCount" :detail="`${criticalPath.name || 'No span'} is the critical path`" />
-					<TraceMetric label="Review load" :value="warningCount + failedCount" :detail="`${warningCount} warnings, ${failedCount} failures`" :tone="failedCount ? 'danger' : warningCount ? 'warning' : 'success'" />
-					<TraceMetric label="Run cost" :value="selectedRun.cost" detail="Estimated model and tool cost" tone="success" />
-				</div>
-
-				<div class="rounded-2xl border border-border skin-card p-4">
-					<div class="flex items-start justify-between gap-3">
-						<div>
-							<p class="text-sm font-semibold text-canvas-fg">Selected span</p>
-							<p class="mt-1 text-xs leading-5 text-muted-fg">{{ selectedSpan?.description }}</p>
-						</div>
-						<DomStatusPill :tone="toneForStatus(selectedSpan?.status)" size="sm">
-							{{ selectedSpan?.statusLabel }}
-						</DomStatusPill>
-					</div>
-					<dl class="mt-4 grid grid-cols-2 gap-3 text-xs">
-						<div>
-							<dt class="text-muted-fg">Type</dt>
-							<dd class="mt-1 font-medium text-canvas-fg">{{ selectedSpan?.type }}</dd>
-						</div>
-						<div>
-							<dt class="text-muted-fg">Tokens</dt>
-							<dd class="mt-1 font-medium text-canvas-fg">{{ selectedSpan?.tokens }}</dd>
-						</div>
-						<div>
-							<dt class="text-muted-fg">Cost</dt>
-							<dd class="mt-1 font-medium text-canvas-fg">{{ selectedSpan?.cost }}</dd>
-						</div>
-						<div>
-							<dt class="text-muted-fg">Start</dt>
-							<dd class="mt-1 font-medium text-canvas-fg">{{ selectedSpan?.startMs }}ms</dd>
-						</div>
-					</dl>
-					<DomButton class="mt-4 w-full" variant="secondary" size="sm" @click="inspectCurrentSpan">Open inspector</DomButton>
-				</div>
-			</aside>
-		</main>
-
-		<DomDrawer v-model="isInspectorOpen" side="bottom" title="Span inspector" width="var(--container-5xl)">
-			<div v-if="selectedSpan" class="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-				<section class="min-w-0">
-					<div class="flex flex-wrap items-start justify-between gap-3">
-						<div>
-							<p class="text-xs font-semibold uppercase text-muted-fg">{{ selectedRun.label }}</p>
-							<h4 class="mt-1 text-lg font-semibold text-canvas-fg">{{ selectedSpan.name }}</h4>
-							<p class="mt-1 max-w-3xl text-sm leading-6 text-muted-fg">{{ selectedSpan.description }}</p>
-						</div>
-						<DomStatusPill :tone="toneForStatus(selectedSpan.status)">{{ selectedSpan.statusLabel }}</DomStatusPill>
-					</div>
-
-					<div class="mt-4 grid gap-3 sm:grid-cols-3">
-						<TraceMetric label="Duration" :value="`${selectedSpan.durationMs}ms`" :detail="`Started at ${selectedSpan.startMs}ms`" />
-						<TraceMetric label="Tokens" :value="selectedSpan.tokens" detail="Prompt plus completion" />
-						<TraceMetric label="Cost" :value="selectedSpan.cost" detail="Estimated span cost" />
-					</div>
-
-					<div class="mt-4">
-						<DomCodeInput v-model="inspectorPayload" label="Span payload" lang="json" :rows="12" :editor="false" read-only />
-					</div>
-				</section>
-
-				<aside class="rounded-2xl border border-border skin-card p-4">
-					<DomRadioGroup v-model="retryMode" :options="retryOptions" label="Retry policy">
-						<template #option="{ option }">
-							<div class="min-w-0">
-								<p class="font-medium text-canvas-fg">{{ option.label }}</p>
-								<p class="mt-1 text-xs leading-5 text-muted-fg">{{ option.description }}</p>
+							<div class="grid grid-cols-4 divide-x divide-border border-y border-border py-2 text-center lg:w-[25rem]">
+								<div><p class="text-xs font-semibold">{{ formatDuration(run.durationMs) }}</p><p class="mt-0.5 text-[10px] text-muted-fg">Duration</p></div>
+								<div><p class="text-xs font-semibold">{{ formatTokens(run.tokenCount) }}</p><p class="mt-0.5 text-[10px] text-muted-fg">Tokens</p></div>
+								<div><p class="text-xs font-semibold">{{ formatCost(run.costUsd) }}</p><p class="mt-0.5 text-[10px] text-muted-fg">Cost</p></div>
+								<div><p class="text-xs font-semibold">{{ run.issueCount }}</p><p class="mt-0.5 text-[10px] text-muted-fg">Issues</p></div>
 							</div>
-						</template>
-					</DomRadioGroup>
-
-					<div class="mt-4 rounded-2xl border border-border bg-canvas p-3 text-sm leading-6 text-muted-fg">
-						<p class="font-medium text-canvas-fg">Replay guardrails</p>
-						<p class="mt-1">Replay requests should include operator identity, selected span id, prompt version, trace redaction state, and a reason visible in audit logs.</p>
+						</div>
+						<div class="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_13rem]">
+							<DomTextInput v-model="searchQuery" label="Search trace" placeholder="Span name, tag, or summary" />
+							<DomSelect v-model="spanTypeFilter" label="Span type" :options="bootstrap.options.spanTypes" width="min-w-[15rem]"><template #option="{ option }"><div><p class="font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-70">{{ option.description }}</p></div></template></DomSelect>
+						</div>
 					</div>
+
+					<div class="grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-border bg-secondary/30 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-fg sm:px-5 md:grid-cols-[minmax(16rem,0.9fr)_minmax(18rem,1fr)]">
+						<span>{{ visibleSpans.length }} spans</span>
+						<div class="hidden grid-cols-4 md:grid"><span>0ms</span><span class="text-center">{{ Math.round(run.durationMs * 0.33) }}ms</span><span class="text-center">{{ Math.round(run.durationMs * 0.66) }}ms</span><span class="text-right">{{ run.durationMs }}ms</span></div>
+						<DomButton class="md:hidden" size="sm" variant="ghost" @click="openInspector('overview')">Inspect</DomButton>
+					</div>
+
+					<div class="min-h-0 flex-1 overflow-y-auto">
+						<DomTreeView v-if="traceItems.length" v-model="selectedSpanId" :items="traceItems" :draggable="false" :chrome="false" label="Agent run trace spans" @select="selectSpan($event.value)">
+							<template #row="{ item, open, selected, toggle }"><TraceSpanRow :item="item" :open="open" :selected="selected" :toggle="toggle" :total-duration="run.durationMs" /></template>
+						</DomTreeView>
+						<DomEmptyState v-else class="m-auto max-w-md py-16" title="No matching spans" description="Clear the search or choose another span type to restore this trace." />
+					</div>
+
+					<div v-if="selectedSpan" class="shrink-0 border-t border-border bg-canvas px-4 py-3 sm:px-5">
+						<div class="flex items-center gap-3">
+							<span class="size-2 shrink-0 rounded-full" :class="selectedSpan.statusTone === 'danger' ? 'bg-destructive' : selectedSpan.statusTone === 'warning' ? 'bg-warning' : 'bg-success'"></span>
+							<div class="min-w-0 flex-1"><p class="truncate text-sm font-medium">{{ selectedSpan.name }}</p><p class="truncate text-xs text-muted-fg">{{ selectedSpan.summary }}</p></div>
+							<DomButton size="sm" variant="secondary" @click="openInspector('overview')">Inspect span</DomButton>
+						</div>
+					</div>
+				</main>
+
+				<aside class="min-h-0 w-full shrink-0 flex-col border-l border-border bg-canvas xl:flex xl:w-84" :class="mobileView === 'inspector' ? 'flex' : 'hidden'">
+					<div v-if="selectedSpan" class="flex min-h-0 flex-1 flex-col">
+						<div class="shrink-0 border-b border-border px-4 py-4">
+							<div class="flex items-start justify-between gap-3">
+								<div class="min-w-0"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Span inspector</p><h2 class="mt-1 truncate text-base font-semibold">{{ selectedSpan.name }}</h2></div>
+								<DomStatusPill :tone="selectedSpan.statusTone" size="sm">{{ selectedSpan.statusLabel }}</DomStatusPill>
+							</div>
+							<p class="mt-2 text-xs leading-5 text-muted-fg">{{ selectedSpan.summary }}</p>
+						</div>
+
+						<DomTabs v-model="inspectorTab" :tabs="inspectorTabs" variant="page" fill class="min-h-0 flex-1">
+							<template #overview>
+								<div class="min-h-0 flex-1 overflow-y-auto p-4">
+									<div class="grid grid-cols-2 divide-x divide-border border-y border-border py-3 text-center">
+										<div><p class="text-sm font-semibold">{{ formatDuration(selectedSpan.durationMs) }}</p><p class="mt-1 text-[10px] text-muted-fg">Duration</p></div>
+										<div><p class="text-sm font-semibold">{{ formatCost(selectedSpan.costUsd) }}</p><p class="mt-1 text-[10px] text-muted-fg">Cost</p></div>
+									</div>
+									<dl class="mt-4 divide-y divide-border border-y border-border text-xs">
+										<div class="flex items-center justify-between gap-3 py-3"><dt class="text-muted-fg">Type</dt><dd class="font-medium">{{ selectedSpan.type }}</dd></div>
+										<div class="flex items-center justify-between gap-3 py-3"><dt class="text-muted-fg">Tokens</dt><dd class="font-medium">{{ formatTokens(selectedSpan.tokens) }}</dd></div>
+										<div class="flex items-center justify-between gap-3 py-3"><dt class="text-muted-fg">Prompt version</dt><dd class="truncate font-mono text-[11px]">{{ run.promptVersion }}</dd></div>
+										<div class="flex items-center justify-between gap-3 py-3"><dt class="text-muted-fg">Payload</dt><dd><DomBadge tone="success" variant="outline">Redacted</DomBadge></dd></div>
+									</dl>
+									<div class="mt-5"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Investigation</p><div class="mt-3 grid gap-3"><DomSelect v-model="reviewDraft.ownerId" label="Owner" :options="bootstrap.options.owners" :errors="fieldErrors.ownerId || []"><template #option="{ option }"><div><p class="font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-70">{{ option.description }}</p></div></template></DomSelect><DomSelect v-model="reviewDraft.reviewState" label="State" :options="bootstrap.options.reviewStates" :errors="fieldErrors.reviewState || []"><template #option="{ option }"><div><p class="font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-70">{{ option.description }}</p></div></template></DomSelect><DomTextareaInput v-if="reviewDraft.reviewState === 'resolved'" v-model="reviewDraft.note" label="Conclusion" :rows="3" :errors="fieldErrors.note || []" /><DomButton size="sm" variant="secondary" :loading="busy" @click="saveReview">Save investigation</DomButton></div></div>
+									<div class="mt-5"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Recent evidence</p><div class="mt-2 divide-y divide-border border-y border-border"><div v-for="event in run.activity.slice(0, 4)" :key="event.id" class="py-3"><p class="text-xs font-medium">{{ event.label }}</p><p class="mt-1 text-[11px] leading-5 text-muted-fg">{{ event.detail }}</p></div></div></div>
+								</div>
+							</template>
+
+							<template #payload>
+								<div class="min-h-0 flex-1 overflow-y-auto p-4">
+									<DomAlert tone="warning" variant="soft" title="Privileged boundary" description="Payloads load separately, remain redacted, and return an access proof for the current operator." />
+									<div v-if="payload" class="mt-4">
+										<DomCodeInput :model-value="payloadJson" label="Redacted span payload" readonly :rows="16" />
+										<div v-if="payloadAccess" class="mt-4 border-y border-border py-3"><p class="text-xs font-medium">Access {{ payloadAccess.id }}</p><p class="mt-1 text-[11px] text-muted-fg">{{ payloadAccess.actor }} · {{ formatTime(payloadAccess.accessedAt) }}</p><code class="mt-2 block break-all text-[10px] leading-4 text-muted-fg">{{ payloadAccess.proof }}</code></div>
+									</div>
+									<div v-else class="mt-5"><p class="text-sm font-medium">Payload not loaded</p><p class="mt-1 text-xs leading-5 text-muted-fg">The run list exposes safe span metadata only. Load this payload to exercise the separate authorization seam.</p><DomButton class="mt-4" size="sm" :loading="busy" @click="loadPayload">Load redacted payload</DomButton></div>
+								</div>
+							</template>
+
+							<template #action>
+								<div class="min-h-0 flex-1 overflow-y-auto p-4">
+									<div v-if="actionReceipt" class="border-y border-success/35 bg-success/8 py-4">
+										<div class="flex items-center justify-between gap-3"><p class="text-sm font-semibold">{{ actionReceipt.label }}</p><DomStatusPill tone="success" size="sm">{{ actionReceipt.state }}</DomStatusPill></div>
+										<p class="mt-2 text-xs leading-5 text-muted-fg">{{ actionReceipt.spanName }} · source revision {{ actionReceipt.sourceRevision }}</p>
+										<p v-if="actionReceipt.filename" class="mt-2 font-mono text-xs">{{ actionReceipt.filename }}</p>
+										<code class="mt-3 block break-all text-[10px] leading-4 text-muted-fg">{{ actionReceipt.proof }}</code>
+									</div>
+									<div class="mt-4"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">{{ actionTitle }}</p><p class="mt-1 text-xs leading-5 text-muted-fg">Actions are attached to {{ selectedSpan.name }} and source revision {{ run.revision }}.</p></div>
+									<div class="mt-4 grid gap-4">
+										<DomSelect v-model="actionDraft.action" label="Action" :options="actionOptions" :errors="fieldErrors.action || []"><template #option="{ option }"><div><p class="font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-70">{{ option.description }}</p></div></template></DomSelect>
+										<DomSelect v-if="actionDraft.action === 'replay'" v-model="actionDraft.mode" label="Replay scope" :options="bootstrap.options.replayModes" :errors="fieldErrors.mode || []"><template #option="{ option }"><div><p class="font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-70">{{ option.description }}</p></div></template></DomSelect>
+										<DomTextareaInput v-if="actionDraft.action !== 'export'" v-model="actionDraft.reason" label="Operator reason" description="Visible in audit logs and downstream job metadata." :rows="4" :errors="fieldErrors.reason || []" />
+										<DomCheckbox v-if="actionDraft.action !== 'export'" v-model="actionDraft.acknowledged" label="I confirm the span, source revision, and payload boundary" description="The server rejects replay and eval creation without explicit acknowledgement." :errors="fieldErrors.acknowledged || []" />
+										<DomButton :loading="busy" @click="createAction()">Create {{ actionTitle.toLowerCase() }}</DomButton>
+									</div>
+								</div>
+							</template>
+						</DomTabs>
+					</div>
+					<DomEmptyState v-else class="m-auto" title="Choose a span" description="Select a trace row to inspect its evidence and actions." />
 				</aside>
 			</div>
-			<template #footer>
-				<div class="flex flex-wrap items-center justify-between gap-3">
-					<p class="text-sm text-muted-fg">{{ lastAction }}</p>
-					<div class="flex items-center gap-2">
-						<DomButton data-close variant="ghost" size="sm">Close</DomButton>
-						<DomButton size="sm" @click="queueReplay">Queue action</DomButton>
-					</div>
-				</div>
-			</template>
-		</DomDrawer>
+
+			<DomDialog v-model="resetDialogOpen" title="Reset the trace workspace?" description="This removes process-local investigation updates and action receipts, then restores the seeded incident queue.">
+				<template #footer><DomButton variant="secondary" data-close>Keep workspace</DomButton><DomButton variant="danger" :loading="busy" @click="resetWorkspace">Reset demo</DomButton></template>
+			</DomDialog>
+		</div>
+
+		<div v-else class="grid h-full place-items-center p-6"><DomAlert tone="danger" title="Trace workspace unavailable" :description="errorMessage || 'The agent trace API did not return a run.'"><template #actions><DomButton variant="secondary" @click="loadWorkspace">Try again</DomButton></template></DomAlert></div>
 	</div>
 </template>
+
+<style scoped>
+:deep([role="treeitem"]) {
+	border-radius: 0;
+}
+
+:deep([role="treeitem"][aria-selected="true"]) {
+	background: color-mix(in srgb, var(--secondary) 72%, transparent);
+	color: var(--canvas-fg);
+}
+</style>

@@ -12,7 +12,7 @@ import TeamAccessConsoleSrc from './examples/TeamAccessConsole.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Team Members Block"
-			tagline="A copyable team administration surface for inviting users, changing roles, monitoring seats, and keeping workspace access secure."
+			tagline="A working people-administration section with directory, invitation, access-policy, role-change, suspension, export, and audit APIs."
 			tag="Application UI"
 			eyebrow="Blocks"
 		>
@@ -22,7 +22,7 @@ import TeamAccessConsoleSrc from './examples/TeamAccessConsole.vue?raw';
 					filename="TeamAccessConsole.vue"
 					presentation="iframe"
 					frame-src="/blocks/operations/team-members/preview/TeamAccessConsole"
-					description="Copy this into SaaS settings, admin portals, B2B dashboards, internal tools, or workspace products. Replace the seeded members and roles with your account API, then connect invites, role updates, and deactivation actions to your access-control backend."
+					description="A responsive people directory inspired by focused administration tools rather than a reduced full-screen screenshot. Every visible action calls the repository-local team-access API, returns server-owned validation and receipts, and survives a browser reload for the life of the demo process."
 					default-open
 					:preview-lines="20"
 				>
@@ -30,67 +30,50 @@ import TeamAccessConsoleSrc from './examples/TeamAccessConsole.vue?raw';
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="Working application contract">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when a customer needs to manage who can access a workspace. It keeps the most common account-admin jobs together:
-						invite teammates, review pending invites, change roles, see seat usage, and spot risky access states before they become support tickets.
+						This example is backed by process-local API state rather than component-only mock data. It demonstrates the lifecycle boundary an account administrator actually needs:
+						load a compact directory, hydrate one access record, preview sensitive changes, commit an exact revision, and recover when another view wins a conflict.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Load members, pending invites, roles, and seat limits from your workspace settings endpoint.</li>
-						<li>Submit invites as an async job so you can show delivery, domain-policy, and license-limit errors inline.</li>
-						<li>Persist role changes immediately or stage them behind a confirmation dialog when the target role has billing or security impact.</li>
-						<li>Log sensitive actions such as owner transfer, role downgrade, invite resend, and member removal to your account audit trail.</li>
-						<li>Scope destructive actions by permission: hide owner-only actions for admins, and disable self-removal for the current user.</li>
+						<li>Invitations enforce work-email, domain, external-guest, team, expiry, duplicate, and paid-seat rules on the server.</li>
+						<li>Role changes use preview then commit, so capability and billing impact are reviewed against an exact member and workspace version.</li>
+						<li>Suspension revokes sessions and API tokens, records an audit reason, and returns a durable receipt before reactivation is allowed.</li>
+						<li>Policy changes, retries, cancellations, CSV exports, and reset are real endpoints with conflict and failure states.</li>
+						<li>The process-local adapter is replaceable: keep these payloads and move state, authorization, mail delivery, and audit storage behind production services.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended access payload">
-				<CodeBlock lang="js" filename="workspace-access.js" :code="`{
-\tworkspace: {
-\t\tid: 'wrk_northstar',
-\t\tname: 'Northstar Labs',
-\t\tseatLimit: 12,
-\t\trequireSso: true,
-\t\tallowedDomains: ['northstar.example']
-\t},
-\tmembers: [
-\t\t{
-\t\t\tid: 'usr_amelia',
-\t\t\tname: 'Amelia Hart',
-\t\t\temail: 'amelia@northstar.example',
-\t\t\trole: 'Owner',
-\t\t\tstatus: 'Active',
-\t\t\tlastSeenAt: '2026-06-10T08:42:00Z',
-\t\t\tmfaEnabled: true
-\t\t}
-\t],
-\tinvites: [
-\t\t{
-\t\t\tid: 'inv_lena',
-\t\t\temail: 'lena@northstar.example',
-\t\t\trole: 'Editor',
-\t\t\tstatus: 'Pending',
-\t\t\texpiresAt: '2026-06-17T12:00:00Z'
-\t\t}
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Repository-local routes">
+				<CodeBlock lang="txt" filename="team-access-api.txt" :code="`GET    /api/block-demos/team-access/workspace
+GET    /api/block-demos/team-access/members/:memberId
+POST   /api/block-demos/team-access/invites
+POST   /api/block-demos/team-access/invites/:inviteId/resend
+DELETE /api/block-demos/team-access/invites/:inviteId
+POST   /api/block-demos/team-access/members/:memberId/role/preview
+POST   /api/block-demos/team-access/members/:memberId/role/commit
+POST   /api/block-demos/team-access/members/:memberId/suspend
+POST   /api/block-demos/team-access/members/:memberId/reactivate
+PATCH  /api/block-demos/team-access/policies/:policyId
+GET    /api/block-demos/team-access/export
+POST   /api/block-demos/team-access/reset`" />
 			</DocSection>
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
+				<div class="grid gap-5 text-sm leading-7 text-muted-fg md:grid-cols-3">
+					<div class="border-t border-border pt-4">
 						<h3 class="font-semibold text-canvas-fg">Access rules</h3>
-						<p class="mt-2">Keep role capabilities server-owned. The UI should render descriptions from your policy model, but the API must enforce every permission change.</p>
+						<p class="mt-2">The UI renders role descriptions and previews from the shared catalog, while the API remains authoritative for ownership, seat, guest, and revision checks.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
+					<div class="border-t border-border pt-4">
 						<h3 class="font-semibold text-canvas-fg">Billing impact</h3>
-						<p class="mt-2">Connect the seat meter to billing rules so upgrades, pending invites, guest seats, and inactive users are counted exactly the way your plan does.</p>
+						<p class="mt-2">Paid-seat commitment includes active paid roles and pending paid invitations. Guests remain team-scoped and do not consume the same seat kind.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">A reusable permission matrix, SCIM directory sync panel, owner-transfer dialog, and bulk member actions would extend this block for larger teams.</p>
+					<div class="border-t border-border pt-4">
+						<h3 class="font-semibold text-canvas-fg">Production boundary</h3>
+						<p class="mt-2">Replace process memory with your user directory, authorization service, identity provider, mail provider, billing meter, and immutable audit store without changing the page flow.</p>
 					</div>
 				</div>
 			</DocSection>

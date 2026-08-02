@@ -1,535 +1,1085 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import {
+	DomAlert,
+	DomAppShell,
+	DomAppTopBar,
+	DomAvatar,
 	DomButton,
 	DomDialog,
-	DomListbox,
+	DomDrawer,
+	DomIconButton,
+	DomIconSelector,
+	DomProfileMenu,
+	DomSelect,
+	DomSkeleton,
+	DomStatusPill,
 	DomTagCombobox,
 	DomTextInput,
+	DomTextareaInput,
 	DomToggle,
-	DomToggleButtonGroup,
-	DomTooltip,
-	DomTreeView,
 } from '@getdom/studio/vue';
-import NavigationStatusPill from '../components/NavigationStatusPill.vue';
+import NavigationInspector from '../components/NavigationInspector.vue';
+import NavigationTreePanel from '../components/NavigationTreePanel.vue';
 import PreviewMenuItem from '../components/PreviewMenuItem.vue';
 
-const icons = {
-	home: 'M4 11.5 12 5l8 6.5V20h-5v-5H9v5H4v-8.5Z',
-	folder: 'M4 6h6l2 2h8v10H4V6Z',
-	file: 'M6 4h8l4 4v12H6V4Zm8 0v5h5',
-	chart: 'M5 19V5m0 14h14M9 16v-5m4 5V8m4 8v-7',
-	card: 'M4 7h16v10H4V7Zm0 3h16M8 14h3',
-	bolt: 'M13 3 5 14h6l-1 7 9-12h-6l1-6Z',
-	lock: 'M7 10V8a5 5 0 0 1 10 0v2m-11 0h12v10H6V10Zm6 4v2',
-};
+const menuIcon = 'M4 7h16M4 12h16M4 17h16';
+const inspectIcon = 'M12 5v14M5 12h14';
+const closeIcon = 'M6 6l12 12M18 6 6 18';
 
-const visibilityOptions = [
-	{
-		label: 'Everyone',
-		value: 'everyone',
-		description: 'Visible to signed-in users with access to the app shell.',
-		count: 'Default',
-	},
-	{
-		label: 'Role gated',
-		value: 'role-gated',
-		description: 'Visible only when the user matches selected roles or plan rules.',
-		count: 'Policy',
-	},
-	{
-		label: 'Admins only',
-		value: 'admins',
-		description: 'Visible to owners and admin roles for sensitive workspace areas.',
-		count: 'Locked',
-	},
-	{
-		label: 'Hidden draft',
-		value: 'hidden',
-		description: 'Kept in the draft tree but excluded from the published menu.',
-		count: 'Draft',
-	},
-];
-
-const visibilityLabelByValue = Object.fromEntries(visibilityOptions.map((option) => [option.value, option.label]));
-
-const audienceOptions = [
-	{ label: 'All users', value: 'all-users', description: 'Default app audience' },
-	{ label: 'Workspace admins', value: 'workspace-admins', description: 'Owner and admin roles' },
-	{ label: 'Billing managers', value: 'billing-managers', description: 'Can manage invoices and plans' },
-	{ label: 'Support agents', value: 'support-agents', description: 'Can view customer tools' },
-	{ label: 'Beta testers', value: 'beta-testers', description: 'Feature-flagged preview group' },
-	{ label: 'Enterprise plan', value: 'enterprise-plan', description: 'Plan-gated customers' },
-];
-
-const previewModeOptions = [
-	{ label: 'Desktop', value: 'desktop' },
-	{ label: 'Mobile', value: 'mobile' },
-	{ label: 'Portal', value: 'portal' },
-];
-
-const navItems = ref([
-	{
-		id: 'overview',
-		label: 'Overview',
-		url: '/app',
-		icon: icons.home,
-		visibility: 'everyone',
-		visibilityLabel: 'Everyone',
-		audience: ['all-users'],
-		featureFlag: '',
-		requiresAuth: true,
-		description: 'Primary landing route after sign in.',
-		open: true,
-		children: [
-			{
-				id: 'dashboard',
-				label: 'Dashboard',
-				url: '/app/dashboard',
-				icon: icons.chart,
-				visibility: 'everyone',
-				visibilityLabel: 'Everyone',
-				audience: ['all-users'],
-				featureFlag: '',
-				requiresAuth: true,
-				description: 'Team summary, recent activity, and shortcuts.',
-			},
-			{
-				id: 'reports',
-				label: 'Reports',
-				url: '/app/reports',
-				icon: icons.file,
-				visibility: 'role-gated',
-				visibilityLabel: 'Role gated',
-				audience: ['workspace-admins', 'enterprise-plan'],
-				featureFlag: 'reports_v2',
-				requiresAuth: true,
-				description: 'Saved reports and scheduled exports.',
-			},
-		],
-	},
-	{
-		id: 'operations',
-		label: 'Operations',
-		url: '/app/ops',
-		icon: icons.folder,
-		visibility: 'role-gated',
-		visibilityLabel: 'Role gated',
-		audience: ['workspace-admins', 'support-agents'],
-		featureFlag: '',
-		requiresAuth: true,
-		description: 'Internal queues and customer workflows.',
-		open: true,
-		children: [
-			{
-				id: 'customers',
-				label: 'Customers',
-				url: '/app/ops/customers',
-				icon: icons.file,
-				visibility: 'role-gated',
-				visibilityLabel: 'Role gated',
-				audience: ['support-agents', 'workspace-admins'],
-				featureFlag: '',
-				requiresAuth: true,
-				description: 'Customer records, health, and activity.',
-			},
-			{
-				id: 'automation',
-				label: 'Automation',
-				url: '/app/ops/automation',
-				icon: icons.bolt,
-				visibility: 'hidden',
-				visibilityLabel: 'Hidden draft',
-				audience: ['beta-testers'],
-				featureFlag: 'automation_builder',
-				requiresAuth: true,
-				description: 'Draft workflow builder for beta teams.',
-			},
-		],
-	},
-	{
-		id: 'billing',
-		label: 'Billing',
-		url: '/app/billing',
-		icon: icons.card,
-		visibility: 'admins',
-		visibilityLabel: 'Admins only',
-		audience: ['workspace-admins', 'billing-managers'],
-		featureFlag: '',
-		requiresAuth: true,
-		description: 'Plans, invoices, payment methods, and usage.',
-	},
-]);
-
-const selectedItemId = ref('reports');
-const previewMode = ref('desktop');
-const draftStatus = ref('unsaved');
+const bootstrap = ref(null);
+const draft = ref(null);
+const treeItems = ref([]);
+const validation = ref({ issues: [], blockerCount: 0, warningCount: 0, status: 'ready', checks: [] });
+const preview = ref({ items: [], meta: { visibleCount: 0, hiddenCount: 0 } });
+const selectedItemId = ref('ops-console');
+const editorDraft = ref(null);
+const previewAudience = ref('member');
+const previewDevice = ref('desktop');
+const loading = ref(true);
+const previewLoading = ref(false);
+const saving = ref(false);
+const validating = ref(false);
+const publishing = ref(false);
+const reordering = ref(false);
+const message = ref('');
+const errorMessage = ref('');
+const navigatorOpen = ref(false);
+const inspectorOpen = ref(false);
+const previewMobileNavOpen = ref(false);
+const addDialogOpen = ref(false);
+const archiveDialogOpen = ref(false);
 const publishDialogOpen = ref(false);
-const lastPublishedAt = ref('Not published from this draft');
-const changedIds = ref(['reports', 'automation']);
+const publishReceipt = ref(null);
+const releaseNote = ref('Fix operations destination and refresh audience navigation.');
+const archiveReason = ref('This destination is no longer part of the primary application journey.');
+const archiveTargetLabel = ref('');
+const addDraft = ref(createNewItemDraft());
 
-const selectedItem = computed(() => findItem(navItems.value, selectedItemId.value) || navItems.value[0]);
-const selectedPath = computed(() => itemPath(navItems.value, selectedItemId.value).map((item) => item.label).join(' / '));
-const totalItemCount = computed(() => countItems(navItems.value));
-const hiddenItemCount = computed(() => flattenItems(navItems.value).filter((item) => item.visibility === 'hidden').length);
-const gatedItemCount = computed(() => flattenItems(navItems.value).filter((item) => item.visibility !== 'everyone').length);
-const publishPayload = computed(() => ({
-	draftId: 'nav_draft_0924',
-	status: draftStatus.value,
-	selectedItemId: selectedItemId.value,
-	previewMode: previewMode.value,
-	items: flattenItems(navItems.value).map((item, index) => ({
-		id: item.id,
-		label: item.label,
-		url: item.url,
-		visibility: item.visibility,
-		audience: item.audience,
-		featureFlag: item.featureFlag || null,
-		requiresAuth: item.requiresAuth,
-		sortOrder: (index + 1) * 10,
-	})),
-	changedIds: changedIds.value,
-}));
+const selectedItem = computed(getSelectedItem);
+const selectedPath = computed(getSelectedPath);
+const selectedIssues = computed(getSelectedIssues);
+const editorDirty = computed(getEditorDirty);
+const selectedHasChildren = computed(getSelectedHasChildren);
+const validationTone = computed(getValidationTone);
+const validationLabel = computed(getValidationLabel);
+const previewFrameClasses = computed(getPreviewFrameClasses);
+const parentOptions = computed(getParentOptions);
+const previewSelectedItem = computed(getPreviewSelectedItem);
+const selectedVisibleInPreview = computed(getSelectedVisibleInPreview);
 
-function findItem(items, id) {
-	for (const item of items) {
-		if (item.id === id) return item;
-		const child = findItem(item.children || [], id);
+watch(selectedItem, synchronizeEditorDraft, { immediate: true });
+watch([previewAudience, previewDevice], refreshPreviewFromControls);
+onMounted(loadWorkspace);
+
+/**
+ * Return the selected item from the nested navigation tree.
+ *
+ * @returns {Record<string, unknown>|null} Selected navigation item.
+ */
+function getSelectedItem() {
+	return findItem(treeItems.value, selectedItemId.value);
+}
+
+/**
+ * Return the selected item breadcrumb path.
+ *
+ * @returns {string} Human-readable navigation path.
+ */
+function getSelectedPath() {
+	return itemPath(treeItems.value, selectedItemId.value).map(getItemLabel).join(' / ');
+}
+
+/**
+ * Return server-owned issues associated with the selected navigation item.
+ *
+ * @returns {Array<Record<string, unknown>>} Selected item issues.
+ */
+function getSelectedIssues() {
+	return (validation.value?.issues || []).filter(isSelectedIssue);
+}
+
+/**
+ * Compare the editable form with the latest server-backed item state.
+ *
+ * @returns {boolean} True when the inspector contains unsaved edits.
+ */
+function getEditorDirty() {
+	if (!selectedItem.value || !editorDraft.value) return false;
+	return JSON.stringify(editableSnapshot(selectedItem.value)) !== JSON.stringify(editableSnapshot(editorDraft.value));
+}
+
+/**
+ * Check whether the selected item owns active child destinations.
+ *
+ * @returns {boolean} True when the selected item has children.
+ */
+function getSelectedHasChildren() {
+	return Boolean(selectedItem.value?.children?.length);
+}
+
+/**
+ * Map the current validation report to a DOM Studio status tone.
+ *
+ * @returns {string} Status tone.
+ */
+function getValidationTone() {
+	if (validation.value?.blockerCount) return 'danger';
+	if (validation.value?.warningCount) return 'warning';
+	return 'success';
+}
+
+/**
+ * Return the concise status label shown in the editor toolbar.
+ *
+ * @returns {string} Validation status label.
+ */
+function getValidationLabel() {
+	if (validation.value?.blockerCount) return `${validation.value.blockerCount} blocker${validation.value.blockerCount === 1 ? '' : 's'}`;
+	if (draft.value?.status === 'published') return `Version ${draft.value.publishedVersion} live`;
+	return 'Ready to publish';
+}
+
+/**
+ * Size the app-shell preview to its selected target without overflowing the iframe.
+ *
+ * @returns {Array<string>} Preview frame classes.
+ */
+function getPreviewFrameClasses() {
+	const base = 'relative mx-auto h-full min-h-[32rem] transition-[width,max-width] duration-200';
+	if (previewDevice.value === 'mobile') return [base, 'w-full max-w-[24rem]'];
+	if (previewDevice.value === 'compact') return [base, 'w-full max-w-3xl'];
+	return [base, 'w-full max-w-5xl'];
+}
+
+/**
+ * Build valid parent options for the add-item dialog.
+ *
+ * @returns {Array<Record<string, string>>} Parent select options.
+ */
+function getParentOptions() {
+	const options = [{ value: 'root', label: 'Top level', description: 'Place beside the primary destinations.' }];
+	for (const item of flattenItems(treeItems.value)) {
+		if (itemPath(treeItems.value, item.id).length >= 3) continue;
+		options.push({ value: item.id, label: item.label, description: item.url });
+	}
+	return options;
+}
+
+/**
+ * Return the selected item when it survives the current server preview policy.
+ *
+ * @returns {Record<string, unknown>|null} Visible preview item.
+ */
+function getPreviewSelectedItem() {
+	return findItem(preview.value.items || [], selectedItemId.value) || flattenItems(preview.value.items || [])[0] || null;
+}
+
+/**
+ * Check whether the editor selection is visible to the active preview audience.
+ *
+ * @returns {boolean} True when the selected item is present in the preview tree.
+ */
+function getSelectedVisibleInPreview() {
+	return Boolean(findItem(preview.value.items || [], selectedItemId.value));
+}
+
+/**
+ * Synchronize the inspector with a newly selected server-backed item.
+ *
+ * @param {Record<string, unknown>|null} item Selected navigation item.
+ * @returns {void}
+ */
+function synchronizeEditorDraft(item) {
+	editorDraft.value = item ? editableSnapshot(item) : null;
+}
+
+/**
+ * Refresh the server-filtered preview after an audience or device change.
+ *
+ * @returns {Promise<void>} Resolves after the preview refresh completes.
+ */
+async function refreshPreviewFromControls() {
+	previewMobileNavOpen.value = false;
+	await loadPreview();
+}
+
+/**
+ * Load the complete navigation workspace and its initial policy preview.
+ *
+ * @returns {Promise<void>} Resolves after the editor is ready.
+ */
+async function loadWorkspace() {
+	loading.value = true;
+	errorMessage.value = '';
+	try {
+		applyResponsivePreviewDefault();
+		const result = await apiRequest('/api/block-demos/app-navigation-builder/bootstrap');
+		bootstrap.value = result;
+		draft.value = result.draft;
+		treeItems.value = result.items;
+		validation.value = result.validation;
+		if (!findItem(result.items, selectedItemId.value)) selectedItemId.value = result.items[0]?.id || '';
+		await loadPreview();
+	} catch (error) {
+		errorMessage.value = error.message;
+	} finally {
+		loading.value = false;
+	}
+}
+
+/**
+ * Choose a useful initial app-shell target for the iframe or mobile viewport.
+ *
+ * @returns {void}
+ */
+function applyResponsivePreviewDefault() {
+	if (typeof window === 'undefined') return;
+	if (window.matchMedia('(max-width: 639px)').matches) {
+		previewDevice.value = 'mobile';
+		return;
+	}
+	if (window.matchMedia('(max-width: 1023px)').matches) previewDevice.value = 'compact';
+}
+
+/**
+ * Load the server-owned menu visible to the selected preview persona.
+ *
+ * @returns {Promise<void>} Resolves after the preview is updated.
+ */
+async function loadPreview() {
+	if (!bootstrap.value) return;
+	previewLoading.value = true;
+	try {
+		const query = new URLSearchParams({
+			audience: previewAudience.value,
+			device: previewDevice.value,
+		});
+		preview.value = await apiRequest(`/api/block-demos/app-navigation-builder/preview?${query}`);
+	} catch (error) {
+		errorMessage.value = error.message;
+	} finally {
+		previewLoading.value = false;
+	}
+}
+
+/**
+ * Select one navigation item and expose its inspector on constrained screens.
+ *
+ * @param {string} itemId Stable navigation item identifier.
+ * @returns {void}
+ */
+function selectItem(itemId) {
+	selectedItemId.value = String(itemId);
+	navigatorOpen.value = false;
+	if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1279px)').matches) inspectorOpen.value = true;
+}
+
+/**
+ * Save the selected item through the optimistic API contract.
+ *
+ * @returns {Promise<void>} Resolves after the server accepts or rejects the edit.
+ */
+async function saveSelectedItem() {
+	if (!editorDraft.value || !draft.value) return;
+	saving.value = true;
+	clearFeedback();
+	try {
+		const result = await apiRequest(`/api/block-demos/app-navigation-builder/items/${encodeURIComponent(editorDraft.value.id)}`, {
+			method: 'PATCH',
+			body: { ...editableSnapshot(editorDraft.value), revision: draft.value.revision },
+		});
+		applyMutation(result);
+		message.value = result.message;
+		await loadPreview();
+	} catch (error) {
+		handleApiError(error);
+	} finally {
+		saving.value = false;
+	}
+}
+
+/**
+ * Persist a tree reorder produced by pointer drag or keyboard commands.
+ *
+ * @param {Array<Record<string, unknown>>} items Reordered nested tree.
+ * @returns {Promise<void>} Resolves after the server persists the hierarchy.
+ */
+async function persistReorder(items) {
+	if (!draft.value || reordering.value) return;
+	const previousItems = treeItems.value;
+	treeItems.value = items;
+	reordering.value = true;
+	clearFeedback();
+	try {
+		const result = await apiRequest('/api/block-demos/app-navigation-builder/reorder', {
+			method: 'POST',
+			body: { items: compactTree(items), revision: draft.value.revision },
+		});
+		applyMutation(result);
+		message.value = result.message;
+		await loadPreview();
+	} catch (error) {
+		treeItems.value = previousItems;
+		handleApiError(error);
+	} finally {
+		reordering.value = false;
+	}
+}
+
+/**
+ * Open the add-item flow with a useful parent default.
+ *
+ * @returns {void}
+ */
+function openAddDialog() {
+	addDraft.value = createNewItemDraft(selectedItem.value?.id || 'root');
+	addDialogOpen.value = true;
+	navigatorOpen.value = false;
+}
+
+/**
+ * Add a destination to the active navigation draft.
+ *
+ * @returns {Promise<void>} Resolves after the server creates the item.
+ */
+async function createItem() {
+	if (!draft.value) return;
+	saving.value = true;
+	clearFeedback();
+	try {
+		const result = await apiRequest('/api/block-demos/app-navigation-builder/items', {
+			method: 'POST',
+			body: { ...addDraft.value, revision: draft.value.revision },
+		});
+		applyMutation(result);
+		selectedItemId.value = result.item.id;
+		addDialogOpen.value = false;
+		message.value = result.message;
+		await loadPreview();
+	} catch (error) {
+		handleApiError(error);
+	} finally {
+		saving.value = false;
+	}
+}
+
+/**
+ * Open the archive confirmation for the selected leaf item.
+ *
+ * @returns {void}
+ */
+function openArchiveDialog() {
+	archiveTargetLabel.value = selectedItem.value?.label || 'This item';
+	archiveReason.value = 'This destination is no longer part of the primary application journey.';
+	archiveDialogOpen.value = true;
+}
+
+/**
+ * Archive the selected leaf item with an audit reason.
+ *
+ * @returns {Promise<void>} Resolves after the server archives the item.
+ */
+async function archiveSelectedItem() {
+	if (!selectedItem.value || !draft.value) return;
+	saving.value = true;
+	clearFeedback();
+	try {
+		const result = await apiRequest(`/api/block-demos/app-navigation-builder/items/${encodeURIComponent(selectedItem.value.id)}/archive`, {
+			method: 'POST',
+			body: { revision: draft.value.revision, reason: archiveReason.value },
+		});
+		applyMutation(result);
+		selectedItemId.value = treeItems.value[0]?.id || '';
+		archiveDialogOpen.value = false;
+		inspectorOpen.value = false;
+		message.value = result.message;
+		await loadPreview();
+	} catch (error) {
+		handleApiError(error);
+	} finally {
+		saving.value = false;
+	}
+}
+
+/**
+ * Run route, audience, feature-flag, and hierarchy checks on the server.
+ *
+ * @returns {Promise<boolean>} True when the validation request succeeds.
+ */
+async function runValidation() {
+	if (!draft.value) return false;
+	validating.value = true;
+	clearFeedback();
+	try {
+		const result = await apiRequest('/api/block-demos/app-navigation-builder/validate', {
+			method: 'POST',
+			body: { revision: draft.value.revision },
+		});
+		validation.value = result.validation;
+		draft.value = result.draft;
+		message.value = result.message;
+		return true;
+	} catch (error) {
+		handleApiError(error);
+		return false;
+	} finally {
+		validating.value = false;
+	}
+}
+
+/**
+ * Refresh validation and open the publish review dialog.
+ *
+ * @returns {Promise<void>} Resolves after the review dialog opens.
+ */
+async function openPublishDialog() {
+	publishReceipt.value = null;
+	const loaded = await runValidation();
+	if (loaded) publishDialogOpen.value = true;
+}
+
+/**
+ * Publish an immutable navigation version after all server checks pass.
+ *
+ * @returns {Promise<void>} Resolves after publish succeeds or fails.
+ */
+async function publishDraft() {
+	if (!draft.value) return;
+	publishing.value = true;
+	clearFeedback();
+	try {
+		const result = await apiRequest('/api/block-demos/app-navigation-builder/publish', {
+			method: 'POST',
+			body: { revision: draft.value.revision, releaseNote: releaseNote.value },
+		});
+		applyMutation(result);
+		publishReceipt.value = result.receipt;
+		message.value = result.message;
+	} catch (error) {
+		handleApiError(error);
+	} finally {
+		publishing.value = false;
+	}
+}
+
+/**
+ * Apply a successful API mutation as the new client source of truth.
+ *
+ * @param {Record<string, unknown>} result Mutation response.
+ * @returns {void}
+ */
+function applyMutation(result) {
+	if (result.draft) draft.value = result.draft;
+	if (result.items) treeItems.value = result.items;
+	if (result.validation) validation.value = result.validation;
+	const nextSelected = findItem(treeItems.value, selectedItemId.value);
+	if (!nextSelected) selectedItemId.value = treeItems.value[0]?.id || '';
+	synchronizeEditorDraft(findItem(treeItems.value, selectedItemId.value));
+}
+
+/**
+ * Keep the inspector drawer open after teleported DOM Studio controls commit.
+ *
+ * @returns {void}
+ */
+function keepInspectorDrawerOpen() {
+	inspectorOpen.value = true;
+	setTimeout(() => { inspectorOpen.value = true; }, 24);
+}
+
+/**
+ * Toggle the mobile app-shell menu inside the live preview.
+ *
+ * @returns {void}
+ */
+function togglePreviewNavigation() {
+	previewMobileNavOpen.value = !previewMobileNavOpen.value;
+}
+
+/**
+ * Close the publish dialog and clear any previous receipt.
+ *
+ * @returns {void}
+ */
+function closePublishDialog() {
+	publishDialogOpen.value = false;
+	publishReceipt.value = null;
+}
+
+/**
+ * Clear transient success and error feedback before a new request.
+ *
+ * @returns {void}
+ */
+function clearFeedback() {
+	message.value = '';
+	errorMessage.value = '';
+}
+
+/**
+ * Surface an API error and synchronize conflict state when available.
+ *
+ * @param {Error & { payload?: Record<string, unknown> }} error Request error.
+ * @returns {void}
+ */
+function handleApiError(error) {
+	errorMessage.value = error.message;
+	if (error.payload?.draft) draft.value = error.payload.draft;
+	if (error.payload?.items) treeItems.value = error.payload.items;
+}
+
+/**
+ * Request one demo API route and convert non-success responses into rich errors.
+ *
+ * @param {string} path API route.
+ * @param {{ method?: string, body?: Record<string, unknown> }} [options={}] Request options.
+ * @returns {Promise<Record<string, unknown>>} Parsed API payload.
+ */
+async function apiRequest(path, options = {}) {
+	const response = await fetch(path, {
+		method: options.method || 'GET',
+		headers: options.body ? { 'Content-Type': 'application/json' } : undefined,
+		body: options.body ? JSON.stringify(options.body) : undefined,
+	});
+	const payload = await response.json();
+	if (!response.ok) {
+		const error = new Error(payload.message || 'The navigation request could not be completed.');
+		error.payload = payload;
+		throw error;
+	}
+	return payload;
+}
+
+/**
+ * Return the first item matching an identifier in a nested tree.
+ *
+ * @param {Array<Record<string, unknown>>} items Nested items.
+ * @param {string} itemId Stable identifier.
+ * @returns {Record<string, unknown>|null} Matching item or null.
+ */
+function findItem(items, itemId) {
+	for (const item of items || []) {
+		if (String(item.id) === String(itemId)) return item;
+		const child = findItem(item.children || [], itemId);
 		if (child) return child;
 	}
 	return null;
 }
 
-function itemPath(items, id, parents = []) {
-	for (const item of items) {
+/**
+ * Return the ancestor path for one nested item.
+ *
+ * @param {Array<Record<string, unknown>>} items Nested items.
+ * @param {string} itemId Stable identifier.
+ * @param {Array<Record<string, unknown>>} [parents=[]] Parent accumulator.
+ * @returns {Array<Record<string, unknown>>} Ancestor and selected items.
+ */
+function itemPath(items, itemId, parents = []) {
+	for (const item of items || []) {
 		const nextParents = [...parents, item];
-		if (item.id === id) return nextParents;
-		const childPath = itemPath(item.children || [], id, nextParents);
+		if (String(item.id) === String(itemId)) return nextParents;
+		const childPath = itemPath(item.children || [], itemId, nextParents);
 		if (childPath.length) return childPath;
 	}
 	return [];
 }
 
+/**
+ * Flatten a nested tree while preserving its visible order.
+ *
+ * @param {Array<Record<string, unknown>>} items Nested items.
+ * @returns {Array<Record<string, unknown>>} Flat item list.
+ */
 function flattenItems(items) {
-	return items.flatMap((item) => [item, ...flattenItems(item.children || [])]);
+	const rows = [];
+	for (const item of items || []) rows.push(item, ...flattenItems(item.children || []));
+	return rows;
 }
 
-function countItems(items) {
-	return flattenItems(items).length;
+/**
+ * Return a serializable tree containing only identifiers and children.
+ *
+ * @param {Array<Record<string, unknown>>} items Nested tree items.
+ * @returns {Array<Record<string, unknown>>} Compact reorder payload.
+ */
+function compactTree(items) {
+	return (items || []).map(compactTreeItem);
 }
 
-function markChanged(id = selectedItemId.value) {
-	if (!changedIds.value.includes(id)) changedIds.value = [...changedIds.value, id];
-	draftStatus.value = 'unsaved';
+/**
+ * Serialize one item for the reorder API.
+ *
+ * @param {Record<string, unknown>} item Tree item.
+ * @returns {Record<string, unknown>} Compact tree item.
+ */
+function compactTreeItem(item) {
+	return { id: item.id, children: compactTree(item.children || []) };
 }
 
-function onTreeItemsUpdate(items) {
-	navItems.value = syncVisibilityLabels(items);
-	markChanged(selectedItemId.value);
+/**
+ * Return only fields editable through the item inspector.
+ *
+ * @param {Record<string, unknown>} item Navigation item.
+ * @returns {Record<string, unknown>} Editable item snapshot.
+ */
+function editableSnapshot(item) {
+	return {
+		id: item.id,
+		label: item.label || '',
+		url: item.url || '',
+		description: item.description || '',
+		icon: item.icon || '',
+		visibility: item.visibility || 'everyone',
+		audience: [...(item.audience || [])],
+		featureFlag: item.featureFlag || '',
+		requiresAuth: item.requiresAuth !== false,
+		openInNewTab: item.openInNewTab === true,
+	};
 }
 
-function syncVisibilityLabels(items) {
-	return items.map((item) => ({
-		...item,
-		visibilityLabel: visibilityLabelByValue[item.visibility] || item.visibility,
-		children: item.children ? syncVisibilityLabels(item.children) : undefined,
-	}));
+/**
+ * Create a fresh add-item form model.
+ *
+ * @param {string} [parentId='root'] Default parent identifier.
+ * @returns {Record<string, unknown>} Add-item draft.
+ */
+function createNewItemDraft(parentId = 'root') {
+	return {
+		parentId,
+		label: 'Help center',
+		url: '/app/help',
+		description: 'Guides, product updates, and contact options.',
+		visibility: 'everyone',
+		audience: ['all-users'],
+		featureFlag: '',
+		requiresAuth: true,
+		openInNewTab: false,
+		icon: 'M5 5h14v14H5V5Zm3 4h8M8 12h8M8 15h5',
+	};
 }
 
-function updateVisibility(value) {
-	selectedItem.value.visibility = value;
-	selectedItem.value.visibilityLabel = visibilityLabelByValue[value] || value;
-	if (value === 'everyone') selectedItem.value.audience = ['all-users'];
-	if (value === 'hidden') selectedItem.value.requiresAuth = true;
-	markChanged();
+/**
+ * Return a navigation item label for path rendering.
+ *
+ * @param {Record<string, unknown>} item Navigation item.
+ * @returns {string} Item label.
+ */
+function getItemLabel(item) {
+	return String(item.label || 'Untitled');
 }
 
-function selectItem(id) {
-	selectedItemId.value = id;
+/**
+ * Test whether one issue belongs to the selected navigation item.
+ *
+ * @param {Record<string, unknown>} issue Validation issue.
+ * @returns {boolean} True when the issue belongs to the selected item.
+ */
+function isSelectedIssue(issue) {
+	return String(issue.itemId) === String(selectedItemId.value);
 }
 
-function publishDraft() {
-	draftStatus.value = 'published';
-	changedIds.value = [];
-	lastPublishedAt.value = 'Published just now by Maya Chen';
-	publishDialogOpen.value = false;
-}
-
-function statusTone(value) {
-	if (value === 'everyone') return 'success';
-	if (value === 'hidden') return 'warning';
-	if (value === 'admins') return 'destructive';
-	return 'primary';
+/**
+ * Format a timestamp for compact editor chrome.
+ *
+ * @param {string|null|undefined} value ISO timestamp.
+ * @returns {string} Localized timestamp label.
+ */
+function formatTimestamp(value) {
+	if (!value) return 'Not yet';
+	return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
 }
 </script>
 
 <template>
-	<div class="w-full overflow-hidden border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-card px-5 py-5 sm:px-7">
-			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-				<div class="min-w-0">
-					<p class="text-xs font-semibold uppercase text-muted-fg">Navigation CMS</p>
-					<h3 class="mt-2 text-2xl font-semibold">App navigation builder</h3>
-					<p class="mt-2 max-w-3xl text-sm leading-6 text-muted-fg">
-						Edit nested menu structure, route metadata, feature gates, and audience rules before publishing a versioned app menu.
-					</p>
-				</div>
-				<div class="flex flex-wrap items-center gap-2">
-					<NavigationStatusPill :tone="draftStatus === 'published' ? 'success' : 'warning'">
-						{{ draftStatus === 'published' ? 'Published' : 'Unsaved draft' }}
-					</NavigationStatusPill>
-					<DomTooltip text="Publish creates a versioned navigation draft that your app shell can fetch at runtime.">
-						<DomButton size="sm" @click="publishDialogOpen = true">Review publish</DomButton>
-					</DomTooltip>
-				</div>
+	<div class="flex h-dvh min-h-[38rem] w-full flex-col overflow-hidden border border-border bg-canvas text-canvas-fg">
+		<header class="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-canvas px-3 sm:px-4">
+			<DomIconButton
+				class="md:hidden"
+				label="Open navigation hierarchy"
+				size="sm"
+				:icon="menuIcon"
+				@click="navigatorOpen = true"
+			/>
+			<div class="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-fg">N</div>
+			<div class="min-w-0 flex-1">
+				<p class="truncate text-sm font-semibold tracking-tight">Navigation studio</p>
+				<p class="hidden truncate text-[11px] text-muted-fg sm:block">Northstar · Primary app · Production</p>
 			</div>
-
-			<div class="mt-5 grid gap-3 md:grid-cols-3">
-				<div class="border-l-4 border-primary bg-primary/10 px-4 py-3">
-					<p class="text-xs font-medium text-muted-fg">Menu items</p>
-					<p class="mt-1 text-2xl font-semibold">{{ totalItemCount }}</p>
-					<p class="mt-1 text-xs leading-5 text-muted-fg">Drag the tree or select a row to edit metadata.</p>
-				</div>
-				<div class="border-l-4 border-warning bg-warning/10 px-4 py-3">
-					<p class="text-xs font-medium text-muted-fg">Gated links</p>
-					<p class="mt-1 text-2xl font-semibold">{{ gatedItemCount }}</p>
-					<p class="mt-1 text-xs leading-5 text-muted-fg">Role, admin, or draft-only routes need policy checks.</p>
-				</div>
-				<div class="border-l-4 border-success bg-success/10 px-4 py-3">
-					<p class="text-xs font-medium text-muted-fg">Publish state</p>
-					<p class="mt-1 text-lg font-semibold">{{ changedIds.length }} changed</p>
-					<p class="mt-1 text-xs leading-5 text-muted-fg">{{ lastPublishedAt }}</p>
-				</div>
+			<div class="hidden sm:block">
+				<DomStatusPill :tone="validationTone" :label="validationLabel" size="sm" />
+			</div>
+			<div class="hidden md:block">
+				<DomButton variant="secondary" size="sm" :loading="validating" @click="runValidation">Run checks</DomButton>
+			</div>
+			<DomButton size="sm" @click="openPublishDialog">Publish</DomButton>
+			<div class="hidden lg:block">
+				<DomProfileMenu
+					name="Maya Chen"
+					email="maya@northstar.tools"
+					initials="MC"
+					:show-email="false"
+					:theme-control="false"
+				/>
 			</div>
 		</header>
 
-		<main class="grid gap-0 xl:grid-cols-[minmax(19rem,0.9fr)_minmax(0,1.35fr)]">
-			<section class="border-b border-border p-4 sm:p-5 xl:border-b-0 xl:border-r">
-				<div class="flex items-start justify-between gap-3">
-					<div>
-						<h4 class="font-semibold">Menu hierarchy</h4>
-						<p class="mt-1 text-sm leading-6 text-muted-fg">Keyboard navigable tree with nested drag/drop reordering.</p>
-					</div>
-					<NavigationStatusPill tone="neutral">{{ hiddenItemCount }} hidden</NavigationStatusPill>
-				</div>
+		<div v-if="errorMessage || message" class="shrink-0 border-b border-border px-3 py-2 sm:px-4">
+			<DomAlert
+				:tone="errorMessage ? 'danger' : 'success'"
+				variant="toast"
+				:title="errorMessage ? 'Navigation update failed' : 'Navigation updated'"
+				:description="errorMessage || message"
+				dismissible
+				@dismiss="clearFeedback"
+			/>
+		</div>
 
-				<DomTreeView
-					v-model="selectedItemId"
-					v-model:items="navItems"
-					class="mt-4"
-					label="App navigation hierarchy"
-					:open-values="['overview', 'operations']"
-					variant="finder"
-					density="comfortable"
-					@update:items="onTreeItemsUpdate"
-					@select="selectItem($event.value)"
-				>
-					<template #item="{ item, selected }">
-						<span class="flex min-w-0 flex-1 items-center justify-between gap-3">
-							<span class="min-w-0">
-								<span class="block truncate text-sm font-semibold" :class="selected ? 'text-canvas-fg' : 'text-muted-fg'">{{ item.label }}</span>
-								<span class="mt-0.5 block truncate text-xs text-muted-fg">{{ item.url }}</span>
-							</span>
-							<span
-								class="rounded-full px-2 py-0.5 text-[11px] font-semibold"
-								:class="{
-									'bg-success/10 text-success': item.visibility === 'everyone',
-									'bg-primary/10 text-primary': item.visibility === 'role-gated',
-									'bg-warning/10 text-warning': item.visibility === 'hidden',
-									'bg-destructive/10 text-destructive': item.visibility === 'admins'
-								}"
-							>
-								{{ item.visibilityLabel }}
-							</span>
-						</span>
-					</template>
-				</DomTreeView>
+		<div v-if="loading" class="grid min-h-0 flex-1 gap-3 p-4 md:grid-cols-[17rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)_21rem]">
+			<DomSkeleton class="h-full min-h-80" />
+			<DomSkeleton class="h-full min-h-80" />
+			<DomSkeleton class="hidden h-full min-h-80 xl:block" />
+		</div>
 
-				<div class="mt-4 border border-dashed border-border bg-secondary/40 p-4 text-sm leading-6 text-muted-fg">
-					<p class="font-medium text-canvas-fg">Selected path</p>
-					<p class="mt-1">{{ selectedPath }}</p>
-				</div>
-			</section>
+		<main
+			v-else
+			class="grid min-h-0 flex-1 md:grid-cols-[17rem_minmax(0,1fr)] xl:grid-cols-[17rem_minmax(0,1fr)_21rem]"
+		>
+			<aside class="hidden min-h-0 border-r border-border md:block">
+				<NavigationTreePanel
+					:items="treeItems"
+					:selected-id="selectedItemId"
+					:validation="validation"
+					:reordering="reordering"
+					@add="openAddDialog"
+					@select="selectItem"
+					@reorder="persistReorder"
+				/>
+			</aside>
 
-			<section class="grid gap-0 lg:grid-cols-[minmax(0,1fr)_22rem]">
-				<div class="border-b border-border p-4 sm:p-5 lg:border-b-0 lg:border-r">
-					<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-						<div class="min-w-0">
-							<p class="text-xs font-semibold uppercase text-muted-fg">Selected item</p>
-							<h4 class="mt-1 text-xl font-semibold">{{ selectedItem.label }}</h4>
-							<p class="mt-1 text-sm leading-6 text-muted-fg">{{ selectedItem.description }}</p>
-						</div>
-						<NavigationStatusPill :tone="statusTone(selectedItem.visibility)">
-							{{ selectedItem.visibilityLabel }}
-						</NavigationStatusPill>
-					</div>
-
-					<div class="mt-5 grid gap-4">
-						<div class="grid gap-4 md:grid-cols-2">
-							<DomTextInput
-								v-model="selectedItem.label"
-								label="Menu label"
-								placeholder="Reports"
-								@update:model-value="markChanged()"
-							/>
-							<DomTextInput
-								v-model="selectedItem.url"
-								label="Route path"
-								placeholder="/app/reports"
-								@update:model-value="markChanged()"
-							/>
-						</div>
-
-						<DomTextInput
-							v-model="selectedItem.description"
-							label="Internal description"
-							placeholder="Explain where this item sends people"
-							@update:model-value="markChanged()"
-						/>
-
-						<DomListbox
-							:model-value="selectedItem.visibility"
-							label="Visibility rule"
-							:options="visibilityOptions"
-							@update:model-value="updateVisibility"
-						>
-							<template #option="{ option }">
-								<span class="flex items-start justify-between gap-3">
-									<span>
-										<span class="block font-semibold">{{ option.label }}</span>
-										<span class="mt-0.5 block text-xs leading-5 opacity-80">{{ option.description }}</span>
-									</span>
-									<span class="rounded-full bg-canvas/80 px-2 py-0.5 text-[11px] font-semibold">{{ option.count }}</span>
-								</span>
-							</template>
-						</DomListbox>
-
-						<DomTagCombobox
-							v-model="selectedItem.audience"
-							label="Audience tags"
-							:options="audienceOptions"
-							placeholder="Add roles, plans, or cohorts..."
-							clearable
-							@change="markChanged()"
-						>
-							<template #item="{ item }">
-								<span class="block">
-									<span class="block text-sm font-semibold">{{ item.label }}</span>
-									<span class="block text-xs text-muted-fg">{{ item.description }}</span>
-								</span>
-							</template>
-						</DomTagCombobox>
-
-						<div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-							<DomTextInput
-								v-model="selectedItem.featureFlag"
-								label="Feature flag key"
-								placeholder="reports_v2"
-								@update:model-value="markChanged()"
-							/>
-							<DomToggle
-								v-model="selectedItem.requiresAuth"
-								label="Requires sign in"
-								@update:model-value="markChanged()"
-							/>
-						</div>
-					</div>
-
-					<div class="mt-5 grid gap-3 rounded-lg border border-border bg-secondary/40 p-4 text-sm leading-6">
-						<div class="flex items-center justify-between gap-3">
-							<p class="font-semibold">Publish readiness</p>
-							<NavigationStatusPill :tone="selectedItem.url.startsWith('/') ? 'success' : 'warning'">
-								{{ selectedItem.url.startsWith('/') ? 'Route looks valid' : 'Check route' }}
-							</NavigationStatusPill>
-						</div>
-						<ul class="grid gap-2 text-muted-fg">
-							<li class="flex items-center gap-2">
-								<span class="size-2 rounded-full" :class="selectedItem.label ? 'bg-success' : 'bg-warning'"></span>
-								Label is ready for navigation display.
-							</li>
-							<li class="flex items-center gap-2">
-								<span class="size-2 rounded-full" :class="selectedItem.visibility === 'everyone' || selectedItem.audience.length ? 'bg-success' : 'bg-warning'"></span>
-								Audience rule has at least one selected cohort.
-							</li>
-							<li class="flex items-center gap-2">
-								<span class="size-2 rounded-full" :class="selectedItem.requiresAuth ? 'bg-success' : 'bg-warning'"></span>
-								Protected routes should still enforce server authorization.
-							</li>
-						</ul>
-					</div>
-				</div>
-
-				<aside class="skin-card p-4 sm:p-5">
-					<div class="flex items-start justify-between gap-3">
-						<div>
-							<h4 class="font-semibold">Live preview</h4>
-							<p class="mt-1 text-sm leading-6 text-muted-fg">Switch viewport targets before publishing.</p>
-						</div>
-					</div>
-
-					<DomToggleButtonGroup
-						v-model="previewMode"
-						class="mt-4"
-						label="Preview mode"
-						:options="previewModeOptions"
-						size="sm"
-						@update:model-value="markChanged()"
+			<section class="flex min-h-0 min-w-0 flex-col bg-secondary/35">
+				<div class="flex min-h-14 shrink-0 items-center gap-2 overflow-x-auto border-b border-border bg-canvas px-3 sm:px-4">
+					<span class="hidden shrink-0 text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg lg:inline">Preview as</span>
+					<DomSelect
+						v-model="previewAudience"
+						class="min-w-0 flex-1 sm:flex-none"
+						aria-label="Preview audience"
+						:options="bootstrap.previewAudienceOptions"
+						width="min-w-[12rem]"
 					/>
+					<DomSelect
+						v-model="previewDevice"
+						class="min-w-0 flex-1 sm:flex-none"
+						aria-label="Preview device"
+						:options="bootstrap.deviceOptions"
+						width="min-w-[11rem]"
+					/>
+					<div class="hidden min-w-2 flex-1 sm:block"></div>
+					<span class="hidden shrink-0 text-xs text-muted-fg sm:inline">
+						{{ preview.meta.visibleCount }} visible · {{ preview.meta.hiddenCount }} filtered
+					</span>
+					<div class="hidden sm:block xl:hidden">
+						<DomIconButton
+							label="Edit selected destination"
+							size="sm"
+							:icon="inspectIcon"
+							@click="inspectorOpen = true"
+						/>
+					</div>
+				</div>
 
-					<div
-						class="mt-4 overflow-hidden border border-border bg-canvas shadow-lg"
-						:class="previewMode === 'mobile' ? 'mx-auto max-w-[18rem] rounded-lg p-2' : 'rounded-lg'"
-					>
-						<div class="border-b border-border px-4 py-3">
-							<div class="flex items-center justify-between gap-3">
-								<div>
-									<p class="text-sm font-semibold">Acme Workspace</p>
-									<p class="text-xs text-muted-fg">{{ previewMode }} menu preview</p>
+				<div class="min-h-0 flex-1 overflow-auto p-3 sm:p-5">
+					<div :class="previewFrameClasses">
+						<DomAppShell variant="card" class="border border-border shadow-xl shadow-black/10">
+							<template #top>
+								<DomAppTopBar
+									title="Northstar"
+									:subtitle="`${previewAudience.replace('-', ' ')} preview · ${bootstrap.workspace.domain}`"
+								>
+									<template v-if="previewDevice === 'mobile'" #leading>
+										<DomIconButton label="Open preview navigation" size="sm" :icon="menuIcon" @click="togglePreviewNavigation" />
+									</template>
+									<template #trailing>
+										<DomAvatar name="Ari Gupta" initials="AG" size="sm" />
+									</template>
+								</DomAppTopBar>
+							</template>
+
+							<div class="flex h-full min-h-0">
+								<aside
+									v-if="previewDevice !== 'mobile'"
+									class="min-h-0 shrink-0 overflow-y-auto border-r border-border bg-canvas p-2"
+									:class="previewDevice === 'compact' ? 'w-44' : 'w-56'"
+								>
+									<p class="px-2 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-fg">Workspace</p>
+									<nav class="grid gap-0.5" aria-label="Server-filtered application preview">
+										<PreviewMenuItem
+											v-for="item in preview.items"
+											:key="item.id"
+											:item="item"
+											:selected-id="selectedItemId"
+											:compact="previewDevice === 'compact'"
+											@select="selectItem"
+										/>
+									</nav>
+								</aside>
+
+								<div class="min-w-0 flex-1 overflow-y-auto bg-canvas">
+									<div class="mx-auto max-w-4xl px-4 py-5 sm:px-6 sm:py-7">
+										<DomAlert
+											v-if="!selectedVisibleInPreview"
+											class="mb-5"
+											tone="info"
+											variant="soft"
+											title="Audience preview applied"
+											:description="`${selectedItem?.label || 'This destination'} is hidden for this audience. Showing the first available destination instead.`"
+										/>
+										<div class="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+											<div>
+												<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">{{ previewSelectedItem?.url || '/app' }}</p>
+												<h1 class="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{{ previewSelectedItem?.label || 'Workspace overview' }}</h1>
+												<p class="mt-2 max-w-xl text-sm leading-6 text-muted-fg">{{ previewSelectedItem?.description || 'Your workspace activity and next actions.' }}</p>
+											</div>
+											<DomButton size="sm">Create project</DomButton>
+										</div>
+
+										<div class="grid gap-6 py-6">
+											<section>
+												<div class="flex items-center justify-between gap-3">
+													<h2 class="text-base font-semibold">Current work</h2>
+													<DomButton variant="ghost" size="xs">View all</DomButton>
+												</div>
+												<div class="mt-3 divide-y divide-border border-y border-border">
+													<div class="flex items-center gap-3 py-3">
+														<DomAvatar name="Atlas rollout" initials="AR" size="sm" />
+														<div class="min-w-0 flex-1">
+															<p class="truncate text-sm font-medium">Atlas rollout</p>
+															<p class="text-xs text-muted-fg">Design review · Today</p>
+														</div>
+														<DomStatusPill tone="success" label="On track" size="sm" />
+													</div>
+													<div class="flex items-center gap-3 py-3">
+														<DomAvatar name="Beacon migration" initials="BM" size="sm" />
+														<div class="min-w-0 flex-1">
+															<p class="truncate text-sm font-medium">Beacon migration</p>
+															<p class="text-xs text-muted-fg">Engineering · Tomorrow</p>
+														</div>
+														<DomStatusPill tone="warning" label="At risk" size="sm" />
+													</div>
+													<div class="flex items-center gap-3 py-3">
+														<DomAvatar name="Comet launch" initials="CL" size="sm" />
+														<div class="min-w-0 flex-1">
+															<p class="truncate text-sm font-medium">Comet launch</p>
+															<p class="text-xs text-muted-fg">Content · Friday</p>
+														</div>
+														<DomStatusPill tone="primary" label="Review" size="sm" />
+													</div>
+												</div>
+											</section>
+
+											<aside class="border-t border-border pt-5">
+												<div class="flex items-end justify-between gap-4">
+													<div>
+														<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">This week</p>
+														<p class="mt-2 text-3xl font-semibold tracking-tight">82%</p>
+													</div>
+													<p class="max-w-44 text-right text-xs leading-5 text-muted-fg">Milestones completed on time</p>
+												</div>
+												<div class="mt-4 grid grid-cols-3 divide-x divide-border border-y border-border py-3 text-center text-xs">
+													<div><strong class="block text-base">12</strong><span class="text-muted-fg">Projects</span></div>
+													<div><strong class="block text-base">4</strong><span class="text-muted-fg">Reviews</span></div>
+													<div><strong class="block text-base">18</strong><span class="text-muted-fg">Online</span></div>
+												</div>
+											</aside>
+										</div>
+									</div>
 								</div>
-								<span class="size-2 rounded-full bg-success" aria-hidden="true"></span>
 							</div>
-						</div>
-						<nav class="grid gap-1 p-2" aria-label="Preview navigation">
-							<PreviewMenuItem
-								v-for="item in navItems"
-								:key="item.id"
-								:item="item"
-								:selected-id="selectedItemId"
-								@select="selectItem"
-							/>
-						</nav>
-					</div>
 
-					<div class="mt-4 rounded-lg border border-border bg-canvas p-4">
-						<p class="text-sm font-semibold">Draft payload</p>
-						<pre class="mt-3 max-h-64 overflow-auto rounded-md bg-secondary p-3 text-xs leading-5 text-muted-fg">{{ JSON.stringify(publishPayload, null, 2) }}</pre>
+							<template #overlay>
+								<div v-if="previewDevice === 'mobile' && previewMobileNavOpen" class="pointer-events-auto absolute inset-0 flex bg-black/35">
+									<aside class="flex h-full w-[82%] max-w-72 flex-col border-r border-border bg-canvas shadow-xl">
+										<div class="flex items-center justify-between border-b border-border px-3 py-3">
+											<div>
+												<p class="text-sm font-semibold">Northstar</p>
+												<p class="text-xs text-muted-fg">Workspace navigation</p>
+											</div>
+											<DomIconButton label="Close preview navigation" size="sm" :icon="closeIcon" @click="togglePreviewNavigation" />
+										</div>
+										<nav class="min-h-0 flex-1 overflow-y-auto p-2" aria-label="Mobile application preview">
+											<PreviewMenuItem
+												v-for="item in preview.items"
+												:key="item.id"
+												:item="item"
+												:selected-id="selectedItemId"
+												@select="selectItem"
+											/>
+										</nav>
+									</aside>
+									<button type="button" class="min-w-0 flex-1" aria-label="Close preview navigation" @click="togglePreviewNavigation"></button>
+								</div>
+							</template>
+						</DomAppShell>
 					</div>
-				</aside>
+				</div>
+
+				<footer class="flex min-h-13 shrink-0 items-center justify-between gap-3 border-t border-border bg-canvas px-3 xl:hidden">
+					<div class="min-w-0">
+						<p class="truncate text-sm font-medium">{{ selectedItem?.label }}</p>
+						<p class="truncate text-xs text-muted-fg">{{ selectedIssues.length ? `${selectedIssues.length} issue${selectedIssues.length === 1 ? '' : 's'}` : 'Ready to publish' }}</p>
+					</div>
+					<DomButton variant="secondary" size="sm" @click="inspectorOpen = true">Edit destination</DomButton>
+				</footer>
 			</section>
+
+			<aside class="hidden min-h-0 border-l border-border xl:block">
+				<NavigationInspector
+					v-if="editorDraft"
+					v-model="editorDraft"
+					:visibility-options="bootstrap.visibilityOptions"
+					:audience-options="bootstrap.audienceOptions"
+					:icon-options="bootstrap.iconOptions"
+					:issues="selectedIssues"
+					:path="selectedPath"
+					:saving="saving"
+					:dirty="editorDirty"
+					:has-children="selectedHasChildren"
+					@save="saveSelectedItem"
+					@archive="openArchiveDialog"
+				/>
+			</aside>
 		</main>
+
+		<DomDrawer v-model="navigatorOpen" side="left" width="min(22rem, 92vw)" title="Navigation hierarchy" :static="true">
+			<NavigationTreePanel
+				:items="treeItems"
+				:selected-id="selectedItemId"
+				:validation="validation"
+				:reordering="reordering"
+				@add="openAddDialog"
+				@select="selectItem"
+				@reorder="persistReorder"
+			/>
+		</DomDrawer>
+
+		<DomDrawer v-model="inspectorOpen" side="right" width="min(25rem, 94vw)" title="Destination inspector" :static="true">
+			<NavigationInspector
+				v-if="editorDraft"
+				v-model="editorDraft"
+				:visibility-options="bootstrap?.visibilityOptions || []"
+				:audience-options="bootstrap?.audienceOptions || []"
+				:icon-options="bootstrap?.iconOptions || []"
+				:issues="selectedIssues"
+				:path="selectedPath"
+				:saving="saving"
+				:dirty="editorDirty"
+				:has-children="selectedHasChildren"
+				@save="saveSelectedItem"
+				@archive="openArchiveDialog"
+				@floating-interaction="keepInspectorDrawerOpen"
+			/>
+		</DomDrawer>
+
+		<DomDialog
+			v-model="addDialogOpen"
+			title="Add navigation destination"
+			description="Create a real draft item, then validate it against the application router."
+		>
+			<div class="grid gap-4 sm:grid-cols-2">
+				<DomTextInput v-model="addDraft.label" label="Menu label" placeholder="Help center" />
+				<DomTextInput v-model="addDraft.url" label="Destination" placeholder="/app/help" />
+				<DomSelect
+					v-model="addDraft.parentId"
+					label="Parent"
+					:options="parentOptions"
+					width="min-w-[18rem]"
+				/>
+				<DomSelect
+					v-model="addDraft.visibility"
+					label="Visibility"
+					:options="bootstrap?.visibilityOptions || []"
+					width="min-w-[18rem]"
+				/>
+				<div class="sm:col-span-2">
+					<DomTextareaInput v-model="addDraft.description" label="Internal description" :rows="3" />
+				</div>
+				<div class="sm:col-span-2">
+					<DomIconSelector
+						v-model="addDraft.icon"
+						label="Navigation icon"
+						kind="custom"
+						:items="bootstrap?.iconOptions || []"
+						:include-built-ins="false"
+						:clearable="false"
+					/>
+				</div>
+				<div v-if="addDraft.visibility === 'roles' || addDraft.visibility === 'admins'" class="sm:col-span-2">
+					<DomTagCombobox
+						v-model="addDraft.audience"
+						label="Allowed audiences"
+						:options="bootstrap?.audienceOptions || []"
+					/>
+				</div>
+				<DomToggle v-model="addDraft.requiresAuth" label="Requires sign in" />
+				<DomToggle v-model="addDraft.openInNewTab" label="Open in a new tab" />
+			</div>
+			<template #footer>
+				<DomButton variant="secondary" size="sm" @click="addDialogOpen = false">Cancel</DomButton>
+				<DomButton size="sm" :loading="saving" @click="createItem">Add destination</DomButton>
+			</template>
+		</DomDialog>
+
+		<DomDialog
+			v-model="archiveDialogOpen"
+			title="Archive navigation item?"
+			:description="`${archiveTargetLabel} will leave the draft tree and every audience preview.`"
+		>
+			<DomTextareaInput v-model="archiveReason" label="Archive reason" :rows="3" />
+			<template #footer>
+				<DomButton variant="secondary" size="sm" @click="archiveDialogOpen = false">Keep item</DomButton>
+				<DomButton variant="danger" size="sm" :loading="saving" @click="archiveSelectedItem">Archive item</DomButton>
+			</template>
+		</DomDialog>
 
 		<DomDialog
 			v-model="publishDialogOpen"
-			title="Publish navigation draft?"
-			description="Create a versioned menu that your app shell can fetch and cache."
+			:title="publishReceipt ? `Version ${publishReceipt.version} is live` : 'Review navigation publish'"
+			:description="publishReceipt ? 'The API returned an immutable deployment receipt.' : 'Publish the validated menu used by the production app shell.'"
 		>
-			<div class="space-y-3 text-sm leading-6 text-muted-fg">
-				<p>
-					This draft contains <strong class="text-canvas-fg">{{ changedIds.length }}</strong> changed item{{ changedIds.length === 1 ? '' : 's' }} across
-					<strong class="text-canvas-fg">{{ totalItemCount }}</strong> navigation records.
-				</p>
-				<div class="rounded-lg border border-border bg-secondary/50 p-3">
-					<p class="font-semibold text-canvas-fg">Backend checks to run</p>
-					<ul class="mt-2 list-disc space-y-1 pl-5">
-						<li>Validate every route and parent ID.</li>
-						<li>Confirm feature flags exist in the current workspace.</li>
-						<li>Recompute role visibility before writing the published version.</li>
-					</ul>
+			<div v-if="publishReceipt" class="space-y-4">
+				<DomAlert tone="success" title="Navigation published" :description="`${publishReceipt.itemCount} destinations are live in production.`" />
+				<dl class="grid grid-cols-2 gap-x-4 gap-y-3 rounded-lg border border-border bg-secondary/35 p-4 text-sm">
+					<div><dt class="text-xs text-muted-fg">Receipt</dt><dd class="mt-1 font-mono">{{ publishReceipt.id }}</dd></div>
+					<div><dt class="text-xs text-muted-fg">Checksum</dt><dd class="mt-1 font-mono">{{ publishReceipt.checksum }}</dd></div>
+					<div><dt class="text-xs text-muted-fg">Published</dt><dd class="mt-1">{{ formatTimestamp(publishReceipt.publishedAt) }}</dd></div>
+					<div><dt class="text-xs text-muted-fg">Editor</dt><dd class="mt-1">{{ publishReceipt.publishedBy }}</dd></div>
+				</dl>
+			</div>
+			<div v-else class="space-y-4">
+				<DomAlert
+					:tone="validation.blockerCount ? 'danger' : 'success'"
+					:title="validation.blockerCount ? `${validation.blockerCount} blocker${validation.blockerCount === 1 ? '' : 's'} must be resolved` : 'All required checks passed'"
+					:description="validation.blockerCount ? 'Select a marked item in the hierarchy, fix its destination, and run checks again.' : `Version ${draft?.publishedVersion + 1} can be published to ${bootstrap?.workspace.environment}.`"
+				/>
+				<div class="grid gap-2">
+					<div v-for="check in validation.checks" :key="check.key" class="flex items-center justify-between border-b border-border py-2 text-sm">
+						<span>{{ check.label }}</span>
+						<DomStatusPill :tone="check.healthy ? 'success' : 'danger'" :label="check.healthy ? 'Passed' : 'Blocked'" size="sm" />
+					</div>
 				</div>
+				<DomTextareaInput v-model="releaseNote" label="Release note" :rows="3" />
 			</div>
 			<template #footer>
-				<DomButton variant="secondary" size="sm" @click="publishDialogOpen = false">Keep editing</DomButton>
-				<DomButton size="sm" @click="publishDraft">Publish version</DomButton>
+				<DomButton variant="secondary" size="sm" @click="closePublishDialog">{{ publishReceipt ? 'Done' : 'Keep editing' }}</DomButton>
+				<DomButton
+					v-if="!publishReceipt"
+					size="sm"
+					:loading="publishing"
+					:disabled="validation.blockerCount > 0"
+					@click="publishDraft"
+				>
+					Publish version {{ draft?.publishedVersion + 1 }}
+				</DomButton>
 			</template>
 		</DomDialog>
 	</div>

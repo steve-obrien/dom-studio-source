@@ -10,18 +10,18 @@ import WorkspaceOnboardingSrc from './examples/WorkspaceOnboarding.vue?raw';
 <template>
 	<DomStudioLayout>
 		<DocPage
-			name="Onboarding Blocks"
-			tagline="Production-shaped setup flows for converting a new signup into an activated workspace."
+			name="Onboarding Workspace"
+			tagline="A resumable, API-backed activation section that turns a signup into a configured workspace."
 			tag="Application UI"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Activation" title="Workspace setup wizard">
+			<DocSection eyebrow="Activation" title="Workspace activation flow">
 				<Example
 					:source="WorkspaceOnboardingSrc"
 					filename="WorkspaceOnboarding.vue"
 					presentation="iframe"
 					frame-src="/blocks/conversion/onboarding/preview/WorkspaceOnboarding"
-					description="A responsive onboarding wizard with step progress, goal selection, invite collection, and a launch-ready summary. Adapt the steps to capture the few fields that unlock value in your product."
+					description="A responsive Notion- and Linear-inspired setup workspace with revisioned saves, rich DOM Studio selects, source connection, scoped invitations, server-owned readiness, immutable launch proof, and a useful post-launch handoff."
 					default-open
 					:preview-lines="12"
 				>

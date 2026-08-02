@@ -21,7 +21,12 @@ const documentationRoutePrefixes = [
 	'/visual',
 ];
 
-if (typeof window !== 'undefined') installGlobalSearchShortcut();
+if (typeof window !== 'undefined') {
+	installGlobalSearchShortcut();
+	if (import.meta.env.MODE === 'development') {
+		void import('./motionDebug.js').then(installDevelopmentMotionDebugging);
+	}
+}
 
 const scrollBehavior = (to, from, savedPosition) => {
 	if (savedPosition) return savedPosition;
@@ -34,6 +39,18 @@ function isDocumentationRoutePath(path) {
 	return documentationRoutePrefixes.some((prefix) => (
 		path === prefix || path.startsWith(`${prefix}/`)
 	));
+}
+
+/**
+ * Installs development-only controls for slowing animations and transitions.
+ *
+ * @param {{ installMotionDebugging: Function }} debugModule Loaded motion-debug module.
+ * @returns {void}
+ */
+function installDevelopmentMotionDebugging(debugModule) {
+	const cleanup = debugModule.installMotionDebugging();
+
+	import.meta.hot?.dispose(cleanup);
 }
 
 export function createDomStudioApp() {

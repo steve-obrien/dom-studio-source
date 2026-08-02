@@ -1,548 +1,787 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { DomButton, DomCheckbox, DomNativeSelect, DomTextInput, DomTextareaInput, DomToggle } from '@getdom/studio/vue';
+import { computed, onMounted, ref } from 'vue';
+import {
+	DomAlert,
+	DomAvatar,
+	DomButton,
+	DomCheckbox,
+	DomDatePicker,
+	DomDialog,
+	DomDrawer,
+	DomIconButton,
+	DomProgress,
+	DomRadioGroup,
+	DomSelect,
+	DomSkeleton,
+	DomStatusPill,
+	DomTextInput,
+	DomTextareaInput,
+} from '@getdom/studio/vue';
 
+const activityIcon = 'M5 12h3l2-5 4 10 2-5h3M12 3a9 9 0 1 0 9 9';
+const helpIcon = 'M12 18h.01M9.5 9a2.5 2.5 0 1 1 3.7 2.2c-.8.5-1.2 1-1.2 2.3M12 3a9 9 0 1 0 9 9';
+const closeIcon = 'M6 6l12 12M18 6 6 18';
 const steps = [
-	{ id: 'profile', label: 'Profile', description: 'Legal identity and contact details' },
-	{ id: 'documents', label: 'Evidence', description: 'Document and liveness capture' },
-	{ id: 'checks', label: 'Checks', description: 'Consent, risk signals, and review notes' },
-	{ id: 'review', label: 'Review', description: 'Submit a complete verification packet' },
+	{ id: 'profile', label: 'Details', description: 'Confirm your legal identity' },
+	{ id: 'evidence', label: 'Evidence', description: 'Capture required documents' },
+	{ id: 'checks', label: 'Checks', description: 'Consent and screening' },
+	{ id: 'review', label: 'Review', description: 'Submit the complete packet' },
 ];
 
-const verificationTypes = [
-	{ label: 'Individual customer', value: 'individual' },
-	{ label: 'Business owner', value: 'business_owner' },
-	{ label: 'Marketplace seller', value: 'seller' },
-];
+const bootstrap = ref(null);
+const session = ref(null);
+const activeStep = ref('profile');
+const profileDraft = ref(createEmptyProfile());
+const declarationDraft = ref({ pepExposure: 'not_exposed', consentAccepted: false });
+const selectedEvidence = ref(null);
+const captureMethod = ref('camera');
+const submissionNote = ref('');
+const submissionAcknowledged = ref(false);
+const captureOpen = ref(false);
+const submitOpen = ref(false);
+const activityOpen = ref(false);
+const helpOpen = ref(false);
+const loading = ref(true);
+const busy = ref(false);
+const errorMessage = ref('');
+const successMessage = ref('');
+const receipt = ref(null);
 
-const countries = [
-	{ label: 'United Kingdom', value: 'GB' },
-	{ label: 'United States', value: 'US' },
-	{ label: 'Ireland', value: 'IE' },
-	{ label: 'Germany', value: 'DE' },
-];
-
-const documentTypes = [
-	{ label: 'Passport', value: 'passport' },
-	{ label: 'Driving licence', value: 'driving_licence' },
-	{ label: 'National ID card', value: 'national_id' },
-];
-
-const captureMethods = [
-	{ label: 'Upload', value: 'upload' },
-	{ label: 'Camera', value: 'camera' },
-	{ label: 'Provider link', value: 'provider_link' },
-];
-
-const activeStepId = ref('profile');
-const verificationType = ref('individual');
-const country = ref('GB');
-const documentType = ref('passport');
-const captureMethod = ref('upload');
-const consentAccepted = ref(true);
-const politicallyExposed = ref(false);
-const submitState = ref('draft');
-const selectedDocumentId = ref('identity');
-const reviewerNotes = ref('Applicant is onboarding for GBP payouts. Address proof should match the payout country before approval.');
-
-const profile = ref({
-	firstName: 'Maya',
-	lastName: 'Hart',
-	email: 'maya@example.com',
-	dateOfBirth: '1991-04-18',
-	addressLine: '24 Leather Lane',
-	city: 'London',
-	postcode: 'EC1N 7SU',
+const verificationTypeOptions = computed(() => bootstrap.value?.verificationTypeOptions || []);
+const countryOptions = computed(() => bootstrap.value?.countryOptions || []);
+const documentTypeOptions = computed(() => bootstrap.value?.documentTypeOptions || []);
+const captureMethodOptions = computed(() => bootstrap.value?.captureMethodOptions || []);
+const pepOptions = computed(() => bootstrap.value?.pepOptions || []);
+const readinessChecks = computed(() => session.value?.readiness?.checks || []);
+const verifiedEvidenceCount = computed(() => session.value?.evidence?.filter((item) => item.status === 'verified').length || 0);
+const requiredEvidenceCount = computed(() => session.value?.evidence?.filter((item) => item.required).length || 0);
+const remainingEvidenceCount = computed(() => Math.max(0, requiredEvidenceCount.value - verifiedEvidenceCount.value));
+const activeStepIndex = computed(() => Math.max(0, steps.findIndex((step) => step.id === activeStep.value)));
+const profileDirty = computed(() => Boolean(session.value) && stableHash(profileDraft.value) !== stableHash(session.value.profile));
+const declarationsDirty = computed(() => Boolean(session.value) && stableHash(declarationDraft.value) !== stableHash({
+	pepExposure: session.value.declarations.pepExposure,
+	consentAccepted: session.value.declarations.consentAccepted,
+}));
+const sessionSubmitted = computed(() => session.value?.status === 'submitted');
+const sessionStatusLabel = computed(() => {
+	if (sessionSubmitted.value) return 'In review';
+	if (session.value?.readiness?.ready) return 'Ready to submit';
+	return 'In progress';
 });
+const sessionStatusTone = computed(() => sessionSubmitted.value ? 'success' : session.value?.readiness?.ready ? 'primary' : 'warning');
 
-const documents = ref([
-	{
-		id: 'identity',
-		name: 'Government ID',
-		status: 'Complete',
-		detail: 'Passport front and details page captured.',
-		fileName: 'passport-front.jpg',
-		required: true,
-	},
-	{
-		id: 'address',
-		name: 'Proof of address',
-		status: 'Needs upload',
-		detail: 'Utility bill, bank statement, or tax letter from the last 90 days.',
-		fileName: '',
-		required: true,
-	},
-	{
-		id: 'selfie',
-		name: 'Selfie liveness',
-		status: 'Reviewing',
-		detail: 'Face match is processing with the identity provider.',
-		fileName: 'liveness-session-1842',
-		required: true,
-	},
-]);
+onMounted(loadVerification);
 
-const activityEvents = [
-	{ label: 'Identity document accepted', actor: 'Verification provider', time: 'Today 17:42' },
-	{ label: 'Profile details saved', actor: 'Maya Hart', time: 'Today 17:38' },
-	{ label: 'Verification session created', actor: 'Onboarding API', time: 'Today 17:34' },
-];
-
-const activeStepIndex = computed(() => Math.max(0, steps.findIndex((step) => step.id === activeStepId.value)));
-const selectedDocument = computed(() => documents.value.find((document) => document.id === selectedDocumentId.value) || documents.value[0]);
-const profileReady = computed(() => Object.values(profile.value).every((value) => String(value).trim().length > 0));
-const evidenceReady = computed(() => documents.value.every((document) => document.status !== 'Needs upload'));
-const completedDocumentCount = computed(() => documents.value.filter((document) => document.status === 'Complete').length);
-const riskScore = computed(() => {
-	let score = 24;
-	if (!evidenceReady.value) score += 22;
-	if (politicallyExposed.value) score += 26;
-	if (verificationType.value !== 'individual') score += 8;
-	if (country.value !== 'GB') score += 6;
-	return Math.min(score, 100);
-});
-const riskLabel = computed(() => {
-	if (riskScore.value < 35) return 'Low';
-	if (riskScore.value < 65) return 'Review';
-	return 'High';
-});
-const riskTone = computed(() => {
-	if (riskScore.value < 35) return 'text-success';
-	if (riskScore.value < 65) return 'text-warning';
-	return 'text-destructive';
-});
-const readinessChecks = computed(() => [
-	{
-		label: 'Profile details complete',
-		detail: profileReady.value ? `${profile.value.firstName} ${profile.value.lastName}` : 'Missing required profile fields',
-		ready: profileReady.value,
-	},
-	{
-		label: 'Required evidence captured',
-		detail: `${documents.value.filter((document) => document.status !== 'Needs upload').length} of ${documents.value.length} evidence items started`,
-		ready: evidenceReady.value,
-	},
-	{
-		label: 'Consent accepted',
-		detail: consentAccepted.value ? 'KYC consent version 2026.02 accepted' : 'Consent is required before submission',
-		ready: consentAccepted.value,
-	},
-	{
-		label: 'Risk under manual review threshold',
-		detail: `${riskLabel.value} risk score: ${riskScore.value}`,
-		ready: riskScore.value < 65,
-	},
-]);
-const readyCheckCount = computed(() => readinessChecks.value.filter((check) => check.ready).length);
-const completionPercent = computed(() => Math.round((readyCheckCount.value / readinessChecks.value.length) * 100));
-const completionWidth = computed(() => `${completionPercent.value}%`);
-const canSubmit = computed(() => readinessChecks.value.every((check) => check.ready) && submitState.value !== 'submitted');
-const statusLabel = computed(() => {
-	if (submitState.value === 'submitted') return 'Submitted';
-	if (canSubmit.value) return 'Ready to submit';
-	return 'Needs details';
-});
-const riskSignals = computed(() => [
-	{ label: 'Sanctions screen', value: 'Clear', tone: 'success', detail: 'No list matches found for applicant or address.' },
-	{ label: 'Duplicate identity', value: evidenceReady.value ? 'Review' : 'Waiting', tone: evidenceReady.value ? 'warning' : 'muted', detail: 'One similar account uses the same payout country.' },
-	{ label: 'PEP declaration', value: politicallyExposed.value ? 'Declared' : 'Clear', tone: politicallyExposed.value ? 'warning' : 'success', detail: politicallyExposed.value ? 'Route to enhanced due diligence.' : 'No PEP exposure declared.' },
-	{ label: 'Device integrity', value: 'Clear', tone: 'success', detail: 'Session completed from a trusted browser context.' },
-]);
-
-function selectStep(id) {
-	activeStepId.value = id;
+/**
+ * Creates a complete empty profile shape for the loading state.
+ *
+ * @returns {Record<string, string>} Empty applicant profile.
+ */
+function createEmptyProfile() {
+	return {
+		verificationType: 'individual',
+		country: 'GB',
+		firstName: '',
+		lastName: '',
+		email: '',
+		dateOfBirth: '',
+		addressLine: '',
+		city: '',
+		postcode: '',
+		preferredDocument: 'passport',
+	};
 }
 
-function stepIsComplete(id) {
-	if (id === 'profile') return profileReady.value;
-	if (id === 'documents') return evidenceReady.value;
-	if (id === 'checks') return consentAccepted.value && riskScore.value < 65;
-	if (id === 'review') return submitState.value === 'submitted';
-	return false;
+/**
+ * Loads provider configuration and the resumable verification session.
+ *
+ * @returns {Promise<void>}
+ */
+async function loadVerification() {
+	loading.value = true;
+	errorMessage.value = '';
+	try {
+		const [bootstrapPayload, sessionPayload] = await Promise.all([
+			requestJson('/api/block-demos/identity-verification/bootstrap'),
+			requestJson('/api/block-demos/identity-verification/session'),
+		]);
+		bootstrap.value = bootstrapPayload;
+		applySession(sessionPayload.session, { resume: true });
+	} catch (error) {
+		errorMessage.value = error.message || 'The verification session could not be loaded.';
+	} finally {
+		loading.value = false;
+	}
 }
 
-function selectDocument(id) {
-	selectedDocumentId.value = id;
-	activeStepId.value = 'documents';
+/**
+ * Applies a server session and refreshes editable drafts.
+ *
+ * @param {Record<string, unknown>} nextSession Server-owned session.
+ * @param {{resume?: boolean}} options Application options.
+ * @returns {void}
+ */
+function applySession(nextSession, options = {}) {
+	session.value = nextSession;
+	profileDraft.value = cloneValue(nextSession.profile);
+	declarationDraft.value = {
+		pepExposure: nextSession.declarations.pepExposure,
+		consentAccepted: nextSession.declarations.consentAccepted,
+	};
+	receipt.value = nextSession.receipt || receipt.value;
+	if (options.resume) activeStep.value = nextSession.nextStep || 'profile';
 }
 
-function markSelectedDocumentComplete() {
-	const document = selectedDocument.value;
-	document.status = 'Complete';
-	document.fileName = `${document.id}-evidence.jpg`;
-	document.detail = `${document.name} captured by ${captureMethods.find((method) => method.value === captureMethod.value)?.label || 'Upload'}.`;
-	submitState.value = 'draft';
+/**
+ * Moves to a named verification step.
+ *
+ * @param {string} stepId Step identifier.
+ * @returns {void}
+ */
+function selectStep(stepId) {
+	activeStep.value = stepId;
+	errorMessage.value = '';
+	successMessage.value = '';
 }
 
-function previousStep() {
-	const index = activeStepIndex.value - 1;
-	if (index >= 0) activeStepId.value = steps[index].id;
+/**
+ * Reports whether a server-owned readiness gate is complete.
+ *
+ * @param {string} stepId Step identifier.
+ * @returns {boolean} True when the step is complete.
+ */
+function stepIsComplete(stepId) {
+	if (stepId === 'review') return sessionSubmitted.value;
+	if (stepId === 'checks') {
+		return readinessChecks.value.filter((check) => ['checks', 'consent'].includes(check.id)).every((check) => check.ready);
+	}
+	return readinessChecks.value.find((check) => check.id === stepId)?.ready === true;
 }
 
-function nextStep() {
-	const index = activeStepIndex.value + 1;
-	if (index < steps.length) activeStepId.value = steps[index].id;
+/**
+ * Saves validated applicant profile data and advances to evidence.
+ *
+ * @returns {Promise<void>}
+ */
+async function saveProfile() {
+	if (!session.value || busy.value) return;
+	busy.value = true;
+	clearFeedback();
+	try {
+		const payload = await requestJson('/api/block-demos/identity-verification/session/profile', {
+			method: 'PATCH',
+			body: { revision: session.value.revision, profile: profileDraft.value },
+		});
+		applySession(payload.session);
+		successMessage.value = payload.message;
+		activeStep.value = 'evidence';
+	} catch (error) {
+		errorMessage.value = error.message || 'Your profile could not be saved.';
+	} finally {
+		busy.value = false;
+	}
 }
 
-function submitVerification() {
-	if (!canSubmit.value) return;
-	submitState.value = 'submitted';
-	activeStepId.value = 'review';
+/**
+ * Opens the secure provider capture dialog for one evidence item.
+ *
+ * @param {Record<string, unknown>} evidence Evidence item.
+ * @returns {void}
+ */
+function openEvidenceCapture(evidence) {
+	selectedEvidence.value = evidence;
+	captureMethod.value = evidence.method || 'camera';
+	errorMessage.value = '';
+	captureOpen.value = true;
 }
 
-function toneClasses(tone) {
-	if (tone === 'success') return 'bg-success/15 text-success';
-	if (tone === 'warning') return 'bg-warning/15 text-warning';
-	if (tone === 'danger') return 'bg-destructive/15 text-destructive';
-	return 'bg-secondary text-muted-fg';
+/**
+ * Completes one evidence capture through the demo provider API.
+ *
+ * @returns {Promise<void>}
+ */
+async function captureEvidence() {
+	if (!session.value || !selectedEvidence.value || busy.value) return;
+	busy.value = true;
+	clearFeedback();
+	try {
+		const payload = await requestJson(`/api/block-demos/identity-verification/session/evidence/${selectedEvidence.value.id}/capture`, {
+			method: 'POST',
+			body: { revision: session.value.revision, method: captureMethod.value },
+		});
+		applySession(payload.session);
+		successMessage.value = payload.message;
+		captureOpen.value = false;
+		selectedEvidence.value = null;
+	} catch (error) {
+		if (error.payload?.session) applySession(error.payload.session);
+		errorMessage.value = error.message || 'The evidence provider could not complete this capture.';
+	} finally {
+		busy.value = false;
+	}
+}
+
+/**
+ * Saves consent and PEP declarations before screening.
+ *
+ * @returns {Promise<void>}
+ */
+async function saveDeclarations() {
+	if (!session.value || busy.value) return;
+	busy.value = true;
+	clearFeedback();
+	try {
+		const payload = await requestJson('/api/block-demos/identity-verification/session/declarations', {
+			method: 'PATCH',
+			body: { revision: session.value.revision, ...declarationDraft.value },
+		});
+		applySession(payload.session);
+		successMessage.value = payload.message;
+	} catch (error) {
+		errorMessage.value = error.message || 'Your declarations could not be saved.';
+	} finally {
+		busy.value = false;
+	}
+}
+
+/**
+ * Runs server-owned sanctions, PEP, duplicate, and device screening.
+ *
+ * @returns {Promise<void>}
+ */
+async function runChecks() {
+	if (!session.value || busy.value) return;
+	if (declarationsDirty.value) {
+		await saveDeclarations();
+		if (errorMessage.value) return;
+	}
+	busy.value = true;
+	clearFeedback();
+	try {
+		const payload = await requestJson('/api/block-demos/identity-verification/session/checks', {
+			method: 'POST',
+			body: { revision: session.value.revision },
+		});
+		applySession(payload.session);
+		successMessage.value = payload.message;
+	} catch (error) {
+		errorMessage.value = error.message || 'Screening checks could not be completed.';
+	} finally {
+		busy.value = false;
+	}
+}
+
+/**
+ * Opens the submission confirmation when the packet is ready.
+ *
+ * @returns {void}
+ */
+function openSubmitReview() {
+	submissionAcknowledged.value = false;
+	submissionNote.value = '';
+	errorMessage.value = '';
+	submitOpen.value = true;
+}
+
+/**
+ * Submits the complete packet and preserves returned receipt evidence.
+ *
+ * @returns {Promise<void>}
+ */
+async function submitPacket() {
+	if (!session.value || busy.value) return;
+	busy.value = true;
+	clearFeedback();
+	try {
+		const payload = await requestJson('/api/block-demos/identity-verification/session/submit', {
+			method: 'POST',
+			body: {
+				revision: session.value.revision,
+				acknowledged: submissionAcknowledged.value,
+				note: submissionNote.value,
+			},
+		});
+		applySession(payload.session);
+		receipt.value = payload.receipt;
+		successMessage.value = payload.message;
+		submitOpen.value = false;
+		activeStep.value = 'review';
+	} catch (error) {
+		errorMessage.value = error.message || 'The verification packet could not be submitted.';
+	} finally {
+		busy.value = false;
+	}
+}
+
+/**
+ * Requests scoped support without transmitting evidence contents.
+ *
+ * @returns {Promise<void>}
+ */
+async function requestSupport() {
+	if (!session.value || busy.value) return;
+	busy.value = true;
+	clearFeedback();
+	try {
+		const payload = await requestJson('/api/block-demos/identity-verification/session/support', {
+			method: 'POST',
+			body: { revision: session.value.revision, step: activeStep.value },
+		});
+		applySession(payload.session);
+		successMessage.value = `${payload.message} Reference ${payload.supportRequest.id}.`;
+		helpOpen.value = false;
+	} catch (error) {
+		errorMessage.value = error.message || 'Verification support could not be requested.';
+	} finally {
+		busy.value = false;
+	}
+}
+
+/**
+ * Clears action feedback before a new mutation.
+ *
+ * @returns {void}
+ */
+function clearFeedback() {
+	errorMessage.value = '';
+	successMessage.value = '';
+}
+
+/**
+ * Performs a JSON request and raises API messages as ordinary errors.
+ *
+ * @param {string} url Request URL.
+ * @param {{method?: string, body?: unknown}} options Request options.
+ * @returns {Promise<Record<string, unknown>>} Parsed response payload.
+ */
+async function requestJson(url, options = {}) {
+	const response = await fetch(url, {
+		method: options.method || 'GET',
+		headers: options.body === undefined ? undefined : { 'content-type': 'application/json' },
+		body: options.body === undefined ? undefined : JSON.stringify(options.body),
+	});
+	const payload = await response.json().catch(() => ({}));
+	if (!response.ok) {
+		const error = new Error(payload.error || `Request failed with status ${response.status}.`);
+		error.payload = payload;
+		throw error;
+	}
+	return payload;
+}
+
+/**
+ * Returns a stable JSON representation for dirty-state comparison.
+ *
+ * @param {unknown} value JSON-safe value.
+ * @returns {string} Stable representation.
+ */
+function stableHash(value) {
+	return JSON.stringify(value || null);
+}
+
+/**
+ * Clones a JSON-safe value.
+ *
+ * @param {unknown} value Serializable value.
+ * @returns {unknown} Detached clone.
+ */
+function cloneValue(value) {
+	return JSON.parse(JSON.stringify(value));
+}
+
+/**
+ * Resolves a status-pill tone for evidence state.
+ *
+ * @param {string} status Evidence status.
+ * @returns {string} DOM Studio tone.
+ */
+function evidenceTone(status) {
+	if (status === 'verified') return 'success';
+	if (status === 'needs_retry') return 'danger';
+	return 'warning';
+}
+
+/**
+ * Resolves a status-pill tone for screening state.
+ *
+ * @param {string} status Screening status.
+ * @returns {string} DOM Studio tone.
+ */
+function checkTone(status) {
+	if (status === 'clear') return 'success';
+	if (status === 'review') return 'warning';
+	if (status === 'blocked') return 'danger';
+	return 'muted';
+}
+
+/**
+ * Resolves the risk status tone.
+ *
+ * @param {string} level Risk level.
+ * @returns {string} DOM Studio tone.
+ */
+function riskTone(level) {
+	if (level === 'low') return 'success';
+	if (level === 'high') return 'danger';
+	return 'warning';
+}
+
+/**
+ * Formats an ISO timestamp for compact session context.
+ *
+ * @param {string} value ISO timestamp.
+ * @returns {string} Local date and time.
+ */
+function formatDateTime(value) {
+	if (!value) return 'Not available';
+	return new Intl.DateTimeFormat('en-GB', {
+		day: 'numeric',
+		month: 'short',
+		hour: '2-digit',
+		minute: '2-digit',
+	}).format(new Date(value));
+}
+
+/**
+ * Formats a machine value as a readable label.
+ *
+ * @param {string} value Machine-readable value.
+ * @returns {string} Human-readable label.
+ */
+function titleCase(value) {
+	const text = String(value || '').replaceAll('_', ' ').replaceAll('-', ' ');
+	return text ? `${text.charAt(0).toUpperCase()}${text.slice(1)}` : '';
 }
 </script>
 
 <template>
-	<div class="w-full max-w-7xl overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-card px-5 py-5 sm:px-7">
-			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-				<div>
-					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Identity verification</p>
-					<h3 class="mt-2 text-2xl font-semibold tracking-tight">Verify Maya Hart</h3>
-					<p class="mt-2 max-w-3xl text-sm leading-6 text-muted-fg">
-						Collect applicant details, required evidence, consent, and risk signals before sending the verification packet to review.
-					</p>
+	<div class="flex h-dvh min-h-[40rem] w-full flex-col overflow-hidden bg-canvas text-canvas-fg">
+		<header class="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border px-3 sm:px-5">
+			<div class="flex min-w-0 items-center gap-3">
+				<div class="grid size-8 shrink-0 place-items-center rounded-lg bg-primary text-xs font-bold text-primary-fg">A</div>
+				<div class="min-w-0">
+					<div class="flex items-center gap-2">
+						<h1 class="truncate text-sm font-semibold">Atlas Verify</h1>
+						<span class="hidden text-xs text-muted-fg sm:inline">Secure identity session</span>
+					</div>
+					<p class="truncate text-[0.68rem] text-muted-fg">{{ session?.id || 'Loading verification' }}</p>
 				</div>
-				<div class="flex flex-wrap items-center gap-2">
-					<span
-						class="rounded-full px-3 py-1 text-xs font-semibold"
-						:class="submitState === 'submitted' ? 'bg-success/15 text-success' : canSubmit ? 'bg-primary/15 text-primary' : 'bg-warning/15 text-warning'"
-					>
-						{{ statusLabel }}
-					</span>
-					<DomButton variant="secondary" size="sm" @click="activeStepId = 'checks'">Review checks</DomButton>
-					<DomButton size="sm" :disabled="!canSubmit" @click="submitVerification">Submit packet</DomButton>
-				</div>
+			</div>
+
+			<div class="flex items-center gap-1.5">
+				<DomStatusPill v-if="session" :tone="sessionStatusTone" :label="sessionStatusLabel" size="sm" />
+				<DomIconButton :icon="activityIcon" label="Session activity" variant="ghost" size="sm" @click="activityOpen = true" />
+				<DomIconButton :icon="helpIcon" label="Verification help" variant="ghost" size="sm" @click="helpOpen = true" />
+				<DomAvatar :name="bootstrap?.currentUser?.name || 'Maya Hart'" size="sm" />
 			</div>
 		</header>
 
-		<section class="grid border-b border-border bg-secondary/20 text-sm sm:grid-cols-3">
-			<div class="border-b border-border px-5 py-4 sm:border-b-0 sm:border-r">
-				<p class="text-xs font-medium text-muted-fg">Readiness</p>
-				<div class="mt-2 flex items-end justify-between gap-3">
-					<p class="text-2xl font-semibold tracking-tight">{{ completionPercent }}%</p>
-					<p class="text-xs text-muted-fg">{{ readyCheckCount }} of {{ readinessChecks.length }} checks</p>
+		<div class="flex min-h-0 flex-1">
+			<aside class="hidden w-64 shrink-0 flex-col border-r border-border bg-secondary/20 md:flex">
+				<div class="border-b border-border p-5">
+					<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Your progress</p>
+					<p class="mt-2 text-2xl font-semibold">{{ session?.readiness?.percent || 0 }}%</p>
+					<DomProgress class="mt-3" :value="session?.readiness?.percent || 0" label="Verification progress" :show-label="false" size="sm" />
+					<p class="mt-3 text-xs leading-5 text-muted-fg">Your answers are saved after each completed step.</p>
 				</div>
-				<div class="mt-3 h-2 overflow-hidden rounded-full bg-canvas">
-					<div class="h-full rounded-full bg-primary" :style="{ width: completionWidth }"></div>
-				</div>
-			</div>
-			<div class="border-b border-border px-5 py-4 sm:border-b-0 sm:border-r">
-				<p class="text-xs font-medium text-muted-fg">Evidence</p>
-				<p class="mt-2 text-2xl font-semibold tracking-tight">{{ completedDocumentCount }}/{{ documents.length }}</p>
-				<p class="mt-1 text-xs text-muted-fg">Complete documents, uploads, and liveness capture</p>
-			</div>
-			<div class="px-5 py-4">
-				<p class="text-xs font-medium text-muted-fg">Risk</p>
-				<p class="mt-2 text-2xl font-semibold tracking-tight" :class="riskTone">{{ riskLabel }} {{ riskScore }}</p>
-				<p class="mt-1 text-xs text-muted-fg">Sanctions, PEP, duplicate, and device signals</p>
-			</div>
-		</section>
 
-		<div class="grid lg:grid-cols-[18rem_minmax(0,1fr)_22rem]">
-			<aside class="border-b border-border bg-secondary/30 lg:border-b-0 lg:border-r">
-				<div class="px-5 py-4">
-					<h4 class="text-sm font-semibold">Verification steps</h4>
-					<p class="mt-1 text-xs leading-5 text-muted-fg">Use as a guided flow or keep visible for reviewer navigation.</p>
-				</div>
-				<nav class="grid">
+				<nav class="flex-1 py-2" aria-label="Verification steps">
 					<button
 						v-for="(step, index) in steps"
 						:key="step.id"
 						type="button"
-						class="border-t border-border px-5 py-4 text-left transition hover:bg-canvas/70"
-						:class="activeStepId === step.id ? 'bg-canvas' : ''"
+						class="flex w-full items-start gap-3 border-l-2 px-5 py-4 text-left transition"
+						:class="activeStep === step.id ? 'border-primary bg-canvas' : 'border-transparent hover:bg-canvas/60'"
 						@click="selectStep(step.id)"
 					>
-						<div class="flex items-start gap-3">
-							<span
-								class="grid size-7 shrink-0 place-items-center rounded-full border text-xs font-semibold"
-								:class="stepIsComplete(step.id) ? 'border-success/30 bg-success/15 text-success' : activeStepId === step.id ? 'border-primary/40 bg-primary/15 text-primary' : 'border-border bg-canvas text-muted-fg'"
-							>
-								{{ stepIsComplete(step.id) ? 'OK' : index + 1 }}
-							</span>
-							<span class="min-w-0">
-								<span class="block text-sm font-semibold">{{ step.label }}</span>
-								<span class="mt-1 block text-xs leading-5 text-muted-fg">{{ step.description }}</span>
-							</span>
-						</div>
+						<span
+							class="grid size-6 shrink-0 place-items-center rounded-full border text-[0.68rem] font-semibold"
+							:class="stepIsComplete(step.id) ? 'border-success/35 bg-success/15 text-success' : activeStep === step.id ? 'border-primary bg-primary text-primary-fg' : 'border-border bg-canvas text-muted-fg'"
+						>
+							{{ index + 1 }}
+						</span>
+						<span class="min-w-0">
+							<span class="block text-sm font-semibold">{{ step.label }}</span>
+							<span class="mt-1 block text-xs leading-5 text-muted-fg">{{ step.description }}</span>
+						</span>
 					</button>
 				</nav>
-				<div class="border-t border-border px-5 py-4 text-xs leading-5 text-muted-fg">
-					<p class="font-semibold text-canvas-fg">Packet ID ver_2048</p>
-					<p class="mt-1">Provider session expires in 42 minutes.</p>
+
+				<div class="border-t border-border p-5 text-xs leading-5 text-muted-fg">
+					<p class="font-semibold text-canvas-fg">Encrypted verification</p>
+					<p class="mt-1">Session expires {{ formatDateTime(session?.expiresAt) }}.</p>
 				</div>
 			</aside>
 
-			<main class="min-w-0 border-b border-border lg:border-b-0 lg:border-r">
-				<section v-if="activeStepId === 'profile'" class="p-5 sm:p-6">
-					<div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-						<div>
-							<h4 class="text-lg font-semibold tracking-tight">Applicant profile</h4>
-							<p class="mt-1 max-w-2xl text-sm leading-6 text-muted-fg">Collect the legal identity fields your provider or compliance team needs before starting evidence checks.</p>
-						</div>
-						<span class="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-muted-fg">
-							{{ verificationType.replace('_', ' ') }}
+			<main class="flex min-w-0 flex-1 flex-col">
+				<nav class="grid h-14 shrink-0 grid-cols-4 border-b border-border md:hidden" aria-label="Verification steps">
+					<button
+						v-for="(step, index) in steps"
+						:key="step.id"
+						type="button"
+						class="relative flex min-w-0 flex-col items-center justify-center gap-1 px-1 text-[0.65rem] font-semibold text-muted-fg"
+						:class="activeStep === step.id && 'text-canvas-fg'"
+						@click="selectStep(step.id)"
+					>
+						<span class="grid size-5 place-items-center rounded-full border text-[0.6rem]" :class="stepIsComplete(step.id) ? 'border-success/35 bg-success/15 text-success' : activeStep === step.id ? 'border-primary bg-primary text-primary-fg' : 'border-border'">
+							{{ index + 1 }}
 						</span>
+						<span class="truncate">{{ step.label }}</span>
+						<span v-if="activeStep === step.id" class="absolute inset-x-2 bottom-0 h-0.5 bg-primary"></span>
+					</button>
+				</nav>
+
+				<div class="min-h-0 flex-1 overflow-y-auto">
+					<div v-if="loading" class="mx-auto w-full max-w-3xl space-y-5 px-4 py-6 sm:px-7 sm:py-8">
+						<DomSkeleton class="h-7 w-52" />
+						<DomSkeleton class="h-16 w-full" />
+						<DomSkeleton v-for="index in 4" :key="index" class="h-12 w-full" />
 					</div>
 
-					<div class="mt-6 grid gap-4 md:grid-cols-2">
-						<DomNativeSelect v-model="verificationType" label="Verification type" :options="verificationTypes" placeholder="" />
-						<DomNativeSelect v-model="country" label="Country of residence" :options="countries" placeholder="" />
-						<DomTextInput v-model="profile.firstName" label="Legal first name" autocomplete="given-name" />
-						<DomTextInput v-model="profile.lastName" label="Legal last name" autocomplete="family-name" />
-						<DomTextInput v-model="profile.email" label="Email address" type="email" autocomplete="email" />
-						<DomTextInput v-model="profile.dateOfBirth" label="Date of birth" type="date" />
-						<DomTextInput v-model="profile.addressLine" label="Address line" autocomplete="address-line1" />
-						<DomTextInput v-model="profile.city" label="City" autocomplete="address-level2" />
-						<DomTextInput v-model="profile.postcode" label="Postcode" autocomplete="postal-code" />
-						<DomNativeSelect v-model="documentType" label="Preferred ID document" :options="documentTypes" placeholder="" />
-					</div>
-				</section>
-
-				<section v-else-if="activeStepId === 'documents'" class="p-5 sm:p-6">
-					<div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-						<div>
-							<h4 class="text-lg font-semibold tracking-tight">Evidence capture</h4>
-							<p class="mt-1 max-w-2xl text-sm leading-6 text-muted-fg">Let users upload, scan, or complete provider-hosted evidence while keeping reviewers aware of each item state.</p>
-						</div>
-						<div class="inline-grid grid-cols-3 overflow-hidden rounded-full border border-border bg-secondary p-1 text-xs font-semibold">
-							<button
-								v-for="method in captureMethods"
-								:key="method.value"
-								type="button"
-								class="rounded-full px-3 py-1.5 transition"
-								:class="captureMethod === method.value ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'"
-								@click="captureMethod = method.value"
-							>
-								{{ method.label }}
-							</button>
-						</div>
+					<div v-else-if="!session" class="mx-auto w-full max-w-2xl px-4 py-8">
+						<DomAlert tone="danger" title="Verification is unavailable" :description="errorMessage">
+							<template #actions><DomButton size="sm" variant="secondary" @click="loadVerification">Try again</DomButton></template>
+						</DomAlert>
 					</div>
 
-					<div class="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
-						<div class="overflow-hidden rounded-lg border border-border">
-							<button
-								v-for="document in documents"
-								:key="document.id"
-								type="button"
-								class="grid w-full gap-2 border-t border-border px-4 py-4 text-left first:border-t-0 transition hover:bg-secondary/40 sm:grid-cols-[minmax(0,1fr)_auto]"
-								:class="selectedDocumentId === document.id ? 'bg-secondary/50' : 'bg-canvas'"
-								@click="selectDocument(document.id)"
-							>
-								<span class="min-w-0">
-									<span class="flex flex-wrap items-center gap-2">
-										<span class="font-semibold">{{ document.name }}</span>
-										<span v-if="document.required" class="rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-primary">Required</span>
-									</span>
-									<span class="mt-1 block text-sm leading-6 text-muted-fg">{{ document.detail }}</span>
-									<span v-if="document.fileName" class="mt-2 block text-xs font-medium text-muted-fg">{{ document.fileName }}</span>
-								</span>
-								<span
-									class="h-fit rounded-full px-2.5 py-1 text-xs font-semibold"
-									:class="document.status === 'Complete' ? 'bg-success/15 text-success' : document.status === 'Reviewing' ? 'bg-warning/15 text-warning' : 'bg-secondary text-muted-fg'"
-								>
-									{{ document.status }}
-								</span>
-							</button>
-						</div>
+					<div v-else class="mx-auto w-full max-w-3xl px-4 py-5 sm:px-7 sm:py-7">
+						<DomAlert v-if="errorMessage" class="mb-5" tone="danger" title="This step needs attention" :description="errorMessage" dismissible @dismiss="errorMessage = ''" />
+						<DomAlert v-if="successMessage" class="mb-5" tone="success" title="Progress saved" :description="successMessage" dismissible @dismiss="successMessage = ''" />
 
-						<div class="border border-border bg-secondary/30 p-4">
-							<p class="text-sm font-semibold">{{ selectedDocument.name }}</p>
-							<p class="mt-2 text-sm leading-6 text-muted-fg">{{ selectedDocument.detail }}</p>
-							<div class="mt-4 grid min-h-36 place-items-center border border-dashed border-border bg-canvas p-4 text-center">
+						<section v-if="activeStep === 'profile'">
+							<div class="flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-start sm:justify-between">
 								<div>
-									<p class="text-sm font-semibold">{{ captureMethods.find((method) => method.value === captureMethod)?.label }} evidence</p>
-									<p class="mt-1 text-xs leading-5 text-muted-fg">Connect this action to secure upload, camera capture, or a provider-hosted session.</p>
+									<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Step 1 of 4</p>
+									<h2 class="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">Confirm your details</h2>
+									<p class="mt-2 max-w-xl text-sm leading-6 text-muted-fg">Use your legal identity exactly as it appears on your chosen document.</p>
+								</div>
+								<DomStatusPill :tone="profileDirty ? 'warning' : 'success'" :label="profileDirty ? 'Unsaved changes' : 'Saved'" size="sm" />
+							</div>
+
+							<div class="grid gap-5 py-6 sm:grid-cols-2">
+								<DomSelect v-model="profileDraft.verificationType" label="Verification type" :options="verificationTypeOptions" width="min-w-[19rem] max-w-[calc(100vw-3rem)]">
+									<template #option="{ option }"><p class="font-medium">{{ option.label }}</p><p class="mt-1 text-xs opacity-75">{{ option.description }}</p></template>
+								</DomSelect>
+								<DomSelect v-model="profileDraft.country" label="Country of residence" :options="countryOptions" searchable width="min-w-[19rem] max-w-[calc(100vw-3rem)]">
+									<template #option="{ option }"><p class="font-medium">{{ option.label }}</p><p class="mt-1 text-xs opacity-75">{{ option.description }}</p></template>
+								</DomSelect>
+								<DomTextInput v-model="profileDraft.firstName" label="Legal first name" autocomplete="given-name" />
+								<DomTextInput v-model="profileDraft.lastName" label="Legal last name" autocomplete="family-name" />
+								<DomTextInput v-model="profileDraft.email" label="Email address" type="email" autocomplete="email" />
+								<DomDatePicker v-model="profileDraft.dateOfBirth" label="Date of birth" description="Applicants must be at least 18." />
+								<DomTextInput v-model="profileDraft.addressLine" class="sm:col-span-2" label="Residential address" autocomplete="address-line1" />
+								<DomTextInput v-model="profileDraft.city" label="City" autocomplete="address-level2" />
+								<DomTextInput v-model="profileDraft.postcode" label="Postcode" autocomplete="postal-code" />
+								<DomSelect v-model="profileDraft.preferredDocument" class="sm:col-span-2" label="Identity document" :options="documentTypeOptions" width="min-w-[19rem] max-w-[calc(100vw-3rem)]">
+									<template #option="{ option }"><p class="font-medium">{{ option.label }}</p><p class="mt-1 text-xs opacity-75">{{ option.description }}</p></template>
+								</DomSelect>
+							</div>
+
+							<div class="flex justify-end border-t border-border pt-5">
+								<DomButton :loading="busy" @click="saveProfile">Save and continue</DomButton>
+							</div>
+						</section>
+
+						<section v-else-if="activeStep === 'evidence'">
+							<div class="flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-start sm:justify-between">
+								<div>
+									<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Step 2 of 4</p>
+									<h2 class="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">Capture your evidence</h2>
+									<p class="mt-2 max-w-xl text-sm leading-6 text-muted-fg">The demo provider checks document quality, authenticity, liveness, and face match.</p>
+								</div>
+								<DomStatusPill :tone="remainingEvidenceCount ? 'warning' : 'success'" :label="remainingEvidenceCount ? `${remainingEvidenceCount} remaining` : 'All verified'" size="sm" />
+							</div>
+
+							<DomAlert class="my-5" tone="info" title="Your document contents stay with the verification provider" :description="bootstrap?.provider?.privacyMessage" />
+
+							<div class="divide-y divide-border border-y border-border">
+								<div v-for="evidence in session.evidence" :key="evidence.id" class="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
+									<div class="min-w-0">
+										<div class="flex flex-wrap items-center gap-2">
+											<h3 class="text-sm font-semibold">{{ evidence.name }}</h3>
+											<DomStatusPill :tone="evidenceTone(evidence.status)" :label="evidence.statusLabel" size="sm" />
+										</div>
+										<p class="mt-2 text-sm leading-6 text-muted-fg">{{ evidence.description }}</p>
+										<p class="mt-1 text-xs leading-5" :class="evidence.status === 'needs_retry' ? 'text-destructive' : 'text-muted-fg'">{{ evidence.providerMessage }}</p>
+									</div>
+									<DomButton v-if="evidence.status !== 'verified'" class="shrink-0" size="sm" variant="secondary" @click="openEvidenceCapture(evidence)">
+										{{ evidence.status === 'needs_retry' ? 'Try again' : 'Start capture' }}
+									</DomButton>
+									<div v-else class="shrink-0 text-right text-xs text-muted-fg">
+										<p>{{ titleCase(evidence.method) }}</p>
+										<p class="mt-1">{{ formatDateTime(evidence.updatedAt) }}</p>
+									</div>
 								</div>
 							</div>
-							<DomButton class="mt-4 w-full" variant="secondary" @click="markSelectedDocumentComplete">
-								Mark evidence captured
-							</DomButton>
-						</div>
-					</div>
-				</section>
 
-				<section v-else-if="activeStepId === 'checks'" class="p-5 sm:p-6">
-					<div>
-						<h4 class="text-lg font-semibold tracking-tight">Risk checks and consent</h4>
-						<p class="mt-1 max-w-2xl text-sm leading-6 text-muted-fg">Expose risk signals in plain language and collect the declarations required before compliance review.</p>
-					</div>
+							<div class="flex flex-col-reverse gap-3 pt-5 sm:flex-row sm:items-center sm:justify-between">
+								<DomButton variant="ghost" @click="selectStep('profile')">Back to details</DomButton>
+								<DomButton :disabled="remainingEvidenceCount > 0" @click="selectStep('checks')">Continue to checks</DomButton>
+							</div>
+						</section>
 
-					<div class="mt-6 grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
-						<div class="overflow-hidden rounded-lg border border-border">
-							<div
-								v-for="signal in riskSignals"
-								:key="signal.label"
-								class="grid gap-2 border-t border-border px-4 py-4 first:border-t-0 sm:grid-cols-[minmax(0,1fr)_auto]"
-							>
+						<section v-else-if="activeStep === 'checks'">
+							<div class="flex flex-col gap-3 border-b border-border pb-5 sm:flex-row sm:items-start sm:justify-between">
 								<div>
-									<p class="font-semibold">{{ signal.label }}</p>
-									<p class="mt-1 text-sm leading-6 text-muted-fg">{{ signal.detail }}</p>
+									<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Step 3 of 4</p>
+									<h2 class="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">Consent and screening</h2>
+									<p class="mt-2 max-w-xl text-sm leading-6 text-muted-fg">Confirm the declaration, then run the checks that travel with your review packet.</p>
 								</div>
-								<span class="h-fit rounded-full px-2.5 py-1 text-xs font-semibold" :class="toneClasses(signal.tone)">
-									{{ signal.value }}
-								</span>
+								<DomStatusPill :tone="stepIsComplete('checks') ? 'success' : 'warning'" :label="stepIsComplete('checks') ? 'Checks complete' : 'Action needed'" size="sm" />
 							</div>
-						</div>
 
-						<div class="space-y-5">
-							<div class="border border-border bg-secondary/30 p-4">
-								<DomToggle
-									v-model="politicallyExposed"
-									label="Politically exposed person"
-									description="Route declared exposure to enhanced due diligence."
-								/>
+							<div class="grid gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
+								<div class="space-y-5">
+									<DomSelect v-model="declarationDraft.pepExposure" label="Are you a politically exposed person?" :options="pepOptions" width="min-w-[20rem] max-w-[calc(100vw-3rem)]">
+										<template #option="{ option }"><p class="font-medium">{{ option.label }}</p><p class="mt-1 text-xs opacity-75">{{ option.description }}</p></template>
+									</DomSelect>
+									<DomCheckbox
+										v-model="declarationDraft.consentAccepted"
+										label="I consent to identity verification"
+										description="I agree to provider processing, screening, and evidence retention under identity terms 2026.08."
+									/>
+									<div class="flex flex-wrap gap-2">
+										<DomButton variant="secondary" :loading="busy" :disabled="!declarationsDirty" @click="saveDeclarations">Save declaration</DomButton>
+										<DomButton :loading="busy" :disabled="!declarationDraft.pepExposure" @click="runChecks">Run screening checks</DomButton>
+									</div>
+								</div>
+
+								<div class="border-l-2 border-border pl-4">
+									<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Current risk</p>
+									<div class="mt-3 flex items-baseline gap-2">
+										<p class="text-3xl font-semibold">{{ session.risk.score }}</p>
+										<DomStatusPill :tone="riskTone(session.risk.level)" :label="titleCase(session.risk.level)" size="sm" />
+									</div>
+									<p class="mt-3 text-xs leading-5 text-muted-fg">{{ session.risk.explanation }}</p>
+								</div>
 							</div>
-							<div class="border border-border bg-secondary/30 p-4">
-								<DomCheckbox
-									v-model="consentAccepted"
-									label="Verification consent accepted"
-									description="Applicant agrees to identity checks, provider processing, and document retention policy."
-								/>
+
+							<div class="divide-y divide-border border-y border-border">
+								<div v-for="check in session.checks" :key="check.id" class="grid gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+									<div>
+										<p class="text-sm font-semibold">{{ check.name }}</p>
+										<p class="mt-1 text-xs leading-5 text-muted-fg">{{ check.detail }}</p>
+									</div>
+									<DomStatusPill :tone="checkTone(check.status)" :label="check.result" size="sm" />
+								</div>
 							</div>
-							<DomTextareaInput
-								v-model="reviewerNotes"
-								label="Reviewer notes"
-								:rows="5"
-								placeholder="Add context for manual review."
-							/>
-						</div>
+
+							<div class="flex justify-end pt-5">
+								<DomButton :disabled="!stepIsComplete('checks')" @click="selectStep('review')">Review packet</DomButton>
+							</div>
+						</section>
+
+						<section v-else>
+							<div class="border-b border-border pb-5">
+								<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Step 4 of 4</p>
+								<h2 class="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">{{ sessionSubmitted ? 'Your verification is in review' : 'Review your packet' }}</h2>
+								<p class="mt-2 max-w-xl text-sm leading-6 text-muted-fg">{{ sessionSubmitted ? 'Your submitted evidence and screening results are locked while the review team makes a decision.' : 'Check the four readiness gates before sending your evidence to manual review.' }}</p>
+							</div>
+
+							<DomAlert v-if="sessionSubmitted && receipt" class="my-5" tone="success" title="Packet submitted securely" :description="`${receipt.reviewLane} · decision expected by ${formatDateTime(receipt.estimatedDecisionAt)}`">
+								<template #actions>
+									<div class="mt-3 space-y-1 font-mono text-xs">
+										<p>{{ receipt.packetId }}</p>
+										<p class="break-all text-muted-fg">{{ receipt.checksum }}</p>
+									</div>
+								</template>
+							</DomAlert>
+
+							<div class="grid gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_16rem]">
+								<div class="divide-y divide-border border-y border-border">
+									<div v-for="check in readinessChecks" :key="check.id" class="flex items-start justify-between gap-4 py-4">
+										<div>
+											<p class="text-sm font-semibold">{{ check.label }}</p>
+											<p class="mt-1 text-xs leading-5 text-muted-fg">{{ check.detail }}</p>
+										</div>
+										<DomStatusPill :tone="check.ready ? 'success' : 'warning'" :label="check.ready ? 'Ready' : 'Needed'" size="sm" />
+									</div>
+								</div>
+
+								<div>
+									<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Packet summary</p>
+									<dl class="mt-4 space-y-3 text-sm">
+										<div class="flex justify-between gap-3"><dt class="text-muted-fg">Applicant</dt><dd class="text-right font-semibold">{{ session.profile.firstName }} {{ session.profile.lastName }}</dd></div>
+										<div class="flex justify-between gap-3"><dt class="text-muted-fg">Country</dt><dd class="font-semibold">{{ session.profile.country }}</dd></div>
+										<div class="flex justify-between gap-3"><dt class="text-muted-fg">Evidence</dt><dd class="font-semibold">{{ verifiedEvidenceCount }}/{{ requiredEvidenceCount }}</dd></div>
+										<div class="flex justify-between gap-3"><dt class="text-muted-fg">Risk</dt><dd class="font-semibold">{{ session.risk.score }} · {{ titleCase(session.risk.level) }}</dd></div>
+									</dl>
+								</div>
+							</div>
+
+							<div v-if="!sessionSubmitted" class="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+								<p class="text-xs leading-5 text-muted-fg">Submission locks the current evidence revision and creates a receipt.</p>
+								<DomButton :disabled="!session.readiness.ready" @click="openSubmitReview">Submit for review</DomButton>
+							</div>
+						</section>
 					</div>
-				</section>
-
-				<section v-else class="p-5 sm:p-6">
-					<div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-						<div>
-							<h4 class="text-lg font-semibold tracking-tight">Submit verification packet</h4>
-							<p class="mt-1 max-w-2xl text-sm leading-6 text-muted-fg">Review readiness and submit a single packet to your provider, compliance queue, or onboarding API.</p>
-						</div>
-						<span
-							class="rounded-full px-3 py-1 text-xs font-semibold"
-							:class="submitState === 'submitted' ? 'bg-success/15 text-success' : canSubmit ? 'bg-primary/15 text-primary' : 'bg-warning/15 text-warning'"
-						>
-							{{ statusLabel }}
-						</span>
-					</div>
-
-					<div class="mt-6 overflow-hidden rounded-lg border border-border">
-						<div
-							v-for="check in readinessChecks"
-							:key="check.label"
-							class="grid gap-2 border-t border-border px-4 py-4 first:border-t-0 sm:grid-cols-[minmax(0,1fr)_auto]"
-						>
-							<div>
-								<p class="font-semibold">{{ check.label }}</p>
-								<p class="mt-1 text-sm leading-6 text-muted-fg">{{ check.detail }}</p>
-							</div>
-							<span
-								class="h-fit rounded-full px-2.5 py-1 text-xs font-semibold"
-								:class="check.ready ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'"
-							>
-								{{ check.ready ? 'Ready' : 'Needed' }}
-							</span>
-						</div>
-					</div>
-
-					<div class="mt-6 border border-border bg-secondary/30 p-4">
-						<p class="text-sm font-semibold">Packet summary</p>
-						<div class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-							<div>
-								<p class="text-muted-fg">Applicant</p>
-								<p class="mt-1 font-semibold">{{ profile.firstName }} {{ profile.lastName }}</p>
-							</div>
-							<div>
-								<p class="text-muted-fg">Country</p>
-								<p class="mt-1 font-semibold">{{ country }}</p>
-							</div>
-							<div>
-								<p class="text-muted-fg">Evidence items</p>
-								<p class="mt-1 font-semibold">{{ documents.filter((document) => document.status !== 'Needs upload').length }} attached</p>
-							</div>
-							<div>
-								<p class="text-muted-fg">Risk score</p>
-								<p class="mt-1 font-semibold" :class="riskTone">{{ riskScore }}</p>
-							</div>
-						</div>
-						<DomButton class="mt-5 w-full sm:w-auto" :disabled="!canSubmit" @click="submitVerification">
-							{{ submitState === 'submitted' ? 'Packet submitted' : 'Submit for review' }}
-						</DomButton>
-					</div>
-				</section>
-
-				<div class="flex flex-col gap-3 border-t border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-					<DomButton variant="ghost" :disabled="activeStepIndex === 0" @click="previousStep">Back</DomButton>
-					<DomButton variant="secondary" :disabled="activeStepIndex === steps.length - 1" @click="nextStep">Continue</DomButton>
 				</div>
 			</main>
-
-			<aside class="bg-secondary/20">
-				<section class="border-b border-border p-5">
-					<div class="flex items-start justify-between gap-3">
-						<div>
-							<h4 class="text-sm font-semibold">Applicant packet</h4>
-							<p class="mt-1 text-xs leading-5 text-muted-fg">Live summary for resume, review, and support handoff.</p>
-						</div>
-						<span class="rounded-full bg-canvas px-2 py-1 text-xs font-semibold text-muted-fg">KYC</span>
-					</div>
-					<div class="mt-4 space-y-3 text-sm">
-						<div class="flex items-center justify-between gap-3">
-							<span class="text-muted-fg">Name</span>
-							<span class="font-semibold">{{ profile.firstName }} {{ profile.lastName }}</span>
-						</div>
-						<div class="flex items-center justify-between gap-3">
-							<span class="text-muted-fg">Email</span>
-							<span class="truncate font-semibold">{{ profile.email }}</span>
-						</div>
-						<div class="flex items-center justify-between gap-3">
-							<span class="text-muted-fg">Type</span>
-							<span class="font-semibold">{{ verificationType.replace('_', ' ') }}</span>
-						</div>
-						<div class="flex items-center justify-between gap-3">
-							<span class="text-muted-fg">Country</span>
-							<span class="font-semibold">{{ country }}</span>
-						</div>
-					</div>
-				</section>
-
-				<section class="border-b border-border p-5">
-					<h4 class="text-sm font-semibold">Required evidence</h4>
-					<div class="mt-4 grid gap-3">
-						<button
-							v-for="document in documents"
-							:key="document.id"
-							type="button"
-							class="flex items-center justify-between gap-3 rounded-lg border border-border bg-canvas px-3 py-3 text-left transition hover:border-primary/40"
-							@click="selectDocument(document.id)"
-						>
-							<span class="min-w-0">
-								<span class="block truncate text-sm font-semibold">{{ document.name }}</span>
-								<span class="mt-0.5 block text-xs text-muted-fg">{{ document.status }}</span>
-							</span>
-							<span
-								class="size-2.5 shrink-0 rounded-full"
-								:class="document.status === 'Complete' ? 'bg-success' : document.status === 'Reviewing' ? 'bg-warning' : 'bg-muted-fg'"
-							></span>
-						</button>
-					</div>
-				</section>
-
-				<section class="p-5">
-					<h4 class="text-sm font-semibold">Activity history</h4>
-					<div class="mt-4 space-y-4">
-						<div v-for="event in activityEvents" :key="event.label" class="border-l-2 border-border pl-3">
-							<p class="text-sm font-semibold">{{ event.label }}</p>
-							<p class="mt-1 text-xs leading-5 text-muted-fg">{{ event.actor }} - {{ event.time }}</p>
-						</div>
-					</div>
-				</section>
-			</aside>
 		</div>
+
+		<DomDialog v-model="captureOpen" :title="selectedEvidence ? `Capture ${selectedEvidence.name}` : 'Capture evidence'" description="Choose how to continue with the secure verification provider." size="lg">
+			<DomAlert v-if="errorMessage" class="mb-5" tone="danger" title="Capture was not accepted" :description="errorMessage" />
+			<DomRadioGroup v-model="captureMethod" label="Capture method" :options="captureMethodOptions">
+				<template #option="{ option }">
+					<span><span class="block font-medium">{{ option.label }}</span><span class="mt-1 block text-xs leading-5 text-muted-fg">{{ option.description }}</span></span>
+				</template>
+			</DomRadioGroup>
+			<div class="mt-5 border-l-2 border-primary/40 pl-4 text-xs leading-5 text-muted-fg">
+				<p class="font-semibold text-canvas-fg">Demo provider handoff</p>
+				<p class="mt-1">The API returns evidence status, an opaque provider reference, capture method, and verification timestamp.</p>
+			</div>
+			<template #footer>
+				<DomButton variant="secondary" @click="captureOpen = false">Cancel</DomButton>
+				<DomButton :loading="busy" @click="captureEvidence">Start secure capture</DomButton>
+			</template>
+		</DomDialog>
+
+		<DomDialog v-model="submitOpen" title="Submit verification packet?" description="The current profile, evidence references, consent, and screening results will be locked for manual review." size="lg">
+			<DomAlert v-if="errorMessage" class="mb-5" tone="danger" title="Packet was not submitted" :description="errorMessage" />
+			<div class="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-3">
+				<div class="bg-canvas p-4"><p class="text-xs text-muted-fg">Evidence</p><p class="mt-1 font-semibold">{{ verifiedEvidenceCount }} verified</p></div>
+				<div class="bg-canvas p-4"><p class="text-xs text-muted-fg">Screening</p><p class="mt-1 font-semibold">{{ session?.checks?.filter((check) => check.status !== 'pending').length || 0 }} completed</p></div>
+				<div class="bg-canvas p-4"><p class="text-xs text-muted-fg">Review lane</p><p class="mt-1 font-semibold">{{ session?.risk?.level === 'high' ? 'Enhanced' : 'Standard' }}</p></div>
+			</div>
+			<DomTextareaInput v-model="submissionNote" class="mt-5" label="Optional context for the reviewer" :rows="3" placeholder="Add information that may help the review." />
+			<DomCheckbox v-model="submissionAcknowledged" class="mt-5" label="I reviewed the profile, evidence, and consent summary" description="This acknowledgement is included in the immutable packet receipt." />
+			<template #footer>
+				<DomButton variant="secondary" @click="submitOpen = false">Cancel</DomButton>
+				<DomButton :loading="busy" @click="submitPacket">Submit packet</DomButton>
+			</template>
+		</DomDialog>
+
+		<DomDrawer v-model="activityOpen" title="Session activity" side="right" width="min(94vw, 30rem)">
+			<div class="p-4 sm:p-5">
+				<div class="border-b border-border pb-4">
+					<p class="text-sm font-semibold">{{ session?.activity?.length || 0 }} recorded events</p>
+					<p class="mt-1 text-xs leading-5 text-muted-fg">Every saved step and provider result is attached to this session revision.</p>
+				</div>
+				<div class="divide-y divide-border">
+					<div v-for="event in session?.activity || []" :key="event.id" class="py-4">
+						<p class="text-sm font-semibold">{{ event.label }}</p>
+						<p class="mt-1 text-xs text-muted-fg">{{ event.actor }} · {{ formatDateTime(event.createdAt) }}</p>
+					</div>
+				</div>
+			</div>
+		</DomDrawer>
+
+		<DomDrawer v-model="helpOpen" title="Verification help" side="right" width="min(94vw, 28rem)">
+			<div class="p-5">
+				<div class="flex items-start justify-between gap-4 border-b border-border pb-5">
+					<div>
+						<h2 class="font-semibold">{{ bootstrap?.support?.title }}</h2>
+						<p class="mt-2 text-sm leading-6 text-muted-fg">{{ bootstrap?.support?.description }}</p>
+					</div>
+					<DomIconButton :icon="closeIcon" label="Close help" variant="ghost" size="sm" @click="helpOpen = false" />
+				</div>
+				<div class="space-y-5 py-5 text-sm leading-6">
+					<div><p class="font-semibold">Accepted address evidence</p><p class="mt-1 text-muted-fg">Use a bank statement, utility bill, or tax letter issued within the last 90 days.</p></div>
+					<div><p class="font-semibold">Camera access</p><p class="mt-1 text-muted-fg">You can continue on another device if this browser cannot use a camera.</p></div>
+					<div><p class="font-semibold">Support response</p><p class="mt-1 text-muted-fg">{{ bootstrap?.support?.availability }}</p></div>
+				</div>
+				<DomButton class="w-full" variant="secondary" :loading="busy" @click="requestSupport">Message verification support</DomButton>
+			</div>
+		</DomDrawer>
 	</div>
 </template>

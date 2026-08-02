@@ -12,8 +12,8 @@ import DataRetentionPolicyCenterSrc from './examples/DataRetentionPolicyCenter.v
 	<DomStudioLayout>
 		<DocPage
 			name="Data Retention Block"
-			tagline="A responsive compliance workspace for configuring data lifecycle rules, legal holds, deletion previews, and audit-ready policy changes."
-			tag="Admin UI"
+			tagline="A Google Vault- and AWS lifecycle-inspired control plane with working policy, legal-hold, approval, and publishing APIs."
+			tag="Working API"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Compliance" title="Data retention policy center">
@@ -22,7 +22,7 @@ import DataRetentionPolicyCenterSrc from './examples/DataRetentionPolicyCenter.v
 					filename="DataRetentionPolicyCenter.vue"
 					presentation="iframe"
 					frame-src="/blocks/compliance/data-retention/preview/DataRetentionPolicyCenter"
-					description="Copy this into a workspace admin, privacy console, security settings page, or internal compliance tool. Replace the local arrays with your data classes, retention rules, legal holds, deletion jobs, and audit events."
+					description="Use the complete control plane as a workspace admin, privacy console, or internal compliance section. The example already reads and mutates process-local policy, legal-hold, approval, publication, and run-history APIs."
 					default-open
 					:preview-lines="14"
 				>
@@ -30,17 +30,16 @@ import DataRetentionPolicyCenterSrc from './examples/DataRetentionPolicyCenter.v
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="Working API included">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when customers need visible control over how long product data is kept before archive, anonymization, or deletion.
-						It is shaped for B2B SaaS, healthcare operations, fintech admin, analytics products, and any app where retention decisions need reviewable safety checks.
+						Use this block when customers need visible control over how long product data is kept before archive, anonymization, or deletion. Its included API supports server-calculated impact, optimistic revisions, approvals, publication proof, legal-hold creation and release, and reload persistence for the lifetime of the demo process.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>dataClasses</code> with backend-defined data domains such as messages, files, audit logs, support tickets, or analytics events.</li>
-						<li>Persist rule updates through a policy version endpoint, then recalculate deletion previews on the server before enabling publish.</li>
-						<li>Keep legal holds as separate records that override lifecycle actions until released by an authorized user.</li>
-						<li>Wire the publish action to a confirmation dialog that lists affected records, next deletion window, active holds, and rollback policy.</li>
+						<li><code>GET /api/block-demos/data-retention/bootstrap</code> supplies environments, data classes, rich select options, user context, and active legal holds.</li>
+						<li>Policy endpoints calculate impact, save revisioned drafts, record Security approval, and return signed publication evidence.</li>
+						<li>Legal-hold endpoints validate creation and release, then recalculate affected lifecycle totals.</li>
+						<li>Replace the process-local store with durable policy and hold tables, authorization checks, and background deletion jobs in production.</li>
 					</ul>
 				</div>
 			</DocSection>
@@ -83,7 +82,7 @@ import DataRetentionPolicyCenterSrc from './examples/DataRetentionPolicyCenter.v
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Good follow-ups include reusable policy diff viewers, approval routing, DPA export summaries, and deletion job monitors.</p>
+						<p class="mt-2">Production follow-ups include durable revision history, policy diff viewers, role-based approval routing, queued lifecycle jobs, and DPA export summaries.</p>
 					</div>
 				</div>
 			</DocSection>

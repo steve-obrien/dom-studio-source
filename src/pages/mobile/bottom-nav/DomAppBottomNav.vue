@@ -35,7 +35,7 @@ const props = defineProps({
 		default: () => [],
 		_edit: {
 			component: 'DomJsonListInput',
-			description: 'Navigation items: { value, label, icon, badge }.',
+			description: 'Navigation items: { value, label, icon, iconPath, badge }.',
 		},
 	},
 });
@@ -43,6 +43,12 @@ const emit = defineEmits(['update:modelValue', 'change']);
 
 const activeValue = computed(() => props.modelValue || props.items[0]?.value || '');
 
+/**
+ * Selects a primary app destination and reports the full item to consumers.
+ *
+ * @param {{ value: string }} item Navigation destination selected by the user.
+ * @returns {void}
+ */
 function selectItem(item) {
 	emit('update:modelValue', item.value);
 	emit('change', item);
@@ -61,7 +67,22 @@ function selectItem(item) {
 				:aria-current="item.value === activeValue ? 'page' : undefined"
 				@click="selectItem(item)"
 			>
-				<span v-if="item.icon" class="grid size-5 place-items-center" v-html="item.icon"></span>
+				<svg
+					v-if="item.iconPath"
+					class="size-5"
+					viewBox="0 0 24 24"
+					fill="none"
+					aria-hidden="true"
+				>
+					<path
+						:d="item.iconPath"
+						stroke="currentColor"
+						stroke-width="1.8"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+				<span v-else-if="item.icon" class="grid size-5 place-items-center" v-html="item.icon"></span>
 				<span class="max-w-full truncate">{{ item.label }}</span>
 				<span
 					v-if="item.badge"

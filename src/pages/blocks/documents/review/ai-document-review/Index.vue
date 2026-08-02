@@ -12,89 +12,58 @@ import AiDocumentReviewSrc from './examples/AiDocumentReview.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="AI Document Review Block"
-			tagline="A responsive human-in-the-loop document review surface for previewing AI suggestions, accepting edits, and preserving reviewer accountability."
-			tag="AI Review"
+			tagline="A working contract-review desk with cited AI findings, exact-revision human decisions, reviewer gates, immutable release evidence, and redline receipts."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Documents" title="AI document review">
+			<DocSection eyebrow="Documents / Review" title="AI-assisted contract review desk">
 				<Example
 					:source="AiDocumentReviewSrc"
 					filename="AiDocumentReview.vue"
 					presentation="iframe"
 					frame-src="/blocks/documents/review/ai-document-review/preview/AiDocumentReview"
-					description="Copy this into contract review, sales proposal, help center, policy, AI writing, or content operations apps where generated suggestions need explicit human acceptance before they change the source document."
+					description="An Ironclad-, Harvey-, and GitHub-review-inspired contract workspace with focused Documents, Contract, and Review views backed by repository-local APIs."
 					default-open
-					:preview-lines="18"
+					:preview-lines="16"
 				>
 					<AiDocumentReview />
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="Included application behavior">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when AI should assist a reviewer without silently rewriting customer-facing or regulated content.
-						The document stays central, suggestion anchors make the AI output auditable, and the active recommendation includes preview, reasoning, confidence, and accept or dismiss actions.
+						The block treats AI review as a complete governed document workflow rather than a local rewrite preview.
+						Policy settings, analysis, cited findings, human decisions, clause patches, reviewer gates, release, redline exports, evidence, and reset all cross a server API.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>documentSections</code> with your document model, including stable section IDs, reviewer status, and source text.</li>
-						<li>Generate suggestions server-side from your AI gateway, then store each suggestion with original text, proposed text, rationale, confidence, policy flags, and reviewer outcome.</li>
-						<li>Apply accepted suggestions as explicit document patches so undo history, version compare, comments, and approval workflows remain traceable.</li>
-						<li>Keep dismissals as first-class review events. They are useful for evals, prompt tuning, and measuring overzealous or low-quality AI recommendations.</li>
-						<li>Run final publication gates on the server; the readiness meter in this block should mirror backend policy, not replace it.</li>
+						<li>Move between in-review, ready, and released examples while preserving the selected clause and its evidence.</li>
+						<li>Review rich <code>DomTextDiff</code> comparisons with source text, policy citations, confidence, rationale, and prompt provenance.</li>
+						<li>Accept or dismiss findings at an exact revision, requiring explicit acknowledgement before a high-risk patch is applied.</li>
+						<li>Change policy packs and jurisdictions with rich <code>DomSelect</code> controls that correctly invalidate stale analysis.</li>
+						<li>Require server preflight and named reviewer approval before creating immutable release and redline export receipts.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended review payload">
-				<CodeBlock lang="js" filename="ai-document-review.js" :code="`{
-\tdocument: {
-\t\tid: 'doc_security_addendum_2048',
-\t\ttitle: 'Security addendum',
-\t\tstatus: 'ai_review',
-\t\townerId: 'usr_maya',
-\t\tlastReviewedAt: '2026-06-11T18:18:00Z'
-\t},
-\tsuggestions: [
-\t\t{
-\t\t\tid: 'sug_liability_plain_language',
-\t\t\tsectionId: 'liability',
-\t\t\ttype: 'clarity',
-\t\t\tconfidence: 92,
-\t\t\tseverity: 'medium',
-\t\t\toriginalText: 'Vendor shall use commercially reasonable efforts...',
-\t\t\tproposedText: 'Vendor will take reasonable steps...',
-\t\t\trationale: 'Uses clearer customer-facing language while preserving intent.',
-\t\t\tpolicyFlags: ['legal_review_required'],
-\t\t\tstate: 'pending'
-\t\t}
-\t],
-\treviewEvents: [
-\t\t{
-\t\t\tid: 'evt_1',
-\t\t\tsuggestionId: 'sug_liability_plain_language',
-\t\t\taction: 'accepted',
-\t\t\treviewerId: 'usr_maya',
-\t\t\tcreatedAt: '2026-06-11T18:21:00Z'
-\t\t}
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Repository-local route contract">
+				<CodeBlock lang="text" filename="ai-document-review.routes" :code="`GET   /api/block-demos/ai-document-review/bootstrap
+GET   /api/block-demos/ai-document-review/documents/:documentId
+PATCH /api/block-demos/ai-document-review/documents/:documentId/settings
+POST  /api/block-demos/ai-document-review/documents/:documentId/analysis
+POST  /api/block-demos/ai-document-review/documents/:documentId/findings/:findingId/decision
+POST  /api/block-demos/ai-document-review/documents/:documentId/reviewers/:reviewerId/decision
+POST  /api/block-demos/ai-document-review/documents/:documentId/preflight
+POST  /api/block-demos/ai-document-review/documents/:documentId/release
+POST  /api/block-demos/ai-document-review/documents/:documentId/export
+POST  /api/block-demos/ai-document-review/reset`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Patch discipline</h3>
-						<p class="mt-2">Apply accepted suggestions as targeted patches against section versions. Reject stale suggestions when the underlying section has changed.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Review evidence</h3>
-						<p class="mt-2">Store confidence, prompt version, reviewer, action, and final text. This keeps AI-assisted changes explainable during customer, legal, and compliance review.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include multi-reviewer approval, redline export, live collaboration, suggestion grouping, prompt feedback, and side-by-side version compare.</p>
-					</div>
+			<DocSection eyebrow="Customization" title="Production boundaries">
+				<div class="grid gap-5 text-sm leading-7 text-muted-fg md:grid-cols-3">
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Document boundary</h3><p class="mt-2">The demo uses deterministic structured clauses. Production should ingest and scan real files, preserve canonical source bytes, store versioned rich text or PDF coordinates, encrypt derivatives, and reject stale anchors.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">AI boundary</h3><p class="mt-2">Replace the deterministic analysis with a private AI gateway, policy retrieval, redaction, prompt and model pinning, evals, citation validation, spend controls, safe retries, and human-review thresholds.</p></div>
+					<div class="border-y border-border py-4"><h3 class="font-semibold text-canvas-fg">Evidence boundary</h3><p class="mt-2">Add authentication, organization and matter authorization, durable storage, immutable audit retention, malware scanning, privacy controls, legal holds, verified exports, rate limits, and jurisdiction-specific review policy.</p></div>
 				</div>
 			</DocSection>
 		</DocPage>

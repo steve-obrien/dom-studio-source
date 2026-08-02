@@ -12,17 +12,17 @@ import WorkflowAutomationBuilderSrc from './examples/WorkflowAutomationBuilder.v
 	<DomStudioLayout>
 		<DocPage
 			name="Workflow Automation Block"
-			tagline="A responsive rule builder for configuring product automations with triggers, conditions, actions, test runs, and release checks."
-			tag="Workflow UI"
+			tagline="A working automation operations section with versioned drafts, side-effect-free execution traces, exact release checks, and immutable API receipts."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Work Management" title="Workflow automation builder">
+			<DocSection eyebrow="Work Management" title="Workflow automation operations">
 				<Example
 					:source="WorkflowAutomationBuilderSrc"
 					filename="WorkflowAutomationBuilder.vue"
 					presentation="iframe"
 					frame-src="/blocks/work-management/workflow-automation/preview/WorkflowAutomationBuilder"
-					description="Copy this into a SaaS admin console, CRM, support workspace, lifecycle tool, or internal operations product. Replace the local automation arrays with workflow definitions, event schemas, audience data, and execution logs from your backend."
+					description="A Zapier-, n8n-, and Workato-inspired automation operations room backed by repository-local APIs. It persists drafts and releases in process, rejects stale revisions, validates server-owned catalogs, produces safe test traces with zero side effects, and retains audit and runtime receipts."
 					default-open
 					:preview-lines="14"
 				>
@@ -32,57 +32,45 @@ import WorkflowAutomationBuilderSrc from './examples/WorkflowAutomationBuilder.v
 
 			<DocSection eyebrow="Integration" title="How to use this block">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
-					<p>
-						Use this block when users need a practical Zapier-style composer inside your app.
-						It keeps rule selection, trigger setup, condition logic, action sequencing, sample testing, and safety checks in one reusable workflow surface.
-					</p>
+					<p>Use this block when automation authors need to move from a draft rule to defensible production evidence. The composer, safe-test trace, and exact release boundary are separate responsive destinations instead of a full desktop screen scaled into an iframe.</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>automations</code> with workflow definitions from your API, including trigger, conditions, actions, owner, status, and execution metrics.</li>
-						<li>Back the trigger and condition option lists with your event catalog so users can only choose supported fields and operators.</li>
-						<li>Persist changes as drafts first, then publish only after backend validation confirms permissions, rate limits, and action configuration.</li>
-						<li>Wire <code>runTest</code> to a dry-run endpoint that returns matched records, skipped steps, generated payloads, and action errors without executing side effects.</li>
+						<li>The repository-local API owns workflow definitions, option catalogs, workspace revisions, workflow versions, validation, and persistence.</li>
+						<li><code>DomSelect</code> renders every trigger, owner, rule, action, fixture, and throttle choice with contextual option content.</li>
+						<li>Draft preview and release preview endpoints lock exact checksums before acknowledgement-gated writes.</li>
+						<li>Safe tests evaluate server fixtures and connection health, return step-level JSON evidence, and execute zero provider side effects.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended workflow shape">
-				<CodeBlock lang="js" filename="workflow-automation.js" :code="`{
-\tid: 'trial-rescue',
-\tname: 'Trial rescue sequence',
-\tstatus: 'Active',
-\towner: 'Lifecycle team',
-\ttrigger: 'Trial becomes inactive',
-\taudience: 'Self-serve trials',
-\tthrottleHours: 24,
-\tenabled: true,
-\tconditions: [
-\t\t{ id: 'cond_plan', field: 'Plan fit', operator: 'is', value: 'Growth' },
-\t\t{ id: 'cond_activity', field: 'Last active', operator: 'older than', value: '5 days' }
-\t],
-\tactions: [
-\t\t{ id: 'act_email', type: 'Send email', detail: 'Nudge template', enabled: true },
-\t\t{ id: 'act_task', type: 'Create task', detail: 'Owner follow-up', enabled: true }
-\t],
-\tmetrics: { runs: 1240, successRate: '98.8%', savedHours: '42h' },
-\thistory: [
-\t\t{ label: 'Template updated', actor: 'Maya Chen', time: 'Today 10:18' }
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Exact mutation contract">
+				<CodeBlock lang="js" filename="workflow-release.js" :code="`const preview = await api.post('/workflows/trial-rescue/release-preview', {
+	workspaceRevision: 22,
+	workflowVersion: 12
+})
+
+const result = await api.post('/workflows/trial-rescue/publish', {
+	workspaceRevision: preview.workspaceRevision,
+	workflowVersion: preview.workflowVersion,
+	previewChecksum: preview.checksum,
+	acknowledged: true
+})
+
+// result.receipt retains audit, runtime, test, and release checksums.`" />
 			</DocSection>
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Event schema</h3>
-						<p class="mt-2">Drive trigger, condition, and variable menus from a typed event catalog so published rules stay valid after schema changes.</p>
+						<h3 class="font-semibold text-canvas-fg">Event catalog</h3>
+						<p class="mt-2">Drive rich trigger, condition, operator, value, action, and destination selects from a server-owned typed catalog.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Dry runs</h3>
-						<p class="mt-2">Run samples through backend evaluation before publishing. Show matched records, skipped actions, throttles, and missing permissions.</p>
+						<h3 class="font-semibold text-canvas-fg">Safe tests</h3>
+						<p class="mt-2">Run server fixtures through the production condition grammar while replacing every external effect with recorded simulation evidence.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include reusable condition rows, action connectors, branch logic, approvals, and execution observability.</p>
+						<h3 class="font-semibold text-canvas-fg">Release boundary</h3>
+						<p class="mt-2">Reject stale revisions and require a passing current test, healthy connections, explicit owner, throttle, enabled action, and exact acknowledgement.</p>
 					</div>
 				</div>
 			</DocSection>

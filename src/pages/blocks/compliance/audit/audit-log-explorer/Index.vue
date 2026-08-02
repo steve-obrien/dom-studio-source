@@ -12,8 +12,8 @@ import AuditLogExplorerSrc from './examples/AuditLogExplorer.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Audit Log Explorer Block"
-			tagline="A copyable enterprise audit trail for filtering security events, reviewing request metadata, and exporting compliance evidence."
-			tag="Admin UI"
+			tagline="A working enterprise audit investigation workspace with server-side filters, evidence inspection, legal holds, saved views, alert rules, and verified exports."
+			tag="Working API"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Compliance" title="Audit log explorer">
@@ -22,7 +22,7 @@ import AuditLogExplorerSrc from './examples/AuditLogExplorer.vue?raw';
 					filename="AuditLogExplorer.vue"
 					presentation="iframe"
 					frame-src="/blocks/compliance/audit/audit-log-explorer/preview/AuditLogExplorer"
-					description="Copy this into B2B SaaS, developer tools, admin consoles, AI products, marketplaces, fintech apps, or any app that needs customer-visible audit events."
+					description="A Vercel Activity-, Datadog Logs-, and Sentry-inspired investigation surface built as a complete responsive app section rather than a static audit-table screenshot."
 					default-open
 					:preview-lines="18"
 				>
@@ -37,11 +37,11 @@ import AuditLogExplorerSrc from './examples/AuditLogExplorer.vue?raw';
 						which resource was affected, and whether the event needs retention for a compliance export.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace the local <code>auditEvents</code> array with server-paginated events from your audit, access, billing, or security API.</li>
+						<li>The example already queries server-owned, paginated events through <code>/api/block-demos/audit-log-explorer/query</code>.</li>
 						<li>Keep immutable event ids, actor identity, action, resource, IP address, user agent, request id, outcome, and environment in the stored record.</li>
-						<li>Use cursor pagination and backend filtering for production data. The example filters locally only to keep the block copyable.</li>
-						<li>Gate export actions behind role checks, date-range limits, and an export job endpoint that writes an audit event for the export itself.</li>
-						<li>Preserve raw metadata as structured JSON so support and security teams can investigate without losing provider-specific context.</li>
+						<li>Saved views, legal holds, alert rules, and verified exports use focused mutation endpoints with validation and optimistic revisions.</li>
+						<li>The repository demo store is intentionally process-local. Replace it with durable storage, cursor pagination, role checks, and background export jobs in production.</li>
+						<li>Preserve raw metadata as structured JSON and retain before/after payloads so investigators can review provider context and exact changes.</li>
 					</ul>
 				</div>
 			</DocSection>
@@ -89,11 +89,11 @@ import AuditLogExplorerSrc from './examples/AuditLogExplorer.vue?raw';
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Large datasets</h3>
-						<p class="mt-2">Move search, severity filters, and date windows to your API. Keep the table stable while cursor pages stream in.</p>
+						<p class="mt-2">The demo uses page-based server queries. Switch to cursor pagination and indexed search when the audit dataset becomes unbounded.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Good follow-ups include saved investigations, SIEM forwarding, export job history, diff viewers, and alert rule creation from a selected event.</p>
+						<h3 class="font-semibold text-canvas-fg">Production seam</h3>
+						<p class="mt-2">Persist mutations, authorise sensitive exports, stream completed files from object storage, and forward immutable events to your SIEM.</p>
 					</div>
 				</div>
 			</DocSection>

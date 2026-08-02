@@ -1,1072 +1,556 @@
 <script setup>
-import { computed, nextTick, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import {
+	DomAlert,
+	DomBadge,
 	DomButton,
 	DomCheckbox,
-	DomCommandPalette,
-	DomDrawer,
-	DomMenu,
-	DomNativeSelect,
-	DomPopover,
-	DomSplitterPanel,
+	DomCodeInput,
+	DomDialog,
+	DomEmptyState,
+	DomSelect,
+	DomSkeleton,
+	DomStatusPill,
 	DomTabs,
-	DomToggle,
+	DomTagCombobox,
+	DomTextareaInput,
+	DomTextDiff,
+	DomTextInput,
 	DomToggleButtonGroup,
-	DomTooltip,
 	DomTreeView,
 } from '@getdom/studio/vue';
 
-const fileTree = ref([
-	{
-		id: 'src',
-		label: 'src',
-		kind: 'folder',
-		open: true,
-		children: [
-			{
-				id: 'src-app',
-				label: 'app',
-				kind: 'folder',
-				open: true,
-				children: [
-					{ id: 'dashboard-page', label: 'page.tsx', kind: 'file', language: 'tsx', status: 'M' },
-					{ id: 'layout-file', label: 'layout.tsx', kind: 'file', language: 'tsx' },
-				],
-			},
-			{
-				id: 'src-components',
-				label: 'components',
-				kind: 'folder',
-				open: true,
-				children: [
-					{ id: 'mission-control', label: 'MissionControl.tsx', kind: 'file', language: 'tsx', status: 'A' },
-					{ id: 'task-card', label: 'TaskCard.tsx', kind: 'file', language: 'tsx', status: 'M' },
-				],
-			},
-			{
-				id: 'src-lib',
-				label: 'lib',
-				kind: 'folder',
-				open: true,
-				children: [
-					{ id: 'agent-client', label: 'agent-client.ts', kind: 'file', language: 'ts' },
-					{ id: 'workspace-store', label: 'workspace-store.ts', kind: 'file', language: 'ts', status: 'M' },
-				],
-			},
-		],
-	},
-	{
-		id: 'config',
-		label: 'config',
-		kind: 'folder',
-		open: true,
-		children: [
-			{ id: 'cursor-rules', label: '.cursorrules', kind: 'file', language: 'md' },
-			{ id: 'package-json', label: 'package.json', kind: 'file', language: 'json' },
-		],
-	},
-]);
-
-const files = ref([
-	{
-		id: 'dashboard-page',
-		name: 'page.tsx',
-		path: 'src/app/dashboard/page.tsx',
-		language: 'tsx',
-		status: 'M',
-		content: [
-			'import { MissionControl } from "@/components/MissionControl";',
-			'import { TaskCard } from "@/components/TaskCard";',
-			'import { getWorkspaceSummary } from "@/lib/workspace-store";',
-			'',
-			'export default async function DashboardPage() {',
-			'\tconst summary = await getWorkspaceSummary();',
-			'',
-			'\treturn (',
-			'\t\t<main className="grid min-h-screen grid-cols-[18rem_1fr] bg-background">',
-			'\t\t\t<aside className="border-r border-border p-4">',
-			'\t\t\t\t<h1 className="text-sm font-medium">Acme Labs</h1>',
-			'\t\t\t</aside>',
-			'\t\t\t<section className="p-6">',
-			'\t\t\t\t<MissionControl projects={summary.projects} />',
-			'\t\t\t\t<TaskCard task={summary.activeTask} />',
-			'\t\t\t</section>',
-			'\t\t</main>',
-			'\t);',
-			'}',
-		].join('\n'),
-	},
-	{
-		id: 'mission-control',
-		name: 'MissionControl.tsx',
-		path: 'src/components/MissionControl.tsx',
-		language: 'tsx',
-		status: 'A',
-		content: [
-			'type MissionControlProps = {',
-			'\tprojects: Array<{',
-			'\t\tid: string;',
-			'\t\tname: string;',
-			'\t\tstatus: "active" | "review" | "queued";',
-			'\t\tminutes: number;',
-			'\t}>;',
-			'};',
-			'',
-			'export function MissionControl({ projects }: MissionControlProps) {',
-			'\treturn (',
-			'\t\t<div className="grid gap-3 md:grid-cols-3">',
-			'\t\t\t{projects.map((project) => (',
-			'\t\t\t\t<article key={project.id} className="rounded-lg border p-4">',
-			'\t\t\t\t\t<p className="text-xs uppercase text-muted-foreground">{project.status}</p>',
-			'\t\t\t\t\t<h2 className="mt-2 font-semibold">{project.name}</h2>',
-			'\t\t\t\t\t<p className="mt-4 text-sm">{project.minutes}m active</p>',
-			'\t\t\t\t</article>',
-			'\t\t\t))}',
-			'\t\t</div>',
-			'\t);',
-			'}',
-		].join('\n'),
-	},
-	{
-		id: 'task-card',
-		name: 'TaskCard.tsx',
-		path: 'src/components/TaskCard.tsx',
-		language: 'tsx',
-		status: 'M',
-		content: [
-			'export function TaskCard({ task }) {',
-			'\treturn (',
-			'\t\t<div className="rounded-lg border bg-card p-4 shadow-sm">',
-			'\t\t\t<div className="flex items-start justify-between gap-3">',
-			'\t\t\t\t<div>',
-			'\t\t\t\t\t<p className="text-xs text-muted-foreground">Agent task</p>',
-			'\t\t\t\t\t<h3 className="mt-1 font-semibold">{task.title}</h3>',
-			'\t\t\t\t</div>',
-			'\t\t\t\t<span className="rounded-full bg-emerald-500/15 px-2 py-1 text-xs">',
-			'\t\t\t\t\t{task.status}',
-			'\t\t\t\t</span>',
-			'\t\t\t</div>',
-			'\t\t\t<p className="mt-3 text-sm leading-6">{task.summary}</p>',
-			'\t\t</div>',
-			'\t);',
-			'}',
-		].join('\n'),
-	},
-	{
-		id: 'agent-client',
-		name: 'agent-client.ts',
-		path: 'src/lib/agent-client.ts',
-		language: 'ts',
-		status: '',
-		content: [
-			'export type AgentMode = "ask" | "edit" | "agent";',
-			'',
-			'export async function runAgentTask(input: {',
-			'\tmode: AgentMode;',
-			'\tprompt: string;',
-			'\tfiles: string[];',
-			'}) {',
-			'\treturn fetch("/api/agent/run", {',
-			'\t\tmethod: "POST",',
-			'\t\theaders: { "content-type": "application/json" },',
-			'\t\tbody: JSON.stringify(input),',
-			'\t}).then((response) => response.json());',
-			'}',
-		].join('\n'),
-	},
-	{
-		id: 'workspace-store',
-		name: 'workspace-store.ts',
-		path: 'src/lib/workspace-store.ts',
-		language: 'ts',
-		status: 'M',
-		content: [
-			'export async function getWorkspaceSummary() {',
-			'\treturn {',
-			'\t\tactiveTask: {',
-			'\t\t\ttitle: "Plan Mission Control",',
-			'\t\t\tstatus: "In progress",',
-			'\t\t\tsummary: "Design the expose-style project overview and wire it to live task state.",',
-			'\t\t},',
-			'\t\tprojects: [',
-			'\t\t\t{ id: "research", name: "Acme Research Dashboard", status: "active", minutes: 14 },',
-			'\t\t\t{ id: "billing", name: "Zero-downtime Billing", status: "review", minutes: 30 },',
-			'\t\t\t{ id: "protocol", name: "Binary Protocol Parser", status: "queued", minutes: 45 },',
-			'\t\t],',
-			'\t};',
-			'}',
-		].join('\n'),
-	},
-	{
-		id: 'layout-file',
-		name: 'layout.tsx',
-		path: 'src/app/layout.tsx',
-		language: 'tsx',
-		status: '',
-		content: [
-			'export default function RootLayout({ children }) {',
-			'\treturn (',
-			'\t\t<html lang="en">',
-			'\t\t\t<body>{children}</body>',
-			'\t\t</html>',
-			'\t);',
-			'}',
-		].join('\n'),
-	},
-	{
-		id: 'cursor-rules',
-		name: '.cursorrules',
-		path: '.cursorrules',
-		language: 'md',
-		status: '',
-		content: [
-			'- Prefer small, reviewable commits.',
-			'- Preserve existing design tokens and route conventions.',
-			'- Run focused tests before proposing a final patch.',
-			'- Explain risky edits before applying them.',
-		].join('\n'),
-	},
-	{
-		id: 'package-json',
-		name: 'package.json',
-		path: 'package.json',
-		language: 'json',
-		status: '',
-		content: [
-			'{',
-			'\t"scripts": {',
-			'\t\t"dev": "next dev",',
-			'\t\t"test": "vitest run",',
-			'\t\t"lint": "eslint ."',
-			'\t},',
-			'\t"dependencies": {',
-			'\t\t"next": "latest",',
-			'\t\t"react": "latest"',
-			'\t}',
-			'}',
-		].join('\n'),
-	},
-]);
-
-const initialOpenTabs = ['dashboard-page', 'mission-control', 'agent-client'];
-const openTabIds = ref([...initialOpenTabs]);
-const activeFileId = ref('dashboard-page');
-const selectedFileId = ref('dashboard-page');
-const sidebarStartSize = ref(250);
-const assistantEndSize = ref(380);
-const activeBottomTab = ref('terminal');
-const activeAssistantTab = ref('chat');
-const commandOpen = ref(false);
-const reviewOpen = ref(false);
-const settingsOpen = ref(false);
-const agentMode = ref('agent');
-const selectedModel = ref('composer-2-5');
-const includeTerminal = ref(true);
-const includeWorkspace = ref(true);
-const autoApplyLowRisk = ref(false);
-const selectedTaskId = ref('landing');
-const composerText = ref('Add a mission-control overview with active projects, task progress, and a clear review state.');
-const terminalLines = ref([
-	'$ npm run test -- --watch=false',
-	'PASS src/components/MissionControl.test.tsx',
-	'PASS src/lib/workspace-store.test.ts',
-	'Test Files 2 passed (2)',
-]);
-const stagedChanges = ref(4);
-const lastCommand = ref('No command selected');
-
-const modelOptions = [
-	{ label: 'Composer 2.5', value: 'composer-2-5' },
-	{ label: 'GPT-5.5 Extra High', value: 'gpt-5-5-extra' },
-	{ label: 'Opus 4.8', value: 'opus-4-8' },
-	{ label: 'Auto', value: 'auto' },
+const mobileViews = [
+	{ key: 'files', label: 'Files' },
+	{ key: 'editor', label: 'Editor' },
+	{ key: 'agent', label: 'Agent' },
+	{ key: 'review', label: 'Review' },
 ];
-
-const modeOptions = [
-	{ label: 'Ask', value: 'ask' },
-	{ label: 'Edit', value: 'edit' },
-	{ label: 'Agent', value: 'agent' },
+const assistantTabs = [
+	{ key: 'agent', label: 'Agent' },
+	{ key: 'review', label: 'Review' },
 ];
-
-const bottomTabs = [
+const evidenceTabs = [
 	{ key: 'terminal', label: 'Terminal' },
 	{ key: 'problems', label: 'Problems' },
-	{ key: 'output', label: 'Output' },
+	{ key: 'activity', label: 'Activity' },
 ];
 
-const assistantTabs = [
-	{ key: 'chat', label: 'Chat' },
-	{ key: 'tasks', label: 'Tasks' },
-	{ key: 'rules', label: 'Rules' },
-];
+const loading = ref(true);
+const busy = ref(false);
+const bootstrap = ref(null);
+const workspace = ref(null);
+const settings = ref(null);
+const files = ref([]);
+const fileTree = ref([]);
+const activeFile = ref(null);
+const selectedFileId = ref('');
+const openTabIds = ref([]);
+const editorContent = ref('');
+const proposal = ref(null);
+const selectedChangeFileId = ref('');
+const testRuns = ref([]);
+const activity = ref([]);
+const activeView = ref('editor');
+const assistantTab = ref('agent');
+const evidenceTab = ref('terminal');
+const fileSearch = ref('');
+const prompt = ref('Add a project pulse with active work, review state, and focused test evidence.');
+const model = ref('composer-2-5');
+const mode = ref('agent');
+const contextFileIds = ref(['dashboard-page', 'mission-control', 'workspace-store']);
+const includeTests = ref(true);
+const includeRules = ref(true);
+const errorMessage = ref('');
+const successMessage = ref('');
+const fieldErrors = ref({});
+const applyDialogOpen = ref(false);
+const resetDialogOpen = ref(false);
+const applyAcknowledged = ref(false);
+const runTestsAfterApply = ref(true);
 
-const tasks = ref([
-	{
-		id: 'landing',
-		title: 'Build Landing Page',
-		state: 'In Progress',
-		detail: 'Reading docs and updating dashboard shell',
-		progress: 68,
-		files: ['page.tsx', 'MissionControl.tsx'],
-	},
-	{
-		id: 'usage',
-		title: 'Analyze Tab vs Agent Usage',
-		state: 'In Progress',
-		detail: 'Fetching data from workspace-store',
-		progress: 42,
-		files: ['workspace-store.ts'],
-	},
-	{
-		id: 'mission',
-		title: 'Plan Mission Control',
-		state: 'Ready for Review',
-		detail: 'Generated plan and proposed 3 edits',
-		progress: 100,
-		files: ['TaskCard.tsx', 'agent-client.ts'],
-	},
-]);
-
-const chatMessages = ref([
-	{
-		id: 'm1',
-		role: 'assistant',
-		author: 'Composer 2.5',
-		body: 'I indexed the project and found the dashboard entry point, the new MissionControl component, and the workspace data helper.',
-		meta: 'Explored 12 files, 4 searches',
-	},
-	{
-		id: 'm2',
-		role: 'user',
-		author: 'You',
-		body: 'Make the dashboard feel more like mission control and keep the task review state obvious.',
-		meta: '',
-	},
-	{
-		id: 'm3',
-		role: 'assistant',
-		author: 'Composer 2.5',
-		body: 'I can add a review rail, expose project activity, and keep the current layout contract intact. The patch touches page.tsx, MissionControl.tsx, and workspace-store.ts.',
-		meta: '3 proposed files',
-	},
-]);
-
-const reviewItems = ref([
-	{ id: 'r1', file: 'src/app/dashboard/page.tsx', status: 'modified', summary: 'Adds the mission-control section and keeps the sidebar stable.' },
-	{ id: 'r2', file: 'src/components/MissionControl.tsx', status: 'added', summary: 'Creates project preview cards with progress and review state.' },
-	{ id: 'r3', file: 'src/lib/workspace-store.ts', status: 'modified', summary: 'Adds realistic project status data for the shell.' },
-]);
-
-const problemItems = [
-	{ file: 'TaskCard.tsx', line: 1, severity: 'warning', message: 'task prop is inferred as any.' },
-	{ file: 'MissionControl.tsx', line: 12, severity: 'hint', message: 'Consider memoizing project status labels.' },
-	{ file: 'workspace-store.ts', line: 9, severity: 'info', message: 'Queued project count is mocked.' },
-];
-
-const workspaceMenuItems = [
-	{ value: 'new-file', label: 'New File', description: 'Create a draft component.' },
-	{ value: 'command-palette', label: 'Command Palette', description: 'Open action search.' },
-	{ value: 'review-changes', label: 'Review Changes', description: 'Open the patch drawer.' },
-	{ separator: true },
-	{ value: 'toggle-terminal', label: 'Toggle Terminal', description: 'Switch the bottom panel.' },
-	{ value: 'settings', label: 'Workspace Settings', description: 'Configure agent context.' },
-];
-
-const commandItems = computed(() => [
-	{ value: 'open-dashboard-page', label: 'Open src/app/dashboard/page.tsx', description: 'Jump to the dashboard route.' },
-	{ value: 'open-mission-control', label: 'Open MissionControl.tsx', description: 'Open the new overview component.' },
-	{ value: 'run-tests', label: 'Run focused tests', description: 'Append test output to the terminal.' },
-	{ value: 'review-changes', label: 'Review generated patch', description: 'Open the review drawer.' },
-	{ value: 'toggle-agent-mode', label: 'Switch to Agent mode', description: 'Let the assistant plan and edit.' },
-	{ value: 'settings', label: 'Open workspace settings', description: 'Tune model and context sources.' },
-]);
-
-const selectedTask = computed(() => tasks.value.find((task) => task.id === selectedTaskId.value) || tasks.value[0]);
-const activeFile = computed(() => fileById(activeFileId.value) || files.value[0]);
-const openTabs = computed(() => openTabIds.value.map(fileById).filter(Boolean));
-const activeModelLabel = computed(() => modelOptions.find((option) => option.value === selectedModel.value)?.label || 'Auto');
-const activeContent = computed({
-	get: () => activeFile.value?.content || '',
-	set(value) {
-		const file = activeFile.value;
-		if (file) file.content = value;
-	},
+const fileById = computed(() => new Map(files.value.map((file) => [file.id, file])));
+const openFiles = computed(() => openTabIds.value.map((fileId) => fileById.value.get(fileId)).filter(Boolean));
+const isDirty = computed(() => Boolean(activeFile.value && editorContent.value !== activeFile.value.content));
+const latestTestRun = computed(() => testRuns.value[0] || null);
+const filteredFiles = computed(() => {
+	const needle = fileSearch.value.trim().toLowerCase();
+	if (!needle) return files.value;
+	return files.value.filter((file) => `${file.name} ${file.path}`.toLowerCase().includes(needle));
 });
-const lineNumbers = computed(() => activeContent.value.split('\n').map((_, index) => index + 1));
-const branchSummary = computed(() => `${stagedChanges.value} changes on feature/mission-control`);
-const currentFilePath = computed(() => activeFile.value?.path || '');
-const selectedFileContext = computed(() => openTabs.value.map((file) => file.name).join(', '));
-const modeLabel = computed(() => modeOptions.find((option) => option.value === agentMode.value)?.label || 'Agent');
+const selectedChange = computed(() => proposal.value?.changes?.find((change) => change.fileId === selectedChangeFileId.value) || proposal.value?.changes?.[0] || null);
+const proposalReadiness = computed(() => proposal.value?.checks?.filter((check) => check.status === 'passed').length || 0);
+const proposalCheckCount = computed(() => proposal.value?.checks?.length || 0);
+const activeModelLabel = computed(() => optionLabel(bootstrap.value?.options.models || [], model.value));
+const fileStatusTone = computed(() => activeFile.value?.statusTone || 'neutral');
 
-function fileById(id) {
-	return files.value.find((file) => file.id === id);
-}
-
-function iconFor(item) {
-	if (item.kind === 'folder') return item.open ? 'folder-open' : 'folder';
-	if (item.language === 'tsx') return 'react';
-	if (item.language === 'json') return 'json';
-	if (item.language === 'md') return 'rules';
-	return 'code';
-}
-
-function selectFile(payload) {
-	const item = payload?.item;
-	if (!item || item.kind !== 'file') return;
-	openFile(String(payload.value || item.id));
-}
-
-function openFile(fileId) {
-	if (!fileById(fileId)) return;
-	selectedFileId.value = fileId;
-	activeFileId.value = fileId;
-	if (!openTabIds.value.includes(fileId)) openTabIds.value.push(fileId);
-}
-
-function closeTab(fileId, event) {
-	event?.stopPropagation?.();
-	if (openTabIds.value.length === 1) return;
-	const index = openTabIds.value.indexOf(fileId);
-	openTabIds.value = openTabIds.value.filter((id) => id !== fileId);
-	if (activeFileId.value !== fileId) return;
-	const nextId = openTabIds.value[Math.max(0, index - 1)] || openTabIds.value[0];
-	activeFileId.value = nextId;
-	selectedFileId.value = nextId;
-}
-
-function runAgent() {
-	const prompt = composerText.value.trim() || 'Review the active file and suggest the safest next patch.';
-	const id = `m${chatMessages.value.length + 1}`;
-	chatMessages.value.push({
-		id,
-		role: 'user',
-		author: 'You',
-		body: prompt,
-		meta: currentFilePath.value,
-	});
-	chatMessages.value.push({
-		id: `${id}-assistant`,
-		role: 'assistant',
-		author: activeModelLabel.value,
-		body: `I prepared a ${modeLabel.value.toLowerCase()} pass for ${activeFile.value.name}. The proposed patch keeps the layout contract, adds a review-safe state, and updates ${selectedFileContext.value}.`,
-		meta: 'Patch ready for review',
-	});
-	terminalLines.value.push(`agent ${agentMode.value}: prepared patch for ${activeFile.value.name}`);
-	composerText.value = '';
-	reviewOpen.value = true;
-	nextTick(() => {
-		const scroll = document.querySelector('[data-chat-scroll]');
-		scroll?.scrollTo?.({ top: scroll.scrollHeight, behavior: 'smooth' });
-	});
-}
-
-function applySuggestion() {
-	const file = activeFile.value;
-	if (!file) return;
-	const note = [
-		'',
-		'// Agent-applied review note:',
-		'// Keep this section easy to scan during mission-control handoff.',
-	].join('\n');
-	if (!file.content.includes('Agent-applied review note')) {
-		file.content = `${file.content}${note}`;
-		stagedChanges.value += 1;
-		terminalLines.value.push(`applied patch: ${file.path}`);
+/**
+ * Loads the server-owned workspace and restores useful defaults.
+ *
+ * @returns {Promise<void>} Resolves after bootstrap state is ready.
+ */
+async function loadWorkspace() {
+	loading.value = true;
+	clearMessages();
+	try {
+		const result = await requestJson('/api/block-demos/cursor-workspace/bootstrap');
+		applyBootstrap(result);
+	} catch (error) {
+		errorMessage.value = error.message;
+	} finally {
+		loading.value = false;
 	}
-	reviewOpen.value = false;
 }
 
-function acceptInlineCompletion() {
-	const file = activeFile.value;
+/**
+ * Applies a complete bootstrap payload to local view state.
+ *
+ * @param {Record<string, unknown>} result Workspace payload.
+ * @returns {void}
+ */
+function applyBootstrap(result) {
+	bootstrap.value = result;
+	workspace.value = cloneValue(result.workspace);
+	settings.value = cloneValue(result.settings);
+	files.value = cloneValue(result.files);
+	fileTree.value = cloneValue(result.fileTree);
+	testRuns.value = cloneValue(result.testRuns || []);
+	activity.value = cloneValue(result.activity || []);
+	model.value = result.settings.model;
+	mode.value = result.settings.mode;
+	includeTests.value = result.settings.includeTests;
+	includeRules.value = result.settings.includeRules;
+	proposal.value = cloneValue(result.proposal);
+	selectedChangeFileId.value = result.proposal?.changes?.[0]?.fileId || '';
+	openTabIds.value = uniqueValues([result.defaultFileId, 'mission-control', 'workspace-store']);
+	applyFile(result.file);
+}
+
+/**
+ * Selects a file from the DOM Studio tree.
+ *
+ * @param {{ item?: Record<string, unknown>, value?: string }} payload Tree selection payload.
+ * @returns {Promise<void>} Resolves after file detail loads.
+ */
+async function selectTreeFile(payload) {
+	if (!payload?.item || payload.item.kind !== 'file') return;
+	await openFile(String(payload.value || payload.item.id));
+}
+
+/**
+ * Loads one file and adds it to the open tab set.
+ *
+ * @param {string} fileId File identifier.
+ * @returns {Promise<void>} Resolves after the file is active.
+ */
+async function openFile(fileId) {
+	if (!fileById.value.has(fileId)) return;
+	busy.value = true;
+	clearMessages();
+	try {
+		const result = await requestJson(`/api/block-demos/cursor-workspace/files/${fileId}`);
+		files.value = result.files;
+		workspace.value = result.workspace;
+		if (!openTabIds.value.includes(fileId)) openTabIds.value.push(fileId);
+		applyFile(result.file);
+		activeView.value = 'editor';
+	} catch (error) {
+		captureApiError(error);
+	} finally {
+		busy.value = false;
+	}
+}
+
+/**
+ * Applies one loaded file to the editor.
+ *
+ * @param {Record<string, unknown>} file Repository file.
+ * @returns {void}
+ */
+function applyFile(file) {
 	if (!file) return;
-	const snippet = '\nconst reviewState = summary.projects.filter((project) => project.status === "review");';
-	if (!file.content.includes('reviewState')) {
-		if (file.content.includes('\tconst summary = await getWorkspaceSummary();')) {
-			file.content = file.content.replace('\tconst summary = await getWorkspaceSummary();', `\tconst summary = await getWorkspaceSummary();${snippet}`);
-		} else {
-			file.content = `${file.content}${snippet}`;
+	activeFile.value = cloneValue(file);
+	selectedFileId.value = file.id;
+	editorContent.value = file.content;
+	fieldErrors.value = {};
+}
+
+/**
+ * Saves the active editor through the revisioned file API.
+ *
+ * @returns {Promise<void>} Resolves after persistence or conflict recovery.
+ */
+async function saveFile() {
+	if (!activeFile.value) return;
+	busy.value = true;
+	clearMessages();
+	try {
+		const result = await requestJson(`/api/block-demos/cursor-workspace/files/${activeFile.value.id}`, {
+			method: 'PATCH',
+			body: JSON.stringify({ revision: activeFile.value.revision, content: editorContent.value }),
+		});
+		files.value = result.files;
+		workspace.value = result.workspace;
+		activity.value = result.activity;
+		applyFile(result.file);
+		successMessage.value = result.message;
+	} catch (error) {
+		if (error.data?.file) {
+			files.value = error.data.files;
+			workspace.value = error.data.workspace;
+			applyFile(error.data.file);
 		}
-		stagedChanges.value += 1;
-		terminalLines.value.push('accepted inline completion in page.tsx');
+		captureApiError(error);
+	} finally {
+		busy.value = false;
 	}
 }
 
-function handleCommand(event) {
-	const value = event.value;
-	lastCommand.value = value;
-	if (value === 'open-dashboard-page') openFile('dashboard-page');
-	if (value === 'open-mission-control') openFile('mission-control');
-	if (value === 'review-changes') reviewOpen.value = true;
-	if (value === 'settings') settingsOpen.value = true;
-	if (value === 'toggle-agent-mode') agentMode.value = 'agent';
-	if (value === 'run-tests') {
-		activeBottomTab.value = 'terminal';
-		terminalLines.value.push('$ npm run test -- MissionControl');
-		terminalLines.value.push('PASS src/components/MissionControl.test.tsx');
+/**
+ * Saves the current model and context defaults.
+ *
+ * @returns {Promise<void>} Resolves after settings persistence.
+ */
+async function saveDefaults() {
+	if (!settings.value) return;
+	busy.value = true;
+	clearMessages();
+	try {
+		const result = await requestJson('/api/block-demos/cursor-workspace/settings', {
+			method: 'PATCH',
+			body: JSON.stringify({ revision: settings.value.revision, model: model.value, mode: mode.value, includeTests: includeTests.value, includeRules: includeRules.value }),
+		});
+		settings.value = result.settings;
+		activity.value = result.activity;
+		successMessage.value = result.message;
+	} catch (error) {
+		if (error.data?.settings) settings.value = error.data.settings;
+		captureApiError(error);
+	} finally {
+		busy.value = false;
 	}
 }
 
-function handleWorkspaceMenu(event) {
-	if (event.value === 'new-file') createDraftFile();
-	if (event.value === 'command-palette') commandOpen.value = true;
-	if (event.value === 'review-changes') reviewOpen.value = true;
-	if (event.value === 'settings') settingsOpen.value = true;
-	if (event.value === 'toggle-terminal') activeBottomTab.value = activeBottomTab.value === 'terminal' ? 'problems' : 'terminal';
+/**
+ * Creates a server-owned agent proposal from the selected repository context.
+ *
+ * @returns {Promise<void>} Resolves after the answer or proposal is ready.
+ */
+async function runAgent() {
+	busy.value = true;
+	clearMessages();
+	try {
+		const result = await requestJson('/api/block-demos/cursor-workspace/agent-runs', {
+			method: 'POST',
+			body: JSON.stringify({
+				prompt: prompt.value,
+				model: model.value,
+				mode: mode.value,
+				contextFileIds: contextFileIds.value,
+				includeTests: includeTests.value,
+				includeRules: includeRules.value,
+				workspaceRevision: workspace.value.revision,
+			}),
+		});
+		proposal.value = result.proposal;
+		workspace.value = result.workspace;
+		activity.value = result.activity;
+		selectedChangeFileId.value = result.proposal.changes?.[0]?.fileId || '';
+		assistantTab.value = result.proposal.changes?.length ? 'review' : 'agent';
+		activeView.value = result.proposal.changes?.length ? 'review' : 'agent';
+		successMessage.value = result.message;
+	} catch (error) {
+		if (error.data?.workspace) workspace.value = error.data.workspace;
+		if (error.data?.files) files.value = error.data.files;
+		captureApiError(error);
+	} finally {
+		busy.value = false;
+	}
 }
 
-function createDraftFile() {
-	const id = `draft-${files.value.length + 1}`;
-	files.value.push({
-		id,
-		name: 'AgentScratch.tsx',
-		path: 'src/components/AgentScratch.tsx',
-		language: 'tsx',
-		status: 'A',
-		content: [
-			'export function AgentScratch() {',
-			'\treturn <div>Draft a focused component here.</div>;',
-			'}',
-		].join('\n'),
-	});
-	const components = fileTree.value[0].children.find((item) => item.id === 'src-components');
-	components?.children?.push({ id, label: 'AgentScratch.tsx', kind: 'file', language: 'tsx', status: 'A' });
-	openFile(id);
+/**
+ * Runs focused repository checks and exposes terminal evidence.
+ *
+ * @returns {Promise<void>} Resolves after test evidence is recorded.
+ */
+async function runTests() {
+	busy.value = true;
+	clearMessages();
+	try {
+		const result = await requestJson('/api/block-demos/cursor-workspace/tests', {
+			method: 'POST',
+			body: JSON.stringify({ workspaceRevision: workspace.value.revision, tests: ['MissionControl.test.tsx', 'workspace-store.test.ts'] }),
+		});
+		testRuns.value = result.testRuns;
+		workspace.value = result.workspace;
+		activity.value = result.activity;
+		evidenceTab.value = 'terminal';
+		successMessage.value = result.message;
+	} catch (error) {
+		if (error.data?.workspace) workspace.value = error.data.workspace;
+		captureApiError(error);
+	} finally {
+		busy.value = false;
+	}
 }
 
-function taskClass(task) {
-	return task.id === selectedTask.value.id
-		? 'border-primary/35 bg-primary/10'
-		: 'border-border bg-canvas hover:border-ring/50 hover:bg-secondary/70';
+/**
+ * Opens the explicit patch application confirmation.
+ *
+ * @returns {void}
+ */
+function openApplyDialog() {
+	applyAcknowledged.value = false;
+	runTestsAfterApply.value = true;
+	fieldErrors.value = {};
+	applyDialogOpen.value = true;
 }
 
-function fileIconClass(item) {
-	return {
-		folder: 'text-warning',
-		'folder-open': 'text-warning',
-		react: 'text-primary',
-		json: 'text-warning',
-		rules: 'text-accent-fg',
-		code: 'text-muted-fg',
-	}[iconFor(item)] || 'text-muted-fg';
+/**
+ * Applies the reviewed proposal and refreshes all affected workspace evidence.
+ *
+ * @returns {Promise<void>} Resolves after application or stale-revision recovery.
+ */
+async function applyProposal() {
+	if (!proposal.value) return;
+	busy.value = true;
+	clearMessages();
+	try {
+		const result = await requestJson(`/api/block-demos/cursor-workspace/proposals/${proposal.value.id}/apply`, {
+			method: 'POST',
+			body: JSON.stringify({ workspaceRevision: workspace.value.revision, acknowledged: applyAcknowledged.value, runTests: runTestsAfterApply.value }),
+		});
+		proposal.value = result.proposal;
+		workspace.value = result.workspace;
+		files.value = result.files;
+		testRuns.value = result.testRuns;
+		activity.value = result.activity;
+		applyFile(result.file);
+		applyDialogOpen.value = false;
+		activeView.value = 'editor';
+		evidenceTab.value = 'terminal';
+		successMessage.value = result.message;
+	} catch (error) {
+		if (error.data?.proposal) proposal.value = error.data.proposal;
+		if (error.data?.workspace) workspace.value = error.data.workspace;
+		if (error.data?.files) files.value = error.data.files;
+		captureApiError(error);
+	} finally {
+		busy.value = false;
+	}
 }
 
-function statusClass(status) {
-	return {
-		M: 'text-warning',
-		A: 'text-success',
-		D: 'text-destructive',
-	}[status] || 'text-muted-fg';
+/**
+ * Restores the seeded developer workspace.
+ *
+ * @returns {Promise<void>} Resolves after reset completes.
+ */
+async function resetWorkspace() {
+	busy.value = true;
+	clearMessages();
+	try {
+		const result = await requestJson('/api/block-demos/cursor-workspace/reset', { method: 'POST' });
+		applyBootstrap(result);
+		resetDialogOpen.value = false;
+		successMessage.value = result.message;
+	} catch (error) {
+		captureApiError(error);
+	} finally {
+		busy.value = false;
+	}
 }
 
-function activityButtonClass(value) {
-	return value === 'files'
-		? 'bg-primary text-primary-fg'
-		: 'text-muted-fg hover:bg-secondary hover:text-canvas-fg';
+/**
+ * Synchronizes compact top-level views with the right-hand workspace tabs.
+ *
+ * @param {string} value Active compact view.
+ * @returns {void}
+ */
+function syncAssistantView(value) {
+	if (value === 'agent' || value === 'review') assistantTab.value = value;
 }
+
+/**
+ * Keeps the compact top-level view aligned with agent and review tab changes.
+ *
+ * @param {string} value Active assistant tab.
+ * @returns {void}
+ */
+function syncMobileView(value) {
+	if (activeView.value === 'agent' || activeView.value === 'review') activeView.value = value;
+}
+
+/**
+ * Returns a rich option label.
+ *
+ * @param {Array<Record<string, unknown>>} options Option list.
+ * @param {string} value Selected value.
+ * @returns {string} Option label.
+ */
+function optionLabel(options, value) {
+	return options.find((option) => option.value === value)?.label || value;
+}
+
+/**
+ * Formats an ISO timestamp for compact workspace display.
+ *
+ * @param {string} value ISO timestamp.
+ * @returns {string} Local display time.
+ */
+function formatTime(value) {
+	return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+}
+
+/**
+ * Capitalizes one status value for display.
+ *
+ * @param {string} value Status value.
+ * @returns {string} Display label.
+ */
+function capitalize(value) {
+	const text = String(value || '');
+	return text ? `${text[0].toUpperCase()}${text.slice(1)}` : '';
+}
+
+/**
+ * Clears transient page and field messages.
+ *
+ * @returns {void}
+ */
+function clearMessages() {
+	errorMessage.value = '';
+	successMessage.value = '';
+	fieldErrors.value = {};
+}
+
+/**
+ * Maps structured API errors to visible page and field feedback.
+ *
+ * @param {Error & { data?: Record<string, unknown> }} error Request failure.
+ * @returns {void}
+ */
+function captureApiError(error) {
+	errorMessage.value = error.message;
+	fieldErrors.value = Object.fromEntries((error.data?.fields || []).map((item) => [item.field, [item.message]]));
+}
+
+/**
+ * Performs a JSON request while preserving structured error evidence.
+ *
+ * @param {string} url API URL.
+ * @param {RequestInit} options Fetch options.
+ * @returns {Promise<Record<string, unknown>>} Parsed response.
+ */
+async function requestJson(url, options = {}) {
+	const response = await fetch(url, { headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }, ...options });
+	const data = await response.json();
+	if (!response.ok || data.error) {
+		const error = new Error(data.message || `Request failed with ${response.status}.`);
+		error.data = data;
+		throw error;
+	}
+	return data;
+}
+
+/**
+ * Returns unique non-empty values while preserving order.
+ *
+ * @param {unknown[]} values Candidate values.
+ * @returns {string[]} Unique strings.
+ */
+function uniqueValues(values) {
+	return [...new Set(values.map((value) => String(value || '')).filter(Boolean))];
+}
+
+/**
+ * Creates a detached JSON-safe value.
+ *
+ * @template T
+ * @param {T} value Source value.
+ * @returns {T} Detached value.
+ */
+function cloneValue(value) {
+	return value == null ? value : JSON.parse(JSON.stringify(value));
+}
+
+watch(activeView, syncAssistantView);
+watch(assistantTab, syncMobileView);
+onMounted(loadWorkspace);
 </script>
 
 <template>
-		<div class="cursor-workspace min-h-screen bg-canvas text-canvas-fg">
-			<header class="flex h-10 items-center justify-between border-b border-border bg-secondary/70 px-3 text-xs text-muted-fg">
-			<div class="flex min-w-0 items-center gap-3">
-				<div class="flex items-center gap-1.5" aria-hidden="true">
-					<span class="size-3 rounded-full bg-destructive"></span>
-					<span class="size-3 rounded-full bg-warning"></span>
-					<span class="size-3 rounded-full bg-success"></span>
-				</div>
-				<DomPopover width="w-64" padding="p-1" :arrow="false" position="bottom-start" label="Workspace menu">
-					<template #trigger>
-							<button type="button" class="rounded px-2 py-1 font-medium text-canvas-fg hover:bg-secondary">
-							Cursor
-						</button>
-					</template>
-					<DomMenu :items="workspaceMenuItems" :skin="false" @select="handleWorkspaceMenu" />
-				</DomPopover>
-				<div class="hidden items-center gap-2 md:flex">
-						<button type="button" class="rounded px-2 py-1 hover:bg-secondary hover:text-canvas-fg" @click="commandOpen = true">File</button>
-						<button type="button" class="rounded px-2 py-1 hover:bg-secondary hover:text-canvas-fg" @click="commandOpen = true">Edit</button>
-						<button type="button" class="rounded px-2 py-1 hover:bg-secondary hover:text-canvas-fg" @click="reviewOpen = true">Review</button>
-				</div>
-			</div>
-			<button
-				type="button"
-					class="min-w-0 truncate rounded-full border border-border bg-canvas px-4 py-1 text-center text-canvas-fg shadow-inner"
-				@click="commandOpen = true"
-			>
-				~/cursor/acme-dashboard
-					<span class="ml-2 text-muted-fg">Command K</span>
-			</button>
-			<div class="flex min-w-0 items-center gap-2">
-					<span class="hidden rounded bg-success/15 px-2 py-1 text-success sm:inline">Indexed</span>
-					<DomTooltip text="Open workspace settings">
-						<button type="button" class="rounded px-2 py-1 hover:bg-secondary hover:text-canvas-fg" @click="settingsOpen = true" aria-label="Workspace settings">
-						<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.7" />
-							<path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4 1a7.6 7.6 0 0 0-2-1.2L14.2 3h-4.4l-.4 2.7a7.6 7.6 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.4-1a7.6 7.6 0 0 0 2 1.2l.4 2.7h4.4l.4-2.7a7.6 7.6 0 0 0 2-1.2l2.4 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
-						</svg>
-					</button>
-				</DomTooltip>
-			</div>
-		</header>
-
-		<div class="grid min-h-[calc(100vh-2.5rem)] grid-cols-[3rem_minmax(0,1fr)]">
-				<aside class="flex flex-col items-center border-r border-border bg-secondary/50 py-3">
-				<div class="grid gap-2">
-					<button
-						v-for="item in ['files', 'search', 'agent', 'git', 'debug']"
-						:key="item"
-						type="button"
-						class="grid size-9 place-items-center rounded-lg transition"
-						:class="activityButtonClass(item)"
-						:aria-label="item"
-						@click="item === 'agent' ? (activeAssistantTab = 'chat') : commandOpen = true"
-					>
-						<svg v-if="item === 'files'" class="size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path d="M5 4h6l2 2h6v14H5V4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
-						</svg>
-						<svg v-else-if="item === 'search'" class="size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path d="m15.5 15.5 4 4M10.5 17a6.5 6.5 0 1 1 0-13 6.5 6.5 0 0 1 0 13Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-						</svg>
-						<svg v-else-if="item === 'agent'" class="size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path d="M12 3v3M6.5 7.5 4.5 5.5M17.5 7.5l2-2M5 14a7 7 0 0 1 14 0v4H5v-4Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-							<path d="M9 14h.01M15 14h.01M10 18v2h4v-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-						</svg>
-						<svg v-else-if="item === 'git'" class="size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path d="M7 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm0 0v10a2 2 0 1 0 2 2M17 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm0 0c0 3-10 3-10 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-						</svg>
-						<svg v-else class="size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path d="M8 8V5.5A4 4 0 0 1 12 2a4 4 0 0 1 4 3.5V8M6 10h12v8a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4v-8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
-							<path d="M4 14H2M22 14h-2M4.5 20 3 21.5M19.5 20l1.5 1.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-						</svg>
-					</button>
-				</div>
-				<div class="mt-auto grid gap-2">
-						<button type="button" class="grid size-9 place-items-center rounded-lg text-muted-fg hover:bg-secondary hover:text-canvas-fg" @click="reviewOpen = true" aria-label="Review changes">
-						<span class="relative">
-							<svg class="size-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-								<path d="M5 5h14v14H5V5Zm4 4h6M9 13h6M9 17h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-							</svg>
-								<span class="absolute -right-2 -top-2 rounded-full bg-primary px-1 text-[10px] leading-4 text-primary-fg">{{ stagedChanges }}</span>
-						</span>
-					</button>
-				</div>
-			</aside>
-
-			<DomSplitterPanel
-				v-model:start-size="sidebarStartSize"
-				v-model:end-size="assistantEndSize"
-				:start-size="250"
-				:end-size="380"
-				:min-start="210"
-				:min-main="520"
-				:min-end="320"
-				:handle-size="6"
-					class="h-full bg-canvas"
-					handle-class="bg-border transition hover:bg-ring/30 focus-visible:bg-ring/30"
-					handle-indicator-class="bg-muted-fg/40 opacity-100"
-			>
-					<template #start>
-						<section class="flex h-full min-h-0 flex-col bg-secondary/45">
-							<div class="flex h-10 items-center justify-between border-b border-border px-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">
-								<span>Explorer</span>
-								<button type="button" class="rounded px-1.5 py-1 text-muted-fg hover:bg-secondary hover:text-canvas-fg" @click="createDraftFile" aria-label="New file">
-								<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-									<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-								</svg>
-							</button>
-						</div>
-							<div class="border-b border-border px-3 py-2 text-xs text-muted-fg">
-								<div class="flex items-center justify-between">
-									<span class="font-semibold text-canvas-fg">ACME-DASHBOARD</span>
-									<span>{{ stagedChanges }}</span>
-								</div>
-							</div>
-						<div class="min-h-0 flex-1 overflow-auto p-2">
-							<DomTreeView
-								v-model="selectedFileId"
-								v-model:items="fileTree"
-								:chrome="false"
-								:draggable="true"
-								density="compact"
-								label="Project files"
-								@select="selectFile"
-							>
-									<template #row="{ item, node, open, loading, toggle }">
-										<div class="flex min-w-0 flex-1 items-center gap-1 text-xs">
-											<button
-												v-if="node.expandable"
-												type="button"
-												class="grid size-6 shrink-0 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg"
-												:aria-label="open ? 'Collapse folder' : 'Expand folder'"
-												@click.stop="toggle"
-											>
-												<svg v-if="loading" viewBox="0 0 20 20" class="size-4 animate-spin" fill="none" aria-hidden="true">
-													<circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="2" opacity=".25" />
-													<path d="M17 10a7 7 0 0 0-7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-												</svg>
-												<svg v-else viewBox="0 0 20 20" class="size-4 transition" :class="open && 'rotate-90'" fill="none" aria-hidden="true">
-													<path d="M8 5l5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-												</svg>
-											</button>
-											<span v-else class="size-6 shrink-0" aria-hidden="true"></span>
-											<svg class="size-4 shrink-0" :class="fileIconClass({ ...item, open })" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-												<path
-													v-if="item.kind === 'folder'"
-												d="M4 6h6l2 2h8v10H4V6Z"
-												stroke="currentColor"
-												stroke-width="1.7"
-												stroke-linejoin="round"
-											/>
-											<path
-												v-else
-												d="M6 4h8l4 4v12H6V4Zm8 0v5h5"
-												stroke="currentColor"
-												stroke-width="1.7"
-												stroke-linejoin="round"
-											/>
-										</svg>
-											<span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
-											<span v-if="item.status" class="text-[10px] font-bold" :class="statusClass(item.status)">{{ item.status }}</span>
-										</div>
-									</template>
-								</DomTreeView>
-							</div>
-							<div class="border-t border-border p-3">
-								<div class="rounded-lg border border-border bg-canvas p-3 text-xs shadow-sm">
-									<div class="flex items-center justify-between text-canvas-fg">
-										<span>Codebase index</span>
-										<span class="text-success">Ready</span>
-									</div>
-									<div class="mt-2 h-1.5 rounded-full bg-secondary">
-										<div class="h-full w-[92%] rounded-full bg-success"></div>
-									</div>
-									<p class="mt-2 text-muted-fg">1,284 files, 4 rules, 18 embeddings updated.</p>
-								</div>
-							</div>
-						</section>
-				</template>
-
-					<div class="flex h-full min-h-0 flex-col bg-canvas">
-						<div class="flex h-10 shrink-0 items-center overflow-x-auto border-b border-border bg-secondary/55 px-2 pt-1">
-							<div
-								v-for="file in openTabs"
-								:key="file.id"
-								role="button"
-								tabindex="0"
-								:aria-label="`Open ${file.name}`"
-								class="group -mb-px flex h-full min-w-40 max-w-56 items-center gap-2 rounded-t-md border border-transparent border-b-border px-3 text-left text-xs transition"
-								:class="file.id === activeFileId ? 'border-border border-b-canvas bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:bg-secondary hover:text-canvas-fg'"
-								@click="openFile(file.id)"
-								@keydown.enter.prevent="openFile(file.id)"
-								@keydown.space.prevent="openFile(file.id)"
-							>
-								<span class="size-2 rounded-full" :class="file.status ? 'bg-warning' : 'bg-muted-fg/40'"></span>
-								<span class="min-w-0 flex-1 truncate">{{ file.name }}</span>
-								<button
-									type="button"
-									class="grid size-5 place-items-center rounded text-muted-fg opacity-0 hover:bg-secondary hover:text-canvas-fg group-hover:opacity-100"
-									aria-label="Close tab"
-									@click="closeTab(file.id, $event)"
-							>
-								<svg class="size-3" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-									<path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-								</svg>
-							</button>
-						</div>
-					</div>
-
-						<div class="flex h-8 shrink-0 items-center justify-between border-b border-border bg-secondary/35 px-3 text-xs text-muted-fg">
-							<div class="min-w-0 truncate">
-								<span class="text-canvas-fg">{{ activeFile.name }}</span>
-								<span class="mx-2">/</span>
-								<span>{{ activeFile.path }}</span>
-							</div>
-							<div class="hidden items-center gap-3 sm:flex">
-								<button type="button" class="hover:text-canvas-fg" @click="acceptInlineCompletion">Tab accept</button>
-								<button type="button" class="hover:text-canvas-fg" @click="reviewOpen = true">Review</button>
-							</div>
-						</div>
-
-					<div class="relative min-h-0 flex-1 overflow-hidden">
-						<div class="grid h-full grid-cols-[3.25rem_minmax(0,1fr)] overflow-hidden">
-								<div class="select-none overflow-hidden border-r border-border bg-secondary/30 py-4 text-right font-mono text-xs leading-6 text-muted-fg/70">
-									<div v-for="line in lineNumbers" :key="line" class="px-3">{{ line }}</div>
-								</div>
-								<textarea
-								:key="activeFile.id"
-								v-model="activeContent"
-								spellcheck="false"
-									class="cursor-editor h-full w-full resize-none overflow-auto border-0 bg-canvas p-4 font-mono text-[13px] leading-6 text-canvas-fg outline-none"
-									:aria-label="`Editing ${activeFile.name}`"
-								></textarea>
-							</div>
-							<div class="pointer-events-none absolute right-5 top-5 rounded-md border border-border bg-canvas/95 px-3 py-2 text-xs text-muted-fg shadow-xl">
-								<span class="text-success">Tab</span>
-								<span class="ml-2">predicts next edit in {{ activeFile.name }}</span>
-							</div>
-							<button
-								type="button"
-								class="absolute bottom-5 right-5 rounded-md border border-border bg-primary px-3 py-2 text-xs font-medium text-primary-fg shadow-xl transition hover:opacity-90"
-								@click="acceptInlineCompletion"
-							>
-								Accept inline completion
-							</button>
-						</div>
-
-						<div class="h-48 shrink-0 border-t border-border bg-secondary/45">
-							<DomTabs v-model="activeBottomTab" :tabs="bottomTabs" variant="page" fill>
-								<template #terminal>
-									<div class="h-full overflow-auto bg-canvas p-3 font-mono text-xs leading-6 text-muted-fg">
-										<p v-for="(line, index) in terminalLines" :key="`${line}-${index}`" :class="line.startsWith('PASS') ? 'text-success' : ''">
-											{{ line }}
-										</p>
-									</div>
-								</template>
-								<template #problems>
-									<div class="h-full overflow-auto divide-y divide-border text-xs">
-										<div v-for="problem in problemItems" :key="`${problem.file}-${problem.line}`" class="grid grid-cols-[5rem_1fr] gap-3 px-4 py-3">
-											<span class="capitalize" :class="problem.severity === 'warning' ? 'text-warning' : 'text-primary'">{{ problem.severity }}</span>
-											<p class="text-canvas-fg">
-												<span class="text-muted-fg">{{ problem.file }}:{{ problem.line }}</span>
-												{{ problem.message }}
-											</p>
-										</div>
-									</div>
-								</template>
-								<template #output>
-									<div class="grid h-full place-items-center p-4 text-center text-sm text-muted-fg">
-										<div>
-											<p class="text-canvas-fg">Agent output channel</p>
-											<p class="mt-1 text-xs">Last command: {{ lastCommand }}</p>
-										</div>
-									</div>
-							</template>
-						</DomTabs>
-					</div>
-				</div>
-
-					<template #end>
-						<aside class="flex h-full min-h-0 flex-col border-l border-border bg-secondary/45">
-							<div class="flex h-10 items-center justify-between border-b border-border px-3">
-								<div class="flex min-w-0 items-center gap-2">
-									<span class="grid size-6 place-items-center rounded-md bg-primary/10 text-primary">
-										<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-											<path d="M12 3v3M6.5 7.5 4.5 5.5M17.5 7.5l2-2M5 14a7 7 0 0 1 14 0v4H5v-4Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-										</svg>
-									</span>
-									<span class="truncate text-sm font-semibold text-canvas-fg">Agent</span>
-								</div>
-								<DomPopover width="w-72" padding="p-3" position="bottom-end" label="Model picker">
-									<template #trigger>
-										<button type="button" class="rounded-md border border-border px-2 py-1 text-xs text-muted-fg hover:bg-secondary hover:text-canvas-fg">
-											{{ activeModelLabel }}
-										</button>
-									</template>
-									<div class="grid gap-3 text-xs text-canvas-fg">
-										<label class="grid gap-1">
-											<span class="font-medium">Model</span>
-											<DomNativeSelect v-model="selectedModel" :options="modelOptions" />
-									</label>
-									<DomCheckbox v-model="includeWorkspace" label="Include workspace index" description="Use files, rules, and symbols." />
-									<DomCheckbox v-model="includeTerminal" label="Include terminal output" description="Let the agent read recent command output." />
-								</div>
-							</DomPopover>
-						</div>
-
-							<div class="border-b border-border px-3 py-3">
-								<DomToggleButtonGroup
-									v-model="agentMode"
-									:options="modeOptions"
-								size="sm"
-								label="Agent mode"
-								chrome="none"
-							/>
-						</div>
-
-							<div class="min-h-0 flex-1">
-								<DomTabs v-model="activeAssistantTab" :tabs="assistantTabs" variant="page" fill>
-									<template #chat>
-										<div class="flex h-full min-h-0 flex-col">
-											<div data-chat-scroll class="min-h-0 flex-1 overflow-auto p-3">
-											<div class="space-y-3">
-												<div
-														v-for="message in chatMessages"
-														:key="message.id"
-														class="rounded-lg border p-3 text-sm"
-														:class="message.role === 'user' ? 'border-primary/30 bg-primary/10' : 'border-border bg-canvas'"
-													>
-														<div class="flex items-center justify-between gap-3 text-xs">
-															<span class="font-semibold text-canvas-fg">{{ message.author }}</span>
-															<span v-if="message.meta" class="truncate text-muted-fg">{{ message.meta }}</span>
-														</div>
-														<p class="mt-2 leading-6 text-muted-fg">{{ message.body }}</p>
-													</div>
-												</div>
-											</div>
-											<div class="border-t border-border p-3">
-												<div class="rounded-lg border border-border bg-canvas p-2 shadow-sm">
-													<textarea
-														v-model="composerText"
-														class="min-h-24 w-full resize-none border-0 bg-transparent p-2 text-sm leading-6 text-canvas-fg outline-none placeholder:text-muted-fg"
-														placeholder="Ask Agent to build, search, or edit..."
-														@keydown.meta.enter.prevent="runAgent"
-														@keydown.ctrl.enter.prevent="runAgent"
-													></textarea>
-													<div class="flex items-center justify-between gap-2 border-t border-border px-2 pt-2">
-														<span class="text-xs text-muted-fg">/ commands - @ files - ! shell</span>
-														<DomButton size="sm" @click="runAgent">
-														<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-															<path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-														</svg>
-														Send
-													</DomButton>
-												</div>
-											</div>
-										</div>
-									</div>
-								</template>
-
-								<template #tasks>
-									<div class="h-full overflow-auto p-3">
-										<div class="space-y-3">
-											<button
-													v-for="task in tasks"
-													:key="task.id"
-													type="button"
-												class="w-full rounded-lg border p-3 text-left transition"
-												:class="taskClass(task)"
-												@click="selectedTaskId = task.id"
-												>
-													<div class="flex items-start justify-between gap-3">
-														<div class="min-w-0">
-															<p class="truncate text-sm font-semibold text-canvas-fg">{{ task.title }}</p>
-															<p class="mt-1 text-xs text-muted-fg">{{ task.detail }}</p>
-														</div>
-														<span class="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary">{{ task.state }}</span>
-													</div>
-													<div class="mt-3 h-1.5 rounded-full bg-secondary">
-														<div class="h-full rounded-full bg-primary" :style="{ width: `${task.progress}%` }"></div>
-													</div>
-													<p class="mt-2 text-xs text-muted-fg">{{ task.files.join(', ') }}</p>
-												</button>
-											</div>
-										</div>
-									</template>
-
-									<template #rules>
-										<div class="h-full overflow-auto p-4 text-sm leading-7 text-muted-fg">
-											<div class="rounded-lg border border-border bg-canvas p-4">
-												<p class="font-semibold text-canvas-fg">Rules in context</p>
-												<ul class="mt-3 space-y-2 text-xs text-muted-fg">
-													<li>Prefer small, reviewable commits.</li>
-													<li>Preserve existing design tokens and route conventions.</li>
-													<li>Run focused tests before proposing a final patch.</li>
-												</ul>
-											</div>
-											<label class="mt-4 flex items-center justify-between gap-3 rounded-lg border border-border bg-canvas p-3">
-												<span>
-													<span class="block text-sm font-medium text-canvas-fg">Auto-apply low-risk edits</span>
-													<span class="text-xs text-muted-fg">Only comments, imports, and formatting patches.</span>
-												</span>
-												<DomToggle v-model="autoApplyLowRisk" />
-										</label>
-									</div>
-								</template>
-							</DomTabs>
-						</div>
-					</aside>
-				</template>
-			</DomSplitterPanel>
+	<div class="h-dvh min-h-0 overflow-hidden bg-canvas text-canvas-fg">
+		<div v-if="loading" class="flex h-full flex-col">
+			<div class="flex h-16 items-center border-b border-border px-4"><DomSkeleton variant="text" :lines="1" width="30rem" /></div>
+			<div class="grid min-h-0 flex-1 lg:grid-cols-[16rem_minmax(0,1fr)_22rem]"><div class="hidden border-r border-border p-4 lg:block"><DomSkeleton variant="text" :lines="14" /></div><div class="p-5"><DomSkeleton variant="text" :lines="18" /></div><div class="hidden border-l border-border p-4 lg:block"><DomSkeleton variant="text" :lines="14" /></div></div>
 		</div>
 
-		<DomCommandPalette
-			v-model="commandOpen"
-			:commands="commandItems"
-			placeholder="Search files, commands, and agent actions..."
-			@select="handleCommand"
-		/>
-
-			<DomDrawer v-model="reviewOpen" title="Review agent changes" width="var(--container-2xl)">
-				<div class="grid gap-4 p-4 text-sm text-muted-fg">
-					<div class="rounded-lg border border-border bg-canvas p-4">
-						<div class="flex flex-wrap items-start justify-between gap-3">
-							<div>
-								<p class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg">Patch summary</p>
-								<h3 class="mt-1 text-lg font-semibold text-canvas-fg">Mission-control dashboard pass</h3>
-								<p class="mt-2 max-w-2xl leading-6 text-muted-fg">
-									The agent proposes a focused UI update across the dashboard route, project preview component, and workspace data helper.
-								</p>
-							</div>
-							<span class="rounded-full bg-success/15 px-3 py-1 text-xs font-semibold text-success">Low risk</span>
-						</div>
+		<div v-else-if="workspace && bootstrap" class="flex h-full min-h-0 flex-col">
+			<header class="shrink-0 border-b border-border bg-canvas">
+				<div class="flex min-h-16 items-center gap-3 px-3 py-2 sm:px-4">
+					<div class="min-w-0 flex-1">
+						<div class="flex min-w-0 items-center gap-2"><h1 class="truncate text-sm font-semibold sm:text-base">{{ workspace.name }}</h1><DomStatusPill :tone="workspace.statusTone" size="sm">{{ workspace.statusLabel }}</DomStatusPill><DomBadge v-if="isDirty" tone="warning" variant="outline">Unsaved</DomBadge></div>
+						<p class="truncate text-xs text-muted-fg">{{ workspace.repository }} · {{ workspace.branch }} · repo rev {{ workspace.revision }}</p>
 					</div>
-
-					<div class="grid gap-3">
-						<div v-for="item in reviewItems" :key="item.id" class="rounded-lg border border-border bg-canvas p-4">
-							<div class="flex items-start justify-between gap-3">
-								<div class="min-w-0">
-									<p class="truncate font-mono text-xs text-primary">{{ item.file }}</p>
-									<p class="mt-2 text-sm leading-6 text-muted-fg">{{ item.summary }}</p>
-								</div>
-								<span class="rounded bg-primary/10 px-2 py-1 text-xs text-primary">{{ item.status }}</span>
-							</div>
-						</div>
-					</div>
-
-					<div class="rounded-lg border border-border bg-secondary/40 p-4 font-mono text-xs leading-6">
-						<p class="text-success">+ const reviewState = summary.projects.filter((project) =&gt; project.status === "review");</p>
-						<p class="text-success">+ &lt;MissionControl projects=&#123;summary.projects&#125; reviewState=&#123;reviewState&#125; /&gt;</p>
-						<p class="text-destructive">- &lt;MissionControl projects=&#123;summary.projects&#125; /&gt;</p>
-					</div>
+					<div class="flex shrink-0 items-center gap-2"><div class="hidden sm:block"><DomButton size="sm" variant="secondary" :loading="busy" @click="runTests">Run tests</DomButton></div><DomButton v-if="isDirty" size="sm" :loading="busy" @click="saveFile">Save file</DomButton><DomButton v-else size="sm" variant="secondary" @click="activeView = 'agent'">Ask agent</DomButton></div>
 				</div>
-			<template #footer>
-				<div class="flex flex-wrap justify-end gap-2">
-					<DomButton variant="ghost" @click="reviewOpen = false">Cancel</DomButton>
-					<DomButton variant="secondary" @click="commandOpen = true">Ask follow-up</DomButton>
-					<DomButton @click="applySuggestion">Apply patch</DomButton>
-				</div>
-			</template>
-			</DomDrawer>
+			</header>
 
-			<DomDrawer v-model="settingsOpen" title="Workspace settings" width="var(--container-md)">
-				<div class="grid gap-5 p-4 text-sm text-muted-fg">
-					<label class="grid gap-2">
-						<span class="font-medium text-canvas-fg">Default model</span>
-						<DomNativeSelect v-model="selectedModel" :options="modelOptions" />
-					</label>
-					<div class="rounded-lg border border-border bg-canvas p-4">
-						<p class="font-medium text-canvas-fg">Context sources</p>
-						<div class="mt-4 grid gap-4">
-							<DomCheckbox v-model="includeWorkspace" label="Workspace index" description="Files, symbols, and project rules." />
-							<DomCheckbox v-model="includeTerminal" label="Terminal output" description="Recent test, lint, and shell output." />
-							<DomCheckbox v-model="autoApplyLowRisk" label="Auto-apply low-risk edits" description="Formatting, imports, and doc comments." />
-						</div>
-					</div>
-					<div class="rounded-lg border border-border bg-canvas p-4">
-						<p class="font-medium text-canvas-fg">Current branch</p>
-						<p class="mt-2 text-xs text-muted-fg">{{ branchSummary }}</p>
-					</div>
-				</div>
-			</DomDrawer>
+			<div v-if="errorMessage || successMessage" class="shrink-0 border-b border-border px-3 py-2 sm:px-4"><DomAlert v-if="errorMessage" tone="danger" variant="soft" title="Workspace action needs attention" :description="errorMessage" dismissible @dismiss="errorMessage = ''" /><DomAlert v-else tone="success" variant="soft" title="Workspace updated" :description="successMessage" dismissible @dismiss="successMessage = ''" /></div>
+
+			<DomTabs v-model="activeView" :tabs="mobileViews" variant="page" class="shrink-0 lg:hidden [&>div:last-child]:hidden" />
+
+			<div class="flex min-h-0 flex-1">
+				<aside class="min-h-0 w-full shrink-0 flex-col border-r border-border bg-secondary/10 lg:flex lg:w-64" :class="activeView === 'files' ? 'flex' : 'hidden'">
+					<div class="shrink-0 border-b border-border p-4"><div class="flex items-start justify-between gap-3"><div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Repository</p><p class="mt-1 text-sm font-semibold">{{ workspace.repository }}</p></div><DomBadge tone="neutral" variant="outline">{{ workspace.changedFileCount }} changed</DomBadge></div><div class="mt-3"><DomTextInput v-model="fileSearch" label="Find file" placeholder="Search repository…" /></div></div>
+					<div class="min-h-0 flex-1 overflow-y-auto p-2"><DomTreeView v-if="!fileSearch" v-model="selectedFileId" v-model:items="fileTree" :chrome="false" density="compact" label="Project files" @select="selectTreeFile" /><div v-else class="divide-y divide-border"><button v-for="file in filteredFiles" :key="file.id" type="button" class="w-full px-3 py-3 text-left transition hover:bg-secondary/45" @click="openFile(file.id)"><div class="flex items-start justify-between gap-3"><p class="truncate text-sm font-medium">{{ file.name }}</p><DomBadge :tone="file.statusTone" variant="outline">{{ file.statusLabel }}</DomBadge></div><p class="mt-1 truncate font-mono text-[11px] text-muted-fg">{{ file.path }}</p></button><DomEmptyState v-if="!filteredFiles.length" class="py-12" title="No matching files" description="Try a filename or path segment." /></div></div>
+					<div class="shrink-0 border-t border-border p-4"><div class="flex items-center justify-between text-xs"><span class="text-muted-fg">Indexed files</span><span class="font-semibold">{{ workspace.indexedFileCount.toLocaleString() }}</span></div><div class="mt-2 flex items-center justify-between text-xs"><span class="text-muted-fg">Last index</span><span class="font-semibold">{{ formatTime(workspace.indexedAt) }}</span></div><DomButton class="mt-4 w-full" size="sm" variant="ghost" @click="resetDialogOpen = true">Reset workspace</DomButton></div>
+				</aside>
+
+				<main class="min-h-0 min-w-0 flex-1 flex-col" :class="activeView === 'editor' ? 'flex' : 'hidden lg:flex'">
+					<div class="flex shrink-0 items-end overflow-x-auto border-b border-border bg-secondary/10 px-2 pt-2" role="tablist" aria-label="Open files"><button v-for="file in openFiles" :key="file.id" type="button" role="tab" :aria-selected="activeFile?.id === file.id" class="group flex h-9 min-w-0 max-w-56 items-center gap-2 border border-transparent border-b-border px-3 text-xs text-muted-fg transition hover:bg-secondary/45" :class="activeFile?.id === file.id ? 'border-x-border border-t-border border-b-canvas bg-canvas text-canvas-fg' : ''" @click="openFile(file.id)"><span class="truncate">{{ file.name }}</span><span v-if="file.status !== 'clean'" class="font-semibold" :class="file.status === 'added' ? 'text-success' : 'text-warning'">{{ file.status === 'added' ? 'A' : 'M' }}</span></button></div>
+
+					<section v-if="activeFile" class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+						<div class="flex flex-wrap items-start justify-between gap-3"><div class="min-w-0"><div class="flex min-w-0 items-center gap-2"><h2 class="truncate text-sm font-semibold">{{ activeFile.name }}</h2><DomStatusPill :tone="fileStatusTone" size="sm">{{ activeFile.statusLabel }}</DomStatusPill></div><p class="mt-1 truncate font-mono text-xs text-muted-fg">{{ activeFile.path }} · file rev {{ activeFile.revision }}</p></div><div class="flex items-center gap-2"><DomButton size="sm" variant="secondary" :loading="busy" @click="runTests">Test</DomButton><DomButton size="sm" :disabled="!isDirty" :loading="busy" @click="saveFile">Save</DomButton></div></div>
+						<div class="mt-4"><DomCodeInput v-model="editorContent" label="File content" :lang="activeFile.language" :rows="16" :editor="false" :errors="fieldErrors.content || []" description="Saves use the exact server file revision and recover from stale writes." /></div>
+					</section>
+
+					<section class="h-56 shrink-0 border-t border-border bg-secondary/10"><DomTabs v-model="evidenceTab" :tabs="evidenceTabs" variant="page" fill>
+						<template #terminal><div class="h-full min-h-0 overflow-y-auto bg-canvas p-4 font-mono text-xs leading-6"><div v-if="latestTestRun"><div class="mb-3 flex items-center justify-between gap-3"><span class="text-muted-fg">{{ latestTestRun.id }} · repo rev {{ latestTestRun.workspaceRevision }}</span><DomStatusPill :tone="latestTestRun.statusTone" size="sm">{{ latestTestRun.statusLabel }}</DomStatusPill></div><p v-for="line in latestTestRun.output" :key="line" :class="line.startsWith('PASS') ? 'text-success' : line.startsWith('FAIL') ? 'text-destructive' : 'text-muted-fg'">{{ line }}</p></div><DomEmptyState v-else title="No test evidence" description="Run focused checks against the current repository revision." /></div></template>
+						<template #problems><div class="h-full overflow-y-auto p-4"><DomEmptyState v-if="latestTestRun?.status === 'passed'" title="No current problems" :description="`All ${latestTestRun.testCount} focused checks passed at repository revision ${latestTestRun.workspaceRevision}.`" /><DomAlert v-else tone="danger" title="Focused tests failed" description="Open Terminal to inspect the server-owned failure evidence." /></div></template>
+						<template #activity><div class="h-full divide-y divide-border overflow-y-auto px-4"><div v-for="event in activity" :key="event.id" class="flex items-start justify-between gap-4 py-3"><div><p class="text-sm font-medium">{{ event.label }}</p><p class="mt-1 text-xs text-muted-fg">{{ event.detail }}</p></div><p class="shrink-0 text-[11px] text-muted-fg">{{ event.actor }}</p></div></div></template>
+					</DomTabs></section>
+				</main>
+
+				<aside class="min-h-0 w-full shrink-0 flex-col border-l border-border bg-secondary/10 lg:flex lg:w-88" :class="activeView === 'agent' || activeView === 'review' ? 'flex' : 'hidden'">
+					<DomTabs v-model="assistantTab" :tabs="assistantTabs" variant="page" fill class="min-h-0 flex-1">
+						<template #agent><div class="h-full min-h-0 overflow-y-auto p-4"><div class="flex items-start justify-between gap-3"><div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Change session</p><h2 class="mt-1 text-lg font-semibold">Plan with context</h2></div><DomStatusPill tone="info" size="sm">{{ activeModelLabel }}</DomStatusPill></div><p class="mt-2 text-sm leading-6 text-muted-fg">Ask a repository-aware agent, then review exact file diffs before anything is applied.</p>
+							<div class="mt-5"><DomToggleButtonGroup v-model="mode" :options="bootstrap.options.modes" label="Agent mode" size="sm" chrome="none" /></div>
+							<div class="mt-5"><DomSelect v-model="model" label="Model" :options="bootstrap.options.models" :errors="fieldErrors.model || []" width="min-w-[19rem]"><template #option="{ option }"><div class="flex items-start justify-between gap-3"><div><p class="font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-70">{{ option.description }}</p></div><span class="shrink-0 text-[11px] opacity-60">{{ option.context }}</span></div></template></DomSelect></div>
+							<div class="mt-5"><DomTagCombobox v-model="contextFileIds" :options="bootstrap.options.contextFiles" label="Repository context" placeholder="Add file" :errors="fieldErrors.contextFileIds || []" clearable><template #item="{ item }"><div><p class="font-medium">{{ item.label }}</p><p class="mt-0.5 text-xs text-muted-fg">{{ item.description }}</p></div></template></DomTagCombobox></div>
+							<div class="mt-5"><DomTextareaInput v-model="prompt" label="Change request" :rows="5" :errors="fieldErrors.prompt || []" placeholder="Describe the outcome and safety boundary." /></div>
+							<div class="mt-5 grid gap-4 border-y border-border py-4"><DomCheckbox v-model="includeRules" label="Include repository rules" description="Use the four checked-in project instructions." /><DomCheckbox v-model="includeTests" label="Include test evidence" description="Attach the latest focused test output to context." /></div>
+							<div class="mt-5 grid grid-cols-2 gap-2"><DomButton variant="secondary" :loading="busy" @click="saveDefaults">Save defaults</DomButton><DomButton data-testid="run-agent" :loading="busy" @click="runAgent">Run agent</DomButton></div>
+							<div v-if="proposal?.messages?.length" class="mt-7"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Latest conversation</p><div class="mt-2 divide-y divide-border border-y border-border"><div v-for="message in proposal.messages" :key="`${message.role}-${message.body}`" class="py-4"><div class="flex items-center justify-between gap-3"><p class="text-sm font-semibold">{{ message.author }}</p><p class="text-[11px] text-muted-fg">{{ message.meta }}</p></div><p class="mt-2 text-sm leading-6 text-muted-fg">{{ message.body }}</p></div></div></div>
+						</div></template>
+
+						<template #review><div class="h-full min-h-0 overflow-y-auto p-4"><div v-if="proposal"><div class="flex items-start justify-between gap-3"><div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">{{ proposal.id }}</p><h2 class="mt-1 text-lg font-semibold">Review proposed patch</h2></div><DomStatusPill :tone="proposal.statusTone" size="sm">{{ proposal.statusLabel }}</DomStatusPill></div><p class="mt-2 text-sm leading-6 text-muted-fg">{{ proposal.summary }}</p>
+							<div v-if="proposal.changes?.length" class="mt-5"><DomSelect v-model="selectedChangeFileId" label="Changed file" :options="proposal.changes.map((change) => ({ value: change.fileId, label: change.file.split('/').pop(), description: change.summary }))" width="min-w-[19rem]"><template #option="{ option }"><div><p class="font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-70">{{ option.description }}</p></div></template></DomSelect></div>
+							<div v-if="selectedChange" class="mt-5"><div class="mb-3 flex items-center justify-between gap-3"><p class="truncate font-mono text-xs text-muted-fg">{{ selectedChange.file }}</p><p class="shrink-0 text-xs"><span class="text-success">+{{ selectedChange.additions }}</span> <span class="text-destructive">−{{ selectedChange.deletions }}</span></p></div><DomTextDiff :original="selectedChange.original" :proposed="selectedChange.proposed" original-label="Current" proposed-label="Proposed" view="inline" format="text" /></div>
+							<div class="mt-6"><div class="flex items-center justify-between gap-3"><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Run checks</p><DomStatusPill :tone="proposalReadiness === proposalCheckCount ? 'success' : 'warning'" size="sm">{{ proposalReadiness }}/{{ proposalCheckCount }}</DomStatusPill></div><div class="mt-2 divide-y divide-border border-y border-border"><div v-for="check in proposal.checks" :key="check.label" class="flex items-start justify-between gap-3 py-3"><div><p class="text-sm font-medium">{{ check.label }}</p><p class="mt-1 text-xs text-muted-fg">{{ check.detail }}</p></div><DomBadge :tone="check.status === 'passed' ? 'success' : 'warning'" variant="outline">{{ capitalize(check.status) }}</DomBadge></div></div></div>
+							<div v-if="proposal.receipt" class="mt-6 border-y border-success/35 bg-success/5 py-4"><div class="flex items-center justify-between gap-3"><p class="text-sm font-semibold">Patch applied</p><DomStatusPill tone="success" size="sm">Rollback ready</DomStatusPill></div><p class="mt-2 font-mono text-xs text-muted-fg">{{ proposal.receipt.id }}</p><p class="mt-2 text-sm text-muted-fg">{{ proposal.receipt.filesChanged }} files · repository revision {{ proposal.receipt.workspaceRevision }}</p></div>
+							<div v-else-if="proposal.status === 'proposed'" class="mt-6"><DomButton class="w-full" data-testid="apply-proposal" @click="openApplyDialog">Review and apply {{ proposal.changes.length }} files</DomButton><p class="mt-2 text-center text-xs text-muted-fg">Exact repository revision {{ proposal.workspaceRevision }} required.</p></div>
+							<DomAlert v-else-if="proposal.status === 'answered'" class="mt-6" tone="info" title="No patch created" description="Ask mode returned repository guidance without proposing file mutations." />
+						</div><DomEmptyState v-else class="py-16" title="No agent proposal" description="Run an Edit or Agent request to create reviewable file diffs."><template #actions><DomButton @click="activeView = 'agent'">Open agent</DomButton></template></DomEmptyState></div></template>
+					</DomTabs>
+				</aside>
+			</div>
+
+			<DomDialog v-model="applyDialogOpen" title="Apply reviewed agent patch" :description="`This writes ${proposal?.changes?.length || 0} files against repository revision ${workspace.revision}. A rollback receipt is stored with the result.`"><div class="grid gap-4"><DomAlert tone="warning" variant="soft" title="Repository write" description="If the workspace changed after generation, the server rejects this patch and asks for a fresh agent run." /><DomCheckbox v-model="applyAcknowledged" label="I reviewed each changed file and the repository revision" description="Required before the server writes the proposed content." :errors="fieldErrors.acknowledged || []" /><DomCheckbox v-model="runTestsAfterApply" label="Run focused tests after applying" description="Store MissionControl and workspace-store evidence with the application receipt." /></div><template #footer><DomButton variant="secondary" data-close>Cancel</DomButton><DomButton :disabled="!applyAcknowledged" :loading="busy" @click="applyProposal">Apply patch</DomButton></template></DomDialog>
+
+			<DomDialog v-model="resetDialogOpen" title="Reset the developer workspace?" description="This clears process-local file edits, agent proposals, settings, tests, and activity, then restores the seeded repository."><template #footer><DomButton variant="secondary" data-close>Keep workspace</DomButton><DomButton variant="danger" :loading="busy" @click="resetWorkspace">Reset demo</DomButton></template></DomDialog>
+		</div>
+
+		<div v-else class="grid h-full place-items-center p-6"><DomAlert tone="danger" title="Developer workspace unavailable" :description="errorMessage || 'The workspace API did not return a repository.'"><template #actions><DomButton variant="secondary" @click="loadWorkspace">Try again</DomButton></template></DomAlert></div>
 	</div>
 </template>
-
-<style scoped>
-.cursor-workspace :deep([role="treeitem"]) {
-	color: var(--muted-fg);
-}
-
-.cursor-workspace :deep([role="treeitem"][aria-selected="true"]) {
-	background: color-mix(in oklch, var(--primary) 14%, transparent);
-	color: var(--canvas-fg);
-}
-
-.cursor-editor {
-	tab-size: 4;
-	caret-color: var(--primary);
-}
-
-.cursor-editor::selection {
-	background: color-mix(in oklch, var(--primary) 24%, transparent);
-}
-</style>

@@ -12,8 +12,8 @@ import VirtualMachineControlPanelSrc from './examples/VirtualMachineControlPanel
 	<DomStudioLayout>
 		<DocPage
 			name="Virtual Machine Control Panel Block"
-			tagline="A copyable cloud control panel for reviewing compute capacity, configuring a virtual machine, and launching it with policy checks."
-			tag="Operations UI"
+			tagline="A working compute workspace for provisioning machines, following provider jobs, and operating a durable fleet."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Operations / Infrastructure" title="Virtual machine control panel">
@@ -22,7 +22,7 @@ import VirtualMachineControlPanelSrc from './examples/VirtualMachineControlPanel
 					filename="VirtualMachineControlPanel.vue"
 					presentation="iframe"
 					frame-src="/blocks/operations/infrastructure/virtual-machine-control-panel/preview/VirtualMachineControlPanel"
-					description="Copy this into cloud dashboards, internal platform consoles, hosting products, lab environments, or managed infrastructure tools that need a practical VM creation workflow."
+					description="A DigitalOcean- and EC2-inspired application section with a responsive fleet rail, exact provider-request review, deterministic provisioning, health evidence, snapshots, and power operations."
 					default-open
 					:preview-lines="20"
 				>
@@ -33,15 +33,14 @@ import VirtualMachineControlPanelSrc from './examples/VirtualMachineControlPanel
 			<DocSection eyebrow="Integration" title="How to use this block">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when operators need to provision compute from the same surface where they review fleet health, regional capacity, launch cost, and guardrail readiness.
-						The example keeps the create form, VM inventory, selected machine details, and policy checklist together so teams can adapt it into a real cloud control panel.
+						This example is a complete repository-local application section, not a client-only mock. Every selection and mutation is sent to an API that owns fleet revisions, machine versions, provider receipts, provisioning checks, lifecycle rules, and reload persistence.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>virtualMachines</code>, project choices, size plans, images, and regions with records from your compute, quota, and billing APIs.</li>
-						<li>Submit creation through a server-owned command such as <code>POST /compute/virtual-machines</code>, then poll or subscribe to provisioning state until the machine is ready.</li>
-						<li>Keep quota checks, hostname uniqueness, region capacity, SSH key eligibility, budget limits, firewall rules, and image availability enforced on the server.</li>
-						<li>Persist the visible launch payload with requester, project, estimated cost, policy check results, network assignment, and audit reason before provisioning starts.</li>
-						<li>Return structured errors for capacity, billing, permissions, image deprecation, or network policy failures so the checklist can explain what changed.</li>
+						<li><code>GET /bootstrap</code> returns the authoritative catalog, fleet, selected machine, provider job, evidence, and exact workspace revision.</li>
+						<li><code>POST /provision/preview</code> validates the full draft and locks an expiring checksum over image, size, region, access, protection, storage, and cost.</li>
+						<li><code>POST /provision/commit</code> requires that checksum plus explicit acknowledgement, then returns a provider receipt and deterministic async job.</li>
+						<li>Machine-scoped power and snapshot routes require both the latest workspace revision and exact machine version, so stale operators receive a recoverable conflict.</li>
+						<li>The mobile bottom navigation changes the composition rather than shrinking the three-pane desktop workspace into an unusable screenshot.</li>
 					</ul>
 				</div>
 			</DocSection>
@@ -85,19 +84,19 @@ import VirtualMachineControlPanelSrc from './examples/VirtualMachineControlPanel
 }`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
+			<DocSection eyebrow="Production boundary" title="What to replace in a real platform">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Provisioning state</h3>
-						<p class="mt-2">Treat creation as an async job. Show pending, provisioning, booting, ready, failed, and rollback states from your backend rather than assuming immediate success.</p>
+						<h3 class="font-semibold text-canvas-fg">Provider adapter</h3>
+						<p class="mt-2">Replace the deterministic job with your cloud provider SDK, event stream, or reconciler while preserving provider request IDs and step evidence.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Network policy</h3>
-						<p class="mt-2">Keep VPC, firewall, public IP, and SSH rules server-owned. The UI should collect intent and explain policy, not become the enforcement layer.</p>
+						<h3 class="font-semibold text-canvas-fg">Durable records</h3>
+						<p class="mt-2">Move process memory into machines, jobs, snapshots, commands, and receipts tables with transactions around exact-version mutations.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include image search, cloud-init editing, quota request dialogs, snapshot restore, approval routing, and post-launch health checks.</p>
+						<h3 class="font-semibold text-canvas-fg">Policy and identity</h3>
+						<p class="mt-2">Resolve project roles, quotas, regional capacity, budget, SSH-key scope, network policy, and acknowledgements on the server for the authenticated operator.</p>
 					</div>
 				</div>
 			</DocSection>

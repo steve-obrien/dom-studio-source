@@ -1,11 +1,11 @@
 <script setup>
-import NavigationStatusPill from './NavigationStatusPill.vue';
+import { DomBadge, DomIconButton } from '@getdom/studio/vue';
 
 defineOptions({
 	name: 'PreviewMenuItem',
 });
 
-defineProps({
+const props = defineProps({
 	item: {
 		type: Object,
 		required: true,
@@ -18,41 +18,63 @@ defineProps({
 		type: Number,
 		default: 0,
 	},
+	compact: {
+		type: Boolean,
+		default: false,
+	},
 });
 
 defineEmits(['select']);
+
+/**
+ * Return the short audience marker shown beside gated preview rows.
+ *
+ * @param {Record<string, unknown>} item Navigation preview item.
+ * @returns {string} Short policy label.
+ */
+function audienceLabel(item) {
+	if (item.visibility === 'admins') return 'Admin';
+	if (item.visibility === 'roles') return 'Gated';
+	return '';
+}
 </script>
 
 <template>
-	<div class="grid gap-1">
+	<div class="grid gap-0.5">
 		<button
 			type="button"
-			class="group flex min-h-11 w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm outline-none transition hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring/50"
+			class="group flex min-h-10 w-full items-center gap-2 rounded-md pr-2 text-left text-sm outline-none transition hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring/50"
 			:class="selectedId === item.id ? 'bg-primary/10 text-canvas-fg' : 'text-muted-fg'"
-			:style="{ paddingLeft: `${0.75 + depth * 0.8}rem` }"
+			:style="{ paddingLeft: `${0.5 + depth * 0.75}rem` }"
 			@click="$emit('select', item.id)"
 		>
-			<span class="flex min-w-0 items-center gap-2">
-				<svg viewBox="0 0 24 24" class="size-4 shrink-0" fill="none" aria-hidden="true">
-					<path :d="item.icon" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-				</svg>
-				<span class="min-w-0">
-					<span class="block truncate font-medium text-canvas-fg">{{ item.label }}</span>
-					<span class="block truncate text-xs text-muted-fg">{{ item.url }}</span>
-				</span>
-			</span>
-			<NavigationStatusPill v-if="item.visibility !== 'everyone'" :tone="item.visibility === 'admins' ? 'warning' : 'primary'">
-				{{ item.visibilityLabel }}
-			</NavigationStatusPill>
+			<DomIconButton
+				as="span"
+				class="pointer-events-none"
+				size="xs"
+				:active="selectedId === item.id"
+				:icon="item.icon"
+				:label="`${item.label} icon`"
+			/>
+			<span class="min-w-0 flex-1 truncate font-medium text-canvas-fg">{{ item.label }}</span>
+			<DomBadge
+				v-if="audienceLabel(item) && !compact"
+				tone="neutral"
+				variant="outline"
+				size="sm"
+			>
+				{{ audienceLabel(item) }}
+			</DomBadge>
 		</button>
 
-		<div v-if="item.children?.length" class="grid gap-1">
+		<div v-if="item.children?.length" class="grid gap-0.5">
 			<PreviewMenuItem
 				v-for="child in item.children"
 				:key="child.id"
 				:item="child"
-				:selected-id="selectedId"
-				:depth="depth + 1"
+				:selected-id="props.selectedId"
+				:depth="props.depth + 1"
+				:compact="props.compact"
 				@select="$emit('select', $event)"
 			/>
 		</div>

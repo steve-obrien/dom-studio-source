@@ -12,7 +12,7 @@ import SavedFilterBuilderSrc from './examples/SavedFilterBuilder.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Saved Filters Block"
-			tagline="A responsive workspace for building reusable views, combining filter rules, previewing matching records, and sharing saved segments."
+			tagline="An API-backed saved-view workspace for server-owned query rules, live issue results, explicit sharing, subscriber updates, exact previews, and auditable saves."
 			tag="Productivity UI"
 			eyebrow="Blocks"
 		>
@@ -22,9 +22,9 @@ import SavedFilterBuilderSrc from './examples/SavedFilterBuilder.vue?raw';
 					filename="SavedFilterBuilder.vue"
 					presentation="iframe"
 					frame-src="/blocks/work-management/saved-filters/preview/SavedFilterBuilder"
-					description="Copy this into a CRM, admin table, issue tracker, analytics product, or marketplace dashboard where people need reusable filtered views. Replace the local arrays with your records, fields, operators, saved views, and permission model."
+					description="Copy this into an issue tracker, CRM, admin table, analytics product, or marketplace dashboard where people need reusable views backed by an authoritative query and permission model."
 					default-open
-					:preview-lines="14"
+					:preview-lines="20"
 				>
 					<SavedFilterBuilder />
 				</Example>
@@ -34,51 +34,56 @@ import SavedFilterBuilderSrc from './examples/SavedFilterBuilder.vue?raw';
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
 						Use this block when a product has dense records and users need more than a one-off search box.
-						It gives teams a copyable structure for field filters, saved views, ownership, share status, preview rows, and change history.
+						The responsive composition keeps view discovery, live records, query editing, permissions, subscriptions, and immutable save evidence available without shrinking a three-column desktop dashboard into the iframe.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>savedViews</code> with workspace or user-owned view records from your backend.</li>
-						<li>Map <code>filterFields</code> to the fields your API can query, including allowed operators and value options.</li>
-						<li>Apply rule changes optimistically in the UI, then persist them through a save endpoint when the user updates the view.</li>
-						<li>Connect preview rows to a debounced search endpoint that returns counts, sample records, and warnings for expensive filters.</li>
-						<li>Use the visibility and owner values to decide whether a view is personal, team-shared, locked, or editable.</li>
+						<li>Load compact saved-view summaries first, then fetch one complete view and its evaluated records from the detail endpoint.</li>
+						<li>Expose server-owned fields, operators, and allowed values through rich <code>DomSelect</code> and <code>DomTagCombobox</code> controls.</li>
+						<li>Evaluate a draft against the API dataset before saving so the user can inspect matching work, query cost, permissions, and notification behavior.</li>
+						<li>Persist only an acknowledged preview checksum at exact workspace and view revisions, returning structured validation or recoverable conflicts when state changes.</li>
+						<li>Treat favorites, workspace or team visibility, subscriptions, activity, and audit receipts as product data instead of local presentation state.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended saved view shape">
+			<DocSection eyebrow="Data" title="Recommended API payload">
 				<CodeBlock lang="js" filename="saved-view.js" :code="`{
-\tid: 'view_high_value_trials',
-\tname: 'High-value trials',
-\tdescription: 'Trials with enterprise fit and recent product activity.',
-\towner: 'Maya Chen',
-\tvisibility: 'Team',
-\tupdatedAt: 'Today 10:18',
+\tworkspace: { revision: 23, selectedViewId: 'view_launch_risk' },
+\tview: {
+\t\tid: 'view_launch_risk',
+\t\tversion: 5,
+\t\tname: 'Launch risks',
+\t\tvisibility: 'workspace',
+\t\talertMode: 'added'
+\t},
 \tmatchMode: 'all',
 \trules: [
-\t\t{ id: 'rule_1', field: 'Plan fit', operator: 'is', value: 'Enterprise' },
-\t\t{ id: 'rule_2', field: 'Product usage', operator: 'above', value: '70%' }
+\t\t{ field: 'priority', operator: 'is_any_of', values: ['urgent', 'high'] },
+\t\t{ field: 'status', operator: 'is_not', values: ['done'] }
 \t],
-\tmetrics: { matches: 128, conversion: '18.4%', revenue: '$94k' },
-\tactivity: [
-\t\t{ label: 'Rule added', actor: 'Maya Chen', time: 'Today 10:18' }
-\t]
+\tpreview: {
+\t\tchecksum: 'sha256:demo-de87b61a',
+\t\tcount: 4,
+\t\tpoints: 13,
+\t\tqueryCost: 'low'
+\t},
+\treceipt: { id: 'view-save-8801', auditReceipt: 'audit:view-8801' }
 }`" />
 			</DocSection>
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Rule evaluation</h3>
-						<p class="mt-2">Keep the UI rule model close to your API query grammar so saved views can be reused across tables, exports, alerts, and automations.</p>
+						<h3 class="font-semibold text-canvas-fg">Query authority</h3>
+						<p class="mt-2">Keep field, operator, value, cost, and permission rules authoritative on the server so saved views can safely power tables, exports, alerts, and automations.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Sharing model</h3>
-						<p class="mt-2">Treat team views as shared objects with ownership, edit permissions, and audit events instead of plain local preferences.</p>
+						<h3 class="font-semibold text-canvas-fg">Exact saves</h3>
+						<p class="mt-2">Lock the evaluated query, matching count, audience, notifications, and view version into a checksum before applying a material shared-view change.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include a reusable rule row component, nested rule groups, saved-view permissions, export actions, and alert subscriptions.</p>
+						<h3 class="font-semibold text-canvas-fg">Responsive composition</h3>
+						<p class="mt-2">Desktop exposes Views, Results, and Query together. Embedded and mobile widths make them first-class destinations through <code>DomAppBottomNav</code>.</p>
 					</div>
 				</div>
 			</DocSection>

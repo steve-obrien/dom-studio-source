@@ -12,7 +12,7 @@ import ModerationReviewQueueSrc from './examples/ModerationReviewQueue.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Content Moderation Block"
-			tagline="A copyable trust and safety workspace for reviewing reported posts, comparing policy signals, making decisions, and preserving an audit trail."
+			tagline="An API-backed trust and safety review desk for claimed cases, contextual evidence, exact policy decisions, appeals, author delivery, and immutable audit receipts."
 			tag="Application UI"
 			eyebrow="Blocks"
 		>
@@ -22,7 +22,7 @@ import ModerationReviewQueueSrc from './examples/ModerationReviewQueue.vue?raw';
 					filename="ModerationReviewQueue.vue"
 					presentation="iframe"
 					frame-src="/blocks/trust-and-safety/content-moderation/preview/ModerationReviewQueue"
-					description="Copy this into marketplaces, communities, education products, AI apps, creator tools, or internal operations consoles where reported content needs structured review."
+					description="Copy this into marketplaces, communities, creator products, or internal safety consoles where reports need accountable ownership, reversible review, and auditable enforcement."
 					default-open
 					:preview-lines="20"
 				>
@@ -34,43 +34,38 @@ import ModerationReviewQueueSrc from './examples/ModerationReviewQueue.vue?raw';
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
 						Use this block when a product needs a clear review workflow for user-generated content, abuse reports, AI outputs, marketplace listings, or account safety events.
-						The surface keeps queue priority, content evidence, reporter context, policy checks, decision controls, and activity history visible without forcing moderators through separate screens.
+						The surface keeps queue priority, conversation context, reporter evidence, machine signals, exact decision effects, appeals, and activity history visible without shrinking a desktop dashboard into the iframe.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Load queue items from your moderation API with status, severity, report count, content preview, author history, policy signals, and evidence attachments.</li>
-						<li>Persist every decision with the moderator id, policy reason, action, note, timestamp, and previous state so appeals and audits have complete context.</li>
-						<li>Keep high-risk policy rules server-owned. Let the UI show matched policies and decision options, then validate actions against your backend before applying them.</li>
-						<li>Connect the activity timeline to reports, automated classifiers, moderator decisions, author appeals, and customer support escalations.</li>
-						<li>Use role-based permissions for destructive actions such as account suspension, content removal, or sensitive evidence access.</li>
+						<li>Load compact queue summaries first, then fetch full content, context, reporter evidence, author history, and classifier signals from the lazy case endpoint.</li>
+						<li>Claim work against exact workspace and case revisions so parallel reviewers receive a recoverable conflict instead of silently overwriting one another.</li>
+						<li>Create an immutable preview before enforcement. The server validates action and policy compatibility, risk gates, rationale quality, author notification, and thread effects.</li>
+						<li>Commit only the exact preview checksum after acknowledgement, then retain the decision, audit, and notification receipts with the case timeline.</li>
+						<li>Review appeals as a second decision that preserves the original enforcement record while recording uphold, restore, or modified outcomes.</li>
 					</ul>
 				</div>
 			</DocSection>
 
 			<DocSection eyebrow="Data" title="Recommended moderation payload">
 				<CodeBlock lang="js" filename="moderation-case.js" :code="`{
+\tworkspace: { revision: 22, reviewerId: 'reviewer-ella' },
 \tcase: {
-\t\tid: 'mod_1048',
-\t\tstatus: 'Needs review',
-\t\tseverity: 'High',
-\t\tqueue: 'Community reports',
-\t\treportCount: 12,
-\t\tcreatedAt: '2026-06-10T09:40:00Z'
+\t\tid: 'case-harassment-1048',
+\t\tversion: 8,
+\t\tstatus: 'decided',
+\t\tseverity: 'high',
+\t\tassignment: { reviewerId: 'reviewer-ella' }
 \t},
-\tcontent: {
-\t\ttype: 'Post',
-\t\ttext: 'Sample reported content preview',
-\t\tauthorId: 'usr_291',
-\t\tworkspaceId: 'wrk_88',
-\t\turl: '/posts/checkout-rollout'
-\t},
-\tpolicySignals: [
-\t\t{ key: 'harassment', label: 'Harassment', confidence: 0.86, matched: true },
-\t\t{ key: 'spam', label: 'Spam pattern', confidence: 0.24, matched: false }
-\t],
-\tdecision: {
+\tdecisionPreview: {
+\t\tchecksum: 'sha256:demo-9e08ccd4',
 \t\taction: 'remove_content',
-\t\treason: 'Harassment policy',
-\t\tnote: 'Repeated targeted language toward another member.'
+\t\tpolicyId: 'harassment',
+\t\teffects: ['Remove content', 'Preserve appeal evidence', 'Notify author']
+\t},
+\treceipt: {
+\t\tdecisionId: 'decision-6106',
+\t\tauditReceipt: 'audit:mod-6107',
+\t\tdeliveryReceipt: 'notify:author-6108'
 \t}
 }`" />
 			</DocSection>
@@ -79,15 +74,15 @@ import ModerationReviewQueueSrc from './examples/ModerationReviewQueue.vue?raw';
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Decision safety</h3>
-						<p class="mt-2">Require a reason and note for removals, suspensions, and escalations. Store immutable audit events rather than overwriting the original case state.</p>
+						<p class="mt-2">Require a policy, rationale, exact preview, and explicit acknowledgement for material enforcement. Preserve original decisions when an appeal creates a second review.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Policy modeling</h3>
-						<p class="mt-2">Normalize policy signals from reports, classifiers, and manual flags so moderators can compare confidence, severity, and evidence in one place.</p>
+						<p class="mt-2">Normalize reports and classifier signals as evidence, while keeping policy thresholds and action compatibility authoritative on the server.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Reusable evidence viewers, appeal review panels, macro replies, duplicate report grouping, and reviewer workload metrics would make this block stronger.</p>
+						<h3 class="font-semibold text-canvas-fg">Responsive composition</h3>
+						<p class="mt-2">Desktop uses a dense queue, case, and decision desk. Embedded and mobile widths expose those same destinations through <code>DomAppBottomNav</code> instead of compressing all three columns.</p>
 					</div>
 				</div>
 			</DocSection>

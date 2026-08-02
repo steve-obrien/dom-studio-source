@@ -2,7 +2,6 @@
 import DomStudioLayout from '../../../../_layout/DomStudioLayout.vue';
 import DocPage from '../../../../_layout/DocPage.vue';
 import DocSection from '../../../../_layout/DocSection.vue';
-import CodeBlock from '../../../../_layout/CodeBlock.vue';
 import Example from '../../../../_layout/docs/Example.vue';
 import ReferralProgram from './examples/ReferralProgram.vue';
 import ReferralProgramSrc from './examples/ReferralProgram.vue?raw';
@@ -12,83 +11,46 @@ import ReferralProgramSrc from './examples/ReferralProgram.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Referral Program Block"
-			tagline="A copyable customer-facing growth loop with invite sharing, reward selection, milestone progress, pending referrals, and referral activity."
-			tag="Growth UI"
+			tagline="A complete referral wallet with tracked invites, lifecycle webhooks, qualification policy, milestone bonuses, and a redeemable reward ledger."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Marketing" title="Referral program">
+			<DocSection eyebrow="Marketing" title="Referral wallet">
 				<Example
 					:source="ReferralProgramSrc"
 					filename="ReferralProgram.vue"
 					presentation="iframe"
 					frame-src="/blocks/marketing/growth/referral-program/preview/ReferralProgram"
-					description="Copy this into account dashboards, ecommerce loyalty pages, SaaS workspaces, creator portals, or marketplace profiles where customers invite others and track reward progress."
+					description="Use this Wise- and Dropbox-inspired section inside a customer account area where invite attribution, referred-account progress, policy evidence, and earned rewards need to remain understandable and actionable."
 					default-open
-					:preview-lines="16"
+					:preview-lines="18"
 				>
 					<ReferralProgram />
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
-				<div class="space-y-4 text-sm leading-7 text-muted-fg">
-					<p>
-						Use this block when a product needs a visible invite loop rather than a buried referral settings page.
-						The layout makes the invite link, reward choice, milestone progress, pending friends, and next reward understandable at a glance.
-					</p>
-					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>referrals</code> with records from your growth, billing, or CRM service, including invitee identity, lifecycle status, qualification rules, and reward outcome.</li>
-						<li>Connect the copy and invite actions to your referral API so each share includes a signed customer code, attribution source, expiry, campaign, and fraud controls.</li>
-						<li>Calculate rewards server-side after the referred account satisfies your rule, such as trial activation, first purchase, paid conversion, or retention through a billing period.</li>
-						<li>Keep reward settings explicit so teams can offer account credit, free months, gift cards, marketplace balance, or product perks without changing the UI structure.</li>
-						<li>Send referral events to analytics with source, channel, milestone, reward type, and qualified revenue so marketing can measure loop quality.</li>
-					</ul>
+			<DocSection eyebrow="Journey" title="Working referral lifecycle">
+				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-2 xl:grid-cols-4">
+					<div class="border-t border-border pt-4"><p class="font-semibold text-canvas-fg">1. Invite or share</p><p class="mt-1">The API validates duplicate and self-referrals, accepts a channel, and returns provider and attribution receipts.</p></div>
+					<div class="border-t border-border pt-4"><p class="font-semibold text-canvas-fg">2. Track progress</p><p class="mt-1">Deterministic webhook actions move the referral through opened, trial, paid invoice, account checks, and qualification.</p></div>
+					<div class="border-t border-border pt-4"><p class="font-semibold text-canvas-fg">3. Credit rewards</p><p class="mt-1">The server calculates the base credit and adds milestone bonuses to a durable customer-visible ledger.</p></div>
+					<div class="border-t border-border pt-4"><p class="font-semibold text-canvas-fg">4. Redeem balance</p><p class="mt-1">An acknowledgement-gated billing action applies the full balance and returns immutable redemption evidence.</p></div>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended referral payload">
-				<CodeBlock lang="js" filename="referral-program.js" :code="`{
-\tmember: {
-\t\tid: 'mem_118',
-\t\tname: 'Alex Morgan',
-\t\treferralCode: 'ALEX-2048',
-\t\tinviteUrl: 'https://app.example.com/join?ref=ALEX-2048'
-\t},
-\tcampaign: {
-\t\tid: 'spring-growth-2026',
-\t\trewardType: 'account_credit',
-\t\trewardAmount: 25,
-\t\tcurrency: 'GBP',
-\t\tqualificationRule: 'referred_account_pays_first_invoice'
-\t},
-\tstats: {
-\t\tqualified: 3,
-\t\tpending: 2,
-\t\tnextMilestone: 5,
-\t\tlifetimeCredit: 75
-\t},
-\treferrals: [
-\t\t{ id: 'ref_101', name: 'Maya Chen', email: 'maya@example.com', status: 'qualified', channel: 'Email', reward: 25 },
-\t\t{ id: 'ref_102', name: 'Nora Lee', email: 'nora@example.com', status: 'pending', channel: 'Link', reward: 0 }
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Repository-local endpoints">
+				<div class="overflow-hidden border-y border-border text-sm">
+					<div class="grid gap-1 border-b border-border py-3 sm:grid-cols-[14rem_minmax(0,1fr)]"><code class="font-semibold text-canvas-fg">GET /bootstrap</code><p class="text-muted-fg">Member, policy, server totals, referral funnel, ledger, activity, and current evidence.</p></div>
+					<div class="grid gap-1 border-b border-border py-3 sm:grid-cols-[14rem_minmax(0,1fr)]"><code class="font-semibold text-canvas-fg">PATCH /preferences</code><p class="text-muted-fg">Exact-revision reward and reminder preferences.</p></div>
+					<div class="grid gap-1 border-b border-border py-3 sm:grid-cols-[14rem_minmax(0,1fr)]"><code class="font-semibold text-canvas-fg">POST /invites</code><p class="text-muted-fg">Validated invite creation with provider and attribution receipts.</p></div>
+					<div class="grid gap-1 border-b border-border py-3 sm:grid-cols-[14rem_minmax(0,1fr)]"><code class="font-semibold text-canvas-fg">POST /shares</code><p class="text-muted-fg">Signed campaign links bound to the active terms version.</p></div>
+					<div class="grid gap-1 border-b border-border py-3 sm:grid-cols-[14rem_minmax(0,1fr)]"><code class="font-semibold text-canvas-fg">POST /referrals/:id/advance</code><p class="text-muted-fg">Provider lifecycle events, qualification checks, and reward posting.</p></div>
+					<div class="grid gap-1 py-3 sm:grid-cols-[14rem_minmax(0,1fr)]"><code class="font-semibold text-canvas-fg">POST /rewards/redeem</code><p class="text-muted-fg">Acknowledged billing-ledger redemption with immutable evidence.</p></div>
+				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Reward rules</h3>
-						<p class="mt-2">Keep qualification windows, duplicate-account checks, refund clawbacks, and payout timing in backend policy so customers see clear but enforceable progress.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Share tracking</h3>
-						<p class="mt-2">Store channel, campaign, UTM values, referral code version, and invite source with each share so growth teams can measure what actually converts.</p>
-					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include fraud review states, leaderboard variants, reward payout history, multi-sided marketplace rewards, and lifecycle email previews.</p>
-					</div>
-				</div>
+			<DocSection eyebrow="Production boundary" title="What the host application still owns">
+				<p class="max-w-4xl text-sm leading-7 text-muted-fg">The repository-local API keeps this example deterministic and fully exercisable. A production integration should replace the in-memory state with authenticated member records, signed attribution tokens, provider webhooks, fraud and household policy, a transactional reward ledger, billing or payout execution, idempotency keys, and jurisdiction-specific terms while keeping the same UI contract.</p>
 			</DocSection>
 		</DocPage>
 	</DomStudioLayout>

@@ -1,438 +1,762 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
-import { DomButton, DomNativeSelect, DomTabs, DomTextareaInput, DomToggle } from '@getdom/studio/vue';
+import { computed, onMounted, reactive, ref } from 'vue';
+import {
+	DomAlert,
+	DomAppBottomNav,
+	DomAppListItem,
+	DomAppShell,
+	DomAppTopBar,
+	DomBadge,
+	DomButton,
+	DomCheckbox,
+	DomDialog,
+	DomEmptyState,
+	DomJsonViewer,
+	DomProgress,
+	DomSelect,
+	DomSkeleton,
+	DomStatusPill,
+	DomTabs,
+	DomTextareaInput,
+	DomTextInput,
+	DomToggle,
+} from '@getdom/studio/vue';
 
-const severityOptions = [
-	{ label: 'SEV-1 Critical', value: 'SEV-1' },
-	{ label: 'SEV-2 Major', value: 'SEV-2' },
-	{ label: 'SEV-3 Minor', value: 'SEV-3' },
-];
-
-const audienceOptions = [
-	{ label: 'Internal only', value: 'Internal only' },
-	{ label: 'Customer email', value: 'Customer email' },
-	{ label: 'Public status page', value: 'Public status page' },
-];
-
-const updateCadenceOptions = [
-	{ label: '15 minutes', value: 15 },
-	{ label: '30 minutes', value: 30 },
-	{ label: '60 minutes', value: 60 },
-];
-
-const tabs = [
-	{ key: 'tasks', label: 'Tasks' },
+const apiBase = '/api/block-demos/incident-response';
+const commandTabs = [
+	{ key: 'actions', label: 'Actions' },
+	{ key: 'evidence', label: 'Evidence' },
 	{ key: 'timeline', label: 'Timeline' },
 ];
-
-const incidents = [
-	{
-		id: 'checkout-errors',
-		title: 'Elevated checkout API errors',
-		status: 'Mitigating',
-		severity: 'SEV-2',
-		commander: 'Maya Chen',
-		deputy: 'Sam Patel',
-		started: '42 min',
-		nextUpdate: '12 min',
-		impact: '128 accounts',
-		region: 'US + EU',
-		summary: 'Checkout creation intermittently returns 502 responses after the edge gateway deploy.',
-		services: [
-			{ name: 'Checkout API', state: 'Degraded', metric: '7.8% errors', trend: 'down' },
-			{ name: 'Edge gateway', state: 'Degraded', metric: 'P95 2.4s', trend: 'down' },
-			{ name: 'Billing worker', state: 'Operational', metric: '0.2% errors', trend: 'flat' },
-		],
-		tasks: [
-			{ label: 'Roll back edge gateway release', owner: 'API on-call', status: 'Done', due: 'Now' },
-			{ label: 'Verify checkout creation from EU test tenant', owner: 'QA lead', status: 'In progress', due: '8 min' },
-			{ label: 'Prepare enterprise customer note', owner: 'Support lead', status: 'Waiting', due: '15 min' },
-			{ label: 'Open postmortem draft', owner: 'Incident deputy', status: 'Waiting', due: 'After mitigation' },
-		],
-		timeline: [
-			{ label: 'Rollback started for edge gateway v2026.06.10', actor: 'API on-call', time: 'Today 16:18' },
-			{ label: 'Public status page updated', actor: 'Maya Chen', time: 'Today 16:07' },
-			{ label: 'Incident promoted from SEV-3 to SEV-2', actor: 'SRE bot', time: 'Today 15:58' },
-			{ label: 'Alert opened from checkout error budget burn', actor: 'Monitoring', time: 'Today 15:42' },
-		],
-	},
-	{
-		id: 'webhook-lag',
-		title: 'Webhook delivery backlog',
-		status: 'Investigating',
-		severity: 'SEV-3',
-		commander: 'Ivy Tan',
-		deputy: 'Jon Bell',
-		started: '1h 12m',
-		nextUpdate: '24 min',
-		impact: '42 accounts',
-		region: 'US only',
-		summary: 'Delivery attempts are delayed for large batch customers while workers drain a retry queue.',
-		services: [
-			{ name: 'Webhook worker', state: 'Degraded', metric: '18k queued', trend: 'down' },
-			{ name: 'Events API', state: 'Operational', metric: 'P95 180ms', trend: 'flat' },
-			{ name: 'Retry store', state: 'Watch', metric: '72% capacity', trend: 'up' },
-		],
-		tasks: [
-			{ label: 'Scale webhook workers to 60 replicas', owner: 'Platform on-call', status: 'Done', due: 'Done' },
-			{ label: 'Identify tenants above retry threshold', owner: 'Data ops', status: 'In progress', due: '20 min' },
-			{ label: 'Draft delayed delivery customer notice', owner: 'Success ops', status: 'Waiting', due: '30 min' },
-		],
-		timeline: [
-			{ label: 'Retry queue dropped below 20k events', actor: 'Monitoring', time: 'Today 15:54' },
-			{ label: 'Workers scaled from 24 to 60 replicas', actor: 'Platform on-call', time: 'Today 15:31' },
-			{ label: 'Incident opened from delivery lag alert', actor: 'SRE bot', time: 'Today 15:12' },
-		],
-	},
-	{
-		id: 'login-timeouts',
-		title: 'Login timeouts for SSO tenants',
-		status: 'Monitoring',
-		severity: 'SEV-2',
-		commander: 'Nora Lee',
-		deputy: 'Ari Grant',
-		started: '2h 04m',
-		nextUpdate: '18 min',
-		impact: '21 tenants',
-		region: 'EU only',
-		summary: 'SAML login latency recovered after cache failover. Team is monitoring error budget and support volume.',
-		services: [
-			{ name: 'Identity API', state: 'Watch', metric: 'P95 640ms', trend: 'down' },
-			{ name: 'SAML broker', state: 'Operational', metric: '0.1% errors', trend: 'flat' },
-			{ name: 'Session cache', state: 'Operational', metric: 'Primary healthy', trend: 'flat' },
-		],
-		tasks: [
-			{ label: 'Confirm SAML login from affected tenants', owner: 'Support lead', status: 'In progress', due: '10 min' },
-			{ label: 'Keep failover cache as primary', owner: 'Identity on-call', status: 'Done', due: 'Done' },
-			{ label: 'Schedule post-incident review', owner: 'Incident deputy', status: 'Waiting', due: 'Tomorrow' },
-		],
-		timeline: [
-			{ label: 'Customer reports slowed to baseline', actor: 'Support lead', time: 'Today 14:51' },
-			{ label: 'Session cache failover completed', actor: 'Identity on-call', time: 'Today 14:29' },
-			{ label: 'Incident opened by support escalation', actor: 'Ari Grant', time: 'Today 13:58' },
-		],
-	},
+const updateTabs = [
+	{ key: 'compose', label: 'Compose' },
+	{ key: 'deliveries', label: 'Deliveries' },
 ];
 
-const selectedIncidentId = ref(incidents[0].id);
-const selectedSeverity = ref(incidents[0].severity);
-const selectedAudience = ref('Public status page');
-const updateCadence = ref(30);
-const activeTab = ref('tasks');
-const notifyEnterprise = ref(true);
-const requireApproval = ref(true);
-const includeMetrics = ref(false);
-const updateDraft = ref('We are mitigating elevated checkout API errors. Checkout creation may fail intermittently for some customers while rollback and verification continue.');
-const publishedUpdate = ref('');
+const workspace = ref(null);
+const incidents = ref([]);
+const selectedIncident = ref(null);
+const catalogs = ref({ severities: [], cadences: [], audiences: [], people: [], services: [] });
+const loading = ref(true);
+const busyAction = ref('');
+const error = ref('');
+const notice = ref('');
+const fieldErrors = ref({});
+const activeView = ref('command');
+const commandTab = ref('actions');
+const updateTab = ref('compose');
+const declareDialogOpen = ref(false);
+const publishAcknowledged = ref(false);
+const resolutionAcknowledged = ref(false);
 
-const selectedIncident = computed(() => incidents.find((incident) => incident.id === selectedIncidentId.value) || incidents[0]);
-const completedTasks = computed(() => selectedIncident.value.tasks.filter((task) => task.status === 'Done').length);
-const readinessPercent = computed(() => Math.round((completedTasks.value / selectedIncident.value.tasks.length) * 100));
-const affectedServices = computed(() => selectedIncident.value.services.filter((service) => service.state !== 'Operational').length);
-const canPublish = computed(() => updateDraft.value.trim().length >= 40 && (!requireApproval.value || selectedAudience.value === 'Internal only' || selectedIncident.value.status !== 'Investigating'));
-const updateSummary = computed(() => `${selectedAudience.value} update queued for ${selectedIncident.value.title}`);
-
-watch(selectedIncident, (incident) => {
-	selectedSeverity.value = incident.severity;
-	activeTab.value = 'tasks';
-	publishedUpdate.value = '';
-	updateDraft.value = `We are ${incident.status.toLowerCase()} ${incident.title.toLowerCase()}. ${incident.summary}`;
+const commandDraft = reactive({
+	severity: '',
+	commanderId: '',
+	liaisonId: '',
+	scribeId: '',
+	cadenceMinutes: 30,
+});
+const updateDraft = reactive({
+	audience: 'public',
+	message: '',
+	includeMetrics: true,
+});
+const declarationDraft = reactive({
+	title: '',
+	severity: 'SEV-2',
+	serviceId: 'checkout_api',
+	impactSummary: '',
 });
 
-function selectIncident(incident) {
-	selectedIncidentId.value = incident.id;
+const mobileNavigation = computed(() => [
+	{ value: 'incidents', label: 'Incidents', badge: String(workspace.value?.counts?.open || '') },
+	{ value: 'command', label: 'Command', badge: selectedIncident.value?.blockers ? String(selectedIncident.value.blockers) : '' },
+	{ value: 'updates', label: 'Updates', badge: selectedIncident.value?.updates?.length ? String(selectedIncident.value.updates.length) : '' },
+]);
+const evidencePayload = computed(() => selectedIncident.value ? {
+	sourceAlert: selectedIncident.value.sourceAlert,
+	bridge: selectedIncident.value.bridge,
+	monitoring: selectedIncident.value.monitoring,
+	services: selectedIncident.value.services,
+} : null);
+const latestUpdate = computed(() => selectedIncident.value?.updates?.[0] || null);
+
+onMounted(loadWorkspace);
+
+/**
+ * Loads the complete incident workspace from the repository-local API.
+ *
+ * @param {boolean} clearMessages Whether visible feedback should be cleared.
+ * @returns {Promise<void>}
+ */
+async function loadWorkspace(clearMessages = true) {
+	if (clearMessages) clearFeedback();
+	loading.value = true;
+	try {
+		const response = await fetch(`${apiBase}/bootstrap`);
+		const data = await response.json();
+		if (!response.ok) throw createRequestError(data, response.status);
+		setWorkspace(data);
+	} catch (requestError) {
+		error.value = requestError.message || 'Unable to load the incident command room.';
+	} finally {
+		loading.value = false;
+	}
 }
 
-function publishUpdate() {
-	if (!canPublish.value) return;
-	publishedUpdate.value = updateSummary.value;
+/**
+ * Sends one JSON mutation and applies the authoritative response.
+ *
+ * @param {string} path API path below the incident-response base URL.
+ * @param {Record<string, unknown>} body JSON request body.
+ * @param {string} action Stable busy-state key.
+ * @returns {Promise<Record<string, unknown> | null>} Updated payload or null after failure.
+ */
+async function mutateWorkspace(path, body, action) {
+	clearFeedback();
+	busyAction.value = action;
+	try {
+		const response = await fetch(`${apiBase}${path}`, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify(body),
+		});
+		const data = await response.json();
+		if (!response.ok) throw createRequestError(data, response.status);
+		setWorkspace(data);
+		return data;
+	} catch (requestError) {
+		error.value = requestError.message || 'Incident action failed.';
+		fieldErrors.value = requestError.fields || {};
+		if (requestError.status === 409) await refreshAfterConflict();
+		return null;
+	} finally {
+		busyAction.value = '';
+	}
 }
 
-function severityClasses(severity) {
-	return {
-		'SEV-1': 'bg-destructive/15 text-destructive',
-		'SEV-2': 'bg-warning/15 text-warning',
-		'SEV-3': 'bg-primary/10 text-primary',
-	}[severity] || 'bg-secondary text-muted-fg';
+/**
+ * Reloads authoritative state after an exact-revision conflict.
+ *
+ * @returns {Promise<void>}
+ */
+async function refreshAfterConflict() {
+	try {
+		const response = await fetch(`${apiBase}/bootstrap`);
+		const data = await response.json();
+		if (response.ok) setWorkspace(data);
+	} catch {
+		// Preserve the original conflict when recovery also fails.
+	}
 }
 
-function statusClasses(status) {
-	return {
-		Mitigating: 'bg-warning/15 text-warning',
-		Investigating: 'bg-primary/10 text-primary',
-		Monitoring: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-		Done: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-		'In progress': 'bg-primary/10 text-primary',
-		Waiting: 'bg-secondary text-muted-fg',
-		Operational: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
-		Degraded: 'bg-warning/15 text-warning',
-		Watch: 'bg-primary/10 text-primary',
-	}[status] || 'bg-secondary text-muted-fg';
+/**
+ * Replaces client state and aligns editable drafts with server evidence.
+ *
+ * @param {Record<string, unknown>} data Authoritative incident workspace.
+ * @returns {void}
+ */
+function setWorkspace(data) {
+	workspace.value = data.workspace;
+	incidents.value = data.incidents || [];
+	selectedIncident.value = data.selectedIncident || null;
+	catalogs.value = data.catalogs || { severities: [], cadences: [], audiences: [], people: [], services: [] };
+	if (selectedIncident.value) setDrafts(selectedIncident.value);
+	if (!selectedIncident.value?.updatePreview) publishAcknowledged.value = false;
+	if (selectedIncident.value?.lifecycle !== 'monitoring') resolutionAcknowledged.value = false;
+}
+
+/**
+ * Copies one incident into command and communication drafts.
+ *
+ * @param {Record<string, unknown>} incident Selected incident.
+ * @returns {void}
+ */
+function setDrafts(incident) {
+	commandDraft.severity = incident.severity;
+	commandDraft.commanderId = incident.roles.commanderId;
+	commandDraft.liaisonId = incident.roles.liaisonId;
+	commandDraft.scribeId = incident.roles.scribeId;
+	commandDraft.cadenceMinutes = incident.cadenceMinutes;
+	updateDraft.audience = incident.updateDraft.audience;
+	updateDraft.message = incident.updateDraft.message;
+	updateDraft.includeMetrics = incident.updateDraft.includeMetrics;
+}
+
+/**
+ * Selects an incident from the active queue.
+ *
+ * @param {string} incidentId Stable incident identifier.
+ * @returns {Promise<void>}
+ */
+async function selectIncident(incidentId) {
+	if (!workspace.value || incidentId === selectedIncident.value?.id || busyAction.value) return;
+	const data = await mutateWorkspace('/select', {
+		revision: workspace.value.revision,
+		incidentId,
+	}, 'select-incident');
+	if (data) {
+		activeView.value = 'command';
+		commandTab.value = 'actions';
+		updateTab.value = 'compose';
+		notice.value = `${data.selectedIncident.title} opened at version ${data.selectedIncident.version}.`;
+	}
+}
+
+/**
+ * Saves severity, unique command roles, and update cadence.
+ *
+ * @returns {Promise<void>}
+ */
+async function saveCommand() {
+	if (!workspace.value || !selectedIncident.value) return;
+	const data = await mutateWorkspace(`/incidents/${selectedIncident.value.id}/command`, {
+		revision: workspace.value.revision,
+		incidentVersion: selectedIncident.value.version,
+		...commandDraft,
+	}, 'save-command');
+	if (data) notice.value = `Command assignments saved in ${data.mutationReceipt.id}.`;
+}
+
+/**
+ * Advances one technical action to started or completed.
+ *
+ * @param {Record<string, unknown>} action Response action.
+ * @returns {Promise<void>}
+ */
+async function advanceAction(action) {
+	if (!workspace.value || !selectedIncident.value) return;
+	const data = await mutateWorkspace(`/incidents/${selectedIncident.value.id}/actions/${action.id}/advance`, {
+		revision: workspace.value.revision,
+		incidentVersion: selectedIncident.value.version,
+	}, `advance-${action.id}`);
+	if (data) notice.value = data.message;
+}
+
+/**
+ * Refreshes monitoring evidence from the deterministic provider adapter.
+ *
+ * @returns {Promise<void>}
+ */
+async function refreshMonitoring() {
+	if (!workspace.value || !selectedIncident.value) return;
+	const data = await mutateWorkspace(`/incidents/${selectedIncident.value.id}/monitor/refresh`, {
+		revision: workspace.value.revision,
+		incidentVersion: selectedIncident.value.version,
+	}, 'refresh-monitoring');
+	if (data) notice.value = `${data.selectedIncident.monitoring.providerReceipt} captured ${data.selectedIncident.monitoring.errorRate}% errors.`;
+}
+
+/**
+ * Creates an immutable customer-update preview.
+ *
+ * @returns {Promise<void>}
+ */
+async function previewUpdate() {
+	if (!workspace.value || !selectedIncident.value) return;
+	const data = await mutateWorkspace(`/incidents/${selectedIncident.value.id}/updates/preview`, {
+		revision: workspace.value.revision,
+		incidentVersion: selectedIncident.value.version,
+		...updateDraft,
+	}, 'preview-update');
+	if (data) {
+		activeView.value = 'updates';
+		updateTab.value = 'compose';
+		notice.value = `${data.selectedIncident.updatePreview.checksum} locked the communication route.`;
+	}
+}
+
+/**
+ * Publishes the exact preview after explicit acknowledgement.
+ *
+ * @returns {Promise<void>}
+ */
+async function publishUpdate() {
+	if (!workspace.value || !selectedIncident.value?.updatePreview) return;
+	const data = await mutateWorkspace(`/incidents/${selectedIncident.value.id}/updates/publish`, {
+		revision: workspace.value.revision,
+		incidentVersion: selectedIncident.value.version,
+		previewChecksum: selectedIncident.value.updatePreview.checksum,
+		acknowledged: publishAcknowledged.value,
+	}, 'publish-update');
+	if (data) {
+		publishAcknowledged.value = false;
+		notice.value = `${data.publicationReceipt.providerReceipt} delivered the customer update.`;
+	}
+}
+
+/**
+ * Moves the selected incident into monitoring after readiness checks pass.
+ *
+ * @returns {Promise<void>}
+ */
+async function markMonitoring() {
+	await transitionIncident('monitoring', false);
+}
+
+/**
+ * Resolves the selected incident with immutable evidence.
+ *
+ * @returns {Promise<void>}
+ */
+async function resolveIncident() {
+	await transitionIncident('resolved', resolutionAcknowledged.value);
+}
+
+/**
+ * Applies one server-owned lifecycle transition.
+ *
+ * @param {string} transition Lifecycle transition.
+ * @param {boolean} acknowledged Whether final evidence is acknowledged.
+ * @returns {Promise<void>}
+ */
+async function transitionIncident(transition, acknowledged) {
+	if (!workspace.value || !selectedIncident.value) return;
+	const data = await mutateWorkspace(`/incidents/${selectedIncident.value.id}/status`, {
+		revision: workspace.value.revision,
+		incidentVersion: selectedIncident.value.version,
+		transition,
+		acknowledged,
+	}, `transition-${transition}`);
+	if (data) {
+		resolutionAcknowledged.value = false;
+		notice.value = data.message;
+	}
+}
+
+/**
+ * Opens a clean incident declaration form.
+ *
+ * @returns {void}
+ */
+function openDeclaration() {
+	fieldErrors.value = {};
+	declarationDraft.title = '';
+	declarationDraft.severity = 'SEV-2';
+	declarationDraft.serviceId = 'checkout_api';
+	declarationDraft.impactSummary = '';
+	declareDialogOpen.value = true;
+}
+
+/**
+ * Declares a new incident through the repository-local API.
+ *
+ * @returns {Promise<void>}
+ */
+async function declareIncident() {
+	if (!workspace.value) return;
+	const data = await mutateWorkspace('/declare', {
+		revision: workspace.value.revision,
+		...declarationDraft,
+	}, 'declare-incident');
+	if (data) {
+		declareDialogOpen.value = false;
+		activeView.value = 'command';
+		notice.value = `${data.selectedIncident.id} declared with ${data.selectedIncident.bridge.providerReceipt}.`;
+	}
+}
+
+/**
+ * Restores the seeded incident command room.
+ *
+ * @returns {Promise<void>}
+ */
+async function resetWorkspace() {
+	const data = await mutateWorkspace('/reset', {}, 'reset-workspace');
+	if (data) {
+		activeView.value = 'command';
+		commandTab.value = 'actions';
+		updateTab.value = 'compose';
+		notice.value = 'Incident command room restored.';
+	}
+}
+
+/**
+ * Clears visible feedback and field errors.
+ *
+ * @returns {void}
+ */
+function clearFeedback() {
+	error.value = '';
+	notice.value = '';
+	fieldErrors.value = {};
+}
+
+/**
+ * Creates an Error carrying HTTP status and field messages.
+ *
+ * @param {Record<string, unknown>} data Error payload.
+ * @param {number} status HTTP status.
+ * @returns {Error & {status: number, fields?: Record<string, string[]>}} Request error.
+ */
+function createRequestError(data, status) {
+	const fieldMessages = Object.values(data.fields || {}).flat().join(' ');
+	const requestError = new Error([data.message, fieldMessages].filter(Boolean).join(' ') || `Request failed with status ${status}.`);
+	requestError.status = status;
+	requestError.fields = data.fields || {};
+	return requestError;
+}
+
+/**
+ * Returns a semantic tone for an action status.
+ *
+ * @param {string} status Action status.
+ * @returns {string} DOM Studio tone.
+ */
+function actionTone(status) {
+	if (status === 'done') return 'success';
+	if (status === 'in_progress') return 'info';
+	return 'neutral';
+}
+
+/**
+ * Returns a semantic tone for a response check.
+ *
+ * @param {string} status Check status.
+ * @returns {string} DOM Studio tone.
+ */
+function checkTone(status) {
+	if (status === 'passed') return 'success';
+	if (status === 'warning') return 'warning';
+	return 'danger';
+}
+
+/**
+ * Returns a semantic tone for service health.
+ *
+ * @param {string} state Service state.
+ * @returns {string} DOM Studio tone.
+ */
+function serviceTone(state) {
+	if (state === 'Operational') return 'success';
+	if (state === 'Watch') return 'info';
+	if (state === 'Major outage') return 'danger';
+	return 'warning';
+}
+
+/**
+ * Formats an ISO timestamp for the activity rail.
+ *
+ * @param {string} value ISO timestamp.
+ * @returns {string} Localized time.
+ */
+function formatTime(value) {
+	if (!value) return '';
+	return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
 }
 </script>
 
 <template>
-	<div class="w-full overflow-hidden rounded-3xl border border-border bg-canvas text-canvas-fg shadow-2xl shadow-black/10">
-		<header class="border-b border-border skin-card px-4 py-4 sm:px-6">
-			<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-				<div>
-					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Reliability operations</p>
-					<h3 class="mt-1 text-2xl font-semibold tracking-tight">Incident command center</h3>
-					<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">
-						Coordinate active incidents with service health, owners, customer impact, communication review, and timeline evidence in one workspace.
-					</p>
-				</div>
-				<div class="flex flex-wrap items-center gap-2">
-					<DomNativeSelect v-model="selectedSeverity" :options="severityOptions" class="w-40" />
-					<DomButton size="sm" variant="secondary">
-						<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-						</svg>
-						New incident
-					</DomButton>
+	<DomAppShell variant="app" class="!h-dvh">
+		<template #top>
+			<DomAppTopBar
+				title="Incident room"
+				:subtitle="selectedIncident ? `${selectedIncident.severity} · ${selectedIncident.statusMeta.label} · ${selectedIncident.elapsedLabel}` : 'Reliability operations'"
+			>
+				<template #leading>
+					<div class="grid size-9 place-items-center rounded-md bg-destructive text-xs font-bold text-destructive-fg" aria-hidden="true">IR</div>
+				</template>
+				<template #trailing>
+					<DomBadge v-if="workspace" tone="neutral" variant="soft" class="!hidden sm:!inline-flex">r{{ workspace.revision }}</DomBadge>
+					<DomButton class="!hidden sm:!inline-flex" size="sm" variant="secondary" :loading="busyAction === 'reset-workspace'" @click="resetWorkspace">Reset</DomButton>
+					<DomButton class="!hidden sm:!inline-flex" size="sm" variant="danger" @click="openDeclaration">Declare incident</DomButton>
+				</template>
+			</DomAppTopBar>
+		</template>
+
+		<div class="relative h-full min-h-0 overflow-hidden">
+			<div v-if="error || notice" class="absolute inset-x-3 top-3 z-20 mx-auto max-w-2xl">
+				<DomAlert v-if="error" tone="danger" variant="toast" title="Incident action failed" :description="error" dismissible @dismiss="error = ''" />
+				<DomAlert v-else tone="success" variant="toast" title="Command room updated" :description="notice" dismissible @dismiss="notice = ''" />
+			</div>
+
+			<div v-if="loading" class="grid h-full lg:grid-cols-[16rem_minmax(0,1fr)_23rem]">
+				<div v-for="column in 3" :key="column" class="space-y-3 border-r border-border p-4 last:border-r-0">
+					<DomSkeleton height="h-8" width="w-2/3" />
+					<DomSkeleton v-for="row in 6" :key="row" height="h-16" />
 				</div>
 			</div>
-		</header>
 
-		<div class="grid min-h-[46rem] lg:grid-cols-[19rem_minmax(0,1fr)_22rem]">
-			<aside class="border-b border-border skin-card lg:border-b-0 lg:border-r">
-				<div class="grid grid-cols-3 border-b border-border text-center text-sm">
-					<div class="px-3 py-3">
-						<p class="text-xs text-muted-fg">Open</p>
-						<p class="mt-1 text-lg font-semibold">{{ incidents.length }}</p>
-					</div>
-					<div class="border-l border-border px-3 py-3">
-						<p class="text-xs text-muted-fg">SEV-2+</p>
-						<p class="mt-1 text-lg font-semibold">2</p>
-					</div>
-					<div class="border-l border-border px-3 py-3">
-						<p class="text-xs text-muted-fg">On call</p>
-						<p class="mt-1 text-lg font-semibold">7</p>
-					</div>
-				</div>
+			<DomEmptyState
+				v-else-if="!workspace || !selectedIncident"
+				title="Incident command room unavailable"
+				description="Reload the repository-local API to restore the response workspace."
+			>
+				<DomButton @click="loadWorkspace">Reload workspace</DomButton>
+			</DomEmptyState>
 
-				<div class="p-3">
-					<p class="px-2 pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Active incidents</p>
-					<div class="space-y-2">
-						<button
+			<div v-else class="grid h-full min-h-0 grid-cols-1 overflow-hidden lg:grid-cols-[16rem_minmax(0,1fr)_23rem]">
+				<aside
+					class="h-full min-h-0 overflow-y-auto border-r border-border bg-muted/10"
+					:class="activeView === 'incidents' ? 'block' : 'hidden lg:block'"
+					aria-label="Active incidents"
+				>
+					<div class="grid grid-cols-3 border-b border-border text-center">
+						<div class="px-2 py-3"><p class="text-[11px] text-muted-fg">Open</p><p class="mt-1 text-lg font-semibold">{{ workspace.counts.open }}</p></div>
+						<div class="border-l border-border px-2 py-3"><p class="text-[11px] text-muted-fg">SEV-2+</p><p class="mt-1 text-lg font-semibold">{{ workspace.counts.major }}</p></div>
+						<div class="border-l border-border px-2 py-3"><p class="text-[11px] text-muted-fg">Needs update</p><p class="mt-1 text-lg font-semibold">{{ workspace.counts.needsUpdate }}</p></div>
+					</div>
+					<div class="border-b border-border px-3 py-3">
+						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Live incidents</p>
+						<p class="mt-1 text-xs leading-5 text-muted-fg">Service alerts promoted into accountable response rooms.</p>
+					</div>
+					<div class="divide-y divide-border">
+						<DomAppListItem
 							v-for="incident in incidents"
 							:key="incident.id"
-							type="button"
-							class="w-full rounded-xl border p-3 text-left transition hover:border-primary/50"
-							:class="incident.id === selectedIncident.id ? 'border-primary/60 bg-primary/5' : 'border-border bg-canvas'"
-							@click="selectIncident(incident)"
+							:label="incident.title"
+							:description="`${incident.severity} · ${incident.serviceName} · ${incident.accountsAffected} affected`"
+							:meta="incident.nextUpdateLabel"
+							:selected="incident.id === selectedIncident.id"
+							@click="selectIncident(incident.id)"
 						>
-							<div class="flex items-start justify-between gap-3">
-								<div class="min-w-0">
-									<p class="truncate text-sm font-semibold">{{ incident.title }}</p>
-									<p class="mt-1 text-xs text-muted-fg">{{ incident.impact }} affected</p>
-								</div>
-								<span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="severityClasses(incident.severity)">
-									{{ incident.severity }}
-								</span>
-							</div>
-							<div class="mt-3 flex items-center justify-between text-xs">
-								<span class="rounded-full px-2 py-0.5 font-semibold" :class="statusClasses(incident.status)">
-									{{ incident.status }}
-								</span>
-								<span class="text-muted-fg">Next {{ incident.nextUpdate }}</span>
-							</div>
-						</button>
+							<template #icon>
+								<span
+									class="size-2.5 rounded-full"
+									:class="incident.severity === 'SEV-1' ? 'bg-destructive' : incident.severity === 'SEV-2' ? 'bg-warning' : 'bg-primary'"
+									aria-hidden="true"
+								></span>
+							</template>
+							<template #trailing>
+								<DomBadge v-if="incident.blockers" tone="danger" size="sm">{{ incident.blockers }}</DomBadge>
+							</template>
+						</DomAppListItem>
 					</div>
-				</div>
-			</aside>
+					<div class="p-3">
+						<DomButton class="w-full" variant="danger" @click="openDeclaration">Declare incident</DomButton>
+						<DomButton class="mt-2 w-full sm:hidden" variant="ghost" :loading="busyAction === 'reset-workspace'" @click="resetWorkspace">Reset demo</DomButton>
+					</div>
+				</aside>
 
-			<main class="min-w-0">
-				<section class="border-b border-border px-4 py-5 sm:px-6">
-					<div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-						<div>
-							<div class="flex flex-wrap items-center gap-2">
-								<span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="severityClasses(selectedSeverity)">
-									{{ selectedSeverity }}
-								</span>
-								<span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="statusClasses(selectedIncident.status)">
-									{{ selectedIncident.status }}
-								</span>
-							</div>
-							<h4 class="mt-3 text-xl font-semibold tracking-tight">{{ selectedIncident.title }}</h4>
-							<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">{{ selectedIncident.summary }}</p>
-						</div>
-						<div class="grid grid-cols-3 overflow-hidden rounded-xl border border-border text-center text-sm">
-							<div class="px-3 py-3">
-								<p class="text-xs text-muted-fg">Duration</p>
-								<p class="mt-1 font-semibold">{{ selectedIncident.started }}</p>
-							</div>
-							<div class="border-l border-border px-3 py-3">
-								<p class="text-xs text-muted-fg">Region</p>
-								<p class="mt-1 font-semibold">{{ selectedIncident.region }}</p>
-							</div>
-							<div class="border-l border-border px-3 py-3">
-								<p class="text-xs text-muted-fg">Services</p>
-								<p class="mt-1 font-semibold">{{ affectedServices }}</p>
-							</div>
-						</div>
-					</div>
-				</section>
-
-				<section class="grid border-b border-border md:grid-cols-3">
-					<div class="border-b border-border px-4 py-4 sm:px-6 md:border-b-0 md:border-r">
-						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Commander</p>
-						<p class="mt-2 font-semibold">{{ selectedIncident.commander }}</p>
-						<p class="mt-1 text-sm text-muted-fg">Deputy: {{ selectedIncident.deputy }}</p>
-					</div>
-					<div class="border-b border-border px-4 py-4 sm:px-6 md:border-b-0 md:border-r">
-						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Customer impact</p>
-						<p class="mt-2 font-semibold">{{ selectedIncident.impact }}</p>
-						<p class="mt-1 text-sm text-muted-fg">Impacted region: {{ selectedIncident.region }}</p>
-					</div>
-					<div class="px-4 py-4 sm:px-6">
-						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Task readiness</p>
-						<div class="mt-3 h-2 overflow-hidden rounded-full bg-secondary">
-							<div class="h-full rounded-full bg-primary" :style="{ width: `${readinessPercent}%` }"></div>
-						</div>
-						<p class="mt-2 text-sm text-muted-fg">{{ completedTasks }} of {{ selectedIncident.tasks.length }} tasks complete</p>
-					</div>
-				</section>
-
-				<section class="border-b border-border px-4 py-5 sm:px-6">
-					<div class="flex items-center justify-between gap-4">
-						<div>
-							<h5 class="font-semibold tracking-tight">Affected services</h5>
-							<p class="mt-1 text-sm text-muted-fg">Current component health from monitoring and incident annotations.</p>
-						</div>
-						<DomButton size="sm" variant="secondary">Open metrics</DomButton>
-					</div>
-					<div class="mt-4 divide-y divide-border rounded-xl border border-border">
-						<div
-							v-for="service in selectedIncident.services"
-							:key="service.name"
-							class="grid gap-3 px-3 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_7rem_7rem_4rem] sm:items-center"
-						>
+				<main
+					class="flex h-full min-h-0 flex-col overflow-hidden"
+					:class="activeView === 'command' ? 'flex' : 'hidden lg:flex'"
+					aria-labelledby="incident-heading"
+				>
+					<header class="shrink-0 border-b border-border px-4 py-4 sm:px-6">
+						<div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
 							<div class="min-w-0">
-								<p class="truncate font-medium">{{ service.name }}</p>
-								<p class="mt-1 text-xs text-muted-fg">Linked to monitor and runbook</p>
+								<div class="flex flex-wrap items-center gap-2">
+									<DomStatusPill :tone="selectedIncident.severityMeta.tone" :label="selectedIncident.severityMeta.label" size="sm" />
+									<DomStatusPill :tone="selectedIncident.statusMeta.tone" :label="selectedIncident.statusMeta.label" size="sm" />
+									<DomBadge tone="neutral" variant="soft">v{{ selectedIncident.version }}</DomBadge>
+								</div>
+								<h1 id="incident-heading" class="mt-3 text-xl font-semibold tracking-tight sm:text-2xl">{{ selectedIncident.title }}</h1>
+								<p class="mt-2 max-w-3xl text-sm leading-6 text-muted-fg">{{ selectedIncident.customerImpact.summary }}</p>
 							</div>
-							<span class="w-fit rounded-full px-2 py-0.5 text-xs font-semibold" :class="statusClasses(service.state)">
-								{{ service.state }}
-							</span>
-							<span class="text-muted-fg">{{ service.metric }}</span>
-							<span class="text-xs font-semibold" :class="service.trend === 'up' ? 'text-warning' : 'text-success'">
-								{{ service.trend }}
-							</span>
+							<div class="text-center sm:text-right">
+								<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">{{ selectedIncident.bridge.label }}</p>
+								<p class="mt-1 font-mono text-xs">{{ selectedIncident.bridge.providerReceipt }}</p>
+								<p class="mt-2 text-xs text-muted-fg">{{ selectedIncident.sourceAlert.provider }} · {{ selectedIncident.sourceAlert.id }}</p>
+							</div>
 						</div>
-					</div>
-				</section>
+					</header>
 
-				<section class="px-4 py-5 sm:px-6">
-					<DomTabs v-model="activeTab" :tabs="tabs" />
-					<div v-if="activeTab === 'tasks'" class="mt-4 divide-y divide-border rounded-xl border border-border">
-						<div
-							v-for="task in selectedIncident.tasks"
-							:key="task.label"
-							class="grid gap-3 px-3 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_7rem_6rem] sm:items-center"
-						>
-							<div>
-								<p class="font-medium">{{ task.label }}</p>
-								<p class="mt-1 text-xs text-muted-fg">{{ task.owner }}</p>
-							</div>
-							<span class="w-fit rounded-full px-2 py-0.5 text-xs font-semibold" :class="statusClasses(task.status)">
-								{{ task.status }}
-							</span>
-							<span class="text-muted-fg">{{ task.due }}</span>
-						</div>
+					<div class="grid shrink-0 grid-cols-2 border-b border-border sm:grid-cols-4">
+						<div class="border-r border-border px-4 py-3"><p class="text-[11px] uppercase tracking-wide text-muted-fg">Error rate</p><p class="mt-1 text-lg font-semibold">{{ selectedIncident.monitoring.errorRate }}%</p></div>
+						<div class="border-r border-border px-4 py-3"><p class="text-[11px] uppercase tracking-wide text-muted-fg">P95 latency</p><p class="mt-1 text-lg font-semibold">{{ selectedIncident.monitoring.p95Ms }}ms</p></div>
+						<div class="border-r border-border px-4 py-3"><p class="text-[11px] uppercase tracking-wide text-muted-fg">Accounts</p><p class="mt-1 text-lg font-semibold">{{ selectedIncident.customerImpact.accountsAffected }}</p></div>
+						<div class="px-4 py-3"><p class="text-[11px] uppercase tracking-wide text-muted-fg">Stable samples</p><p class="mt-1 text-lg font-semibold">{{ selectedIncident.monitoring.stableSamples }}/2</p></div>
 					</div>
-					<div v-else class="mt-4 divide-y divide-border rounded-xl border border-border">
-						<div v-for="event in selectedIncident.timeline" :key="`${event.label}-${event.time}`" class="px-3 py-3 text-sm">
-							<div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-								<p class="font-medium">{{ event.label }}</p>
-								<span class="text-xs text-muted-fg">{{ event.time }}</span>
-							</div>
-							<p class="mt-1 text-xs text-muted-fg">{{ event.actor }}</p>
-						</div>
-					</div>
-				</section>
-			</main>
 
-			<aside class="border-t border-border skin-card lg:border-l lg:border-t-0">
-				<section class="border-b border-border px-4 py-5">
-					<h5 class="font-semibold tracking-tight">Status update</h5>
-					<p class="mt-2 text-sm leading-6 text-muted-fg">Prepare the next incident update with audience, cadence, and approval controls.</p>
-					<div class="mt-4 space-y-3">
-						<DomNativeSelect v-model="selectedAudience" :options="audienceOptions" />
-						<DomNativeSelect v-model="updateCadence" :options="updateCadenceOptions" />
-						<DomTextareaInput v-model="updateDraft" label="Update draft" rows="6" />
-					</div>
-					<div class="mt-4 divide-y divide-border rounded-xl border border-border">
-						<label class="flex items-center justify-between gap-4 px-3 py-3">
-							<span>
-								<span class="block text-sm font-medium">Notify enterprise accounts</span>
-								<span class="block text-xs text-muted-fg">Send account-scoped email updates.</span>
-							</span>
-							<DomToggle v-model="notifyEnterprise" aria-label="Notify enterprise accounts" />
-						</label>
-						<label class="flex items-center justify-between gap-4 px-3 py-3">
-							<span>
-								<span class="block text-sm font-medium">Require comms approval</span>
-								<span class="block text-xs text-muted-fg">Block public drafts until reviewed.</span>
-							</span>
-							<DomToggle v-model="requireApproval" aria-label="Require communications approval" />
-						</label>
-						<label class="flex items-center justify-between gap-4 px-3 py-3">
-							<span>
-								<span class="block text-sm font-medium">Include live metrics</span>
-								<span class="block text-xs text-muted-fg">Attach current error and latency snapshot.</span>
-							</span>
-							<DomToggle v-model="includeMetrics" aria-label="Include live metrics" />
-						</label>
-					</div>
-					<DomButton class="mt-4 w-full" :disabled="!canPublish" @click="publishUpdate">
-						Publish update
-					</DomButton>
-					<p v-if="publishedUpdate" class="mt-3 rounded-xl bg-success/10 px-3 py-2 text-sm font-medium text-success">
-						{{ publishedUpdate }}
-					</p>
-					<p v-else-if="!canPublish" class="mt-3 rounded-xl bg-warning/10 px-3 py-2 text-sm font-medium text-warning">
-						Add a detailed update or switch to internal-only before publishing.
-					</p>
-				</section>
+					<DomTabs v-model="commandTab" :tabs="commandTabs" variant="page" fill class="min-h-0 flex-1">
+						<template #actions>
+							<div class="h-full min-h-0 overflow-y-auto">
+								<section class="border-b border-border px-4 py-5 sm:px-6" aria-labelledby="command-roles-heading">
+									<div class="flex flex-wrap items-center justify-between gap-3">
+										<div>
+											<h2 id="command-roles-heading" class="text-sm font-semibold">Command assignments</h2>
+											<p class="mt-1 text-xs text-muted-fg">One owner per role keeps decisions and communication accountable.</p>
+										</div>
+										<DomButton size="sm" variant="secondary" :loading="busyAction === 'save-command'" :disabled="!selectedIncident.capabilities.canEdit" @click="saveCommand">Save command</DomButton>
+									</div>
+									<div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+										<DomSelect v-model="commandDraft.severity" label="Severity" :options="catalogs.severities" :disabled="!selectedIncident.capabilities.canEdit" />
+										<DomSelect v-model="commandDraft.commanderId" label="Commander" :options="catalogs.people" searchable :errors="fieldErrors.commanderId || fieldErrors.roles || []" :disabled="!selectedIncident.capabilities.canEdit" />
+										<DomSelect v-model="commandDraft.liaisonId" label="Customer liaison" :options="catalogs.people" searchable :errors="fieldErrors.liaisonId || fieldErrors.roles || []" :disabled="!selectedIncident.capabilities.canEdit" />
+										<DomSelect v-model="commandDraft.scribeId" label="Scribe" :options="catalogs.people" searchable :errors="fieldErrors.scribeId || fieldErrors.roles || []" :disabled="!selectedIncident.capabilities.canEdit" />
+									</div>
+								</section>
 
-				<section class="border-b border-border px-4 py-5">
-					<h5 class="font-semibold tracking-tight">Response checks</h5>
-					<div class="mt-4 space-y-3 text-sm">
-						<div class="flex items-start gap-3">
-							<span class="mt-1 size-2 rounded-full bg-success"></span>
-							<div>
-								<p class="font-medium">Commander assigned</p>
-								<p class="text-xs text-muted-fg">{{ selectedIncident.commander }} owns coordination.</p>
-							</div>
-						</div>
-						<div class="flex items-start gap-3">
-							<span class="mt-1 size-2 rounded-full bg-success"></span>
-							<div>
-								<p class="font-medium">Customer impact captured</p>
-								<p class="text-xs text-muted-fg">{{ selectedIncident.impact }} across {{ selectedIncident.region }}.</p>
-							</div>
-						</div>
-						<div class="flex items-start gap-3">
-							<span class="mt-1 size-2 rounded-full" :class="readinessPercent > 60 ? 'bg-success' : 'bg-warning'"></span>
-							<div>
-								<p class="font-medium">Mitigation tasks moving</p>
-								<p class="text-xs text-muted-fg">{{ readinessPercent }}% of response tasks complete.</p>
-							</div>
-						</div>
-					</div>
-				</section>
+								<section class="border-b border-border px-4 py-5 sm:px-6" aria-labelledby="response-actions-heading">
+									<div class="flex items-end justify-between gap-4">
+										<div>
+											<h2 id="response-actions-heading" class="text-sm font-semibold">Response actions</h2>
+											<p class="mt-1 text-xs text-muted-fg">{{ selectedIncident.actionProgress.completed }} of {{ selectedIncident.actionProgress.total }} required actions complete.</p>
+										</div>
+										<p class="text-sm font-semibold">{{ selectedIncident.actionProgress.percent }}%</p>
+									</div>
+									<DomProgress class="mt-3" :value="selectedIncident.actionProgress.percent" size="sm" />
+									<div class="mt-4 divide-y divide-border border-y border-border">
+										<div v-for="action in selectedIncident.actions" :key="action.id" class="flex flex-wrap items-center gap-3 py-3">
+											<DomStatusPill :tone="actionTone(action.status)" :label="action.status.replace('_', ' ')" size="sm" />
+											<div class="min-w-48 flex-1">
+												<p class="text-sm font-semibold">{{ action.label }}</p>
+												<p class="mt-1 text-xs text-muted-fg">{{ action.owner }}<span v-if="action.receipt"> · {{ action.receipt }}</span></p>
+											</div>
+											<DomBadge v-if="action.required" tone="neutral" variant="soft" size="sm">Required</DomBadge>
+											<DomButton
+												v-if="action.kind === 'technical' && action.status !== 'done' && selectedIncident.capabilities.canEdit"
+												size="sm"
+												variant="secondary"
+												:loading="busyAction === `advance-${action.id}`"
+												@click="advanceAction(action)"
+											>{{ action.status === 'waiting' ? 'Start' : 'Complete' }}</DomButton>
+											<DomButton v-else-if="action.kind === 'communication' && action.status !== 'done'" size="sm" variant="ghost" @click="activeView = 'updates'">Open update</DomButton>
+										</div>
+									</div>
+								</section>
 
-				<section class="px-4 py-5">
-					<h5 class="font-semibold tracking-tight">Activity history</h5>
-					<div class="mt-4 space-y-4">
-						<div v-for="event in selectedIncident.timeline.slice(0, 3)" :key="event.label" class="border-l border-border pl-3 text-sm">
-							<p class="font-medium">{{ event.label }}</p>
-							<p class="mt-1 text-xs text-muted-fg">{{ event.actor }} / {{ event.time }}</p>
-						</div>
+								<section class="px-4 py-5 sm:px-6" aria-labelledby="service-evidence-heading">
+									<div class="flex flex-wrap items-center justify-between gap-3">
+										<div>
+											<h2 id="service-evidence-heading" class="text-sm font-semibold">Service evidence</h2>
+											<p class="mt-1 text-xs text-muted-fg">Provider observations remain separate from the incident narrative.</p>
+										</div>
+										<DomButton size="sm" variant="secondary" :loading="busyAction === 'refresh-monitoring'" :disabled="!selectedIncident.capabilities.canRefreshMonitoring" @click="refreshMonitoring">Refresh Datadog</DomButton>
+									</div>
+									<div class="mt-4 divide-y divide-border border-y border-border">
+										<div v-for="service in selectedIncident.services" :key="service.id" class="grid gap-2 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_7rem_11rem] sm:items-center">
+											<div><p class="font-semibold">{{ service.name }}</p><p class="mt-1 text-xs font-mono text-muted-fg">{{ service.monitorReceipt }}</p></div>
+											<DomStatusPill :tone="serviceTone(service.state)" :label="service.state" size="sm" />
+											<p class="text-xs text-muted-fg sm:text-right">{{ service.metric }}</p>
+										</div>
+									</div>
+								</section>
+							</div>
+						</template>
+
+						<template #evidence>
+							<div class="h-full min-h-0 overflow-y-auto p-4 sm:p-6">
+								<div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.8fr)]">
+									<section>
+										<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Server readiness</p>
+										<div class="mt-3 divide-y divide-border border-y border-border">
+											<div v-for="check in selectedIncident.responseChecks" :key="check.key" class="flex gap-3 py-4">
+												<DomStatusPill :tone="checkTone(check.status)" :label="check.status" size="sm" class="mt-0.5" />
+												<div><p class="text-sm font-semibold">{{ check.label }}</p><p class="mt-1 text-xs leading-5 text-muted-fg">{{ check.detail }}</p></div>
+											</div>
+										</div>
+									</section>
+									<DomJsonViewer :value="evidencePayload" title="Provider evidence" :filename="`${selectedIncident.id}-provider-evidence.json`" density="compact" :preview-lines="18" />
+								</div>
+							</div>
+						</template>
+
+						<template #timeline>
+							<div class="h-full min-h-0 overflow-y-auto px-4 py-2 sm:px-6">
+								<div v-for="item in selectedIncident.activity" :key="item.id" class="grid grid-cols-[3.5rem_minmax(0,1fr)] gap-3 border-b border-border py-4 last:border-b-0">
+									<p class="text-xs font-mono text-muted-fg">{{ formatTime(item.createdAt) }}</p>
+									<div>
+										<div class="flex flex-wrap items-center gap-2"><p class="text-sm font-semibold">{{ item.title }}</p><DomStatusPill :tone="item.tone" label="" size="sm" /></div>
+										<p class="mt-1 text-xs leading-5 text-muted-fg">{{ item.detail }}</p>
+										<p class="mt-2 text-[11px] text-muted-fg">{{ item.actor }}</p>
+									</div>
+								</div>
+							</div>
+						</template>
+					</DomTabs>
+				</main>
+
+				<aside
+					class="flex h-full min-h-0 flex-col overflow-hidden border-l border-border bg-muted/10"
+					:class="activeView === 'updates' ? 'flex' : 'hidden lg:flex'"
+					aria-label="Incident updates and lifecycle"
+				>
+					<div class="shrink-0 border-b border-border px-4 py-4">
+						<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Customer liaison</p>
+						<h2 class="mt-1 text-lg font-semibold">Incident updates</h2>
+						<p class="mt-2 text-xs leading-5 text-muted-fg">Preview the exact audience, components, metrics, and delivery channels before publishing.</p>
 					</div>
-				</section>
-			</aside>
+
+					<DomTabs v-model="updateTab" :tabs="updateTabs" variant="page" fill class="min-h-0 flex-1">
+						<template #compose>
+							<div class="h-full min-h-0 overflow-y-auto p-4">
+								<div class="grid gap-4">
+									<DomSelect v-model="updateDraft.audience" label="Audience" :options="catalogs.audiences" :errors="fieldErrors.audience || []" :disabled="!selectedIncident.capabilities.canEdit" />
+									<DomSelect v-model="commandDraft.cadenceMinutes" label="Next update cadence" :options="catalogs.cadences" :errors="fieldErrors.cadenceMinutes || []" :disabled="!selectedIncident.capabilities.canEdit" />
+									<DomTextareaInput v-model="updateDraft.message" label="Customer-facing update" description="Describe impact, response, and when customers should expect another update." :rows="6" :errors="fieldErrors.message || []" :disabled="!selectedIncident.capabilities.canEdit" />
+									<DomToggle v-model="updateDraft.includeMetrics" label="Include live recovery metrics" description="Attach the current provider snapshot to the immutable delivery record." :disabled="!selectedIncident.capabilities.canEdit" />
+									<DomButton :loading="busyAction === 'preview-update'" :disabled="!selectedIncident.capabilities.canPreviewUpdate" @click="previewUpdate">Review exact update</DomButton>
+								</div>
+
+								<section v-if="selectedIncident.updatePreview" class="mt-5 border-t border-border pt-5" aria-labelledby="update-preview-heading">
+									<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Immutable communication</p>
+									<h3 id="update-preview-heading" class="mt-2 text-sm font-semibold">{{ selectedIncident.updatePreview.audienceLabel }}</h3>
+									<dl class="mt-3 divide-y divide-border text-xs">
+										<div class="flex justify-between gap-3 py-2"><dt class="text-muted-fg">Recipients</dt><dd class="text-right font-semibold">{{ selectedIncident.updatePreview.recipients }}</dd></div>
+										<div class="flex justify-between gap-3 py-2"><dt class="text-muted-fg">Channels</dt><dd class="text-right font-semibold">{{ selectedIncident.updatePreview.channels.join(', ') }}</dd></div>
+										<div class="flex justify-between gap-3 py-2"><dt class="text-muted-fg">Approved by</dt><dd class="text-right font-semibold">{{ selectedIncident.updatePreview.approvedBy }}</dd></div>
+										<div class="flex justify-between gap-3 py-2"><dt class="text-muted-fg">Checksum</dt><dd class="max-w-48 truncate text-right font-mono">{{ selectedIncident.updatePreview.checksum }}</dd></div>
+									</dl>
+									<DomCheckbox v-model="publishAcknowledged" class="mt-4" label="Publish this exact message and audience" description="Provider delivery receipts will be retained with the incident timeline." />
+									<DomButton class="mt-4 w-full" :disabled="!publishAcknowledged" :loading="busyAction === 'publish-update'" @click="publishUpdate">Publish update</DomButton>
+								</section>
+
+								<DomAlert
+									v-if="latestUpdate"
+									class="mt-5"
+									tone="success"
+									variant="soft"
+									title="Latest update delivered"
+									:description="`${latestUpdate.audienceLabel} · ${latestUpdate.providerReceipt}`"
+								/>
+
+								<section class="mt-5 border-t border-border pt-5" aria-labelledby="lifecycle-heading">
+									<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Lifecycle gate</p>
+									<h3 id="lifecycle-heading" class="mt-2 text-sm font-semibold">{{ selectedIncident.statusMeta.label }}</h3>
+									<p class="mt-2 text-xs leading-5 text-muted-fg">{{ selectedIncident.blockers ? `${selectedIncident.blockers} response checks still block the next transition.` : 'All authoritative checks are ready.' }}</p>
+									<DomButton v-if="selectedIncident.capabilities.canTransitionMonitoring" class="mt-4 w-full" :loading="busyAction === 'transition-monitoring'" @click="markMonitoring">Move to monitoring</DomButton>
+									<div v-else-if="selectedIncident.lifecycle === 'monitoring' && !selectedIncident.resolution" class="mt-4">
+										<DomCheckbox v-model="resolutionAcknowledged" label="Resolve with this exact evidence" description="Customer impact, monitoring samples, response actions, and communication receipts are retained." />
+										<DomButton class="mt-4 w-full" variant="danger" :disabled="!selectedIncident.capabilities.canResolve || !resolutionAcknowledged" :loading="busyAction === 'transition-resolved'" @click="resolveIncident">Resolve incident</DomButton>
+									</div>
+									<DomAlert v-else-if="selectedIncident.resolution" class="mt-4" tone="success" title="Incident resolved" :description="`${selectedIncident.resolution.id} · ${selectedIncident.resolution.postmortemId}`" />
+								</section>
+							</div>
+						</template>
+
+						<template #deliveries>
+							<div class="h-full min-h-0 overflow-y-auto p-4">
+								<DomEmptyState v-if="!selectedIncident.updates.length" compact title="No customer updates" description="Preview and publish a reviewed message to create delivery evidence." />
+								<div v-else class="divide-y divide-border border-y border-border">
+									<div v-for="update in selectedIncident.updates" :key="update.id" class="py-4">
+										<div class="flex items-center justify-between gap-3"><DomStatusPill tone="success" label="Delivered" size="sm" /><p class="text-[11px] text-muted-fg">{{ formatTime(update.publishedAt) }}</p></div>
+										<p class="mt-3 text-sm font-semibold">{{ update.audienceLabel }}</p>
+										<p class="mt-2 text-xs leading-5 text-muted-fg">{{ update.message }}</p>
+										<p class="mt-3 font-mono text-[11px] text-muted-fg">{{ update.providerReceipt }}</p>
+									</div>
+								</div>
+								<DomJsonViewer v-if="latestUpdate" class="mt-5" :value="latestUpdate" title="Latest delivery evidence" :filename="`${selectedIncident.id}-latest-update.json`" density="compact" :preview-lines="14" />
+							</div>
+						</template>
+					</DomTabs>
+				</aside>
+			</div>
 		</div>
-	</div>
+
+		<template #bottom>
+			<DomAppBottomNav v-model="activeView" :items="mobileNavigation" class="lg:hidden" />
+		</template>
+
+		<template #overlay>
+			<DomDialog
+				v-model="declareDialogOpen"
+				width="min(40rem, 94vw)"
+				title="Declare an incident"
+				description="Create the response room, source alert evidence, responder bridge, and initial accountable actions."
+			>
+				<div class="grid gap-4 sm:grid-cols-2">
+					<DomTextInput v-model="declarationDraft.title" class="sm:col-span-2" label="Incident title" :errors="fieldErrors.title || []" />
+					<DomSelect v-model="declarationDraft.severity" label="Severity" :options="catalogs.severities" :errors="fieldErrors.severity || []" />
+					<DomSelect v-model="declarationDraft.serviceId" label="Affected service" :options="catalogs.services" searchable :errors="fieldErrors.serviceId || []" />
+					<DomTextareaInput v-model="declarationDraft.impactSummary" class="sm:col-span-2" label="Known customer impact" description="State what customers experience; uncertainty is acceptable when named." :rows="4" :errors="fieldErrors.impactSummary || []" />
+				</div>
+				<template #footer>
+					<DomButton variant="secondary" data-close>Cancel</DomButton>
+					<DomButton variant="danger" :loading="busyAction === 'declare-incident'" @click="declareIncident">Declare incident</DomButton>
+				</template>
+			</DomDialog>
+		</template>
+	</DomAppShell>
 </template>

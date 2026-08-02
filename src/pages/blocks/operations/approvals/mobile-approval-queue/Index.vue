@@ -12,8 +12,8 @@ import MobileApprovalQueueSrc from './examples/MobileApprovalQueue.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Mobile Approval Queue Block"
-			tagline="A copyable mobile-first approval flow for reviewing high-priority requests, checking policy context, and making auditable decisions from a bottom sheet."
-			tag="Mobile workflow"
+			tagline="A working mobile approvals app for triaging tasks, evaluating policy, recovering evidence, verifying a trusted device, and recording auditable decisions."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Approvals" title="Mobile approval queue">
@@ -22,7 +22,7 @@ import MobileApprovalQueueSrc from './examples/MobileApprovalQueue.vue?raw';
 					filename="MobileApprovalQueue.vue"
 					presentation="iframe"
 					frame-src="/blocks/operations/approvals/mobile-approval-queue/preview/MobileApprovalQueue"
-					description="Copy this into finance, HR, procurement, IT admin, marketplace, field operations, or release management apps where managers need to approve requests quickly on mobile without losing policy context."
+					description="This deterministic API-backed example behaves as a focused mobile task inbox and a wider desktop review workspace. Run policy, request missing evidence, verify the demo device, approve with a receipt, undo the decision, or route regulated work to a specialist."
 					default-open
 					:preview-lines="18"
 				>
@@ -30,67 +30,52 @@ import MobileApprovalQueueSrc from './examples/MobileApprovalQueue.vue?raw';
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Journey" title="What is working">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when approval work happens away from a desk: expense exceptions, discount approvals, access changes, purchase requests, incident communications, vendor payouts, or production releases.
-						The layout prioritizes one-handed triage with request cards, concise risk context, and a decision sheet that keeps approve, decline, and escalation actions close to the thumb zone.
+						Use this block when approval work must remain useful away from a desk without turning into a reduced screenshot of the desktop product.
+						The responsive app keeps the mobile Tasks inbox focused, then adds queue and context rails when the iframe or expanded viewer has room.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>approvalRequests</code> with server-backed requests that include requester, business object, amount or scope, due time, risk, policy checks, and required evidence.</li>
-						<li>Keep decision eligibility on the server. The client should display whether the current user can approve, decline, request changes, or escalate.</li>
-						<li>Persist every action as an audit event with actor, device context, previous state, next state, note, and policy snapshot.</li>
-						<li>Use push notifications or deep links to open a specific request, then hydrate the same payload for desktop review surfaces if deeper investigation is needed.</li>
-						<li>Keep decline and escalation reasons structured so analytics can reveal broken policies, training gaps, or recurring request quality issues.</li>
+						<li>Filter a live queue with rich <code>DomSelect</code> controls and open the same request in a focused mobile detail or split desktop workspace.</li>
+						<li>Inspect checksummed evidence, requester context, policy route, risk, business impact, and the immutable activity payload.</li>
+						<li>Run a server-owned policy evaluation with exact-revision conflict protection before any approval can be recorded.</li>
+						<li>Complete the deterministic six-digit trusted-device challenge, then submit a structured reason, note, and acknowledgement.</li>
+						<li>Undo an eligible decision, request missing evidence and simulate its recovery, or escalate work outside the finance reviewer’s authority.</li>
+						<li>Reload without losing state, reset the complete journey, and receive actionable 401, 403, 404, 409, and 422 API errors.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended approval payload">
-				<CodeBlock lang="js" filename="mobile-approval-request.js" :code="`{
-\tid: 'approval-mobile-724',
-\ttype: 'expense_exception',
-\ttitle: 'Client dinner exception',
-\trequester: {
-\t\tid: 'usr_maya',
-\t\tname: 'Maya Chen',
-\t\tteam: 'Enterprise Success'
-\t},
-\tstatus: 'pending',
-\trisk: 'medium',
-\tdueAt: '2026-06-11T17:00:00Z',
-\tsummary: {
-\t\tamount: 428,
-\t\tcurrency: 'GBP',
-\t\tobjectLabel: 'Northstar launch dinner',
-\t\tpolicyDelta: 'GBP 78 above meal policy'
-\t},
-\tpolicyChecks: [
-\t\t{ key: 'receipt', label: 'Receipt attached', status: 'passed' },
-\t\t{ key: 'limit', label: 'Meal limit exceeded', status: 'warning' },
-\t\t{ key: 'customer', label: 'Customer attendee listed', status: 'passed' }
-\t],
-\tevidence: [
-\t\t{ label: 'Receipt', value: 'Dinner-receipt.jpg' },
-\t\t{ label: 'Opportunity', value: 'Northstar expansion' }
-\t],
-\tallowedActions: ['approve', 'decline', 'escalate']
-}`" />
+			<DocSection eyebrow="API" title="Example endpoints">
+				<CodeBlock lang="txt" filename="mobile-approval-queue-api.txt" :code="`GET  /api/block-demos/mobile-approval-queue/bootstrap
+POST /api/block-demos/mobile-approval-queue/reset
+
+POST /api/block-demos/mobile-approval-queue/requests/:requestId/evaluate
+POST /api/block-demos/mobile-approval-queue/requests/:requestId/challenge
+POST /api/block-demos/mobile-approval-queue/requests/:requestId/verify
+POST /api/block-demos/mobile-approval-queue/requests/:requestId/decision
+POST /api/block-demos/mobile-approval-queue/requests/:requestId/undo
+POST /api/block-demos/mobile-approval-queue/requests/:requestId/evidence
+
+// Every state-changing request carries the exact request revision.
+// Device tokens are request-bound and single-use.
+// Decision receipts retain policy, evidence, actor, and device context.`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
+			<DocSection eyebrow="Production" title="Integration boundaries">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Mobile action safety</h3>
-						<p class="mt-2">Require an explicit review state before approval on high-risk requests. Keep irreversible actions behind a server confirmation or one-time token.</p>
+						<h3 class="font-semibold text-canvas-fg">Policy authority</h3>
+						<p class="mt-2">Replace the in-memory evaluator with your authorization and policy service. Reviewer scope, separation of duties, and routes must remain server-owned.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Notification routing</h3>
-						<p class="mt-2">Store deep-link targets by request id and queue filter so push notifications can open the right card while preserving the approver context.</p>
+						<h3 class="font-semibold text-canvas-fg">Identity and step-up</h3>
+						<p class="mt-2">Replace the visible demo code with a passkey, platform biometric, or identity-provider session. Bind the result to actor, device, request, and expiry.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include swipe gestures, delegated approvals, biometric re-auth, offline decision drafts, and reusable policy-check chips.</p>
+						<h3 class="font-semibold text-canvas-fg">Durable delivery</h3>
+						<p class="mt-2">Persist the event ledger and receipt in durable storage, send notifications through a provider, and enforce undo windows against server time and settlement state.</p>
 					</div>
 				</div>
 			</DocSection>

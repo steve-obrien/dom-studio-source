@@ -12,8 +12,8 @@ import DeliveryTrackerSrc from './examples/DeliveryTracker.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Delivery Tracker Block"
-			tagline="A copyable post-purchase tracking surface for live order status, courier handoff, delivery instructions, and customer-visible exceptions."
-			tag="Application UI"
+			tagline="A working post-purchase tracker with API-backed courier events, persistent instructions, customer actions, and delivered-state proof."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Commerce" title="Live delivery tracker">
@@ -22,9 +22,10 @@ import DeliveryTrackerSrc from './examples/DeliveryTracker.vue?raw';
 					filename="DeliveryTracker.vue"
 					presentation="iframe"
 					frame-src="/blocks/commerce/post-purchase/delivery-tracker/preview/DeliveryTracker"
-					description="Copy this into commerce, marketplace, food delivery, logistics, field service, or appointment apps that need a customer-facing delivery status view."
+					description="Copy the responsive status-first experience and repository-local API contract into commerce, marketplace, logistics, field service, or appointment products that need customer-facing delivery updates."
 					default-open
 					:preview-lines="20"
+					frame-flush-edges
 				>
 					<DeliveryTracker />
 				</Example>
@@ -33,15 +34,15 @@ import DeliveryTrackerSrc from './examples/DeliveryTracker.vue?raw';
 			<DocSection eyebrow="Integration" title="How to use this block">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when customers need to understand where an order is, what happens next, and how to fix delivery problems without contacting support.
-						The block keeps ETA, route progress, courier details, delivery notes, exception handling, and order context in one compact surface.
+						Use this block when customers need to understand where an order is, what happens next, and how to fix a delivery problem without contacting support.
+						Its Shop- and Uber-inspired hierarchy puts the ETA and current blocker before secondary order detail, without pretending a decorative map is live tracking.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Load fulfilment state from your order API with a normalized status, ETA window, courier assignment, handoff location, route checkpoints, and proof-of-delivery requirements.</li>
-						<li>Persist delivery instructions separately from the order line items so customers can update access codes, drop-off preferences, and contact rules close to delivery time.</li>
-						<li>Model exceptions as explicit customer actions, such as missing access code, address confirmation, weather delay acknowledgement, pickup fallback, or failed delivery reschedule.</li>
-						<li>Connect courier updates through polling, webhooks, or a realtime channel, then collapse noisy events into a few customer-readable timeline steps.</li>
-						<li>Keep final fulfilment decisions server-owned. The UI can collect intent, but the backend should validate cutoff windows, carrier rules, fraud checks, and refund eligibility.</li>
+						<li><code>GET /api/block-demos/delivery-tracker/orders</code> and <code>GET /api/block-demos/delivery-tracker/:orderId</code> provide the order list and normalized tracking detail.</li>
+						<li><code>PATCH /api/block-demos/delivery-tracker/:orderId/instructions</code> persists the rich <code>DomSelect</code> drop-off choice, access code, contactless preference, and notes with optimistic revision checks.</li>
+						<li><code>POST /api/block-demos/delivery-tracker/:orderId/exceptions/:exceptionId/resolve</code> validates the missing access code and removes the customer-owned blocker.</li>
+						<li><code>POST /api/block-demos/delivery-tracker/:orderId/sync</code> is a deterministic demo stand-in for carrier webhooks. The server owns checkpoint transitions and delivered proof.</li>
+						<li>The repository-local store survives preview reloads but resets when the server restarts. Replace it with your order database, carrier adapter, event ingestion, and authorization checks in production.</li>
 					</ul>
 				</div>
 			</DocSection>
@@ -74,9 +75,9 @@ import DeliveryTrackerSrc from './examples/DeliveryTracker.vue?raw';
 \t\tcontactless: true,
 \t\tnotes: 'Reception closes at 18:00.'
 \t},
-\texceptions: [
-\t\t{ key: 'access_code', severity: 'warning', actionRequired: true, resolved: false }
-\t]
+\texceptions: [],
+\tproof: null,
+\trevision: 9
 }`" />
 			</DocSection>
 
@@ -84,7 +85,7 @@ import DeliveryTrackerSrc from './examples/DeliveryTracker.vue?raw';
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Realtime updates</h3>
-						<p class="mt-2">Use carrier webhooks or a realtime stream for raw events, then map them into stable customer states so the view does not flicker between noisy courier scans.</p>
+						<p class="mt-2">The demo sync route advances a deterministic checkpoint. In production, ingest signed carrier webhooks or a realtime stream, then map noisy events into stable customer states.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Exception rules</h3>
@@ -92,7 +93,7 @@ import DeliveryTrackerSrc from './examples/DeliveryTracker.vue?raw';
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Reusable route maps, carrier adapters, proof-of-delivery capture, pickup-point selection, and reschedule dialogs would make this block stronger.</p>
+						<p class="mt-2">Carrier adapters, signed webhook ingestion, durable proof media, pickup-point selection, and reschedule dialogs are the natural production extensions.</p>
 					</div>
 				</div>
 			</DocSection>

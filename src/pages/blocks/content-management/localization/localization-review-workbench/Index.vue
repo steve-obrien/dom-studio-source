@@ -12,8 +12,8 @@ import LocalizationReviewWorkbenchSrc from './examples/LocalizationReviewWorkben
 	<DomStudioLayout>
 		<DocPage
 			name="Localization Review Workbench Block"
-			tagline="A responsive translation review workspace with locale progress, source context, editable target strings, glossary guidance, QA checks, and publish readiness."
-			tag="Content UI"
+			tagline="A Lokalise- and Phrase-inspired translation workbench with API-backed releases, focused string review, server-owned QA, glossary handoff, and receipt-backed locale publishing."
+			tag="Working API"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Localization" title="Localization review workbench">
@@ -22,7 +22,7 @@ import LocalizationReviewWorkbenchSrc from './examples/LocalizationReviewWorkben
 					filename="LocalizationReviewWorkbench.vue"
 					presentation="iframe"
 					frame-src="/blocks/content-management/localization/localization-review-workbench/preview/LocalizationReviewWorkbench"
-					description="Copy this into SaaS admin tools, CMS products, ecommerce back offices, developer portals, or internal release consoles where teams need to localize product strings before publishing."
+					description="Copy this complete app section into SaaS admin tools, CMS products, ecommerce back offices, developer portals, or release consoles where teams need to review and publish localized product strings."
 					default-open
 					:preview-lines="18"
 				>
@@ -37,20 +37,21 @@ import LocalizationReviewWorkbenchSrc from './examples/LocalizationReviewWorkben
 						The pattern pairs source copy with editable target copy, glossary context, locale progress, issue resolution, and a release payload that can sync to your translation-management service.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Hydrate <code>segments</code> from your i18n catalog, CMS, translation memory, or localization vendor with durable keys and source-context notes.</li>
-						<li>Store translations by locale and segment key. Keep approval state, QA state, reviewer, and published version separate from the raw translated string.</li>
-						<li>Connect glossary and translation-memory tags to the same terminology service used by your translators, support copy, marketing site, and billing flows.</li>
-						<li>Run length, placeholder, punctuation, blocked-word, tone, and glossary checks on the server when publishing; the client should preview and resolve them.</li>
-						<li>Use the publish dialog as a final review gate before syncing to Lokalise, Phrase, Crowdin, Transifex, GitHub, or your own translation bundle pipeline.</li>
-						<li>Keep the locale progress rail above the editor so reviewers can move between markets without losing the current segment context.</li>
+						<li>Load release, locale, progress, translation, context, and activity state through <code>/api/block-demos/localization-review</code>.</li>
+						<li>Save each string with an optimistic release revision, then rerun length, placeholder, and orthography checks on the server.</li>
+						<li>Use translation-memory suggestions as drafts: reviewers explicitly apply, save, and approve them instead of silently replacing copy.</li>
+						<li>Keep applied glossary terms and locale-level reviewer notes in a separate handoff mutation.</li>
+						<li>Publish only after every server-owned gate passes and return an immutable bundle identifier, file list, timestamp, and SHA-256 checksum.</li>
+						<li>The demo API is intentionally process-local. Production integrations should add authentication, authorization, durable storage, provider webhooks, and immutable audit events.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended localization segment shape">
-				<CodeBlock lang="js" filename="localization-segment.js" :code="`{
+			<DocSection eyebrow="Data" title="Recommended localization release shape">
+				<CodeBlock lang="js" filename="localization-release.js" :code="`{
 \tbatchId: 'checkout-release-2026-06',
 \tlocale: 'fr-FR',
+\trevision: 8,
 \tsegments: [
 \t\t{
 \t\t\tid: 'seg-002',
@@ -63,19 +64,25 @@ import LocalizationReviewWorkbenchSrc from './examples/LocalizationReviewWorkben
 \t\t\tstatus: 'needs-review',
 \t\t\treviewerId: 'usr_camille',
 \t\t\tglossaryTerms: ['payment-attempt', 'retry'],
-\t\t\tqaChecks: [
+\t\t\tchecks: [
 \t\t\t\t{
 \t\t\t\t\tid: 'accent',
 \t\t\t\t\ttype: 'orthography',
 \t\t\t\t\tseverity: 'high',
 \t\t\t\t\tdetail: 'Verifier should include approved accent marks.',
+\t\t\t\t\tresolvable: false,
 \t\t\t\t\tresolvedAt: null
 \t\t\t\t}
 \t\t\t],
 \t\t\tversion: 7,
 \t\t\tupdatedAt: '2026-06-12T08:54:00Z'
 \t\t}
-\t]
+\t],
+\tpublication: {
+\t\tbundle: 'checkout.2026-08.1.fr-FR',
+\t\tfiles: ['fr-FR.json', 'fr-FR.po'],
+\t\tchecksum: '487307dd0d3710f...'
+\t}
 }`" />
 			</DocSection>
 
@@ -83,15 +90,15 @@ import LocalizationReviewWorkbenchSrc from './examples/LocalizationReviewWorkben
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Review contract</h3>
-						<p class="mt-2">Treat approval as a state transition with actor, timestamp, segment version, locale, and open QA count. Do not infer approval from non-empty translated text.</p>
+						<p class="mt-2">Treat approval as an API transition with actor, timestamp, segment version, locale, release revision, and open QA count. Do not infer approval from non-empty text.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Vendor sync</h3>
-						<p class="mt-2">Map segment keys, locale codes, glossary terms, reviewer notes, and publish status to your localization vendor so imports and exports stay reversible.</p>
+						<p class="mt-2">Replace the process-local service with your database and vendor adapter while preserving the demonstrated REST shapes, readiness checks, and publication receipt.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include placeholder validation, side-by-side screenshot previews, plural-form tabs, machine translation suggestions, and a reusable QA check item primitive.</p>
+						<p class="mt-2">Useful follow-ups include screenshot context, plural-form tabs, comment threads, translation-memory provider adapters, and reusable QA result primitives.</p>
 					</div>
 				</div>
 			</DocSection>

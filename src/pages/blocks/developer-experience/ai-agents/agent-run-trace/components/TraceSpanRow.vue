@@ -25,89 +25,77 @@ const props = defineProps({
 	},
 });
 
-const typeIcon = {
-	agent: 'M5 12a7 7 0 1 0 14 0 7 7 0 0 0-14 0Zm5-2h4M9 14h6M12 5v3',
-	model: 'M5 5h14v11H8l-3 3V5Zm4 4h6M9 12h4',
-	tool: 'M14 6l4 4-8 8H6v-4l8-8Zm1 3l-6 6',
-	memory: 'M6 5h12v14H6V5Zm3 3h6M9 12h6M9 16h4',
-	guardrail: 'M12 4l7 3v5c0 4-2.7 7-7 8-4.3-1-7-4-7-8V7l7-3Z',
-};
+const barStyle = computed(getBarStyle);
+const barToneClass = computed(getBarToneClass);
 
-const toneByStatus = {
-	ok: 'success',
-	warning: 'warning',
-	failed: 'danger',
-	running: 'info',
-};
-
-const barStyle = computed(() => {
+/**
+ * Positions the span inside the full-run timeline.
+ *
+ * @returns {{ left: string, width: string }} Timeline bar style.
+ */
+function getBarStyle() {
 	const total = Math.max(1, Number(props.totalDuration));
 	const left = Math.max(0, (Number(props.item.startMs) / total) * 100);
-	const width = Math.max(2, (Number(props.item.durationMs) / total) * 100);
-
+	const width = Math.max(1.5, (Number(props.item.durationMs) / total) * 100);
+	const safeLeft = Math.min(left, 98);
 	return {
-		left: `${Math.min(left, 98)}%`,
-		width: `${Math.min(width, 100 - Math.min(left, 98))}%`,
+		left: `${safeLeft}%`,
+		width: `${Math.min(width, 100 - safeLeft)}%`,
 	};
-});
+}
 
-const barToneClass = computed(() => ({
-	ok: 'bg-success',
-	warning: 'bg-warning',
-	failed: 'bg-destructive',
-	running: 'bg-primary',
-}[props.item.status] || 'bg-muted-fg'));
+/**
+ * Returns a semantic timeline bar for the span outcome.
+ *
+ * @returns {string} Tailwind classes.
+ */
+function getBarToneClass() {
+	return {
+		ok: 'bg-success',
+		warning: 'bg-warning',
+		failed: 'bg-destructive',
+		running: 'bg-primary',
+	}[props.item.status] || 'bg-muted-fg';
+}
+
+/**
+ * Formats a US-dollar span cost.
+ *
+ * @param {number} value Dollar amount.
+ * @returns {string} Currency label.
+ */
+function formatCost(value) {
+	return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD', minimumFractionDigits: 3 }).format(Number(value || 0));
+}
 </script>
 
 <template>
-	<div class="grid min-h-16 w-full min-w-0 items-center gap-3 px-2 py-2 sm:grid-cols-[minmax(15rem,0.95fr)_minmax(14rem,1fr)]">
-		<div class="flex min-w-0 items-center gap-2">
-			<button
-				v-if="item.children?.length"
-				type="button"
-				class="grid size-8 shrink-0 place-items-center rounded-lg text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 group-aria-selected:text-primary-fg"
-				:aria-label="open ? 'Collapse span' : 'Expand span'"
-				@click.stop="toggle?.()"
-			>
-				<svg viewBox="0 0 20 20" class="size-4 transition" :class="open && 'rotate-90'" fill="none" aria-hidden="true">
-					<path d="M8 5l5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-				</svg>
+	<div class="grid min-h-15 w-full min-w-0 items-center border-l-2 px-3 py-2.5 transition md:grid-cols-[minmax(16rem,0.9fr)_minmax(18rem,1fr)] md:gap-5" :class="selected ? 'border-l-primary bg-primary/7' : 'border-l-transparent hover:bg-secondary/35'">
+		<div class="flex min-w-0 items-center gap-2.5">
+			<button v-if="item.children?.length" type="button" class="shrink-0 rounded-md px-1.5 py-1 text-[10px] font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" :aria-label="open ? 'Collapse span' : 'Expand span'" @click.stop="toggle?.()">
+				{{ open ? 'Hide' : 'Show' }}
 			</button>
-			<span v-else class="size-8 shrink-0" aria-hidden="true"></span>
-
-			<span class="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-canvas text-muted-fg group-aria-selected:border-primary-fg/30 group-aria-selected:bg-primary-fg/10 group-aria-selected:text-primary-fg">
-				<svg viewBox="0 0 24 24" class="size-4.5" fill="none" aria-hidden="true">
-					<path :d="typeIcon[item.type] || typeIcon.tool" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
-				</svg>
-			</span>
-
+			<span v-else class="w-9 shrink-0" aria-hidden="true"></span>
 			<div class="min-w-0 flex-1">
-				<div class="flex min-w-0 flex-wrap items-center gap-2">
-					<p class="truncate text-sm font-semibold text-canvas-fg group-aria-selected:text-primary-fg">{{ item.name }}</p>
-					<DomStatusPill :tone="toneByStatus[item.status] || 'neutral'" size="sm" :pulse="item.status === 'running'">
-						{{ item.statusLabel }}
-					</DomStatusPill>
+				<div class="flex min-w-0 items-center gap-2">
+					<DomBadge size="sm" variant="outline">{{ item.type }}</DomBadge>
+					<p class="truncate text-xs font-semibold sm:text-sm">{{ item.name }}</p>
+					<DomStatusPill :tone="item.statusTone" size="sm">{{ item.statusLabel }}</DomStatusPill>
 				</div>
-				<p class="mt-1 truncate text-xs text-muted-fg group-aria-selected:text-primary-fg/75">
-					{{ item.description }}
-				</p>
+				<p class="mt-1 truncate text-[11px] text-muted-fg">{{ item.summary }}</p>
+				<div class="mt-1.5 text-[11px] text-muted-fg md:hidden">{{ item.durationMs }}ms · {{ formatCost(item.costUsd) }}</div>
 			</div>
 		</div>
 
-		<div class="min-w-0">
-			<div class="flex items-center justify-between gap-2 text-[11px] text-muted-fg group-aria-selected:text-primary-fg/75">
-				<span>{{ item.durationMs }}ms</span>
-				<span>{{ item.cost }}</span>
-			</div>
-			<DomTooltip :text="`${item.name} started at ${item.startMs}ms and ran for ${item.durationMs}ms`" placement="top">
-				<div class="relative mt-2 h-7 overflow-hidden rounded-full border border-border bg-secondary/70">
-					<div class="absolute inset-y-1 rounded-full shadow-sm" :class="barToneClass" :style="barStyle"></div>
-					<div class="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-border/80"></div>
+		<div class="hidden min-w-0 md:block">
+			<div class="flex items-center justify-between gap-3 text-[10px] text-muted-fg"><span>{{ item.startMs }}ms → {{ item.startMs + item.durationMs }}ms</span><span>{{ item.durationMs }}ms · {{ formatCost(item.costUsd) }}</span></div>
+			<DomTooltip class="block w-full" :text="`${item.name}: ${item.durationMs}ms from ${item.startMs}ms`" placement="top">
+				<div class="relative mt-2 h-4 w-full overflow-hidden border-y border-border bg-secondary/55">
+					<div class="absolute inset-y-0.5 rounded-sm" :class="barToneClass" :style="barStyle"></div>
+					<div class="pointer-events-none absolute inset-y-0 left-1/3 border-l border-border/80"></div>
+					<div class="pointer-events-none absolute inset-y-0 left-2/3 border-l border-border/80"></div>
 				</div>
 			</DomTooltip>
-			<div class="mt-2 flex flex-wrap gap-1.5">
-				<DomBadge v-for="tag in item.tags" :key="tag" size="sm" variant="outline">{{ tag }}</DomBadge>
-			</div>
 		</div>
 	</div>
 </template>

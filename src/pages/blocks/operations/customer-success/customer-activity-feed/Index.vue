@@ -12,17 +12,17 @@ import CustomerActivityFeedSrc from './examples/CustomerActivityFeed.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Customer Activity Feed Block"
-			tagline="A responsive customer timeline for reviewing lifecycle events, filtering account activity, expanding event context, and choosing the next customer-success action."
+			tagline="A complete customer-success activity inbox with multi-source evidence, accountable follow-through, and provider-backed customer updates."
 			tag="Customer success"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Timeline" title="Customer activity feed">
+			<DocSection eyebrow="Account operations" title="Customer activity inbox">
 				<Example
 					:source="CustomerActivityFeedSrc"
 					filename="CustomerActivityFeed.vue"
 					presentation="iframe"
 					frame-src="/blocks/operations/customer-success/customer-activity-feed/preview/CustomerActivityFeed"
-					description="Copy this into customer success, support, sales, lifecycle, billing, or product analytics apps where teams need a readable account timeline with filters, event context, and action planning."
+					description="Use this as a complete account-operations section: triage customer signals, inspect immutable source evidence, create accountable work, log notes, send updates, and retain the provider receipts."
 					default-open
 					:preview-lines="18"
 				>
@@ -30,68 +30,84 @@ import CustomerActivityFeedSrc from './examples/CustomerActivityFeed.vue?raw';
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Working journey" title="What this section proves">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when a team needs one chronological surface for account events: product usage spikes, support escalations, billing changes, lifecycle messages, notes, meetings, and renewal updates.
-						The feed keeps the current account summary visible while event rows expand inline, so users can inspect context without leaving the timeline.
+						The block is an API-backed app section, not a generated screenshot. It composes account selection, event filtering, chronological activity, an evidence inspector, a task queue, internal notes, and customer delivery into one responsive workflow.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>activityEvents</code> with events from your warehouse, CRM, help desk, billing provider, and product analytics pipeline.</li>
-						<li>Normalize all events to a shared envelope with type, source, actor, occurred time, importance, account impact, and a compact metadata list.</li>
-						<li>Store notes and follow-up tasks separately from immutable system events, but render them in the same chronological feed for operator context.</li>
-						<li>Keep permission checks server-side. Sensitive billing, security, and support metadata should only be returned for users with the right account role.</li>
-						<li>Connect the action buttons to your CRM task API, support ticket routes, lifecycle campaign builder, or internal playbook runner.</li>
+						<li>Select an account through the rich <code>DomSelect</code> on mobile or the dense <code>DomAppListItem</code> account rail on larger screens.</li>
+						<li>Filter the server-visible page, select an event, inspect source freshness, metadata, raw payload, event revision, and provider receipt.</li>
+						<li>Mark exact event versions as reviewed and recover from stale workspace, account, event, or task revisions.</li>
+						<li>Preview an immutable task, acknowledge its owner, priority, due date, and source evidence, then complete it with a durable receipt.</li>
+						<li>Add internal notes and preview an exact customer update before the repository-local API records provider-style email or CRM delivery proof.</li>
+						<li>Reload to prove process persistence, or reset the deterministic demo for another complete journey.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended activity event payload">
+			<DocSection eyebrow="API contract" title="Repository-local routes">
+				<CodeBlock lang="txt" filename="customer-activity-api.txt" :code="`GET  /api/block-demos/customer-activity/bootstrap
+POST /api/block-demos/customer-activity/accounts/select
+POST /api/block-demos/customer-activity/events/load-more
+POST /api/block-demos/customer-activity/events/:eventId/review
+POST /api/block-demos/customer-activity/tasks/preview
+POST /api/block-demos/customer-activity/tasks
+POST /api/block-demos/customer-activity/tasks/:taskId/complete
+POST /api/block-demos/customer-activity/notes
+POST /api/block-demos/customer-activity/updates/preview
+POST /api/block-demos/customer-activity/updates
+POST /api/block-demos/customer-activity/reset`" />
+			</DocSection>
+
+			<DocSection eyebrow="Event envelope" title="Keep evidence and actions separate">
 				<CodeBlock lang="js" filename="customer-activity-event.js" :code="`{
-\taccount: {
-\t\tid: 'acct_northstar',
-\t\tname: 'Northstar Labs',
-\t\tsegment: 'Scale',
-\t\townerId: 'usr_maya',
-\t\trenewalAt: '2026-09-18T00:00:00Z',
-\t\thealthScore: 82
-\t},
-\tevents: [
-\t\t{
-\t\t\tid: 'evt_1802',
-\t\t\ttype: 'support',
-\t\t\tsource: 'Help desk',
-\t\t\ttitle: 'Export timeout escalated',
-\t\t\tdescription: 'Customer reported failed exports on two enterprise workspaces.',
-\t\t\tactor: { id: 'usr_ari', name: 'Ari Patel', role: 'Support lead' },
-\t\t\toccurredAt: '2026-06-11T14:24:00Z',
-\t\t\timportance: 'high',
-\t\t\timpact: 'Renewal risk if unresolved by Friday',
-\t\t\tmetadata: [
-\t\t\t\t{ label: 'Ticket', value: 'SUP-4821' },
-\t\t\t\t{ label: 'Workspace', value: 'Northstar EU' }
-\t\t\t],
-\t\t\tnextActions: ['Open support ticket', 'Create owner task']
-\t\t}
-\t]
+	id: 'evt_1802',
+	version: 3,
+	accountId: 'acct_northstar',
+	type: 'support',
+	importance: 'high',
+	occurredAt: '2026-08-02T14:24:00.000Z',
+	source: 'Zendesk',
+	sourceFreshness: 'Synced 2 minutes ago',
+	receipt: 'zd_evt_4821_06',
+	title: 'Export timeout escalated',
+	summary: 'Two enterprise workspaces failed large exports.',
+	impact: 'Renewal confidence could decline without a recovery ETA.',
+	metadata: [
+		{ label: 'Ticket', value: 'SUP-4821' },
+		{ label: 'SLA', value: '4h remaining' }
+	],
+	rawData: {
+		object: 'ticket.updated',
+		status: 'escalated',
+		delivery: { status: 'delivered', http_status: 200 }
+	},
+	allowedActions: ['review', 'task', 'update']
 }`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
-				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Event ingestion</h3>
-						<p class="mt-2">Use an append-only event model and denormalize display fields at write time. Timeline reads should stay fast, stable, and easy to paginate.</p>
+			<DocSection eyebrow="Design references" title="Why this composition is different">
+				<div class="grid gap-px overflow-hidden border border-border bg-border text-sm leading-6 md:grid-cols-3">
+					<div class="bg-canvas p-4">
+						<h3 class="font-semibold text-canvas-fg">Intercom-style stream</h3>
+						<p class="mt-2">The center pane uses a compact left-aligned chronology instead of stacked dashboard cards, keeping source, time, and customer impact scannable.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Action routing</h3>
-						<p class="mt-2">Map each event type to allowed actions from the server so users only see task, campaign, ticket, or playbook actions they can perform.</p>
+					<div class="bg-canvas p-4">
+						<h3 class="font-semibold text-canvas-fg">Stripe-style evidence</h3>
+						<p class="mt-2">The inspector treats each incoming signal as an immutable versioned object with a source receipt, raw payload, and delivery state.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include infinite scroll, saved filters, account mentions, event deduping, AI summaries, and bidirectional CRM sync.</p>
+					<div class="bg-canvas p-4">
+						<h3 class="font-semibold text-canvas-fg">Focused mobile app</h3>
+						<p class="mt-2">Feed, Detail, and Work destinations replace the previous 3,442px-long mobile stack, while desktop retains simultaneous context.</p>
 					</div>
 				</div>
+			</DocSection>
+
+			<DocSection eyebrow="Production boundary" title="Adopt the contract, replace the demo storage">
+				<p class="text-sm leading-7 text-muted-fg">
+					The demo API intentionally uses deterministic process memory. A production integration should add tenant-scoped persistence, identity and permission enforcement, queued source connectors, delivery retries and idempotency, cursor pagination, retention policy, and operational telemetry while preserving the exact-revision, preview, acknowledgement, and receipt contracts shown here.
+				</p>
 			</DocSection>
 		</DocPage>
 	</DomStudioLayout>

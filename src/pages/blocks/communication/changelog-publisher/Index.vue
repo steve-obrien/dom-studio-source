@@ -12,19 +12,20 @@ import ChangelogPublisherSrc from './examples/ChangelogPublisher.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Changelog Publisher Block"
-			tagline="A responsive release communication workspace for drafting updates, choosing audience and channels, previewing variants, and satisfying publish checks."
-			tag="Communication UI"
+			tagline="A working release communication section with API-backed drafts, channel previews, publishing checks, reviewer approval, scheduling, delivery proof, and activity history."
+			tag="Reviewed"
 			eyebrow="Blocks"
 		>
-			<DocSection eyebrow="Release communication" title="Changelog publisher workspace">
+			<DocSection eyebrow="Communication" title="Changelog publisher">
 				<Example
 					:source="ChangelogPublisherSrc"
 					filename="ChangelogPublisher.vue"
 					presentation="iframe"
 					frame-src="/blocks/communication/changelog-publisher/preview/ChangelogPublisher"
-					description="Copy this into SaaS admin tools, product marketing surfaces, developer portals, customer success workspaces, or internal release consoles. Replace the sample releases, channels, audience rules, and audit events with your release data."
+					description="Copy this Linear- and GitHub-inspired release editor into a product operations, developer portal, or product marketing area. The responsive workflow uses repository-local APIs instead of prepared screenshot state."
 					default-open
 					:preview-lines="14"
+					frame-flush-edges
 				>
 					<ChangelogPublisher />
 				</Example>
@@ -33,65 +34,56 @@ import ChangelogPublisherSrc from './examples/ChangelogPublisher.vue?raw';
 			<DocSection eyebrow="Integration" title="How to use this block">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when product and growth teams need one place to turn shipped work into customer-facing communication.
-						It combines release selection, copy editing, channel targeting, preview review, safety checks, and activity history without forcing users across docs, email tools, in-app messaging, and changelog CMS screens.
+						Use this block when a product team needs to turn shipped work into a governed customer announcement.
+						The focused editor keeps source copy, included release notes, targeting, channel previews, review, scheduling, and publication evidence in one responsive workflow.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>releases</code> with shipped features from your release train, issue tracker, deployment system, or changelog CMS.</li>
-						<li>Persist <code>headline</code>, <code>summary</code>, selected notes, audience, channels, schedule, and approval state through a changelog draft endpoint.</li>
-						<li>Render channel previews from the same structured payload you publish to your public changelog, email service, in-app feed, and customer success digest.</li>
-						<li>Keep publish checks server-backed for compliance-sensitive releases, beta flags, breaking changes, customer segmentation, and translated copies.</li>
-						<li>Write activity events when a draft is saved, scheduled, approved, published, rolled back, or edited after publication.</li>
+						<li><code>GET /api/block-demos/changelog-publisher/releases</code> and <code>GET /api/block-demos/changelog-publisher/:releaseId</code> return the release train, editable draft, channel previews, readiness, reviewer state, publication proof, and activity.</li>
+						<li><code>PATCH /api/block-demos/changelog-publisher/:releaseId/draft</code> validates a complete draft with optimistic revisions. Editing reviewed work resets its approval.</li>
+						<li><code>POST .../request-review</code>, <code>POST .../approve</code>, and <code>POST .../publish</code> enforce the state machine instead of changing local presentation text.</li>
+						<li>Breaking changes require both a public changelog channel and selected migration guidance. Stale revisions, incorrect reviewers, premature approvals, and incomplete publishing checks return actionable API errors.</li>
+						<li>The demo store is process-local so saved drafts, approvals, schedules, publication proof, and activity survive reloads while the dev server is running.</li>
 					</ul>
 				</div>
 			</DocSection>
 
 			<DocSection eyebrow="Data" title="Recommended changelog payload">
 				<CodeBlock lang="js" filename="changelog-entry.js" :code="`{
-\tid: 'rel_workflow_automation',
-\tstatus: 'draft',
-\theadline: 'Workflow automation is now generally available',
-\tsummary: 'Create approval paths, escalation rules, and follow-up tasks without writing scripts.',
-\treleaseDate: '2026-06-12T09:00:00Z',
-\taudience: {
-\t\tsegment: 'all_workspaces',
-\t\tplanGate: ['Scale', 'Enterprise'],
-\t\tlocales: ['en-GB', 'en-US']
-\t},
-\tchannels: [
-\t\t{ id: 'in_app', enabled: true, owner: 'Product marketing' },
-\t\t{ id: 'email', enabled: true, owner: 'Lifecycle' },
-\t\t{ id: 'public_changelog', enabled: true, owner: 'Docs' }
-\t],
-\tnotes: [
-\t\t{ id: 'builder', type: 'Feature', title: 'Visual automation builder', included: true },
-\t\t{ id: 'templates', type: 'Template', title: 'Approval and handoff templates', included: true }
-\t],
-\tchecks: {
-\t\tcopyReviewed: true,
-\t\townerAssigned: true,
-\t\tsupportBriefed: false,
-\t\tanalyticsTagged: true
-\t},
-\tactivity: [
-\t\t{ actor: 'Mina Cook', action: 'Updated email preview', at: '2026-06-10T14:30:00Z' }
-\t]
+	id: 'workflow',
+	status: 'in-review',
+	revision: 14,
+	headline: 'Workflow automation is now generally available',
+	summary: 'Create approval paths, escalation rules, and follow-up tasks without writing scripts.',
+	audience: 'scale-enterprise',
+	reviewerId: 'mina',
+	schedule: 'monday-1000',
+	approvalRequired: true,
+	channels: { in_app: true, email: true, public: true, community: false },
+	notes: [
+		{ id: 'builder', type: 'Feature', title: 'Visual automation builder', included: true },
+		{ id: 'templates', type: 'Template', title: 'Approval and handoff templates', included: true }
+	],
+	checks: [
+		{ key: 'copy', passed: true, detail: 'Headline and summary meet publishing guidance' },
+		{ key: 'breaking', passed: true, detail: 'No breaking changes selected' }
+	],
+	reviewRequestedAt: 'Just now'
 }`" />
 			</DocSection>
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Channel rendering</h3>
-						<p class="mt-2">Derive email, in-app, and public changelog previews from the same structured entry so copy changes do not drift across surfaces.</p>
+						<h3 class="font-semibold text-canvas-fg">Channel adapters</h3>
+						<p class="mt-2">The demo derives every preview from one structured entry. Production adapters should preserve that source while adding provider templates, localization, and delivery receipts.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Release governance</h3>
-						<p class="mt-2">Block publish actions when legal, docs, support, analytics, localization, or beta-access checks are required but incomplete.</p>
+						<h3 class="font-semibold text-canvas-fg">Durable workflow</h3>
+						<p class="mt-2">Replace the process-local store with authenticated release records, role-aware approvals, idempotent publication jobs, and an append-only audit trail.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
 						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include reusable channel preview components, translation review, feature-to-changelog sync, announcement analytics, and rollback controls.</p>
+						<p class="mt-2">Useful follow-ups include issue-tracker imports, translation review, provider webhooks, audience estimates, analytics attribution, retries, and rollback or correction notices.</p>
 					</div>
 				</div>
 			</DocSection>

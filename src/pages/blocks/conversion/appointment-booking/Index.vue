@@ -12,8 +12,8 @@ import AppointmentBookingFlowSrc from './examples/AppointmentBookingFlow.vue?raw
 	<DomStudioLayout>
 		<DocPage
 			name="Appointment Booking Block"
-			tagline="A reusable stepped scheduling flow for selecting a meeting type, comparing free and busy slots, collecting attendee details, and confirming a booking."
-			tag="Conversion UI"
+			tagline="A complete scheduling section with rolling availability, timezone-aware slots, server holds, attendee validation, confirmation proof, and cancellation."
+			tag="Working API"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Conversion" title="Appointment booking flow">
@@ -22,7 +22,7 @@ import AppointmentBookingFlowSrc from './examples/AppointmentBookingFlow.vue?raw
 					filename="AppointmentBookingFlow.vue"
 					presentation="iframe"
 					frame-src="/blocks/conversion/appointment-booking/preview/AppointmentBookingFlow"
-					description="Copy this into a sales site, product onboarding flow, services marketplace, clinic portal, or customer success app. Replace the local appointment types and availability maps with data from your scheduling provider."
+					description="Copy this into a sales site, onboarding flow, services marketplace, clinic portal, or customer-success app that needs a complete booking journey rather than a static calendar mock."
 					default-open
 					:preview-lines="14"
 				>
@@ -30,53 +30,52 @@ import AppointmentBookingFlowSrc from './examples/AppointmentBookingFlow.vue?raw
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="How the working section fits together">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when your app needs booking inside the product instead of sending users to a separate scheduler.
-						It keeps appointment type, day and slot selection, attendee collection, and final confirmation in a guarded step sequence.
+						Use this block when booking belongs inside the product rather than behind an outbound scheduling link. The example keeps appointment choice, live availability, slot contention, attendee details, confirmation, and cancellation in one API-backed journey.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>meetingTypes</code> with the services, calls, or appointment types your product supports.</li>
-						<li>Load <code>availabilityByType</code> from your calendar provider after the user picks a meeting type, date, and timezone.</li>
-						<li>Pass only days with at least one free slot into <code>DomCalendar</code> through <code>enabledDates</code>.</li>
-						<li>Keep unavailable slots in the response with a busy status so the UI can show why a time cannot be selected.</li>
-						<li>Submit only after the selected slot is available and the attendee fields pass validation, then create the calendar event.</li>
+						<li><code>GET /api/block-demos/appointment-booking/bootstrap</code> returns rolling bookable dates, meeting types, timezone choices, policy, and attendee defaults.</li>
+						<li>The availability route resolves open, host-busy, held, and booked slots for the selected meeting type, date, and timezone.</li>
+						<li>The hold route requires the current availability revision and returns <code>409</code> when another visitor claims a stale time.</li>
+						<li>The booking route validates the attendee and consent server-side, consumes the hold, and issues immutable confirmation proof.</li>
+						<li>Confirmed appointments can be read and cancelled through dedicated routes; cancellation releases the slot and changes the receipt checksum.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended booking payload">
-				<CodeBlock lang="js" filename="booking-request.js" :code="`{
-\tmeetingTypeId: 'implementation',
-\thostId: 'user_elliot_grant',
-\tstartsAt: '2026-06-16T10:30:00+01:00',
-\tdurationMinutes: 45,
-\ttimezone: 'Europe/London',
-\tattendee: {
-\t\tname: 'Alex Morgan',
-\t\temail: 'alex@example.com',
-\t\tcompany: 'Northstar Labs',
-\t\tnotes: 'We want to understand launch timing for a team workspace.'
-\t},
-\tstatus: 'confirmed',
-\tsource: 'product_onboarding'
+			<DocSection eyebrow="Data" title="API-backed booking receipt">
+				<CodeBlock lang="js" filename="booking-receipt.js" :code="`{
+	id: 'receipt-nst-902',
+	reference: 'NST-902',
+	status: 'confirmed',
+	issuedAt: '2026-08-01T16:18:12.000Z',
+	checksum: 'd3fcd4b40b504814',
+	calendarDelivery: 'queued',
+	booking: {
+		meetingTypeId: 'implementation',
+		startsAt: '2026-08-03T08:30:00.000Z',
+		durationMinutes: 45,
+		timezone: 'Europe/London',
+		attendee: { name: 'Alex Morgan', email: 'alex@northstar.tools' }
+	}
 }`" />
 			</DocSection>
 
 			<DocSection eyebrow="Customization" title="Implementation notes">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Availability</h3>
-						<p class="mt-2">Fetch free and busy slots after type, date, and timezone change. Cache per day to keep the flow fast.</p>
+						<h3 class="font-semibold text-canvas-fg">Provider adapter</h3>
+						<p class="mt-2">Replace the process-local schedule with Google Calendar, Microsoft Graph, Cal.com, or an application-owned availability service while preserving the response contract.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Confirmation</h3>
-						<p class="mt-2">Create a temporary hold before final submit if appointments can be claimed by multiple visitors at once.</p>
+						<h3 class="font-semibold text-canvas-fg">Contention</h3>
+						<p class="mt-2">Keep the optimistic revision and expiring hold even when the calendar provider offers its own booking token; they make recovery explicit to the attendee.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Reuse</h3>
-						<p class="mt-2">Keep the data shape stable so product, sales, support, and services teams can share the same booking surface.</p>
+						<h3 class="font-semibold text-canvas-fg">Production boundary</h3>
+						<p class="mt-2">Add rate limits, durable holds, calendar delivery jobs, authenticated management links, reminder policy, and immutable audit storage before production use.</p>
 					</div>
 				</div>
 			</DocSection>

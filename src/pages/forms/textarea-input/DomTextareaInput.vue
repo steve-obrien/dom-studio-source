@@ -7,7 +7,7 @@ const props = defineProps({
 	...fieldProps,
 	rows: { type: Number, default: 3 },
 });
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'focus', 'blur']);
 const field = useField(props, emit, { idPrefix: 'dom-multiline-input' });
 </script>
 

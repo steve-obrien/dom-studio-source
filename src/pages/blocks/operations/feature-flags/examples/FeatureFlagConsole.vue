@@ -1,433 +1,850 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { DomButton, DomNativeSelect, DomTabs, DomToggle } from '@getdom/studio/vue';
+import { computed, onMounted, ref } from 'vue';
+import {
+	DomAlert,
+	DomAppBottomNav,
+	DomAppListItem,
+	DomAppShell,
+	DomAppTopBar,
+	DomBadge,
+	DomButton,
+	DomCheckbox,
+	DomDialog,
+	DomEmptyState,
+	DomJsonViewer,
+	DomRangeInput,
+	DomSelect,
+	DomSkeleton,
+	DomStatusPill,
+	DomTabs,
+	DomTextareaInput,
+	DomTextInput,
+	DomToggle,
+} from '@getdom/studio/vue';
 
-const environmentOptions = [
-	{ label: 'Production', value: 'production' },
-	{ label: 'Staging', value: 'staging' },
-	{ label: 'Development', value: 'development' },
+const apiBase = '/api/block-demos/feature-flags';
+const evidenceTabs = [
+	{ key: 'release', label: 'Release' },
+	{ key: 'history', label: 'History' },
 ];
 
-const flagViewTabs = [
-	{ key: 'targeting', label: 'Targeting' },
-	{ key: 'guardrails', label: 'Guardrails' },
-	{ key: 'activity', label: 'Activity' },
-];
+const workspace = ref(null);
+const loading = ref(true);
+const busyAction = ref('');
+const error = ref('');
+const notice = ref('');
+const activeView = ref('targeting');
+const evidenceTab = ref('release');
+const flagSearch = ref('');
+const draftEnabled = ref(true);
+const draftRollout = ref(32);
+const draftSegmentId = ref('beta_scale_eu');
+const draftAttribute = ref('workspace_age_days');
+const draftOperator = ref('greater_than');
+const draftValue = ref('14');
+const draftReason = ref('Expand after checkout guardrails stayed healthy.');
+const approvalAcknowledged = ref(false);
+const approvalNote = ref('Guardrails and rollback evidence reviewed.');
+const publishAcknowledged = ref(false);
+const rollbackAcknowledged = ref(false);
+const contextKey = ref('northstar-workspace-42');
+const contextSegmentId = ref('beta_scale_eu');
+const contextRegion = ref('eu-west');
+const evaluatePreview = ref(true);
+const createDialogOpen = ref(false);
+const createName = ref('Regional invoices');
+const createKey = ref('billing.regional_invoices');
+const createDescription = ref('Enable regional invoice numbering for selected workspaces.');
+const createOwnerId = ref('admin');
+const createType = ref('release');
 
-const flags = [
-	{
-		id: 'wallet-checkout',
-		key: 'checkout.wallet_express',
-		name: 'Express wallet checkout',
-		description: 'Offer Apple Pay and saved-wallet options before the full address step.',
-		owner: 'Growth engineering',
-		status: 'Monitoring',
-		risk: 'Medium',
-		rollout: 32,
-		enabled: true,
-		updated: '12 min ago',
-		exposures: '12.8k',
-		segments: ['Beta customers', 'EU workspaces'],
-		exclusions: ['Enterprise contracts'],
-		metrics: [
-			{ label: 'Error rate', value: '0.18%', trend: 'Down 0.04%', tone: 'success' },
-			{ label: 'P95 latency', value: '184 ms', trend: 'Stable', tone: 'neutral' },
-			{ label: 'Checkout lift', value: '+4.7%', trend: 'Above target', tone: 'success' },
-		],
-		checks: [
-			{ label: 'Support macro prepared', done: true },
-			{ label: 'Rollback owner assigned', done: true },
-			{ label: 'Enterprise accounts excluded', done: true },
-			{ label: 'Payment failure alert linked', done: false },
-		],
-		activity: [
-			{ actor: 'Maya Chen', action: 'Raised rollout from 20% to 32%', time: '12 min ago' },
-			{ actor: 'Release bot', action: 'Guardrails passed for 2 hours', time: '42 min ago' },
-			{ actor: 'Priya Shah', action: 'Added EU workspaces segment', time: 'Yesterday' },
-		],
-	},
-	{
-		id: 'team-invites',
-		key: 'workspace.invite_approval',
-		name: 'Invite approval flow',
-		description: 'Require admins to approve external-domain invitations before users join.',
-		owner: 'Admin platform',
-		status: 'Draft',
-		risk: 'Low',
-		rollout: 0,
-		enabled: false,
-		updated: '1 hr ago',
-		exposures: '0',
-		segments: ['Internal workspaces'],
-		exclusions: ['Starter plans'],
-		metrics: [
-			{ label: 'Approval success', value: 'Not live', trend: 'Waiting', tone: 'neutral' },
-			{ label: 'Invite errors', value: '0', trend: 'No traffic', tone: 'neutral' },
-			{ label: 'Admin adoption', value: '0%', trend: 'Not measured', tone: 'neutral' },
-		],
-		checks: [
-			{ label: 'Policy copy approved', done: true },
-			{ label: 'Owner transfer tested', done: false },
-			{ label: 'Support article drafted', done: false },
-			{ label: 'Audit event reviewed', done: true },
-		],
-		activity: [
-			{ actor: 'Nora Patel', action: 'Created production flag draft', time: '1 hr ago' },
-			{ actor: 'Sam Reed', action: 'Linked admin audit event', time: 'Yesterday' },
-		],
-	},
-	{
-		id: 'ai-summary',
-		key: 'support.ai_summary',
-		name: 'AI support summaries',
-		description: 'Summarize long support conversations before agents write a reply.',
-		owner: 'Support tooling',
-		status: 'Live',
-		risk: 'High',
-		rollout: 78,
-		enabled: true,
-		updated: '4 min ago',
-		exposures: '38.4k',
-		segments: ['Support agents', 'English language'],
-		exclusions: ['Healthcare customers'],
-		metrics: [
-			{ label: 'Escalation rate', value: '2.4%', trend: 'Down 0.8%', tone: 'success' },
-			{ label: 'Summary edits', value: '18%', trend: 'Watch', tone: 'warning' },
-			{ label: 'Avg handle time', value: '-1m 42s', trend: 'Improved', tone: 'success' },
-		],
-		checks: [
-			{ label: 'PII redaction tested', done: true },
-			{ label: 'Model fallback enabled', done: true },
-			{ label: 'QA sample reviewed', done: false },
-			{ label: 'Customer opt-out honored', done: true },
-		],
-		activity: [
-			{ actor: 'Lee Morgan', action: 'Paused healthcare customer exposure', time: '4 min ago' },
-			{ actor: 'Release bot', action: 'Edit-rate guardrail entered watch state', time: '25 min ago' },
-			{ actor: 'Ava Singh', action: 'Raised rollout from 60% to 78%', time: 'Today' },
-		],
-	},
-];
+const selectedFlag = computed(() => workspace.value?.selectedFlag || null);
+const config = computed(() => selectedFlag.value?.config || null);
+const filteredFlags = computed(getFilteredFlags);
+const mobileNavigation = computed(getMobileNavigation);
+const evidencePayload = computed(getEvidencePayload);
+const selectedSegment = computed(() => workspace.value?.catalogs?.segments?.find((option) => option.value === draftSegmentId.value) || null);
 
-const selectedFlagId = ref(flags[0].id);
-const selectedEnvironment = ref('production');
-const activeTab = ref('targeting');
-const rolloutDraft = ref(flags[0].rollout);
-const enabledDraft = ref(flags[0].enabled);
+onMounted(loadWorkspace);
 
-const selectedFlag = computed(() => flags.find((flag) => flag.id === selectedFlagId.value) || flags[0]);
-const selectedChecklist = computed(() => selectedFlag.value.checks);
-const completedChecks = computed(() => selectedChecklist.value.filter((check) => check.done).length);
-const readinessPercent = computed(() => Math.round((completedChecks.value / selectedChecklist.value.length) * 100));
-const selectedMetric = computed(() => selectedFlag.value.metrics.find((metric) => metric.tone === 'warning') || selectedFlag.value.metrics[0]);
-const summaryCards = computed(() => [
-	{ label: 'Production flags', value: '18', detail: '7 active rollouts' },
-	{ label: 'Current exposure', value: selectedFlag.value.exposures, detail: 'Matched users evaluated' },
-	{ label: 'Readiness', value: `${readinessPercent.value}%`, detail: `${completedChecks.value} of ${selectedChecklist.value.length} checks complete` },
-	{ label: selectedMetric.value.label, value: selectedMetric.value.value, detail: selectedMetric.value.trend },
-]);
-const rolloutLabel = computed(() => {
-	if (!enabledDraft.value) return 'Paused';
-	if (Number(rolloutDraft.value) === 100) return 'Everyone';
-	if (Number(rolloutDraft.value) === 0) return 'No traffic';
-	return `${rolloutDraft.value}% of matched traffic`;
-});
-
-function selectFlag(flag) {
-	selectedFlagId.value = flag.id;
-	rolloutDraft.value = flag.rollout;
-	enabledDraft.value = flag.enabled;
-	activeTab.value = 'targeting';
+/**
+ * Loads the complete feature-release workspace from the repository-local API.
+ *
+ * @param {boolean} clearMessages Whether visible feedback should be cleared first.
+ * @returns {Promise<void>}
+ */
+async function loadWorkspace(clearMessages = true) {
+	if (clearMessages) clearFeedback();
+	loading.value = true;
+	try {
+		const response = await fetch(`${apiBase}/bootstrap`);
+		const data = await response.json();
+		if (!response.ok) throw createRequestError(data, response.status);
+		setWorkspace(data);
+	} catch (requestError) {
+		error.value = requestError.message || 'Unable to load the feature release workspace.';
+	} finally {
+		loading.value = false;
+	}
 }
 
-function statusClasses(status) {
-	return {
-		Live: 'bg-success/15 text-success',
-		Monitoring: 'bg-primary/15 text-primary',
-		Draft: 'bg-secondary text-muted-fg',
-	}[status] || 'bg-secondary text-muted-fg';
+/**
+ * Sends one JSON mutation and applies its authoritative workspace response.
+ *
+ * @param {string} path API path below the feature-flags base URL.
+ * @param {Record<string, unknown>} body JSON request body.
+ * @param {string} action Stable busy-state key.
+ * @returns {Promise<object|null>} Updated workspace or null after failure.
+ */
+async function mutateWorkspace(path, body, action) {
+	clearFeedback();
+	busyAction.value = action;
+	try {
+		const response = await fetch(`${apiBase}${path}`, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify(body),
+		});
+		const data = await response.json();
+		if (!response.ok) throw createRequestError(data, response.status);
+		setWorkspace(data);
+		return data;
+	} catch (requestError) {
+		error.value = requestError.message || 'Feature release action failed.';
+		if (requestError.status === 409) await refreshAfterConflict();
+		return null;
+	} finally {
+		busyAction.value = '';
+	}
 }
 
-function statusRailClasses(status) {
-	return {
-		Live: 'bg-success/80',
-		Monitoring: 'bg-primary/70',
-		Draft: 'bg-muted-fg/35',
-	}[status] || 'bg-muted-fg/35';
+/**
+ * Reloads authoritative server state after an exact-revision conflict.
+ *
+ * @returns {Promise<void>}
+ */
+async function refreshAfterConflict() {
+	try {
+		const response = await fetch(`${apiBase}/bootstrap`);
+		const data = await response.json();
+		if (response.ok) setWorkspace(data);
+	} catch {
+		// Preserve the original conflict message when recovery also fails.
+	}
 }
 
-function riskClasses(risk) {
-	return {
-		High: 'bg-destructive/15 text-destructive',
-		Medium: 'bg-warning/15 text-warning',
-		Low: 'bg-success/15 text-success',
-	}[risk] || 'bg-secondary text-muted-fg';
+/**
+ * Replaces client state and aligns the editable draft with API evidence.
+ *
+ * @param {object} data Authoritative feature-release workspace.
+ * @returns {void}
+ */
+function setWorkspace(data) {
+	workspace.value = data;
+	const source = data.preview?.draft || data.selectedFlag?.config;
+	if (source) setDraft(source);
+	if (!data.preview) {
+		approvalAcknowledged.value = false;
+		publishAcknowledged.value = false;
+		evaluatePreview.value = false;
+	}
+	if (!data.rollbackPreview) rollbackAcknowledged.value = false;
 }
 
-function metricClasses(tone) {
-	return {
-		success: 'bg-success/15 text-success',
-		warning: 'bg-warning/15 text-warning',
-		neutral: 'bg-secondary text-muted-fg',
-	}[tone] || 'bg-secondary text-muted-fg';
+/**
+ * Copies a live or previewed configuration into the release editor.
+ *
+ * @param {object} source Configuration fields.
+ * @returns {void}
+ */
+function setDraft(source) {
+	draftEnabled.value = Boolean(source.enabled);
+	draftRollout.value = Number(source.rollout || 0);
+	draftSegmentId.value = source.audienceSegmentId || 'internal';
+	draftAttribute.value = source.rule?.attribute || 'plan';
+	draftOperator.value = source.rule?.operator || 'is_one_of';
+	draftValue.value = source.rule?.value || 'Scale';
+	if (source.reason) draftReason.value = source.reason;
 }
 
-function metricTextClasses(tone) {
+/**
+ * Selects one flag while preserving exact workspace state.
+ *
+ * @param {string} flagId Feature flag identifier.
+ * @returns {Promise<void>}
+ */
+async function selectFlag(flagId) {
+	if (!workspace.value || flagId === workspace.value.selectedFlagId || busyAction.value) return;
+	const data = await mutateWorkspace('/select', {
+		revision: workspace.value.revision,
+		flagId,
+		environmentId: workspace.value.selectedEnvironmentId,
+	}, 'select-flag');
+	if (data) {
+		activeView.value = 'targeting';
+		evidenceTab.value = 'release';
+		notice.value = `${data.selectedFlag.key} opened at configuration version ${data.selectedFlag.config.version}.`;
+	}
+}
+
+/**
+ * Selects one environment through the server-owned workspace context.
+ *
+ * @param {string} environmentId Environment identifier.
+ * @returns {Promise<void>}
+ */
+async function selectEnvironment(environmentId) {
+	if (!workspace.value || environmentId === workspace.value.selectedEnvironmentId || busyAction.value) return;
+	const data = await mutateWorkspace('/select', {
+		revision: workspace.value.revision,
+		flagId: workspace.value.selectedFlagId,
+		environmentId,
+	}, 'select-environment');
+	if (data) notice.value = `${data.selectedFlag.name} switched to ${environmentLabel(environmentId)}.`;
+}
+
+/**
+ * Keeps disabled flags at zero traffic and gives enabled drafts a safe starting percentage.
+ *
+ * @param {boolean} enabled Next serving state.
+ * @returns {void}
+ */
+function updateEnabledDraft(enabled) {
+	draftEnabled.value = Boolean(enabled);
+	if (!draftEnabled.value) draftRollout.value = 0;
+	else if (draftRollout.value === 0) draftRollout.value = 10;
+}
+
+/**
+ * Restores the editor to the current live configuration.
+ *
+ * @returns {void}
+ */
+function restoreLiveDraft() {
+	if (!config.value) return;
+	setDraft(config.value);
+	clearFeedback();
+	notice.value = 'The editor now matches the live configuration.';
+}
+
+/**
+ * Previews the rollout, audience, and rule changes through the API.
+ *
+ * @returns {Promise<void>}
+ */
+async function previewChange() {
+	if (!workspace.value || !selectedFlag.value || !config.value) return;
+	const data = await mutateWorkspace('/changes/preview', {
+		revision: workspace.value.revision,
+		flagId: selectedFlag.value.id,
+		environmentId: workspace.value.selectedEnvironmentId,
+		flagVersion: config.value.version,
+		enabled: draftEnabled.value,
+		rollout: draftRollout.value,
+		audienceSegmentId: draftSegmentId.value,
+		attribute: draftAttribute.value,
+		operator: draftOperator.value,
+		value: draftValue.value,
+		reason: draftReason.value,
+	}, 'preview-change');
+	if (data) {
+		activeView.value = 'release';
+		evidenceTab.value = 'release';
+		notice.value = `${data.preview.checksum} locks ${data.preview.changes.length} proposed changes and ${formatNumber(data.preview.estimatedContexts)} estimated contexts.`;
+	}
+}
+
+/**
+ * Requests production approval for the current immutable preview.
+ *
+ * @returns {Promise<void>}
+ */
+async function requestApproval() {
+	if (!workspace.value?.preview) return;
+	const data = await mutateWorkspace('/approvals', {
+		revision: workspace.value.revision,
+		previewId: workspace.value.preview.id,
+		acknowledged: approvalAcknowledged.value,
+	}, 'request-approval');
+	if (data) notice.value = `${data.approval.id} was routed to ${data.approval.reviewer}.`;
+}
+
+/**
+ * Records the simulated independent release manager's decision.
+ *
+ * @param {'approved'|'rejected'} decision Approval decision.
+ * @returns {Promise<void>}
+ */
+async function decideApproval(decision) {
+	if (!workspace.value?.approval) return;
+	const data = await mutateWorkspace(`/approvals/${workspace.value.approval.id}/decision`, {
+		revision: workspace.value.revision,
+		decision,
+		note: approvalNote.value,
+	}, `approval-${decision}`);
+	if (data) notice.value = `${data.approval.reviewer} ${decision} ${data.approval.checksum}.`;
+}
+
+/**
+ * Publishes the acknowledged and approved release preview.
+ *
+ * @returns {Promise<void>}
+ */
+async function publishChange() {
+	if (!workspace.value?.preview) return;
+	const data = await mutateWorkspace('/publish', {
+		revision: workspace.value.revision,
+		previewId: workspace.value.preview.id,
+		checksum: workspace.value.preview.checksum,
+		acknowledged: publishAcknowledged.value,
+	}, 'publish-change');
+	if (data) notice.value = `${data.publishReceipt.id} reached ${data.publishReceipt.evaluatorsAcknowledged} evaluators and entered monitoring.`;
+}
+
+/**
+ * Advances the deterministic post-release monitoring window.
+ *
+ * @returns {Promise<void>}
+ */
+async function advanceMonitoring() {
+	if (!workspace.value || !selectedFlag.value || !config.value) return;
+	const data = await mutateWorkspace('/monitoring/advance', currentContext(), 'advance-monitoring');
+	if (data) notice.value = `${data.monitoringReceipt.id} completed the ${data.monitoringReceipt.window} monitoring window.`;
+}
+
+/**
+ * Evaluates a test context against the live or current preview configuration.
+ *
+ * @returns {Promise<void>}
+ */
+async function evaluateContext() {
+	if (!workspace.value) return;
+	const data = await mutateWorkspace('/evaluations', {
+		revision: workspace.value.revision,
+		contextKey: contextKey.value,
+		segmentId: contextSegmentId.value,
+		region: contextRegion.value,
+		usePreview: evaluatePreview.value,
+	}, 'evaluate-context');
+	if (data) notice.value = `${data.evaluation.receipt} served ${data.evaluation.variation} from ${data.evaluation.configuration.toLowerCase()} targeting.`;
+}
+
+/**
+ * Creates a rollback preview from the latest published restore point.
+ *
+ * @returns {Promise<void>}
+ */
+async function previewRollback() {
+	if (!workspace.value || !selectedFlag.value || !config.value) return;
+	const data = await mutateWorkspace('/rollbacks/preview', currentContext(), 'preview-rollback');
+	if (data) notice.value = `${data.rollbackPreview.checksum} locks the restore from ${data.rollbackPreview.current.rollout}% to ${data.rollbackPreview.restore.rollout}%.`;
+}
+
+/**
+ * Restores the exact previous configuration after acknowledgement.
+ *
+ * @returns {Promise<void>}
+ */
+async function rollbackChange() {
+	if (!workspace.value?.rollbackPreview) return;
+	const data = await mutateWorkspace('/rollbacks', {
+		revision: workspace.value.revision,
+		previewId: workspace.value.rollbackPreview.id,
+		checksum: workspace.value.rollbackPreview.checksum,
+		acknowledged: rollbackAcknowledged.value,
+	}, 'rollback-change');
+	if (data) notice.value = `${data.rollbackReceipt.id} restored the prior configuration and entered monitoring.`;
+}
+
+/**
+ * Creates a disabled flag and selects its production configuration.
+ *
+ * @returns {Promise<void>}
+ */
+async function createFlag() {
+	if (!workspace.value) return;
+	const data = await mutateWorkspace('/flags', {
+		revision: workspace.value.revision,
+		name: createName.value,
+		key: createKey.value,
+		description: createDescription.value,
+		ownerId: createOwnerId.value,
+		type: createType.value,
+	}, 'create-flag');
+	if (data) {
+		createDialogOpen.value = false;
+		activeView.value = 'targeting';
+		notice.value = `${data.createReceipt.id} created ${data.createReceipt.flagKey} disabled in every environment.`;
+	}
+}
+
+/**
+ * Restores all feature-release demo state.
+ *
+ * @returns {Promise<void>}
+ */
+async function resetWorkspace() {
+	const data = await mutateWorkspace('/reset', {}, 'reset-workspace');
+	if (data) {
+		activeView.value = 'targeting';
+		evidenceTab.value = 'release';
+		notice.value = `Demo reset to workspace revision ${data.revision}.`;
+	}
+}
+
+/**
+ * Returns exact context fields required by configuration mutations.
+ *
+ * @returns {object} Current workspace, flag, environment, and configuration revisions.
+ */
+function currentContext() {
 	return {
-		success: 'text-success',
-		warning: 'text-warning',
-		neutral: 'text-muted-fg',
-	}[tone] || 'text-muted-fg';
+		revision: workspace.value.revision,
+		flagId: selectedFlag.value.id,
+		environmentId: workspace.value.selectedEnvironmentId,
+		flagVersion: config.value.version,
+	};
+}
+
+/**
+ * Filters flag inventory rows against name, key, and owner.
+ *
+ * @returns {Array<object>} Visible feature flags.
+ */
+function getFilteredFlags() {
+	const query = flagSearch.value.trim().toLowerCase();
+	const flags = workspace.value?.flags || [];
+	if (!query) return flags;
+	return flags.filter((flag) => [flag.name, flag.key, flag.owner].some((value) => String(value).toLowerCase().includes(query)));
+}
+
+/**
+ * Builds narrow-screen primary navigation with useful workflow badges.
+ *
+ * @returns {Array<object>} Bottom navigation items.
+ */
+function getMobileNavigation() {
+	return [
+		{ value: 'flags', label: 'Flags', badge: workspace.value?.flags?.length ? String(workspace.value.flags.length) : '' },
+		{ value: 'targeting', label: 'Targeting' },
+		{ value: 'release', label: 'Release', badge: workspace.value?.approval?.status === 'pending' ? '1' : workspace.value?.preview ? '•' : '' },
+	];
+}
+
+/**
+ * Builds the latest immutable evidence payload for JSON inspection.
+ *
+ * @returns {object} Current release, monitoring, rollback, and evaluation proof.
+ */
+function getEvidencePayload() {
+	if (!workspace.value) return {};
+	return {
+		workspaceRevision: workspace.value.revision,
+		flagKey: selectedFlag.value?.key,
+		environment: workspace.value.selectedEnvironmentId,
+		configurationVersion: config.value?.version,
+		preview: workspace.value.preview ? {
+			id: workspace.value.preview.id,
+			checksum: workspace.value.preview.checksum,
+			sourceVersion: workspace.value.preview.sourceVersion,
+		} : null,
+		approval: workspace.value.approval,
+		publication: workspace.value.publishReceipt,
+		monitoring: workspace.value.monitoringReceipt,
+		rollback: workspace.value.rollbackReceipt,
+		evaluation: workspace.value.evaluation,
+	};
+}
+
+/**
+ * Resolves a semantic status tone.
+ *
+ * @param {string} status Release or check status.
+ * @returns {string} DOM Studio semantic tone.
+ */
+function statusTone(status) {
+	return {
+		healthy: 'success',
+		passed: 'success',
+		approved: 'success',
+		monitoring: 'primary',
+		pending: 'warning',
+		warning: 'warning',
+		watch: 'warning',
+		breach: 'danger',
+		rejected: 'danger',
+		paused: 'neutral',
+		draft: 'neutral',
+	}[status] || 'neutral';
+}
+
+/**
+ * Formats a machine status as readable label text.
+ *
+ * @param {unknown} value Machine status.
+ * @returns {string} Human-readable status.
+ */
+function statusLabel(value) {
+	const text = String(value || 'unknown').replaceAll('-', ' ');
+	return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/**
+ * Resolves an environment label from the server catalog.
+ *
+ * @param {string} environmentId Environment identifier.
+ * @returns {string} Human-readable environment label.
+ */
+function environmentLabel(environmentId) {
+	return workspace.value?.catalogs?.environments?.find((option) => option.value === environmentId)?.label || environmentId;
+}
+
+/**
+ * Formats a number for compact operational evidence.
+ *
+ * @param {unknown} value Numeric value.
+ * @returns {string} Locale-formatted number.
+ */
+function formatNumber(value) {
+	return new Intl.NumberFormat('en-GB').format(Number(value || 0));
+}
+
+/**
+ * Clears visible success and error feedback.
+ *
+ * @returns {void}
+ */
+function clearFeedback() {
+	error.value = '';
+	notice.value = '';
+}
+
+/**
+ * Creates an Error with the originating HTTP status attached.
+ *
+ * @param {object} data API response payload.
+ * @param {number} status HTTP status code.
+ * @returns {Error & {status?: number}} Request error.
+ */
+function createRequestError(data, status) {
+	const requestError = new Error(data?.error || `Request failed with status ${status}.`);
+	requestError.status = status;
+	return requestError;
 }
 </script>
 
 <template>
-	<div class="min-h-screen w-full bg-canvas text-canvas-fg">
-		<div class="mx-auto flex w-full max-w-7xl flex-col gap-5 p-3 sm:p-5 lg:p-6">
-			<header class="overflow-hidden rounded-lg border border-border skin-card shadow-lg shadow-black/5">
-				<div class="h-1 bg-[linear-gradient(90deg,var(--success),var(--warning),var(--primary))]"></div>
-				<div class="grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
-					<div>
-						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Release operations</p>
-						<h3 class="mt-1 text-2xl font-semibold tracking-tight">Feature flag console</h3>
-						<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">
-							Control rollout exposure, target the right customers, and watch release guardrails before opening a feature to everyone.
-						</p>
-					</div>
-					<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
-						<DomNativeSelect v-model="selectedEnvironment" :options="environmentOptions" class="sm:w-44" />
-						<DomButton size="sm" variant="secondary">View audit log</DomButton>
-						<DomButton size="sm">Create flag</DomButton>
-					</div>
-				</div>
+	<DomAppShell class="!h-dvh">
+		<template #top>
+			<DomAppTopBar
+				title="Release control"
+				:subtitle="workspace && selectedFlag ? `${selectedFlag.name} · ${environmentLabel(workspace.selectedEnvironmentId)}` : 'Feature flags'"
+			>
+				<template #leading>
+					<div class="grid size-9 place-items-center rounded-xl bg-primary text-xs font-bold text-primary-fg">RC</div>
+				</template>
+				<template #trailing>
+					<DomBadge v-if="workspace" tone="neutral" size="sm" class="hidden sm:inline-flex">r{{ workspace.revision }}</DomBadge>
+					<DomButton class="hidden sm:inline-flex" size="sm" variant="secondary" :loading="busyAction === 'reset-workspace'" @click="resetWorkspace">Reset</DomButton>
+					<DomButton class="hidden sm:inline-flex" size="sm" @click="createDialogOpen = true">Create flag</DomButton>
+				</template>
+			</DomAppTopBar>
+		</template>
 
-				<div class="grid gap-px bg-border/70 sm:grid-cols-2 xl:grid-cols-4">
-					<div
-						v-for="item in summaryCards"
-						:key="item.label"
-						class="bg-canvas/75 px-4 py-3"
-					>
-						<p class="text-xs text-muted-fg">{{ item.label }}</p>
-						<p class="mt-1 text-2xl font-semibold tracking-tight">{{ item.value }}</p>
-						<p class="mt-1 text-xs text-muted-fg">{{ item.detail }}</p>
-					</div>
-				</div>
-			</header>
-
-			<section class="grid gap-5 xl:grid-cols-[21rem_minmax(0,1fr)]">
-				<aside class="overflow-hidden rounded-lg border border-border skin-card shadow-sm">
-					<div class="flex items-center justify-between gap-3 border-b border-border/80 p-4">
-						<div>
-							<h4 class="text-sm font-semibold">Flag inventory</h4>
-							<p class="text-xs text-muted-fg">Select a flag to inspect rollout state.</p>
-						</div>
-						<span class="rounded-full bg-secondary px-2 py-1 text-[11px] font-semibold text-muted-fg">{{ selectedEnvironment }}</span>
-					</div>
-
-					<div class="grid gap-1 p-2">
-						<button
-							v-for="flag in flags"
-							:key="flag.id"
-							type="button"
-							class="group rounded-md px-3 py-3 text-left transition hover:bg-muted/55"
-							:class="flag.id === selectedFlag.id ? 'bg-primary/5 shadow-xs ring-1 ring-primary/15' : ''"
-							@click="selectFlag(flag)"
-						>
-							<div class="flex gap-3">
-								<span class="mt-1 h-10 w-1 shrink-0 rounded-full" :class="statusRailClasses(flag.status)"></span>
-								<div class="min-w-0 flex-1">
-									<div class="flex items-start justify-between gap-3">
-										<div class="min-w-0">
-											<p class="truncate text-sm font-semibold">{{ flag.name }}</p>
-											<p class="mt-1 truncate font-mono text-[11px] text-muted-fg">{{ flag.key }}</p>
-										</div>
-										<span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="statusClasses(flag.status)">
-											{{ flag.status }}
-										</span>
-									</div>
-									<p class="mt-3 line-clamp-2 text-xs leading-5 text-muted-fg">{{ flag.description }}</p>
-									<div class="mt-3 flex items-center justify-between gap-3">
-										<span class="text-xs text-muted-fg">{{ flag.rollout }}% rollout</span>
-										<span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="riskClasses(flag.risk)">
-											{{ flag.risk }} risk
-										</span>
-									</div>
-								</div>
-							</div>
-						</button>
-					</div>
-				</aside>
-
-				<main class="grid gap-4">
-					<section class="overflow-hidden rounded-lg border border-border skin-card shadow-sm">
-						<div class="grid lg:grid-cols-[minmax(0,1fr)_20rem]">
-							<div class="p-4 sm:p-5">
-								<div class="flex flex-wrap items-center gap-2">
-									<span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="statusClasses(selectedFlag.status)">
-										{{ selectedFlag.status }}
-									</span>
-									<span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="riskClasses(selectedFlag.risk)">
-										{{ selectedFlag.risk }} risk
-									</span>
-									<span class="rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-muted-fg">{{ selectedFlag.owner }}</span>
-								</div>
-								<h4 class="mt-3 text-xl font-semibold tracking-tight">{{ selectedFlag.name }}</h4>
-								<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">{{ selectedFlag.description }}</p>
-								<div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-fg">
-									<span class="font-mono">{{ selectedFlag.key }}</span>
-									<span>Updated {{ selectedFlag.updated }}</span>
-								</div>
-								<div class="mt-5 grid gap-4 border-t border-border/70 pt-4 sm:grid-cols-3">
-									<div
-										v-for="metric in selectedFlag.metrics"
-										:key="metric.label"
-									>
-										<p class="text-xs text-muted-fg">{{ metric.label }}</p>
-										<p class="mt-1 text-lg font-semibold tracking-tight">{{ metric.value }}</p>
-										<p class="mt-1 text-[11px] font-medium" :class="metricTextClasses(metric.tone)">
-											{{ metric.trend }}
-										</p>
-									</div>
-								</div>
-							</div>
-
-							<div class="border-t border-border/80 bg-muted/25 p-4 lg:border-l lg:border-t-0">
-								<div class="flex items-start justify-between gap-4">
-									<div>
-										<p class="text-sm font-semibold">Flag enabled</p>
-										<p class="mt-1 text-xs leading-5 text-muted-fg">Pause traffic instantly without deleting rules.</p>
-									</div>
-									<DomToggle v-model="enabledDraft" aria-label="Toggle flag enabled state" />
-								</div>
-								<div class="mt-4">
-									<div class="flex items-center justify-between gap-3 text-sm">
-										<span class="font-medium">Rollout</span>
-										<span class="text-muted-fg">{{ rolloutLabel }}</span>
-									</div>
-									<input
-										v-model="rolloutDraft"
-										type="range"
-										min="0"
-										max="100"
-										step="1"
-										class="mt-3 h-2 w-full accent-primary"
-										aria-label="Rollout percentage"
-									/>
-									<div class="mt-2 flex justify-between text-[11px] text-muted-fg">
-										<span>0%</span>
-										<span>50%</span>
-										<span>100%</span>
-									</div>
-								</div>
-								<DomButton class="mt-4 w-full" :variant="enabledDraft ? 'primary' : 'secondary'">
-									{{ enabledDraft ? 'Schedule rollout change' : 'Save paused state' }}
-								</DomButton>
-							</div>
-						</div>
-					</section>
-
-					<section class="rounded-lg border border-border skin-card p-4 shadow-sm sm:p-5">
-						<DomTabs v-model="activeTab" :tabs="flagViewTabs" aria-label="Flag detail view">
-							<template #targeting>
-								<div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-									<div class="grid gap-4">
-										<div class="rounded-md bg-muted/35 p-4">
-											<div class="flex items-start justify-between gap-3">
-												<div>
-													<h5 class="text-sm font-semibold">Included segments</h5>
-													<p class="mt-1 text-xs leading-5 text-muted-fg">Traffic must match at least one segment and all rule conditions.</p>
-												</div>
-												<DomButton size="sm" variant="secondary">Edit rules</DomButton>
-											</div>
-											<div class="mt-4 flex flex-wrap gap-2">
-												<span
-													v-for="segment in selectedFlag.segments"
-													:key="segment"
-													class="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary"
-												>
-													{{ segment }}
-												</span>
-											</div>
-										</div>
-
-										<div class="rounded-md bg-muted/35 p-4">
-											<h5 class="text-sm font-semibold">Excluded audiences</h5>
-											<p class="mt-1 text-xs leading-5 text-muted-fg">Use exclusions for contracts, regions, cohorts, or accounts that require manual launch.</p>
-											<div class="mt-4 flex flex-wrap gap-2">
-												<span
-													v-for="segment in selectedFlag.exclusions"
-													:key="segment"
-													class="rounded-full bg-destructive/15 px-3 py-1 text-xs font-semibold text-destructive"
-												>
-													{{ segment }}
-												</span>
-											</div>
-										</div>
-									</div>
-
-									<div class="rounded-md bg-muted/35 p-4">
-										<h5 class="text-sm font-semibold">Launch checklist</h5>
-										<div class="mt-4 divide-y divide-border/70 overflow-hidden rounded-md bg-canvas/75 ring-1 ring-border/70">
-											<label
-												v-for="check in selectedChecklist"
-												:key="check.label"
-												class="flex items-start gap-3 px-3 py-3 text-sm transition hover:bg-muted/45"
-											>
-												<input
-													type="checkbox"
-													:checked="check.done"
-													class="mt-1 size-4 accent-primary"
-													readonly
-												/>
-												<span>
-													<span class="font-medium">{{ check.label }}</span>
-													<span class="block text-xs text-muted-fg">{{ check.done ? 'Complete' : 'Required before full launch' }}</span>
-												</span>
-											</label>
-										</div>
-									</div>
-								</div>
-							</template>
-
-							<template #guardrails>
-								<div class="grid gap-4 md:grid-cols-3">
-									<div
-										v-for="metric in selectedFlag.metrics"
-										:key="metric.label"
-										class="rounded-md bg-muted/35 p-4 ring-1 ring-border/70"
-									>
-										<div class="flex items-start justify-between gap-3">
-											<p class="text-sm font-semibold">{{ metric.label }}</p>
-											<span class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="metricClasses(metric.tone)">
-												{{ metric.trend }}
-											</span>
-										</div>
-										<p class="mt-4 text-3xl font-semibold tracking-tight">{{ metric.value }}</p>
-										<p class="mt-2 text-xs leading-5 text-muted-fg">Compare against baseline before increasing rollout.</p>
-									</div>
-								</div>
-							</template>
-
-							<template #activity>
-								<div class="rounded-md bg-muted/35 p-4">
-									<div
-										v-for="item in selectedFlag.activity"
-										:key="`${item.actor}-${item.action}`"
-										class="relative border-l border-border pb-4 pl-5 text-sm last:pb-0"
-									>
-										<span class="absolute -left-[5px] top-1 size-2.5 rounded-full bg-primary ring-4 ring-canvas"></span>
-										<div class="flex flex-wrap items-baseline justify-between gap-2">
-											<span class="font-medium">{{ item.actor }}</span>
-											<span class="text-xs text-muted-fg">{{ item.time }}</span>
-										</div>
-										<p class="mt-1 text-muted-fg">{{ item.action }}</p>
-									</div>
-								</div>
-							</template>
-						</DomTabs>
-					</section>
-				</main>
-			</section>
+		<div v-if="loading" class="grid min-h-full gap-0 lg:grid-cols-[15rem_minmax(0,1fr)_20rem]">
+			<div v-for="column in 3" :key="column" class="space-y-3 border-r border-border p-4 last:border-r-0">
+				<DomSkeleton class="h-10" />
+				<DomSkeleton v-for="row in 5" :key="row" class="h-16" />
+			</div>
 		</div>
-	</div>
+
+		<DomEmptyState
+			v-else-if="!workspace || !selectedFlag || !config"
+			title="Release workspace unavailable"
+			description="Reload the repository-local demo API to restore feature flags and environments."
+		>
+			<DomButton @click="loadWorkspace">Reload workspace</DomButton>
+		</DomEmptyState>
+
+		<div v-else class="min-h-full lg:grid lg:h-full lg:grid-cols-[15rem_minmax(0,1fr)_20rem]">
+			<aside
+				class="min-h-full border-r border-border bg-muted/15 lg:block lg:min-h-0 lg:overflow-y-auto"
+				:class="activeView === 'flags' ? 'block' : 'hidden'"
+			>
+				<div class="sticky top-0 z-10 border-b border-border bg-canvas/95 p-3 backdrop-blur">
+					<DomSelect
+						:model-value="workspace.selectedEnvironmentId"
+						:options="workspace.catalogs.environments"
+						label="Environment"
+						chrome="none"
+						width="min-w-[17rem]"
+						@update:model-value="selectEnvironment"
+					>
+						<template #value="{ option }">
+							<div v-if="option" class="min-w-0">
+								<p class="truncate text-sm font-semibold">{{ option.label }}</p>
+								<p class="truncate text-[11px] text-muted-fg">{{ option.description }}</p>
+							</div>
+						</template>
+						<template #option="{ option, selected }">
+							<div class="min-w-0 py-0.5">
+								<p class="text-sm font-medium" :class="selected && 'font-semibold'">{{ option.label }}</p>
+								<p class="mt-0.5 text-xs opacity-75">{{ option.description }}</p>
+							</div>
+						</template>
+					</DomSelect>
+					<DomTextInput v-model="flagSearch" class="mt-2" placeholder="Search flags or owners" aria-label="Search feature flags" chrome="none" />
+				</div>
+
+				<div class="divide-y divide-border">
+					<DomAppListItem
+						v-for="flag in filteredFlags"
+						:key="flag.id"
+						:label="flag.name"
+						:description="flag.key"
+						:meta="`${flag.rollout}%`"
+						:selected="flag.id === workspace.selectedFlagId"
+						@click="selectFlag(flag.id)"
+					>
+						<template #leading>
+							<span class="size-2.5 rounded-full" :class="statusTone(flag.status) === 'success' ? 'bg-success' : statusTone(flag.status) === 'warning' ? 'bg-warning' : statusTone(flag.status) === 'primary' ? 'bg-primary' : 'bg-muted-fg/50'"></span>
+						</template>
+					</DomAppListItem>
+				</div>
+
+				<DomEmptyState v-if="!filteredFlags.length" title="No flags found" description="Try a flag key, product area, or owner." compact />
+				<div class="p-3">
+					<DomButton class="w-full" variant="secondary" @click="createDialogOpen = true">Create flag</DomButton>
+					<DomButton class="mt-2 w-full sm:hidden" variant="ghost" :loading="busyAction === 'reset-workspace'" @click="resetWorkspace">Reset demo</DomButton>
+				</div>
+			</aside>
+
+			<main
+				class="min-h-full bg-canvas lg:block lg:min-h-0 lg:overflow-y-auto"
+				:class="activeView === 'targeting' ? 'block' : 'hidden'"
+			>
+				<header class="border-b border-border px-4 py-4 sm:px-5">
+					<div class="flex flex-wrap items-start justify-between gap-3">
+						<div class="min-w-0">
+							<div class="flex flex-wrap items-center gap-2">
+								<DomStatusPill :tone="statusTone(config.status)" :pulse="config.status === 'monitoring'" size="sm">{{ statusLabel(config.status) }}</DomStatusPill>
+								<DomBadge tone="neutral" size="sm">{{ selectedFlag.owner }}</DomBadge>
+								<DomBadge :tone="selectedFlag.risk === 'high' ? 'danger' : selectedFlag.risk === 'medium' ? 'warning' : 'success'" size="sm">{{ statusLabel(selectedFlag.risk) }} risk</DomBadge>
+							</div>
+							<h2 class="mt-2 truncate text-xl font-semibold tracking-tight">{{ selectedFlag.name }}</h2>
+							<p class="mt-1 font-mono text-xs text-muted-fg">{{ selectedFlag.key }}</p>
+						</div>
+						<div class="text-right text-xs text-muted-fg">
+							<p>{{ formatNumber(config.evaluations) }} evaluations</p>
+							<p class="mt-1">v{{ config.version }} · {{ config.updatedAt }}</p>
+						</div>
+					</div>
+					<p class="mt-3 max-w-3xl text-sm leading-6 text-muted-fg">{{ selectedFlag.description }}</p>
+				</header>
+
+				<div class="divide-y divide-border">
+					<section class="p-4 sm:p-5">
+						<div class="flex items-start justify-between gap-4">
+							<div>
+								<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Serving</p>
+								<h3 class="mt-1 text-base font-semibold">Live configuration draft</h3>
+								<p class="mt-1 text-xs leading-5 text-muted-fg">Previewing locks the exact configuration version, customer impact, and rollback evidence.</p>
+							</div>
+							<div class="flex items-center gap-2">
+								<span class="text-xs font-medium">{{ draftEnabled ? 'Enabled' : 'Disabled' }}</span>
+								<DomToggle :model-value="draftEnabled" aria-label="Flag enabled in selected environment" @update:model-value="updateEnabledDraft" />
+							</div>
+						</div>
+
+						<div class="mt-5 grid gap-4 sm:grid-cols-[minmax(0,1fr)_15rem] sm:items-end">
+							<DomRangeInput v-model="draftRollout" label="Percentage rollout" :disabled="!draftEnabled" :min="0" :max="100" :step="1" suffix="%" />
+							<DomSelect v-model="draftSegmentId" :options="workspace.catalogs.segments" label="Audience segment" searchable width="min-w-[20rem]">
+								<template #option="{ option }">
+									<div class="py-0.5"><p class="text-sm font-medium">{{ option.label }}</p><p class="mt-0.5 text-xs opacity-75">{{ option.description }}</p></div>
+								</template>
+							</DomSelect>
+						</div>
+						<div v-if="selectedSegment" class="mt-2 flex items-center justify-between gap-3 text-xs text-muted-fg">
+							<span>{{ selectedSegment.description }}</span>
+							<span class="shrink-0 font-medium text-canvas-fg">{{ draftRollout }}% served</span>
+						</div>
+					</section>
+
+					<section class="p-4 sm:p-5">
+						<div class="flex items-center justify-between gap-3">
+							<div>
+								<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Targeting rule</p>
+								<h3 class="mt-1 text-base font-semibold">Match context attributes</h3>
+							</div>
+							<DomBadge tone="primary" size="sm">Then serve Available</DomBadge>
+						</div>
+						<div class="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)_minmax(0,1fr)]">
+							<DomSelect v-model="draftAttribute" :options="workspace.catalogs.attributes" label="Attribute" width="min-w-[18rem]" />
+							<DomSelect v-model="draftOperator" :options="workspace.catalogs.operators" label="Operator" width="min-w-[16rem]" />
+							<DomTextInput v-model="draftValue" label="Value" placeholder="Scale, Growth" />
+						</div>
+						<DomTextareaInput v-model="draftReason" class="mt-4" label="Release reason" description="Included in approval, audit, and rollback evidence." :rows="3" />
+						<div class="mt-4 flex flex-wrap justify-end gap-2">
+							<DomButton variant="ghost" @click="restoreLiveDraft">Restore live values</DomButton>
+							<DomButton :loading="busyAction === 'preview-change'" @click="previewChange">Review change</DomButton>
+						</div>
+					</section>
+
+					<section class="p-4 sm:p-5">
+						<div class="flex flex-wrap items-start justify-between gap-3">
+							<div>
+								<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Evaluator</p>
+								<h3 class="mt-1 text-base font-semibold">Test a context before release</h3>
+								<p class="mt-1 text-xs text-muted-fg">The API returns a stable rollout bucket and the exact targeting reason.</p>
+							</div>
+							<DomCheckbox v-model="evaluatePreview" :disabled="!workspace.preview" label="Use current preview" description="Otherwise evaluate the live configuration." />
+						</div>
+						<div class="mt-4 grid gap-3 md:grid-cols-3">
+							<DomTextInput v-model="contextKey" label="Context key" />
+							<DomSelect v-model="contextSegmentId" :options="workspace.catalogs.contextSegments" label="Test segment" width="min-w-[18rem]" />
+							<DomSelect v-model="contextRegion" :options="workspace.catalogs.regions" label="Region" width="min-w-[15rem]" />
+						</div>
+						<div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+							<div v-if="workspace.evaluation" class="flex min-w-0 items-start gap-3">
+								<DomStatusPill :tone="workspace.evaluation.matched ? 'success' : 'neutral'" size="sm">{{ workspace.evaluation.variation }}</DomStatusPill>
+								<div class="min-w-0 text-xs"><p class="font-medium">Bucket {{ workspace.evaluation.bucket }} · {{ workspace.evaluation.configuration }}</p><p class="mt-1 text-muted-fg">{{ workspace.evaluation.reason }}</p></div>
+							</div>
+							<p v-else class="text-xs text-muted-fg">No test evaluation has been run for this workspace revision.</p>
+							<DomButton variant="secondary" :loading="busyAction === 'evaluate-context'" @click="evaluateContext">Evaluate context</DomButton>
+						</div>
+					</section>
+				</div>
+			</main>
+
+			<aside
+				class="min-h-full border-l border-border bg-muted/10 lg:block lg:min-h-0 lg:overflow-y-auto"
+				:class="activeView === 'release' ? 'block' : 'hidden'"
+			>
+				<DomTabs v-model="evidenceTab" :tabs="evidenceTabs" aria-label="Release evidence" class="p-3">
+					<template #release>
+						<div class="space-y-4 pt-3">
+							<section>
+								<div class="flex items-end justify-between gap-3">
+									<div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Readiness</p><p class="mt-1 text-sm font-semibold">Release checks</p></div>
+									<p class="text-2xl font-semibold tracking-tight">{{ selectedFlag.readiness.score }}%</p>
+								</div>
+								<div class="mt-3 divide-y divide-border border-y border-border">
+									<div v-for="check in selectedFlag.readiness.checks" :key="check.id" class="flex items-start gap-3 py-3">
+										<DomStatusPill :tone="statusTone(check.state)" :dot="true" size="sm">{{ statusLabel(check.state) }}</DomStatusPill>
+										<div class="min-w-0"><p class="text-xs font-semibold">{{ check.label }}</p><p class="mt-1 text-[11px] leading-4 text-muted-fg">{{ check.detail }}</p></div>
+									</div>
+								</div>
+							</section>
+
+							<section>
+								<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Guardrails</p>
+								<div class="mt-2 divide-y divide-border border-y border-border">
+									<div v-for="item in config.metrics" :key="item.id" class="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-3 text-xs">
+										<div><p class="font-semibold">{{ item.label }}</p><p class="mt-1 text-muted-fg">{{ item.trend }} · threshold {{ item.threshold }}</p></div>
+										<div class="text-right"><p class="font-semibold">{{ item.value }}</p><DomStatusPill class="mt-1" :tone="statusTone(item.state)" size="sm">{{ statusLabel(item.state) }}</DomStatusPill></div>
+									</div>
+								</div>
+							</section>
+
+							<section v-if="workspace.preview" class="border-t border-border pt-4">
+								<div class="flex items-center justify-between gap-3">
+									<div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Change set</p><p class="mt-1 font-mono text-[11px]">{{ workspace.preview.checksum }}</p></div>
+									<DomBadge :tone="workspace.preview.requiresApproval ? 'warning' : 'success'" size="sm">{{ workspace.preview.requiresApproval ? 'Approval required' : 'Auto-approved' }}</DomBadge>
+								</div>
+								<div class="mt-3 divide-y divide-border rounded-lg border border-border bg-canvas px-3">
+									<div v-for="change in workspace.preview.changes" :key="change.field" class="py-2.5 text-xs">
+										<p class="font-semibold">{{ change.label }}</p>
+										<p class="mt-1 text-muted-fg"><span class="line-through">{{ change.before }}</span> → <span class="font-medium text-canvas-fg">{{ change.after }}</span></p>
+									</div>
+								</div>
+								<p class="mt-2 text-xs text-muted-fg">{{ formatNumber(workspace.preview.estimatedContexts) }} estimated contexts · {{ workspace.preview.draft.reason || draftReason }}</p>
+							</section>
+
+							<section v-if="workspace.preview && workspace.preview.requiresApproval && !workspace.approval" class="space-y-3 border-t border-border pt-4">
+								<DomCheckbox v-model="approvalAcknowledged" label="I reviewed customer exposure" description="The rollback path and guardrail evidence will be included with the request." />
+								<DomButton class="w-full" :disabled="!approvalAcknowledged" :loading="busyAction === 'request-approval'" @click="requestApproval">Request production approval</DomButton>
+							</section>
+
+							<section v-if="workspace.approval" class="space-y-3 border-t border-border pt-4">
+								<div class="flex items-center justify-between gap-3"><p class="text-sm font-semibold">Production approval</p><DomStatusPill :tone="statusTone(workspace.approval.status)" size="sm">{{ statusLabel(workspace.approval.status) }}</DomStatusPill></div>
+								<p class="text-xs leading-5 text-muted-fg">Requested by {{ workspace.approval.requestedBy }} · reviewer {{ workspace.approval.reviewer }}</p>
+								<template v-if="workspace.approval.status === 'pending'">
+									<DomTextareaInput v-model="approvalNote" label="Reviewer note" :rows="2" />
+									<div class="grid grid-cols-2 gap-2"><DomButton variant="secondary" :loading="busyAction === 'approval-rejected'" @click="decideApproval('rejected')">Reject</DomButton><DomButton :loading="busyAction === 'approval-approved'" @click="decideApproval('approved')">Approve as Ava</DomButton></div>
+								</template>
+								<p v-else class="rounded-lg bg-secondary/60 p-3 text-xs leading-5">{{ workspace.approval.decisionNote }}</p>
+							</section>
+
+							<section v-if="workspace.preview && (!workspace.preview.requiresApproval || workspace.approval?.status === 'approved')" class="space-y-3 border-t border-border pt-4">
+								<DomCheckbox v-model="publishAcknowledged" label="Publish this exact change" :description="`Configuration ${workspace.preview.sourceVersion} will change evaluated ${environmentLabel(workspace.selectedEnvironmentId).toLowerCase()} traffic.`" />
+								<DomButton class="w-full" :disabled="!publishAcknowledged" :loading="busyAction === 'publish-change'" @click="publishChange">Publish to {{ environmentLabel(workspace.selectedEnvironmentId) }}</DomButton>
+							</section>
+
+							<DomAlert v-if="workspace.publishReceipt" tone="success" title="Release published" :description="`${workspace.publishReceipt.id} reached ${workspace.publishReceipt.evaluatorsAcknowledged} evaluators.`">
+								<template #actions><DomButton v-if="config.status === 'monitoring' && !workspace.rollbackReceipt" size="sm" variant="secondary" :loading="busyAction === 'advance-monitoring'" @click="advanceMonitoring">Advance 30 min monitoring</DomButton></template>
+							</DomAlert>
+
+							<DomAlert v-if="workspace.monitoringReceipt" tone="success" title="Guardrails passed" :description="`${workspace.monitoringReceipt.id} completed the ${workspace.monitoringReceipt.window} window.`" />
+							<DomAlert v-if="workspace.rollbackReceipt" tone="warning" title="Configuration restored" :description="`${workspace.rollbackReceipt.id} restored version ${workspace.rollbackReceipt.configurationVersion}.`">
+								<template #actions><DomButton v-if="config.status === 'monitoring'" size="sm" variant="secondary" :loading="busyAction === 'advance-monitoring'" @click="advanceMonitoring">Advance rollback monitoring</DomButton></template>
+							</DomAlert>
+
+							<section v-if="config.previousSnapshot" class="space-y-3 border-t border-border pt-4">
+								<div class="flex items-center justify-between gap-3"><div><p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-fg">Recovery</p><p class="mt-1 text-sm font-semibold">Previous configuration</p></div><DomBadge tone="neutral" size="sm">{{ config.previousSnapshot.rollout }}%</DomBadge></div>
+								<template v-if="workspace.rollbackPreview">
+									<p class="text-xs text-muted-fg">Restore {{ workspace.rollbackPreview.current.rollout }}% → {{ workspace.rollbackPreview.restore.rollout }}% using {{ workspace.rollbackPreview.checksum }}.</p>
+									<DomCheckbox v-model="rollbackAcknowledged" label="I understand traffic will change" />
+									<DomButton class="w-full" variant="danger" :disabled="!rollbackAcknowledged" :loading="busyAction === 'rollback-change'" @click="rollbackChange">Restore previous configuration</DomButton>
+								</template>
+								<DomButton v-else class="w-full" variant="secondary" :loading="busyAction === 'preview-rollback'" @click="previewRollback">Preview rollback</DomButton>
+							</section>
+
+							<DomJsonViewer v-if="workspace.publishReceipt || workspace.evaluation || workspace.rollbackReceipt" :value="evidencePayload" title="Provider evidence" filename="release-evidence.json" density="compact" :preview-lines="12" />
+						</div>
+					</template>
+
+					<template #history>
+						<div class="pt-3">
+							<div v-for="item in workspace.activity" :key="item.id" class="relative border-l border-border pb-5 pl-5 text-sm last:pb-0">
+								<span class="absolute -left-[5px] top-1 size-2.5 rounded-full bg-primary ring-4 ring-canvas"></span>
+								<div class="flex items-baseline justify-between gap-3"><p class="font-semibold">{{ item.title }}</p><span class="shrink-0 text-[11px] text-muted-fg">{{ item.time }}</span></div>
+								<p class="mt-1 text-xs text-muted-fg">{{ item.actor }} · {{ item.detail }}</p>
+							</div>
+						</div>
+					</template>
+				</DomTabs>
+			</aside>
+		</div>
+
+		<template #bottom>
+			<DomAppBottomNav v-if="workspace" v-model="activeView" class="lg:hidden" :items="mobileNavigation" />
+		</template>
+
+		<template #overlay>
+			<div v-if="error || notice" class="pointer-events-none absolute inset-x-3 top-3 z-30 flex justify-center">
+				<DomAlert
+					class="pointer-events-auto w-full max-w-xl shadow-lg"
+					:tone="error ? 'danger' : 'success'"
+					:title="error ? 'Action needs attention' : 'Workspace updated'"
+					:description="error || notice"
+					dismissible
+					@dismiss="clearFeedback"
+				/>
+			</div>
+		</template>
+	</DomAppShell>
+
+	<DomDialog v-if="workspace" v-model="createDialogOpen" title="Create feature flag" description="Start disabled in every environment, then preview targeting and exposure before publication." size="lg">
+		<div class="grid gap-4 sm:grid-cols-2">
+			<DomTextInput v-model="createName" label="Flag name" />
+			<DomTextInput v-model="createKey" label="Flag key" />
+			<DomSelect v-model="createOwnerId" :options="workspace.catalogs.owners" label="Owner" width="min-w-[18rem]" />
+			<DomSelect v-model="createType" :options="workspace.catalogs.flagTypes" label="Flag type" width="min-w-[18rem]" />
+			<DomTextareaInput v-model="createDescription" class="sm:col-span-2" label="Behavior controlled" :rows="3" />
+		</div>
+		<template #footer>
+			<DomButton variant="secondary" @click="createDialogOpen = false">Cancel</DomButton>
+			<DomButton :loading="busyAction === 'create-flag'" @click="createFlag">Create disabled flag</DomButton>
+		</template>
+	</DomDialog>
 </template>

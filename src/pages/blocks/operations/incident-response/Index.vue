@@ -12,8 +12,8 @@ import IncidentCommandCenterSrc from './examples/IncidentCommandCenter.vue?raw';
 	<DomStudioLayout>
 		<DocPage
 			name="Incident Response Block"
-			tagline="A copyable incident command center for production incidents, on-call handoffs, customer communications, and post-incident accountability."
-			tag="Operations UI"
+			tagline="A working incident command room with provider evidence, accountable response actions, reviewed customer communications, and a guarded resolution lifecycle."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Reliability" title="Incident command center">
@@ -22,7 +22,7 @@ import IncidentCommandCenterSrc from './examples/IncidentCommandCenter.vue?raw';
 					filename="IncidentCommandCenter.vue"
 					presentation="iframe"
 					frame-src="/blocks/operations/incident-response/preview/IncidentCommandCenter"
-					description="Copy this into SaaS admin consoles, internal tools, infrastructure products, support operations, or status-page workflows where teams need one place to coordinate an active incident."
+					description="A PagerDuty-, Statuspage-, and Rootly-inspired command room that lets responders assign command roles, complete mitigation actions, refresh provider evidence, publish an acknowledged update, and resolve from retained proof."
 					default-open
 					:preview-lines="20"
 				>
@@ -30,63 +30,50 @@ import IncidentCommandCenterSrc from './examples/IncidentCommandCenter.vue?raw';
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Integration" title="How to use this block">
+			<DocSection eyebrow="Integration" title="Working repository-local API">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when your product needs a practical incident workspace instead of scattered chat messages, tickets, and status-page drafts.
-						It keeps severity, ownership, impacted services, customer communications, mitigation tasks, and timeline events visible for both engineering and customer-facing teams.
+						The example calls real repository-local endpoints backed by deterministic process memory. Server code owns the workspace revision, incident version, role constraints, readiness checks, communication checksum, lifecycle gates, provider-style receipts, and reload persistence.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Load incident records from your incident API with severity, status, commander, affected services, customer impact, task ownership, and timeline events.</li>
-						<li>Connect service health to your monitoring provider so affected components and current metrics update independently from the written incident narrative.</li>
-						<li>Persist each status update with audience, author, timestamp, delivery channels, and acknowledgement state before sending it to a public status page or customer email list.</li>
-						<li>Keep severity transitions, task completions, and customer communications as immutable audit events so postmortems can reconstruct what happened.</li>
-						<li>Gate public updates, severity downgrades, and resolution behind permission checks when the incident affects enterprise customers or regulated systems.</li>
+						<li><code>GET /api/block-demos/incident-response/bootstrap</code> returns the incident queue, selected command room, catalogs, capabilities, and current exact revisions.</li>
+						<li><code>POST /select</code>, <code>/declare</code>, and <code>/incidents/:id/command</code> create and coordinate accountable response rooms.</li>
+						<li>Action and monitoring endpoints record mitigation receipts and independent provider observations instead of mutating a client fixture.</li>
+						<li>Preview and publish endpoints bind acknowledgement to one exact message, audience, metric snapshot, and checksum before issuing delivery receipts.</li>
+						<li>The status endpoint enforces mitigation, monitoring, two stable samples, customer communication, and final acknowledgement before resolution.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended incident payload">
-				<CodeBlock lang="js" filename="incident-record.js" :code="`{
-\tid: 'inc_2048',
-\ttitle: 'Elevated checkout API errors',
-\tseverity: 'SEV-2',
-\tstatus: 'Mitigating',
-\tcommander: 'Maya Chen',
-\tstartedAt: '2026-06-10T15:42:00Z',
-\tcustomerImpact: {
-\t\taccountsAffected: 128,
-\t\tregions: ['us-east-1', 'eu-west-1'],
-\t\tsummary: 'Checkout creation intermittently returns 502 responses.'
-\t},
-\tservices: [
-\t\t{ key: 'checkout_api', name: 'Checkout API', state: 'Degraded', errorRate: 7.8 },
-\t\t{ key: 'billing_worker', name: 'Billing worker', state: 'Operational', errorRate: 0.2 }
-\t],
-\ttasks: [
-\t\t{ id: 'task_1', owner: 'API on-call', label: 'Roll back gateway release', status: 'Done' },
-\t\t{ id: 'task_2', owner: 'Support lead', label: 'Notify enterprise accounts', status: 'In progress' }
-\t],
-\tupdateDraft: {
-\t\taudience: 'Public status page',
-\t\tmessage: 'We are mitigating elevated checkout API errors and will update again in 20 minutes.'
-\t}
-}`" />
+			<DocSection eyebrow="Data" title="Exact mutation contract">
+				<CodeBlock lang="js" filename="publish-incident-update.js" :code="`await fetch('/api/block-demos/incident-response/incidents/inc_2048/updates/publish', {
+	method: 'POST',
+	headers: { 'content-type': 'application/json' },
+	body: JSON.stringify({
+		revision: 87,
+		incidentVersion: 15,
+		previewChecksum: 'sha256:demo-4ea955d0',
+		acknowledged: true
+	})
+});
+
+// Returns authoritative state plus immutable delivery evidence.
+// Stale workspace or incident versions return HTTP 409.`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
+			<DocSection eyebrow="Production" title="Adapter boundaries">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Incident model</h3>
-						<p class="mt-2">Separate incident state from service health. Monitoring updates can change service rows while commanders keep narrative updates deliberate and reviewed.</p>
+						<h3 class="font-semibold text-canvas-fg">Durable incident store</h3>
+						<p class="mt-2">Replace process memory with your database and transaction boundary while retaining exact workspace and incident revisions for conflict detection.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Communication safety</h3>
-						<p class="mt-2">Require audience, next-update timing, and approval status before publishing public updates or broad customer notifications.</p>
+						<h3 class="font-semibold text-canvas-fg">Provider adapters</h3>
+						<p class="mt-2">Map monitoring, bridge, paging, status-page, email, and postmortem providers behind idempotent commands that retain their external receipts.</p>
 					</div>
 					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Good follow-ups include status-page channel pickers, PagerDuty/Opsgenie sync, postmortem templates, SLA impact calculators, and runbook launchers.</p>
+						<h3 class="font-semibold text-canvas-fg">Identity and policy</h3>
+						<p class="mt-2">Resolve actors from the authenticated session, authorize every mutation, and move severity, audience, escalation, and resolution requirements into organization policy.</p>
 					</div>
 				</div>
 			</DocSection>

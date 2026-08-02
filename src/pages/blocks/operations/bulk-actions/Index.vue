@@ -12,8 +12,8 @@ import BulkActionReviewConsoleSrc from './examples/BulkActionReviewConsole.vue?r
 	<DomStudioLayout>
 		<DocPage
 			name="Bulk Actions Block"
-			tagline="A responsive operations console for selecting records, previewing impact, satisfying safety checks, and executing admin changes."
-			tag="Operations UI"
+			tagline="An API-backed bulk change desk for selecting exact records, reviewing immutable impact, routing approval, and recovering partial failures."
+			tag="API-backed"
 			eyebrow="Blocks"
 		>
 			<DocSection eyebrow="Operations" title="Bulk action review console">
@@ -22,7 +22,7 @@ import BulkActionReviewConsoleSrc from './examples/BulkActionReviewConsole.vue?r
 					filename="BulkActionReviewConsole.vue"
 					presentation="iframe"
 					frame-src="/blocks/operations/bulk-actions/preview/BulkActionReviewConsole"
-					description="Copy this into an admin table, customer operations workspace, lifecycle automation screen, or support back office. Replace the local account, action, check, and activity arrays with your own records and workflow policy."
+					description="A Shopify- and Zendesk-inspired operations section with server-owned selection, an immutable before-and-after preview, finance approval, background job progress, safe-update conflicts, retry, cancellation, and durable receipts."
 					default-open
 					:preview-lines="14"
 				>
@@ -33,59 +33,45 @@ import BulkActionReviewConsoleSrc from './examples/BulkActionReviewConsole.vue?r
 			<DocSection eyebrow="Integration" title="How to use this block">
 				<div class="space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Use this block when an operator needs to make the same sensitive change to many records at once.
-						It fits customer lifecycle tools, user administration, billing operations, moderation queues, CRM cleanup, and data governance screens.
+						Use this block when an operator needs to apply one sensitive change to many records without turning the UI into an unaccountable “select all and hope” action.
+						The example is a complete local journey: every mutation crosses an API boundary, reloads preserve state, and the simulated worker continues past one stale record.
 					</p>
 					<ul class="list-disc space-y-2 pl-5">
-						<li>Replace <code>accounts</code> with records from the table or segment your operator is acting on.</li>
-						<li>Replace <code>bulkActions</code> with server-approved operations, including whether each action needs approval, notes, or a dry run.</li>
-						<li>Calculate <code>safetyChecks</code> on the server from permissions, billing impact, customer state, and irreversible side effects.</li>
-						<li>Submit the selected IDs, action ID, reason, notification preference, and dry-run flag to a queued job endpoint.</li>
-						<li>Refresh activity from your job system so partial failures, retries, approvals, and audit events remain visible after execution.</li>
+						<li>Persist the selected IDs, filter, action, reason, and notification intent as a revisioned server draft.</li>
+						<li>Create an immutable preview that records source versions, before-and-after values, exclusions, policy checks, and an approval route.</li>
+						<li>Queue only the approved preview receipt, then process each eligible record independently through safe-update checks.</li>
+						<li>Keep partial successes visible and let an operator refresh and retry only the conflicting record.</li>
+						<li>Retain preview, approval, job, cancellation, completion, and retry receipts in the audit history.</li>
 					</ul>
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Data" title="Recommended bulk job payload">
-				<CodeBlock lang="js" filename="bulk-action-job.js" :code="`{
-\tworkspaceId: 'wrk_ops',
-\taction: 'pause_billing',
-\trecordType: 'account',
-\trecordIds: ['acct_arcadia', 'acct_harbor', 'acct_northstar'],
-\tmode: 'queued',
-\tdryRun: true,
-\treason: 'Customer success cleanup after contract review',
-\tnotifyCustomers: false,
-\trequiresApproval: true,
-\tsafetyChecks: [
-\t\t{ id: 'permission', status: 'passed', label: 'Operator can manage billing' },
-\t\t{ id: 'balance', status: 'warning', label: '2 accounts have open invoices' },
-\t\t{ id: 'audit', status: 'passed', label: 'Reason is captured for audit' }
-\t],
-\testimatedImpact: {
-\t\trecords: 3,
-\t\tmonthlyRevenuePaused: 12840,
-\t\tcustomersNotified: 0
-\t},
-\tauditEvents: [
-\t\t{ label: 'Dry run generated', actor: 'Avery Stone', time: 'Today 14:10' }
-\t]
-}`" />
+			<DocSection eyebrow="API" title="Working local endpoints">
+				<CodeBlock lang="txt" filename="bulk-actions-api.txt" :code="`GET  /api/block-demos/bulk-actions/bootstrap
+POST /api/block-demos/bulk-actions/reset
+POST /api/block-demos/bulk-actions/draft
+POST /api/block-demos/bulk-actions/preview
+POST /api/block-demos/bulk-actions/approvals/request
+POST /api/block-demos/bulk-actions/approvals/:approvalId/decide
+POST /api/block-demos/bulk-actions/jobs
+POST /api/block-demos/bulk-actions/jobs/:jobId/advance
+POST /api/block-demos/bulk-actions/jobs/:jobId/retry
+POST /api/block-demos/bulk-actions/jobs/:jobId/cancel`" />
 			</DocSection>
 
-			<DocSection eyebrow="Customization" title="Implementation notes">
+			<DocSection eyebrow="Production" title="Replace the demo adapters">
 				<div class="grid gap-3 text-sm leading-7 text-muted-fg md:grid-cols-3">
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Safety checks</h3>
-						<p class="mt-2">Keep irreversible actions behind server-side policy checks, required reasons, dry runs, and approval states.</p>
+					<div class="border-t border-border pt-4">
+						<h3 class="font-semibold text-canvas-fg">Durable worker</h3>
+						<p class="mt-2">Replace deterministic advancement with an idempotent queue, per-record leases, retries, cancellation signals, and observable job status.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Job handling</h3>
-						<p class="mt-2">Run execution through a background queue so progress, partial failure, retry, and cancellation states are visible.</p>
+					<div class="border-t border-border pt-4">
+						<h3 class="font-semibold text-canvas-fg">Authorization and approval</h3>
+						<p class="mt-2">Resolve permissions, separation of duties, thresholds, and approver identity through your policy and identity services.</p>
 					</div>
-					<div class="rounded-lg border border-border skin-card p-4">
-						<h3 class="font-semibold text-canvas-fg">Future updates</h3>
-						<p class="mt-2">Useful follow-ups include reusable selection toolbars, job progress timelines, approval routing, and rollback previews.</p>
+					<div class="border-t border-border pt-4">
+						<h3 class="font-semibold text-canvas-fg">Audit and providers</h3>
+						<p class="mt-2">Write receipts to durable audit storage and connect billing, notification, CRM, and export providers behind idempotency keys.</p>
 					</div>
 				</div>
 			</DocSection>
