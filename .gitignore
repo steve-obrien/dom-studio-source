@@ -8,3 +8,5 @@ dist
 !.env.example
 output
 .playwright-cli
+localhost+*-key.pem
+localhost+*.pem
