@@ -44,6 +44,7 @@ export { default as DomToastItem } from '../../components/toast/DomToastItem.vue
 export { default as DomCommandPalette } from '../../components/command-palette/DomCommandPalette.vue';
 export { default as DomContextMenu } from '../../components/context-menu/DomContextMenu.vue';
 export { default as DomDataGrid } from '../../data/data-grid/DomDataGrid.vue';
+export { default as DomKanban } from '../../data/kanban/DomKanban.vue';
 export { default as DomMonthCalendar } from '../../data/month-calendar/DomMonthCalendar.vue';
 export { default as DomWeekPlanner } from '../../data/week-planner/DomWeekPlanner.vue';
 export { default as DomMediaBrowser } from '../../data/media-browser/DomMediaBrowser.vue';
@@ -61,6 +62,8 @@ export { mediaBrowserProps } from '../../data/media-browser/DomMediaBrowser.vue'
 export { createAgentChatRestApi, defineAgentChatStore } from '../../data/agent-chat/examples/useAgentChatDemoStore.js';
 export { createDocumentEditorRestApi, defineDocumentEditorStore } from '../../data/document-editor/examples/useDocumentEditorDemoStore.js';
 export { createMediaBrowserRestApi, defineMediaBrowserStore } from '../../data/media-browser/examples/useMediaBrowserDemoStore.js';
+export { kanbanProps } from '../../data/kanban/DomKanban.vue';
+export { applyKanbanCardMove, applyKanbanColumnMove, resolveKanbanRowKey } from '../../data/kanban/kanbanApi.js';
 export { monthCalendarProps } from '../../data/month-calendar/DomMonthCalendar.vue';
 export { weekPlannerProps } from '../../data/week-planner/DomWeekPlanner.vue';
 export { popoverProps } from '../../components/popover/DomPopover.vue';

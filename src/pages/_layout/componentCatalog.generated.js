@@ -1550,6 +1550,154 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "data/kanban",
+		"path": "../data/kanban/DomKanban.vue",
+		"section": "data",
+		"slug": "kanban",
+		"exportName": "DomKanban",
+		"route": "/data/kanban",
+		"doc": {
+			"name": "Kanban",
+			"tag": "<DomKanban>",
+			"description": "A controlled, API-shaped Kanban for shared resource rows, custom Vue card renderers, async creation, and precise card or column ordering.",
+			"icon": "M4 5h5v14H4V5Zm7 0h5v9h-5V5Zm7 0h2v11h-2V5Z",
+			"events": [
+				{
+					"name": "update:rows",
+					"payload": "Array<Record<string, unknown>>",
+					"description": "Immutable local projection after a completed card move or creation. Use v-model:rows for local boards."
+				},
+				{
+					"name": "update:columns",
+					"payload": "Array<KanbanColumn>",
+					"description": "Immutable ordered columns after a completed reorder or creation."
+				},
+				{
+					"name": "card-move",
+					"payload": "KanbanCardMove",
+					"typeRef": "KanbanCardMove",
+					"description": "Fired after a valid pointer or keyboard move. Persist changes and orders to a resource API."
+				},
+				{
+					"name": "card-drop",
+					"payload": "KanbanCardMove",
+					"typeRef": "KanbanCardMove",
+					"description": "Alias emitted with card-move for applications that model drag/drop events."
+				},
+				{
+					"name": "card-create-request",
+					"payload": "({ column, columnKey, index, draft, suggestedRow })",
+					"description": "Fired before the optional createCard hook runs."
+				},
+				{
+					"name": "card-create",
+					"payload": "({ column, columnKey, index, draft, result, row, nextRows })",
+					"description": "Fired when the creation hook succeeds or a local suggested row is accepted."
+				},
+				{
+					"name": "card-create-error",
+					"payload": "({ column, columnKey, draft, error })",
+					"description": "Fired when createCard rejects."
+				},
+				{
+					"name": "column-move",
+					"payload": "({ column, columnKey, sourceIndex, targetIndex, columnKeys, nextColumns, input })",
+					"description": "Fired after a valid pointer or keyboard column reorder."
+				},
+				{
+					"name": "column-create-request",
+					"payload": "({ label, suggestedColumn })",
+					"description": "Fired before the optional createColumn hook runs."
+				},
+				{
+					"name": "column-create",
+					"payload": "({ label, result, column, nextColumns })",
+					"description": "Fired when the column creation hook succeeds or a local suggestion is accepted."
+				},
+				{
+					"name": "column-create-error",
+					"payload": "({ label, error })",
+					"description": "Fired when createColumn rejects."
+				},
+				{
+					"name": "card-click",
+					"payload": "({ row, rowKey, column, columnKey, index, event })",
+					"description": "Fired when a card shell is activated without using an inner interactive control."
+				},
+				{
+					"name": "card-action",
+					"payload": "({ row, rowKey, column, columnKey, index, action, payload })",
+					"description": "Re-emitted when a custom card component emits action."
+				},
+				{
+					"name": "card-drag-start",
+					"payload": "({ row, rowKey, source, event })",
+					"description": "Fired when native card dragging begins."
+				},
+				{
+					"name": "card-drag-end",
+					"payload": "({ row, rowKey, source, event })",
+					"description": "Fired when native card dragging ends."
+				}
+			],
+			"slots": [
+				{
+					"name": "card",
+					"payload": "{ row, rowKey, column, columnKey, index, drag }",
+					"description": "Custom card renderer. The component retains the accessible focus and drag shell."
+				},
+				{
+					"name": "column-header",
+					"payload": "{ column, columnKey, index, rows, count, limit }",
+					"description": "Custom content for a column header."
+				},
+				{
+					"name": "empty",
+					"payload": "{ column, columnKey }",
+					"description": "Custom empty-column state."
+				},
+				{
+					"name": "card-composer",
+					"payload": "{ column, columnKey, draft, setDraft, submit, cancel, creating }",
+					"description": "Custom card creation form."
+				},
+				{
+					"name": "column-composer",
+					"payload": "{ draft, setDraft, submit, cancel, creating }",
+					"description": "Custom column creation form."
+				},
+				{
+					"name": "column-footer",
+					"payload": "{ column, columnKey, rows, count }",
+					"description": "Extra content below a column card list."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Alt + Up / Down",
+					"action": "Move the focused card within its current column."
+				},
+				{
+					"keys": "Alt + Left / Right",
+					"action": "Move the focused card into the adjacent column."
+				},
+				{
+					"keys": "Alt + Left / Right on column grip",
+					"action": "Reorder the current column."
+				},
+				{
+					"keys": "Enter",
+					"action": "Submit the built-in card or column composer."
+				},
+				{
+					"keys": "Escape",
+					"action": "Close the active composer."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "data/media-browser",
 		"path": "../data/media-browser/DomMediaBrowser.vue",
 		"section": "data",

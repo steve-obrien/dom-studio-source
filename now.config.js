@@ -8,6 +8,9 @@ export default {
 		port: 3333,
 		apiPrefix: '/api',
 		apiDir: 'server/api',
+		useSSL: true,
+		sslKey: 'localhost+2-key.pem',
+		sslCert: 'localhost+2.pem',
 	},
 	ssr: {
 		template: 'index.html',

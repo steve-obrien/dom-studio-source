@@ -21,10 +21,11 @@ const { data: article, pending, error } = useAsyncData(
 
 const articleDate = computed(() => formatArticleDate(article.value?.published_at || article.value?.source_created_at));
 const head = useHead();
+const setRouteStatus = useRouteStatus();
 
 watchEffect(() => {
 	if (!pending.value && !article.value) {
-		useRouteStatus(404);
+		setRouteStatus(404);
 		head.setTitle('Article not found | getdom.studio');
 		head.setMeta([{ name: 'robots', content: 'noindex' }]);
 		return;

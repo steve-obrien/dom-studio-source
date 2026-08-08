@@ -31,11 +31,15 @@ export function useHead() {
 	}
 }
 
-export function useRouteStatus(status) {
+export function useRouteStatus() {
 	if (import.meta.env.SSR) {
 		const ssrContext = useSSRContext()
-		ssrContext.status = status
+		return (status) => {
+			if (ssrContext) ssrContext.status = status
+		}
 	}
+
+	return () => {}
 }
 
 export function createHead() {

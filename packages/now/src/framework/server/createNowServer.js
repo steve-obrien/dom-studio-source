@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import { createServer as createHttpServer } from 'node:http'
+import https from 'node:https'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import dotenv from 'dotenv'
@@ -16,11 +17,19 @@ import { requestContextMiddleware } from './requestContext.js'
  */
 export async function createNowServer({ config = {}, root } = {}) {
 	const app = express()
-	const httpServer = createHttpServer(app)
 	const isProduction = process.env.NODE_ENV === 'production'
 	const resolved = resolveConfig(config, root)
-
 	dotenv.config({ path: path.join(resolved.root, '.env') })
+
+	let httpServer
+	if (resolved.server.useSSL) {
+		httpServer = https.createServer({
+			key: fs.readFileSync(path.join(resolved.root, resolved.server.sslKey)),
+			cert: fs.readFileSync(path.join(resolved.root, resolved.server.sslCert))
+		}, app)
+	} else {
+		httpServer = createHttpServer(app)
+	}
 
 	app.disable('x-powered-by')
 	app.use(requestContextMiddleware())
@@ -48,10 +57,11 @@ export async function createNowServer({ config = {}, root } = {}) {
 			const port = process.env.PORT || resolved.server.port
 			const host = process.env.HOST || resolved.server.host
 			const listenHost = host === 'localhost' ? '0.0.0.0' : host
+			const protocol = resolved.server.useSSL ? 'https' : 'http'
 
 			return new Promise((resolve) => {
 				httpServer.listen(port, listenHost, () => {
-					console.log(`Now is listening on http://${host}:${port}`)
+					console.log(`Now is listening on ${protocol}://${host}:${port}`)
 					resolve()
 				})
 			})

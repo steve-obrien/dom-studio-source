@@ -167,6 +167,59 @@ export interface DataGridSort {
 	rules?: Array<DataGridSortRule>;
 	[key: string]: unknown;
 }
+export interface KanbanColumn {
+	key: string | number;
+	label?: string;
+	description?: string;
+	limit?: number;
+	component?: DomVueComponent | string;
+	disabled?: boolean;
+	addable?: boolean;
+	canDrop?: (context: KanbanDropContext) => boolean;
+	class?: unknown;
+	cardClass?: unknown;
+	[key: string]: unknown;
+}
+export interface KanbanCardContext {
+	row: Record<string, unknown>;
+	rowKey: string | number;
+	column: KanbanColumn;
+	columnKey: string | number;
+	index: number;
+}
+export interface KanbanPlacement {
+	column: KanbanColumn;
+	columnKey: string | number;
+	index: number;
+}
+export interface KanbanDropContext {
+	row: Record<string, unknown>;
+	rowKey: string | number;
+	source: KanbanPlacement;
+	target: KanbanPlacement;
+}
+export interface KanbanOrder {
+	columnKey: string | number;
+	rowKeys: Array<string | number>;
+}
+export interface KanbanCardMove extends KanbanDropContext {
+	changes: Record<string, unknown>;
+	orders: Array<KanbanOrder>;
+	nextRows: Array<Record<string, unknown>>;
+	input: 'pointer' | 'keyboard';
+	event: Event;
+}
+export interface KanbanCardCreateRequest {
+	column: KanbanColumn;
+	columnKey: string | number;
+	index: number;
+	draft: { title: string; [key: string]: unknown };
+	suggestedRow: Record<string, unknown>;
+}
+export interface KanbanColumnCreateRequest {
+	label: string;
+	suggestedColumn: KanbanColumn;
+}
 export interface MediaBrowserFileRecord {
 	ulid?: string;
 	name?: string;
@@ -1753,6 +1806,111 @@ export interface DomDataGridProps {
 	emptyText?: string;
 }
 export declare const DomDataGrid: DomComponent<DomDataGridProps>;
+
+/** KanbanColumn, KanbanCardContext, KanbanDropContext, KanbanCardMove, KanbanCardCreateRequest, KanbanColumnCreateRequest payload types are exported from this module. */
+export interface DomKanbanProps {
+	/**
+	 * Resource rows shared with a grid, calendar, API, or application store.
+	 */
+	rows?: Array<Record<string, unknown>>;
+	/**
+	 * Ordered Kanban column definitions. Keys should match values stored by columnKey.
+	 */
+	columns?: Array<KanbanColumn>;
+	/**
+	 * Field name or function used to identify each resource row.
+	 */
+	rowKey?: string | ((row: Record<string, unknown>, index: number) => string | number);
+	/**
+	 * Row field that assigns a resource to a Kanban column.
+	 */
+	columnKey?: string;
+	/**
+	 * Row field that stores the zero-based order within a column.
+	 */
+	orderKey?: string;
+	/**
+	 * Field name or function used by the built-in card renderer for its title.
+	 */
+	titleKey?: string | ((row: Record<string, unknown>, index: number) => unknown);
+	/**
+	 * Field name or function used by the built-in card renderer for supporting text.
+	 */
+	descriptionKey?: string | ((row: Record<string, unknown>, index: number) => unknown);
+	/**
+	 * Vue component used to render every card. A column component or card slot can override it.
+	 */
+	cardComponent?: DomVueComponent | string;
+	/**
+	 * Optional async hook that persists a suggested row and returns a row or stable id.
+	 */
+	createCard?: (request: KanbanCardCreateRequest) => Promise<Record<string, unknown> | string | number | null> | Record<string, unknown> | string | number | null;
+	/**
+	 * Optional async hook that persists a suggested column and returns a column or stable key.
+	 */
+	createColumn?: (request: KanbanColumnCreateRequest) => Promise<KanbanColumn | string | number | null> | KanbanColumn | string | number | null;
+	/**
+	 * Show a compact title composer at the bottom of each enabled column.
+	 */
+	allowAddCards?: boolean;
+	/**
+	 * Show a column composer after the final board column.
+	 */
+	allowAddColumns?: boolean;
+	/**
+	 * Allow native pointer drag/drop and Alt+Arrow keyboard card movement.
+	 */
+	dragCards?: boolean;
+	/**
+	 * Allow columns to be reordered with the grip or Alt+Left/Right.
+	 */
+	reorderColumns?: boolean;
+	/**
+	 * Boolean or function that decides whether an individual card can move.
+	 */
+	cardDraggable?: boolean | ((context: KanbanCardContext) => boolean);
+	/**
+	 * Optional application rule that receives source and target context before a drop.
+	 */
+	canDrop?: (context: KanbanDropContext) => boolean;
+	/**
+	 * Disable creation and reordering while keeping the board readable.
+	 */
+	disabled?: boolean;
+	/**
+	 * Show a non-blocking loading indicator over the board.
+	 */
+	loading?: boolean;
+	/**
+	 * Accessible name for the board region.
+	 */
+	boardLabel?: string;
+	/**
+	 * Human label used in card counts and announcements.
+	 */
+	resourceLabel?: string;
+	/**
+	 * Label for each column creation control.
+	 */
+	addCardLabel?: string;
+	/**
+	 * Label for the board column creation control.
+	 */
+	addColumnLabel?: string;
+	/**
+	 * Default text shown in an empty column.
+	 */
+	emptyText?: string;
+	/**
+	 * Fixed width of each horizontally scrolling column.
+	 */
+	columnWidth?: string | number;
+	/**
+	 * Height of the board viewport.
+	 */
+	height?: string | number;
+}
+export declare const DomKanban: DomComponent<DomKanbanProps>;
 
 /** MonthCalendarCell, MonthCalendarMonth, MonthCalendarDragState, MonthCalendarDayDragPayload payload types are exported from this module. */
 export interface DomMonthCalendarProps {
@@ -5920,7 +6078,7 @@ export interface DomAppBottomNavProps {
 	 */
 	modelValue?: string;
 	/**
-	 * Navigation items: { value, label, icon, badge }.
+	 * Navigation items: { value, label, icon, iconPath, badge }.
 	 */
 	items?: Array<unknown>;
 }
@@ -6141,6 +6299,7 @@ export declare const DomRenderer: DomComponent<DomRendererProps>;
 
 export declare const popoverProps: DomRuntimeProps;
 export declare const calendarProps: DomRuntimeProps;
+export declare const kanbanProps: DomRuntimeProps;
 export declare const monthCalendarProps: DomRuntimeProps;
 export declare const weekPlannerProps: DomRuntimeProps;
 export declare const agentChatShellProps: DomRuntimeProps;
@@ -6180,6 +6339,9 @@ export declare function createDocumentEditorRestApi(options?: DocumentEditorStor
 export declare function createDefaultDocumentContent(): Record<string, unknown>;
 export declare function defineMediaBrowserStore(storeId?: string, options?: MediaBrowserStoreOptions): Function;
 export declare function createMediaBrowserRestApi(options?: MediaBrowserStoreOptions): Record<string, Function>;
+export declare function resolveKanbanRowKey(row: Record<string, unknown>, rowKey?: string | ((row: Record<string, unknown>, index: number) => string | number), index?: number): string | number;
+export declare function applyKanbanCardMove(rows: Array<Record<string, unknown>>, payload: Pick<KanbanCardMove, 'orders'>, options?: { rowKey?: string | ((row: Record<string, unknown>, index: number) => string | number); columnKey?: string; orderKey?: string }): Array<Record<string, unknown>>;
+export declare function applyKanbanColumnMove(columns: Array<KanbanColumn>, payload: { columnKeys?: Array<string | number> }): Array<KanbanColumn>;
 export declare function sha1PasswordHash(password: string): Promise<string>;
 export declare function checkCompromisedPassword(password: string, options?: { signal?: AbortSignal }): Promise<number>;
 export declare function normalizeErrors(errors: unknown): Array<string>;
