@@ -8,7 +8,7 @@ export default {
 		port: 3333,
 		apiPrefix: '/api',
 		apiDir: 'server/api',
-		useSSL: true,
+		useSSL: process.env.NODE_ENV !== 'production',
 		sslKey: 'localhost+2-key.pem',
 		sslCert: 'localhost+2.pem',
 	},
