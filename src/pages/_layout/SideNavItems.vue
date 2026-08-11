@@ -10,6 +10,12 @@ const props = defineProps({
 
 const emit = defineEmits(['navigate']);
 
+/**
+ * Splits a navigation destination into its route path and optional hash.
+ *
+ * @param {string} to Navigation destination.
+ * @returns {{ path: string, hash: string }} Normalized route location parts.
+ */
 function linkParts(to) {
 	const [path, hash] = String(to || '').split('#');
 	return {
@@ -18,6 +24,12 @@ function linkParts(to) {
 	};
 }
 
+/**
+ * Checks whether an item or its parent branch should use active styling.
+ *
+ * @param {object} item Sidebar navigation item.
+ * @returns {boolean} Whether the item is active for the current route.
+ */
 function isItemActive(item) {
 	const { path, hash } = linkParts(item.to);
 	if (!path) return false;
@@ -26,20 +38,55 @@ function isItemActive(item) {
 	return !route.hash || Boolean(item.children?.length);
 }
 
+/**
+ * Checks whether an item is the exact current route and hash destination.
+ *
+ * @param {object} item Sidebar navigation item.
+ * @returns {boolean} Whether the item is the exact current destination.
+ */
+function isItemCurrent(item) {
+	const { path, hash } = linkParts(item.to);
+	if (!path || route.path !== path) return false;
+	return hash ? route.hash === hash : !route.hash;
+}
+
+/**
+ * Checks whether any nested navigation item matches the current route.
+ *
+ * @param {object} item Sidebar navigation item.
+ * @returns {boolean} Whether the item contains an active descendant.
+ */
 function hasActiveDescendant(item) {
 	return item.children?.some((child) => isItemActive(child) || hasActiveDescendant(child));
 }
 
+/**
+ * Checks whether a nested navigation branch should be expanded.
+ *
+ * @param {object} item Sidebar navigation item.
+ * @returns {boolean} Whether the branch should render its children.
+ */
 function isBranchOpen(item) {
 	return item.children?.length && (isItemActive(item) || hasActiveDescendant(item));
 }
 
+/**
+ * Returns route-aware color classes for a sidebar item.
+ *
+ * @param {object} item Sidebar navigation item.
+ * @returns {string} Tailwind classes for the current active state.
+ */
 function linkClass(item) {
 	return isItemActive(item)
 		? 'bg-secondary text-secondary-fg'
 		: 'text-muted-fg hover:bg-secondary hover:text-canvas-fg';
 }
 
+/**
+ * Returns indentation-aware sizing classes for the current navigation depth.
+ *
+ * @returns {string} Tailwind sizing classes.
+ */
 function linkSizeClass() {
 	return props.depth === 0
 		? 'rounded-lg px-3 py-1.5'
@@ -54,6 +101,8 @@ function linkSizeClass() {
 				:to="item.to"
 				class="flex items-center justify-between gap-2 text-sm font-medium transition"
 				:class="[linkClass(item), linkSizeClass()]"
+				:aria-current="isItemCurrent(item) ? 'page' : undefined"
+				:data-side-nav-current="isItemCurrent(item) ? 'true' : undefined"
 				@mousedown.prevent="emit('navigate')"
 				@click="emit('navigate')"
 			>

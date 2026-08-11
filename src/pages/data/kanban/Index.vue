@@ -108,7 +108,7 @@ PATCH /api/resource-views/product-board/columns
 				<Example
 					:source="SimpleTodoBoardSrc"
 					filename="SimpleTodoBoard.vue"
-					description="Drag cards between columns or to any insertion point, reorder columns by their grip, and add local columns or cards. The createCard hook emulates a remote POST and returns the server-owned id before update:rows is emitted."
+					description="Drag anywhere over a column to target its nearest insertion point; the board opens a card-sized placeholder so empty columns and exact ordering remain obvious. On drop, the destination is committed immediately while the dimmed source card folds closed. Hold near the top or bottom of a long column to auto-scroll it. Reorder columns by their grip, or add local columns and cards. The createCard hook emulates a remote POST and returns the server-owned id before update:rows is emitted."
 					:preview-lines="0"
 				>
 					<SimpleTodoBoard />

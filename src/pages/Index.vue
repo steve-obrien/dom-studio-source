@@ -152,7 +152,7 @@ const libraryGroups = [
 	{
 		title: 'Application components',
 		description: 'Menus, drawers, dialogs, command palettes, splitters, trees, tabs, toasts, and popovers for product surfaces.',
-		to: '/components/button',
+		to: '/components',
 		accent: 'border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
 		items: ['Command palette', 'Tree view', 'Splitter panel', 'Context menu', 'Toast', 'Dialog'],
 	},
@@ -213,7 +213,7 @@ const accordionItems = [
 ];
 
 const commands = [
-	{ label: 'Browse components', value: '/components/button', description: 'Open the component docs.' },
+	{ label: 'Browse components', value: '/components', description: 'Open the component docs.' },
 	{ label: 'Explore form system', value: '/forms', description: 'See schema-driven fields and inputs.' },
 	{ label: 'Open block library', value: '/blocks', description: 'Preview product-shaped screens.' },
 	{ label: 'Show toast demo', value: 'toast', description: 'Trigger a live toast from the homepage.' },
@@ -258,7 +258,7 @@ function runCommand({ value }) {
 							A complete Vue and Web Component UI system you can own, edit, and ship. Headless web components, polished Vue wrappers, app blocks, form schemas, mobile shells, Studio metadata, and LLM-ready docs work together in one editable library.
 						</p>
 						<div class="mt-8 flex flex-wrap items-center gap-3">
-							<DomButton as="router-link" to="/components/button" size="lg">Browse the library</DomButton>
+							<DomButton as="router-link" to="/components" size="lg">Browse the library</DomButton>
 							<DomButton as="router-link" to="/blocks" variant="secondary" size="lg">See blocks</DomButton>
 							<DomTooltip text="Open a live command palette from this page" placement="bottom">
 								<DomButton variant="ghost" size="lg" @click="commandOpen = true">Open command palette</DomButton>
@@ -292,7 +292,7 @@ function runCommand({ value }) {
 									<RouterLink
 										v-for="item in workspaceNav"
 										:key="item.label"
-										to="/components/button"
+										to="/components"
 										class="flex items-center justify-between rounded-xl px-3 py-2 text-sm text-muted-fg transition hover:bg-secondary hover:text-canvas-fg"
 									>
 										<span class="flex min-w-0 items-center gap-2">

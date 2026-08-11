@@ -12,10 +12,11 @@ import BrandMark from './BrandMark.vue';
 			</div>
 			<div class="flex max-w-full flex-wrap items-center gap-x-5 gap-y-2">
 				<RouterLink to="/" class="hover:text-canvas-fg">Overview</RouterLink>
+				<RouterLink to="/blog" class="hover:text-canvas-fg">Blog</RouterLink>
 				<RouterLink to="/ai" class="hover:text-canvas-fg">AI</RouterLink>
 				<RouterLink to="/tools/json-unstringifier" class="hover:text-canvas-fg">Tools</RouterLink>
 				<RouterLink to="/theming" class="hover:text-canvas-fg">Theming</RouterLink>
-				<RouterLink to="/components/button" class="hover:text-canvas-fg">Components</RouterLink>
+				<RouterLink to="/components" class="hover:text-canvas-fg">Components</RouterLink>
 				<RouterLink to="/visual/card" class="hover:text-canvas-fg">Visual</RouterLink>
 				<RouterLink to="/blocks" class="hover:text-canvas-fg">Blocks</RouterLink>
 				<RouterLink to="/pricing" class="hover:text-canvas-fg">Pricing</RouterLink>

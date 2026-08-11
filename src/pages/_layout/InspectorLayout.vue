@@ -14,7 +14,7 @@ const route = useRoute();
 
 const topLinks = [
 	{ to: '/', label: 'Overview', exact: true },
-	{ to: '/components/button', label: 'Components', match: '/components' },
+	{ to: '/components', label: 'Components', match: '/components' },
 	{ to: '/pricing', label: 'Pricing' },
 ];
 

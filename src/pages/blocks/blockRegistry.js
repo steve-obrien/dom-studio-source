@@ -120,9 +120,23 @@ function navItemFromRecord(record) {
 	return {
 		to: record.route,
 		label: record.label,
-		tag: record.tag,
+		tag: publicBlockNavTag(record.tag),
 		icon: record.icon,
 	};
+}
+
+/**
+ * Converts internal block metadata into concise public sidebar badges.
+ *
+ * @param {unknown} value Block metadata tag.
+ * @returns {string} Public navigation badge text, or an empty string.
+ */
+function publicBlockNavTag(value) {
+	const tag = String(value || '').trim();
+	const normalizedTag = tag.toLowerCase();
+	if (normalizedTag === 'reviewed') return '';
+	if (normalizedTag === 'api-backed') return 'API';
+	return tag;
 }
 
 function recordFromPagePath(pagePath) {

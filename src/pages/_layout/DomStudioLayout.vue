@@ -76,7 +76,7 @@ const contentMaxWidthClass = computed(() => (
 ));
 
 const topLinks = [
-	{ to: '/components/button', label: 'Components', match: '/components' },
+	{ to: '/components', label: 'Components', match: '/components' },
 	{ to: '/forms', label: 'Forms', match: '/forms' },
 	{ to: '/data', label: 'Data', match: '/data' },
 	{ to: '/visual/card', label: 'Visual', match: '/visual' },

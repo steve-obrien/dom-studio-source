@@ -24,18 +24,18 @@ const emit = defineEmits(['update:modelValue', 'focus', 'blur']);
 const field = useField(props, emit, { idPrefix: 'dom-position-input' });
 
 const positions = [
-	{ value: 'start-bottom', label: 'Start bottom', class: 'left-0 top-2/3 -translate-y-1/2' },
-	{ value: 'start', label: 'Start', class: 'left-0 top-1/2 -translate-y-1/2' },
-	{ value: 'start-top', label: 'Start top', class: 'left-0 top-1/3 -translate-y-1/2' },
-	{ value: 'top-start', label: 'Top start', class: 'left-1/3 top-0 -translate-x-1/2' },
-	{ value: 'top', label: 'Top', class: 'left-1/2 top-0 -translate-x-1/2' },
-	{ value: 'top-end', label: 'Top end', class: 'left-2/3 top-0 -translate-x-1/2' },
-	{ value: 'end-top', label: 'End top', class: 'right-0 top-1/3 -translate-y-1/2' },
-	{ value: 'end', label: 'End', class: 'right-0 top-1/2 -translate-y-1/2' },
-	{ value: 'end-bottom', label: 'End bottom', class: 'right-0 top-2/3 -translate-y-1/2' },
-	{ value: 'bottom-end', label: 'Bottom end', class: 'left-2/3 bottom-0 -translate-x-1/2' },
-	{ value: 'bottom', label: 'Bottom', class: 'left-1/2 bottom-0 -translate-x-1/2' },
-	{ value: 'bottom-start', label: 'Bottom start', class: 'left-1/3 bottom-0 -translate-x-1/2' },
+	{ value: 'start-bottom', label: 'Start bottom', class: 'left-0 top-3/4 -translate-x-1/2 -translate-y-1/2' },
+	{ value: 'start', label: 'Start', class: 'left-0 top-1/2 -translate-x-1/2 -translate-y-1/2' },
+	{ value: 'start-top', label: 'Start top', class: 'left-0 top-1/4 -translate-x-1/2 -translate-y-1/2' },
+	{ value: 'top-start', label: 'Top start', class: 'left-1/4 top-0 -translate-x-1/2 -translate-y-1/2' },
+	{ value: 'top', label: 'Top', class: 'left-1/2 top-0 -translate-x-1/2 -translate-y-1/2' },
+	{ value: 'top-end', label: 'Top end', class: 'left-3/4 top-0 -translate-x-1/2 -translate-y-1/2' },
+	{ value: 'end-top', label: 'End top', class: 'right-0 top-1/4 translate-x-1/2 -translate-y-1/2' },
+	{ value: 'end', label: 'End', class: 'right-0 top-1/2 translate-x-1/2 -translate-y-1/2' },
+	{ value: 'end-bottom', label: 'End bottom', class: 'right-0 top-3/4 translate-x-1/2 -translate-y-1/2' },
+	{ value: 'bottom-end', label: 'Bottom end', class: 'left-3/4 bottom-0 -translate-x-1/2 translate-y-1/2' },
+	{ value: 'bottom', label: 'Bottom', class: 'left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2' },
+	{ value: 'bottom-start', label: 'Bottom start', class: 'left-1/4 bottom-0 -translate-x-1/2 translate-y-1/2' },
 ];
 </script>
 
@@ -47,34 +47,36 @@ const positions = [
 			:name="field.htmlName.value"
 			:value="field.value.value"
 		/>
-			<div
-				role="group"
-				:aria-label="label || undefined"
-				:aria-describedby="field.describedBy.value || undefined"
-				class="relative h-28 rounded-xl border border-border bg-secondary/30 p-3"
-			>
-			<div class="absolute left-1/2 top-1/2 size-12 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-canvas shadow-sm"></div>
-			<button
-				v-for="position in positions"
-				:key="position.value"
-				type="button"
-				class="absolute grid size-5 place-items-center rounded-full border text-[0px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
-				:class="[
-					position.class,
-					field.value.value === position.value
-						? 'border-primary bg-primary text-primary-fg shadow-sm'
-						: 'border-border bg-canvas text-muted-fg hover:border-ring hover:bg-accent',
-				]"
-				:title="position.label"
-				:aria-label="position.label"
-				:aria-pressed="field.value.value === position.value"
-				:disabled="field.disabled.value || undefined"
-				@click="field.onInput(position.value)"
-				@focus="field.onFocus"
-				@blur="field.onBlur"
-			>
-				<span class="size-1.5 rounded-full bg-current"></span>
-			</button>
+		<div
+			role="group"
+			:aria-label="label || undefined"
+			:aria-describedby="field.describedBy.value || undefined"
+			class="relative h-32 rounded-xl border border-border bg-secondary/30 p-3"
+		>
+			<div class="absolute left-1/2 top-1/2 size-24 -translate-x-1/2 -translate-y-1/2">
+				<div class="absolute inset-0 rounded-lg border border-border bg-canvas shadow-sm"></div>
+				<button
+					v-for="position in positions"
+					:key="position.value"
+					type="button"
+					class="absolute grid size-5 place-items-center rounded-full border text-[0px] transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+					:class="[
+						position.class,
+						field.value.value === position.value
+							? 'border-primary bg-primary text-primary-fg shadow-sm'
+							: 'border-border bg-canvas text-muted-fg hover:border-ring hover:bg-accent',
+					]"
+					:title="position.label"
+					:aria-label="position.label"
+					:aria-pressed="field.value.value === position.value"
+					:disabled="field.disabled.value || undefined"
+					@click="field.onInput(position.value)"
+					@focus="field.onFocus"
+					@blur="field.onBlur"
+				>
+					<span class="size-1.5 rounded-full bg-current"></span>
+				</button>
+			</div>
 		</div>
 		<p class="font-mono text-xs text-muted-fg">{{ field.value.value }}</p>
 	</DomField>

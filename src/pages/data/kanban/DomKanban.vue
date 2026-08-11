@@ -164,7 +164,7 @@ export const kanbanProps = {
 </script>
 
 <script setup>
-import { computed, markRaw, reactive, ref, useId } from 'vue';
+import { computed, markRaw, nextTick, onBeforeUnmount, reactive, ref, useId } from 'vue';
 import { applyKanbanCardMove } from './kanbanApi.js';
 
 defineOptions({
@@ -234,20 +234,33 @@ const liveMessage = ref('');
 const cardComposerOpen = reactive({});
 const cardDrafts = reactive({});
 const cardCreating = reactive({});
+const cardComposerInputs = new Map();
 const columnComposerOpen = ref(false);
 const columnDraft = ref('');
 const columnCreating = ref(false);
+const suppressPlaceholderTransition = ref(false);
+const cardAutoScrollEdge = 64;
+const cardAutoScrollMaxStep = 18;
+const cardAutoScrollState = {
+	frameId: 0,
+	columnElement: null,
+	columnKey: null,
+	clientY: 0,
+};
 const dragState = reactive({
 	kind: '',
 	row: null,
 	rowKey: null,
 	sourceColumnKey: null,
 	sourceIndex: -1,
+	cardHeight: 0,
 	sourceColumnIndex: -1,
 	targetColumnKey: null,
 	targetInsertionIndex: -1,
 	targetColumnIndex: -1,
 });
+
+onBeforeUnmount(stopCardAutoScroll);
 
 const sourceRows = computed(() => Array.isArray(props.rows) ? props.rows : []);
 const normalizedColumns = computed(() => {
@@ -508,16 +521,31 @@ function columnRecordFor(key) {
 }
 
 /**
+ * Stops the active long-column drag auto-scroll loop.
+ *
+ * @returns {void}
+ */
+function stopCardAutoScroll() {
+	if (cardAutoScrollState.frameId) cancelAnimationFrame(cardAutoScrollState.frameId);
+	cardAutoScrollState.frameId = 0;
+	cardAutoScrollState.columnElement = null;
+	cardAutoScrollState.columnKey = null;
+	cardAutoScrollState.clientY = 0;
+}
+
+/**
  * Clears all pointer drag state after completion or cancellation.
  *
  * @returns {void}
  */
 function resetDragState() {
+	stopCardAutoScroll();
 	dragState.kind = '';
 	dragState.row = null;
 	dragState.rowKey = null;
 	dragState.sourceColumnKey = null;
 	dragState.sourceIndex = -1;
+	dragState.cardHeight = 0;
 	dragState.sourceColumnIndex = -1;
 	dragState.targetColumnKey = null;
 	dragState.targetInsertionIndex = -1;
@@ -556,11 +584,16 @@ function startCardDrag(card, column, event) {
 		event.preventDefault();
 		return;
 	}
+	stopCardAutoScroll();
+	suppressPlaceholderTransition.value = false;
 	dragState.kind = 'card';
 	dragState.row = card.row;
 	dragState.rowKey = card.rowKey;
 	dragState.sourceColumnKey = column.key;
 	dragState.sourceIndex = card.index;
+	dragState.cardHeight = event.currentTarget instanceof Element
+		? Math.round(event.currentTarget.getBoundingClientRect().height)
+		: 0;
 	setDragTransfer(event, cardDragType, {
 		rowKey: card.rowKey,
 		columnKey: column.key,
@@ -589,6 +622,22 @@ function activeDraggedCard() {
 }
 
 /**
+ * Validates and stores the current card insertion target.
+ *
+ * @param {KanbanColumn} targetColumn Target column.
+ * @param {number} insertionIndex Index before source-removal normalization.
+ * @returns {boolean} True when the column accepts the dragged card.
+ */
+function setCardDropTarget(targetColumn, insertionIndex) {
+	const card = activeDraggedCard();
+	const sourceColumn = columnRecordFor(dragState.sourceColumnKey);
+	if (!card || !sourceColumn || !canReceiveCard(card, sourceColumn, targetColumn, insertionIndex)) return false;
+	dragState.targetColumnKey = targetColumn.key;
+	dragState.targetInsertionIndex = insertionIndex;
+	return true;
+}
+
+/**
  * Tracks a card insertion zone as the active drop target.
  *
  * @param {KanbanColumn} targetColumn Target column.
@@ -597,12 +646,8 @@ function activeDraggedCard() {
  * @returns {void}
  */
 function onCardDragEnter(targetColumn, insertionIndex, event) {
-	const card = activeDraggedCard();
-	const sourceColumn = columnRecordFor(dragState.sourceColumnKey);
-	if (!card || !sourceColumn || !canReceiveCard(card, sourceColumn, targetColumn, insertionIndex)) return;
+	if (!setCardDropTarget(targetColumn, insertionIndex)) return;
 	event.preventDefault();
-	dragState.targetColumnKey = targetColumn.key;
-	dragState.targetInsertionIndex = insertionIndex;
 }
 
 /**
@@ -611,79 +656,178 @@ function onCardDragEnter(targetColumn, insertionIndex, event) {
  * @param {KanbanColumn} targetColumn Target column.
  * @param {number} insertionIndex Index before source-removal normalization.
  * @param {DragEvent} event Native drag event.
- * @returns {void}
+ * @returns {boolean} True when the insertion point remains droppable.
  */
 function onCardDragOver(targetColumn, insertionIndex, event) {
-	const card = activeDraggedCard();
-	const sourceColumn = columnRecordFor(dragState.sourceColumnKey);
-	if (!card || !sourceColumn || !canReceiveCard(card, sourceColumn, targetColumn, insertionIndex)) return;
+	if (!setCardDropTarget(targetColumn, insertionIndex)) return false;
 	event.preventDefault();
 	if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+	return true;
 }
 
 /**
- * Clears a card target when the pointer leaves its insertion zone.
+ * Resolves the nearest insertion point for a vertical point in a column shell.
  *
- * @param {KanbanColumn} targetColumn Target column.
- * @param {number} insertionIndex Target insertion index.
+ * @param {Element} column Column shell element.
+ * @param {number} clientY Pointer position in viewport coordinates.
+ * @returns {number} Insertion index before source-removal normalization.
+ */
+function cardColumnInsertionIndexAtPoint(column, clientY) {
+	const cardList = column.querySelector('[data-kanban-card-list]');
+	if (!(cardList instanceof Element)) return 0;
+	const cardItems = Array.from(cardList.children).filter(function retainCardItem(element) {
+		return element instanceof Element
+			&& element.hasAttribute('data-kanban-card-item')
+			&& !element.classList.contains('dom-kanban-card-leave-active');
+	});
+	const matchingIndex = cardItems.findIndex(function findPointerCard(item) {
+		const card = item.querySelector('[data-card-key]');
+		const bounds = (card || item).getBoundingClientRect();
+		return clientY < bounds.top + (bounds.height / 2);
+	});
+	return matchingIndex === -1 ? cardItems.length : matchingIndex;
+}
+
+/**
+ * Resolves the nearest insertion point from anywhere over a column shell.
+ *
+ * @param {DragEvent} event Native drag event whose current target is the column shell.
+ * @returns {number} Insertion index before source-removal normalization.
+ */
+function cardColumnInsertionIndex(event) {
+	const column = event.currentTarget;
+	if (!(column instanceof Element)) return 0;
+	return cardColumnInsertionIndexAtPoint(column, event.clientY);
+}
+
+/**
+ * Calculates a smooth vertical scroll step near the card-list edges.
+ *
+ * @param {Element} cardList Scrollable card-list element.
+ * @param {number} clientY Pointer position in viewport coordinates.
+ * @returns {number} Signed pixels to scroll during the next animation frame.
+ */
+function cardAutoScrollVelocity(cardList, clientY) {
+	if (cardList.scrollHeight <= cardList.clientHeight) return 0;
+	const bounds = cardList.getBoundingClientRect();
+	const edge = Math.min(cardAutoScrollEdge, bounds.height / 2);
+	if (!edge) return 0;
+	if (clientY < bounds.top + edge) {
+		const intensity = Math.min(1, (bounds.top + edge - clientY) / edge);
+		return -Math.max(1, Math.round(cardAutoScrollMaxStep * intensity));
+	}
+	if (clientY > bounds.bottom - edge) {
+		const intensity = Math.min(1, (clientY - (bounds.bottom - edge)) / edge);
+		return Math.max(1, Math.round(cardAutoScrollMaxStep * intensity));
+	}
+	return 0;
+}
+
+/**
+ * Scrolls the active card list and refreshes its insertion target each frame.
+ *
  * @returns {void}
  */
-function onCardDragLeave(targetColumn, insertionIndex) {
-	if (dragState.targetColumnKey !== targetColumn.key || dragState.targetInsertionIndex !== insertionIndex) return;
+function runCardAutoScrollFrame() {
+	cardAutoScrollState.frameId = 0;
+	const column = cardAutoScrollState.columnElement;
+	if (dragState.kind !== 'card' || !(column instanceof Element)) {
+		stopCardAutoScroll();
+		return;
+	}
+	const cardList = column.querySelector('[data-kanban-card-list]');
+	if (!(cardList instanceof Element)) {
+		stopCardAutoScroll();
+		return;
+	}
+	const velocity = cardAutoScrollVelocity(cardList, cardAutoScrollState.clientY);
+	if (!velocity) return;
+	const previousScrollTop = cardList.scrollTop;
+	cardList.scrollTop += velocity;
+	if (cardList.scrollTop === previousScrollTop) return;
+	const targetColumn = columnRecordFor(cardAutoScrollState.columnKey);
+	if (targetColumn) {
+		setCardDropTarget(
+			targetColumn,
+			cardColumnInsertionIndexAtPoint(column, cardAutoScrollState.clientY),
+		);
+	}
+	cardAutoScrollState.frameId = requestAnimationFrame(runCardAutoScrollFrame);
+}
+
+/**
+ * Starts or updates edge-driven auto-scroll for the active column.
+ *
+ * @param {KanbanColumn} targetColumn Target column.
+ * @param {DragEvent} event Native drag event whose current target is the column shell.
+ * @returns {void}
+ */
+function trackCardAutoScroll(targetColumn, event) {
+	const column = event.currentTarget;
+	if (!(column instanceof Element)) {
+		stopCardAutoScroll();
+		return;
+	}
+	cardAutoScrollState.columnElement = column;
+	cardAutoScrollState.columnKey = targetColumn.key;
+	cardAutoScrollState.clientY = event.clientY;
+	const cardList = column.querySelector('[data-kanban-card-list]');
+	if (!(cardList instanceof Element) || !cardAutoScrollVelocity(cardList, event.clientY)) return;
+	if (!cardAutoScrollState.frameId) {
+		cardAutoScrollState.frameId = requestAnimationFrame(runCardAutoScrollFrame);
+	}
+}
+
+/**
+ * Makes the complete column shell a card drag-enter surface.
+ *
+ * @param {KanbanColumn} targetColumn Target column.
+ * @param {DragEvent} event Native drag event.
+ * @returns {void}
+ */
+function onCardColumnDragEnter(targetColumn, event) {
+	onCardDragEnter(targetColumn, cardColumnInsertionIndex(event), event);
+}
+
+/**
+ * Keeps the nearest column insertion point active while the pointer moves.
+ *
+ * @param {KanbanColumn} targetColumn Target column.
+ * @param {DragEvent} event Native drag event.
+ * @returns {void}
+ */
+function onCardColumnDragOver(targetColumn, event) {
+	const insertionIndex = cardColumnInsertionIndex(event);
+	if (onCardDragOver(targetColumn, insertionIndex, event)) trackCardAutoScroll(targetColumn, event);
+	else stopCardAutoScroll();
+}
+
+/**
+ * Clears a column target only after the pointer leaves the complete column shell.
+ *
+ * @param {KanbanColumn} targetColumn Target column.
+ * @param {DragEvent} event Native drag event.
+ * @returns {void}
+ */
+function onCardColumnDragLeave(targetColumn, event) {
+	const column = event.currentTarget;
+	if (column instanceof Element && event.relatedTarget instanceof Element && column.contains(event.relatedTarget)) return;
+	if (cardAutoScrollState.columnKey === targetColumn.key) stopCardAutoScroll();
+	if (dragState.targetColumnKey !== targetColumn.key) return;
 	dragState.targetColumnKey = null;
 	dragState.targetInsertionIndex = -1;
 }
 
 /**
- * Resolves whether a card-body pointer targets the insertion point before or after it.
- *
- * @param {number} cardIndex Target card index.
- * @param {DragEvent} event Native drag event whose current target is the card shell.
- * @returns {number} Insertion index represented by the pointer position.
- */
-function cardSurfaceInsertionIndex(cardIndex, event) {
-	const target = event.currentTarget;
-	if (!(target instanceof Element)) return cardIndex;
-	const bounds = target.getBoundingClientRect();
-	return event.clientY >= bounds.top + (bounds.height / 2) ? cardIndex + 1 : cardIndex;
-}
-
-/**
- * Expands a card shell into a large before-or-after drag-enter target.
+ * Completes a native card drop at the nearest point in a greedy column shell.
  *
  * @param {KanbanColumn} targetColumn Target column.
- * @param {number} cardIndex Target card index.
- * @param {DragEvent} event Native drag event.
- * @returns {void}
- */
-function onCardSurfaceDragEnter(targetColumn, cardIndex, event) {
-	onCardDragEnter(targetColumn, cardSurfaceInsertionIndex(cardIndex, event), event);
-}
-
-/**
- * Keeps the before-or-after insertion represented by a card shell droppable.
- *
- * @param {KanbanColumn} targetColumn Target column.
- * @param {number} cardIndex Target card index.
- * @param {DragEvent} event Native drag event.
- * @returns {void}
- */
-function onCardSurfaceDragOver(targetColumn, cardIndex, event) {
-	const insertionIndex = cardSurfaceInsertionIndex(cardIndex, event);
-	onCardDragEnter(targetColumn, insertionIndex, event);
-	onCardDragOver(targetColumn, insertionIndex, event);
-}
-
-/**
- * Completes a native card drop against the card half under the pointer.
- *
- * @param {KanbanColumn} targetColumn Target column.
- * @param {number} cardIndex Target card index.
  * @param {DragEvent} event Native drop event.
  * @returns {void}
  */
-function onCardSurfaceDrop(targetColumn, cardIndex, event) {
-	onCardDrop(targetColumn, cardSurfaceInsertionIndex(cardIndex, event), event);
+function onCardColumnDrop(targetColumn, event) {
+	stopCardAutoScroll();
+	onCardDrop(targetColumn, cardColumnInsertionIndex(event), event);
 }
 
 /**
@@ -760,6 +904,20 @@ function emitCardMove(card, sourceColumn, targetColumn, requestedIndex, event, i
 }
 
 /**
+ * Disables the placeholder exit transition for the frame that commits a drop.
+ *
+ * @returns {void}
+ */
+function suppressCommittedPlaceholderExit() {
+	suppressPlaceholderTransition.value = true;
+	requestAnimationFrame(function waitForCommittedDropPaint() {
+		requestAnimationFrame(function restorePlaceholderTransition() {
+			suppressPlaceholderTransition.value = false;
+		});
+	});
+}
+
+/**
  * Completes a native card drop at an insertion zone.
  *
  * @param {KanbanColumn} targetColumn Target column.
@@ -775,6 +933,7 @@ function onCardDrop(targetColumn, insertionIndex, event) {
 	event.preventDefault();
 	let finalIndex = insertionIndex;
 	if (sourceColumn.key === currentTarget.key && card.index < insertionIndex) finalIndex -= 1;
+	suppressCommittedPlaceholderExit();
 	emitCardMove(card, sourceColumn, currentTarget, finalIndex, event, 'pointer');
 	resetDragState();
 }
@@ -818,6 +977,31 @@ function isCardDropTarget(column, index) {
 	return dragState.kind === 'card'
 		&& dragState.targetColumnKey === column.key
 		&& dragState.targetInsertionIndex === index;
+}
+
+/**
+ * Expands the active insertion zone to the measured height of the dragged card.
+ *
+ * @param {KanbanColumn} column Target column.
+ * @param {number} index Insertion index.
+ * @returns {Record<string, string>|undefined} Inline placeholder size when active.
+ */
+function cardDropPlaceholderStyle(column, index) {
+	const style = {};
+	if (isCardDropTarget(column, index)) style.height = `${dragState.cardHeight || 72}px`;
+	if (suppressPlaceholderTransition.value) style.transition = 'none';
+	return Object.keys(style).length ? style : undefined;
+}
+
+/**
+ * Locks a departing card wrapper to its rendered height before it collapses.
+ *
+ * @param {Element} element Card wrapper entering the Vue leave transition.
+ * @returns {void}
+ */
+function prepareCardLeave(element) {
+	if (!(element instanceof HTMLElement)) return;
+	element.style.height = `${element.getBoundingClientRect().height}px`;
 }
 
 /**
@@ -892,12 +1076,28 @@ function onCardAction(card, column, payload) {
  * Opens a built-in card composer for one column.
  *
  * @param {KanbanColumn} column Target column.
+ * @returns {Promise<void>} Resolves after the composer input receives focus.
+ */
+async function openCardComposer(column) {
+	if (props.disabled || column.disabled) return;
+	const key = columnStateKey(column.key);
+	cardComposerOpen[key] = true;
+	cardDrafts[key] ||= '';
+	await nextTick();
+	cardComposerInputs.get(key)?.focus();
+}
+
+/**
+ * Tracks the built-in title input associated with a column composer.
+ *
+ * @param {KanbanColumn} column Composer column.
+ * @param {HTMLInputElement|null} element Mounted input element or null during cleanup.
  * @returns {void}
  */
-function openCardComposer(column) {
-	if (props.disabled || column.disabled) return;
-	cardComposerOpen[columnStateKey(column.key)] = true;
-	cardDrafts[columnStateKey(column.key)] ||= '';
+function setCardComposerInput(column, element) {
+	const key = columnStateKey(column.key);
+	if (element) cardComposerInputs.set(key, element);
+	else cardComposerInputs.delete(key);
 }
 
 /**
@@ -1251,6 +1451,10 @@ async function submitColumn() {
 						:class="column.class"
 						:style="resolvedColumnStyle"
 						:data-column-key="column.key"
+						@dragenter.capture="onCardColumnDragEnter(column, $event)"
+						@dragover.capture="onCardColumnDragOver(column, $event)"
+						@dragleave.capture="onCardColumnDragLeave(column, $event)"
+						@drop.capture="onCardColumnDrop(column, $event)"
 					>
 						<header class="flex shrink-0 items-start gap-2 border-b border-border bg-canvas/90 px-3 py-3 backdrop-blur">
 							<div class="min-w-0 flex-1">
@@ -1293,78 +1497,79 @@ async function submitColumn() {
 							</button>
 						</header>
 
-						<div role="list" :aria-label="`${column.label} ${resourceLabel}`" class="min-h-0 flex-1 overflow-y-auto px-2">
-							<template v-for="(card, cardIndex) in column.cards" :key="card.rowKey">
+						<div role="list" :aria-label="`${column.label} ${resourceLabel}`" class="min-h-0 flex-1 overflow-y-auto px-2" data-kanban-card-list>
+							<TransitionGroup name="dom-kanban-card" @before-leave="prepareCardLeave">
 								<div
-									aria-hidden="true"
-									class="h-2 rounded-full transition-colors"
-									:class="isCardDropTarget(column, cardIndex) ? 'bg-primary' : 'bg-transparent'"
-									@dragenter="onCardDragEnter(column, cardIndex, $event)"
-									@dragover="onCardDragOver(column, cardIndex, $event)"
-									@dragleave="onCardDragLeave(column, cardIndex)"
-									@drop="onCardDrop(column, cardIndex, $event)"
-								></div>
-
-								<article
-									role="listitem"
-									tabindex="0"
-									class="group/card relative cursor-default rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-ring/60"
-									:class="[
-										hasCustomCardRenderer(column) || $slots.card
-											? 'bg-transparent'
-											: 'border border-border bg-canvas p-3 shadow-xs hover:border-ring/35 hover:shadow-sm',
-										canDragCard(card, column) && 'cursor-grab active:cursor-grabbing',
-										isDraggedCard(card) && 'opacity-45',
-										column.cardClass,
-									]"
-									:draggable="canDragCard(card, column)"
-									:data-card-key="card.rowKey"
-									:aria-label="`${rowTitle(card.row, cardIndex)}. ${column.label}, position ${cardIndex + 1}. Hold Alt and use arrow keys to move.`"
-									@dragstart.stop="startCardDrag(card, column, $event)"
-									@dragend="endCardDrag(card, column, $event)"
-									@dragenter="onCardSurfaceDragEnter(column, cardIndex, $event)"
-									@dragover="onCardSurfaceDragOver(column, cardIndex, $event)"
-									@drop="onCardSurfaceDrop(column, cardIndex, $event)"
-									@keydown="onCardKeydown(card, column, $event)"
-									@click="onCardClick(card, column, $event)"
+									v-for="(card, cardIndex) in column.cards"
+									:key="card.rowKey"
+									role="presentation"
+									class="dom-kanban-card-item"
+									data-kanban-card-item
 								>
-									<slot
-										name="card"
-										:row="card.row"
-										:row-key="card.rowKey"
-										:column="column"
-										:column-key="column.key"
-										:index="cardIndex"
-										:drag="{ active: dragState.kind === 'card', source: isDraggedCard(card) }"
+									<div
+										aria-hidden="true"
+										class="h-2 rounded-lg border border-transparent transition-[height,margin,background-color,border-color] duration-150"
+										:class="isCardDropTarget(column, cardIndex) ? 'my-1 border-dashed border-primary/60 bg-primary/10 shadow-inner' : 'bg-transparent'"
+										:style="cardDropPlaceholderStyle(column, cardIndex)"
+										:data-kanban-drop-placeholder="isCardDropTarget(column, cardIndex) ? '' : undefined"
+									></div>
+
+									<article
+										role="listitem"
+										tabindex="0"
+										class="group/card relative cursor-default rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-ring/60"
+										:class="[
+											hasCustomCardRenderer(column) || $slots.card
+												? 'bg-transparent'
+												: 'border border-border bg-canvas p-3 shadow-xs hover:border-ring/35 hover:shadow-sm',
+											canDragCard(card, column) && 'cursor-grab active:cursor-grabbing',
+											isDraggedCard(card) && 'opacity-45',
+											column.cardClass,
+										]"
+										:draggable="canDragCard(card, column)"
+										:data-card-key="card.rowKey"
+										:aria-label="`${rowTitle(card.row, cardIndex)}. ${column.label}, position ${cardIndex + 1}. Hold Alt and use arrow keys to move.`"
+										@dragstart.stop="startCardDrag(card, column, $event)"
+										@dragend="endCardDrag(card, column, $event)"
+										@keydown="onCardKeydown(card, column, $event)"
+										@click="onCardClick(card, column, $event)"
 									>
-										<component
-											:is="cardComponentFor(column)"
-											v-if="cardComponentFor(column)"
+										<slot
+											name="card"
 											:row="card.row"
 											:row-key="card.rowKey"
 											:column="column"
 											:column-key="column.key"
 											:index="cardIndex"
-											@action="onCardAction(card, column, $event)"
-										/>
-										<div v-else>
-											<h4 class="text-sm font-semibold leading-5 text-canvas-fg">{{ rowTitle(card.row, cardIndex) }}</h4>
-											<p v-if="rowDescription(card.row, cardIndex)" class="mt-1.5 line-clamp-3 text-xs leading-5 text-muted-fg">
-												{{ rowDescription(card.row, cardIndex) }}
-											</p>
-										</div>
-									</slot>
-								</article>
-							</template>
+											:drag="{ active: dragState.kind === 'card', source: isDraggedCard(card) }"
+										>
+											<component
+												:is="cardComponentFor(column)"
+												v-if="cardComponentFor(column)"
+												:row="card.row"
+												:row-key="card.rowKey"
+												:column="column"
+												:column-key="column.key"
+												:index="cardIndex"
+												@action="onCardAction(card, column, $event)"
+											/>
+											<div v-else>
+												<h4 class="text-sm font-semibold leading-5 text-canvas-fg">{{ rowTitle(card.row, cardIndex) }}</h4>
+												<p v-if="rowDescription(card.row, cardIndex)" class="mt-1.5 line-clamp-3 text-xs leading-5 text-muted-fg">
+													{{ rowDescription(card.row, cardIndex) }}
+												</p>
+											</div>
+										</slot>
+									</article>
+								</div>
+							</TransitionGroup>
 
 							<div
 								aria-hidden="true"
-								class="h-2 rounded-full transition-colors"
-								:class="isCardDropTarget(column, column.cards.length) ? 'bg-primary' : 'bg-transparent'"
-								@dragenter="onCardDragEnter(column, column.cards.length, $event)"
-								@dragover="onCardDragOver(column, column.cards.length, $event)"
-								@dragleave="onCardDragLeave(column, column.cards.length)"
-								@drop="onCardDrop(column, column.cards.length, $event)"
+								class="h-2 rounded-lg border border-transparent transition-[height,margin,background-color,border-color] duration-150"
+								:class="isCardDropTarget(column, column.cards.length) ? 'my-1 border-dashed border-primary/60 bg-primary/10 shadow-inner' : 'bg-transparent'"
+								:style="cardDropPlaceholderStyle(column, column.cards.length)"
+								:data-kanban-drop-placeholder="isCardDropTarget(column, column.cards.length) ? '' : undefined"
 							></div>
 
 							<div v-if="!column.cards.length && dragState.kind !== 'card'" class="rounded-lg border border-dashed border-border bg-canvas/50 px-4 py-8 text-center text-xs leading-5 text-muted-fg">
@@ -1391,11 +1596,11 @@ async function submitColumn() {
 											<label class="grid gap-1.5">
 												<span class="sr-only">Card title</span>
 												<input
+													:ref="(element) => setCardComposerInput(column, element)"
 													v-model="cardDrafts[columnStateKey(column.key)]"
 													type="text"
 													class="skin-input min-h-20 resize-none rounded-lg px-3 py-2 text-sm"
 													placeholder="Card title"
-													autofocus
 													:disabled="Boolean(cardCreating[columnStateKey(column.key)])"
 													@keydown.escape.prevent="closeCardComposer(column)"
 												/>
@@ -1474,3 +1679,26 @@ async function submitColumn() {
 		</div>
 	</section>
 </template>
+
+<style scoped>
+.dom-kanban-card-leave-active {
+	min-height: 0;
+	overflow: hidden;
+	transition:
+		height 180ms cubic-bezier(0.32, 0.72, 0, 1),
+		opacity 140ms ease-out,
+		transform 180ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.dom-kanban-card-leave-to {
+	height: 0 !important;
+	opacity: 0;
+	transform: translateY(-0.25rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dom-kanban-card-leave-active {
+		transition-duration: 1ms;
+	}
+}
+</style>
