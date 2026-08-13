@@ -95,7 +95,7 @@ function formatJson(value) {
 	<div class="w-full min-w-0 space-y-4">
 		<div class="h-[720px] min-h-[620px] w-full min-w-0 overflow-hidden rounded-lg border border-border bg-secondary/20 p-2">
 			<DomAgentChatShell
-				v-model="input"
+				:model-value="input"
 				:conversations="conversations"
 				:conversation="activeConversation"
 				:messages="activeMessages"
@@ -110,6 +110,7 @@ function formatJson(value) {
 				:sidebar-size="sidebarSize"
 				:aside-size="asideSize"
 				:tool-components="toolComponents"
+				@update:model-value="store.setInput"
 				@update:mode="store.setMode"
 				@update:search="store.setSearch"
 				@update:sidebar-open="store.setSidebarOpen"

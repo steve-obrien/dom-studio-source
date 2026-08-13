@@ -54,11 +54,17 @@ const dialogLabel = 'Command palette';
 const useLiquidGlass = LIQUID_GLASS_EFFECTS.commandPalette;
 
 const filtered = computed(() => {
-	const q = query.value.trim().toLowerCase();
+	const q = normalizeSearchText(query.value);
 	if (!q) return props.commands;
-	return props.commands.filter((command) => {
-		return searchableCommandText(command).includes(q);
-	});
+	return props.commands
+		.map((command, index) => ({
+			command,
+			index,
+			score: commandSearchScore(command, q),
+		}))
+		.filter((result) => Number.isFinite(result.score))
+		.sort((a, b) => a.score - b.score || a.index - b.index)
+		.map((result) => result.command);
 });
 
 watch(() => props.modelValue, async (open) => {
@@ -205,8 +211,31 @@ function onKeydown(event) {
 	}
 }
 
+/**
+ * Rank a command match so title matches appear before supporting metadata matches.
+ *
+ * @param {Record<string, unknown>} command Command candidate.
+ * @param {string} query Normalized search query.
+ * @returns {number} Lower relevance score, or positive infinity when the command does not match.
+ */
+function commandSearchScore(command, query) {
+	const title = normalizeSearchText(command.label);
+	if (title === query) return 0;
+	if (title.startsWith(`${query} `)) return 10;
+	if (title.split(/[\s/\-–—:]+/).includes(query)) return 20;
+	if (title.startsWith(query)) return 30;
+	if (title.includes(query)) return 40;
+	return searchableCommandText(command).includes(query) ? 100 : Number.POSITIVE_INFINITY;
+}
+
+/**
+ * Build the broad searchable text for a command's secondary fields.
+ *
+ * @param {Record<string, unknown>} command Command candidate.
+ * @returns {string} Normalized searchable command text.
+ */
 function searchableCommandText(command) {
-	return [
+	return normalizeSearchText([
 		command.label,
 		command.description,
 		command.value,
@@ -217,8 +246,20 @@ function searchableCommandText(command) {
 		.flatMap((part) => Array.isArray(part) ? part : [part])
 		.map((part) => String(part || '').trim())
 		.filter(Boolean)
-		.join(' ')
-		.toLowerCase();
+		.join(' '));
+}
+
+/**
+ * Normalize user-entered and command-provided text for predictable matching.
+ *
+ * @param {unknown} value Text-like value to normalize.
+ * @returns {string} Lowercase text with trimmed, collapsed whitespace.
+ */
+function normalizeSearchText(value) {
+	return String(value || '')
+		.trim()
+		.toLowerCase()
+		.replace(/\s+/g, ' ');
 }
 
 function onShortcut(event) {
@@ -342,8 +383,10 @@ function matchesShortcut(event, shortcut) {
 							role="option"
 							type="button"
 							tabindex="-1"
-							class="block w-full rounded-xl px-3 py-2 text-left transition"
-							:class="index === activeIndex ? 'bg-accent text-accent-fg' : 'text-muted-fg hover:bg-accent hover:text-accent-fg'"
+							class="block w-full rounded-xl px-3 py-2 text-left transition-colors"
+							:class="index === activeIndex
+								? 'bg-primary text-primary-fg shadow-sm'
+								: 'text-muted-fg hover:bg-secondary hover:text-canvas-fg'"
 							:aria-selected="index === activeIndex"
 							@mouseenter="activeIndex = index"
 							@click="select(command)"
@@ -351,8 +394,10 @@ function matchesShortcut(event, shortcut) {
 							<span class="flex min-w-0 items-start gap-3">
 								<span
 									v-if="command.icon"
-									class="grid size-8 shrink-0 place-items-center rounded-lg border border-border/70 bg-secondary text-muted-fg"
-									:class="index === activeIndex ? 'border-accent-fg/20 bg-accent-fg/10 text-accent-fg' : ''"
+									class="grid size-8 shrink-0 place-items-center rounded-lg border"
+									:class="index === activeIndex
+										? 'border-primary-fg/20 bg-primary-fg/15 text-primary-fg'
+										: 'border-border/70 bg-secondary text-muted-fg'"
 									aria-hidden="true"
 								>
 									<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
@@ -362,7 +407,13 @@ function matchesShortcut(event, shortcut) {
 								<span v-else class="size-8 shrink-0" aria-hidden="true"></span>
 								<span class="min-w-0 flex-1 pt-0.5">
 									<span class="block truncate text-sm font-medium">{{ command.label }}</span>
-									<span v-if="command.description" class="mt-0.5 block truncate text-xs text-muted-fg">{{ command.description }}</span>
+									<span
+										v-if="command.description"
+										class="mt-0.5 block truncate text-xs"
+										:class="index === activeIndex ? 'text-primary-fg/75' : 'text-muted-fg'"
+									>
+										{{ command.description }}
+									</span>
 								</span>
 							</span>
 						</button>

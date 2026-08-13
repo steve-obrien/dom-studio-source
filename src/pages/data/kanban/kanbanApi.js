@@ -1,3 +1,5 @@
+import { resolveResourceKey } from '../_shared/resourceRecord.js';
+
 /**
  * Resolves a stable row key using the same string-or-function contract as DomDataGrid.
  *
@@ -7,8 +9,7 @@
  * @returns {string|number} Stable key for the row.
  */
 export function resolveKanbanRowKey(row, rowKey = 'id', index = 0) {
-	if (typeof rowKey === 'function') return rowKey(row, index);
-	return row?.[rowKey] ?? index;
+	return resolveResourceKey(row, rowKey, index);
 }
 
 /**

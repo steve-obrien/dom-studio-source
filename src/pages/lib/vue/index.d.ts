@@ -5,6 +5,91 @@ import type { ComputedRef, DefineSetupFnComponent, Directive, InjectionKey, Ref,
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | { [key: string]: JsonValue } | Array<JsonValue>;
 export type DomUnknownRecord = Record<string, unknown>;
+/** Logical resource key used by controlled data components. */
+export type ResourceKey = string | number;
+/** Logical field name or accessor for an application-owned resource row. */
+export type ResourceFieldResolver = string | ((row: DomUnknownRecord, index: number) => unknown);
+/** Logical field name or accessor that resolves a stable resource identity. */
+export type ResourceKeyResolver = string | ((row: DomUnknownRecord, index: number) => ResourceKey);
+/** One value option rendered by a filter definition. */
+export interface FilterBarOption {
+	label: string;
+	value: string | number | boolean;
+	disabled?: boolean;
+}
+/** Logical filter definition shared by local and server-backed resource queries. */
+export interface FilterBarDefinition {
+	key: string;
+	label?: string;
+	type?: 'text' | 'select' | 'date' | 'number' | 'boolean';
+	placeholder?: string;
+	options?: Array<FilterBarOption | string | number | boolean>;
+	width?: string;
+	disabled?: boolean;
+}
+/** Controlled query emitted by DomFilterBar. */
+export interface FilterBarQuery {
+	search: string;
+	filters: Record<string, unknown>;
+}
+/** Resolved presentation contract supplied to activity-timeline slots. */
+export interface ActivityTimelineRecord {
+	row: DomUnknownRecord;
+	rowKey: ResourceKey;
+	index: number;
+	title: unknown;
+	description: unknown;
+	timestamp: unknown;
+	formattedTimestamp: string;
+	meta: unknown;
+	status: unknown;
+	statusLabel: string;
+	tone: 'neutral' | 'primary' | 'success' | 'warning' | 'danger' | 'info';
+}
+export type ActivityTimelineSlotPayload = ActivityTimelineRecord;
+/** Application-owned step rendered by DomStepper. */
+export interface StepperItem {
+	key: ResourceKey;
+	label: string;
+	description?: string;
+	status?: 'complete' | 'current' | 'upcoming' | 'error';
+	optional?: boolean;
+	disabled?: boolean;
+}
+export interface StepperChangePayload {
+	item: StepperItem;
+	key: ResourceKey;
+	index: number;
+	previousKey: ResourceKey | null;
+}
+export interface StepperSlotPayload {
+	item: StepperItem;
+	key: ResourceKey;
+	index: number;
+	state: 'complete' | 'current' | 'upcoming' | 'error';
+	active: boolean;
+	disabled: boolean;
+}
+/** Application-owned destination rendered by DomBreadcrumbs. */
+export interface BreadcrumbItem {
+	key?: ResourceKey;
+	label: string;
+	to?: string | Record<string, unknown>;
+	href?: string;
+	current?: boolean;
+	disabled?: boolean;
+}
+export interface BreadcrumbNavigatePayload {
+	item: BreadcrumbItem;
+	index: number;
+	current: boolean;
+	event: MouseEvent;
+}
+export interface BreadcrumbSlotPayload {
+	item: BreadcrumbItem;
+	index: number;
+	current: boolean;
+}
 /**
  * Represents a Vue-compatible component value without coupling consumers to
  * the physical Vue installation used to generate this package declaration.
@@ -1547,6 +1632,76 @@ export interface DomSplitterPanelProps {
 }
 export declare const DomSplitterPanel: DomComponent<DomSplitterPanelProps>;
 
+/** StepperItem, StepperChangePayload, StepperSlotPayload payload types are exported from this module. */
+export interface DomStepperProps {
+	/**
+	 * Ordered application-owned step records.
+	 */
+	items?: Array<StepperItem>;
+	/**
+	 * Controlled active step key. Defaults to the first enabled item.
+	 */
+	modelValue?: string | number;
+	/**
+	 * Arrange steps across a row or down a column.
+	 */
+	orientation?: 'horizontal' | 'vertical';
+	/**
+	 * Allow enabled step indicators and labels to change the active key.
+	 */
+	clickable?: boolean;
+	/**
+	 * Prevent navigation beyond the next incomplete step.
+	 */
+	linear?: boolean;
+	/**
+	 * Show supporting descriptions when supplied.
+	 */
+	showDescriptions?: boolean;
+	/**
+	 * Indicator and label density.
+	 */
+	size?: 'sm' | 'md';
+	/**
+	 * Accessible label for the step navigation.
+	 */
+	ariaLabel?: string;
+}
+export declare const DomStepper: DomComponent<DomStepperProps>;
+
+/** BreadcrumbItem, BreadcrumbNavigatePayload, BreadcrumbSlotPayload payload types are exported from this module. */
+export interface DomBreadcrumbsProps {
+	/**
+	 * Ordered application-owned breadcrumb records.
+	 */
+	items?: Array<BreadcrumbItem>;
+	/**
+	 * Maximum visible entries before the middle path collapses. Use 0 to show every item.
+	 */
+	maxItems?: number;
+	/**
+	 * Keep the current location interactive when it has a destination.
+	 */
+	currentAsLink?: boolean;
+	/**
+	 * Built-in separator treatment.
+	 */
+	separator?: 'chevron' | 'slash';
+	/**
+	 * Text and spacing density.
+	 */
+	size?: 'sm' | 'md';
+	/**
+	 * Accessible label for the navigation landmark.
+	 */
+	ariaLabel?: string;
+	/**
+	 * Accessible label for the collapsed-path control.
+	 */
+	collapseLabel?: string;
+}
+export declare const DomBreadcrumbs: DomComponent<DomBreadcrumbsProps>;
+
 export interface DomPopoverProps {
 	/**
 	 * Preferred side and alignment around the trigger.
@@ -1711,7 +1866,7 @@ export interface DomDataGridProps {
 	/**
 	 * Field name or function used to identify each row.
 	 */
-	rowKey?: string | ((...args: Array<unknown>) => unknown);
+	rowKey?: ResourceKeyResolver;
 	/**
 	 * Controlled filter map keyed by column key.
 	 */
@@ -1807,6 +1962,116 @@ export interface DomDataGridProps {
 }
 export declare const DomDataGrid: DomComponent<DomDataGridProps>;
 
+/** FilterBarOption, FilterBarDefinition, FilterBarQuery payload types are exported from this module. */
+export interface DomFilterBarProps {
+	/**
+	 * Logical filter definitions rendered as controlled query inputs.
+	 */
+	definitions?: Array<FilterBarDefinition>;
+	/**
+	 * Controlled active filter values keyed by definition key.
+	 */
+	filters?: Record<string, unknown>;
+	/**
+	 * Controlled free-text search value.
+	 */
+	search?: string;
+	/**
+	 * Show the built-in search input.
+	 */
+	searchable?: boolean;
+	/**
+	 * Placeholder for the built-in search input.
+	 */
+	searchPlaceholder?: string;
+	/**
+	 * Label for clearing the complete query.
+	 */
+	clearLabel?: string;
+	/**
+	 * Accessible label for the filter controls.
+	 */
+	ariaLabel?: string;
+	/**
+	 * Spacing and control density.
+	 */
+	density?: 'compact' | 'comfortable';
+	/**
+	 * Disable all built-in query controls.
+	 */
+	disabled?: boolean;
+}
+export declare const DomFilterBar: DomComponent<DomFilterBarProps>;
+
+/** ResourceFieldResolver, ResourceKeyResolver, ActivityTimelineRecord, ActivityTimelineSlotPayload payload types are exported from this module. */
+export interface DomActivityTimelineProps {
+	/**
+	 * Application-owned resource rows in the exact order they should appear.
+	 */
+	rows?: Array<DomUnknownRecord>;
+	/**
+	 * Logical field name or function used to identify each resource row.
+	 */
+	rowKey?: ResourceKeyResolver;
+	/**
+	 * Logical field name or function used for the primary activity label.
+	 */
+	titleKey?: ResourceFieldResolver;
+	/**
+	 * Logical field name or function used for supporting activity content.
+	 */
+	descriptionKey?: ResourceFieldResolver;
+	/**
+	 * Logical field name or function used for the activity timestamp.
+	 */
+	timestampKey?: ResourceFieldResolver;
+	/**
+	 * Logical field name or function used for actor, source, or secondary metadata.
+	 */
+	metaKey?: ResourceFieldResolver;
+	/**
+	 * Logical field name or function used for an optional status pill.
+	 */
+	statusKey?: ResourceFieldResolver;
+	/**
+	 * Logical field name or function resolving to a semantic marker and status tone.
+	 */
+	toneKey?: ResourceFieldResolver;
+	/**
+	 * Optional formatter receiving the raw timestamp, row, and source index.
+	 */
+	formatTimestamp?: (value: unknown, row: DomUnknownRecord, index: number) => unknown;
+	/**
+	 * Place timestamp metadata above the content or in a separate desktop column.
+	 */
+	layout?: "stacked" | "split";
+	/**
+	 * Spacing and marker scale for the timeline.
+	 */
+	density?: "compact" | "comfortable";
+	/**
+	 * Expose busy state and show timeline-shaped skeleton rows when no rows are available.
+	 */
+	loading?: boolean;
+	/**
+	 * Number of placeholder rows shown during an initial load.
+	 */
+	loadingRows?: number;
+	/**
+	 * Heading shown when the supplied resource collection is empty.
+	 */
+	emptyTitle?: string;
+	/**
+	 * Supporting copy shown for an empty activity collection.
+	 */
+	emptyDescription?: string;
+	/**
+	 * Accessible label for the ordered activity list.
+	 */
+	ariaLabel?: string;
+}
+export declare const DomActivityTimeline: DomComponent<DomActivityTimelineProps>;
+
 /** KanbanColumn, KanbanCardContext, KanbanDropContext, KanbanCardMove, KanbanCardCreateRequest, KanbanColumnCreateRequest payload types are exported from this module. */
 export interface DomKanbanProps {
 	/**
@@ -1820,7 +2085,7 @@ export interface DomKanbanProps {
 	/**
 	 * Field name or function used to identify each resource row.
 	 */
-	rowKey?: string | ((row: Record<string, unknown>, index: number) => string | number);
+	rowKey?: ResourceKeyResolver;
 	/**
 	 * Row field that assigns a resource to a Kanban column.
 	 */
@@ -1832,11 +2097,11 @@ export interface DomKanbanProps {
 	/**
 	 * Field name or function used by the built-in card renderer for its title.
 	 */
-	titleKey?: string | ((row: Record<string, unknown>, index: number) => unknown);
+	titleKey?: ResourceFieldResolver;
 	/**
 	 * Field name or function used by the built-in card renderer for supporting text.
 	 */
-	descriptionKey?: string | ((row: Record<string, unknown>, index: number) => unknown);
+	descriptionKey?: ResourceFieldResolver;
 	/**
 	 * Vue component used to render every card. A column component or card slot can override it.
 	 */
@@ -3621,7 +3886,7 @@ export interface DomSelectProps {
 	 */
 	chrome?: "field" | "none" | false;
 	/**
-	 * Available options. Use the option slot for rich rows.
+	 * Available options. Set group for non-selectable section headings and use the option slot for rich rows.
 	 */
 	options: Array<DomOption>;
 	/**
@@ -4521,9 +4786,124 @@ export interface DomTextareaInputProps {
 	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
 	chrome?: "field" | "none" | false;
+	/**
+	 * Minimum visible rows, or the fixed row count when autosize is disabled.
+	 */
 	rows?: number;
+	/**
+	 * Grow and shrink the textarea to match its content.
+	 */
+	autosize?: boolean;
+	/**
+	 * Maximum autosized rows before vertical scrolling begins. Use 0 for no maximum.
+	 */
+	maxRows?: number;
 }
 export declare const DomTextareaInput: DomComponent<DomTextareaInputProps>;
+
+export interface DomTextareaComposerProps {
+	/**
+	 * Current field value.
+	 */
+	modelValue?: string;
+	/**
+	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
+	 */
+	id?: string;
+	/**
+	 * Local field name. Parent forms derive the full field path and native HTML name from the form hierarchy.
+	 */
+	name?: string;
+	/**
+	 * Visible field label.
+	 */
+	label?: string;
+	/**
+	 * Optional helper copy below the field.
+	 */
+	description?: string;
+	/**
+	 * Placeholder shown when the control is empty.
+	 */
+	placeholder?: string;
+	/**
+	 * Mark the field as required.
+	 */
+	required?: boolean;
+	/**
+	 * Disable field interaction.
+	 */
+	disabled?: boolean;
+	/**
+	 * Show the value but prevent editing.
+	 */
+	readOnly?: boolean;
+	/**
+	 * Mark the field invalid.
+	 */
+	invalid?: boolean;
+	/**
+	 * Validation errors for this field.
+	 */
+	errors?: Array<unknown> | Record<string, unknown> | string;
+	/**
+	 * Show or hide the field.
+	 */
+	visible?: boolean;
+	/**
+	 * Validators attached to this field. Use functions in Vue code, or serializable records such as { name: "minLength", props: { min: 2 } } in generated schemas.
+	 */
+	validators?: Array<unknown>;
+	/**
+	 * Run validators when the field loses focus.
+	 */
+	validateOnBlur?: boolean;
+	/**
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
+	 */
+	chrome?: "field" | "none" | false;
+	/**
+	 * Minimum visible text rows.
+	 */
+	rows?: number;
+	/**
+	 * Grow and shrink the text area to match its content.
+	 */
+	autosize?: boolean;
+	/**
+	 * Maximum rows before text scrolls. Use 0 for no maximum.
+	 */
+	maxRows?: number;
+	/**
+	 * Accessible textarea label used when no visible field label is supplied.
+	 */
+	ariaLabel?: string;
+	/**
+	 * Show the built-in circular submit action.
+	 */
+	showSubmit?: boolean;
+	/**
+	 * Accessible label for the built-in submit action.
+	 */
+	submitLabel?: string;
+	/**
+	 * Disable submission in addition to field and empty-value checks.
+	 */
+	submitDisabled?: boolean;
+	/**
+	 * Show progress and block repeated submission.
+	 */
+	submitting?: boolean;
+	/**
+	 * Submit on Enter while Shift + Enter continues to add a new line.
+	 */
+	submitOnEnter?: boolean;
+	/**
+	 * Allow attachment-only or control-defined submission when the text is empty.
+	 */
+	allowEmptySubmit?: boolean;
+}
+export declare const DomTextareaComposer: DomComponent<DomTextareaComposerProps>;
 
 export interface DomWysiwygProps {
 	/**
@@ -6299,6 +6679,10 @@ export declare const DomRenderer: DomComponent<DomRendererProps>;
 
 export declare const popoverProps: DomRuntimeProps;
 export declare const calendarProps: DomRuntimeProps;
+export declare const filterBarProps: DomRuntimeProps;
+export declare const activityTimelineProps: DomRuntimeProps;
+export declare const stepperProps: DomRuntimeProps;
+export declare const breadcrumbsProps: DomRuntimeProps;
 export declare const kanbanProps: DomRuntimeProps;
 export declare const monthCalendarProps: DomRuntimeProps;
 export declare const weekPlannerProps: DomRuntimeProps;
@@ -6339,8 +6723,8 @@ export declare function createDocumentEditorRestApi(options?: DocumentEditorStor
 export declare function createDefaultDocumentContent(): Record<string, unknown>;
 export declare function defineMediaBrowserStore(storeId?: string, options?: MediaBrowserStoreOptions): Function;
 export declare function createMediaBrowserRestApi(options?: MediaBrowserStoreOptions): Record<string, Function>;
-export declare function resolveKanbanRowKey(row: Record<string, unknown>, rowKey?: string | ((row: Record<string, unknown>, index: number) => string | number), index?: number): string | number;
-export declare function applyKanbanCardMove(rows: Array<Record<string, unknown>>, payload: Pick<KanbanCardMove, 'orders'>, options?: { rowKey?: string | ((row: Record<string, unknown>, index: number) => string | number); columnKey?: string; orderKey?: string }): Array<Record<string, unknown>>;
+export declare function resolveKanbanRowKey(row: DomUnknownRecord, rowKey?: ResourceKeyResolver, index?: number): ResourceKey;
+export declare function applyKanbanCardMove(rows: Array<DomUnknownRecord>, payload: Pick<KanbanCardMove, 'orders'>, options?: { rowKey?: ResourceKeyResolver; columnKey?: string; orderKey?: string }): Array<DomUnknownRecord>;
 export declare function applyKanbanColumnMove(columns: Array<KanbanColumn>, payload: { columnKeys?: Array<string | number> }): Array<KanbanColumn>;
 export declare function sha1PasswordHash(password: string): Promise<string>;
 export declare function checkCompromisedPassword(password: string, options?: { signal?: AbortSignal }): Promise<number>;

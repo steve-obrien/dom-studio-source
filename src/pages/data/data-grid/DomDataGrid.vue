@@ -195,6 +195,7 @@ export const dataGridProps = {
 <script setup>
 import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, reactive, ref, useId, watch } from 'vue';
 import DomPopover from '../../components/popover/DomPopover.vue';
+import { resolveResourceKey, resolveResourceValue } from '../_shared/resourceRecord.js';
 import DataGridVirtualRows from './DataGridVirtualRows.vue';
 
 defineOptions({
@@ -546,15 +547,27 @@ function finishColumnResize(event) {
 	});
 }
 
+/**
+ * Resolves the stable key used by selection and row rendering.
+ *
+ * @param {Record<string, unknown>} row Resource row to identify.
+ * @param {number} index Source row index.
+ * @returns {string|number} Stable row key.
+ */
 function rowKey(row, index) {
-	if (typeof props.rowKey === 'function') return props.rowKey(row, index);
-	const key = row?.[props.rowKey];
-	return key ?? index;
+	return resolveResourceKey(row, props.rowKey, index);
 }
 
+/**
+ * Reads a column value through its accessor or logical resource field.
+ *
+ * @param {Record<string, unknown>} row Resource row to inspect.
+ * @param {DataGridColumn} column Column definition.
+ * @returns {unknown} Raw cell value.
+ */
 function cellValue(row, column) {
 	if (typeof column.accessor === 'function') return column.accessor(row, column);
-	return row?.[column.field || column.key];
+	return resolveResourceValue(row, column.field || column.key);
 }
 
 function formattedCell(row, column) {

@@ -17,7 +17,8 @@ defineOptions({
 		description: 'A styled select control with a closed trigger, floating listbox, keyboard navigation, and rich option slots.',
 		slots: [
 			{ name: 'value', payload: '{ option, value, label, placeholder }', description: 'Custom selected-value markup inside the trigger.' },
-			{ name: 'option', payload: '{ option, index, selected }', description: 'Custom option markup inside the floating list.' },
+			{ name: 'option', payload: '{ option, index, selected, optionId }', description: 'Custom option markup inside the floating list. optionId identifies the focusable option button for external floating UI.' },
+			{ name: 'group', payload: '{ group, options, index }', description: 'Custom heading markup for options that share a group.' },
 		],
 		events: [
 			{ name: 'update:modelValue', payload: '(value: string)', description: 'Emitted when the selected option changes.' },
@@ -45,7 +46,7 @@ const props = defineProps({
 		required: true,
 		_edit: {
 			component: 'DomJsonListInput',
-			description: 'Available options. Use the option slot for rich rows.',
+			description: 'Available options. Set group for non-selectable section headings and use the option slot for rich rows.',
 			props: {
 				compact: true,
 				addLabel: '+ Add option',
@@ -119,6 +120,8 @@ const filteredOptions = computed(() => {
 	if (!needle) return optionList.value;
 	return optionList.value.filter((option) => searchableText(option).includes(needle));
 });
+const optionSections = computed(buildOptionSections);
+const hasOptionGroups = computed(() => optionSections.value.some((section) => section.group));
 const selectedOption = computed(() => optionList.value.find((option) => String(option.value) === String(field.value.value)) || null);
 const selectedLabel = computed(() => selectedOption.value?.label ?? '');
 const selectedValue = computed(() => String(field.value.value ?? ''));
@@ -144,6 +147,52 @@ const optionToneStyle = computed(() => {
 function normalizeThemeVariableName(value) {
 	const name = String(value || '').trim().replace(/^--/, '');
 	return /^[A-Za-z][A-Za-z0-9_-]*$/.test(name) ? name : 'accent';
+}
+
+/**
+ * Build ordered option sections while preserving each option's filtered-list index.
+ *
+ * Options with the same non-empty group label share an accessible group. Ungrouped
+ * options remain in an unlabelled section and behave exactly like the flat list.
+ *
+ * @returns {Array<{ key: string, group: string|null, options: Array<Object>, entries: Array<{ option: Object, index: number }> }>} Ordered option sections.
+ */
+function buildOptionSections() {
+	const sections = [];
+	const sectionsByGroup = new Map();
+
+	filteredOptions.value.forEach((option, index) => {
+		const group = optionGroupLabel(option);
+		let section = sectionsByGroup.get(group);
+
+		if (!section) {
+			section = {
+				key: group === null ? 'ungrouped' : `group:${group}`,
+				group,
+				options: [],
+				entries: [],
+			};
+			sectionsByGroup.set(group, section);
+			sections.push(section);
+		}
+
+		section.options.push(option);
+		section.entries.push({ option, index });
+	});
+
+	return sections;
+}
+
+/**
+ * Normalize an option's group into a visible heading label.
+ *
+ * @param {Object|null|undefined} option Normalized select option.
+ * @returns {string|null} Trimmed group label, or null for an ungrouped option.
+ */
+function optionGroupLabel(option) {
+	if (option?.group === undefined || option?.group === null) return null;
+	const group = String(option.group).trim();
+	return group || null;
 }
 
 onMounted(async () => {
@@ -351,22 +400,63 @@ function onSearchKeydown(event) {
 						:id="listId"
 						ref="listbox"
 						:value="selectedValue"
-						class="min-h-0 overflow-auto p-1"
+						class="min-h-0 overflow-auto"
+						:class="hasOptionGroups ? 'px-1 pb-1' : 'p-1'"
 					>
-						<button
-							v-for="(option, index) in filteredOptions"
-							:key="option.value ?? index"
-							role="option"
-							type="button"
-							:data-value="option.value"
-							:disabled="option.disabled || undefined"
-							class="dom-select-option block w-full cursor-pointer rounded-xl px-3 py-2 text-left text-sm text-canvas-fg outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
+						<div
+							v-for="(section, sectionIndex) in optionSections"
+							:key="section.key"
+							:role="section.group ? 'group' : null"
+							:aria-labelledby="section.group ? `${listId}-group-${sectionIndex}` : null"
+							:class="section.group ? 'pb-1 last:pb-0' : 'contents'"
 						>
-							<slot name="option" :option="option" :index="index" :selected="String(option.value) === selectedValue">
-								<span class="block font-medium">{{ option.label }}</span>
-								<span v-if="option.description" class="dom-select-option-description mt-0.5 block text-xs text-muted-fg">{{ option.description }}</span>
-							</slot>
-						</button>
+							<div
+								v-if="section.group"
+								class="sticky top-0 z-10 bg-[var(--skin-popover-bg,var(--canvas))]"
+							>
+								<div
+									:id="`${listId}-group-${sectionIndex}`"
+									class="px-3 pb-1 pt-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-fg"
+								>
+									<slot name="group" :group="section.group" :options="section.options" :index="sectionIndex">
+										{{ section.group }}
+									</slot>
+								</div>
+								<div class="mx-3 mb-1 border-t border-border" aria-hidden="true"></div>
+							</div>
+							<button
+								v-for="entry in section.entries"
+								:key="entry.option.value ?? entry.index"
+								:id="`${listId}-option-${entry.index}`"
+								role="option"
+								type="button"
+								:data-value="entry.option.value"
+								:disabled="entry.option.disabled || undefined"
+								class="dom-select-option flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm text-canvas-fg outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
+							>
+								<span class="min-w-0 flex-1">
+									<slot
+										name="option"
+										:option="entry.option"
+										:index="entry.index"
+										:selected="String(entry.option.value) === selectedValue"
+										:option-id="`${listId}-option-${entry.index}`"
+									>
+										<span class="block font-medium">{{ entry.option.label }}</span>
+										<span v-if="entry.option.description" class="dom-select-option-description mt-0.5 block text-xs text-muted-fg">{{ entry.option.description }}</span>
+									</slot>
+								</span>
+								<svg
+									v-if="String(entry.option.value) === selectedValue"
+									viewBox="0 0 20 20"
+									class="size-4 shrink-0"
+									fill="none"
+									aria-hidden="true"
+								>
+									<path d="M4.5 10.5 8 14l7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+								</svg>
+							</button>
+						</div>
 						<div v-if="isSearchable && !filteredOptions.length" class="px-3 py-6 text-center text-sm text-muted-fg">
 							No options found
 						</div>

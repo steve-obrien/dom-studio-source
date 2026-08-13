@@ -20,6 +20,7 @@ import DomSelect from '../select/DomSelect.vue';
 import DomSelectInput from '../select-input/DomSelectInput.vue';
 import DomTagCombobox from '../tag-combobox/DomTagCombobox.vue';
 import DomTextInput from '../text-input/DomTextInput.vue';
+import DomTextareaComposer from '../textarea-composer/DomTextareaComposer.vue';
 import DomTextareaInput from '../textarea-input/DomTextareaInput.vue';
 import DomTimeSelector from '../time-selector/DomTimeSelector.vue';
 import DomToggle from '../toggle/DomToggle.vue';
@@ -55,6 +56,7 @@ const formComponents = {
 	DomSelectInput,
 	DomTagCombobox,
 	DomTextInput,
+	DomTextareaComposer,
 	DomTextareaInput,
 	DomTimeSelector,
 	DomToggle,

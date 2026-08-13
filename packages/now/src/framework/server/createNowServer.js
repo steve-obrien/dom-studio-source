@@ -12,10 +12,10 @@ import { requestContextMiddleware } from './requestContext.js'
 /**
  * Creates a Now HTTP server with API routing and the active SSR renderer.
  *
- * @param {{ config?: object, root?: string }} [options] Server options.
+ * @param {{ config?: object, root?: string, configure?: Function }} [options] Server options.
  * @returns {Promise<{ app: import('express').Express, server: import('node:http').Server, config: object, listen: Function }>} Now server wrapper.
  */
-export async function createNowServer({ config = {}, root } = {}) {
+export async function createNowServer({ config = {}, root, configure } = {}) {
 	const app = express()
 	const isProduction = process.env.NODE_ENV === 'production'
 	const resolved = resolveConfig(config, root)
@@ -37,6 +37,11 @@ export async function createNowServer({ config = {}, root } = {}) {
 	app.use(ignoreChromeDevtoolsProbe)
 
 	await installApi(app, resolved)
+	await configureApplication(configure, {
+		app,
+		server: httpServer,
+		config: resolved
+	})
 
 	if (isProduction) {
 		await installProductionRenderer(app, resolved)
@@ -67,6 +72,18 @@ export async function createNowServer({ config = {}, root } = {}) {
 			})
 		}
 	}
+}
+
+/**
+ * Runs application-owned HTTP configuration before static files and SSR fallbacks.
+ *
+ * @param {Function|undefined} configure Application configuration callback.
+ * @param {{ app: import('express').Express, server: import('node:http').Server, config: object }} context Server context.
+ * @returns {Promise<void>}
+ */
+async function configureApplication(configure, context) {
+	if (typeof configure !== 'function') return
+	await configure(context)
 }
 
 /**

@@ -134,8 +134,8 @@ export const agentConversationProps = {
 
 <script setup>
 import { computed, nextTick, ref, useId, watch } from 'vue';
-import DomButton from '../../components/button/DomButton.vue';
 import DomIconButton from '../../components/icon-button/DomIconButton.vue';
+import DomTextareaComposer from '../../forms/textarea-composer/DomTextareaComposer.vue';
 import DomStatusPill from '../../visual/status-pill/DomStatusPill.vue';
 
 defineOptions({
@@ -157,7 +157,9 @@ defineOptions({
 			{ name: 'header-actions', payload: '{ conversation, activeAgent, streaming }', description: 'Controls shown at the end of the header.' },
 			{ name: 'message', payload: '{ message, activeAgent, parts }', description: 'Replace the full message renderer.' },
 			{ name: 'tool', payload: '{ tool, message, component, action }', description: 'Replace generic tool rendering without supplying toolComponents.' },
-			{ name: 'composer-actions', payload: '{ mode, setMode, disabled, streaming }', description: 'Extra controls inside the composer row.' },
+			{ name: 'composer-attachments', payload: '{ mode, disabled, streaming }', description: 'Application-owned file, image, or context previews above the composer text.' },
+			{ name: 'composer-leading', payload: '{ mode, setMode, disabled, streaming }', description: 'Controls at the start of the composer action row.' },
+			{ name: 'composer-actions', payload: '{ mode, setMode, disabled, streaming }', description: 'Controls before the built-in submit or stop action.' },
 			{ name: 'footer', payload: '{ value, mode, submit, setMode }', description: 'Replace the built-in composer footer.' },
 			{ name: 'empty', description: 'Custom empty conversation state.' },
 		],
@@ -204,25 +206,13 @@ watch(() => [visibleMessages.value.length, lastMessageSignature(visibleMessages.
 });
 
 /**
- * Emits composer changes from the textarea.
+ * Emits composer changes from the shared textarea composer.
  *
- * @param {Event} event Native input event.
+ * @param {string} value Controlled composer value.
  * @returns {void}
  */
-function updateComposer(event) {
-	emit('update:modelValue', event.target.value);
-}
-
-/**
- * Submits the composer when Enter is pressed without Shift.
- *
- * @param {KeyboardEvent} event Native keyboard event.
- * @returns {void}
- */
-function submitFromKeyboard(event) {
-	if (event.key !== 'Enter' || event.shiftKey) return;
-	event.preventDefault();
-	submitComposer();
+function updateComposer(value) {
+	emit('update:modelValue', value);
 }
 
 /**
@@ -706,35 +696,36 @@ function firstCharacter(value) {
 
 		<footer v-if="showFooter" class="shrink-0 border-t border-border bg-canvas p-3">
 			<slot name="footer" :value="modelValue" :mode="mode" :submit="submitComposer" :set-mode="setMode">
-				<div class="rounded-lg border border-border bg-secondary/20 p-2">
-					<div class="flex items-end gap-2">
-						<textarea
-							:value="modelValue"
-							:placeholder="composerPlaceholder"
-							:disabled="disabled || streaming"
-							rows="2"
-							class="min-h-11 flex-1 resize-none rounded-md border-0 bg-transparent px-2 py-2 text-sm leading-6 text-canvas-fg outline-none placeholder:text-muted-fg disabled:cursor-not-allowed disabled:opacity-60"
-							@input="updateComposer"
-							@keydown="submitFromKeyboard"
-						></textarea>
-						<slot name="composer-actions" :mode="mode" :set-mode="setMode" :disabled="disabled" :streaming="streaming" />
-						<DomIconButton
-							v-if="streaming"
-							label="Stop streaming"
-							variant="danger"
-							icon="M8 8h8v8H8z"
-							@click="stopStreaming"
-						/>
-						<DomButton
-							v-else
-							size="sm"
-							variant="primary"
-							:disabled="!canSubmit"
-							@click="submitComposer"
-						>
-							Send
-						</DomButton>
-					</div>
+				<div>
+					<DomTextareaComposer
+						:model-value="modelValue"
+						:placeholder="composerPlaceholder"
+						:disabled="disabled || streaming"
+						:submit-disabled="!canSubmit"
+						:show-submit="!streaming"
+						:rows="2"
+						:max-rows="8"
+						:chrome="false"
+						@update:model-value="updateComposer"
+						@submit="submitComposer"
+					>
+						<template v-if="$slots['composer-attachments']" #attachments>
+							<slot name="composer-attachments" :mode="mode" :disabled="disabled" :streaming="streaming" />
+						</template>
+						<template v-if="$slots['composer-leading']" #leading>
+							<slot name="composer-leading" :mode="mode" :set-mode="setMode" :disabled="disabled" :streaming="streaming" />
+						</template>
+						<template #actions>
+							<slot name="composer-actions" :mode="mode" :set-mode="setMode" :disabled="disabled" :streaming="streaming" />
+							<DomIconButton
+								v-if="streaming"
+								label="Stop streaming"
+								variant="danger"
+								icon="M8 8h8v8H8z"
+								@click="stopStreaming"
+							/>
+						</template>
+					</DomTextareaComposer>
 					<div class="mt-2 flex items-center justify-between gap-2 px-1 text-[11px] text-muted-fg">
 						<span>{{ mode === 'audio' ? 'Audio handoff ready' : 'Enter to send, Shift + Enter for a new line' }}</span>
 						<span v-if="activeAgent">{{ activeAgent.model }}</span>

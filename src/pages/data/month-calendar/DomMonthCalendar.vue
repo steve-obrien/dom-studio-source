@@ -354,13 +354,10 @@ const rowRailHeaderLabel = computed(() => {
 	if (!props.continuous) return 'Week';
 	return continuousHeaderMonthLabel.value;
 });
-const gridMinWidthClass = computed(() => {
-	if (props.continuous) return 'md:min-w-[56rem]';
-	return hasRowRail.value ? 'md:min-w-[52rem]' : 'md:min-w-[48rem]';
-});
-const weekGridClass = computed(() => {
-	if (props.continuous) return 'md:grid-cols-[5.5rem_repeat(7,minmax(0,1fr))]';
-	return hasRowRail.value ? 'md:grid-cols-[3.5rem_repeat(7,minmax(0,1fr))]' : 'md:grid-cols-7';
+/** Seven-column template activated by the selected container breakpoint. */
+const wideWeekGridColumns = computed(() => {
+	if (props.continuous) return '5.5rem repeat(7, minmax(0, 1fr))';
+	return hasRowRail.value ? '3.5rem repeat(7, minmax(0, 1fr))' : 'repeat(7, minmax(0, 1fr))';
 });
 
 onMounted(() => {
@@ -1471,7 +1468,10 @@ function onDayClick(cell, event) {
 </script>
 
 <template>
-	<div ref="calendarRoot" class="w-full min-w-0 space-y-10">
+	<div
+		ref="calendarRoot"
+		class="dom-month-calendar @container w-full min-w-0 space-y-10"
+	>
 		<section
 			v-for="section in calendarSections"
 			:key="section.key"
@@ -1508,16 +1508,15 @@ function onDayClick(cell, event) {
 				<div
 					role="grid"
 					:aria-labelledby="section.id"
-					class="min-w-0"
-					:class="gridMinWidthClass"
+					class="dom-month-calendar__grid min-w-0"
+					:style="{ '--dom-month-calendar-wide-week-columns': wideWeekGridColumns }"
 				>
 					<div
 						v-if="dayHeaders"
 						role="row"
 						:data-continuous-day-headers="section.continuous ? '' : undefined"
-						class="hidden border-b border-border md:grid"
+						class="dom-month-calendar__day-headers grid border-b border-border"
 						:class="[
-							weekGridClass,
 							section.continuous ? 'sticky top-0 z-20 bg-secondary shadow-sm' : 'bg-secondary/30',
 						]"
 					>
@@ -1545,14 +1544,13 @@ function onDayClick(cell, event) {
 						role="row"
 						:data-continuous-week-row="section.continuous ? '' : undefined"
 						:data-active-month="section.continuous ? week.activeMonthValue : undefined"
-						class="grid grid-cols-1"
-						:class="weekGridClass"
+						class="dom-month-calendar__week grid"
 					>
 						<div
 							v-if="hasRowRail"
 							role="rowheader"
 							:aria-label="rowHeaderLabelFor(week)"
-							class="flex min-h-10 items-center justify-between gap-3 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-fg sm:min-h-12 md:min-h-30 md:flex-col md:items-start md:justify-start md:py-3 lg:min-h-44"
+							class="dom-month-calendar__row-rail flex gap-3 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-fg"
 							:class="[
 								week.index > 0 && 'border-t border-border',
 								section.continuous ? 'bg-canvas' : 'bg-secondary/35',
@@ -1591,11 +1589,11 @@ function onDayClick(cell, event) {
 							:data-today="cell.today ? '' : undefined"
 							:data-drag-source="isDragSource(cell) ? '' : undefined"
 							:data-drop-target="isDropTarget(cell) ? '' : undefined"
-							class="flex min-h-30 w-full min-w-0 flex-col items-stretch justify-start p-3 text-left outline-none transition sm:min-h-38 lg:min-h-44"
+							class="dom-month-calendar__day flex w-full min-w-0 flex-col items-stretch justify-start p-3 text-left outline-none transition"
 							:class="[
 								(hasRowRail || cell.row > 0 || cell.column > 0) && 'border-t border-border',
-								cell.row === 0 && (hasRowRail || cell.column > 0) && 'md:border-t-0',
-								(cell.column > 0 || hasRowRail) && 'md:border-l md:border-border',
+								cell.row === 0 && (hasRowRail || cell.column > 0) && 'dom-month-calendar__day--wide-no-border-top',
+								(cell.column > 0 || hasRowRail) && 'dom-month-calendar__day--wide-border-left',
 								stateDayClassFor(cell),
 								clickable && !cell.disabled && 'cursor-pointer focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50',
 								clickable && !cell.disabled && hoverableDays && 'hover:bg-secondary/50',
@@ -1638,42 +1636,70 @@ function onDayClick(cell, event) {
 </template>
 
 <style scoped>
-@media (min-width: 48rem) {
-	.dom-month-calendar__day--continuous-month-segment,
-	.dom-month-calendar__day--continuous-month-start,
-	.dom-month-calendar__day--continuous-month-outgoing {
-		--dom-month-calendar-boundary-color: var(--dom-calendar-continuous-month-border, var(--muted));
-		background-image:
-			var(--dom-month-calendar-boundary-top, none),
-			var(--dom-month-calendar-boundary-left, none),
-			var(--dom-month-calendar-boundary-bottom, none);
-		background-position:
-			top,
-			left top,
-			bottom;
-		background-repeat:
-			no-repeat,
-			no-repeat,
-			no-repeat;
-		background-size:
-			var(--dom-month-calendar-boundary-top-size, 0 0),
-			var(--dom-month-calendar-boundary-left-size, 0 0),
-			var(--dom-month-calendar-boundary-bottom-size, 0 0);
-	}
-
-	.dom-month-calendar__day--continuous-month-segment {
-		--dom-month-calendar-boundary-top: linear-gradient(var(--dom-month-calendar-boundary-color), var(--dom-month-calendar-boundary-color));
-		--dom-month-calendar-boundary-top-size: 100% 2px;
-	}
-
-	.dom-month-calendar__day--continuous-month-start {
-		--dom-month-calendar-boundary-left: linear-gradient(var(--dom-month-calendar-boundary-color), var(--dom-month-calendar-boundary-color));
-		--dom-month-calendar-boundary-left-size: 2px 100%;
-	}
-
-	.dom-month-calendar__day--continuous-month-outgoing {
-		--dom-month-calendar-boundary-bottom: linear-gradient(var(--dom-month-calendar-boundary-color), var(--dom-month-calendar-boundary-color));
-		--dom-month-calendar-boundary-bottom-size: 100% 2px;
-	}
+.dom-month-calendar__day-headers {
+	display: var(--dom-month-calendar-day-headers-display);
+	grid-template-columns: var(--dom-month-calendar-week-columns);
 }
+
+.dom-month-calendar__week {
+	grid-template-columns: var(--dom-month-calendar-week-columns);
+}
+
+.dom-month-calendar__row-rail {
+	align-items: var(--dom-month-calendar-row-rail-align);
+	flex-direction: var(--dom-month-calendar-row-rail-direction);
+	justify-content: var(--dom-month-calendar-row-rail-justify);
+	min-height: var(--dom-month-calendar-row-rail-min-height);
+}
+
+.dom-month-calendar__day {
+	min-height: var(--dom-month-calendar-day-min-height);
+}
+
+.dom-month-calendar__day--wide-no-border-top {
+	border-top-width: var(--dom-month-calendar-wide-border-top-width, 1px);
+}
+
+.dom-month-calendar__day--wide-border-left {
+	border-left-width: var(--dom-month-calendar-wide-border-left-width, 0);
+	border-left-color: var(--border);
+}
+
+.dom-month-calendar__day--continuous-month-segment,
+.dom-month-calendar__day--continuous-month-start,
+.dom-month-calendar__day--continuous-month-outgoing {
+	--dom-month-calendar-boundary-color: var(--dom-calendar-continuous-month-border, var(--muted));
+	background-image:
+		var(--dom-month-calendar-boundary-top, none),
+		var(--dom-month-calendar-boundary-left, none),
+		var(--dom-month-calendar-boundary-bottom, none);
+	background-position:
+		top,
+		left top,
+		bottom;
+	background-repeat:
+		no-repeat,
+		no-repeat,
+		no-repeat;
+	background-size:
+		var(--dom-month-calendar-boundary-top-size, 0 0),
+		var(--dom-month-calendar-boundary-left-size, 0 0),
+		var(--dom-month-calendar-boundary-bottom-size, 0 0);
+}
+
+.dom-month-calendar__day--continuous-month-segment {
+	--dom-month-calendar-boundary-top: var(--dom-month-calendar-wide-boundary-gradient, none);
+	--dom-month-calendar-boundary-top-size: var(--dom-month-calendar-wide-boundary-top-size, 0 0);
+}
+
+.dom-month-calendar__day--continuous-month-start {
+	--dom-month-calendar-boundary-left: var(--dom-month-calendar-wide-boundary-gradient, none);
+	--dom-month-calendar-boundary-left-size: var(--dom-month-calendar-wide-boundary-left-size, 0 0);
+}
+
+.dom-month-calendar__day--continuous-month-outgoing {
+	--dom-month-calendar-boundary-bottom: var(--dom-month-calendar-wide-boundary-gradient, none);
+	--dom-month-calendar-boundary-bottom-size: var(--dom-month-calendar-wide-boundary-bottom-size, 0 0);
+}
+
 </style>

@@ -11,6 +11,52 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "components/breadcrumbs",
+		"path": "../components/breadcrumbs/DomBreadcrumbs.vue",
+		"section": "components",
+		"slug": "breadcrumbs",
+		"exportName": "DomBreadcrumbs",
+		"route": "/components/breadcrumbs",
+		"doc": {
+			"name": "Breadcrumbs",
+			"tag": "<DomBreadcrumbs>",
+			"description": "Accessible route or resource-path navigation with application-owned destinations and optional middle-path collapsing.",
+			"icon": "M4 7h5l3 5-3 5H4m8-10h5l3 5-3 5h-5",
+			"events": [
+				{
+					"name": "navigate",
+					"payload": "BreadcrumbNavigatePayload",
+					"typeRef": "BreadcrumbNavigatePayload",
+					"description": "Fired whenever an interactive breadcrumb is selected. Link navigation continues normally."
+				},
+				{
+					"name": "expand",
+					"payload": "BreadcrumbItem[]",
+					"description": "Fired after a collapsed middle path is revealed."
+				}
+			],
+			"slots": [
+				{
+					"name": "item",
+					"payload": "BreadcrumbSlotPayload",
+					"typeRef": "BreadcrumbSlotPayload",
+					"description": "Replace an item label inside its semantic link, button, or current-location element."
+				},
+				{
+					"name": "separator",
+					"payload": "{ previous, next, index }",
+					"description": "Replace the separator before each item after the first."
+				},
+				{
+					"name": "collapsed",
+					"payload": "{ items, count, expand }",
+					"description": "Replace the control used to reveal a collapsed middle path."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "components/button",
 		"path": "../components/button/DomButton.vue",
 		"section": "components",
@@ -117,6 +163,11 @@ export const componentCatalog = [
 				{
 					"name": "(default)",
 					"description": "Dialog body — rendered inside the card below the title and description."
+				},
+				{
+					"name": "header",
+					"payload": "{ title, description, titleId, descriptionId }",
+					"description": "Replace the default title and description block. Apply the provided IDs to custom heading and description elements to preserve the dialog accessibility relationships."
 				},
 				{
 					"name": "footer",
@@ -849,6 +900,67 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "components/stepper",
+		"path": "../components/stepper/DomStepper.vue",
+		"section": "components",
+		"slug": "stepper",
+		"exportName": "DomStepper",
+		"route": "/components/stepper",
+		"doc": {
+			"name": "Stepper",
+			"tag": "<DomStepper>",
+			"description": "Controlled horizontal or vertical progress navigation for multi-step application workflows.",
+			"icon": "M5 12h14M6 12a2 2 0 1 0 0 .01M12 12a2 2 0 1 0 0 .01M18 12a2 2 0 1 0 0 .01",
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "string | number",
+					"description": "Fired when an enabled step is selected."
+				},
+				{
+					"name": "change",
+					"payload": "StepperChangePayload",
+					"typeRef": "StepperChangePayload",
+					"description": "Fired with the selected step, key, index, and previous key."
+				}
+			],
+			"slots": [
+				{
+					"name": "step",
+					"payload": "StepperSlotPayload",
+					"typeRef": "StepperSlotPayload",
+					"description": "Replace the label and description while retaining navigation and progress structure."
+				},
+				{
+					"name": "indicator",
+					"payload": "StepperSlotPayload",
+					"typeRef": "StepperSlotPayload",
+					"description": "Replace the numbered, completed, or error indicator."
+				},
+				{
+					"name": "separator",
+					"payload": "{ index, previous, next }",
+					"description": "Replace the connector between adjacent steps."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "← / →",
+					"action": "Move between enabled horizontal steps."
+				},
+				{
+					"keys": "↑ / ↓",
+					"action": "Move between enabled vertical steps."
+				},
+				{
+					"keys": "Home / End",
+					"action": "Move to the first or last enabled step."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "components/tabs",
 		"path": "../components/tabs/DomTabs.vue",
 		"section": "components",
@@ -1090,6 +1202,57 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "data/activity-timeline",
+		"path": "../data/activity-timeline/DomActivityTimeline.vue",
+		"section": "data",
+		"slug": "activity-timeline",
+		"exportName": "DomActivityTimeline",
+		"route": "/data/activity-timeline",
+		"doc": {
+			"name": "Activity timeline",
+			"tag": "<DomActivityTimeline>",
+			"description": "Projects application-owned resource rows into an accessible ordered activity trail without owning loading, ordering, querying, or persistence.",
+			"icon": "M6 5h.01M6 12h.01M6 19h.01M10 5h8M10 12h8M10 19h8M6 6v5M6 13v5",
+			"events": [],
+			"slots": [
+				{
+					"name": "item",
+					"payload": "ActivityTimelineSlotPayload",
+					"typeRef": "ActivityTimelineSlotPayload",
+					"description": "Replace the default title, description, status, and metadata content while retaining timeline structure."
+				},
+				{
+					"name": "marker",
+					"payload": "ActivityTimelineSlotPayload",
+					"typeRef": "ActivityTimelineSlotPayload",
+					"description": "Replace the semantic-tone marker for one activity row."
+				},
+				{
+					"name": "opposite",
+					"payload": "ActivityTimelineSlotPayload",
+					"typeRef": "ActivityTimelineSlotPayload",
+					"description": "Replace timestamp and secondary metadata, including the separate column used by split layout."
+				},
+				{
+					"name": "actions",
+					"payload": "ActivityTimelineSlotPayload",
+					"typeRef": "ActivityTimelineSlotPayload",
+					"description": "Append application-owned controls to the default activity content."
+				},
+				{
+					"name": "loading",
+					"payload": "{ count }",
+					"description": "Replace the initial loading placeholders."
+				},
+				{
+					"name": "empty",
+					"description": "Replace the empty collection state."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "data/agent-chat",
 		"path": "../data/agent-chat/DomAgentChatShell.vue",
 		"section": "data",
@@ -1249,9 +1412,19 @@ export const componentCatalog = [
 					"description": "Replace generic tool rendering without supplying toolComponents."
 				},
 				{
+					"name": "composer-attachments",
+					"payload": "{ mode, disabled, streaming }",
+					"description": "Application-owned file, image, or context previews above the composer text."
+				},
+				{
+					"name": "composer-leading",
+					"payload": "{ mode, setMode, disabled, streaming }",
+					"description": "Controls at the start of the composer action row."
+				},
+				{
 					"name": "composer-actions",
 					"payload": "{ mode, setMode, disabled, streaming }",
-					"description": "Extra controls inside the composer row."
+					"description": "Controls before the built-in submit or stop action."
 				},
 				{
 					"name": "footer",
@@ -1544,6 +1717,67 @@ export const componentCatalog = [
 				{
 					"name": "empty-suggestions",
 					"description": "Replace the empty suggestion rail state."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "data/filter-bar",
+		"path": "../data/filter-bar/DomFilterBar.vue",
+		"section": "data",
+		"slug": "filter-bar",
+		"exportName": "DomFilterBar",
+		"route": "/data/filter-bar",
+		"doc": {
+			"name": "Filter bar",
+			"tag": "<DomFilterBar>",
+			"description": "A controlled, transport-free query bar for application-owned search and logical filter values.",
+			"icon": "M4 6h16M7 12h10M10 18h4M8 6v3M15 12v3M12 18v2",
+			"events": [
+				{
+					"name": "update:filters",
+					"payload": "Record<string, unknown>",
+					"description": "Fired when one logical filter value changes or is cleared."
+				},
+				{
+					"name": "update:search",
+					"payload": "string",
+					"description": "Fired when the free-text search value changes."
+				},
+				{
+					"name": "query-change",
+					"payload": "FilterBarQuery",
+					"typeRef": "FilterBarQuery",
+					"description": "Fired with the complete normalized query after any control changes."
+				},
+				{
+					"name": "clear",
+					"payload": "FilterBarQuery",
+					"typeRef": "FilterBarQuery",
+					"description": "Fired after the complete query is cleared."
+				}
+			],
+			"slots": [
+				{
+					"name": "leading",
+					"payload": "{ query }",
+					"description": "Content before the built-in search and filters."
+				},
+				{
+					"name": "filter",
+					"payload": "{ definition, value, setValue, clear }",
+					"description": "Replace the control for each filter definition."
+				},
+				{
+					"name": "trailing",
+					"payload": "{ query, clear }",
+					"description": "Application actions after the built-in controls."
+				},
+				{
+					"name": "active-filter",
+					"payload": "{ definition, value, label, clear }",
+					"description": "Replace an active filter chip."
 				}
 			]
 		},
@@ -3041,8 +3275,13 @@ export const componentCatalog = [
 				},
 				{
 					"name": "option",
-					"payload": "{ option, index, selected }",
-					"description": "Custom option markup inside the floating list."
+					"payload": "{ option, index, selected, optionId }",
+					"description": "Custom option markup inside the floating list. optionId identifies the focusable option button for external floating UI."
+				},
+				{
+					"name": "group",
+					"payload": "{ group, options, index }",
+					"description": "Custom heading markup for options that share a group."
 				}
 			],
 			"events": [
@@ -3178,13 +3417,108 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "forms/textarea-composer",
+		"path": "../forms/textarea-composer/DomTextareaComposer.vue",
+		"section": "forms",
+		"slug": "textarea-composer",
+		"exportName": "DomTextareaComposer",
+		"route": "/forms/textarea-composer",
+		"doc": {
+			"name": "Textarea composer",
+			"tag": "<DomTextareaComposer>",
+			"description": "An autosizing multiline field with attachment content, leading controls, trailing actions, and submit behavior inside one visual input.",
+			"icon": "M5 6h14v10H9l-4 3V6Zm3 4h8M8 13h5",
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "string",
+					"description": "Fired when the composer text changes."
+				},
+				{
+					"name": "submit",
+					"payload": "string",
+					"description": "Fired with the current text when the built-in submit action is used."
+				},
+				{
+					"name": "keydown",
+					"payload": "KeyboardEvent",
+					"description": "Fired before the built-in Enter key behavior runs."
+				},
+				{
+					"name": "focus",
+					"payload": "FocusEvent",
+					"description": "Fired when the textarea receives focus."
+				},
+				{
+					"name": "blur",
+					"payload": "FocusEvent",
+					"description": "Fired when the textarea loses focus."
+				}
+			],
+			"slots": [
+				{
+					"name": "attachments",
+					"payload": "{ value, disabled, readOnly }",
+					"description": "File, image, reference, or context previews shown above the text."
+				},
+				{
+					"name": "leading",
+					"payload": "{ value, submit, disabled }",
+					"description": "Controls at the start of the bottom action row, such as add or tool buttons."
+				},
+				{
+					"name": "actions",
+					"payload": "{ value, submit, disabled }",
+					"description": "Additional controls before the built-in submit action."
+				},
+				{
+					"name": "submit",
+					"payload": "{ submit, disabled, submitting, label }",
+					"description": "Replace the built-in circular submit button."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Enter",
+					"action": "Submit when submitOnEnter is enabled."
+				},
+				{
+					"keys": "Shift + Enter",
+					"action": "Insert a new line."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "forms/textarea-input",
 		"path": "../forms/textarea-input/DomTextareaInput.vue",
 		"section": "forms",
 		"slug": "textarea-input",
 		"exportName": "DomTextareaInput",
 		"route": "/forms/textarea-input",
-		"doc": {},
+		"doc": {
+			"name": "Textarea input",
+			"tag": "<DomTextareaInput>",
+			"description": "A multi-line field with shared form state and optional content-driven growth, including an optional maximum row limit.",
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "string",
+					"description": "Fired when the text changes."
+				},
+				{
+					"name": "focus",
+					"payload": "FocusEvent",
+					"description": "Fired when the textarea receives focus."
+				},
+				{
+					"name": "blur",
+					"payload": "FocusEvent",
+					"description": "Fired when the textarea loses focus."
+				}
+			]
+		},
 		"studio": {}
 	},
 	{

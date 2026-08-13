@@ -1,10 +1,10 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { loadStaticRouteRecords } from './lib/load-routes.mjs';
+import { buildSitemap, readSiteUrl } from './lib/sitemap.mjs';
 
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, 'dist', 'client');
-const cnamePath = path.join(rootDir, 'CNAME');
 const siteName = 'DOM Studio';
 
 /**
@@ -19,54 +19,6 @@ const escapeHtml = (value) => String(value)
 	.replace(/>/g, '&gt;')
 	.replace(/"/g, '&quot;')
 	.replace(/'/g, '&#39;');
-
-/**
- * Reads the canonical production site URL from CNAME when available.
- *
- * @returns {Promise<string>} Production site URL.
- */
-const readSiteUrl = async () => {
-	try {
-		const cname = (await readFile(cnamePath, 'utf8')).trim();
-		if (!cname) throw new Error('CNAME file is empty');
-		return `https://${cname}`;
-	} catch {
-		return 'https://getdom.studio';
-	}
-};
-
-/**
- * Builds sitemap XML for the supplied route records.
- *
- * @param {string} siteUrl Production site URL.
- * @param {{ path: string, lastmod?: string }[]} routeRecords Static route records.
- * @returns {string} Sitemap XML.
- */
-const buildSitemap = (siteUrl, routeRecords) => {
-	const generatedAt = new Date().toISOString();
-	const urlEntries = routeRecords
-		.map((routeRecord) => {
-			const routePath = routeRecord.path;
-			const location = routePath === '/' ? siteUrl : `${siteUrl}${routePath}`;
-			const lastmod = routeRecord.lastmod || generatedAt;
-			return [
-				'\t<url>',
-				`\t\t<loc>${escapeHtml(location)}</loc>`,
-				`\t\t<lastmod>${escapeHtml(lastmod)}</lastmod>`,
-				'\t\t<changefreq>weekly</changefreq>',
-				'\t\t<priority>0.8</priority>',
-				'\t</url>',
-			].join('\n');
-		})
-		.join('\n');
-
-	return [
-		'<?xml version="1.0" encoding="UTF-8"?>',
-		'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-		urlEntries,
-		'</urlset>',
-	].join('\n');
-};
 
 /**
  * Builds the robots.txt content pointing crawlers at the generated sitemap.
@@ -180,7 +132,7 @@ const injectMetaIntoPage = async (siteUrl, routePath) => {
  * @returns {Promise<void>}
  */
 const main = async () => {
-	const siteUrl = await readSiteUrl();
+	const siteUrl = await readSiteUrl({ rootDir });
 	const routeRecords = await loadStaticRouteRecords();
 	const routes = routeRecords.map((routeRecord) => routeRecord.path);
 	await mkdir(distDir, { recursive: true });

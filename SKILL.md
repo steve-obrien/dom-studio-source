@@ -39,11 +39,14 @@ The package root exports the same Vue surface as `@getdom/studio/vue`. Use headl
 - Use `DomCard` for contained app surfaces and grouped content.
 - Use `DomButton` for actions; set `variant`, `size`, `loading`, and `disabled` with props.
 - Use `DomDialog`, `DomDrawer`, `DomPopover`, `DomDropdown`, `DomMenu`, `DomContextMenu`, and `DomCommandPalette` instead of recreating overlays, focus handling, or keyboard navigation.
-- Use `DomTabs`, `DomAccordion`, `DomTreeView`, and `DomScrollMenu` for structured navigation, disclosure, and scroll-linked page contents.
+- Use `DomTabs`, `DomAccordion`, `DomTreeView`, and `DomScrollMenu` for structured navigation, disclosure, and scroll-linked page contents. Use `DomBreadcrumbs` for an application-owned route or resource path and `DomStepper` for controlled multi-step progress.
 - Use `DomToastStack`, `DomToastItem`, and `useToasts` for notifications.
 - Use `DomNativeSelect` for small native option lists, `DomListbox` for custom single-choice lists, `DomCombobox` for search plus committed selection, and `DomAutocomplete` for free text with suggestions.
 - Use `DomCalendar` for month-grid date picking and `DomDatePicker` for typed date entry with a popover calendar.
+- Use `DomTextareaInput` for fixed or autosizing multiline fields. Use `DomTextareaComposer` when attachment previews, leading controls, trailing actions, and submit behavior belong inside one autosizing input frame; keep upload state and attachment records in the application.
 - Use `DomKanban` when one application-owned resource list needs status columns, card and column ordering, async creation hooks, custom card components, and drag or keyboard movement. Keep grid/calendar view switching and remote persistence in the application layer.
+- Use `DomFilterBar` when search and logical filter values should form one controlled query shared by resource lists, grids, timelines, routes, or Pinia stores. Translate its `FilterBarQuery` at the application API boundary.
+- Use `DomActivityTimeline` to project ordered application-owned rows into an activity trail through logical field keys. Keep querying, chronology, pagination, permissions, and persistence in the application layer.
 - Use `DomMonthCalendar` for date-led month planning and `DomWeekPlanner` when fixed-width day swim lanes need precise timed placement, configurable drag-to-create ranges, a live current-time marker, or virtualized horizontal ranges such as a full year.
 - Use `DomCodeInput` for prompts, snippets, templates, and structured text; use `DomJsonInput` for parsed JSON values; use `DomJsonListInput` for schema-aware arrays such as options, commands, menu rows, and inspector data.
 - Use `DomCodeBlock` for highlighted read-only code and `DomJsonViewer` for inspecting JSON payloads, diagnostics, and implementation data.

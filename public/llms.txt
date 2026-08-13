@@ -18,9 +18,11 @@ The package root and `@getdom/studio/vue` export the same Vue surface. Import `@
 
 ## UI Library
 
-- [General components](https://getdom.studio/components/button): Actions, overlays, menus, navigation, disclosure, toolbars, and interaction primitives.
-- [Forms](https://getdom.studio/forms): Form composition, fields, validation, text inputs, selectors, dates, files, code, and structured JSON values.
-- [Data components](https://getdom.studio/data): Data grids, Kanban boards, calendars, media workflows, document editing, and agent conversations.
+- [General components](https://getdom.studio/components/button): Actions, overlays, menus, breadcrumbs, steppers, navigation, disclosure, toolbars, and interaction primitives.
+- [Forms](https://getdom.studio/forms): Form composition, fields, validation, fixed and autosizing textareas, compound composers with attachment/action slots, selectors, dates, files, code, and structured JSON values.
+- [Data components](https://getdom.studio/data): Controlled filter queries, data grids, timelines, Kanban boards, calendars, media workflows, document editing, and agent conversations.
+- [Filter bar](https://getdom.studio/data/filter-bar): Transport-free search and logical filter definitions that emit one controlled resource query.
+- [Activity timeline](https://getdom.studio/data/activity-timeline): Ordered resource activity with logical field mappings, semantic status, controlled loading, and customizable slots.
 - [Developer components](https://getdom.studio/dev): Code, JSON, payload, and implementation-data inspection utilities.
 - [Visual components](https://getdom.studio/visual/card): Cards, badges, status, alerts, empty states, progress, skeletons, avatars, and diffs.
 - [Mobile components](https://getdom.studio/mobile): App shells, top and bottom navigation, screen stacks, safe areas, list rows, and action sheets.
@@ -46,6 +48,8 @@ The package root and `@getdom/studio/vue` export the same Vue surface. Import `@
 - [Month calendar](https://getdom.studio/data/month-calendar): Data-backed month planning and customisable calendar workflows.
 - [Week planner](https://getdom.studio/data/week-planner): Fixed-width day swim lanes with internal two-axis scrolling, configurable drag-to-create time ranges, a live current-time line, and virtualized horizontal ranges up to a full year or more.
 - [Data grid](https://getdom.studio/data/data-grid): Sortable, filterable, API-shaped tabular data.
+- [Breadcrumbs](https://getdom.studio/components/breadcrumbs): Route or resource-path navigation with current-location semantics and optional middle-path collapsing.
+- [Stepper](https://getdom.studio/components/stepper): Controlled horizontal or vertical progress navigation for multi-step workflows.
 - [Kanban](https://getdom.studio/data/kanban): Controlled status boards with custom Vue cards, card and column ordering, async creation hooks, and resource rows shared with grid or calendar views.
 - [Code block](https://getdom.studio/dev/code-block): Highlighted read-only code for implementation and diagnostic output.
 - [JSON viewer](https://getdom.studio/dev/json-viewer): Structured payload and diagnostic-data inspection.

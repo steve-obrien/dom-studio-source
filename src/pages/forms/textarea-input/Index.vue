@@ -1,76 +1,45 @@
 <script setup>
-import { ref } from 'vue';
 import DomStudioLayout from '../../_layout/DomStudioLayout.vue';
 import DocPage from '../../_layout/DocPage.vue';
 import DocSection from '../../_layout/DocSection.vue';
-import CodeBlock from '../../_layout/CodeBlock.vue';
-import Demo from '../../_layout/Demo.vue';
+import Example from '../../_layout/docs/Example.vue';
 import Playground from '../../_layout/docs/Playground.vue';
-import PropsTable from '../../_layout/PropsTable.vue';
+import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
+import ComponentProps from '../../_layout/docs/ComponentProps.vue';
 import { DomTextareaInput } from '../../lib/vue';
 
-const bio = ref('Engineer, builder, founder.');
+import AutosizeTextarea from './examples/AutosizeTextarea.vue';
+import AutosizeTextareaSrc from './examples/AutosizeTextarea.vue?raw';
 
-const usage = `<script setup>
-import { DomTextareaInput } from '@getdom/studio/vue';
-import { ref } from 'vue';
-const bio = ref('');
-<\/script>
-
-<template>
-  <DomTextareaInput
-    v-model="bio"
-    label="Bio"
-    description="A short paragraph that appears under your name."
-    :rows="4"
-  />
-</template>`;
-
-const props = [
-	{ name: 'v-model', type: 'string', default: "''", description: 'Bound text value.' },
-	{ name: 'label', type: 'string', default: '—', description: 'Label above the textarea.' },
-	{ name: 'description', type: 'string', default: '—', description: 'Hint shown below the textarea.' },
-	{ name: 'rows', type: 'number', default: '3', description: 'Number of visible rows.' },
-	{ name: 'placeholder', type: 'string', default: '—', description: 'Placeholder text.' },
-	{ name: 'disabled', type: 'boolean', default: 'false', description: 'Disable the textarea.' },
-];
+const doc = DomTextareaInput.__doc;
 </script>
 
 <template>
 	<DomStudioLayout>
-		<DocPage
-			name="Textarea"
-			tagline="Multi-line text input with the same label/description chrome as the rest of the form components."
-			tag="<DomTextareaInput>"
-		>
+		<DocPage :name="doc.name" :tagline="doc.description" :tag="doc.tag">
 			<DocSection eyebrow="Playground" title="Try every prop live">
 				<Playground
 					:inspect="DomTextareaInput"
-					:initial="{ label: 'Bio', description: 'A short public summary.', placeholder: 'Tell us about yourself…', rows: 4 }"
+					:initial="{ label: 'Bio', description: 'A short public summary.', placeholder: 'Tell us about yourself…', rows: 2, autosize: true, maxRows: 6 }"
 					title="Textarea playground"
-					description="Edit props in the inspector — label, rows, and placeholder update live."
+					description="Use rows as the starting height, enable autosize for content-driven growth, and set maxRows when the field should eventually scroll."
 				/>
 			</DocSection>
 
-			<DocSection eyebrow="Demo" title="Live preview">
-				<Demo>
-					<div class="w-full max-w-sm">
-						<DomTextareaInput
-							v-model="bio"
-							label="Bio"
-							description="A short paragraph that appears under your name."
-							:rows="4"
-						/>
-					</div>
-				</Demo>
+			<DocSection eyebrow="Demo" title="Unlimited and bounded growth">
+				<Example
+					:source="AutosizeTextareaSrc"
+					filename="AutosizeTextarea.vue"
+					description="The same autosize API supports continuous expansion or a fixed maximum before internal scrolling begins."
+					default-open
+				>
+					<AutosizeTextarea />
+				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Usage" title="Vue">
-				<CodeBlock :code="usage" lang="vue" />
-			</DocSection>
-
-			<DocSection title="Props">
-				<PropsTable :rows="props" />
+			<DocSection title="Reference">
+				<ComponentProps :component="DomTextareaInput" />
+				<ComponentEvents :component="DomTextareaInput" />
 			</DocSection>
 		</DocPage>
 	</DomStudioLayout>

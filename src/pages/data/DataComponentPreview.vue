@@ -9,6 +9,18 @@ const gridRows = [
 	{ name: 'Daybreak', detail: 'Starter', value: '$18k', status: 'Active', tone: 'bg-success' },
 ];
 
+const filterPills = [
+	{ label: 'Status', value: 'Active' },
+	{ label: 'Owner', value: 'Maya' },
+];
+
+const timelineRows = [
+	{ title: 'Rollout completed', meta: '11:08', tone: 'bg-success' },
+	{ title: 'Approval recorded', meta: '10:41', tone: 'bg-primary' },
+	{ title: 'Evidence retained', meta: '10:39', tone: 'bg-warning' },
+	{ title: 'Candidate created', meta: '09:52', tone: 'bg-muted-fg/60' },
+];
+
 const kanbanColumns = [
 	{ name: 'Backlog', dot: 'bg-muted-fg/45', cards: ['Review empty states', 'Plan import flow'] },
 	{ name: 'In progress', dot: 'bg-warning', cards: ['Usage alert emails', 'Mobile navigation'] },
@@ -62,6 +74,56 @@ const conversations = ['Launch planning', 'Weekly report', 'Customer research'];
 					{{ row.status }}
 				</span>
 				<span class="text-right text-[10px] font-semibold">{{ row.value }}</span>
+			</div>
+		</div>
+
+		<div v-else-if="type === 'filter-bar'" class="h-full overflow-hidden rounded-lg border border-border bg-canvas p-3 shadow-sm">
+			<div class="flex items-center justify-between">
+				<div>
+					<p class="text-[10px] font-semibold">Project query</p>
+					<p class="mt-0.5 text-[8px] text-muted-fg">24 matching records</p>
+				</div>
+				<span class="rounded-md border border-border bg-secondary/45 px-2 py-1 text-[7px] font-semibold text-muted-fg">Clear</span>
+			</div>
+			<div class="mt-3 grid grid-cols-[1.4fr_0.8fr_0.8fr] gap-2">
+				<div class="flex h-8 items-center rounded-md border border-border bg-secondary/25 px-2 text-[8px] text-muted-fg">
+					<svg viewBox="0 0 24 24" class="mr-1.5 size-3" fill="none"><circle cx="10" cy="10" r="5" stroke="currentColor" stroke-width="1.7" /><path d="m14 14 5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" /></svg>
+					Search projects
+				</div>
+				<div class="flex h-8 items-center justify-between rounded-md border border-border px-2 text-[8px]"><span>Status</span><span class="text-muted-fg">⌄</span></div>
+				<div class="flex h-8 items-center justify-between rounded-md border border-border px-2 text-[8px]"><span>Owner</span><span class="text-muted-fg">⌄</span></div>
+			</div>
+			<div class="mt-3 flex gap-1.5 border-t border-border pt-3">
+				<span v-for="pill in filterPills" :key="pill.label" class="rounded-full border border-primary/20 bg-primary/10 px-2 py-1 text-[8px] font-semibold text-primary">{{ pill.label }}: {{ pill.value }} ×</span>
+			</div>
+			<div class="mt-4 grid grid-cols-3 gap-2">
+				<div v-for="index in 3" :key="index" class="rounded-md border border-border p-2">
+					<span class="block h-1.5 rounded-full bg-canvas-fg/15" :class="index === 2 ? 'w-3/5' : 'w-4/5'"></span>
+					<span class="mt-2 block h-1.5 w-1/2 rounded-full bg-secondary"></span>
+				</div>
+			</div>
+		</div>
+
+		<div v-else-if="type === 'activity-timeline'" class="h-full overflow-hidden rounded-lg border border-border bg-canvas p-4 shadow-sm">
+			<div class="mb-3 flex items-center justify-between">
+				<div>
+					<p class="text-[10px] font-semibold">Release activity</p>
+					<p class="mt-0.5 text-[8px] text-muted-fg">Newest first</p>
+				</div>
+				<span class="rounded-full border border-border bg-secondary/45 px-2 py-1 text-[7px] font-semibold text-muted-fg">4 events</span>
+			</div>
+			<div>
+				<div v-for="(row, index) in timelineRows" :key="row.title" class="grid grid-cols-[1rem_minmax(0,1fr)_2.5rem] gap-2">
+					<div class="relative flex justify-center">
+						<span v-if="index < timelineRows.length - 1" class="absolute top-3 -bottom-1 w-px bg-border"></span>
+						<span class="relative mt-1 size-2.5 rounded-full border-2 border-canvas" :class="row.tone"></span>
+					</div>
+					<div class="pb-3">
+						<p class="truncate text-[9px] font-semibold">{{ row.title }}</p>
+						<div class="mt-1 h-1.5 rounded-full bg-secondary" :class="index % 2 ? 'w-3/5' : 'w-4/5'"></div>
+					</div>
+					<span class="pt-0.5 text-right text-[7px] text-muted-fg">{{ row.meta }}</span>
+				</div>
 			</div>
 		</div>
 

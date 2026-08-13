@@ -18,7 +18,6 @@ export default {
 		clientOutDir: 'dist/client',
 		developmentStaticFiles: [
 			'/robots.txt',
-			'/sitemap.xml',
 		],
 		serverEntry: 'dist/server/entry-server.js',
 		manifest: 'dist/client/.vite/ssr-manifest.json',

@@ -16,6 +16,10 @@ import PlanSelect from './examples/PlanSelect.vue';
 import PlanSelectSrc from './examples/PlanSelect.vue?raw';
 import OptionalAssignment from './examples/OptionalAssignment.vue';
 import OptionalAssignmentSrc from './examples/OptionalAssignment.vue?raw';
+import GroupedContentTypes from './examples/GroupedContentTypes.vue';
+import GroupedContentTypesSrc from './examples/GroupedContentTypes.vue?raw';
+import ContactDirectory from './examples/ContactDirectory.vue';
+import ContactDirectorySrc from './examples/ContactDirectory.vue?raw';
 
 const doc = DomSelect.__doc;
 const options = [
@@ -54,6 +58,26 @@ const options = [
 					description="Use a rich select for plan, workspace, role, provider, template, and project pickers instead of a native select."
 				>
 					<PlanSelect />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Grouped content types">
+				<Example
+					:source="GroupedContentTypesSrc"
+					filename="GroupedContentTypes.vue"
+					description="Set option.group to add labelled, non-selectable sections with sticky headings. Each description stays hidden in a hover-and-focus popover, while a checkmark distinguishes the committed choice from the active row."
+				>
+					<GroupedContentTypes />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Contact directory">
+				<Example
+					:source="ContactDirectorySrc"
+					filename="ContactDirectory.vue"
+					description="A 52-contact directory exercises sticky headings from A through Z. Scroll the open list to watch each alphabetical group replace the previous heading."
+				>
+					<ContactDirectory />
 				</Example>
 			</DocSection>
 

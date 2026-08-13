@@ -23,6 +23,8 @@ export { default as DomScrollMenu } from '../../components/scroll-menu/DomScroll
 export { default as DomScrollMenuItem } from '../../components/scroll-menu/DomScrollMenuItem.vue';
 export { default as DomTreeView } from '../../components/tree-view/DomTreeView.vue';
 export { default as DomSplitterPanel } from '../../components/splitter-panel/DomSplitterPanel.vue';
+export { default as DomStepper } from '../../components/stepper/DomStepper.vue';
+export { default as DomBreadcrumbs } from '../../components/breadcrumbs/DomBreadcrumbs.vue';
 export {
 	cloneTreeItems,
 	flattenTreeItems,
@@ -44,6 +46,8 @@ export { default as DomToastItem } from '../../components/toast/DomToastItem.vue
 export { default as DomCommandPalette } from '../../components/command-palette/DomCommandPalette.vue';
 export { default as DomContextMenu } from '../../components/context-menu/DomContextMenu.vue';
 export { default as DomDataGrid } from '../../data/data-grid/DomDataGrid.vue';
+export { default as DomFilterBar } from '../../data/filter-bar/DomFilterBar.vue';
+export { default as DomActivityTimeline } from '../../data/activity-timeline/DomActivityTimeline.vue';
 export { default as DomKanban } from '../../data/kanban/DomKanban.vue';
 export { default as DomMonthCalendar } from '../../data/month-calendar/DomMonthCalendar.vue';
 export { default as DomWeekPlanner } from '../../data/week-planner/DomWeekPlanner.vue';
@@ -59,9 +63,13 @@ export { agentConversationProps } from '../../data/agent-chat/DomAgentConversati
 export { agentConversationListProps } from '../../data/agent-chat/DomAgentConversationList.vue';
 export { documentEditorProps, createDefaultDocumentContent } from '../../data/document-editor/DomDocumentEditor.vue';
 export { mediaBrowserProps } from '../../data/media-browser/DomMediaBrowser.vue';
+export { filterBarProps } from '../../data/filter-bar/DomFilterBar.vue';
 export { createAgentChatRestApi, defineAgentChatStore } from '../../data/agent-chat/examples/useAgentChatDemoStore.js';
 export { createDocumentEditorRestApi, defineDocumentEditorStore } from '../../data/document-editor/examples/useDocumentEditorDemoStore.js';
 export { createMediaBrowserRestApi, defineMediaBrowserStore } from '../../data/media-browser/examples/useMediaBrowserDemoStore.js';
+export { activityTimelineProps } from '../../data/activity-timeline/DomActivityTimeline.vue';
+export { stepperProps } from '../../components/stepper/DomStepper.vue';
+export { breadcrumbsProps } from '../../components/breadcrumbs/DomBreadcrumbs.vue';
 export { kanbanProps } from '../../data/kanban/DomKanban.vue';
 export { applyKanbanCardMove, applyKanbanColumnMove, resolveKanbanRowKey } from '../../data/kanban/kanbanApi.js';
 export { monthCalendarProps } from '../../data/month-calendar/DomMonthCalendar.vue';
@@ -121,6 +129,7 @@ export { default as DomTextInput } from '../../forms/text-input/DomTextInput.vue
 export { default as DomEmailInput } from '../../forms/email-input/DomEmailInput.vue';
 export { default as DomUrlInput } from '../../forms/url-input/DomUrlInput.vue';
 export { default as DomTextareaInput } from '../../forms/textarea-input/DomTextareaInput.vue';
+export { default as DomTextareaComposer } from '../../forms/textarea-composer/DomTextareaComposer.vue';
 export { default as DomWysiwyg } from '../../forms/wysiwyg/DomWysiwyg.vue';
 export { default as DomNumberInput } from '../../forms/number-input/DomNumberInput.vue';
 export { default as DomMoneyInput } from '../../forms/money-input/DomMoneyInput.vue';

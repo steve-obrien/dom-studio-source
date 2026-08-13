@@ -40,6 +40,38 @@
 	--ring: oklch(0.708 0 0);
 }
 
+/*
+ * The month calendar always responds to its own container. Tailwind expands
+ * theme(...) while compiling the combined app stylesheet, so consumer @theme
+ * overrides remain the single source of truth for its sensible defaults.
+ */
+.dom-month-calendar__grid {
+	--dom-month-calendar-day-min-height: 7.5rem;
+	--dom-month-calendar-day-headers-display: none;
+	--dom-month-calendar-row-rail-align: center;
+	--dom-month-calendar-row-rail-direction: row;
+	--dom-month-calendar-row-rail-justify: space-between;
+	--dom-month-calendar-row-rail-min-height: 2.5rem;
+	--dom-month-calendar-week-columns: minmax(0, 1fr);
+}
+
+@container (min-width: theme(--breakpoint-lg)) {
+	.dom-month-calendar__grid {
+		--dom-month-calendar-day-min-height: 11rem;
+		--dom-month-calendar-day-headers-display: grid;
+		--dom-month-calendar-row-rail-align: flex-start;
+		--dom-month-calendar-row-rail-direction: column;
+		--dom-month-calendar-row-rail-justify: flex-start;
+		--dom-month-calendar-row-rail-min-height: 11rem;
+		--dom-month-calendar-week-columns: var(--dom-month-calendar-wide-week-columns);
+		--dom-month-calendar-wide-border-left-width: 1px;
+		--dom-month-calendar-wide-border-top-width: 0;
+		--dom-month-calendar-wide-boundary-gradient: linear-gradient(var(--dom-month-calendar-boundary-color), var(--dom-month-calendar-boundary-color));
+		--dom-month-calendar-wide-boundary-left-size: 2px 100%;
+		--dom-month-calendar-wide-boundary-top-size: 100% 2px;
+	}
+}
+
 [data-theme="dark"] {
 	color-scheme: dark;
 	--shadow-xs: 0 1px 1px 0 rgb(0 0 0 / 0.28);

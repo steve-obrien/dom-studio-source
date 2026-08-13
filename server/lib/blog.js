@@ -25,6 +25,31 @@ export async function listPublishedArticles() {
 	return mergeArticles(databaseArticles, localArticles);
 }
 
+/**
+ * Loads one page of published articles after merging database and local sources.
+ *
+ * @param {{ page?: number, pageSize?: number }} options Pagination options.
+ * @returns {Promise<{ articles: object[], pagination: { page: number, pageSize: number, total: number, pageCount: number } }>} Paginated article result.
+ */
+export async function listPublishedArticlePage({ page = 1, pageSize = 50 } = {}) {
+	const articles = await listPublishedArticles();
+	const resolvedPageSize = positiveInteger(pageSize, 50);
+	const total = articles.length;
+	const pageCount = Math.max(1, Math.ceil(total / resolvedPageSize));
+	const resolvedPage = Math.min(positiveInteger(page, 1), pageCount);
+	const offset = (resolvedPage - 1) * resolvedPageSize;
+
+	return {
+		articles: articles.slice(offset, offset + resolvedPageSize),
+		pagination: {
+			page: resolvedPage,
+			pageSize: resolvedPageSize,
+			total,
+			pageCount,
+		},
+	};
+}
+
 export async function getPublishedArticleBySlug(slug) {
 	if (!slug) return null;
 	const normalizedSlug = normalizeSlug(slug);
@@ -341,6 +366,18 @@ function serializeDate(value) {
 
 function stringValue(value) {
 	return typeof value === 'string' ? value.trim() : '';
+}
+
+/**
+ * Normalizes a value to a positive integer or returns the supplied fallback.
+ *
+ * @param {unknown} value Candidate numeric value.
+ * @param {number} fallback Positive integer used when the candidate is invalid.
+ * @returns {number} A positive integer.
+ */
+function positiveInteger(value, fallback) {
+	const number = Math.floor(Number(value));
+	return Number.isFinite(number) && number > 0 ? number : fallback;
 }
 
 function titleFromSlug(slug) {

@@ -168,7 +168,7 @@ function resetDialogData() {
 				<Example
 					:source="CustomSrc"
 					filename="Custom.vue"
-					description="Full inner control"
+					description="Replace the title and description block through the header slot while retaining the generated accessibility IDs."
 				>
 					<Custom />
 				</Example>

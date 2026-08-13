@@ -158,7 +158,7 @@ onMounted(async () => {
 		:trigger="trigger"
 		:hover-close-delay="hoverCloseDelay"
 		:data-trigger-id="triggerId || null"
-		class="relative inline-block"
+		:class="triggerId ? 'absolute' : 'relative inline-block'"
 	>
 		<span v-if="!triggerId && hasTriggerSlot" slot="trigger" data-trigger class="inline-block align-baseline"><slot name="trigger" /></span>
 		<button

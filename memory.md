@@ -66,10 +66,10 @@ Use DOM Studio primitives first:
 
 - Actions: `DomButton`, `DomIconButton`, `DomToolbar`.
 - Overlays and menus: `DomDialog`, `DomDrawer`, `DomPopover`, `DomDropdown`, `DomMenu`, `DomContextMenu`, `DomCommandPalette`.
-- Structure: `DomTabs`, `DomAccordion`, `DomTreeView`, `DomScrollMenu`, `DomSplitterPanel`, `DomDataGrid`.
+- Structure: `DomTabs`, `DomAccordion`, `DomTreeView`, `DomScrollMenu`, `DomSplitterPanel`, `DomBreadcrumbs`, `DomStepper`, `DomDataGrid`, `DomFilterBar`, `DomActivityTimeline`.
 - Scheduling: `DomMonthCalendar` for date-led month views and `DomWeekPlanner` for fixed-width day swim lanes, precise time rows, configurable app-owned drag-to-create ranges, a live current-time line, and virtualized horizontal ranges.
 - Feedback: `DomToastStack`, `DomToastItem`, `useToasts`, `DomBadge`, `DomStatusPill`, `DomEmptyState`.
-- Forms: `DomForm`, `DomField`, `DomTextInput`, `DomTextareaInput`, `DomSelect`, `DomNativeSelect`, `DomCombobox`, `DomAutocomplete`, `DomTagCombobox`, `DomCheckbox`, `DomRadioGroup`, `DomToggle`, `DomDatePicker`, `DomDateTimePicker`, `DomTimeSelector`, `DomCalendar`, `DomJsonInput`, `DomJsonListInput`, `DomCodeInput`.
+- Forms: `DomForm`, `DomField`, `DomTextInput`, `DomTextareaInput`, `DomTextareaComposer`, `DomSelect`, `DomNativeSelect`, `DomCombobox`, `DomAutocomplete`, `DomTagCombobox`, `DomCheckbox`, `DomRadioGroup`, `DomToggle`, `DomDatePicker`, `DomDateTimePicker`, `DomTimeSelector`, `DomCalendar`, `DomJsonInput`, `DomJsonListInput`, `DomCodeInput`.
 - Mobile: `DomAppShell`, `DomAppTopBar`, `DomAppBottomNav`, `DomAppListItem`, `DomActionSheet`, `DomSafeArea`.
 
 Docs pages normally use:

@@ -1,42 +1,121 @@
 <script setup>
-import { computed } from 'vue';
-import { RouterLink } from 'vue-router';
+import { computed, watch } from 'vue';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { useAsyncData } from '#now/runtime/asyncData.js';
 import { useHead } from '#now/runtime/head.js';
 import { useApiFetch } from '../../composable/useApiFetch.js';
 import DomStudioLayout from '../_layout/DomStudioLayout.vue';
+import DomPagination from '../components/pagination/DomPagination.vue';
 import { formatArticleDate, loadBlogArticles } from './blogData.js';
 
+const BLOG_ARTICLES_PER_PAGE = 50;
+const defaultBlogData = {
+	articles: [],
+	pagination: {
+		page: 1,
+		pageSize: BLOG_ARTICLES_PER_PAGE,
+		total: 0,
+		pageCount: 1,
+	},
+};
+
+const route = useRoute();
+const router = useRouter();
 const apiFetch = useApiFetch();
-const { data: articles, pending, error } = useAsyncData('blog:articles', () => loadBlogArticles(apiFetch), {
-	default: [],
+const page = computed(() => positiveInteger(firstQueryValue(route.query.page), 1));
+const { data: blogData, pending, error, execute } = useAsyncData('blog:articles', () => loadBlogArticles({
+	page: page.value,
+	apiFetch,
+}), {
+	default: defaultBlogData,
 });
 
+const articles = computed(() => blogData.value?.articles || []);
+const pagination = computed(() => blogData.value?.pagination || defaultBlogData.pagination);
 const featuredArticle = computed(() => articles.value[0] || null);
 const moreArticles = computed(() => articles.value.slice(1));
-const title = 'Blog | getdom.studio';
 const description = 'Practical writing on DOM Studio, AI-ready UI, component systems, and editable product interfaces.';
-const canonical = 'https://getdom.studio/blog';
+const blogUrl = 'https://getdom.studio/blog';
+const head = useHead();
 
-useHead().setTitle(title);
-useHead().setMeta([
-	{ name: 'description', content: description },
-	{ property: 'og:type', content: 'website' },
-	{ property: 'og:title', content: title },
-	{ property: 'og:description', content: description },
-	{ property: 'og:url', content: canonical },
-	{ name: 'twitter:card', content: 'summary' },
-	{ name: 'twitter:title', content: title },
-	{ name: 'twitter:description', content: description },
-]);
-useHead().setLink([{ rel: 'canonical', href: canonical }]);
-useHead().setLdJson('blog-jsonld', {
-	'@context': 'https://schema.org',
-	'@type': 'Blog',
-	name: 'getdom.studio Blog',
-	description,
-	url: canonical,
-});
+watch(page, loadPage, { flush: 'sync' });
+watch(page, updatePageHead, { immediate: true });
+
+/**
+ * Loads article data after the route-backed page number changes.
+ *
+ * @returns {Promise<object>} The resolved blog page data.
+ */
+async function loadPage() {
+	return execute();
+}
+
+/**
+ * Navigates to a blog page while keeping page one at the canonical clean URL.
+ *
+ * @param {number} nextPage Requested page number.
+ * @returns {Promise<void>} Resolves after route navigation completes.
+ */
+async function changePage(nextPage) {
+	const query = { ...route.query };
+	if (nextPage > 1) query.page = String(nextPage);
+	else delete query.page;
+	await router.push({ path: route.path, query });
+}
+
+/**
+ * Updates page-specific metadata for paginated blog index routes.
+ *
+ * @param {number} activePage Active blog page number.
+ */
+function updatePageHead(activePage) {
+	const title = activePage > 1
+		? `Blog - Page ${activePage} | getdom.studio`
+		: 'Blog | getdom.studio';
+	const canonical = activePage > 1 ? `${blogUrl}?page=${activePage}` : blogUrl;
+
+	head.setTitle(title);
+	head.setMeta([
+		{ name: 'description', content: description },
+		{ property: 'og:type', content: 'website' },
+		{ property: 'og:title', content: title },
+		{ property: 'og:description', content: description },
+		{ property: 'og:url', content: canonical },
+		{ name: 'twitter:card', content: 'summary' },
+		{ name: 'twitter:title', content: title },
+		{ name: 'twitter:description', content: description },
+	]);
+	head.setLink([{ rel: 'canonical', href: canonical }]);
+	head.setLdJson('blog-jsonld', {
+		'@context': 'https://schema.org',
+		'@type': 'Blog',
+		name: 'getdom.studio Blog',
+		description,
+		url: canonical,
+	});
+}
+
+/**
+ * Reads the first scalar value from a Vue Router query parameter.
+ *
+ * @param {unknown} value Route query value.
+ * @returns {unknown} First array value or the original scalar value.
+ */
+function firstQueryValue(value) {
+	return Array.isArray(value) ? value[0] : value;
+}
+
+/**
+ * Normalizes a value to a positive integer or returns a fallback.
+ *
+ * @param {unknown} value Candidate numeric value.
+ * @param {number} fallback Positive integer fallback.
+ * @returns {number} Normalized positive integer.
+ */
+function positiveInteger(value, fallback) {
+	const number = Math.floor(Number(value));
+	return Number.isFinite(number) && number > 0 ? number : fallback;
+}
 </script>
 
 <template>
@@ -105,6 +184,17 @@ useHead().setLdJson('blog-jsonld', {
 					</p>
 				</RouterLink>
 			</div>
+
+			<DomPagination
+				v-if="pagination.pageCount > 1"
+				class="border-t border-border pt-8"
+				:page="pagination.page"
+				:page-size="pagination.pageSize"
+				:total="pagination.total"
+				:disabled="pending"
+				label="Blog article pages"
+				@update:page="changePage"
+			/>
 		</section>
 	</DomStudioLayout>
 </template>

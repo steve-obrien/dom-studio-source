@@ -165,6 +165,7 @@ export const kanbanProps = {
 
 <script setup>
 import { computed, markRaw, nextTick, onBeforeUnmount, reactive, ref, useId } from 'vue';
+import { resolveResourceKey, resolveResourceValue } from '../_shared/resourceRecord.js';
 import { applyKanbanCardMove } from './kanbanApi.js';
 
 defineOptions({
@@ -314,8 +315,7 @@ function columnStateKey(key) {
  * @returns {unknown} Resolved field value.
  */
 function fieldValue(row, key, index) {
-	if (typeof key === 'function') return key(row, index);
-	return row?.[key];
+	return resolveResourceValue(row, key, index);
 }
 
 /**
@@ -326,8 +326,7 @@ function fieldValue(row, key, index) {
  * @returns {string|number} Stable row key.
  */
 function rowKeyFor(row, index) {
-	if (typeof props.rowKey === 'function') return props.rowKey(row, index);
-	return row?.[props.rowKey] ?? index;
+	return resolveResourceKey(row, props.rowKey, index);
 }
 
 /**

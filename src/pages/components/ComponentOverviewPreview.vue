@@ -1,5 +1,6 @@
 <script setup>
 import DomAccordion from './accordion/DomAccordion.vue';
+import DomBreadcrumbs from './breadcrumbs/DomBreadcrumbs.vue';
 import DomButton from './button/DomButton.vue';
 import DomIconButton from './icon-button/DomIconButton.vue';
 import DomMenu from './menu/DomMenu.vue';
@@ -8,6 +9,7 @@ import DomProfileMenu from './profile-menu/DomProfileMenu.vue';
 import DomScrollMenu from './scroll-menu/DomScrollMenu.vue';
 import DomScrollMenuItem from './scroll-menu/DomScrollMenuItem.vue';
 import DomSplitterPanel from './splitter-panel/DomSplitterPanel.vue';
+import DomStepper from './stepper/DomStepper.vue';
 import DomTabs from './tabs/DomTabs.vue';
 import DomThemeSwitcher from './theme-switcher/DomThemeSwitcher.vue';
 import DomToolbar from './toolbar/DomToolbar.vue';
@@ -48,6 +50,19 @@ const treeItems = [
 	{ id: 'settings', label: 'Settings' },
 ];
 
+const breadcrumbItems = [
+	{ key: 'workspace', label: 'Workspace' },
+	{ key: 'project', label: 'Northstar' },
+	{ key: 'settings', label: 'Settings' },
+	{ key: 'api', label: 'API credentials', current: true },
+];
+
+const stepperItems = [
+	{ key: 'details', label: 'Details' },
+	{ key: 'permissions', label: 'Permissions' },
+	{ key: 'review', label: 'Review' },
+];
+
 </script>
 
 <template>
@@ -71,6 +86,13 @@ const treeItems = [
 				v-else-if="type === 'accordion'"
 				:items="accordionItems"
 				class="w-full max-w-sm"
+			/>
+
+			<DomBreadcrumbs
+				v-else-if="type === 'breadcrumbs'"
+				:items="breadcrumbItems"
+				:max-items="3"
+				class="w-full max-w-md rounded-lg border border-border bg-canvas p-4 shadow-sm"
 			/>
 
 			<DomMenu
@@ -143,6 +165,14 @@ const treeItems = [
 					</div>
 				</template>
 			</DomSplitterPanel>
+
+			<DomStepper
+				v-else-if="type === 'stepper'"
+				model-value="permissions"
+				:items="stepperItems"
+				:show-descriptions="false"
+				class="w-full max-w-md rounded-lg border border-border bg-canvas p-4 shadow-sm"
+			/>
 
 			<DomTabs
 				v-else-if="type === 'tabs'"

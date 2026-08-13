@@ -14,6 +14,22 @@ const componentTypes = [
 		to: '/data/data-grid',
 	},
 	{
+		name: 'Filter bar',
+		components: ['DomFilterBar'],
+		description: 'Builds a controlled, transport-free query from free-text search and logical filter definitions for any resource view or store.',
+		icon: 'M4 6h16M7 12h10M10 18h4M8 6v3M15 12v3M12 18v2',
+		preview: 'filter-bar',
+		to: '/data/filter-bar',
+	},
+	{
+		name: 'Activity timeline',
+		components: ['DomActivityTimeline'],
+		description: 'Projects ordered application-owned rows into an accessible activity trail with logical field mappings, semantic status, and customizable slots.',
+		icon: 'M6 5h.01M6 12h.01M6 19h.01M10 5h8M10 12h8M10 19h8M6 6v5M6 13v5',
+		preview: 'activity-timeline',
+		to: '/data/activity-timeline',
+	},
+	{
 		name: 'Kanban',
 		components: ['DomKanban'],
 		description: 'Projects application-owned rows into ordered columns, with accessible card movement, custom renderers, and creation or persistence hooks.',
@@ -91,7 +107,7 @@ const boundaries = [
 		<DocPage
 			name="Data"
 			eyebrow="DOM Studio"
-			tag="9 components · 7 workflows"
+			tag="11 components · 9 workflows"
 			tagline="Reusable components for presenting and manipulating application-owned records, files, documents, schedules, and conversations."
 		>
 			<DocSection eyebrow="Explore" title="Data components at a glance">
@@ -140,7 +156,7 @@ const boundaries = [
 			<DocSection eyebrow="Overview" title="Where data components fit">
 				<div class="max-w-3xl space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Data components sit between local interface primitives and complete application blocks. They provide reusable views and workflow shells for collections of application-owned data: resource rows, ordered boards, dated records, folders and files, structured documents, and AI conversations.
+						Data components sit between local interface primitives and complete application blocks. They provide reusable query controls, views, and workflow shells for collections of application-owned data: resource rows, activity events, ordered boards, dated records, folders and files, structured documents, and AI conversations.
 					</p>
 					<p>
 						The components do not replace an application's data layer. They accept records and controlled state, then emit changes and user intent. The application decides how to load, authorize, validate, and persist those changes. The docs pair them with server-shaped examples so loading, empty, error, mutation, pagination, and refresh behaviour can be evaluated in realistic flows.

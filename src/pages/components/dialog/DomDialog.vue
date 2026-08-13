@@ -9,6 +9,7 @@ defineOptions({
 		slots: [
 			{ name: 'trigger', description: 'Optional. Element that opens the dialog when clicked — omit when using v-model, a template ref, or commandfor on an external button.' },
 			{ name: '(default)', description: 'Dialog body — rendered inside the card below the title and description.' },
+			{ name: 'header', payload: '{ title, description, titleId, descriptionId }', description: 'Replace the default title and description block. Apply the provided IDs to custom heading and description elements to preserve the dialog accessibility relationships.' },
 			{ name: 'footer', description: 'Action buttons. Add `data-close` on a control to dismiss the dialog.' },
 		],
 		events: [
@@ -212,11 +213,19 @@ defineExpose({
 			:class="dialogWidthClass"
 			:style="dialogPanelStyle"
 		>
-			<div v-if="title || description" class="shrink-0 space-y-2">
-				<h2 v-if="title" :id="titleId" class="text-lg font-semibold tracking-tight">{{ title }}</h2>
-				<p v-if="description" :id="descriptionId" class="text-sm text-muted-fg">{{ description }}</p>
-			</div>
-			<div class="-mx-1 -mb-1 min-h-0 overflow-y-auto px-1 pb-1" :class="(title || description) ? 'mt-3 pt-1' : '-mt-1 pt-1'">
+			<slot
+				name="header"
+				:title="title"
+				:description="description"
+				:title-id="titleId"
+				:description-id="descriptionId"
+			>
+				<div v-if="title || description" class="shrink-0 space-y-2">
+					<h2 v-if="title" :id="titleId" class="text-lg font-semibold tracking-tight">{{ title }}</h2>
+					<p v-if="description" :id="descriptionId" class="text-sm text-muted-fg">{{ description }}</p>
+				</div>
+			</slot>
+			<div class="-mx-1 -mb-1 min-h-0 overflow-y-auto px-1 pb-1" :class="($slots.header || title || description) ? 'mt-3 pt-1' : '-mt-1 pt-1'">
 				<slot />
 			</div>
 			<div v-if="footer || $slots.footer" class="mt-6 flex shrink-0 items-center justify-end gap-2">

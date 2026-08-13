@@ -54,6 +54,7 @@ export const typeByComponent = {
 	DomSelectInput: 'string',
 	DomTagCombobox: 'array',
 	DomTextInput: 'string',
+	DomTextareaComposer: 'string',
 	DomTextareaInput: 'string',
 	DomTimeSelector: 'time',
 	DomToggle: 'boolean',
