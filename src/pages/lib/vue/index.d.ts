@@ -2220,6 +2220,10 @@ export interface DomMonthCalendarProps {
 	 */
 	continuous?: boolean;
 	/**
+	 * Keep separated month headings and the compact continuous month label pinned to the active scrollport.
+	 */
+	stickyMonthHeaders?: boolean;
+	/**
 	 * Constrain continuous mode to its own scrollport. Disable when a parent layout already owns the vertical scroll.
 	 */
 	containedContinuousScroll?: boolean;

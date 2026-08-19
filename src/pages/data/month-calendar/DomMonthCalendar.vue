@@ -155,6 +155,11 @@ export const monthCalendarProps = {
 		default: false,
 		_edit: { description: 'Render one continuous week grid across the range instead of separated month blocks with repeated adjacent days.' },
 	},
+	stickyMonthHeaders: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Keep separated month headings and the compact continuous month label pinned to the active scrollport.' },
+	},
 	containedContinuousScroll: {
 		type: Boolean,
 		default: true,
@@ -1407,7 +1412,7 @@ function getContinuousSectionElement() {
  * Finds the closest ancestor that can own vertical scrolling for an externally contained calendar.
  *
  * @param {HTMLElement} element Calendar section element.
- * @returns {HTMLElement|null} Nearest vertical scroll host.
+ * @returns {HTMLElement|Window|null} Nearest vertical scroll host, falling back to the browser viewport.
  */
 function findNearestVerticalScrollHost(element) {
 	let current = element.parentElement;
@@ -1416,13 +1421,13 @@ function findNearestVerticalScrollHost(element) {
 		if (/(auto|scroll|overlay)/.test(overflowY)) return current;
 		current = current.parentElement;
 	}
-	return null;
+	return typeof window !== 'undefined' ? window : null;
 }
 
 /**
  * Tracks the month represented by the top visible row inside the supplied scroll host.
  *
- * @param {HTMLElement} scrollHost Element owning vertical scroll.
+ * @param {HTMLElement|Window} scrollHost Element or browser viewport owning vertical scroll.
  * @param {HTMLElement} scope Element containing the continuous week rows.
  * @returns {void}
  */
@@ -1430,7 +1435,7 @@ function updateActiveContinuousMonthForScrollHost(scrollHost, scope) {
 	const scopedRows = Array.from(scope.querySelectorAll('[data-continuous-week-row]'));
 	if (!scopedRows.length) return;
 
-	const hostTop = scrollHost.getBoundingClientRect().top;
+	const hostTop = scrollHost === window ? 0 : scrollHost.getBoundingClientRect().top;
 	const header = scope.querySelector('[data-continuous-day-headers]');
 	const headerHeight = header instanceof HTMLElement ? header.getBoundingClientRect().height : 0;
 	const activationTop = hostTop + headerHeight + 1;
@@ -1477,9 +1482,17 @@ function onDayClick(cell, event) {
 			:key="section.key"
 			class="min-w-0"
 		>
+			<div
+				v-if="section.continuous && stickyMonthHeaders"
+				class="dom-month-calendar__continuous-mobile-header sticky top-0 z-30 mb-3 items-center justify-between gap-3 border-b border-border bg-canvas/95 py-3 shadow-sm backdrop-blur"
+			>
+				<span class="text-[11px] font-semibold uppercase tracking-wide text-muted-fg">Month</span>
+				<span class="text-base font-bold text-canvas-fg">{{ continuousHeaderMonthLabel }}</span>
+			</div>
 			<header
 				v-if="!section.continuous"
 				class="mb-4 flex flex-wrap items-end justify-between gap-3"
+				:class="stickyMonthHeaders && 'sticky top-0 z-20 border-b border-border bg-canvas/95 py-3 shadow-sm backdrop-blur'"
 			>
 				<h2 :id="section.id" class="text-3xl font-bold tracking-tight text-canvas-fg">{{ section.label }}</h2>
 				<div class="text-sm font-medium text-muted-fg">

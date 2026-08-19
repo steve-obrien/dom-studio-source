@@ -55,7 +55,15 @@
 	--dom-month-calendar-week-columns: minmax(0, 1fr);
 }
 
+.dom-month-calendar__continuous-mobile-header {
+	display: flex;
+}
+
 @container (min-width: theme(--breakpoint-lg)) {
+	.dom-month-calendar__continuous-mobile-header {
+		display: none;
+	}
+
 	.dom-month-calendar__grid {
 		--dom-month-calendar-day-min-height: 11rem;
 		--dom-month-calendar-day-headers-display: grid;
