@@ -7,7 +7,8 @@ export const googleCalendarScopes = [
 	'openid',
 	'email',
 	'profile',
-	'https://www.googleapis.com/auth/calendar.events.owned',
+	'https://www.googleapis.com/auth/calendar.events',
+	'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
 ];
 
 /**
