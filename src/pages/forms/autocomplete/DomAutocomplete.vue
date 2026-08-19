@@ -138,15 +138,26 @@ watch(field.value, syncInputFromModel);
 				ref="inputEl"
 				slot="input"
 				type="text"
-				class="skin-input h-10 rounded-full px-4 focus:ring-ring/60"
-				:class="isLoading ? 'pr-10' : ''"
+				class="skin-input h-10 pr-10"
+				:class="isLoading ? 'pr-20' : ''"
 				@focus="field.onFocus"
 				@blur="field.onBlur"
 			/>
 			<DomFieldLoadingSpinner
 				v-if="isLoading"
-				class="absolute right-1 top-1"
+				class="absolute right-9 top-1"
 			/>
+			<button
+				slot="toggle"
+				type="button"
+				class="absolute right-1 top-1 inline-flex size-8 items-center justify-center rounded-md text-muted-fg transition hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 disabled:cursor-not-allowed disabled:opacity-50"
+				aria-label="Show suggestions"
+				:disabled="props.disabled || props.readOnly || undefined"
+			>
+				<svg viewBox="0 0 20 20" class="size-4" fill="none" aria-hidden="true">
+					<path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+				</svg>
+			</button>
 			<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
 				<ul
 					:id="listId"
@@ -158,7 +169,7 @@ watch(field.value, syncInputFromModel);
 						:data-value="option.value"
 						:data-label="option.label"
 						:data-index="index"
-						class="cursor-pointer rounded-xl px-3 py-2 text-sm transition data-[active]:bg-accent aria-selected:bg-accent"
+						class="cursor-pointer rounded-xl px-3 py-2 text-sm text-canvas-fg transition hover:bg-accent hover:text-accent-fg data-[active]:bg-accent data-[active]:text-accent-fg aria-selected:bg-accent aria-selected:text-accent-fg"
 					>
 						<slot name="item" :item="option" :index="index">{{ option.label }}</slot>
 					</li>
