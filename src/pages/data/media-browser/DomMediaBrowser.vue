@@ -63,10 +63,10 @@
 
 /**
  * @typedef {object} MediaBrowserUploadPayload
- * @property {Array<MediaBrowserDroppedFile>} files Dropped browser files.
+ * @property {Array<MediaBrowserDroppedFile>} files Browser files selected through the upload button or dropped onto the browser.
  * @property {MediaBrowserItem|null} target Folder that received the drop, or null for the current folder.
  * @property {string} path Current folder path.
- * @property {DragEvent} event Native drop event.
+ * @property {Event} event Native file input or drop event.
  */
 
 /**
@@ -132,7 +132,7 @@ export const mediaBrowserProps = {
 	canUpload: {
 		type: Boolean,
 		default: true,
-		_edit: { description: 'Allow external files and folders to be dropped onto the browser.' },
+		_edit: { description: 'Show the upload affordance, allow files to be selected, and accept external file or folder drops.' },
 	},
 	canCreateFolder: {
 		type: Boolean,
@@ -229,7 +229,7 @@ defineOptions({
 			{ name: 'create-folder', payload: '({ path })', description: 'Fired when the built-in new-folder action is activated.' },
 			{ name: 'rename', payload: '({ item, name })', description: 'Fired after inline rename is committed.' },
 			{ name: 'move', payload: 'MediaBrowserMovePayload', typeRef: 'MediaBrowserMovePayload', description: 'Fired when one or more selected rows are dropped onto a folder.' },
-			{ name: 'upload', payload: 'MediaBrowserUploadPayload', typeRef: 'MediaBrowserUploadPayload', description: 'Fired when files or folders are dropped onto the current browser or a folder.' },
+			{ name: 'upload', payload: 'MediaBrowserUploadPayload', typeRef: 'MediaBrowserUploadPayload', description: 'Fired when files are selected through the upload button or files and folders are dropped onto the current browser or a folder.' },
 			{ name: 'metadata-update', payload: '({ item, meta })', description: 'Fired when the default inspector commits editable metadata such as image alt text.' },
 			{ name: 'make-folder-with-items', payload: '({ items, path })', description: 'Fired from the context menu when the selection should be grouped into a new folder.' },
 			{ name: 'context-action', payload: '({ action, items, path })', description: 'Fired for context menu actions after built-in handling.' },
@@ -276,6 +276,7 @@ const emit = defineEmits([
 
 const titleId = `dom-media-browser-${useId()}`;
 const viewport = ref(null);
+const uploadInput = ref(null);
 const renamingKey = ref('');
 const renameDraft = ref('');
 const dragTargetKey = ref('');
@@ -336,20 +337,38 @@ const inlineDetailConfig = computed(() => detailConfigFor(inlineDetailItem.value
 const dialogDetailItem = computed(() => findItemByKey(dialogDetailKey.value));
 const dialogDetailConfig = computed(() => detailConfigFor(dialogDetailItem.value));
 const dialogDetailTitle = computed(() => detailTitle(dialogDetailItem.value, dialogDetailConfig.value));
+const uploadAccept = computed(() => Array.isArray(props.accept) ? props.accept.join(',') : props.accept);
+const hasContextMenuActions = computed(() => props.canCreateFolder || props.canRename);
 const selectionSummary = computed(() => {
 	const count = selectedItems.value.length;
 	if (!count) return 'No items selected';
 	if (count === 1) return `${itemName(selectedItems.value[0])} selected`;
 	return `${count} items selected`;
 });
-const contextMenuItems = computed(() => [
-	{ label: 'New folder', value: 'new-folder', disabled: !props.canCreateFolder },
-	{ label: 'Rename', value: 'rename', disabled: !props.canRename || selectedItems.value.length !== 1 },
-	{ label: 'Make new folder with items...', value: 'folder-from-selection', disabled: !props.canCreateFolder || selectedItems.value.length === 0 },
-	{ separator: true },
-	{ label: 'Grid view', value: 'mode-grid', type: 'radio', checked: renderMode.value === 'grid' },
-	{ label: 'List view', value: 'mode-list', type: 'radio', checked: renderMode.value === 'list' },
-]);
+const contextMenuItems = computed(() => {
+	const items = [];
+
+	if (props.canCreateFolder) {
+		items.push({ label: 'New folder', value: 'new-folder' });
+	}
+
+	if (props.canRename) {
+		items.push({ label: 'Rename', value: 'rename', disabled: selectedItems.value.length !== 1 });
+	}
+
+	if (props.canCreateFolder) {
+		items.push({ label: 'Make new folder with items...', value: 'folder-from-selection', disabled: selectedItems.value.length === 0 });
+	}
+
+	if (items.length) items.push({ separator: true });
+
+	items.push(
+		{ label: 'Grid view', value: 'mode-grid', type: 'radio', checked: renderMode.value === 'grid' },
+		{ label: 'List view', value: 'mode-list', type: 'radio', checked: renderMode.value === 'list' },
+	);
+
+	return items;
+});
 
 watch(activeItem, (item) => {
 	inspectorDraft.value = {
@@ -779,6 +798,7 @@ function selectItem(item, event) {
  * @param {MediaBrowserItem} item Media row under the context pointer.
  */
 function selectForContext(item) {
+	if (!hasContextMenuActions.value) return;
 	if (selectedKeySet.value.has(itemKey(item)) || !isSelectable(item)) return;
 	updateSelection([itemKey(item)]);
 }
@@ -1454,6 +1474,39 @@ async function emitUploadFromDrop(event, target) {
 }
 
 /**
+ * Opens the native file chooser for the current media folder.
+ */
+function openUploadPicker() {
+	if (!props.canUpload || !uploadInput.value) return;
+	uploadInput.value.value = '';
+	uploadInput.value.click();
+}
+
+/**
+ * Emits files selected through the native chooser using the shared upload payload.
+ *
+ * @param {Event} event Native file input change event.
+ */
+function onUploadInputChange(event) {
+	const input = event.target;
+	const files = Array.from(input?.files || []).map((file) => normalizeDroppedFile({
+		file,
+		relativePath: file.webkitRelativePath || file.name,
+	}));
+
+	if (files.length) {
+		emit('upload', {
+			files,
+			target: null,
+			path: currentPath.value,
+			event,
+		});
+	}
+
+	if (input) input.value = '';
+}
+
+/**
  * Checks whether a drag event carries external files.
  *
  * @param {DragEvent} event Native drag event.
@@ -1862,7 +1915,12 @@ function commitMetadata(key, value) {
 			class="grid min-h-[32rem]"
 			:class="inspector ? 'lg:grid-cols-[minmax(0,1fr)_18rem]' : 'lg:grid-cols-1'"
 		>
-			<DomContextMenu :items="contextMenuItems" width="min-w-60" @select="onContextSelect">
+			<DomContextMenu
+				:items="contextMenuItems"
+				:open-on-context-menu="hasContextMenuActions"
+				width="min-w-60"
+				@select="onContextSelect"
+			>
 				<div
 					ref="viewport"
 					class="relative min-h-[32rem] overflow-auto p-4 outline-none"
@@ -1875,6 +1933,35 @@ function commitMetadata(key, value) {
 						class="pointer-events-none absolute inset-3 z-20 grid place-items-center rounded-lg border-2 border-dashed border-primary bg-primary/10 text-sm font-semibold text-primary"
 					>
 						Drop to upload into {{ currentPath }}
+					</div>
+
+					<div
+						v-if="canUpload && !inlineDetailItem"
+						class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-border bg-secondary/25 px-3 py-2.5"
+						data-media-browser-upload
+					>
+						<div class="flex min-w-0 items-center gap-3">
+							<div class="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+								<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
+									<path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+								</svg>
+							</div>
+							<div class="min-w-0">
+								<p class="text-sm font-semibold text-canvas-fg">Drag and drop files here</p>
+								<p class="truncate text-xs text-muted-fg">Uploads will be added to {{ currentPath }}</p>
+							</div>
+						</div>
+						<DomButton type="button" size="sm" variant="secondary" @click.stop="openUploadPicker">
+							Upload files
+						</DomButton>
+						<input
+							ref="uploadInput"
+							type="file"
+							class="hidden"
+							:accept="uploadAccept"
+							multiple
+							@change="onUploadInputChange"
+						/>
 					</div>
 
 					<slot v-if="!sourceItems.length && !loading && !inlineDetailItem" name="empty">

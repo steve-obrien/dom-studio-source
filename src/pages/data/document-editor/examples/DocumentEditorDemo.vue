@@ -46,6 +46,7 @@ const {
 const editorRef = ref(null);
 const editorInstance = shallowRef(null);
 const mediaDialogOpen = ref(false);
+const mediaRequest = shallowRef(null);
 const currentEditorPayload = ref(null);
 const collaborationDocument = shallowRef(null);
 const collaborationProvider = shallowRef(null);
@@ -54,6 +55,9 @@ const collaborationStatus = ref('connecting');
 const assignedUser = ref(null);
 const activeCollaborators = ref([]);
 const selectedImages = computed(() => selectedItems.value.filter(isImageMediaItem));
+const replacingImage = computed(() => typeof mediaRequest.value?.replaceImage === 'function');
+const mediaDialogTitle = computed(() => replacingImage.value ? 'Change image' : 'Insert image');
+const mediaActionLabel = computed(() => replacingImage.value ? 'Change image' : 'Insert image');
 const remoteCollaborators = computed(() => activeCollaborators.value.filter((user) => user.id !== assignedUser.value?.id));
 const status = computed(() => {
 	if (loading.value) return 'Loading document';
@@ -232,10 +236,14 @@ async function saveDocument() {
 /**
  * Opens the media picker when the editor image tool requests media.
  *
+ * @param {Record<string, unknown>} payload Media request emitted by the editor.
  * @returns {void}
  */
-function openMediaPicker() {
-	mediaStore.setSelectedKeys([]);
+function openMediaPicker(payload = {}) {
+	mediaRequest.value = payload;
+	const mediaId = String(payload.image?.mediaId || '');
+
+	mediaStore.setSelectedKeys(mediaId ? [mediaId] : []);
 	mediaDialogOpen.value = true;
 }
 
@@ -247,8 +255,16 @@ function openMediaPicker() {
 function insertSelectedImage() {
 	const item = selectedImages.value[0];
 	if (!item) return;
-	editorRef.value?.insertImage?.({ item });
+	const replaceImage = mediaRequest.value?.replaceImage;
+
+	if (typeof replaceImage === 'function') {
+		replaceImage({ item });
+	} else {
+		editorRef.value?.insertImage?.({ item });
+	}
+
 	mediaDialogOpen.value = false;
+	mediaRequest.value = null;
 }
 
 /**
@@ -353,7 +369,7 @@ function isImageMediaItem(item) {
 
 		<DomDialog
 			v-model="mediaDialogOpen"
-			title="Insert image"
+			:title="mediaDialogTitle"
 			description="Choose an image from the same media browser used by upload and picker workflows."
 			width="min(96vw, 76rem)"
 			height="min(90dvh, 48rem)"
@@ -388,7 +404,7 @@ function isImageMediaItem(item) {
 				</div>
 				<DomButton type="button" size="sm" variant="secondary" data-close>Cancel</DomButton>
 				<DomButton type="button" size="sm" variant="primary" :disabled="!selectedImages.length" @click="insertSelectedImage">
-					Insert image
+					{{ mediaActionLabel }}
 				</DomButton>
 			</template>
 		</DomDialog>

@@ -1659,13 +1659,18 @@ export const componentCatalog = [
 				},
 				{
 					"name": "media-request",
-					"payload": "({ editor })",
-					"description": "Fired when the image tool should open an app-owned media picker."
+					"payload": "DocumentEditorMediaRequestPayload",
+					"description": "Fired when the image tool or an existing image requests an app-owned media picker."
 				},
 				{
 					"name": "media-insert",
 					"payload": "DocumentEditorMediaPayload",
 					"description": "Fired after insertImage inserts a media-backed image node."
+				},
+				{
+					"name": "media-update",
+					"payload": "DocumentEditorMediaPayload",
+					"description": "Fired after an existing media-backed image node is replaced."
 				},
 				{
 					"name": "video-insert",
@@ -1985,7 +1990,7 @@ export const componentCatalog = [
 					"name": "upload",
 					"payload": "MediaBrowserUploadPayload",
 					"typeRef": "MediaBrowserUploadPayload",
-					"description": "Fired when files or folders are dropped onto the current browser or a folder."
+					"description": "Fired when files are selected through the upload button or files and folders are dropped onto the current browser or a folder."
 				},
 				{
 					"name": "metadata-update",

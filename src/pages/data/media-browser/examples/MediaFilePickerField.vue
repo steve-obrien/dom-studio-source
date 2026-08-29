@@ -203,7 +203,7 @@ function selectionName(records, multiple) {
 		<DomDialog
 			v-model="dialogOpen"
 			:title="multiple ? 'Select media files' : 'Select media file'"
-			description="Choose an existing file or drop files into the browser to upload them."
+			description="Choose an existing file, use Upload files, or drag files into the browser."
 			width="min(96vw, 76rem)"
 			height="min(90dvh, 48rem)"
 		>
@@ -219,16 +219,15 @@ function selectionName(records, multiple) {
 				:accept="accept"
 				:inspector="false"
 				:selection-mode="browserSelectionMode"
+				:can-create-folder="false"
+				:can-rename="false"
+				:can-move="false"
 				title="File picker media"
 				empty-text="Drop files here or navigate to another folder."
 				@update:selected-keys="store.setSelectedKeys"
 				@update:mode="store.setMode"
 				@navigate="navigatePicker"
-				@create-folder="store.createFolder"
-				@rename="store.renameItem"
-				@move="store.moveItems"
 				@upload="store.uploadFiles"
-				@make-folder-with-items="store.makeFolderWithItems"
 			/>
 
 			<template #footer>

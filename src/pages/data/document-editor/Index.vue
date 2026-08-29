@@ -277,7 +277,7 @@ function configureExtensions({ extensions }) {
 					<div class="rounded-lg border border-border bg-canvas p-4">
 						<h3 class="font-semibold text-canvas-fg">App-owned integrations</h3>
 						<p class="mt-2">
-							AI rewrite and media picking are events. Apps keep model calls, media permissions, and storage rules behind their own API boundaries.
+							AI rewrite and media picking are events. Existing images expose a hover and keyboard-focus change action; its media request includes the current attributes and a position-safe replacement callback. Apps keep model calls, media permissions, and storage rules behind their own API boundaries.
 						</p>
 					</div>
 				</div>

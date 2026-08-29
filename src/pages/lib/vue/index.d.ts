@@ -361,7 +361,7 @@ export type MediaBrowserDetailComponentMap = Partial<Record<MediaBrowserItemKind
 export interface MediaBrowserItemPayload { item: MediaBrowserItem; event: MouseEvent | KeyboardEvent | DragEvent; }
 export interface MediaBrowserSelectionPayload { selectedKeys: Array<string>; selectedItems: Array<MediaBrowserItem>; }
 export interface MediaBrowserMovePayload { items: Array<MediaBrowserItem>; target: MediaBrowserItem; event: DragEvent; }
-export interface MediaBrowserUploadPayload { files: Array<MediaBrowserDroppedFile>; target: MediaBrowserItem | null; path: string; event: DragEvent; }
+export interface MediaBrowserUploadPayload { files: Array<MediaBrowserDroppedFile>; target: MediaBrowserItem | null; path: string; event: Event; }
 export interface MediaBrowserDetailPayload { item: MediaBrowserItem; kind: MediaBrowserItemKind; mode: MediaBrowserDetailMode; event: MouseEvent | KeyboardEvent | null; }
 export interface MediaBrowserStoreOptions {
 	rootId?: string;
@@ -419,6 +419,18 @@ export interface DocumentEditorMediaPayload {
 	title?: string;
 	mediaId?: string;
 	caption?: string;
+	[key: string]: unknown;
+}
+/** Media-picker request emitted for new or existing document images. */
+export interface DocumentEditorMediaRequestPayload {
+	/** Mounted Tiptap editor instance. */
+	editor?: unknown;
+	/** Current serializable image attributes when replacing an existing node. */
+	image?: DocumentEditorMediaPayload | null;
+	/** Inserts a new image at the current editor selection. */
+	insertImage?: (payload: DocumentEditorMediaPayload | Record<string, unknown>) => DocumentEditorMediaPayload | null | void;
+	/** Replaces the requesting image node without changing its document position. */
+	replaceImage?: (payload: DocumentEditorMediaPayload | Record<string, unknown>) => DocumentEditorMediaPayload | null | void;
 	[key: string]: unknown;
 }
 export interface DocumentEditorVideoPayload {
@@ -2474,7 +2486,7 @@ export interface DomMediaBrowserProps {
 	 */
 	inspector?: boolean;
 	/**
-	 * Allow external files and folders to be dropped onto the browser.
+	 * Show the upload affordance, allow files to be selected, and accept external file or folder drops.
 	 */
 	canUpload?: boolean;
 	/**

@@ -279,8 +279,9 @@ defineOptions({
 			{ name: 'suggestion-create', payload: 'DocumentEditorSuggestion', description: 'Fired after a rewrite suggestion is added to the review rail.' },
 			{ name: 'suggestion-accept', payload: 'DocumentEditorSuggestion', description: 'Fired after a suggestion is accepted.' },
 			{ name: 'suggestion-reject', payload: 'DocumentEditorSuggestion', description: 'Fired after a suggestion is rejected.' },
-			{ name: 'media-request', payload: '({ editor })', description: 'Fired when the image tool should open an app-owned media picker.' },
+			{ name: 'media-request', payload: 'DocumentEditorMediaRequestPayload', description: 'Fired when the image tool or an existing image requests an app-owned media picker.' },
 			{ name: 'media-insert', payload: 'DocumentEditorMediaPayload', description: 'Fired after insertImage inserts a media-backed image node.' },
+			{ name: 'media-update', payload: 'DocumentEditorMediaPayload', description: 'Fired after an existing media-backed image node is replaced.' },
 			{ name: 'video-insert', payload: 'DocumentEditorVideoPayload', description: 'Fired after a video embed node is inserted.' },
 			{ name: 'tool-action', payload: '({ tool, editor })', description: 'Fired when a custom toolbar tool is activated.' },
 			{ name: 'ready', payload: '({ editor })', description: 'Fired after the browser-only editor runtime mounts.' },
@@ -308,6 +309,7 @@ const emit = defineEmits([
 	'suggestion-reject',
 	'media-request',
 	'media-insert',
+	'media-update',
 	'video-insert',
 	'tool-action',
 	'ready',
@@ -846,7 +848,178 @@ function createImageExtension(Image) {
 				},
 			};
 		},
+
+		/**
+		 * Renders an image with an accessible replacement action.
+		 *
+		 * The node view only owns editor interaction. Applications still choose
+		 * and persist media through the transport-neutral media request event.
+		 *
+		 * @returns {Function} Tiptap image node-view factory.
+		 */
+		addNodeView() {
+			return imageNodeView;
+		},
 	});
+}
+
+/**
+ * Creates an editable image node view with a hover and keyboard-focus action.
+ *
+ * @param {Record<string, unknown>} context Tiptap node-view context.
+ * @returns {Record<string, unknown>} ProseMirror node view.
+ */
+function imageNodeView(context) {
+	let currentNode = context.node;
+	const dom = document.createElement('div');
+	const image = document.createElement('img');
+	const action = document.createElement('button');
+
+	dom.className = 'dom-document-editor__image-node';
+	dom.setAttribute('data-document-editor-image', '');
+	dom.contentEditable = 'false';
+	dom.draggable = true;
+	image.draggable = false;
+	action.type = 'button';
+	action.className = 'dom-document-editor__image-action';
+	action.textContent = 'Change';
+	action.setAttribute('aria-label', 'Change image');
+	action.addEventListener('mousedown', preventImageActionBlur);
+	action.addEventListener('click', requestImageNodeReplacement);
+	dom.append(image, action);
+	syncImageNodeElement(image, currentNode.attrs);
+
+	/**
+	 * Opens the consumer-owned media picker for this image node.
+	 *
+	 * @param {MouseEvent} event Image action click event.
+	 * @returns {void}
+	 */
+	function requestImageNodeReplacement(event) {
+		event.preventDefault();
+		event.stopPropagation();
+		requestMedia({
+			image: { ...currentNode.attrs },
+			replaceImage: replaceImageNode,
+		});
+	}
+
+	/**
+	 * Replaces this image node while preserving its document position.
+	 *
+	 * @param {Record<string, unknown>} payload Media payload selected by the consumer.
+	 * @returns {Record<string, unknown>|null} Updated image attributes, or null when stale.
+	 */
+	function replaceImageNode(payload = {}) {
+		if (!editor.value || typeof context.getPos !== 'function') return null;
+		const position = context.getPos();
+		const node = editor.value.state.doc.nodeAt(position);
+
+		if (!node || node.type.name !== 'image') return null;
+		const replacement = normalizeImagePayload(payload);
+
+		if (!replacement.src) return null;
+		const attributes = {
+			...node.attrs,
+			...replacement,
+		};
+		const updated = editor.value.chain().focus().command(({ tr }) => {
+			tr.setNodeMarkup(position, undefined, attributes);
+			return true;
+		}).run();
+
+		if (!updated) return null;
+		emit('media-update', attributes);
+		emitEditorChange();
+		return attributes;
+	}
+
+	return {
+		dom,
+		/**
+		 * Refreshes the image DOM when Tiptap updates the current node.
+		 *
+		 * @param {Record<string, unknown>} node Updated ProseMirror node.
+		 * @returns {boolean} True when the node view accepted the update.
+		 */
+		update(node) {
+			if (node.type.name !== currentNode.type.name) return false;
+			currentNode = node;
+			syncImageNodeElement(image, node.attrs);
+			return true;
+		},
+		/**
+		 * Keeps button events out of ProseMirror's selection handling.
+		 *
+		 * @param {Event} event DOM event raised inside the node view.
+		 * @returns {boolean} True when the image action owns the event.
+		 */
+		stopEvent(event) {
+			return event.target === action || action.contains(event.target);
+		},
+		/**
+		 * Ignores node-view DOM mutations because Tiptap owns its attributes.
+		 *
+		 * @returns {boolean} Always true.
+		 */
+		ignoreMutation() {
+			return true;
+		},
+		/**
+		 * Releases DOM event handlers when ProseMirror removes the node view.
+		 *
+		 * @returns {void}
+		 */
+		destroy() {
+			action.removeEventListener('mousedown', preventImageActionBlur);
+			action.removeEventListener('click', requestImageNodeReplacement);
+		},
+	};
+}
+
+/**
+ * Prevents the editor selection from moving before the media picker opens.
+ *
+ * @param {MouseEvent} event Image action pointer event.
+ * @returns {void}
+ */
+function preventImageActionBlur(event) {
+	event.preventDefault();
+}
+
+/**
+ * Synchronizes serializable image attributes onto a node-view image element.
+ *
+ * @param {HTMLImageElement} image Image element rendered by the node view.
+ * @param {Record<string, unknown>} attributes Current Tiptap image attributes.
+ * @returns {void}
+ */
+function syncImageNodeElement(image, attributes = {}) {
+	setOptionalElementAttribute(image, 'src', attributes.src);
+	setOptionalElementAttribute(image, 'alt', attributes.alt, true);
+	setOptionalElementAttribute(image, 'title', attributes.title);
+	setOptionalElementAttribute(image, 'data-media-id', attributes.mediaId);
+	setOptionalElementAttribute(image, 'data-caption', attributes.caption);
+}
+
+/**
+ * Sets or removes one node-view DOM attribute.
+ *
+ * @param {HTMLElement} element Element receiving the attribute.
+ * @param {string} name Attribute name.
+ * @param {unknown} value Attribute value.
+ * @param {boolean} preserveEmpty Whether an empty string remains meaningful.
+ * @returns {void}
+ */
+function setOptionalElementAttribute(element, name, value, preserveEmpty = false) {
+	const normalized = value === null || value === undefined ? '' : String(value);
+
+	if (normalized || preserveEmpty) {
+		element.setAttribute(name, normalized);
+		return;
+	}
+
+	element.removeAttribute(name);
 }
 
 /**
@@ -1277,8 +1450,12 @@ function insertImage(payload = {}) {
  *
  * @returns {void}
  */
-function requestMedia() {
-	emit('media-request', { editor: editor.value, insertImage });
+function requestMedia(payload = {}) {
+	emit('media-request', {
+		editor: editor.value,
+		insertImage,
+		...payload,
+	});
 }
 
 /**
@@ -2731,6 +2908,49 @@ function insertVideoCommand(nodeName) {
 	border-radius: 0.75rem;
 	display: block;
 	max-width: 100%;
+}
+
+:deep(.dom-document-editor__image-node) {
+	display: block;
+	position: relative;
+	width: fit-content;
+}
+
+:deep(.dom-document-editor__image-action) {
+	align-items: center;
+	background: color-mix(in oklch, var(--canvas) 92%, transparent);
+	border: 1px solid color-mix(in oklch, var(--border) 82%, transparent);
+	border-radius: 0.45rem;
+	box-shadow: 0 0.25rem 0.75rem color-mix(in oklch, var(--fg) 15%, transparent);
+	color: var(--canvas-fg);
+	cursor: pointer;
+	display: inline-flex;
+	font-size: 0.75rem;
+	font-weight: 650;
+	line-height: 1;
+	opacity: 0;
+	padding: 0.5rem 0.65rem;
+	position: absolute;
+	right: 0.75rem;
+	top: 0.75rem;
+	transform: translateY(-0.15rem);
+	transition: opacity 120ms ease, transform 120ms ease, background-color 120ms ease;
+	z-index: 2;
+}
+
+:deep(.dom-document-editor__image-node:hover .dom-document-editor__image-action),
+:deep(.dom-document-editor__image-node:focus-within .dom-document-editor__image-action) {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+:deep(.dom-document-editor__image-action:hover) {
+	background: var(--canvas);
+}
+
+:deep(.dom-document-editor__image-action:focus-visible) {
+	outline: 2px solid color-mix(in oklch, var(--ring) 65%, transparent);
+	outline-offset: 2px;
 }
 
 :deep(.dom-document-editor__link) {

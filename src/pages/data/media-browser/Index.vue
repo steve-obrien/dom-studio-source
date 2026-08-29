@@ -318,7 +318,10 @@ await store.loadFolder('/Images/Campaign');`;
 			<DocSection eyebrow="Upload" title="Chunk upload contract">
 				<div class="max-w-3xl space-y-4 text-sm leading-7 text-muted-fg">
 					<p>
-						Drops are folder-aware where the browser exposes relative paths. The component emits dropped file records; the store creates temporary media rows with upload status fields and image object previews; the upload service reports per-file and overall progress; completion returns canonical rows.
+						When uploads are enabled, the browser shows a persistent drag-and-drop prompt and an Upload files button. Button selection and drops emit the same upload payload; dropped folders remain folder-aware where the browser exposes relative paths. The store creates temporary media rows with upload status fields and image object previews; the upload service reports per-file and overall progress; completion returns canonical rows.
+					</p>
+					<p>
+						The built-in context menu only opens when folder creation or rename actions are enabled. Picker configurations that disable those library mutations keep the browser's normal right-click behavior.
 					</p>
 				</div>
 				<CodeBlock class="mt-5" :code="uploadCode" lang="js" />
