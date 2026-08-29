@@ -192,7 +192,7 @@ defineExpose({ focus, resize });
 				:aria-describedby="field.describedBy.value || undefined"
 				:aria-errormessage="field.errorId.value || undefined"
 				:class="[
-					'block w-full border-0 bg-transparent px-3 pb-2 pt-3 text-sm leading-6 text-canvas-fg outline-none placeholder:text-muted-fg disabled:cursor-not-allowed disabled:opacity-50',
+					'block w-full border-0 bg-transparent px-3 pb-2 pt-3 text-base leading-6 text-canvas-fg outline-none placeholder:text-muted-fg disabled:cursor-not-allowed disabled:opacity-50',
 					autosize ? 'resize-none overflow-y-hidden' : 'resize-y',
 				]"
 				@input="onInput"
