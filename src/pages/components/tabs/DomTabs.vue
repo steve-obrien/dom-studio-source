@@ -7,7 +7,7 @@ const props = defineProps({
 	variant: {
 		type: String,
 		default: 'pill',
-		_edit: { options: ['pill', 'page'], description: 'Visual treatment for the tab list.' },
+		_edit: { options: ['pill', 'flat', 'page'], description: 'Visual treatment for the tab list.' },
 	},
 	/** Stretch tabs + active panel to fill a flex parent (studio / inspector shell). */
 	fill: { type: Boolean, default: false },
@@ -17,25 +17,38 @@ const emit = defineEmits(['update:modelValue']);
 const root = ref(null);
 const activeValue = computed(() => props.modelValue || props.tabs[0]?.key || '');
 const tablistClass = computed(() => {
-	if (props.variant === 'page') return 'flex min-w-0 shrink-0 overflow-x-auto border-b border-border bg-secondary/55 px-2 pt-1';
+	if (props.variant === 'page') {
+		return [
+			'relative flex min-w-0 shrink-0 overflow-x-auto bg-secondary/55 px-2 pt-1',
+			'before:pointer-events-none before:absolute before:inset-x-0 before:bottom-0 before:h-px before:bg-border before:content-[\'\']',
+		].join(' ');
+	}
+	if (props.variant === 'flat') return 'flex min-w-0 shrink-0 gap-6 overflow-x-auto border-b border-border';
 	return 'inline-flex shrink-0 gap-1 rounded-full border border-border bg-secondary p-1';
 });
 const tabButtonClass = computed(() => {
 	if (props.variant === 'page') {
 		return [
 			'relative -mb-px flex h-9 min-w-0 max-w-56 items-center gap-2 rounded-t-md border border-transparent border-b-border px-3 text-left text-sm font-medium text-muted-fg transition',
-			'hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60',
-			'data-[active]:z-10 data-[active]:border-x-border data-[active]:border-t-border data-[active]:border-b-canvas data-[active]:bg-canvas data-[active]:text-canvas-fg data-[active]:shadow-sm',
-			'data-[active]:after:absolute data-[active]:after:inset-x-0 data-[active]:after:-bottom-px data-[active]:after:h-px data-[active]:after:bg-canvas',
+			'hover:border-x-border hover:border-t-border hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60',
+			'data-[active]:z-10 data-[active]:border-x-border data-[active]:border-t-border data-[active]:border-b-canvas data-[active]:bg-canvas data-[active]:text-canvas-fg',
+			'data-[active]:after:pointer-events-none data-[active]:after:absolute data-[active]:after:inset-x-px data-[active]:after:-bottom-px data-[active]:after:h-1 data-[active]:after:bg-canvas data-[active]:after:content-[\'\']',
+		].join(' ');
+	}
+	if (props.variant === 'flat') {
+		return [
+			'relative -mb-px flex h-10 shrink-0 items-center border-b-2 border-transparent px-1 text-sm font-medium text-muted-fg transition',
+			'hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60',
+			'data-[active]:border-primary data-[active]:text-canvas-fg',
 		].join(' ');
 	}
 	return 'rounded-full px-4 py-1.5 text-sm font-medium text-muted-fg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 data-[active]:bg-canvas data-[active]:text-canvas-fg data-[active]:shadow-sm';
 });
 const panelClass = computed(() => {
 	if (props.fill) return props.variant === 'page'
-		? 'flex min-h-0 flex-1 flex-col overflow-hidden'
+		? 'flex min-h-0 flex-1 flex-col overflow-hidden bg-canvas'
 		: 'mt-3 flex min-h-0 flex-1 flex-col overflow-hidden';
-	return props.variant === 'page' ? 'mt-0' : 'mt-6';
+	return props.variant === 'page' ? 'mt-0 bg-canvas' : 'mt-6';
 });
 
 onMounted(mountTabs);

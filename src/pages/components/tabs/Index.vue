@@ -9,6 +9,8 @@ import Playground from '../../_layout/docs/Playground.vue';
 import PropsTable from '../../_layout/PropsTable.vue';
 import { DomTabs } from '../../lib/vue';
 import { ref } from 'vue';
+import FlatTabs from './examples/FlatTabs.vue';
+import FlatTabsSrc from './examples/FlatTabs.vue?raw';
 import PageTabs from './examples/PageTabs.vue';
 import PageTabsSrc from './examples/PageTabs.vue?raw';
 
@@ -48,7 +50,7 @@ const usageWeb = `<dom-tabs value="overview">
 const props = [
 	{ name: 'v-model', type: 'string', default: 'first tab key', description: 'Active tab key.' },
 	{ name: 'tabs', type: 'Array<{ key, label }>', default: '—', description: 'Tabs to render.' },
-	{ name: 'variant', type: "'pill' | 'page'", default: "'pill'", description: 'Use page for editor-style tabs attached to a panel.' },
+	{ name: 'variant', type: "'pill' | 'flat' | 'page'", default: "'pill'", description: 'Use flat for underlined navigation or page for editor-style tabs attached to a panel.' },
 	{ name: 'fill', type: 'boolean', default: 'false', description: 'Stretch the tab list and active panel inside a flex parent.' },
 ];
 const keys = [
@@ -102,6 +104,19 @@ const keys = [
 					:preview-lines="18"
 				>
 					<PageTabs />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Variant" title="Flat tabs">
+				<Example
+					:source="FlatTabsSrc"
+					filename="FlatTabs.vue"
+					title="Flat tabs"
+					description="Flat tabs use a simple active underline for page-level navigation without a contained control surface."
+					default-open
+					:preview-lines="18"
+				>
+					<FlatTabs />
 				</Example>
 			</DocSection>
 

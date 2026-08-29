@@ -1356,7 +1356,7 @@ export interface DomTabsProps {
 	/**
 	 * Visual treatment for the tab list.
 	 */
-	variant?: "pill" | "page";
+	variant?: "pill" | "flat" | "page";
 	fill?: boolean;
 }
 export declare const DomTabs: DomComponent<DomTabsProps>;
