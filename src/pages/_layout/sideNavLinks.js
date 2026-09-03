@@ -11,6 +11,7 @@ const sidebarComponentSectionOrder = ['components', 'data', 'dev', 'forms', 'mob
 
 export const staticIconPaths = {
 	Documentation: 'M6 4h9l3 3v13H6V4Zm9 0v4h4M9 11h6M9 15h6',
+	Install: 'M12 3v12M7 10l5 5 5-5M5 20h14',
 	'AI builders': 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Zm6 9 .9 2.6 2.6.9-2.6.9L18 20l-.9-2.6-2.6-.9 2.6-.9L18 12Z',
 	Tools: 'M5 5h14v4H5V5Zm0 6h6v8H5v-8Zm8 0h6v8h-6v-8Z',
 	Experiments: 'M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3M8 14h8',
@@ -129,6 +130,7 @@ export const sideNavLinks = [
 	{
 		label: 'Documentation',
 		items: [
+			{ to: '/install', label: 'Install', tag: 'New' },
 			{ to: '/ai', label: 'AI builders', tag: 'New' },
 			{ to: '/theming', label: 'Theming', tag: 'New' },
 			{ to: '/component-spec', label: 'Component spec' },

@@ -1,0 +1,31 @@
+@import "tailwindcss";
+@import "@getdom/studio/tailwind.css";
+
+:root {
+	--radius: 0.625rem;
+	--shadow-xs: 0 1px 1px rgb(15 23 42 / 0.04);
+	--shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
+	--shadow-md: 0 3px 8px -2px rgb(15 23 42 / 0.12);
+	--shadow-lg: 0 8px 20px -6px rgb(15 23 42 / 0.16);
+	--shadow-xl: 0 18px 44px -18px rgb(15 23 42 / 0.24);
+	--shadow-2xl: 0 24px 60px -18px rgb(15 23 42 / 0.24);
+	--canvas: #fff;
+	--canvas-fg: #111827;
+	--primary: #111827;
+	--primary-fg: #fff;
+	--secondary: #f3f4f6;
+	--secondary-fg: #111827;
+	--muted: #f3f4f6;
+	--muted-fg: #6b7280;
+	--accent: #f3f4f6;
+	--accent-fg: #111827;
+	--destructive: #dc2626;
+	--destructive-fg: #fff;
+	--success: #16a34a;
+	--success-fg: #fff;
+	--warning: #f59e0b;
+	--warning-fg: #422006;
+	--border: #e5e7eb;
+	--input: #d1d5db;
+	--ring: #64748b;
+}

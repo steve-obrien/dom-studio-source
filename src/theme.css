@@ -1,0 +1,86 @@
+:root,
+[data-theme="light"] {
+	color-scheme: light;
+	--radius: 0.625rem;
+	--shadow-xs: 0 1px 1px 0 rgb(15 23 42 / 0.04);
+	--shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.06);
+	--shadow-md: 0 3px 8px -2px rgb(15 23 42 / 0.12), 0 1px 2px -1px rgb(15 23 42 / 0.08);
+	--shadow-lg: 0 8px 20px -6px rgb(15 23 42 / 0.16), 0 2px 6px -2px rgb(15 23 42 / 0.08);
+	--shadow-xl: 0 18px 44px -18px rgb(15 23 42 / 0.24), 0 8px 18px -12px rgb(15 23 42 / 0.16);
+	--shadow-2xl: 0 24px 60px -18px rgb(15 23 42 / 0.24), 0 8px 20px -10px rgb(15 23 42 / 0.14);
+	--canvas: #fff;
+	--canvas-fg: oklch(0.145 0 0);
+	--primary: oklch(0.205 0 0);
+	--primary-fg: oklch(0.985 0 0);
+	--secondary: oklch(0.97 0 0);
+	--secondary-fg: oklch(0.205 0 0);
+	--muted: oklch(0.97 0 0);
+	--muted-fg: oklch(0.5 0 0);
+	--accent: oklch(0.97 0 0);
+	--accent-fg: oklch(0.205 0 0);
+	--destructive: oklch(0.577 0.245 27.325);
+	--destructive-fg: oklch(0.985 0 0);
+	--success: oklch(0.57 0.194 149.35);
+	--success-fg: oklch(0.985 0 0);
+	--warning: oklch(0.7 0.2 84);
+	--warning-fg: oklch(0.28 0.07 46);
+	--border: oklch(0.922 0 0);
+	--input: oklch(0.922 0 0);
+	--ring: oklch(0.708 0 0);
+}
+
+[data-theme="dark"] {
+	color-scheme: dark;
+	--shadow-xs: 0 1px 1px 0 rgb(0 0 0 / 0.28);
+	--shadow-sm: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 1px 2px 0 rgb(0 0 0 / 0.34);
+	--shadow-md: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 8px 18px -10px rgb(0 0 0 / 0.52), 0 2px 5px -3px rgb(0 0 0 / 0.44);
+	--shadow-lg: 0 1px 0 0 rgb(255 255 255 / 0.05) inset, 0 16px 34px -18px rgb(0 0 0 / 0.58), 0 5px 12px -8px rgb(0 0 0 / 0.5);
+	--shadow-xl: 0 1px 0 0 rgb(255 255 255 / 0.05) inset, 0 24px 52px -24px rgb(0 0 0 / 0.68), 0 10px 22px -14px rgb(0 0 0 / 0.56);
+	--shadow-2xl: 0 1px 0 0 rgb(255 255 255 / 0.06) inset, 0 34px 76px -30px rgb(0 0 0 / 0.72), 0 16px 34px -20px rgb(0 0 0 / 0.58);
+	--canvas: oklch(0.145 0 0);
+	--canvas-fg: oklch(0.985 0 0);
+	--primary: oklch(0.922 0 0);
+	--primary-fg: oklch(0.205 0 0);
+	--secondary: oklch(0.269 0 0);
+	--secondary-fg: oklch(0.985 0 0);
+	--muted: oklch(0.269 0 0);
+	--muted-fg: oklch(0.708 0 0);
+	--accent: oklch(0.269 0 0);
+	--accent-fg: oklch(0.985 0 0);
+	--destructive: oklch(0.704 0.191 22.216);
+	--destructive-fg: oklch(0.985 0 0);
+	--success: oklch(0.696 0.17 162.48);
+	--success-fg: oklch(0.145 0 0);
+	--warning: oklch(0.769 0.188 70.08);
+	--warning-fg: oklch(0.145 0 0);
+	--border: oklch(1 0 0 / 10%);
+	--input: oklch(1 0 0 / 15%);
+	--ring: oklch(0.556 0 0);
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+	min-height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family:
+		"Plus Jakarta Sans Variable",
+		"Plus Jakarta Sans",
+		ui-sans-serif,
+		system-ui,
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		sans-serif;
+	background: var(--canvas);
+	color: var(--canvas-fg);
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+}

@@ -1,0 +1,75 @@
+{
+	"name": "@getdom/studio",
+	"version": "0.1.1",
+	"description": "A Vue 3 and Web Component interface system for application UI.",
+	"type": "module",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"author": "Steve O'Brien",
+	"homepage": "https://getdom.studio",
+	"keywords": [
+		"vue",
+		"web-components",
+		"custom-elements",
+		"component-library",
+		"design-system"
+	],
+	"sideEffects": [
+		"**/*.css",
+		"src/pages/lib/headless/*.js"
+	],
+	"types": "./src/pages/lib/vue/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./src/pages/lib/vue/index.d.ts",
+			"import": "./src/pages/lib/vue/index.js"
+		},
+		"./vue": {
+			"types": "./src/pages/lib/vue/index.d.ts",
+			"import": "./src/pages/lib/vue/index.js"
+		},
+		"./headless": {
+			"types": "./src/pages/lib/headless/index.d.ts",
+			"import": "./src/pages/lib/headless/index.js"
+		},
+		"./headless/*.js": {
+			"types": "./src/pages/lib/headless/*.d.ts",
+			"import": "./src/pages/lib/headless/*.js"
+		},
+		"./headless/*": {
+			"types": "./src/pages/lib/headless/*.d.ts",
+			"import": "./src/pages/lib/headless/*.js"
+		},
+		"./style.css": "./src/style.css",
+		"./tailwind.css": "./src/tailwind.css",
+		"./theme.css": "./src/theme.css",
+		"./llms.txt": "./public/llms.txt",
+		"./skill": "./SKILL.md",
+		"./skills.sh": "./public/skills.sh",
+		"./package.json": "./package.json"
+	},
+	"peerDependencies": {
+		"pinia": "^2.3.0 || ^3.0.0",
+		"tailwindcss": "^4.2.0",
+		"vue": "^3.5.0",
+		"vue-router": "^4.6.0"
+	},
+	"dependencies": {
+		"@tiptap/extension-code-block": "3.27.3",
+		"@tiptap/extension-collaboration": "^3.27.3",
+		"@tiptap/extension-collaboration-caret": "^3.27.3",
+		"@tiptap/extension-image": "^3.27.3",
+		"@tiptap/extension-link": "^3.27.3",
+		"@tiptap/extension-placeholder": "^3.27.3",
+		"@tiptap/extension-table": "3.27.3",
+		"@tiptap/extension-underline": "^3.27.3",
+		"@tiptap/pm": "^3.27.3",
+		"@tiptap/starter-kit": "^3.27.3",
+		"@tiptap/vue-3": "^3.27.3"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"engines": {
+		"node": ">=20"
+	}
+}
