@@ -207,40 +207,47 @@ onBeforeUnmount(() => {
 
 			<div class="relative z-[1] mx-auto flex h-16 w-full min-w-0 items-center justify-between gap-3 px-4 sm:px-6">
 				<RouterLink to="/" class="flex min-w-0 items-center gap-2 text-canvas-fg">
-					<BrandLockup show-badge />
+					<BrandLockup />
 				</RouterLink>
-				<nav class="hidden min-w-0 items-center gap-1 text-sm md:flex">
+				<nav class="hidden min-w-0 items-center gap-1 text-sm lg:flex">
 					<RouterLink
 						v-for="l in topLinks"
 						:key="l.to"
 						:to="l.to"
-						class="rounded-full px-3 py-1.5 font-medium transition"
+						class="rounded-full px-2.5 py-1.5 font-medium transition xl:px-3"
 						:class="isTopLinkActive(l)
 							? 'bg-primary text-primary-fg'
 							: 'text-muted-fg hover:text-canvas-fg'"
 					>{{ l.label }}</RouterLink>
 					<button
 						type="button"
-						class="ml-2 hidden h-9 min-w-0 items-center gap-2 rounded-full border border-border bg-secondary px-3 text-sm font-medium text-muted-fg transition hover:bg-accent hover:text-accent-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 lg:flex"
+						class="ml-1 grid size-9 shrink-0 place-items-center rounded-full border border-border bg-secondary text-sm font-medium text-muted-fg transition hover:bg-accent hover:text-accent-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 xl:ml-2 xl:flex xl:w-auto xl:gap-2 xl:px-3"
 						aria-label="Search DOM Studio"
+						title="Search DOM Studio"
 						@click="openGlobalSearch"
 					>
 						<svg viewBox="0 0 24 24" class="size-4 shrink-0" fill="none" aria-hidden="true">
 							<path d="M11 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm4.5 10.5L20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
 						</svg>
-						<span>Search</span>
-						<kbd class="rounded border border-border bg-canvas px-1.5 py-0.5 text-[11px] font-semibold text-muted-fg">⌘K</kbd>
+						<span class="hidden xl:inline">Search</span>
+						<kbd class="hidden rounded border border-border bg-canvas px-1.5 py-0.5 text-[11px] font-semibold text-muted-fg xl:inline">⌘K</kbd>
 					</button>
-					<div class="ml-2">
+					<div class="ml-1 xl:ml-2">
 						<ThemeToggle />
 					</div>
-					<AccountMenu class="ml-2" />
+					<div class="ml-1 xl:hidden">
+						<AccountMenu compact />
+					</div>
+					<div class="ml-2 hidden xl:block">
+						<AccountMenu />
+					</div>
 				</nav>
-				<div class="flex shrink-0 items-center gap-1 md:hidden">
+				<div class="flex shrink-0 items-center gap-1 lg:hidden">
 					<button
 						type="button"
 						class="grid size-9 place-items-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
 						aria-label="Search DOM Studio"
+						title="Search DOM Studio"
 						@click="openGlobalSearch"
 					>
 						<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
@@ -288,7 +295,7 @@ onBeforeUnmount(() => {
 			<div
 				v-if="mobileMenuOpen"
 				id="mobile-site-menu"
-				class="relative z-[1] max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border/60 shadow-lg md:hidden"
+				class="relative z-[1] max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border/60 shadow-lg lg:hidden"
 				:class="LIQUID_GLASS_EFFECTS.stickyHeader && isHeaderFloating
 					? 'bg-transparent'
 					: 'bg-canvas/95 backdrop-blur'"

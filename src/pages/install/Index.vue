@@ -1,4 +1,5 @@
 <script setup>
+import { RouterLink } from 'vue-router';
 import DomStudioLayout from '../_layout/DomStudioLayout.vue';
 import DocPage from '../_layout/DocPage.vue';
 import DocSection from '../_layout/DocSection.vue';
@@ -7,11 +8,16 @@ import CodeBlock from '../_layout/CodeBlock.vue';
 const installCode = 'npm install @getdom/studio';
 const componentCode = `import { DomButton, DomCard } from '@getdom/studio';`;
 const quickCode = `import '@getdom/studio/style.css';`;
-const recommendedCode = `/* src/app.css */
+const sourceCopyCode = `mkdir -p src/dom-studio
+cp -R node_modules/@getdom/studio/src/. src/dom-studio/`;
+const sourceComponentCode = `import { DomButton, DomCard } from './dom-studio/pages/lib/vue/index.js';`;
+const packageStylesheetCode = `/* src/app.css */
 @import "tailwindcss";
-@import "@getdom/studio/tailwind.css";
-
-:root,
+@import "@getdom/studio/tailwind.css";`;
+const sourceStylesheetCode = `/* src/app.css */
+@import "tailwindcss";
+@import "./dom-studio/tailwind.css";`;
+const recommendedCode = `:root,
 [data-theme="light"] {
 	color-scheme: light;
 	--radius: 0.625rem;
@@ -84,7 +90,7 @@ const headlessCode = `import '@getdom/studio/headless';`;
 		>
 			<DocSection title="1. Install the package">
 				<p class="mb-4 max-w-2xl text-sm leading-6 text-muted-fg">
-					DOM Studio requires Vue 3 and Tailwind CSS v4. Install it with your normal package manager, then import only the components you use.
+					DOM Studio requires Vue 3 and Tailwind CSS v4. The npm package is the shortest path to a working component and the starting point for either installation route.
 				</p>
 				<div class="space-y-4">
 					<CodeBlock lang="sh" :code="installCode" />
@@ -92,20 +98,64 @@ const headlessCode = `import '@getdom/studio/headless';`;
 				</div>
 			</DocSection>
 
-			<DocSection title="2. Quick start">
+			<DocSection title="2. Quick npm trial">
 				<div class="mb-4 max-w-2xl rounded-xl border border-border bg-secondary/50 p-4">
 					<p class="font-medium text-canvas-fg">Best for trying DOM Studio</p>
 					<p class="mt-1 text-sm leading-6 text-muted-fg">
-						This single import includes Tailwind, DOM Studio's component styles, and its default light and dark themes.
+						This single import includes Tailwind, DOM Studio's component styles, and its default light and dark themes. It is designed to get the first render working with minimum fuss.
 					</p>
 				</div>
 				<CodeBlock lang="js" :code="quickCode" />
 			</DocSection>
 
-			<DocSection title="3. Recommended: own your theme">
+			<DocSection id="own-the-source" title="3. Own the source">
+				<div class="mb-4 max-w-2xl rounded-xl border border-primary/20 bg-primary/5 p-4">
+					<p class="font-medium text-canvas-fg">The copied component becomes yours</p>
+					<p class="mt-1 text-sm leading-6 text-muted-fg">
+						Copying the maintained source puts the components and their internal dependencies inside your application. You can edit, adapt, and maintain them like the rest of your codebase.
+					</p>
+				</div>
 				<p class="mb-4 max-w-2xl text-sm leading-6 text-muted-fg">
-					Put these imports and theme values in your app's main stylesheet. DOM Studio supplies the Tailwind source and semantic utility names; your project owns the actual colours and radius.
+					Run this after installing the package, then switch component imports to the local Vue entry point. Examples in the component documentation do this automatically when you choose <strong class="font-semibold text-canvas-fg">Own the source</strong>.
 				</p>
+				<div class="space-y-4">
+					<CodeBlock lang="sh" :code="sourceCopyCode" />
+					<CodeBlock lang="js" :code="sourceComponentCode" />
+				</div>
+			</DocSection>
+
+			<DocSection title="4. Use your own stylesheet">
+				<p class="mb-4 max-w-2xl text-sm leading-6 text-muted-fg">
+					Import Tailwind and DOM Studio's Tailwind integration once in your app stylesheet. Use the package path while consuming npm, or the local path after copying the source. Source-owned Vue examples intentionally contain no stylesheet import.
+				</p>
+				<div class="grid gap-4 lg:grid-cols-2">
+					<div class="min-w-0 space-y-2">
+						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">npm package</p>
+						<CodeBlock filename="src/app.css" lang="css" :code="packageStylesheetCode" />
+					</div>
+					<div class="min-w-0 space-y-2">
+						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Owned source</p>
+						<CodeBlock filename="src/app.css" lang="css" :code="sourceStylesheetCode" />
+					</div>
+				</div>
+			</DocSection>
+
+			<DocSection title="5. Copy the theme into your stylesheet">
+				<p class="mb-4 max-w-2xl text-sm leading-6 text-muted-fg">
+					Paste these semantic variables below the imports in your app stylesheet, then change them to match your product. The variables are the theme; DOM Studio supplies the component structure and the utilities that consume them.
+				</p>
+				<div class="mb-4 flex max-w-2xl flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+					<div>
+						<p class="font-medium text-canvas-fg">Build the theme visually</p>
+						<p class="mt-1 text-sm leading-6 text-muted-fg">Generate a starting point, tweak every token against live components, then copy the finished CSS into your stylesheet.</p>
+					</div>
+					<RouterLink
+						to="/theming#theme-builder"
+						class="shrink-0 text-sm font-semibold text-canvas-fg underline decoration-border underline-offset-4 transition hover:text-primary"
+					>
+						Open theme builder
+					</RouterLink>
+				</div>
 				<CodeBlock filename="src/app.css" lang="css" :code="recommendedCode" />
 				<p class="my-4 max-w-2xl text-sm leading-6 text-muted-fg">
 					Add a dark theme only if your app needs one. These defaults are a starting point, not a required visual identity.

@@ -1,12 +1,15 @@
 <script setup>
+import { ref } from 'vue';
 import DomStudioLayout from '../../_layout/DomStudioLayout.vue';
 import DocPage from '../../_layout/DocPage.vue';
 import DocSection from '../../_layout/DocSection.vue';
 import CodePanel from '../../_layout/docs/CodePanel.vue';
+import ComponentQuickStart from '../../_layout/docs/ComponentQuickStart.vue';
 import Example from '../../_layout/docs/Example.vue';
 import ComponentProps from '../../_layout/docs/ComponentProps.vue';
 import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
 import ComponentSlots from '../../_layout/docs/ComponentSlots.vue';
+import { createComponentExampleSources } from '../../_layout/docs/componentExampleSources.js';
 import DomDataGrid from './DomDataGrid.vue';
 import DomDataGridSrc from './DomDataGrid.vue?raw';
 import CustomerDatabase from './examples/CustomerDatabase.vue';
@@ -25,6 +28,15 @@ import EditNameCellSrc from './examples/EditNameCell.vue?raw';
 import RowActionsCellSrc from './examples/RowActionsCell.vue?raw';
 
 const doc = DomDataGrid.__doc;
+const installationMethod = ref('npm');
+const exampleSources = {
+	customerDatabase: createComponentExampleSources(CustomerDatabaseSrc),
+	largeMemoryGrid: createComponentExampleSources(LargeMemoryGridSrc),
+	keywordOpportunityGrid: createComponentExampleSources(KeywordOpportunityGridSrc),
+	serverResourceGrid: createComponentExampleSources(ServerResourceGridSrc),
+	liveSqlQueryLog: createComponentExampleSources(LiveSqlQueryLogSrc),
+	customColumnComponents: createComponentExampleSources(CustomColumnComponentsSrc),
+};
 
 const resourceApiCode = `// Request
 {
@@ -91,9 +103,13 @@ const resourceApiCode = `// Request
 <template>
 	<DomStudioLayout>
 		<DocPage :name="doc.name" :tagline="doc.description" :tag="doc.tag">
+			<ComponentQuickStart component-name="DomDataGrid" />
+
 			<DocSection eyebrow="Demo" title="Database-style account table">
 				<Example
+					v-model:installation-method="installationMethod"
 					:source="CustomerDatabaseSrc"
+					:source-variants="exampleSources.customerDatabase"
 					filename="CustomerDatabase.vue"
 					description="Column filters use typed controls: date columns open a date range, number columns use min/max, select columns use checklist filters, and applied filters are visible in both the header and toolbar."
 					:preview-lines="0"
@@ -104,7 +120,9 @@ const resourceApiCode = `// Request
 
 			<DocSection eyebrow="Large memory" title="Virtual rows for in-memory data">
 				<Example
+					v-model:installation-method="installationMethod"
 					:source="LargeMemoryGridSrc"
+					:source-variants="exampleSources.largeMemoryGrid"
 					filename="LargeMemoryGrid.vue"
 					description="Use virtualRows when a large local array is already in memory. The grid keeps the full 10,000-row data set available for client-side search, filters, and sort, while the isolated virtual row renderer mounts only the visible rows plus the configured buffer."
 					:preview-lines="0"
@@ -115,7 +133,9 @@ const resourceApiCode = `// Request
 
 			<DocSection eyebrow="Advanced sorting" title="Keyword table sort presets">
 				<Example
+					v-model:installation-method="installationMethod"
 					:source="KeywordOpportunityGridSrc"
+					:source-variants="exampleSources.keywordOpportunityGrid"
 					filename="KeywordOpportunityGrid.vue"
 					description="Enable multiSort when header clicks should toggle ordered sort rules per column. Click Volume to add it, click Difficulty to add a second rule, and click a sorted header through asc, desc, and off."
 					:preview-lines="0"
@@ -126,7 +146,9 @@ const resourceApiCode = `// Request
 
 			<DocSection eyebrow="Remote data" title="Server pagination and forever scrolling">
 				<Example
+					v-model:installation-method="installationMethod"
 					:source="ServerResourceGridSrc"
+					:source-variants="exampleSources.serverResourceGrid"
 					filename="ServerResourceGrid.vue"
 					description="The same resource endpoint handles page-number navigation and cursor-based forever scrolling. The grid sends search, filters, and sort; pagination adds either page/pageSize or cursor/limit."
 					:preview-lines="0"
@@ -137,7 +159,9 @@ const resourceApiCode = `// Request
 
 			<DocSection eyebrow="Live data" title="SQL query log with duration ordering">
 				<Example
+					v-model:installation-method="installationMethod"
 					:source="LiveSqlQueryLogSrc"
+					:source-variants="exampleSources.liveSqlQueryLog"
 					filename="LiveSqlQueryLog.vue"
 					description="A live developer query-log surface that treats the grid as a server-backed resource: new query rows stream into the buffer, search and typed filters update the resource query, and duration_ms desc exposes the slowest statements first."
 					:preview-lines="0"
@@ -148,7 +172,10 @@ const resourceApiCode = `// Request
 
 			<DocSection eyebrow="Custom cells" title="Column components and row actions">
 				<Example
+					v-model:installation-method="installationMethod"
 					:source="CustomColumnComponentsSrc"
+					:source-variants="exampleSources.customColumnComponents"
+					install-note="This example also uses EditNameCell.vue and RowActionsCell.vue, available directly below."
 					filename="CustomColumnComponents.vue"
 					description="Set column.component to a Vue component. The component receives row, column, value, formatted, rowIndex, and rowKey. Display-only columns such as actions still use a stable key, but do not need a matching row property."
 					:preview-lines="0"

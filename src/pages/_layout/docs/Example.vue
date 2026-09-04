@@ -46,7 +46,15 @@ const props = defineProps({
 	frameHeight: { type: Number, default: 720 },
 	frameSrc: { type: String, default: '' },
 	frameFlushEdges: { type: Boolean, default: false },
+	sourceVariants: { type: Object, default: null },
+	installationMethod: {
+		type: String,
+		default: '',
+		validator: (value) => ['', 'npm', 'source'].includes(value),
+	},
+	installNote: { type: String, default: '' },
 });
+const emit = defineEmits(['update:installationMethod']);
 
 const route = useRoute();
 const slots = useSlots();
@@ -68,6 +76,11 @@ const previewClasses = computed(() => {
 	return 'flex min-h-[200px] min-w-0 max-w-full items-center justify-center overflow-auto p-4 sm:p-10';
 });
 
+/**
+ * Resolves an example file beside the current documentation route.
+ *
+ * @returns {string} Repository-relative source path, or an empty string.
+ */
 function sourcePathFromRoute() {
 	if (!props.filename || props.filename.includes('/')) return '';
 
@@ -96,6 +109,10 @@ function sourcePathFromRoute() {
 			:source-href="sourceHref"
 			:default-open="defaultOpen"
 			:preview-lines="previewLines"
+			:source-variants="sourceVariants"
+			:installation-method="installationMethod"
+			:install-note="installNote"
+			@update:installation-method="emit('update:installationMethod', $event)"
 		/>
 
 		<div
@@ -159,6 +176,10 @@ function sourcePathFromRoute() {
 			:source-href="sourceHref"
 			:default-open="defaultOpen"
 			:preview-lines="previewLines"
+			:source-variants="sourceVariants"
+			:installation-method="installationMethod"
+			:install-note="installNote"
+			@update:installation-method="emit('update:installationMethod', $event)"
 		/>
 	</figure>
 </template>

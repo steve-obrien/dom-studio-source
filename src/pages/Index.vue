@@ -46,12 +46,33 @@ function loadTreeView() {
 	return import('./components/tree-view/DomTreeView.vue');
 }
 
+/**
+ * Loads the shared Kanban, data-grid, and calendar workspace on demand.
+ *
+ * @returns {Promise<object>} Vue SFC module.
+ */
+function loadSharedResourceViews() {
+	return import('./data/kanban/examples/SharedResourceViews.vue');
+}
+
+/**
+ * Loads the interactive media picker only when the homepage is mounted.
+ *
+ * @returns {Promise<object>} Vue SFC module.
+ */
+function loadMediaFilePicker() {
+	return import('./data/media-browser/examples/MediaFilePickerField.vue');
+}
+
 const DomAccordion = defineAsyncComponent(loadAccordion);
 const DomCommandPalette = defineAsyncComponent(loadCommandPalette);
 const DomTreeView = defineAsyncComponent(loadTreeView);
+const SharedResourceViews = defineAsyncComponent(loadSharedResourceViews);
+const MediaFilePicker = defineAsyncComponent(loadMediaFilePicker);
 const router = useRouter();
 const isMounted = ref(false);
 const showcaseTab = ref('product');
+const completeDemoTab = ref('workspace');
 const commandOpen = ref(false);
 const activeLayer = ref('dialog');
 const selectedPrimitive = ref('combobox');
@@ -68,6 +89,34 @@ const heroTabs = [
 	{ key: 'product', label: 'Product' },
 	{ key: 'forms', label: 'Forms' },
 	{ key: 'headless', label: 'Headless' },
+];
+
+const completeDemoTabs = [
+	{ key: 'workspace', label: 'Kanban, grid & calendar' },
+	{ key: 'media', label: 'Media picker' },
+];
+
+const completeControls = [
+	{
+		name: 'DataGrid',
+		detail: 'Typed filters, multi-sort, selection, virtual rows, custom cells, pagination, and remote query state.',
+		to: '/data/data-grid',
+	},
+	{
+		name: 'Kanban',
+		detail: 'Controlled rows and columns, keyboard movement, drag ordering, async creation, and custom cards.',
+		to: '/data/kanban',
+	},
+	{
+		name: 'Media browser',
+		detail: 'Folder navigation, uploads, selection, file details, grid and list modes, and application-owned storage.',
+		to: '/data/media-browser',
+	},
+	{
+		name: 'Calendar',
+		detail: 'Container-responsive month planning, date windows, custom day content, and drag-to-reschedule workflows.',
+		to: '/data/month-calendar',
+	},
 ];
 
 const workspaceNav = [
@@ -436,6 +485,72 @@ function runCommand({ value }) {
 									<p class="mt-3 text-sm leading-6 text-muted-fg">Tree state, props, and generated markup are connected instead of hidden in docs prose.</p>
 								</div>
 							</aside>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="border-b border-border bg-canvas">
+				<div class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+					<div class="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-end">
+						<div class="max-w-2xl">
+							<p class="text-sm font-semibold text-muted-fg">Complete application controls</p>
+							<h2 class="mt-2 text-3xl font-bold leading-tight text-canvas-fg sm:text-4xl">
+								The difficult screens are already working.
+							</h2>
+							<p class="mt-4 text-base leading-8 text-muted-fg">
+								DOM Studio goes beyond buttons and cards. These controls handle dense data, ordering, scheduling, files, keyboard interaction, and server-shaped state while your application keeps ownership of the records.
+							</p>
+						</div>
+						<div class="grid gap-3 sm:grid-cols-2">
+							<RouterLink
+								v-for="control in completeControls"
+								:key="control.name"
+								:to="control.to"
+								class="group rounded-xl border border-border p-4 transition hover:border-primary/35 hover:bg-secondary/30"
+							>
+								<span class="flex items-center justify-between gap-3 text-sm font-semibold text-canvas-fg">
+									{{ control.name }}
+									<span class="text-muted-fg transition group-hover:translate-x-0.5 group-hover:text-canvas-fg">-&gt;</span>
+								</span>
+								<span class="mt-2 block text-sm leading-6 text-muted-fg">{{ control.detail }}</span>
+							</RouterLink>
+						</div>
+					</div>
+
+					<div class="mt-10 overflow-hidden rounded-[1.75rem] border border-border skin-card shadow-2xl shadow-black/10">
+						<div class="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-secondary/35 px-4 py-4 sm:px-6">
+							<div>
+								<p class="text-sm font-semibold text-canvas-fg">Live product workspace</p>
+								<p class="mt-1 text-sm text-muted-fg">Switch views, move work, or open the media picker. These are the real components.</p>
+							</div>
+							<DomButton as="router-link" to="/data" size="sm" variant="secondary">Explore data components</DomButton>
+						</div>
+						<div class="p-3 sm:p-5 lg:p-6">
+							<DomTabs v-model="completeDemoTab" :tabs="completeDemoTabs">
+								<template #workspace>
+									<Suspense v-if="isMounted">
+										<SharedResourceViews />
+										<template #fallback>
+											<div class="h-[34rem] animate-pulse rounded-xl bg-secondary/45" aria-label="Loading workspace demo"></div>
+										</template>
+									</Suspense>
+									<div v-else class="h-[34rem] rounded-xl bg-secondary/35" aria-hidden="true"></div>
+								</template>
+								<template #media>
+									<div class="min-h-[20rem] rounded-xl border border-border bg-secondary/20 p-4 sm:p-8">
+										<div class="mx-auto max-w-2xl">
+											<p class="mb-6 text-sm leading-6 text-muted-fg">Open the picker to browse folders, change view, select a file, and return its application-owned media id.</p>
+											<Suspense v-if="isMounted">
+												<MediaFilePicker accept="image/*" label="Campaign artwork" store-id="homepage" />
+												<template #fallback>
+													<div class="h-24 animate-pulse rounded-xl bg-secondary/45" aria-label="Loading media picker demo"></div>
+												</template>
+											</Suspense>
+										</div>
+									</div>
+								</template>
+							</DomTabs>
 						</div>
 					</div>
 				</div>

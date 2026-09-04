@@ -17,6 +17,14 @@ import CustomItems from './examples/CustomItems.vue';
 import CustomItemsSrc from './examples/CustomItems.vue?raw';
 import ComponentItems from './examples/ComponentItems.vue';
 import ComponentItemsSrc from './examples/ComponentItems.vue?raw';
+import OrganizationSwitcher from './examples/OrganizationSwitcher.vue';
+import OrganizationSwitcherSrc from './examples/OrganizationSwitcher.vue?raw';
+import OrganizationSwitcherSeparateActions from './examples/OrganizationSwitcherSeparateActions.vue';
+import OrganizationSwitcherSeparateActionsSrc from './examples/OrganizationSwitcherSeparateActions.vue?raw';
+import OrganizationSwitcherInlineList from './examples/OrganizationSwitcherInlineList.vue';
+import OrganizationSwitcherInlineListSrc from './examples/OrganizationSwitcherInlineList.vue?raw';
+import OrganizationSwitcherWorkspaceTrigger from './examples/OrganizationSwitcherWorkspaceTrigger.vue';
+import OrganizationSwitcherWorkspaceTriggerSrc from './examples/OrganizationSwitcherWorkspaceTrigger.vue?raw';
 
 const doc = DomProfileMenu.__doc;
 </script>
@@ -31,6 +39,46 @@ const doc = DomProfileMenu.__doc;
 					title="Profile menu playground"
 					description="Edit the identity props and menu rows, then open the menu to test keyboard navigation and item selection."
 				/>
+			</DocSection>
+
+			<DocSection eyebrow="Organization switching" title="Recommended: organization as context selector">
+				<Example
+					:source="OrganizationSwitcherSrc"
+					filename="OrganizationSwitcher.vue"
+					description="The current organization opens a focused selector. Organization names only switch context; the separate settings action always manages the selected organization."
+				>
+					<OrganizationSwitcher />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Derivative" title="Separate settings and switch actions">
+				<Example
+					:source="OrganizationSwitcherSeparateActionsSrc"
+					filename="OrganizationSwitcherSeparateActions.vue"
+					description="The organization identity opens settings, while a second explicit row opens the switcher. This costs more space but makes both outcomes unambiguous."
+				>
+					<OrganizationSwitcherSeparateActions />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Derivative" title="Organizations in the first panel">
+				<Example
+					:source="OrganizationSwitcherInlineListSrc"
+					filename="OrganizationSwitcherInlineList.vue"
+					description="A flat version keeps every organization and the selected-state tick visible without a nested panel, which can suit short lists and narrow screens."
+				>
+					<OrganizationSwitcherInlineList />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Derivative" title="Organization-first trigger">
+				<Example
+					:source="OrganizationSwitcherWorkspaceTriggerSrc"
+					filename="OrganizationSwitcherWorkspaceTrigger.vue"
+					description="The app chrome leads with the active organization and keeps the person as secondary context. The opened menu remains a single-level list."
+				>
+					<OrganizationSwitcherWorkspaceTrigger />
+				</Example>
 			</DocSection>
 
 			<DocSection eyebrow="Demo" title="Signed-in app trigger">

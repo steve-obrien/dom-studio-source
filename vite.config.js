@@ -46,6 +46,7 @@ function createViteConfig({ command }) {
 		base: '/',
 		server: {
 			host: true,
+			allowedHosts: ['getdom.test', 'local.getdom.studio'],
 		},
 	};
 }

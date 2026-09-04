@@ -1396,7 +1396,7 @@ onBeforeUnmount(() => {
 				</div>
 			</DocSection>
 
-			<DocSection eyebrow="Editor" title="Tune CSS variable colours">
+			<DocSection id="theme-builder" eyebrow="Editor" title="Tune CSS variable colours">
 				<div class="space-y-4 rounded-2xl border border-border skin-card p-4 text-canvas-fg">
 					<div class="flex flex-wrap items-start justify-between gap-3">
 						<div>

@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { DomDropdown, DomButton } from '@getdom/studio/vue';
+import { DomDropdown, DomButton, DomIconButton } from '@getdom/studio/vue';
 import { useAccountStatus } from '../../composable/useAuth.js';
 
 const props = defineProps({
@@ -89,12 +89,27 @@ async function selectAccountAction(value) {
 </script>
 
 <template>
-	<div v-show="loaded" class="inline-flex flex-wrap items-center gap-2">
+	<div v-show="loaded" class="inline-flex shrink-0 items-center gap-2">
 		<template v-if="!isLoggedIn">
-			<DomButton variant="secondary" :as="'router-link'" to="/auth/sign-in">
+			<DomIconButton
+				v-if="compact"
+				:as="'router-link'"
+				to="/auth/sign-in"
+				variant="secondary"
+				label="Sign in"
+				title="Sign in"
+				icon="M20 21a8 8 0 0 0-16 0M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
+			/>
+			<DomButton v-else variant="secondary" :as="'router-link'" to="/auth/sign-in">
 				Sign In
 			</DomButton>
-			<DomButton :as="'router-link'" to="/auth/sign-up">Get full access</DomButton>
+			<DomButton
+				:as="'router-link'"
+				to="/auth/sign-up"
+				:size="compact ? 'sm' : 'md'"
+				:aria-label="compact ? 'Get full access' : undefined"
+				:title="compact ? 'Get full access' : undefined"
+			>{{ compact ? 'Get' : 'Get full access' }}</DomButton>
 		</template>
 		<DomDropdown
 			v-else
@@ -102,10 +117,21 @@ async function selectAccountAction(value) {
 			:label="accountLabel"
 			align="right"
 			width="min-w-[16rem]"
+			:title="compact ? 'Account' : undefined"
+			:show-indicator="!compact"
+			:trigger-class="compact
+				? 'skin-control inline-grid size-10 place-items-center rounded-full transition hover:brightness-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60'
+				: undefined"
 			@select="selectAccountAction"
 		>
 			<template #trigger>
-				<span class="max-w-[10rem] truncate">Account</span>
+				<template v-if="compact">
+					<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
+						<path d="M20 21a8 8 0 0 0-16 0M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+					</svg>
+					<span class="sr-only">Account</span>
+				</template>
+				<span v-else class="max-w-[10rem] truncate">Account</span>
 			</template>
 
 			<template #item="{ item }">
@@ -123,7 +149,13 @@ async function selectAccountAction(value) {
 			</template>
 		</DomDropdown>
 		<template v-if="needsPurchase">
-			<DomButton :as="'router-link'" to="/auth/sign-up">Get full access</DomButton>
+			<DomButton
+				:as="'router-link'"
+				to="/auth/sign-up"
+				:size="compact ? 'sm' : 'md'"
+				:aria-label="compact ? 'Get full access' : undefined"
+				:title="compact ? 'Get full access' : undefined"
+			>{{ compact ? 'Get' : 'Get full access' }}</DomButton>
 		</template>
 	</div>
 </template>
