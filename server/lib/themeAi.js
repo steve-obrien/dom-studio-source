@@ -48,7 +48,10 @@ const skinPropertyNames = [
 ];
 
 const defaultAllowedOrigins = [
-	'http://localhost:3333',
+	'http://localhost:8100',
+	'http://localhost:8102',
+	'http://localhost:8110',
+	'https://local.getdom.studio',
 	'https://getdom.studio',
 ];
 

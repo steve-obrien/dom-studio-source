@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 await loadEnvFile('.env');
 await loadEnvFile('.env.local');
 
-const endpoint = process.env.THEME_AI_ENDPOINT || 'http://127.0.0.1:3333/api/ai/theme';
+const endpoint = process.env.THEME_AI_ENDPOINT || 'https://local.getdom.studio/api/ai/theme';
 const publicToken = process.env.THEME_AI_PUBLIC_TOKEN || process.env.VITE_THEME_AI_PUBLIC_TOKEN || '';
 
 const response = await fetch(endpoint, {

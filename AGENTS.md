@@ -52,8 +52,8 @@ The app uses Vite, Vue Router, Pinia, Tailwind CSS v4, Express, Knex, MySQL, Str
 
 Choose the smallest validation that matches the change:
 
-- `npm run dev` starts the SSR dev server, usually on `http://localhost:3333`.
-- `npm run dev:screenshot` starts a stable browser-automation target on `http://127.0.0.1:3342`.
+- `npm run dev` starts the SSR dev server, usually on `https://local.getdom.studio` (upstream `http://localhost:8100`).
+- `npm run dev:screenshot` starts a stable browser-automation target on `http://localhost:8110`.
 - `npm run build` validates the client build, SSR build, and SEO file generation.
 - `npm run types:generate` regenerates public declarations after export/API surface changes.
 - `npm run check:form-definition` validates form-definition helpers.

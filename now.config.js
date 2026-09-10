@@ -5,12 +5,11 @@ export default {
 	},
 	server: {
 		host: '0.0.0.0',
-		port: 3333,
+		port: process.env.NODE_ENV === 'production' ? 3333 : 8100,
 		apiPrefix: '/api',
 		apiDir: 'server/api',
-		useSSL: process.env.NODE_ENV !== 'production',
-		sslKey: 'localhost+2-key.pem',
-		sslCert: 'localhost+2.pem',
+		// Caddy locally, and the production reverse proxy, terminate HTTPS.
+		useSSL: false,
 	},
 	ssr: {
 		template: 'index.html',
