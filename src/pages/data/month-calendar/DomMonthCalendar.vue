@@ -245,6 +245,36 @@ export const monthCalendarProps = {
 		default: true,
 		_edit: { description: 'Render weekday headers.' },
 	},
+	stickyDayHeaders: {
+		type: Boolean,
+		default: null,
+		_edit: { description: 'Pin weekday headers to the active scrollport, below sticky month titles. When omitted, enabled in continuous mode and disabled in separated months.' },
+	},
+	showDayNames: {
+		type: Boolean,
+		default: true,
+		_edit: { description: 'Show the weekday name beside the date inside each day cell, including the mobile day list.' },
+	},
+	todayIndicator: {
+		type: String,
+		default: 'cell',
+		/**
+		 * Accepts supported visual treatments for the current date.
+		 *
+		 * @param {string} value Requested indicator style.
+		 * @returns {boolean} Whether the indicator is supported.
+		 */
+		validator: (value) => ['cell', 'circle', 'none'].includes(value),
+		_edit: { group: 'Styling', options: ['cell', 'circle', 'none'], description: 'Highlight today with a cell outline, a coloured circle behind the date, or no visual indicator.' },
+	},
+	/**
+	 * @type {MonthCalendarDayClass}
+	 */
+	todayDateClass: {
+		type: [String, Array, Object, Function],
+		default: 'bg-primary text-primary-fg',
+		_edit: { group: 'Styling', description: 'Classes for today’s date circle. Replaces the default primary background and foreground colours when todayIndicator is circle.' },
+	},
 	/**
 	 * @type {MonthCalendarDayClass}
 	 */
@@ -302,6 +332,8 @@ const dragState = ref(createEmptyDragState());
 const activeContinuousMonthValue = ref('');
 const calendarRoot = ref(null);
 const externalContinuousScrollHost = ref(null);
+let monthHeaderResizeObserver = null;
+const resolvedStickyDayHeaders = computed(() => props.stickyDayHeaders ?? props.continuous);
 const resolvedWeekStartsOn = computed(() => clampWeekStartsOn(props.weekStartsOn));
 const defaultMutedDayClass = 'bg-secondary/20 text-muted-fg/55';
 const rangeStart = computed(() => parseDate(props.startDate));
@@ -367,11 +399,15 @@ const wideWeekGridColumns = computed(() => {
 
 onMounted(() => {
 	nextTick(configureExternalContinuousScrollTracking);
+	nextTick(configureMonthHeaderOffsets);
 });
 
 onBeforeUnmount(() => {
 	removeExternalContinuousScrollTracking();
+	monthHeaderResizeObserver?.disconnect();
 });
+
+watch([calendarSections, () => props.stickyMonthHeaders], () => nextTick(configureMonthHeaderOffsets), { flush: 'post' });
 
 watch(
 	() => [props.continuous, props.containedContinuousScroll, props.startDate, props.months, props.weekStartsOn],
@@ -678,6 +714,7 @@ function rowHeaderLabelFor(week) {
  * @returns {Date|null} First day of the configured month, or null when the props are incomplete.
  */
 function initialDateFromProps() {
+	if (props.initialYear == null || props.initialMonth == null) return null;
 	const year = Number(props.initialYear);
 	const month = Number(props.initialMonth);
 	if (!Number.isFinite(year) || !Number.isFinite(month)) return null;
@@ -1355,6 +1392,33 @@ function onSectionScroll(section, event) {
 }
 
 /**
+ * Measures month headings so sticky weekday rows clear wrapped titles and slots.
+ * Reconnects after range or layout changes and releases the previous observer.
+ *
+ * @returns {void}
+ */
+function configureMonthHeaderOffsets() {
+	monthHeaderResizeObserver?.disconnect();
+	if (!calendarRoot.value || typeof ResizeObserver === 'undefined') return;
+	monthHeaderResizeObserver = new ResizeObserver(updateMonthHeaderOffsets);
+	for (const header of calendarRoot.value.querySelectorAll('[data-month-heading]')) {
+		monthHeaderResizeObserver.observe(header);
+	}
+}
+
+/**
+ * Stores each heading's actual height on its section for sibling sticky rows.
+ *
+ * @param {ResizeObserverEntry[]} entries Month headings whose sizes changed.
+ * @returns {void}
+ */
+function updateMonthHeaderOffsets(entries) {
+	for (const { target } of entries) {
+		target.parentElement?.style.setProperty('--dom-month-calendar-month-heading-height', `${target.getBoundingClientRect().height}px`);
+	}
+}
+
+/**
  * Attaches active-month tracking to the nearest parent scrollport when continuous mode is externally scrolled.
  *
  * @returns {void}
@@ -1437,7 +1501,8 @@ function updateActiveContinuousMonthForScrollHost(scrollHost, scope) {
 
 	const hostTop = scrollHost === window ? 0 : scrollHost.getBoundingClientRect().top;
 	const header = scope.querySelector('[data-continuous-day-headers]');
-	const headerHeight = header instanceof HTMLElement ? header.getBoundingClientRect().height : 0;
+	const stickyHeader = header instanceof HTMLElement && resolvedStickyDayHeaders.value && getComputedStyle(header).display !== 'none';
+	const headerHeight = stickyHeader ? header.getBoundingClientRect().height : 0;
 	const activationTop = hostTop + headerHeight + 1;
 	const activeRow = scopedRows.reduce((current, row) => {
 		if (!(row instanceof HTMLElement)) return current;
@@ -1484,6 +1549,7 @@ function onDayClick(cell, event) {
 		>
 			<div
 				v-if="section.continuous && stickyMonthHeaders"
+				data-month-heading
 				class="dom-month-calendar__continuous-mobile-header sticky top-0 z-30 mb-3 items-center justify-between gap-3 border-b border-border bg-canvas/95 py-3 shadow-sm backdrop-blur"
 			>
 				<span class="text-[11px] font-semibold uppercase tracking-wide text-muted-fg">Month</span>
@@ -1491,8 +1557,9 @@ function onDayClick(cell, event) {
 			</div>
 			<header
 				v-if="!section.continuous"
+				data-month-heading
 				class="mb-4 flex flex-wrap items-end justify-between gap-3"
-				:class="stickyMonthHeaders && 'sticky top-0 z-20 border-b border-border bg-canvas/95 py-3 shadow-sm backdrop-blur'"
+				:class="stickyMonthHeaders && 'sticky top-0 z-30 border-b border-border bg-canvas/95 py-3 shadow-sm backdrop-blur'"
 			>
 				<h2 :id="section.id" class="text-3xl font-bold tracking-tight text-canvas-fg">{{ section.label }}</h2>
 				<div class="text-sm font-medium text-muted-fg">
@@ -1508,13 +1575,14 @@ function onDayClick(cell, event) {
 			</header>
 			<h2 v-else :id="section.id" class="sr-only">{{ section.label }}</h2>
 
+			<!-- Parent-scrolled grids use clip to round resting corners without trapping sticky headers. -->
 			<div
 				class="rounded-2xl border border-border bg-canvas"
 				:data-continuous-section="section.continuous ? '' : undefined"
 				:class="[
 					section.continuous && containedContinuousScroll && 'max-h-[70vh] overflow-auto overscroll-contain',
-					section.continuous && !containedContinuousScroll && 'overflow-x-auto md:overflow-visible',
-					!section.continuous && 'overflow-x-auto',
+					section.continuous && !containedContinuousScroll && (resolvedStickyDayHeaders ? 'overflow-clip' : 'overflow-x-auto md:overflow-clip'),
+					!section.continuous && (resolvedStickyDayHeaders ? 'overflow-clip' : 'overflow-x-auto'),
 				]"
 				@scroll.passive="onSectionScroll(section, $event)"
 			>
@@ -1530,8 +1598,9 @@ function onDayClick(cell, event) {
 						:data-continuous-day-headers="section.continuous ? '' : undefined"
 						class="dom-month-calendar__day-headers grid border-b border-border"
 						:class="[
-							section.continuous ? 'sticky top-0 z-20 bg-secondary shadow-sm' : 'bg-secondary/30',
+							resolvedStickyDayHeaders ? 'sticky z-20 bg-secondary shadow-sm' : 'bg-secondary/30',
 						]"
+						:style="resolvedStickyDayHeaders ? { top: stickyMonthHeaders && !(section.continuous && containedContinuousScroll) ? 'var(--dom-month-calendar-month-heading-height, 0px)' : '0px' } : undefined"
 					>
 						<div
 							v-if="hasRowRail"
@@ -1612,7 +1681,7 @@ function onDayClick(cell, event) {
 								clickable && !cell.disabled && hoverableDays && 'hover:bg-secondary/50',
 								clickable && cell.disabled && 'cursor-not-allowed opacity-55',
 								!clickable && 'cursor-default',
-								cell.today && !cell.hidden && 'ring-2 ring-inset ring-ring/40',
+								cell.today && !cell.hidden && todayIndicator === 'cell' && 'ring-2 ring-inset ring-ring/40',
 								dayClassFor(cell),
 								dragAndDrop && dragState.active && canDropOnCell(cell) && !isDropTarget(cell) && 'bg-primary/5',
 								dragAndDrop && isDropTarget(cell) && 'bg-primary/10 ring-2 ring-inset ring-ring/60',
@@ -1627,9 +1696,15 @@ function onDayClick(cell, event) {
 							@drop="onDayDrop(cell, $event)"
 						>
 							<template v-if="!cell.hidden">
-								<div class="flex items-start justify-between gap-2">
-									<span class="text-base font-bold leading-none tabular-nums">{{ cell.day }}</span>
-									<span class="text-base lowercase leading-none tabular-nums">{{ cell.weekday }}</span>
+								<div class="flex items-center justify-between gap-2">
+									<span
+										class="text-base font-bold leading-none tabular-nums"
+										:class="[
+											todayIndicator === 'circle' && 'inline-flex size-7 shrink-0 items-center justify-center rounded-full',
+											cell.today && todayIndicator === 'circle' && resolveDayClass(todayDateClass, cell),
+										]"
+									>{{ cell.day }}</span>
+									<span v-if="showDayNames" class="text-base lowercase leading-none tabular-nums">{{ cell.weekday }}</span>
 								</div>
 								<div class="mt-3 min-h-0 flex-1 h-full">
 									<slot

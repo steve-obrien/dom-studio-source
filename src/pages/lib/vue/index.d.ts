@@ -2296,6 +2296,22 @@ export interface DomMonthCalendarProps {
 	 */
 	dayHeaders?: boolean;
 	/**
+	 * Pin weekday headers to the active scrollport, below sticky month titles. When omitted, enabled in continuous mode and disabled in separated months.
+	 */
+	stickyDayHeaders?: boolean;
+	/**
+	 * Show the weekday name beside the date inside each day cell, including the mobile day list.
+	 */
+	showDayNames?: boolean;
+	/**
+	 * Highlight today with a cell outline, a coloured circle behind the date, or no visual indicator.
+	 */
+	todayIndicator?: "cell" | "circle" | "none";
+	/**
+	 * Classes for today’s date circle. Replaces the default primary background and foreground colours when todayIndicator is circle.
+	 */
+	todayDateClass?: string | Array<unknown> | Record<string, unknown> | ((...args: Array<unknown>) => unknown);
+	/**
 	 * Extra classes, or a function that receives a day cell and returns classes for the day cell.
 	 */
 	dayClass?: MonthCalendarDayClass;
