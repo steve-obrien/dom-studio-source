@@ -1,5 +1,5 @@
 <script setup>
-import { DomButton, DomCard, DomDataGrid, DomTextInput } from '@getdom/studio';
+import { DomButton, DomCard, DomDataGrid, DomTextInput, DomLineChart, DomAreaChart, DomBarChart, DomDonutChart, DomSparkline, DomMetricCard, DomDateRangePicker } from '@getdom/studio';
 import '@getdom/studio/style.css';
 
 const columns = [
@@ -24,6 +24,13 @@ const rows = [
 			height="24rem"
 		/>
 
+		<DomLineChart title="Revenue" :rows="rows" x-key="name" :series="['mrr']" />
+		<DomAreaChart title="Revenue" :rows="rows" x-key="name" :series="['mrr']" />
+		<DomBarChart title="Revenue" :rows="rows" x-key="name" :series="['mrr']" />
+		<DomDonutChart title="Revenue" :rows="rows" label-key="name" value-key="mrr" />
+		<DomSparkline title="Revenue" :rows="rows" x-key="name" :series="['mrr']" />
+		<DomMetricCard label="Revenue" :value="5000" />
+		<DomDateRangePicker :model-value="{ start: '2026-09-01', end: '2026-09-30' }" />
 		<DomCard class="space-y-4 p-6">
 			<DomTextInput name="email" label="Email" type="email" />
 			<DomButton>Continue</DomButton>

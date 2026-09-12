@@ -38,10 +38,15 @@ const props = defineProps({
 	},
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'focus', 'blur']);
+/** @param {string|object} option Select option. @returns {string} Visible option label. */
 const labelOf = (option) => (option && typeof option === 'object' ? (option.label ?? option.value) : option);
+/** @param {string|object} option Select option. @returns {unknown} Submitted option value. */
 const valueOf = (option) => (option && typeof option === 'object' ? (option.value ?? option.label) : option);
 const field = useField(props, emit, { idPrefix: 'dom-native-select' });
+
+/** @param {unknown} value Option value. @returns {boolean} Explicit selection for SSR and initial hydration. */
+function isSelected(value) { return String(field.value.value ?? '') === String(value ?? ''); }
 </script>
 
 <template>
@@ -54,8 +59,8 @@ const field = useField(props, emit, { idPrefix: 'dom-native-select' });
 				@focus="field.onFocus"
 				@blur="field.onBlur"
 			>
-				<option v-if="placeholder" disabled value="">{{ placeholder }}</option>
-				<option v-for="option in options" :key="valueOf(option)" :value="valueOf(option)">
+				<option v-if="placeholder" disabled value="" :selected="isSelected('')">{{ placeholder }}</option>
+				<option v-for="option in options" :key="valueOf(option)" :value="valueOf(option)" :selected="isSelected(valueOf(option))">
 					{{ labelOf(option) }}
 				</option>
 			</select>

@@ -13,6 +13,7 @@ const documentationRoutePrefixes = [
 	'/blocks',
 	'/component-spec',
 	'/components',
+	'/charts',
 	'/forms',
 	'/headless',
 	'/mobile',

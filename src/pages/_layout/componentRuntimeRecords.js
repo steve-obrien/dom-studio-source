@@ -1,6 +1,7 @@
 const eagerComponentModules = import.meta.glob([
 	'../components/*/Dom*.vue',
 	'../data/*/Dom*.vue',
+	'../charts/*/Dom*.vue',
 	'../dev/*/Dom*.vue',
 	'../forms/*/Dom*.vue',
 	'../mobile/*/Dom*.vue',
@@ -33,7 +34,7 @@ export function getRuntimeComponentRecords() {
  * @returns {object|null} Component record, or null for unrecognized paths.
  */
 function recordFromPath(path, component) {
-	const match = path.match(/^\.\.\/(components|data|dev|forms|mobile|visual)\/([^/]+)\/(Dom[^/]+)\.vue$/);
+	const match = path.match(/^\.\.\/(components|data|charts|dev|forms|mobile|visual)\/([^/]+)\/(Dom[^/]+)\.vue$/);
 	if (!match) return null;
 
 	const [, section, slug, exportName] = match;

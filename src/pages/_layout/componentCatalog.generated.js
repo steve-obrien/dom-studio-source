@@ -2275,6 +2275,230 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "charts/area-chart",
+		"path": "../charts/area-chart/DomAreaChart.vue",
+		"section": "charts",
+		"slug": "area-chart",
+		"exportName": "DomAreaChart",
+		"route": "/charts/area-chart",
+		"doc": {
+			"name": "Area chart",
+			"tag": "<DomAreaChart>",
+			"description": "Show volume over time as overlapping or stacked areas.",
+			"icon": "M4 4v16h16M7 14l4-5 4 3 5-7",
+			"events": [
+				{
+					"name": "select",
+					"payload": "{ row, index }",
+					"description": "Original application record selected by click or Enter."
+				},
+				{
+					"name": "retry",
+					"description": "Requests another attempt to load application data."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Arrow keys / Home / End",
+					"action": "Inspect data points."
+				},
+				{
+					"keys": "Enter",
+					"action": "Select the inspected record."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "charts/bar-chart",
+		"path": "../charts/bar-chart/DomBarChart.vue",
+		"section": "charts",
+		"slug": "bar-chart",
+		"exportName": "DomBarChart",
+		"route": "/charts/bar-chart",
+		"doc": {
+			"name": "Bar chart",
+			"tag": "<DomBarChart>",
+			"description": "Compare categories with vertical or horizontal bars, grouped series, and percentage stacks.",
+			"icon": "M4 4v16h16M7 14l4-5 4 3 5-7",
+			"events": [
+				{
+					"name": "select",
+					"payload": "{ row, index }",
+					"description": "Original application record selected by click or Enter."
+				},
+				{
+					"name": "retry",
+					"description": "Requests another attempt to load application data."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Arrow keys / Home / End",
+					"action": "Inspect data points."
+				},
+				{
+					"keys": "Enter",
+					"action": "Select the inspected record."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "charts/date-range-picker",
+		"path": "../charts/date-range-picker/DomDateRangePicker.vue",
+		"section": "charts",
+		"slug": "date-range-picker",
+		"exportName": "DomDateRangePicker",
+		"route": "/charts/date-range-picker",
+		"doc": {
+			"name": "Date range picker",
+			"tag": "<DomDateRangePicker>",
+			"description": "Inclusive reporting dates with useful presets, explicit Apply and Cancel actions, and optional period comparisons.",
+			"icon": "M5 4v3M19 4v3M4 9h16M4 6h16v14H4zM8 13h8M8 16h5",
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "{ start, end }",
+					"description": "Committed inclusive YYYY-MM-DD dates."
+				},
+				{
+					"name": "update:comparison",
+					"payload": "string",
+					"description": "Committed comparison mode."
+				},
+				{
+					"name": "change",
+					"payload": "{ range, comparison, comparisonRange }",
+					"description": "Atomic reporting query change; fetching remains application-owned."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "charts/donut-chart",
+		"path": "../charts/donut-chart/DomDonutChart.vue",
+		"section": "charts",
+		"slug": "donut-chart",
+		"exportName": "DomDonutChart",
+		"route": "/charts/donut-chart",
+		"doc": {
+			"name": "Donut chart",
+			"tag": "<DomDonutChart>",
+			"description": "Compare non-negative category shares with a centre total, selectable legend, and accessible data table.",
+			"icon": "M12 3v9h9A9 9 0 1 1 12 3ZM15 3.5A9 9 0 0 1 20.5 9H15z",
+			"slots": [
+				{
+					"name": "center",
+					"payload": "{ total, formattedTotal }",
+					"description": "Replaces the centre labels with custom content, such as an audit score out of 100. Keep content small enough to fit inside the ring."
+				}
+			],
+			"events": [
+				{
+					"name": "select",
+					"payload": "{ row, index }",
+					"description": "Original record for the selected category."
+				},
+				{
+					"name": "retry",
+					"description": "Requests application data recovery."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "charts/line-chart",
+		"path": "../charts/line-chart/DomLineChart.vue",
+		"section": "charts",
+		"slug": "line-chart",
+		"exportName": "DomLineChart",
+		"route": "/charts/line-chart",
+		"doc": {
+			"name": "Line chart",
+			"tag": "<DomLineChart>",
+			"description": "Compare trends, reporting periods, and targets with proportional time or ordered category axes.",
+			"icon": "M4 4v16h16M7 14l4-5 4 3 5-7",
+			"events": [
+				{
+					"name": "select",
+					"payload": "{ row, index }",
+					"description": "Original application record selected by click or Enter."
+				},
+				{
+					"name": "retry",
+					"description": "Requests another attempt to load application data."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Arrow keys / Home / End",
+					"action": "Inspect data points."
+				},
+				{
+					"keys": "Enter",
+					"action": "Select the inspected record."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "charts/metric-card",
+		"path": "../charts/metric-card/DomMetricCard.vue",
+		"section": "charts",
+		"slug": "metric-card",
+		"exportName": "DomMetricCard",
+		"route": "/charts/metric-card",
+		"doc": {
+			"name": "Metric card",
+			"tag": "<DomMetricCard>",
+			"description": "A formatted measurement, explicit comparison, and optional sparkline for reporting dashboards.",
+			"icon": "M4 5h16v14H4zM7 15l3-3 3 1 4-5"
+		},
+		"studio": {}
+	},
+	{
+		"id": "charts/sparkline",
+		"path": "../charts/sparkline/DomSparkline.vue",
+		"section": "charts",
+		"slug": "sparkline",
+		"exportName": "DomSparkline",
+		"route": "/charts/sparkline",
+		"doc": {
+			"name": "Sparkline",
+			"tag": "<DomSparkline>",
+			"description": "Compact trends for metric cards, table cells, and resource lists.",
+			"icon": "M4 4v16h16M7 14l4-5 4 3 5-7",
+			"events": [
+				{
+					"name": "select",
+					"payload": "{ row, index }",
+					"description": "Original application record selected by click or Enter."
+				},
+				{
+					"name": "retry",
+					"description": "Requests another attempt to load application data."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Arrow keys / Home / End",
+					"action": "Inspect data points."
+				},
+				{
+					"keys": "Enter",
+					"action": "Select the inspected record."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "dev/code-block",
 		"path": "../dev/code-block/DomCodeBlock.vue",
 		"section": "dev",

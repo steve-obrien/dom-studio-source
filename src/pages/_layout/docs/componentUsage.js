@@ -1,6 +1,7 @@
 const componentPageModules = import.meta.glob([
 	'../../components/*/Dom*.vue',
 	'../../data/*/Dom*.vue',
+	'../../charts/*/Dom*.vue',
 	'../../dev/*/Dom*.vue',
 	'../../forms/*/Dom*.vue',
 	'../../mobile/*/Dom*.vue',
@@ -56,7 +57,7 @@ export function getComponentUsage(source) {
  * @returns {object|null} Component usage record, or null when unrecognized.
  */
 function recordFromPath(path) {
-	const match = path.match(/^\.\.\/\.\.\/(components|data|dev|forms|mobile|visual)\/([^/]+)\/(Dom[^/]+)\.vue$/);
+	const match = path.match(/^\.\.\/\.\.\/(components|data|charts|dev|forms|mobile|visual)\/([^/]+)\/(Dom[^/]+)\.vue$/);
 	if (!match) return null;
 
 	const [, section, slug, exportName] = match;
@@ -80,6 +81,7 @@ function labelFromSection(section) {
 	return {
 		components: 'Components',
 		data: 'Data',
+		charts: 'Data Visualisation',
 		dev: 'Dev',
 		forms: 'Forms',
 		mobile: 'Mobile',

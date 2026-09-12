@@ -216,3 +216,15 @@ export { default as DomAppStackScreen } from '../../mobile/stack/AppStackScreen.
 
 // Rehydration
 export { default as DomRenderer } from '../../components/playground/DomRenderer.vue';
+
+// Data visualisation
+export { default as DomLineChart } from '../../charts/line-chart/DomLineChart.vue';
+export { default as DomAreaChart } from '../../charts/area-chart/DomAreaChart.vue';
+export { default as DomBarChart } from '../../charts/bar-chart/DomBarChart.vue';
+export { default as DomDonutChart } from '../../charts/donut-chart/DomDonutChart.vue';
+export { default as DomSparkline } from '../../charts/sparkline/DomSparkline.vue';
+export { default as DomMetricCard } from '../../charts/metric-card/DomMetricCard.vue';
+export { default as DomDateRangePicker } from '../../charts/date-range-picker/DomDateRangePicker.vue';
+export { default as DomChartContainer } from '../../charts/_shared/ChartContainer.vue';
+export { default as DomChartLegend } from '../../charts/_shared/ChartLegend.vue';
+export { default as DomChartTooltip } from '../../charts/_shared/ChartTooltip.vue';

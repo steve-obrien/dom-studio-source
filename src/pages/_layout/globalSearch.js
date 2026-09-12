@@ -18,7 +18,7 @@ const pageModules = import.meta.glob([
 	'!../paywall/**/Index.vue',
 ]);
 
-const componentSectionOrder = ['components', 'data', 'dev', 'forms', 'mobile', 'visual'];
+const componentSectionOrder = ['components', 'data', 'charts', 'dev', 'forms', 'mobile', 'visual'];
 
 const pageDescriptions = {
 	'/': 'Page / DOM Studio product overview and library entry point.',
@@ -26,6 +26,8 @@ const pageDescriptions = {
 	'/blocks': 'Page / Block library overview for product screens and app patterns.',
 	'/blog': 'Page / DOM Studio articles and product notes.',
 	'/component-spec': 'Page / Studio component spec format for editable generated UI.',
+	'/charts': 'Page / Data visualisation, charts, metrics, and reporting dates.',
+	'/charts/finance': 'Page / Finance, banking, investment portfolios, balances, holdings, allocation, and day, week, month, year returns.',
 	'/data': 'Page / API-backed data components for resource browsing, selection, upload, and management workflows.',
 	'/dev': 'Page / Developer-facing components for code, payloads, diagnostics, and implementation docs.',
 	'/forms': 'Page / Form primitives, schemas, fields, validation, and inputs.',
@@ -153,7 +155,7 @@ function routeFromPagePath(pagePath) {
 function pageLabel(route) {
 	if (route === '/') return 'Overview';
 	const label = labelFromSlug(route.split('/').filter(Boolean).pop());
-	if (['/blocks', '/data', '/dev', '/forms', '/headless', '/mobile'].includes(route)) return `${label} Overview`;
+	if (['/blocks', '/charts', '/data', '/dev', '/forms', '/headless', '/mobile'].includes(route)) return `${label} Overview`;
 	return label;
 }
 

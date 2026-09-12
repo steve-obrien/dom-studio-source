@@ -3,6 +3,7 @@ import { componentCatalog } from './componentCatalog.generated.js';
 const lazyComponentModules = import.meta.glob([
 	'../components/*/Dom*.vue',
 	'../data/*/Dom*.vue',
+	'../charts/*/Dom*.vue',
 	'../dev/*/Dom*.vue',
 	'../forms/*/Dom*.vue',
 	'../mobile/*/Dom*.vue',
@@ -14,6 +15,7 @@ const lazyComponentModules = import.meta.glob([
 const lazyComponentSourceModules = import.meta.glob([
 	'../components/*/Dom*.vue',
 	'../data/*/Dom*.vue',
+	'../charts/*/Dom*.vue',
 	'../dev/*/Dom*.vue',
 	'../forms/*/Dom*.vue',
 	'../mobile/*/Dom*.vue',
@@ -23,7 +25,7 @@ const lazyComponentSourceModules = import.meta.glob([
 	'!../forms/_shared/Dom*.vue',
 ], { import: 'default', query: '?raw' });
 
-export const componentSections = ['components', 'data', 'dev', 'forms', 'mobile', 'visual'];
+export const componentSections = ['components', 'data', 'charts', 'dev', 'forms', 'mobile', 'visual'];
 
 /**
  * Returns component records that are safe for app-shell navigation and search.
@@ -115,6 +117,7 @@ export function labelFromSection(section) {
 	return {
 		components: 'Components',
 		data: 'Data',
+		charts: 'Data Visualisation',
 		dev: 'Dev',
 		forms: 'Forms',
 		mobile: 'Mobile',

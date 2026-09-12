@@ -28,6 +28,7 @@ const typeByConstructor = {
 };
 
 const manualPropTypes = {
+	DomDateRangePicker: { modelValue: 'ChartDateRange', comparison: "'none' | 'previous-period' | 'previous-year'" },
 	DomIconButton: {
 		icon: 'string | DomVueComponent',
 	},
@@ -362,6 +363,10 @@ const componentDocTypes = {
 	],
 };
 
+for (const name of ['DomLineChart', 'DomAreaChart', 'DomBarChart', 'DomSparkline']) {
+	manualPropTypes[name] = { rows: 'Array<DomUnknownRecord>', series: 'Array<string | ChartSeries>', xFormatter: '(value: unknown) => string', yFormatter: '(value: number) => string', valueFormatter: '(value: number) => string' };
+}
+
 const sharedPropObjects = loadSharedPropObjects();
 const componentExports = parseVueComponentExports();
 const components = componentExports.map((component) => ({
@@ -413,6 +418,7 @@ function loadSharedPropObjects() {
 		objects,
 	).calendarProps;
 
+	objects.chartProps = evaluateModuleGlobals(path.join(root, 'src/pages/charts/_shared/chartProps.js'), ['chartProps']).chartProps;
 	return objects;
 }
 
@@ -779,6 +785,8 @@ function buildVueTypes(componentEntries) {
  */
 function sharedVueTypes() {
 	return [
+		'export interface ChartDateRange { start: string; end: string; }',
+		'export interface ChartSeries { key: string; label?: string; color?: string; dashed?: boolean; }',
 		'export type JsonPrimitive = string | number | boolean | null;',
 		'export type JsonValue = JsonPrimitive | { [key: string]: JsonValue } | Array<JsonValue>;',
 		'export type DomUnknownRecord = Record<string, unknown>;',

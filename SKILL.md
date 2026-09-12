@@ -81,3 +81,11 @@ Return a Studio spec when generated UI should be editable later. A spec is a UI 
 ```
 
 Use component export names such as `DomTextInput` or ordinary HTML tags such as `section`, `h2`, and `p`. Avoid anonymous layers and large unstructured HTML blobs when a spec would preserve intent.
+
+## Charts and reporting
+
+Data Visualisation lives at `/charts`. Use `DomLineChart`, `DomAreaChart`, `DomBarChart`, `DomDonutChart`, and `DomSparkline` for application-owned records, `DomMetricCard` for summary measurements, and `DomDateRangePicker` for inclusive reporting dates and comparison periods. The chart family uses Unovis 1.7 and loads the drawing engine after browser mount. Headings and data tables render on the server.
+
+Cartesian charts accept `rows`, `xKey`, and `series` definitions with stable keys, labels, and optional colours. Use `xType="time"` for proportional date spacing and `xType="number"` for numeric coordinates. Default category axes preserve record order. Missing measurements remain distinct from zero. Percentage stacks require non-negative values; `format="percent"` expects fractional values. Applications own aggregation, queries, and comparison calculations.
+
+Chart colours use `--chart-1` through `--chart-5` from the default theme. Consumers supplying their own theme should define these tokens; charts fall back to the primary colour. `DomChartContainer`, `DomChartLegend`, and `DomChartTooltip` are available for custom Unovis compositions. Unovis dependencies are included with the package; source-copy consumers must also install matching `@unovis/vue` and `@unovis/ts` versions (`1.7.0`).

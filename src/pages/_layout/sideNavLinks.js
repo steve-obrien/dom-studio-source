@@ -7,7 +7,7 @@ import {
 import { inspectComponentRecord } from './componentInspector.js';
 import { getBlockNavItems } from '../blocks/blockRegistry.js';
 
-const sidebarComponentSectionOrder = ['components', 'data', 'dev', 'forms', 'mobile', 'visual'];
+const sidebarComponentSectionOrder = ['components', 'data', 'charts', 'dev', 'forms', 'mobile', 'visual'];
 
 export const staticIconPaths = {
 	Documentation: 'M6 4h9l3 3v13H6V4Zm9 0v4h4M9 11h6M9 15h6',
@@ -34,6 +34,7 @@ export const staticIconPaths = {
 	'Data grid': 'M5 5h14v14H5V5Zm0 5h14M5 14h14M10 5v14M15 5v14',
 	'Data Grid': 'M5 5h14v14H5V5Zm0 5h14M5 14h14M10 5v14M15 5v14',
 	Dashboard: 'M4 5h7v7H4V5Zm9 0h7v5h-7V5ZM4 14h7v5H4v-5Zm9-2h7v7h-7v-7Z',
+	Finance: 'M4 19V5M4 19h16M7 14l4-5 4 3 5-7',
 	Chat: 'M5 6h14v9H9l-4 4V6Z',
 	Mail: 'M4 6h16v12H4V6Zm0 0 8 7 8-7',
 	Forms: 'M7 4h10l3 3v13H7V4Zm10 0v4h4M10 12h7M10 16h5',
@@ -200,6 +201,7 @@ function groupsFromDiscoveredComponents() {
 			items: [
 				...(section === 'components' ? [{ to: '/components', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...(section === 'forms' ? [{ to: '/forms', label: 'Overview', icon: staticIconPaths.Overview }] : []),
+				...(section === 'charts' ? [{ to: '/charts', label: 'Overview', icon: staticIconPaths.Overview }, { to: '/charts/finance', label: 'Finance', icon: staticIconPaths.Finance, tag: 'New' }] : []),
 				...(section === 'data' ? [{ to: '/data', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...(section === 'dev' ? [{ to: '/dev', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...(section === 'mobile' ? [{ to: '/mobile', label: 'Overview', icon: staticIconPaths.Overview }] : []),

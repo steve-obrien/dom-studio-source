@@ -24,6 +24,8 @@ const staticFiles = [
 ];
 const allowedExternalPackages = new Set([
 	'@getdom/studio',
+	'@unovis/vue',
+	'@unovis/ts',
 	'@tiptap/extension-code-block',
 	'@tiptap/extension-collaboration',
 	'@tiptap/extension-collaboration-caret',
