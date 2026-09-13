@@ -1,7 +1,7 @@
 export default {
 	category: 'Finance',
 	categoryOrder: 35,
-	categoryDescription: 'Banking and investment interfaces for balances, portfolio performance, and asset allocation.',
+	categoryDescription: 'Banking, investment, and cashflow interfaces for balances, performance, and forecasts.',
 	order: 10,
 	tag: 'New',
 	summary: 'Investment portfolios with day, week, month, and year performance, signed gains and losses, holdings, cash allocation, and CSV export.',

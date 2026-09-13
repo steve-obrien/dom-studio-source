@@ -79,7 +79,7 @@ function titleFromRoutePath(path) {
 					:key="componentKey"
 					:inspect="loadedComponent"
 					:title="`${name} playground`"
-					description="This page is generated automatically from the component folder. Add a custom Index.vue beside the component when it needs richer docs."
+					description="Adjust the props to explore sizing, content, and behaviour."
 					:presentation="playgroundPresentation"
 					:initial="playgroundInitial"
 				/>

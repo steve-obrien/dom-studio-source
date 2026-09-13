@@ -639,7 +639,7 @@ function decisionActionLabel(action) {
 				class="min-h-0 flex-col bg-canvas"
 				:class="mobileDestination === 'tasks' && mobileDetailOpen ? 'flex' : 'hidden md:flex'"
 			>
-				<DomAppShell>
+				<DomAppShell height="100%">
 					<template #top>
 						<DomAppTopBar :title="selectedRequest.title" :subtitle="selectedRequest.ask.object">
 							<template #leading><DomButton class="md:hidden" size="sm" variant="ghost" @click="goBackToQueue">Back</DomButton></template>

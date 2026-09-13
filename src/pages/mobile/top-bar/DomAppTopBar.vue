@@ -44,10 +44,10 @@ defineProps({
 
 <template>
 	<header
-		class="skin-card px-4"
-		:class="[!border && 'border-0', large ? 'py-4' : 'py-3']"
+		class="shrink-0 bg-canvas/95 pl-[max(1rem,var(--dom-safe-area-left,env(safe-area-inset-left,0px)))] pr-[max(1rem,var(--dom-safe-area-right,env(safe-area-inset-right,0px)))] pt-[var(--dom-safe-area-top,env(safe-area-inset-top,0px))] text-canvas-fg"
+		:class="[border && 'border-b border-border', large ? 'pb-4' : 'pb-1']"
 	>
-		<div class="flex min-h-11 items-center gap-3">
+		<div class="flex min-h-11 items-center gap-3" :class="large && 'pt-3'">
 			<div v-if="$slots.leading" class="flex shrink-0 items-center">
 				<slot name="leading" />
 			</div>

@@ -34,8 +34,8 @@ function isItemActive(item) {
 	const { path, hash } = linkParts(item.to);
 	if (!path) return false;
 	if (hash) return route.path === path && route.hash === hash;
-	if (route.path !== path) return false;
-	return !route.hash || Boolean(item.children?.length);
+	// Page links remain active at section anchors; URL hashes are absent in SSR.
+	return route.path === path;
 }
 
 /**
@@ -47,7 +47,7 @@ function isItemActive(item) {
 function isItemCurrent(item) {
 	const { path, hash } = linkParts(item.to);
 	if (!path || route.path !== path) return false;
-	return hash ? route.hash === hash : !route.hash;
+	return !hash || route.hash === hash;
 }
 
 /**

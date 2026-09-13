@@ -3994,7 +3994,7 @@ export const componentCatalog = [
 		"doc": {
 			"name": "Action sheet",
 			"tag": "<DomActionSheet>",
-			"description": "A bottom action sheet for app choices, destructive actions, and quick commands.",
+			"description": "A bottom action sheet for mobile and desktop, with bounded scrolling, keyboard dismissal, focus return, and drag dismissal. Works standalone as a viewport overlay. In DomAppShell, place it in the overlay slot and it stays inside that app.",
 			"events": [
 				{
 					"name": "update:modelValue",
@@ -4017,16 +4017,23 @@ export const componentCatalog = [
 						{
 							"label": "Share project",
 							"description": "Open the native share sheet",
-							"value": "share"
+							"value": "share",
+							"variant": "",
+							"disabled": false
 						},
 						{
 							"label": "Duplicate screen",
-							"value": "duplicate"
+							"description": "",
+							"value": "duplicate",
+							"variant": "",
+							"disabled": false
 						},
 						{
 							"label": "Delete draft",
+							"description": "",
 							"value": "delete",
-							"variant": "danger"
+							"variant": "danger",
+							"disabled": false
 						}
 					]
 				}
@@ -4091,7 +4098,7 @@ export const componentCatalog = [
 		"doc": {
 			"name": "App list item",
 			"tag": "<DomAppListItem>",
-			"description": "A touch-sized app row for settings, inboxes, menus, and navigation.",
+			"description": "A touch-sized row that works in any layout. Use as=\"div\" for rows containing switches, inputs, or other controls so interactive elements are never nested inside a button.",
 			"slots": [
 				{
 					"name": "icon",
@@ -4124,7 +4131,7 @@ export const componentCatalog = [
 		"doc": {
 			"name": "Safe area",
 			"tag": "<DomSafeArea>",
-			"description": "Applies safe-area inset padding around app chrome for devices with cutouts, home indicators, or inset system UI.",
+			"description": "Applies selected device safe-area insets in any layout. App shell and app stack already reserve their own insets, so no extra wrapper is needed there. Enable viewport-fit=cover in the app viewport meta tag for edge-to-edge iOS layouts.",
 			"slots": [
 				{
 					"name": "(default)",
@@ -4132,7 +4139,7 @@ export const componentCatalog = [
 				}
 			],
 			"playground": {
-				"mobileSlot": "content"
+				"mobileSlot": "safe-area"
 			}
 		},
 		"studio": {}
@@ -4147,7 +4154,7 @@ export const componentCatalog = [
 		"doc": {
 			"name": "App shell",
 			"tag": "<DomAppShell>",
-			"description": "A web app surface with safe-area padding, scrollable content, and fixed app chrome slots for mobile or desktop app layouts.",
+			"description": "A bounded app viewport with safe areas, pinned top and bottom slots, and one scrolling content region. Fills the viewport by default; use height=\"100%\" only inside an explicitly sized parent. Set content-scroll to false when a nested DomAppStack owns scrolling.",
 			"slots": [
 				{
 					"name": "top",
@@ -4167,7 +4174,10 @@ export const componentCatalog = [
 				}
 			],
 			"playground": {
-				"mobileSlot": "shell"
+				"mobileSlot": "shell",
+				"initial": {
+					"height": "100%"
+				}
 			}
 		},
 		"studio": {}
@@ -4182,16 +4192,21 @@ export const componentCatalog = [
 		"doc": {
 			"name": "App stack",
 			"tag": "<DomAppStack>",
-			"description": "A settings-style screen stack that handles slide navigation, breadcrumbs, lazy screens, and responsive panel styling.",
+			"description": "A bounded screen stack with an iOS-style back button and sliding title on mobile, desktop breadcrumbs, and lazy screens. Fills the viewport by default. Inside DomAppShell, set height=\"100%\" and disable the shell content-scroll so each screen owns scrolling.",
 			"slots": [
 				{
 					"name": "(default)",
 					"description": "Optional DomAppStackScreen children used to register slot-driven screens."
 				},
 				{
+					"name": "header",
+					"payload": "{ activeScreen, canGoBack, back, path }",
+					"description": "Replace the mobile header; the header transitions with its screen."
+				},
+				{
 					"name": "breadcrumb",
 					"payload": "{ crumbs, canGoBack, back, goTo, push, path }",
-					"description": "Replace the breadcrumb and back control while keeping the stack state."
+					"description": "Replace the desktop breadcrumb and back control while keeping the stack state."
 				}
 			],
 			"events": [
@@ -4217,8 +4232,9 @@ export const componentCatalog = [
 				}
 			],
 			"playground": {
-				"mobileSlot": "content",
+				"mobileSlot": "stack",
 				"initial": {
+					"height": "100%",
 					"root": "settings",
 					"screens": [
 						{

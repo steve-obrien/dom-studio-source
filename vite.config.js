@@ -82,7 +82,7 @@ function domStudioComponentCatalogPlugin(root) {
 			const catalogModule = context.server.moduleGraph.getModuleById(componentCatalogOutputPath(root));
 			if (!catalogModule) return;
 			context.server.moduleGraph.invalidateModule(catalogModule);
-			return [catalogModule];
+			return [...new Set([...context.modules, catalogModule])];
 		},
 	};
 }

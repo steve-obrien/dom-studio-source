@@ -30,6 +30,7 @@ const activePreset = ref('');
 const isFullscreen = ref(false);
 const mobilePresetWidth = 390;
 const desktopPresetWidth = 1024;
+const isSmallViewport = ref(false);
 
 let resizeObserver;
 let headObserver;
@@ -43,9 +44,11 @@ let dragContentWidth = 0;
 let previousBodyOverflow = '';
 
 const effectiveMaxWidth = computed(() => Math.max(props.minWidth, props.maxWidth || availableWidth.value || props.defaultWidth || fallbackPreviewWidth));
-const clampedWidth = computed(() => clamp(previewWidth.value, props.minWidth, effectiveMaxWidth.value));
+const clampedWidth = computed(() => isSmallViewport.value
+	? availableWidth.value || props.minWidth
+	: clamp(previewWidth.value, props.minWidth, effectiveMaxWidth.value));
 const roundedWidth = computed(() => Math.round(clampedWidth.value));
-const hasMobileChrome = computed(() => props.chrome === 'mobile');
+const hasMobileChrome = computed(() => props.chrome === 'mobile' && !isSmallViewport.value && activePreset.value !== 'desktop');
 const iframeStyle = computed(() => ({
 	width: `${roundedWidth.value}px`,
 	height: isFullscreen.value ? '100%' : `${props.height}px`,
@@ -142,6 +145,7 @@ function fitToAvailableWidth(entry) {
  * @returns {void}
  */
 function syncAvailableWidth() {
+	isSmallViewport.value = window.matchMedia('(max-width: 639px)').matches;
 	if (!userResized.value) fitToAvailableWidth();
 	else updateAvailableWidth();
 }
@@ -218,8 +222,17 @@ function syncFrameStyles() {
 	baseStyle.textContent = `
 		html,
 		body,
-		#dom-example-frame-root {
+		#dom-example-frame-root,
+		.dom-example-frame-content {
+			height: 100%;
 			min-height: 100%;
+		}
+
+		:root {
+			--dom-safe-area-top: ${hasMobileChrome.value ? '44px' : '0px'};
+			--dom-safe-area-bottom: ${hasMobileChrome.value ? '20px' : '0px'};
+			--dom-safe-area-left: 0px;
+			--dom-safe-area-right: 0px;
 		}
 
 		body {
@@ -481,7 +494,10 @@ watch(
 );
 
 onMounted(async () => {
+	// Upgrade primitives before Vue creates nodes that will be adopted by the iframe.
+	await import('../../lib/headless/index.js');
 	await nextTick();
+	if (!canvas.value) return;
 	observeShell();
 	fitToAvailableWidth();
 	requestAnimationFrame(syncAvailableWidth);
@@ -492,6 +508,8 @@ onMounted(async () => {
 		observeHostDocument();
 	}
 });
+
+watch(hasMobileChrome, scheduleStyleSync);
 
 onBeforeUnmount(() => {
 	resizeObserver?.disconnect();
@@ -506,7 +524,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<div class="iframe-preview min-w-0 bg-canvas" :class="{ 'iframe-preview-fullscreen': isFullscreen }">
+	<div class="iframe-preview min-w-0 bg-canvas" :data-mobile="chrome === 'mobile'" :data-chrome="hasMobileChrome" :class="{ 'iframe-preview-fullscreen': isFullscreen }">
 		<div class="iframe-preview-toolbar flex items-center justify-between gap-3 border-b border-border bg-secondary/40 px-3 py-2">
 			<div class="flex min-w-0 items-center gap-2">
 				<p class="text-xs font-medium tabular-nums text-muted-fg">{{ roundedWidth }}px</p>
@@ -577,7 +595,7 @@ onBeforeUnmount(() => {
 				:style="iframeStyle"
 			>
 				<div
-					v-if="hasMobileChrome"
+					v-if="chrome === 'mobile'"
 					class="iframe-preview-mobile-shell"
 					:aria-label="device"
 				>
@@ -630,7 +648,7 @@ onBeforeUnmount(() => {
 	z-index: 100;
 	display: flex;
 	width: 100vw;
-	height: 100vh;
+	height: 100dvh;
 	flex-direction: column;
 	background: var(--canvas);
 }
@@ -656,7 +674,7 @@ onBeforeUnmount(() => {
 .iframe-preview-mobile-shell {
 	height: 100%;
 	padding: 0.625rem;
-	background: var(--canvas-fg);
+	background: var(--device-frame);
 	border: 1px solid var(--border);
 	border-radius: 3rem;
 }
@@ -683,6 +701,10 @@ onBeforeUnmount(() => {
 	border-radius: inherit;
 }
 
+.iframe-preview[data-chrome="true"] .iframe-preview-frame {
+	clip-path: inset(0 round 2.35rem);
+}
+
 .iframe-preview-mobile-notch {
 	position: absolute;
 	top: 0.5rem;
@@ -690,7 +712,7 @@ onBeforeUnmount(() => {
 	z-index: 20;
 	width: 6rem;
 	height: 1.5rem;
-	background: var(--canvas-fg);
+	background: var(--device-frame);
 	border-radius: 999px;
 	transform: translateX(-50%);
 }
@@ -766,5 +788,34 @@ onBeforeUnmount(() => {
 	background: var(--secondary);
 	box-shadow: 0 0 0 1px var(--border), var(--shadow-md);
 	opacity: 1;
+}
+
+/* Preserve the mounted iframe when changing presentation or viewport width. */
+.iframe-preview[data-chrome="false"] .iframe-preview-mobile-shell,
+.iframe-preview[data-chrome="false"] .iframe-preview-mobile-screen {
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	clip-path: none;
+}
+
+.iframe-preview[data-chrome="false"] .iframe-preview-mobile-notch,
+.iframe-preview[data-chrome="false"] .iframe-preview-mobile-speaker {
+	display: none;
+}
+
+@media (max-width: 639px) {
+	.iframe-preview[data-mobile="true"] .iframe-preview-canvas {
+		padding: 0;
+	}
+
+	.iframe-preview[data-mobile="true"] .iframe-preview-handle,
+	.iframe-preview[data-mobile="true"] [aria-label="Preview presets"] {
+		display: none;
+	}
+
+	.iframe-preview-fullscreen .iframe-preview-toolbar {
+		padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+	}
 }
 </style>

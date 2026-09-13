@@ -34,8 +34,8 @@ const components = [
 			</DocSection>
 			<DocSection title="Finance" eyebrow="Application examples">
 				<RouterLink to="/charts/finance" class="block rounded-xl border border-border skin-card p-6 transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-					<h3 class="text-lg font-semibold">Investment portfolios <span class="float-right text-muted-fg" aria-hidden="true">↗</span></h3>
-					<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">A banking-style view with total value, day, week, month, and year performance, signed gains and losses, holdings, and asset allocation.</p>
+					<h3 class="text-lg font-semibold">Finance & cashflow <span class="float-right text-muted-fg" aria-hidden="true">↗</span></h3>
+					<p class="mt-2 max-w-2xl text-sm leading-6 text-muted-fg">Investment portfolios, bank money in and out, cash projections, and a simulated transaction feed that updates the reports and charts.</p>
 				</RouterLink>
 			</DocSection>
 			<DocSection title="One chart language" eyebrow="Working with data">

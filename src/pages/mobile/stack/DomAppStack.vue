@@ -15,10 +15,11 @@ const StackScreenRenderer = defineComponent({
 		emptyTitle: { type: String, default: 'Select a setting' },
 		emptyDescription: { type: String, default: 'Choose an item to continue.' },
 	},
+	/** Returns the renderer for a resolved, loading, or empty screen. */
 	setup(props) {
 		return () => {
 			if (props.loading) return renderLoading(props.screen, props.loadingLabel);
-			if (props.error) return renderError(props.error);
+			if (props.error) return renderError(props.error, props.helpers.retry);
 			if (!props.screen) return renderEmpty(props.emptyTitle, props.emptyDescription);
 			if (props.screen.slot) return props.screen.slot({ ...props.helpers, screen: props.screen });
 			if (props.component) {
@@ -35,6 +36,9 @@ const StackScreenRenderer = defineComponent({
 	},
 });
 
+/**
+ * Builds accessible navigation rows for the current screen children.
+ */
 function renderGeneratedMenu(screen, childScreens, helpers) {
 	return h('div', { class: 'overflow-hidden rounded-[1.5rem] border border-border bg-canvas' }, childScreens.map((child) => {
 		const slots = child.icon ? {
@@ -59,6 +63,9 @@ function renderGeneratedMenu(screen, childScreens, helpers) {
 	}));
 }
 
+/**
+ * Renders the loading state while a screen module resolves.
+ */
 function renderLoading(screen, fallbackLabel) {
 	return h('div', { class: 'grid min-h-64 place-items-center p-6 text-center' }, [
 		h('div', { class: 'space-y-3' }, [
@@ -71,15 +78,22 @@ function renderLoading(screen, fallbackLabel) {
 	]);
 }
 
-function renderError(error) {
+/**
+ * Renders a recoverable screen-loading failure.
+ */
+function renderError(error, retry) {
 	return h('div', { class: 'grid min-h-64 place-items-center p-6 text-center' }, [
 		h('div', { class: 'max-w-sm space-y-2 rounded-2xl border border-destructive/30 bg-destructive/10 p-5' }, [
 			h('p', { class: 'text-sm font-semibold text-destructive' }, 'Unable to load this setting'),
 			h('p', { class: 'text-xs leading-5 text-muted-fg' }, error?.message || 'The screen loader rejected.'),
+			h('button', { type: 'button', class: 'min-h-11 rounded-lg px-4 font-medium text-canvas-fg focus-visible:outline-2 focus-visible:outline-ring', onClick: retry }, 'Try again'),
 		]),
 	]);
 }
 
+/**
+ * Renders the fallback when a screen has no content.
+ */
 function renderEmpty(title, description) {
 	return h('div', { class: 'grid min-h-64 place-items-center p-6 text-center' }, [
 		h('div', { class: 'max-w-sm' }, [
@@ -93,10 +107,11 @@ defineOptions({
 	__doc: {
 		name: 'App stack',
 		tag: '<DomAppStack>',
-		description: 'A settings-style screen stack that handles slide navigation, breadcrumbs, lazy screens, and responsive panel styling.',
+		description: 'A bounded screen stack with an iOS-style back button and sliding title on mobile, desktop breadcrumbs, and lazy screens. Fills the viewport by default. Inside DomAppShell, set height="100%" and disable the shell content-scroll so each screen owns scrolling.',
 		slots: [
 			{ name: '(default)', description: 'Optional DomAppStackScreen children used to register slot-driven screens.' },
-			{ name: 'breadcrumb', payload: '{ crumbs, canGoBack, back, goTo, push, path }', description: 'Replace the breadcrumb and back control while keeping the stack state.' },
+			{ name: 'header', payload: '{ activeScreen, canGoBack, back, path }', description: 'Replace the mobile header; the header transitions with its screen.' },
+			{ name: 'breadcrumb', payload: '{ crumbs, canGoBack, back, goTo, push, path }', description: 'Replace the desktop breadcrumb and back control while keeping the stack state.' },
 		],
 		events: [
 			{ name: 'update:path', payload: '(path: Array<string>)', description: 'Fired when the active stack path changes.' },
@@ -105,8 +120,9 @@ defineOptions({
 			{ name: 'error', payload: '(payload: { screen, error })', description: 'Fired when a lazy screen component rejects.' },
 		],
 		playground: {
-			mobileSlot: 'content',
+			mobileSlot: 'stack',
 			initial: {
+				height: '100%',
 				root: 'settings',
 				screens: [
 					{ id: 'settings', title: 'Settings', children: ['account', 'notifications'] },
@@ -119,6 +135,16 @@ defineOptions({
 });
 
 const props = defineProps({
+	height: {
+		type: String,
+		default: '100dvh',
+		_edit: { description: 'Bounded stack height. Use 100% inside DomAppShell with content-scroll disabled, or a CSS length for an embedded stack.' },
+	},
+	showHeader: {
+		type: Boolean,
+		default: true,
+		_edit: { description: 'Show the mobile back button and current screen title.' },
+	},
 	path: {
 		type: Array,
 		default: null,
@@ -157,7 +183,7 @@ const props = defineProps({
 	showBreadcrumbs: {
 		type: Boolean,
 		default: true,
-		_edit: { description: 'Render the default breadcrumb bar, or provide the breadcrumb slot.' },
+		_edit: { description: 'Show desktop breadcrumbs. Mobile uses the current title and back button; showHeader controls that header.' },
 	},
 	animate: {
 		type: Boolean,
@@ -226,6 +252,7 @@ const internalPath = ref([]);
 const direction = ref('forward');
 const isDesktopMedia = ref(false);
 const screenPanel = ref(null);
+const visitedPaths = reactive(new Map());
 
 let removeDesktopMediaListener = null;
 
@@ -277,7 +304,6 @@ const crumbs = computed(() => resolvedPath.value.map((id, index) => {
 const canGoBack = computed(() => resolvedPath.value.length > 1);
 const isDesktopLayout = computed(() => props.layout === 'desktop' || (props.layout === 'auto' && isDesktopMedia.value));
 const transitionName = computed(() => (props.animate ? `dom-app-stack-${direction.value}` : ''));
-const activeComponent = computed(() => componentForScreen(activeScreen.value));
 const helpers = computed(() => ({
 	activeId: activeId.value,
 	back,
@@ -291,6 +317,7 @@ const helpers = computed(() => ({
 	push,
 	replace,
 	reset,
+	retry: retryActiveScreen,
 }));
 const breadcrumbSlotProps = computed(() => ({
 	...helpers.value,
@@ -304,6 +331,7 @@ watch(rootId, (id) => {
 }, { immediate: true });
 
 watch(activeScreen, (screen) => {
+	if (screen) visitedPaths.set(screen.id, [...resolvedPath.value]);
 	ensureLoaded(screen);
 }, { immediate: true });
 
@@ -324,6 +352,9 @@ onBeforeUnmount(() => {
 	removeDesktopMediaListener?.();
 });
 
+/**
+ * Normalizes an application-owned screen record without mutating it.
+ */
 function normalizeScreen(screen) {
 	if (!screen || !screen.id) return null;
 	return {
@@ -334,6 +365,9 @@ function normalizeScreen(screen) {
 	};
 }
 
+/**
+ * Collects declarative screen registrations from the default slot.
+ */
 function extractSlotScreens(vnodes) {
 	const screens = [];
 
@@ -357,11 +391,17 @@ function extractSlotScreens(vnodes) {
 	return screens;
 }
 
+/**
+ * Identifies a declarative screen registration vnode.
+ */
 function isStackScreenVNode(vnode) {
 	const type = vnode?.type;
 	return type?.name === 'DomAppStackScreen' || type?.__name === 'AppStackScreen';
 }
 
+/**
+ * Resolves child records and identifiers into stable string ids.
+ */
 function normalizeChildren(children) {
 	if (!Array.isArray(children)) return [];
 	return children
@@ -372,23 +412,35 @@ function normalizeChildren(children) {
 		.filter(Boolean);
 }
 
+/**
+ * Normalizes a controlled path and supplies the root when empty.
+ */
 function normalizePath(path) {
 	const next = Array.isArray(path) ? path.map((item) => String(item)).filter(Boolean) : [];
 	if (!next.length && rootId.value) return [rootId.value];
 	return next;
 }
 
+/**
+ * Compares navigation paths without changing either array.
+ */
 function samePath(a, b) {
 	if (a.length !== b.length) return false;
 	return a.every((item, index) => item === b[index]);
 }
 
+/**
+ * Determines whether navigation pushes forward or returns to an ancestor.
+ */
 function compareDirection(next, previous = []) {
 	if (next.length > previous.length && previous.every((id, index) => next[index] === id)) return 'forward';
 	if (next.length < previous.length && next.every((id, index) => previous[index] === id)) return 'back';
 	return next.length >= previous.length ? 'forward' : 'back';
 }
 
+/**
+ * Builds an ancestry path and rejects cycles or disconnected parents.
+ */
 function pathToScreen(id) {
 	const target = String(id || '');
 	if (!target) return null;
@@ -409,6 +461,9 @@ function pathToScreen(id) {
 	return path;
 }
 
+/**
+ * Commits a navigation change and reports its direction to consumers.
+ */
 function commitPath(path, reason = 'navigate') {
 	const previousPath = resolvedPath.value;
 	const nextPath = normalizePath(path);
@@ -428,6 +483,9 @@ function commitPath(path, reason = 'navigate') {
 	nextTick(focusActivePanel);
 }
 
+/**
+ * Opens a screen, reusing its existing ancestry where available.
+ */
 function push(id) {
 	const target = String(id || '');
 	if (!target) return;
@@ -439,18 +497,27 @@ function push(id) {
 	commitPath(pathToScreen(target) || [...resolvedPath.value, target], 'push');
 }
 
+/**
+ * Replaces the active destination with the requested screen.
+ */
 function replace(id) {
 	const target = String(id || '');
 	if (!target) return;
 	commitPath(pathToScreen(target) || [...resolvedPath.value.slice(0, -1), target], 'replace');
 }
 
+/**
+ * Returns the requested number of levels without leaving the root.
+ */
 function back(steps = 1) {
 	const count = Math.max(1, Number(steps) || 1);
 	if (resolvedPath.value.length <= 1) return;
 	commitPath(resolvedPath.value.slice(0, Math.max(1, resolvedPath.value.length - count)), 'back');
 }
 
+/**
+ * Navigates to a breadcrumb index or registered screen id.
+ */
 function goTo(target) {
 	if (typeof target === 'number') {
 		const index = Math.max(0, Math.min(target, resolvedPath.value.length - 1));
@@ -468,16 +535,25 @@ function goTo(target) {
 	commitPath(pathToScreen(id) || [...resolvedPath.value, id], 'breadcrumb');
 }
 
+/**
+ * Resets navigation to the root or another registered destination.
+ */
 function reset(id = rootId.value) {
 	const target = String(id || '');
 	commitPath(pathToScreen(target) || (target ? [target] : []), 'reset');
 }
 
+/**
+ * Opens a child under its declared parent path.
+ */
 function openChild(parentId, childId) {
 	const parentPath = pathToScreen(parentId) || resolvedPath.value;
 	commitPath([...parentPath, String(childId)], 'push');
 }
 
+/**
+ * Resolves the unique child records belonging to a screen.
+ */
 function childScreensFor(screen) {
 	if (!screen) return [];
 	const childIds = [
@@ -489,10 +565,16 @@ function childScreensFor(screen) {
 		.filter(Boolean);
 }
 
+/**
+ * Detects the documented function-based lazy screen loader.
+ */
 function isLazyScreenComponent(component) {
 	return typeof component === 'function';
 }
 
+/**
+ * Returns a resolved component without invoking its loader during render.
+ */
 function componentForScreen(screen) {
 	if (!screen) return null;
 	if (loadedComponents.has(screen.id)) return loadedComponents.get(screen.id);
@@ -500,6 +582,9 @@ function componentForScreen(screen) {
 	return screen.component || null;
 }
 
+/**
+ * Loads each asynchronous screen once and records success or failure.
+ */
 async function ensureLoaded(screen) {
 	if (!screen || screen.slot || loadedComponents.has(screen.id) || loadingScreens.has(screen.id)) return;
 	const loader = screen.loader || (isLazyScreenComponent(screen.component) ? screen.component : null);
@@ -521,64 +606,88 @@ async function ensureLoaded(screen) {
 	}
 }
 
+/**
+ * Reports whether the requested screen has a pending loader.
+ */
 function isScreenLoading(screen) {
 	return !!screen && loadingScreens.has(screen.id);
 }
 
+/**
+ * Returns the most recent loader error for a screen.
+ */
 function screenError(screen) {
 	return screen ? loadErrors.get(screen.id) : null;
 }
 
+/**
+ * Focuses the visible screen without moving its retained scroll position.
+ */
 function focusActivePanel() {
 	if (!props.focusOnNavigate) return;
-	screenPanel.value?.focus?.({ preventScroll: true });
+	screenPanel.value?.querySelector('[data-dom-app-stack-screen]:not([inert]) [data-dom-app-stack-pane]')?.focus({ preventScroll: true });
 }
 
-function mediaQueryForBreakpoint(value) {
-	const text = String(value || '').trim();
-	if (!text) return '(min-width: 768px)';
-	if (text.startsWith('(')) return text;
-	return `(min-width: ${text})`;
+/** Retries the active loader after a recoverable failure. */
+function retryActiveScreen() {
+	ensureLoaded(activeScreen.value);
 }
 
+/** Observes the actual stack width, including when embedded in a desktop pane or iframe. */
 function configureDesktopMedia() {
-	if (typeof window === 'undefined') return;
+	const element = screenPanel.value;
+	const view = element?.ownerDocument.defaultView;
+	if (!element || !view) return;
 	removeDesktopMediaListener?.();
-
-	const query = window.matchMedia(mediaQueryForBreakpoint(props.desktopBreakpoint));
-	const update = () => {
-		isDesktopMedia.value = query.matches;
-	};
-
+	const breakpoint = String(props.desktopBreakpoint || '768px').trim();
+	if (breakpoint.startsWith('(')) {
+		const query = view.matchMedia(breakpoint);
+		/** Synchronizes an explicitly supplied media-query breakpoint. */
+		const update = () => { isDesktopMedia.value = query.matches; };
+		update();
+		query.addEventListener('change', update);
+		removeDesktopMediaListener = () => query.removeEventListener('change', update);
+		return;
+	}
+	const probe = element.ownerDocument.createElement('span');
+	probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;height:0;';
+	probe.style.width = breakpoint;
+	element.appendChild(probe);
+	/** Resolves a CSS-length breakpoint against the component's own container. */
+	const update = () => { isDesktopMedia.value = element.clientWidth >= (probe.getBoundingClientRect().width || 768); };
+	const observer = new view.ResizeObserver(update);
+	observer.observe(element);
+	observer.observe(probe);
 	update();
-	if (query.addEventListener) query.addEventListener('change', update);
-	else query.addListener(update);
 	removeDesktopMediaListener = () => {
-		if (query.removeEventListener) query.removeEventListener('change', update);
-		else query.removeListener(update);
+		observer.disconnect();
+		probe.remove();
 	};
 }
+
 </script>
 
 <template>
 	<div
 		data-dom-app-stack
-		class="flex h-full min-h-[28rem] w-full flex-col overflow-hidden bg-canvas text-canvas-fg"
+		ref="screenPanel"
+		class="[&_input]:text-base [&_textarea]:text-base [&_select]:text-base relative flex min-h-0 min-w-0 w-full flex-col overflow-hidden bg-canvas text-canvas-fg pt-[var(--dom-safe-area-top,env(safe-area-inset-top,0px))] pb-[var(--dom-safe-area-bottom,env(safe-area-inset-bottom,0px))] pl-[var(--dom-safe-area-left,env(safe-area-inset-left,0px))] pr-[var(--dom-safe-area-right,env(safe-area-inset-right,0px))]"
+		:style="{ height }"
 	>
 		<slot
-			v-if="showBreadcrumbs"
+			v-if="isDesktopLayout && showBreadcrumbs"
 			name="breadcrumb"
 			v-bind="breadcrumbSlotProps"
 		>
 			<nav
-				class="flex min-h-12 items-center gap-2 border-b border-border bg-canvas/95 px-2 backdrop-blur"
+				class="flex min-h-12 shrink-0 items-center gap-2 border-b border-border bg-canvas/95 px-2 backdrop-blur"
 				:class="breadcrumbClass"
 				aria-label="Settings path"
 			>
 				<button
 					v-if="canGoBack"
 					type="button"
-					class="inline-flex h-9 shrink-0 items-center gap-1 rounded-full px-2.5 text-sm font-medium text-canvas-fg transition hover:bg-secondary active:scale-95"
+					class="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full px-2.5 text-sm font-medium text-canvas-fg transition hover:bg-secondary active:scale-95"
 					:class="backButtonClass"
 					@click="back()"
 				>
@@ -597,7 +706,7 @@ function configureDesktopMedia() {
 						<button
 							v-if="index < crumbs.length - 1"
 							type="button"
-							class="max-w-36 truncate rounded-full px-2.5 py-1.5 font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg"
+							class="min-h-11 max-w-36 truncate rounded-full px-2.5 py-1.5 font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg"
 							:class="breadcrumbItemClass"
 							@click="goTo(index)"
 						>{{ crumb.title }}</button>
@@ -621,45 +730,75 @@ function configureDesktopMedia() {
 			</nav>
 		</slot>
 
-		<div class="relative min-h-0 flex-1 overflow-hidden">
-			<Transition :name="transitionName">
+		<div class="relative min-h-0 flex-1 overflow-hidden [--dom-safe-area-top:0px] [--dom-safe-area-bottom:0px] [--dom-safe-area-left:0px] [--dom-safe-area-right:0px]">
+			<Transition
+				v-for="[id, screenPath] in visitedPaths"
+				:key="id"
+				:name="transitionName"
+				@after-enter="focusActivePanel"
+			>
 				<section
-					:key="activeId || 'empty'"
-					ref="screenPanel"
-					tabindex="-1"
-					data-dom-app-stack-pane
-					class="absolute inset-0 min-h-0 overflow-y-auto outline-none [-webkit-overflow-scrolling:touch]"
-					:class="[isDesktopLayout ? 'p-4 md:p-6' : 'p-4', isDesktopLayout ? desktopContentClass : mobilePanelClass]"
-					:aria-busy="isScreenLoading(activeScreen) ? 'true' : undefined"
+					v-show="id === activeId"
+					:data-dom-app-stack-screen="id"
+					:inert="id !== activeId"
+					class="absolute inset-0 flex min-h-0 flex-col bg-canvas"
 				>
-					<StackScreenRenderer
-						:screen="activeScreen"
-						:component="activeComponent"
-						:helpers="helpers"
-						:child-screens="childScreensFor(activeScreen)"
-						:loading="isScreenLoading(activeScreen)"
-						:error="screenError(activeScreen)"
-						:loading-label="loadingLabel"
-						:empty-title="emptyTitle"
-						:empty-description="emptyDescription"
-					/>
+					<slot v-if="!isDesktopLayout && showHeader" name="header" v-bind="{ ...breadcrumbSlotProps, activeScreen: screenById.get(id), path: screenPath, canGoBack: screenPath.length > 1 }">
+						<header class="grid min-h-11 shrink-0 grid-cols-[1fr_minmax(0,2fr)_1fr] items-center border-b border-border bg-canvas/95 px-2">
+							<button
+								v-if="screenPath.length > 1"
+								type="button"
+								class="inline-flex min-h-11 min-w-11 items-center gap-0.5 justify-self-start rounded-lg pr-2 text-sm text-primary active:opacity-60 focus-visible:outline-2 focus-visible:outline-ring"
+								:class="backButtonClass"
+								:aria-label="`Back to ${screenById.get(screenPath.at(-2))?.title || 'previous page'}`"
+								@click="back()"
+							>
+								<svg class="size-6 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+									<path d="M12.7 4.3a1 1 0 0 1 0 1.4L8.42 10l4.3 4.3a1 1 0 0 1-1.42 1.4l-5-5a1 1 0 0 1 0-1.4l5-5a1 1 0 0 1 1.42 0Z" />
+								</svg>
+								<span>Back</span>
+							</button>
+							<span v-else aria-hidden="true"></span>
+							<h1 class="truncate text-center text-base font-semibold tracking-tight">{{ screenById.get(id)?.title || emptyTitle }}</h1>
+						</header>
+					</slot>
+					<div
+						data-dom-app-stack-pane
+						tabindex="-1"
+						:aria-label="screenById.get(id)?.title"
+						class="min-h-0 flex-1 overflow-y-auto overscroll-contain outline-none"
+						:class="[isDesktopLayout ? 'p-6' : 'p-3', isDesktopLayout ? desktopContentClass : mobilePanelClass]"
+						:aria-busy="isScreenLoading(screenById.get(id)) ? 'true' : undefined"
+					>
+						<StackScreenRenderer
+							:screen="screenById.get(id)"
+							:component="componentForScreen(screenById.get(id))"
+							:helpers="helpers"
+							:child-screens="childScreensFor(screenById.get(id))"
+							:loading="isScreenLoading(screenById.get(id))"
+							:error="screenError(screenById.get(id))"
+							:loading-label="loadingLabel"
+							:empty-title="emptyTitle"
+							:empty-description="emptyDescription"
+						/>
+					</div>
 				</section>
 			</Transition>
+			<div v-if="!activeScreen" class="p-6 text-center text-sm text-muted-fg">{{ emptyTitle }}</div>
 		</div>
 	</div>
 </template>
 
 <style scoped>
-[data-dom-app-stack-pane] {
+[data-dom-app-stack-screen] {
 	backface-visibility: hidden;
-	will-change: transform, opacity;
 }
 
 .dom-app-stack-forward-enter-active,
 .dom-app-stack-back-enter-active {
 	pointer-events: none;
 	transition:
-		transform 360ms cubic-bezier(0.4, 0, 0.2, 1),
+		transform 320ms cubic-bezier(0.32, 0.72, 0, 1),
 		opacity 220ms ease;
 }
 
@@ -667,7 +806,7 @@ function configureDesktopMedia() {
 .dom-app-stack-back-leave-active {
 	pointer-events: none;
 	transition:
-		transform 360ms cubic-bezier(0.4, 0, 0.2, 1),
+		transform 320ms cubic-bezier(0.32, 0.72, 0, 1),
 		opacity 140ms ease 180ms;
 }
 

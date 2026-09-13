@@ -52,6 +52,8 @@ The package root exports the same Vue surface as `@getdom/studio/vue`. Use headl
 - Use `DomCodeBlock` for highlighted read-only code and `DomJsonViewer` for inspecting JSON payloads, diagnostics, and implementation data.
 - Use `DomTextDiff` for reviewable before-and-after copy, AI rewrite suggestions, SEO field replacements, and unified or split code edits.
 - Use `DomAppShell`, `DomAppTopBar`, `DomAppBottomNav`, `DomAppListItem`, `DomSafeArea`, and `DomActionSheet` for Capacitor-style app screens.
+- `DomAppShell` and `DomAppStack` default to `height="100dvh"`; use `height="100%"` only in a sized parent. Nest a stack in `<DomAppShell :content-scroll="false">` with stack `height="100%"` so each screen owns scrolling. Both reserve safe areas without another wrapper. Mobile stack headers show Back and the current title; the `breadcrumb` slot is desktop-only and the `header` slot customizes mobile. Visited screens retain local state and scroll while the stack stays mounted.
+- `DomActionSheet` works independently as a viewport overlay on mobile or desktop. In a shell, put it in `#overlay` for app-contained positioning. Use `DomAppListItem as="div"` for rows with switches or inputs. Use `DomToggle` with `label` and `chrome="none"` when the row supplies the visible label.
 
 ## Studio Specs
 

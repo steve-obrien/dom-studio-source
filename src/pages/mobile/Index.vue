@@ -7,6 +7,9 @@ import MobileExampleSection from './_components/MobileExampleSection.vue';
 import MobileWorkspace from './examples/MobileWorkspace.vue';
 import MobileWorkspaceSource from './examples/MobileWorkspace.vue?raw';
 import SettingsStack from './examples/SettingsStack.vue';
+import DesktopActionSheet from './action-sheet/examples/DesktopActionSheet.vue';
+import DesktopActionSheetSource from './action-sheet/examples/DesktopActionSheet.vue?raw';
+import CodeBlock from '../_layout/CodeBlock.vue';
 import SettingsStackSource from './examples/SettingsStack.vue?raw';
 
 const mobileFoundations = [
@@ -22,23 +25,16 @@ const mobileFoundations = [
 ];
 
 const platformPoints = [
-	{
-		title: 'The web works brilliantly for apps',
-		description: 'The DOM, CSS, and browser event model are stable platform contracts. Every major device vendor has to keep the web working, which makes it a calmer base for mobile apps than another proprietary rendering bridge.',
-	},
-	{
-		title: 'Avoid another rendering pipeline',
-		description: 'A React-to-native layer turns browser-oriented UI into native widgets through an extra conversion step. As iOS and Android shift, that bridge needs constant maintenance. A web UI keeps the rendering path direct.',
-	},
-	{
-		title: 'Native feel is humble CSS',
-		description: 'Safe areas, fixed app chrome, contained scrolling, motion, large touch targets, active states, and thumb-first layouts are all achievable with straightforward CSS and reusable DOM Studio primitives.',
-	},
-	{
-		title: 'Use JavaScript for device behaviour',
-		description: 'Haptics, sharing, camera flows, keyboard behaviour, notifications, and storage can be reached through JavaScript APIs and Capacitor plugins while the interface remains normal web code.',
-	},
+	{ title: 'Start with the web', description: 'Build and test the interface with the HTML, CSS, components, routing, and state your team already uses.' },
+	{ title: 'Add native features when needed', description: 'A bridge such as Capacitor lets JavaScript call native plugins for iOS and Android while the interface stays in a webview.' },
+	{ title: 'Let the layout own scrolling', description: 'Use a bounded app shell for pinned navigation and independent content scrolling. Ordinary rows, bars, and sheets also work on desktop.' },
+	{ title: 'Make the parent contract explicit', description: 'App shell and app stack size themselves by default. Only percentage heights require a sized parent, and nested scroll owners are an explicit choice.' },
 ];
+
+const layoutExample = `<DomAppShell :content-scroll="false">
+	<DomAppStack root="settings" :screens="screens" height="100%" />
+</DomAppShell>`;
+
 </script>
 
 <template>
@@ -47,19 +43,12 @@ const platformPoints = [
 			name="Mobile"
 			eyebrow="DOM Studio"
 			tag="<DomAppShell>"
-			tagline="Capacitor-ready app components shown inside a phone preview shell, with safe areas, thumb navigation, sheets, and native-feeling app chrome."
+			tagline="App layouts, navigation, and action sheets for webviews, mobile browsers, and desktop. Built-in safe areas and scrolling, with no demo chrome on small screens."
 		>
 			<DocSection eyebrow="Overview" title="Web-first mobile apps">
 				<div class="max-w-3xl space-y-4 text-sm leading-7 text-muted-fg">
-					<p>
-						The web works brilliantly for mobile apps. It gives you the most stable rendering platform we have: HTML, CSS, and JavaScript running in a browser engine that every major device vendor must keep compatible.
-					</p>
-					<p>
-						A native bridge such as React Native adds another rendering and conversion pipeline between React and proprietary native components. That can be useful in some teams, but it also creates extra maintenance pressure as iOS and Android evolve. With a web-first app, the DOM remains the rendering surface and your interface code stays portable.
-					</p>
-					<p>
-						Capacitor gives the best of both worlds: reuse the web logic, components, routing, state, and styling you already have, then expose native functionality to JavaScript only where the app actually needs it.
-					</p>
+					<p>My preference when building mobile apps is to start with CSS and HTML components in a webview. Then, if needed, access native functionality through JavaScript libraries that let you maintain native plugins for Android and iOS, such as <a href="https://capacitorjs.com/docs" class="font-medium text-canvas-fg underline underline-offset-4">Capacitor</a> and similar bridges.</p>
+					<p>That keeps the interface in familiar web code, with native capabilities added where the app needs them. DOM Studio handles the interface: safe areas, pinned navigation, scrollable screens, touch targets, and motion. The application owns native plugins, routing, and persistence.</p>
 				</div>
 
 				<div class="mt-6 grid gap-3 md:grid-cols-2">
@@ -75,8 +64,8 @@ const platformPoints = [
 			</DocSection>
 
 			<MobileExampleSection
-				title="Phone-first preview"
-				description="App primitives in this section can be previewed in mobile chrome so docs feel closer to a real Capacitor app than a desktop component sandbox."
+				title="A working app viewport"
+				description="On desktop, preview the app inside a phone. On a small screen, the device frame disappears. Use the expand control to try the app across the available display."
 			>
 				<template #notes>
 					<div class="grid gap-3 sm:grid-cols-2">
@@ -94,7 +83,7 @@ const platformPoints = [
 				<Example
 					:source="MobileWorkspaceSource"
 					title="Live app shell"
-					description="The rendered preview and source come from the same SFC, with the output mounted inside mobile chrome."
+					description="Scroll the task list, switch tabs, and open More actions. Navigation stays pinned while the content scrolls."
 					filename="MobileWorkspace.vue"
 					presentation="mobile"
 					device-title="Live app shell"
@@ -114,7 +103,7 @@ const platformPoints = [
 				<Example
 					:source="SettingsStackSource"
 					title="Settings stack"
-					description="The root menu is a slot, deeper account screens are nested slots, and larger settings panels are loaded with dynamic imports."
+					description="Go back to Settings or open Profile. Mobile shows a back button and sliding page title; the Desktop preset shows breadcrumbs. Visited screens keep their state and scroll position."
 					filename="SettingsStack.vue"
 					presentation="mobile"
 					device-title="Settings stack"
@@ -122,6 +111,26 @@ const platformPoints = [
 					:preview-lines="16"
 				>
 					<SettingsStack />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Layout" title="Choose who owns the viewport">
+				<div class="max-w-3xl space-y-4 text-sm leading-7 text-muted-fg">
+					<p><code>DomAppShell</code> is the app wrapper. It defaults to <code>100dvh</code>, reserves device safe areas once, pins the top and bottom slots, and scrolls its main region. It works without positioning styles on the page. Use a fixed CSS height for an embedded app, or <code>height="100%"</code> when its parent already has an explicit height.</p>
+					<p><code>DomAppStack</code> can also stand alone. Each screen owns its scrolling, so when you nest it in a shell, turn off the shell’s content scrolling:</p>
+				</div>
+				<CodeBlock :code="layoutExample" lang="vue" />
+				<div class="mt-4 max-w-3xl space-y-4 text-sm leading-7 text-muted-fg">
+					<p>Rows, top bars, bottom navigation, and safe-area wrappers work independently. For a row containing a toggle or input, use <code>DomAppListItem as="div"</code> to avoid nesting interactive controls inside a button.</p>
+					<p><code>DomActionSheet</code> works as a viewport overlay by itself. Put it in the shell’s <code>#overlay</code> slot to contain it within that app. Long action lists scroll, and Cancel stays reachable.</p>
+					<p>For an edge-to-edge iOS webview, set <code>width=device-width, initial-scale=1, viewport-fit=cover</code> in the viewport meta tag. The components read the device safe-area insets. If native chrome already reserves those areas, avoid applying them a second time. <a href="https://webkit.org/blog/7929/designing-websites-for-iphone-x/" class="underline underline-offset-4">WebKit’s safe-area guidance</a>.</p>
+					<p>The phone frame simulates a cutout. Real keyboard resizing, system gestures, native plugin behaviour, and device safe areas still need testing in your target iOS and Android webviews.</p>
+				</div>
+			</DocSection>
+
+			<DocSection eyebrow="Desktop and mobile" title="Action sheets work beyond phones">
+				<Example :source="DesktopActionSheetSource" title="Document actions" description="A standalone sheet in a desktop workspace. Try the long list to see actions scroll while Cancel stays visible." filename="DesktopActionSheet.vue" source-path="src/pages/mobile/action-sheet/examples/DesktopActionSheet.vue" presentation="iframe" :frame-height="520">
+					<DesktopActionSheet />
 				</Example>
 			</DocSection>
 

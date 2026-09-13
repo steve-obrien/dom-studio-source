@@ -46,6 +46,16 @@ const useSfc = computed(() => !!props.component);
 
 // ---------------------------------------------------------------------------
 // Auto-mode data — seeded from the inspected component's defineProps defaults.
+/** Clones editable arrays and records without changing function-valued props. */
+function clonePreviewValue(value) {
+	if (Array.isArray(value)) return value.map(clonePreviewValue);
+	if (value && Object.getPrototypeOf(value) === Object.prototype) {
+		return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, clonePreviewValue(item)]));
+	}
+	return value;
+}
+
+/** Creates per-instance editor state so form normalization cannot mutate shared docs metadata. */
 function seed() {
 	const out = {};
 	const defs = props.inspect.props || {};
@@ -54,7 +64,7 @@ function seed() {
 		const d = def && typeof def === 'object' ? def.default : undefined;
 		out[key] = typeof d === 'function' ? d() : d;
 	}
-	return Object.assign(out, props.initial);
+	return clonePreviewValue(Object.assign(out, props.initial));
 }
 const autoData = reactive(seed());
 
@@ -94,6 +104,7 @@ const schemaGroups = computed(() => {
 		});
 });
 
+/** Synchronizes the component's model with its live prop editor. */
 function onUpdateModelValue(v) {
 	if (data.value && 'modelValue' in data.value) data.value.modelValue = v;
 }
@@ -114,7 +125,7 @@ const autoSource = computed(() => {
 	if (!data.value) return '';
 	const tag = componentTag.value;
 	const hasModel = 'modelValue' in data.value;
-	const literal = JSON.stringify(data.value, null, 2)
+	const literal = JSON.stringify(data.value, null, '\t')
 		.split('\n')
 		.map((l, i) => (i === 0 ? l : '\t' + l))
 		.join('\n');
@@ -142,7 +153,7 @@ const tabs = [
 	{ key: 'data', label: 'Data' },
 ];
 
-const dataJson = computed(() => (data.value ? JSON.stringify(data.value, null, 2) : ''));
+const dataJson = computed(() => (data.value ? JSON.stringify(data.value, null, '\t') : ''));
 const codeSource = computed(() => {
 	if (tab.value === 'data') return dataJson.value;
 	return useSfc.value ? props.source : autoSource.value;
@@ -157,7 +168,7 @@ const isMobilePresentation = computed(() => props.presentation === 'mobile');
 const mobileSlot = computed(() => props.inspect?.__doc?.playground?.mobileSlot || 'content');
 const previewClasses = computed(() => {
 	if (isMobilePresentation.value) {
-		return 'flex min-h-80 min-w-0 items-center justify-center overflow-hidden p-4 sm:p-8';
+		return 'flex min-h-80 min-w-0 items-center justify-center overflow-hidden p-0 sm:p-6';
 	}
 	return 'flex max-h-[38rem] min-h-80 min-w-0 items-start justify-center overflow-auto p-10';
 });
@@ -175,6 +186,18 @@ const previewClasses = computed(() => {
 				<MobilePreview v-if="isMobilePresentation" :title="title">
 					<!-- SFC mode: render the playground SFC; it owns the data + slots. -->
 					<component v-if="useSfc" :is="component" ref="playgroundRef" />
+					<component v-else-if="mobileSlot === 'safe-area'" :is="inspect" v-bind="autoData" class="h-full">
+						<div class="flex h-full flex-col justify-between border border-dashed border-primary bg-primary/5 p-4 text-sm">
+							<p class="font-semibold">Content inside the safe area</p>
+							<p class="leading-6 text-muted-fg">On desktop the phone simulates a cutout and home indicator. On a real device, padding comes from its safe-area insets.</p>
+							<p class="font-medium">Bottom content stays reachable</p>
+						</div>
+					</component>
+					<component
+						v-else-if="mobileSlot === 'stack'"
+						:is="inspect"
+						v-bind="autoData"
+					/>
 					<component
 						v-else-if="mobileSlot === 'shell'"
 						:is="inspect"
@@ -192,8 +215,8 @@ const previewClasses = computed(() => {
 								<p class="text-xs font-medium uppercase tracking-[0.16em] opacity-80">Sample</p>
 								<p class="mt-2 text-xl font-semibold">Scrollable app content</p>
 							</div>
-							<div class="rounded-[1.5rem] border border-border skin-card p-4">
-								<p class="text-sm font-medium text-canvas-fg">Card content</p>
+							<div v-for="index in 6" :key="index" class="rounded-[1.5rem] border border-border skin-card p-4">
+								<p class="text-sm font-medium text-canvas-fg">Content section {{ index }}</p>
 								<p class="mt-1 text-xs leading-5 text-muted-fg">The shell keeps top and bottom chrome pinned while this area scrolls.</p>
 							</div>
 						</div>
@@ -201,7 +224,7 @@ const previewClasses = computed(() => {
 							<div class="border-t border-border skin-card px-4 py-3 text-center text-xs font-medium text-muted-fg">Bottom chrome</div>
 						</template>
 					</component>
-					<DomAppShell v-else>
+					<DomAppShell v-else height="100%">
 						<template v-if="mobileSlot === 'top'" #top>
 							<component
 								:is="inspect"

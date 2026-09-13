@@ -74,7 +74,7 @@ function eventSummary(cls) {
 						around exactly these controls.
 					</p>
 					<ul class="mt-4 grid gap-2 text-sm text-muted-fg sm:grid-cols-2">
-						<li>✓ ~2kb gzipped per control, SSR-safe (guards <code>customElements</code>)</li>
+						<li>✓ Import controls individually, with no framework runtime required.</li>
 						<li>✓ Light DOM by default — Tailwind classes cascade in normally</li>
 						<li>✓ ARIA + roving tabindex + focus management built in</li>
 						<li>✓ Events use the <code>dom:*</code> convention with bubbling</li>

@@ -14,6 +14,8 @@ const activeTab = ref('home');
 const query = ref('');
 const notifications = ref(true);
 const sheetOpen = ref(false);
+const selectedTask = ref('');
+const lastAction = ref('');
 
 const icons = {
 	home: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
@@ -46,18 +48,29 @@ const actions = [
 	{ label: 'Duplicate screen', value: 'duplicate' },
 	{ label: 'Delete draft', value: 'delete', variant: 'danger' },
 ];
+
+/** Opens the local demo actions for the selected task or the whole project. */
+function openActions(task = '') {
+	selectedTask.value = task;
+	sheetOpen.value = true;
+}
+
+/** Shows the chosen demo action without pretending to call a native plugin. */
+function selectAction(action) {
+	lastAction.value = `${action.label} selected. Connect this action to your application.`;
+}
 </script>
 
 <template>
 	<DomAppShell>
 		<template #top>
-			<DomAppTopBar title="DOM Studio" subtitle="Mobile workspace">
+			<DomAppTopBar :title="activeTab === 'home' ? 'DOM Studio' : activeTab === 'inbox' ? 'Inbox' : 'Settings'" subtitle="Mobile workspace">
 				<template #trailing>
 					<button
 						type="button"
-						class="grid size-10 place-items-center rounded-full bg-secondary text-canvas-fg active:scale-95"
+						class="grid size-11 place-items-center rounded-full bg-secondary text-canvas-fg active:scale-95"
 						aria-label="More actions"
-						@click="sheetOpen = true"
+						@click="openActions()"
 					>
 						<svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
 							<path d="M4 10a2 2 0 1 1 4 0 2 2 0 0 1-4 0Zm6 0a2 2 0 1 1 4 0 2 2 0 0 1-4 0Zm6 0a2 2 0 1 1 4 0 2 2 0 0 1-4 0Z" />
@@ -67,7 +80,7 @@ const actions = [
 			</DomAppTopBar>
 		</template>
 
-		<section class="space-y-4 p-4">
+		<section v-if="activeTab === 'home'" class="space-y-4 p-4">
 			<div class="rounded-[1.75rem] bg-primary p-5 text-primary-fg shadow-xl shadow-black/10">
 				<p class="text-xs font-medium uppercase tracking-[0.16em] opacity-80">Today</p>
 				<h2 class="mt-2 text-2xl font-semibold tracking-tight">Build mobile primitives.</h2>
@@ -79,6 +92,7 @@ const actions = [
 					v-model="query"
 					type="search"
 					placeholder="Search mobile tasks"
+					aria-label="Search mobile tasks"
 				/>
 			</div>
 
@@ -90,6 +104,7 @@ const actions = [
 					:description="task.description"
 					:meta="task.meta"
 					chevron
+					@click="openActions(task.label)"
 				>
 					<template #icon>
 						<svg class="size-5" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -100,14 +115,30 @@ const actions = [
 			</div>
 
 			<div class="overflow-hidden rounded-[1.5rem] border border-border bg-canvas">
-				<DomAppListItem label="Push notifications" description="Demo row using an existing DOM Studio toggle.">
+				<DomAppListItem as="div" label="Push notifications" description="Demo row using an existing DOM Studio toggle.">
 					<template #trailing>
-						<DomToggle v-model="notifications" aria-label="Push notifications" />
+						<DomToggle v-model="notifications" label="Push notifications" chrome="none" />
 					</template>
 				</DomAppListItem>
-				<DomAppListItem label="Native share" description="Pair this row with Capacitor Share." chevron />
+				<DomAppListItem label="Native share" description="Pair this row with Capacitor Share." chevron @click="openActions()" />
 			</div>
 		</section>
+		<section v-else-if="activeTab === 'inbox'" class="space-y-4 p-4">
+			<h2 class="text-lg font-semibold">Needs your attention</h2>
+			<div class="overflow-hidden rounded-2xl border border-border">
+				<DomAppListItem v-for="task in tasks.slice(0, 3)" :key="task.label" :label="task.label" :description="task.description" chevron @click="openActions(task.label)" />
+			</div>
+		</section>
+		<section v-else class="space-y-4 p-4">
+			<h2 class="text-lg font-semibold">Workspace preferences</h2>
+			<div class="overflow-hidden rounded-2xl border border-border">
+				<DomAppListItem as="div" label="Push notifications" description="Activity and updates from your workspace.">
+					<template #trailing><DomToggle v-model="notifications" label="Push notifications" chrome="none" /></template>
+				</DomAppListItem>
+				<DomAppListItem label="Project actions" description="Share, duplicate, or delete a draft." chevron @click="openActions()" />
+			</div>
+		</section>
+		<p v-if="lastAction" role="status" class="px-4 pb-4 text-sm text-muted-fg">{{ lastAction }}</p>
 
 		<template #bottom>
 			<DomAppBottomNav v-model="activeTab" :items="navItems" />
@@ -116,9 +147,10 @@ const actions = [
 		<template #overlay>
 			<DomActionSheet
 				v-model="sheetOpen"
-				title="Project actions"
+				:title="selectedTask || 'Project actions'"
 				description="Use for app commands that should stay near the thumb."
 				:actions="actions"
+				@select="selectAction"
 			/>
 		</template>
 	</DomAppShell>

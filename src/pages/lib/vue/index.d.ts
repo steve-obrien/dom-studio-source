@@ -6532,6 +6532,14 @@ export declare const DomAppListItem: DomComponent<DomAppListItemProps>;
 
 export interface DomAppShellProps {
 	/**
+	 * App height as a CSS length. Use 100dvh standalone, 36rem for an embedded app, or 100% inside a sized parent.
+	 */
+	height?: string;
+	/**
+	 * Let the main region scroll. Disable when a nested stack or split-pane layout owns scrolling.
+	 */
+	contentScroll?: boolean;
+	/**
 	 * Use app for full-screen app views and card for inset surfaces.
 	 */
 	variant?: "app" | "card";
@@ -6560,6 +6568,10 @@ export declare const DomAppTopBar: DomComponent<DomAppTopBarProps>;
 
 export interface DomActionSheetProps {
 	/**
+	 * Defaults to contained inside DomAppShell, viewport otherwise. Explicit true requires a positioned, sized parent; prefer the shell overlay slot.
+	 */
+	contained?: boolean;
+	/**
 	 * Whether the action sheet is open.
 	 */
 	modelValue?: boolean;
@@ -6572,7 +6584,7 @@ export interface DomActionSheetProps {
 	 */
 	description?: string;
 	/**
-	 * Action rows: { label, description, value, variant }.
+	 * Action rows: { label, description, value, variant, disabled }.
 	 */
 	actions?: Array<unknown>;
 	/**
@@ -6591,6 +6603,14 @@ export interface DomSafeAreaProps {
 export declare const DomSafeArea: DomComponent<DomSafeAreaProps>;
 
 export interface DomAppStackProps {
+	/**
+	 * Bounded stack height. Use 100% inside DomAppShell with content-scroll disabled, or a CSS length for an embedded stack.
+	 */
+	height?: string;
+	/**
+	 * Show the mobile back button and current screen title.
+	 */
+	showHeader?: boolean;
 	/**
 	 * Controlled stack path. Use v-model:path for two-way navigation.
 	 */
@@ -6612,7 +6632,7 @@ export interface DomAppStackProps {
 	 */
 	desktopBreakpoint?: string;
 	/**
-	 * Render the default breadcrumb bar, or provide the breadcrumb slot.
+	 * Show desktop breadcrumbs. Mobile uses the current title and back button; showHeader controls that header.
 	 */
 	showBreadcrumbs?: boolean;
 	/**

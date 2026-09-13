@@ -60,7 +60,7 @@ export class DomElementBase extends (isBrowser ? HTMLElement : class {}) {
 	}
 }
 
-// Tiny focus-trap used by dialog & combobox panel.
+/** Keeps Tab navigation inside a panel, including panels adopted into another document. */
 export function focusTrap(container) {
 	const sel = [
 		'a[href]', 'button:not([disabled])', 'input:not([disabled])',
@@ -69,14 +69,19 @@ export function focusTrap(container) {
 	].join(',');
 	const onKey = (e) => {
 		if (e.key !== 'Tab') return;
-		const nodes = container.querySelectorAll(sel);
-		if (!nodes.length) return;
+		const nodes = [...container.querySelectorAll(sel)].filter((node) => !node.closest('[inert], [hidden]') && node.getClientRects().length > 0);
+		if (!nodes.length) {
+			e.preventDefault();
+			container.focus({ preventScroll: true });
+			return;
+		}
 		const first = nodes[0];
 		const last = nodes[nodes.length - 1];
-		if (e.shiftKey && document.activeElement === first) {
+		const active = container.ownerDocument.activeElement;
+		if (e.shiftKey && (active === first || active === container)) {
 			e.preventDefault();
 			last.focus();
-		} else if (!e.shiftKey && document.activeElement === last) {
+		} else if (!e.shiftKey && (active === last || active === container)) {
 			e.preventDefault();
 			first.focus();
 		}

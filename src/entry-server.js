@@ -50,9 +50,17 @@ export async function render(url, ssrContext, serverContext = {}) {
 	};
 }
 
+/**
+ * Copies shared route metadata into the head rendered by Now.
+ *
+ * @param {import('vue-router').RouteLocationNormalizedLoaded} route Resolved route.
+ * @param {object} ssrContext Request-local server-rendering context.
+ * @returns {void}
+ */
 function applyRouteHead(route, ssrContext) {
 	const head = getRouteHead(route);
 
 	ssrContext.head.title = head.title;
 	ssrContext.head.meta = head.meta;
+	ssrContext.head.link = head.link;
 }

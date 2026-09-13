@@ -33,7 +33,7 @@ const emit = defineEmits(['update:modelValue', 'focus', 'blur']);
 
 const root = ref(null);
 const field = useField(props, emit, { idPrefix: 'dom-toggle' });
-const labelId = computed(() => (props.label ? `${field.id.value}-label` : ''));
+const labelId = computed(() => (props.label && props.chrome !== 'none' ? `${field.id.value}-label` : ''));
 const sizeConfig = computed(() => ({
 	sm: {
 		wrapper: 'gap-2',

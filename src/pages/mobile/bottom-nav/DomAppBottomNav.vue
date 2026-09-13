@@ -50,19 +50,21 @@ const activeValue = computed(() => props.modelValue || props.items[0]?.value || 
  * @returns {void}
  */
 function selectItem(item) {
+	if (item.disabled) return;
 	emit('update:modelValue', item.value);
 	emit('change', item);
 }
 </script>
 
 <template>
-	<nav class="skin-card px-2 py-2" aria-label="Primary">
+	<nav class="shrink-0 border-t border-border bg-canvas/95 pl-[max(0.5rem,var(--dom-safe-area-left,env(safe-area-inset-left,0px)))] pr-[max(0.5rem,var(--dom-safe-area-right,env(safe-area-inset-right,0px)))] pt-1 pb-[max(0.25rem,var(--dom-safe-area-bottom,env(safe-area-inset-bottom,0px)))]" aria-label="Primary">
 		<div class="grid auto-cols-fr grid-flow-col gap-1">
 			<button
 				v-for="item in items"
 				:key="item.value"
 				type="button"
-				class="relative flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-2 text-xs font-medium text-muted-fg transition active:scale-95"
+				class="relative flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-2 text-xs font-medium text-muted-fg transition active:scale-95 focus-visible:outline-2 focus-visible:outline-ring disabled:opacity-50 disabled:pointer-events-none"
+				:disabled="item.disabled"
 				:class="item.value === activeValue && 'bg-secondary text-canvas-fg'"
 				:aria-current="item.value === activeValue ? 'page' : undefined"
 				@click="selectItem(item)"

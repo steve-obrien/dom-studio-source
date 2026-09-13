@@ -27,7 +27,7 @@ const pageDescriptions = {
 	'/blog': 'Page / DOM Studio articles and product notes.',
 	'/component-spec': 'Page / Studio component spec format for editable generated UI.',
 	'/charts': 'Page / Data visualisation, charts, metrics, and reporting dates.',
-	'/charts/finance': 'Page / Finance, banking, investment portfolios, balances, holdings, allocation, and day, week, month, year returns.',
+	'/charts/finance': 'Page / Finance, banking, investment portfolios, cashflow, money in and out, cash projections, dynamic data, and simulated bank transactions.',
 	'/data': 'Page / API-backed data components for resource browsing, selection, upload, and management workflows.',
 	'/dev': 'Page / Developer-facing components for code, payloads, diagnostics, and implementation docs.',
 	'/forms': 'Page / Form primitives, schemas, fields, validation, and inputs.',

@@ -115,6 +115,12 @@ function installAuthGuard(router) {
 	});
 }
 
+/**
+ * Builds route metadata shared by server rendering and browser navigation.
+ *
+ * @param {import('vue-router').RouteLocationNormalizedLoaded} route Resolved route.
+ * @returns {{ title: string, meta: object[], link: object[] }} Route head tags.
+ */
 export function getRouteHead(route) {
 	const title = route.meta?.title ? `${route.meta.title} | ${siteName}` : siteName;
 	const description = route.meta?.description || '';
@@ -128,13 +134,31 @@ export function getRouteHead(route) {
 			keywords ? { name: 'keywords', content: keywords } : null,
 			robots ? { name: 'robots', content: robots } : null,
 		].filter(Boolean),
+		link: route.path === '/' ? [{ rel: 'canonical', href: 'https://getdom.studio/' }] : [],
 	};
 }
 
+/**
+ * Applies route metadata and keeps the homepage canonical scoped to its route.
+ *
+ * @param {import('vue-router').RouteLocationNormalizedLoaded} route Resolved route.
+ * @returns {void}
+ */
 export function updateDocumentHead(route) {
 	const head = getRouteHead(route);
 
 	document.title = head.title;
+
+	const canonical = head.link.find((link) => link.rel === 'canonical');
+	for (const link of document.head.querySelectorAll('link[rel="canonical"]')) {
+		if (canonical || link.getAttribute('href') === 'https://getdom.studio/') link.remove();
+	}
+	if (canonical) {
+		const link = document.createElement('link');
+		link.rel = canonical.rel;
+		link.href = canonical.href;
+		document.head.appendChild(link);
+	}
 
 	const description = head.meta.find((meta) => meta.name === 'description')?.content;
 	const keywords = head.meta.find((meta) => meta.name === 'keywords')?.content;

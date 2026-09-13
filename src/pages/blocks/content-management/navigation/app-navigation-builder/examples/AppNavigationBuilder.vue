@@ -790,7 +790,7 @@ function formatTimestamp(value) {
 
 				<div class="min-h-0 flex-1 overflow-auto p-3 sm:p-5">
 					<div :class="previewFrameClasses">
-						<DomAppShell variant="card" class="border border-border shadow-xl shadow-black/10">
+						<DomAppShell variant="card" height="100%" class="border border-border shadow-xl shadow-black/10">
 							<template #top>
 								<DomAppTopBar
 									title="Northstar"

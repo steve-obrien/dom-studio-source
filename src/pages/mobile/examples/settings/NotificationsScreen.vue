@@ -25,14 +25,14 @@ const quietHourOptions = [
 		</div>
 
 		<div class="overflow-hidden rounded-[1.5rem] border border-border bg-canvas">
-			<DomAppListItem label="Push alerts" description="Activity, mentions, and mobile approvals.">
+			<DomAppListItem as="div" label="Push alerts" description="Activity, mentions, and mobile approvals.">
 				<template #trailing>
-					<DomToggle v-model="pushEnabled" aria-label="Push alerts" />
+					<DomToggle v-model="pushEnabled" label="Push alerts" chrome="none" />
 				</template>
 			</DomAppListItem>
-			<DomAppListItem label="Email summary" description="A daily digest for quieter workspaces.">
+			<DomAppListItem as="div" label="Email summary" description="A daily digest for quieter workspaces.">
 				<template #trailing>
-					<DomToggle v-model="emailEnabled" aria-label="Email summary" />
+					<DomToggle v-model="emailEnabled" label="Email summary" chrome="none" />
 				</template>
 			</DomAppListItem>
 		</div>

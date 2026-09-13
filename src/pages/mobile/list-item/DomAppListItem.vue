@@ -5,7 +5,7 @@ defineOptions({
 	__doc: {
 		name: 'App list item',
 		tag: '<DomAppListItem>',
-		description: 'A touch-sized app row for settings, inboxes, menus, and navigation.',
+		description: 'A touch-sized row that works in any layout. Use as="div" for rows containing switches, inputs, or other controls so interactive elements are never nested inside a button.',
 		slots: [
 			{ name: 'icon', description: 'Leading icon or avatar.' },
 			{ name: 'trailing', description: 'Trailing value, switch, badge, or custom action.' },
@@ -66,8 +66,8 @@ const isButton = computed(() => props.as === 'button');
 <template>
 	<component
 		:is="as"
-		class="flex min-h-16 w-full items-center gap-3 border-b border-border bg-canvas px-4 py-3 text-left transition last:border-b-0 hover:bg-secondary/60 active:bg-secondary"
-		:class="[selected && 'bg-secondary', danger && 'text-destructive']"
+		class="flex min-h-14 w-full items-center gap-3 border-b border-border bg-canvas px-4 py-3 text-left transition last:border-b-0 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:opacity-50 disabled:pointer-events-none"
+		:class="[selected && 'bg-secondary', danger && 'text-destructive', as !== 'div' && 'hover:bg-secondary/60 active:bg-secondary']"
 		:type="isButton ? 'button' : undefined"
 	>
 		<div v-if="$slots.icon" class="grid size-10 shrink-0 place-items-center rounded-2xl bg-secondary text-muted-fg">
@@ -75,12 +75,12 @@ const isButton = computed(() => props.as === 'button');
 		</div>
 		<div class="min-w-0 flex-1">
 			<div class="flex min-w-0 items-baseline gap-2">
-				<p class="truncate text-sm font-medium" :class="danger ? 'text-destructive' : 'text-canvas-fg'">{{ label }}</p>
-				<p v-if="meta" class="shrink-0 text-xs text-muted-fg">{{ meta }}</p>
+				<p class="min-w-0 flex-1 break-words text-sm font-medium" :class="danger ? 'text-destructive' : 'text-canvas-fg'">{{ label }}</p>
+				<p v-if="meta" class="max-w-[45%] shrink-0 break-words text-right text-xs text-muted-fg">{{ meta }}</p>
 			</div>
 			<p v-if="description" class="mt-0.5 line-clamp-2 text-xs leading-5 text-muted-fg">{{ description }}</p>
 		</div>
-		<div v-if="$slots.trailing" class="flex shrink-0 items-center text-muted-fg">
+		<div v-if="$slots.trailing" class="flex shrink-0 items-center text-muted-fg [&_dom-toggle]:before:absolute [&_dom-toggle]:before:inset-x-0 [&_dom-toggle]:before:-inset-y-2.5">
 			<slot name="trailing" />
 		</div>
 		<svg v-else-if="chevron" class="size-4 shrink-0 text-muted-fg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

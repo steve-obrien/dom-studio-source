@@ -66,17 +66,25 @@ const DRAG_EXIT_MS = 170;
 const DRAG_PROJECT_MS = 220;
 const DRAG_FLICK_VELOCITY = 0.45;
 
-let scrollLockCount = 0;
-function lockBodyScroll() {
-	if (!isBrowser) return;
-	if (scrollLockCount++ === 0) document.body.style.overflow = 'hidden';
-}
-function unlockBodyScroll() {
-	if (!isBrowser) return;
-	if (--scrollLockCount <= 0) {
-		scrollLockCount = 0;
-		document.body.style.overflow = '';
+const scrollLocks = new WeakMap();
+
+/** Locks a scroll container while preserving its existing inline overflow. */
+function lockBodyScroll(target) {
+	if (!target) return;
+	const lock = scrollLocks.get(target);
+	if (lock) lock.count += 1;
+	else {
+		scrollLocks.set(target, { count: 1, overflow: target.style.overflow });
+		target.style.overflow = 'hidden';
 	}
+}
+
+/** Restores a container only after its last open drawer releases the lock. */
+function unlockBodyScroll(target) {
+	const lock = target && scrollLocks.get(target);
+	if (!lock || --lock.count > 0) return;
+	target.style.overflow = lock.overflow;
+	scrollLocks.delete(target);
 }
 
 function wantsOpen(el) {
@@ -117,6 +125,7 @@ export class DomDrawerElement extends DomElementBase {
 			'leave-to',
 			'aria-labelledby',
 			'aria-describedby',
+			'aria-label',
 		];
 	}
 
@@ -140,6 +149,7 @@ export class DomDrawerElement extends DomElementBase {
 			{ name: 'leave-to', type: 'string', description: 'Tailwind classes applied for the leave transition end state.' },
 		],
 		events: [
+			{ name: 'dom:state', description: 'Fired immediately when open state changes, with { open: boolean }, before animation completes.' },
 			{ name: 'dom:open', description: 'Fired when the drawer opens.' },
 			{ name: 'dom:close', description: 'Fired when the drawer closes (Esc, backdrop, data-close, or programmatic).' },
 		],
@@ -210,13 +220,17 @@ export class DomDrawerElement extends DomElementBase {
 		if (wantsOpen(this)) this.open = true;
 	}
 
+	/** Cancels pending motion and releases document resources when removed or moved. */
 	disconnectedCallback() {
+		this._transitionGen += 1;
+		this._transitioning = false;
+		this._open = false;
 		this._finishDrag(false);
 		this._teardownDragHandle();
 		if (this._dragResetTimer) window.clearTimeout(this._dragResetTimer);
 		this._dragResetTimer = null;
 		this._unlockScroll();
-		document.removeEventListener('keydown', this._onKey);
+		this.ownerDocument.removeEventListener('keydown', this._onKey);
 		this._releaseFocus?.();
 		this._releaseFocus = null;
 		super.disconnectedCallback();
@@ -280,9 +294,10 @@ export class DomDrawerElement extends DomElementBase {
 		});
 	}
 
+	/** Copies the accessible name and description onto the dialog panel. */
 	_syncAria() {
 		if (!this._panel) return;
-		for (const name of ['aria-labelledby', 'aria-describedby']) {
+		for (const name of ['aria-labelledby', 'aria-describedby', 'aria-label']) {
 			const value = this.getAttribute(name);
 			if (value) this._panel.setAttribute(name, value);
 			else this._panel.removeAttribute(name);
@@ -428,10 +443,10 @@ export class DomDrawerElement extends DomElementBase {
 				? this._onDragTouchEnd
 				: this._onDragMouseUp;
 		this._dragOffs = [
-			this.on(document, options.moveType, moveHandler, { passive: false }),
-			this.on(document, options.upType, upHandler, { passive: false }),
+			this.on(this.ownerDocument, options.moveType, moveHandler, { passive: false }),
+			this.on(this.ownerDocument, options.upType, upHandler, { passive: false }),
 		];
-		if (options.cancelType) this._dragOffs.push(this.on(document, options.cancelType, upHandler, { passive: false }));
+		if (options.cancelType) this._dragOffs.push(this.on(this.ownerDocument, options.cancelType, upHandler, { passive: false }));
 		e.preventDefault();
 	}
 
@@ -547,15 +562,19 @@ export class DomDrawerElement extends DomElementBase {
 		if (this.hasAttribute('show')) this.setBoolAttr('show', next);
 	}
 
+	/** Locks the drawer document or its containing app scroll region. */
 	_lockScroll() {
 		if (this._scrollLocked) return;
-		lockBodyScroll();
+		this._scrollTarget = this.closest('[data-dom-app-shell]')?.querySelector('[data-dom-app-shell-main]') || this.ownerDocument.body;
+		lockBodyScroll(this._scrollTarget);
 		this._scrollLocked = true;
 	}
 
+	/** Releases this drawer scroll lock without disturbing other overlays. */
 	_unlockScroll() {
 		if (!this._scrollLocked) return;
-		unlockBodyScroll();
+		unlockBodyScroll(this._scrollTarget);
+		this._scrollTarget = null;
 		this._scrollLocked = false;
 	}
 
@@ -584,21 +603,27 @@ export class DomDrawerElement extends DomElementBase {
 		this._overlay.setAttribute('aria-hidden', String(!open));
 	}
 
+	/** Traps keyboard focus within the newly opened panel. */
 	_finishOpen() {
+		this._releaseFocus?.();
 		this._releaseFocus = focusTrap(this._panel);
 		requestAnimationFrame(() => this._panel.focus({ preventScroll: true }));
 		this.emit('dom:open');
 	}
 
+	/** Restores scrolling and returns focus to the control that opened the drawer. */
 	_finishClose() {
 		this._unlockScroll();
-		document.removeEventListener('keydown', this._onKey);
+		this.ownerDocument.removeEventListener('keydown', this._onKey);
 		this._releaseFocus?.();
 		this._releaseFocus = null;
-		this._trigger?.focus({ preventScroll: true });
+		const returnTarget = this._returnFocus || this._trigger;
+		if (returnTarget?.isConnected) returnTarget.focus({ preventScroll: true });
+		this._returnFocus = null;
 		this.emit('dom:close');
 	}
 
+	/** Synchronizes controlled open state, motion, focus, and scroll ownership. */
 	async _setOpen(next) {
 		if (!this._panel || !this._overlay) return;
 		if (next === this._open && !this._transitioning) return;
@@ -608,12 +633,14 @@ export class DomDrawerElement extends DomElementBase {
 		this._syncMotionClasses();
 
 		if (next) {
+			this._returnFocus = this.ownerDocument.activeElement;
 			this._setupDragHandle();
 			this._open = true;
 			this._reflectOpen(true);
+			this.emit('dom:state', { open: true });
 			this._trigger?.setAttribute('aria-expanded', 'true');
 			this._lockScroll();
-			document.addEventListener('keydown', this._onKey);
+			this.ownerDocument.addEventListener('keydown', this._onKey);
 
 			this._overlay.hidden = false;
 			if (custom) {
@@ -633,6 +660,7 @@ export class DomDrawerElement extends DomElementBase {
 		} else {
 			this._open = false;
 			this._reflectOpen(false);
+			this.emit('dom:state', { open: false });
 			this._trigger?.setAttribute('aria-expanded', 'false');
 
 			if (custom) {
@@ -666,7 +694,7 @@ export class DomDrawerElement extends DomElementBase {
 		if (['enter', 'enter-from', 'enter-to', 'leave', 'leave-from', 'leave-to'].includes(name)) {
 			this._syncMotionClasses();
 		}
-		if (name === 'aria-labelledby' || name === 'aria-describedby') this._syncAria();
+		if (['aria-labelledby', 'aria-describedby', 'aria-label'].includes(name)) this._syncAria();
 	}
 
 	get open() { return this._open; }

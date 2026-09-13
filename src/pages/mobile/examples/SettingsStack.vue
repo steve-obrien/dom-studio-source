@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import {
 	DomAppListItem,
+	DomAppShell,
 	DomAppStack,
 	DomAppStackScreen,
 	DomBadge,
@@ -60,53 +61,15 @@ const screens = [
 </script>
 
 <template>
-	<div class="h-[36rem] min-h-[34rem] w-full max-w-[56rem] overflow-hidden rounded-[2rem] border border-border bg-canvas shadow-xl shadow-black/10">
+	<DomAppShell :content-scroll="false">
 		<DomAppStack
 			v-model:path="path"
 			root="settings"
 			layout="auto"
 			desktop-breakpoint="700px"
 			:screens="screens"
-			class="h-full"
-			breadcrumb-class="bg-secondary/40"
+			height="100%"
 		>
-			<template #breadcrumb="{ crumbs, canGoBack, back, goTo }">
-				<header class="flex min-h-14 items-center gap-3 border-b border-border bg-canvas/95 px-3 backdrop-blur">
-					<button
-						v-if="canGoBack"
-						type="button"
-						class="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-canvas-fg transition active:scale-95"
-						aria-label="Back"
-						@click="back()"
-					>
-						<svg class="size-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-							<path d="M12.7 4.3a1 1 0 0 1 0 1.4L8.42 10l4.3 4.3a1 1 0 0 1-1.42 1.4l-5-5a1 1 0 0 1 0-1.4l5-5a1 1 0 0 1 1.42 0Z" />
-						</svg>
-					</button>
-					<div class="min-w-0 flex-1">
-						<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-fg">Workspace</p>
-						<ol class="mt-0.5 flex min-w-0 items-center gap-1 overflow-x-auto text-sm">
-							<li
-								v-for="(crumb, index) in crumbs"
-								:key="`${crumb.id}:${index}`"
-								class="flex min-w-0 items-center gap-1"
-							>
-								<button
-									v-if="index < crumbs.length - 1"
-									type="button"
-									class="max-w-32 truncate rounded-full px-2 py-1 font-medium text-muted-fg hover:bg-secondary hover:text-canvas-fg"
-									@click="goTo(index)"
-								>{{ crumb.title }}</button>
-								<span
-									v-else
-									class="max-w-40 truncate rounded-full bg-primary px-2 py-1 font-semibold text-primary-fg"
-									aria-current="page"
-								>{{ crumb.title }}</span>
-							</li>
-						</ol>
-					</div>
-				</header>
-			</template>
 
 			<DomAppStackScreen
 				id="settings"
@@ -117,7 +80,7 @@ const screens = [
 					<section class="space-y-4">
 						<div class="overflow-hidden rounded-[1.5rem] border border-border bg-canvas">
 							<DomAppListItem
-								label="Steve OBrien"
+								:label="displayName"
 								description="Apple ID, account profile, and workspace identity."
 								chevron
 								@click="push('account')"
@@ -181,17 +144,17 @@ const screens = [
 							<div class="flex items-center gap-4">
 								<span class="grid size-14 place-items-center rounded-2xl bg-primary text-lg font-semibold text-primary-fg">SO</span>
 								<div class="min-w-0">
-									<h2 class="truncate text-xl font-semibold tracking-tight text-canvas-fg">Steve OBrien</h2>
-									<p class="truncate text-sm text-muted-fg">steve@example.com</p>
+									<h2 class="truncate text-xl font-semibold tracking-tight text-canvas-fg">{{ displayName }}</h2>
+									<p class="truncate text-sm text-muted-fg">{{ email }}</p>
 								</div>
 							</div>
 						</div>
 
 						<div class="overflow-hidden rounded-[1.5rem] border border-border bg-canvas">
 							<DomAppListItem label="Profile" description="Name, email, and public identity." chevron @click="push('profile')" />
-							<DomAppListItem label="Marketing updates" description="Product news and early feature notes.">
+							<DomAppListItem as="div" label="Marketing updates" description="Product news and early feature notes.">
 								<template #trailing>
-									<DomToggle v-model="marketingEnabled" aria-label="Marketing updates" />
+									<DomToggle v-model="marketingEnabled" label="Marketing updates" chrome="none" />
 								</template>
 							</DomAppListItem>
 							<DomAppListItem label="Plan" meta="Studio Team" chevron @click="push('billing')" />
@@ -205,6 +168,7 @@ const screens = [
 				title="Profile"
 				description="Name and contact details."
 				parent="account"
+				v-slot="{ back }"
 			>
 				<section class="space-y-5">
 					<div class="flex items-center justify-between gap-4">
@@ -220,9 +184,9 @@ const screens = [
 						<DomEmailInput v-model="email" label="Email address" />
 					</div>
 
-					<DomButton class="w-full">Save profile</DomButton>
+					<DomButton class="w-full" @click="back()">Save profile</DomButton>
 				</section>
 			</DomAppStackScreen>
 		</DomAppStack>
-	</div>
+	</DomAppShell>
 </template>
