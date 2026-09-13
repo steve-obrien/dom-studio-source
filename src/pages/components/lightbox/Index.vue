@@ -22,7 +22,7 @@ const doc = DomLightbox.__doc;
 				<Example
 					:source="ImageGallerySrc"
 					filename="ImageGallery.vue"
-					description="A shared lightbox controlled from a thumbnail grid. The image clone flies from the clicked card into a stable stage, then returns to that origin on close."
+					description="A shared lightbox controlled from a thumbnail grid. The image clone flies from the clicked thumbnail into a stable stage, then returns to the thumbnail's current bounds on close."
 				>
 					<ImageGallery />
 				</Example>

@@ -134,14 +134,14 @@ function configureExtensions({ extensions }) {
 	<DomStudioLayout>
 		<DocPage
 			:name="doc.name"
-			tagline="A client-only WYSIWYG editing surface with headings, language-aware highlighted code blocks, editable tables, structured JSON output, app-owned AI rewrite suggestions, media insertion, video embeds, and optional Yjs collaboration."
+			tagline="Write together in real time with shared edits, named cursors, and live selections. A rich document editor with headings, code blocks, tables, AI rewrite suggestions, images, and video embeds."
 			tag="Document editor"
 		>
 			<DocSection eyebrow="Demo" title="AI-ready editing workspace">
 				<Example
 					:source="DocumentEditorDemoSrc"
 					filename="DocumentEditorDemo.vue"
-					description="A temporary Yjs room connects every visitor through the app's hardened WebSocket demo endpoint, assigns each person a guest name, and shows live carets and document.content updates alongside the existing mock save, AI rewrite, and media flows."
+					description="Everyone on this page can edit the same temporary document. See each other's changes and cursors as they happen, or open the collaboration preview to try it on your own."
 					:preview-lines="0"
 				>
 					<DocumentEditorDemo />

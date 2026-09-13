@@ -8,6 +8,7 @@ import DomMediaBrowser from '../../media-browser/DomMediaBrowser.vue';
 import DomJsonViewer from '../../../dev/json-viewer/DomJsonViewer.vue';
 import DomBadge from '../../../visual/badge/DomBadge.vue';
 import DomDocumentEditor from '../DomDocumentEditor.vue';
+import DocumentEditorCollaborationPreview from './DocumentEditorCollaborationPreview.vue';
 import { createMediaBrowserMockApi } from '../../media-browser/examples/mediaBrowserMockApi.js';
 import { defineMediaBrowserStore } from '../../media-browser/examples/useMediaBrowserDemoStore.js';
 import { DocumentEditorCollaborationProvider } from './documentEditorCollaborationClient.js';
@@ -46,6 +47,7 @@ const {
 const editorRef = ref(null);
 const editorInstance = shallowRef(null);
 const mediaDialogOpen = ref(false);
+const collaborationPreviewOpen = ref(false);
 const mediaRequest = shallowRef(null);
 const currentEditorPayload = ref(null);
 const collaborationDocument = shallowRef(null);
@@ -72,7 +74,7 @@ const collaborationSummary = computed(() => {
 		const others = Math.max(0, activeCollaborators.value.length - 1);
 		return others
 			? `${others} other ${others === 1 ? 'person is' : 'people are'} editing this temporary document.`
-			: 'Open this page in another tab or browser to invite another temporary editor.';
+			: 'You’re the only person here right now. Open another tab to edit together, or try the collaboration preview.';
 	}
 	return 'Connecting to the temporary collaboration room.';
 });
@@ -305,10 +307,24 @@ function isImageMediaItem(item) {
 
 <template>
 	<div class="w-full min-w-0 space-y-4">
+		<div class="flex flex-wrap items-center gap-4 rounded-lg border border-primary/25 bg-primary/5 p-4">
+			<svg class="size-6 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+				<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M16 3a4 4 0 0 1 0 8M22 21v-2a4 4 0 0 0-3-3.87" />
+				<circle cx="9" cy="7" r="4" />
+			</svg>
+			<div class="min-w-0 flex-1 basis-56">
+				<h3 class="text-sm font-semibold text-canvas-fg">Realtime collaborative editing</h3>
+				<p class="mt-1 text-sm leading-6 text-muted-fg">Write together with live edits, named cursors, and shared selections. Exploring solo? See it in action with a demo teammate.</p>
+			</div>
+			<DomButton class="w-full justify-center sm:w-auto" size="sm" variant="secondary" @click="collaborationPreviewOpen = true">
+				Preview collaboration
+			</DomButton>
+		</div>
+
 		<div class="flex w-full min-w-0 flex-wrap items-center gap-3 rounded-lg border border-border bg-canvas p-3">
 			<div class="min-w-0 flex-1">
 				<p class="truncate text-sm font-semibold text-canvas-fg">{{ title }}</p>
-				<p class="mt-1 truncate text-xs text-muted-fg">
+				<p class="mt-1 text-xs leading-5 text-muted-fg">
 					{{ collaborationSummary }} The room resets every 15 minutes or after its last tab disconnects.
 				</p>
 			</div>
@@ -366,6 +382,16 @@ function isImageMediaItem(item) {
 				density="compact"
 			/>
 		</div>
+
+		<DomDialog
+			v-model="collaborationPreviewOpen"
+			title="See collaboration in action"
+			description="Two views of the same sample document. Alex is a demo participant, so you can try editing together on your own."
+			size="xl"
+			@keydown.esc.capture.stop.prevent="collaborationPreviewOpen = false"
+		>
+			<DocumentEditorCollaborationPreview v-if="collaborationPreviewOpen" />
+		</DomDialog>
 
 		<DomDialog
 			v-model="mediaDialogOpen"

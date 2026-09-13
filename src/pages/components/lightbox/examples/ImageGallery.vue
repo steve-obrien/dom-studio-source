@@ -47,10 +47,11 @@ const items = [
 
 const open = ref(false);
 const selectedIndex = ref(0);
-const originRect = shallowRef(null);
+const originImage = shallowRef(null);
 
 /**
- * Open the lightbox from the clicked gallery card with a stable origin snapshot.
+ * Open the lightbox from the image inside the clicked gallery card.
+ * Retain the element so its current bounds can be measured again on close.
  *
  * @param {number} index Gallery item index.
  * @param {MouseEvent} event Click event used to capture the thumbnail origin.
@@ -58,18 +59,18 @@ const originRect = shallowRef(null);
  */
 function openItem(index, event) {
 	selectedIndex.value = index;
-	originRect.value = originRectFromEvent(event);
+	originImage.value = originImageFromEvent(event);
 	open.value = true;
 }
 
 /**
- * Capture the clicked card bounds before Vue updates the overlay state.
+ * Resolve the thumbnail even when the card caption or keyboard triggers the click.
  *
  * @param {MouseEvent} event Click event fired by the card button.
- * @returns {DOMRect|null} Snapshot of the clicked card bounds.
+ * @returns {HTMLImageElement|null} Thumbnail used for both animation endpoints.
  */
-function originRectFromEvent(event) {
-	return event.currentTarget?.getBoundingClientRect?.() || null;
+function originImageFromEvent(event) {
+	return event.currentTarget?.querySelector('img') || null;
 }
 
 /**
@@ -78,7 +79,7 @@ function originRectFromEvent(event) {
  * @returns {void}
  */
 function resetOrigin() {
-	originRect.value = null;
+	originImage.value = null;
 }
 </script>
 
@@ -109,7 +110,7 @@ function resetOrigin() {
 		v-model="open"
 		v-model:index="selectedIndex"
 		:items="items"
-		:origin="originRect"
+		:origin="originImage"
 		:duration="520"
 		@after-leave="resetOrigin"
 	/>

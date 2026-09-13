@@ -23,6 +23,7 @@ The package root and `@getdom/studio/vue` export the same Vue surface. Import `@
 - [Data components](https://getdom.studio/data): Controlled filter queries, data grids, timelines, Kanban boards, calendars, media workflows, document editing, and agent conversations.
 - [Filter bar](https://getdom.studio/data/filter-bar): Transport-free search and logical filter definitions that emit one controlled resource query.
 - [Activity timeline](https://getdom.studio/data/activity-timeline): Ordered resource activity with logical field mappings, semantic status, controlled loading, and customizable slots.
+- [Gantt](https://getdom.studio/data/gantt): Horizontal resource planning, project schedules, and roadmaps from application-owned rows and dated items, with time zoom, working-hour visibility, and drag-to-plan intent.
 - [Developer components](https://getdom.studio/dev): Code, JSON, payload, and implementation-data inspection utilities.
 - [Visual components](https://getdom.studio/visual/card): Cards, badges, status, alerts, empty states, progress, skeletons, avatars, and diffs.
 - [Mobile components](https://getdom.studio/mobile): App shells, top and bottom navigation, screen stacks, safe areas, list rows, and action sheets.

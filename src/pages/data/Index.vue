@@ -54,6 +54,14 @@ const componentTypes = [
 		to: '/data/week-planner',
 	},
 	{
+		name: 'Gantt',
+		components: ['DomGantt'],
+		description: 'Plans people, projects, and roadmaps on a horizontal timeline, with drag-to-plan, time zoom, and configurable working hours.',
+		icon: 'M4 4v16h16M7 7h6M10 11h8M8 15h7',
+		preview: 'gantt',
+		to: '/data/gantt',
+	},
+	{
 		name: 'Media browser',
 		components: ['DomMediaBrowser'],
 		description: 'Browses server-backed folders and files with selection, custom renderers, optimistic mutations, uploads, metadata, and picker workflows.',

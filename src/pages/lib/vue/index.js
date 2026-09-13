@@ -51,6 +51,8 @@ export { default as DomActivityTimeline } from '../../data/activity-timeline/Dom
 export { default as DomKanban } from '../../data/kanban/DomKanban.vue';
 export { default as DomMonthCalendar } from '../../data/month-calendar/DomMonthCalendar.vue';
 export { default as DomWeekPlanner } from '../../data/week-planner/DomWeekPlanner.vue';
+export { default as DomGantt } from '../../data/gantt/DomGantt.vue';
+export { ganttProps } from '../../data/gantt/DomGantt.vue';
 export { default as DomMediaBrowser } from '../../data/media-browser/DomMediaBrowser.vue';
 export { default as DomDocumentEditor } from '../../data/document-editor/DomDocumentEditor.vue';
 export { default as DomJsonViewer } from '../../dev/json-viewer/DomJsonViewer.vue';
@@ -207,6 +209,7 @@ export {
 // Mobile primitives
 export { default as DomAppBottomNav } from '../../mobile/bottom-nav/DomAppBottomNav.vue';
 export { default as DomAppListItem } from '../../mobile/list-item/DomAppListItem.vue';
+export { default as DomAppProfile } from '../../mobile/profile/DomAppProfile.vue';
 export { default as DomAppShell } from '../../mobile/shell/DomAppShell.vue';
 export { default as DomAppTopBar } from '../../mobile/top-bar/DomAppTopBar.vue';
 export { default as DomActionSheet } from '../../mobile/action-sheet/DomActionSheet.vue';

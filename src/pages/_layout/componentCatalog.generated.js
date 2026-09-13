@@ -1789,6 +1789,123 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "data/gantt",
+		"path": "../data/gantt/DomGantt.vue",
+		"section": "data",
+		"slug": "gantt",
+		"exportName": "DomGantt",
+		"route": "/data/gantt",
+		"doc": {
+			"name": "Gantt",
+			"tag": "<DomGantt>",
+			"description": "One horizontal timeline for team resources, project schedules, and roadmaps, with time zoom, working hours, and drag-to-plan ranges.",
+			"icon": "M4 4v16h16M7 7h6M10 11h8M8 15h7",
+			"events": [
+				{
+					"name": "time-range-select",
+					"payload": "GanttRangePayload",
+					"description": "A requested span with source row, rowKey, Date start/end, elapsed durationMinutes, and original event. End is exclusive; the application creates the item."
+				},
+				{
+					"name": "row-create",
+					"payload": "{ name: string }",
+					"description": "Validated row name. The application assigns an id and adds its row."
+				},
+				{
+					"name": "item-click",
+					"payload": "GanttItemPayload",
+					"description": "Source item and row, resolved dates, and original event for an application-owned editor."
+				},
+				{
+					"name": "item-move",
+					"payload": "GanttItemChangePayload",
+					"description": "Proposed dates and source/target rows after a drag or keyboard move. Source records remain unchanged until the application accepts the event."
+				},
+				{
+					"name": "item-resize",
+					"payload": "GanttItemChangePayload",
+					"description": "Proposed exclusive end after right-edge resizing. The start and row are preserved."
+				},
+				{
+					"name": "update:zoom",
+					"payload": "'months' | 'weeks' | 'days'",
+					"description": "Toolbar zoom changed, preserving the date at the left of the viewport."
+				},
+				{
+					"name": "update:planMode",
+					"payload": "boolean",
+					"description": "Plan mode changed."
+				},
+				{
+					"name": "update:hideNonWorkingHours",
+					"payload": "boolean",
+					"description": "Out-of-hours visibility changed."
+				},
+				{
+					"name": "update:hideWeekends",
+					"payload": "boolean",
+					"description": "Non-working day visibility changed."
+				},
+				{
+					"name": "visible-range-change",
+					"payload": "{ startDate: Date, endDate: Date }",
+					"description": "Visible date window after scrolling or zooming, for application-owned data loading."
+				}
+			],
+			"slots": [
+				{
+					"name": "row",
+					"payload": "{ row, rowKey, label }",
+					"description": "Replace a row label, for example with a member avatar and role."
+				},
+				{
+					"name": "item",
+					"payload": "{ item, row, startDate, endDate }",
+					"description": "Replace bar content inside its focusable item button. Avoid nested interactive controls."
+				},
+				{
+					"name": "toolbar",
+					"description": "Append application filters or actions."
+				},
+				{
+					"name": "empty",
+					"description": "Replace the empty collection message."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "← / →",
+					"action": "Move the focused row’s time cursor one selection step."
+				},
+				{
+					"keys": "Shift + ← / →",
+					"action": "Extend a time selection."
+				},
+				{
+					"keys": "Enter",
+					"action": "Request the selected time span."
+				},
+				{
+					"keys": "Escape",
+					"action": "Cancel a pointer or keyboard selection."
+				},
+				{
+					"keys": "Alt + ← / →",
+					"action": "Move a focused draggable item one time increment."
+				},
+				{
+					"keys": "Alt + ↑ / ↓",
+					"action": "Move a focused item to the previous/next resource row when row changes are enabled."
+				},
+				{
+					"keys": "← / → on resize grip",
+					"action": "Shorten or extend an item by one time increment."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "data/kanban",
 		"path": "../data/kanban/DomKanban.vue",
 		"section": "data",
@@ -4122,6 +4239,41 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "mobile/profile",
+		"path": "../mobile/profile/DomAppProfile.vue",
+		"section": "mobile",
+		"slug": "profile",
+		"exportName": "DomAppProfile",
+		"route": "/mobile/profile",
+		"doc": {
+			"name": "App profile",
+			"tag": "<DomAppProfile>",
+			"description": "An iOS-style account header with a circular profile image, name, email, and an optional action. Place it above settings rows or inside any app stack screen.",
+			"slots": [
+				{
+					"name": "actions",
+					"description": "Replace the default profile action with account controls."
+				}
+			],
+			"events": [
+				{
+					"name": "action",
+					"payload": "()",
+					"description": "Fired when the profile action is selected. The application owns navigation or editing."
+				}
+			],
+			"playground": {
+				"mobileSlot": "content",
+				"initial": {
+					"name": "Alex Morgan",
+					"email": "alex@example.com",
+					"src": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&crop=faces&w=192&h=192&q=80"
+				}
+			}
+		},
+		"studio": {}
+	},
+	{
 		"id": "mobile/safe-area",
 		"path": "../mobile/safe-area/DomSafeArea.vue",
 		"section": "mobile",
@@ -4243,12 +4395,51 @@ export const componentCatalog = [
 							"children": [
 								"account",
 								"notifications"
-							]
+							],
+							"description": ""
 						},
 						{
 							"id": "account",
 							"title": "Account",
-							"description": "Profile, password, and sign-in settings."
+							"description": "Profile and preferences.",
+							"children": [
+								"general",
+								"apps"
+							]
+						},
+						{
+							"id": "general",
+							"title": "General",
+							"children": [
+								"language"
+							],
+							"description": ""
+						},
+						{
+							"id": "language",
+							"title": "Language & Region",
+							"description": "English (UK), United Kingdom."
+						},
+						{
+							"id": "apps",
+							"title": "Apps",
+							"children": [
+								"calendar"
+							],
+							"description": ""
+						},
+						{
+							"id": "calendar",
+							"title": "Calendar",
+							"children": [
+								"calendar-notifications"
+							],
+							"description": ""
+						},
+						{
+							"id": "calendar-notifications",
+							"title": "Notifications",
+							"description": "Event reminders, invitations, and shared calendars."
 						},
 						{
 							"id": "notifications",

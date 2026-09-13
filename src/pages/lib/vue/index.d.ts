@@ -34,6 +34,38 @@ export interface FilterBarQuery {
 	search: string;
 	filters: Record<string, unknown>;
 }
+/** Application-owned row and exclusive interval requested by DomGantt. */
+export interface GanttRangePayload {
+	row: DomUnknownRecord;
+	rowKey: ResourceKey;
+	startDate: Date;
+	endDate: Date;
+	durationMinutes: number;
+	event: Event;
+}
+/** Source records and resolved dates supplied when a Gantt item is activated. */
+export interface GanttItemPayload {
+	item: DomUnknownRecord;
+	row: DomUnknownRecord;
+	rowKey: ResourceKey;
+	startDate: Date;
+	endDate: Date;
+	event: Event;
+}
+/** Application-owned move or resize proposal; source records are never mutated. */
+export interface GanttItemChangePayload {
+	item: DomUnknownRecord;
+	sourceRow: DomUnknownRecord;
+	targetRow: DomUnknownRecord;
+	sourceRowKey: ResourceKey;
+	targetRowKey: ResourceKey;
+	previousStartDate: Date;
+	previousEndDate: Date;
+	startDate: Date;
+	endDate: Date;
+	durationMinutes: number;
+	event: Event;
+}
 /** Resolved presentation contract supplied to activity-timeline slots. */
 export interface ActivityTimelineRecord {
 	row: DomUnknownRecord;
@@ -2460,6 +2492,91 @@ export interface DomWeekPlannerProps {
 	dayStyle?: string | Record<string, string | number> | ((cell: WeekPlannerCell) => string | Record<string, string | number> | null | undefined);
 }
 export declare const DomWeekPlanner: DomComponent<DomWeekPlannerProps>;
+
+/** GanttRangePayload, GanttItemPayload, GanttItemChangePayload payload types are exported from this module. */
+export interface DomGanttProps {
+	/**
+	 * Application-owned people, projects, or feature rows.
+	 */
+	rows?: Array<DomUnknownRecord>;
+	/**
+	 * Application-owned scheduled items. Multiple items may share a row.
+	 */
+	items?: Array<DomUnknownRecord>;
+	rowKey?: ResourceKeyResolver;
+	rowLabelKey?: ResourceFieldResolver;
+	itemKey?: ResourceKeyResolver;
+	itemRowKey?: ResourceFieldResolver;
+	titleKey?: ResourceFieldResolver;
+	startKey?: ResourceFieldResolver;
+	endKey?: ResourceFieldResolver;
+	durationKey?: ResourceFieldResolver;
+	toneKey?: ResourceFieldResolver;
+	/**
+	 * Whole local calendar days, or elapsed hours/minutes. An explicit end wins.
+	 */
+	durationUnit?: "days" | "hours" | "minutes";
+	/**
+	 * First local date of the scrollable range. Supply a stable value for SSR.
+	 */
+	startDate?: string | Date | number;
+	/**
+	 * Scrollable range in calendar days, from 1 to 3660. Change this or startDate to load another window.
+	 */
+	days?: number;
+	/**
+	 * Initial or v-model zoom. Days displays individual hours.
+	 */
+	zoom?: "months" | "weeks" | "days";
+	/**
+	 * Enable named row creation and pointer/keyboard time selection.
+	 */
+	planMode?: boolean;
+	/**
+	 * Allow items to move through time. Emits item-move; the application saves the change.
+	 */
+	draggableItems?: boolean;
+	/**
+	 * Allow moving items between rows when draggableItems is enabled. Enable for resource bookings; leave off for feature-based Gantt rows.
+	 */
+	allowRowChange?: boolean;
+	/**
+	 * Show a right-edge grip for shortening or extending an item. Emits item-resize.
+	 */
+	resizableItems?: boolean;
+	/**
+	 * Local start and exclusive end hour, e.g. [6, 18]. Outside hours are muted in day zoom.
+	 */
+	workingHours?: [number, number];
+	/**
+	 * Non-working weekdays: Sunday = 0, Saturday = 6. Muted, still selectable.
+	 */
+	weekendDays?: Array<number>;
+	/**
+	 * Compress out-of-hours time in day zoom. The toolbar can expand it again.
+	 */
+	hideNonWorkingHours?: boolean;
+	/**
+	 * Compress configured non-working weekdays at every zoom.
+	 */
+	hideWeekends?: boolean;
+	/**
+	 * Hourly-view selection snap in minutes (1–60). Other views snap to visible calendar days.
+	 */
+	selectionStep?: number;
+	/**
+	 * Minimum row height in pixels. Overlapping items expand the row.
+	 */
+	rowHeight?: number;
+	viewportHeight?: number;
+	rowHeading?: string;
+	addRowLabel?: string;
+	showToolbar?: boolean;
+	showCurrentTime?: boolean;
+	loading?: boolean;
+	ariaLabel?: string;
+}
+export declare const DomGantt: DomComponent<DomGanttProps>;
 
 /** MediaBrowserItem, MediaBrowserBreadcrumb, MediaBrowserDroppedFile, MediaBrowserSelectionPayload, MediaBrowserMovePayload, MediaBrowserUploadPayload, MediaBrowserDetailPayload payload types are exported from this module. */
 export interface DomMediaBrowserProps {
@@ -6530,6 +6647,26 @@ export interface DomAppListItemProps {
 }
 export declare const DomAppListItem: DomComponent<DomAppListItemProps>;
 
+export interface DomAppProfileProps {
+	/**
+	 * Account holder name; also supplies initials if the image is unavailable.
+	 */
+	name: string;
+	/**
+	 * Optional account email shown below the name.
+	 */
+	email?: string;
+	/**
+	 * Profile image URL. Falls back to initials if it cannot load.
+	 */
+	src?: string;
+	/**
+	 * Profile action label. Set to an empty string to hide the default action.
+	 */
+	actionLabel?: string;
+}
+export declare const DomAppProfile: DomComponent<DomAppProfileProps>;
+
 export interface DomAppShellProps {
 	/**
 	 * App height as a CSS length. Use 100dvh standalone, 36rem for an embedded app, or 100% inside a sized parent.
@@ -7231,6 +7368,7 @@ export declare const breadcrumbsProps: DomRuntimeProps;
 export declare const kanbanProps: DomRuntimeProps;
 export declare const monthCalendarProps: DomRuntimeProps;
 export declare const weekPlannerProps: DomRuntimeProps;
+export declare const ganttProps: DomRuntimeProps;
 export declare const agentChatShellProps: DomRuntimeProps;
 export declare const agentConversationProps: DomRuntimeProps;
 export declare const agentConversationListProps: DomRuntimeProps;

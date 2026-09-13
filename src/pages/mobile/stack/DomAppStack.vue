@@ -125,8 +125,13 @@ defineOptions({
 				height: '100%',
 				root: 'settings',
 				screens: [
-					{ id: 'settings', title: 'Settings', children: ['account', 'notifications'] },
-					{ id: 'account', title: 'Account', description: 'Profile, password, and sign-in settings.' },
+					{ id: 'settings', title: 'Settings', children: ['account', 'notifications'], description: '' },
+					{ id: 'account', title: 'Account', description: 'Profile and preferences.', children: ['general', 'apps'] },
+					{ id: 'general', title: 'General', children: ['language'], description: '' },
+					{ id: 'language', title: 'Language & Region', description: 'English (UK), United Kingdom.' },
+					{ id: 'apps', title: 'Apps', children: ['calendar'], description: '' },
+					{ id: 'calendar', title: 'Calendar', children: ['calendar-notifications'], description: '' },
+					{ id: 'calendar-notifications', title: 'Notifications', description: 'Event reminders, invitations, and shared calendars.' },
 					{ id: 'notifications', title: 'Notifications', description: 'Push, email, and quiet hours.' },
 				],
 			},
@@ -253,6 +258,7 @@ const direction = ref('forward');
 const isDesktopMedia = ref(false);
 const screenPanel = ref(null);
 const visitedPaths = reactive(new Map());
+const hasMounted = ref(false);
 
 let removeDesktopMediaListener = null;
 
@@ -341,6 +347,9 @@ watch(() => props.path, (next, previous) => {
 }, { deep: true });
 
 onMounted(() => {
+	// Each first visit mounts a new Transition. Animate those appearances, but
+	// keep the initial screen still during the stack's own mount and hydration.
+	hasMounted.value = true;
 	configureDesktopMedia();
 });
 
@@ -735,6 +744,7 @@ function configureDesktopMedia() {
 				v-for="[id, screenPath] in visitedPaths"
 				:key="id"
 				:name="transitionName"
+				:appear="hasMounted && animate"
 				@after-enter="focusActivePanel"
 			>
 				<section
@@ -792,6 +802,16 @@ function configureDesktopMedia() {
 <style scoped>
 [data-dom-app-stack-screen] {
 	backface-visibility: hidden;
+}
+
+.dom-app-stack-forward-enter-active,
+.dom-app-stack-back-leave-active {
+	z-index: 2;
+}
+
+.dom-app-stack-forward-leave-active,
+.dom-app-stack-back-enter-active {
+	z-index: 1;
 }
 
 .dom-app-stack-forward-enter-active,

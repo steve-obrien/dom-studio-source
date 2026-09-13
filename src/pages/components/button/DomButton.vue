@@ -51,7 +51,8 @@ const interaction = 'select-none active:bg-[linear-gradient(rgb(0_0_0/6%)_0_0)] 
 const variants = {
 	primary: 'skin-action hover:opacity-90',
 	secondary: 'skin-control hover:brightness-[0.98]',
-	ghost: 'text-canvas-fg hover:bg-secondary hover:text-secondary-fg',
+	// Reserve the border so variant changes fade from transparent without a currentColor flash or width shift.
+	ghost: 'border border-transparent text-canvas-fg hover:bg-secondary hover:text-secondary-fg',
 	danger: 'skin-control text-destructive hover:brightness-[0.98]',
 };
 const sizes = {

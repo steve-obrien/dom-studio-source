@@ -47,7 +47,11 @@ const conversations = ['Launch planning', 'Weekly report', 'Customer research'];
 
 <template>
 	<div class="h-52 overflow-hidden bg-secondary/30 p-3 text-canvas-fg" aria-hidden="true">
-		<div v-if="type === 'data-grid'" class="h-full overflow-hidden rounded-lg border border-border bg-canvas shadow-sm">
+		<div v-if="type === 'gantt'" class="h-full overflow-hidden rounded-lg border border-border bg-canvas text-[9px] shadow-sm">
+			<div class="grid h-9 grid-cols-[80px_1fr] border-b border-border font-medium"><span class="border-r border-border p-3">Team</span><div class="flex justify-around p-3 text-muted-fg"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span></div></div>
+			<div v-for="(name, index) in ['Maya', 'Oliver', 'Amara', 'Leo']" :key="name" class="grid h-8 grid-cols-[80px_1fr] border-b border-border/50"><span class="border-r border-border px-3 py-2">{{ name }}</span><div class="relative"><span class="absolute top-1.5 h-5 w-1/2 rounded border border-primary/30 bg-primary/15" :style="{ left: `${index * 12}%` }"></span></div></div>
+		</div>
+		<div v-else-if="type === 'data-grid'" class="h-full overflow-hidden rounded-lg border border-border bg-canvas shadow-sm">
 			<div class="flex h-9 items-center justify-between border-b border-border px-3">
 				<div class="flex items-center gap-1.5">
 					<span class="size-2 rounded-full bg-primary"></span>

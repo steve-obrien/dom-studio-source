@@ -17,6 +17,7 @@ const mobileFoundations = [
 	['DomAppTopBar', 'Compact app header with leading and trailing action slots.'],
 	['DomAppBottomNav', 'Thumb-friendly primary navigation for app tabs.'],
 	['DomAppListItem', 'Touch-sized rows for settings, menus, inboxes, and task lists.'],
+	['DomAppProfile', 'An account header with a profile image, name, email, and an editable action.'],
 	['DomSafeArea', 'Safe-area padding for app chrome around cutouts and home indicators.'],
 	['DomAppStack', 'Settings-style nested navigation with slide transitions, breadcrumbs, lazy screens, and responsive panel styling.'],
 	['DomAppStackScreen', 'Slot-driven screen registration for custom stack content inside DomAppStack.'],
@@ -103,7 +104,7 @@ const layoutExample = `<DomAppShell :content-scroll="false">
 				<Example
 					:source="SettingsStackSource"
 					title="Settings stack"
-					description="Go back to Settings or open Profile. Mobile shows a back button and sliding page title; the Desktop preset shows breadcrumbs. Visited screens keep their state and scroll position."
+					description="Explore Account → General → Language & Region, or Account → Apps → Calendar → Notifications. Mobile slides the back button and title with each screen; the Desktop preset shows the full breadcrumb path. Visited screens keep their state and scroll position."
 					filename="SettingsStack.vue"
 					presentation="mobile"
 					device-title="Settings stack"
