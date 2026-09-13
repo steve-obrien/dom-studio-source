@@ -1,11 +1,11 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { getPageSeo, getRouteHead } from '../src/seo.js';
 import { loadStaticRouteRecords } from './lib/load-routes.mjs';
 import { buildSitemap, readSiteUrl } from './lib/sitemap.mjs';
 
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, 'dist', 'client');
-const siteName = 'DOM Studio';
 
 /**
  * Escapes text for safe insertion into generated HTML and XML.
@@ -40,19 +40,8 @@ const buildRobots = (siteUrl) => [
  * @returns {{ title: string, description: string }} Page metadata.
  */
 const getPageMeta = (routePath) => {
-	if (routePath === '/') {
-		return {
-			title: siteName,
-			description: 'DOM Studio is a complete Vue and Web Component UI system you can own, edit, and ship.',
-		};
-	}
-
-	const sectionName = routePath.replace(/^\//, "").replace(/-/g, " ");
-	const humanLabel = sectionName.charAt(0).toUpperCase() + sectionName.slice(1);
-	return {
-		title: `${humanLabel} | ${siteName}`,
-		description: `${humanLabel} in ${siteName}.`,
-	};
+	const meta = getPageSeo(routePath);
+	return { title: getRouteHead({ path: routePath, meta }).title, description: meta.description };
 };
 
 /**
@@ -105,7 +94,7 @@ const injectMetaIntoPage = async (siteUrl, routePath) => {
 	}
 
 	const meta = getPageMeta(routePath);
-	const canonical = routePath === "/" ? siteUrl : `${siteUrl}${routePath}`;
+	const canonical = `${siteUrl}${routePath}`;
 	const tags = [
 		`<title>${escapeHtml(meta.title)}</title>`,
 		`<meta name="description" content="${escapeHtml(meta.description)}">`,

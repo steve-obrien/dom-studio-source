@@ -29,7 +29,7 @@ export function buildSitemap(siteUrl, routeRecords) {
 	const urlEntries = routeRecords
 		.map((routeRecord) => {
 			const routePath = routeRecord.path;
-			const location = routePath === '/' ? siteUrl : `${siteUrl}${routePath}`;
+			const location = `${siteUrl}${routePath}`;
 			const lastmod = routeRecord.lastmod || generatedAt;
 			return [
 				'\t<url>',

@@ -6,7 +6,8 @@ import { routes } from './routes';
 import { getAuthState, hasEntitlement, refreshSession } from './composable/useAuth.js';
 import { initTheme } from './pages/lib/vue/useTheme.js';
 
-const siteName = 'getdom.studio';
+import { getRouteHead, normalizePagePath } from './seo.js';
+export { getRouteHead } from './seo.js';
 const globalSearchOpenEvent = 'dom-studio:open-global-search';
 const documentationRoutePrefixes = [
 	'/ai',
@@ -116,98 +117,35 @@ function installAuthGuard(router) {
 }
 
 /**
- * Builds route metadata shared by server rendering and browser navigation.
- *
- * @param {import('vue-router').RouteLocationNormalizedLoaded} route Resolved route.
- * @returns {{ title: string, meta: object[], link: object[] }} Route head tags.
- */
-export function getRouteHead(route) {
-	const title = route.meta?.title ? `${route.meta.title} | ${siteName}` : siteName;
-	const description = route.meta?.description || '';
-	const keywords = route.meta?.keywords || '';
-	const robots = route.meta?.robots || '';
-
-	return {
-		title,
-		meta: [
-			description ? { name: 'description', content: description } : null,
-			keywords ? { name: 'keywords', content: keywords } : null,
-			robots ? { name: 'robots', content: robots } : null,
-		].filter(Boolean),
-		link: route.path === '/' ? [{ rel: 'canonical', href: 'https://getdom.studio/' }] : [],
-	};
-}
-
-/**
- * Applies route metadata and keeps the homepage canonical scoped to its route.
+ * Replaces page-owned tags after navigation so canonicals and social metadata cannot leak.
  *
  * @param {import('vue-router').RouteLocationNormalizedLoaded} route Resolved route.
  * @returns {void}
  */
 export function updateDocumentHead(route) {
 	const head = getRouteHead(route);
-
 	document.title = head.title;
 
-	const canonical = head.link.find((link) => link.rel === 'canonical');
-	for (const link of document.head.querySelectorAll('link[rel="canonical"]')) {
-		if (canonical || link.getAttribute('href') === 'https://getdom.studio/') link.remove();
+	const pageTags = 'link[rel="canonical"], meta[name="description"], meta[name="keywords"], meta[name="robots"], meta[property^="og:"], meta[property^="article:"], meta[name^="twitter:"]';
+	for (const tag of document.head.querySelectorAll(pageTags)) tag.remove();
+	for (const attributes of head.meta) {
+		const tag = document.createElement('meta');
+		for (const [key, value] of Object.entries(attributes)) {
+			if (value !== undefined && value !== null) tag.setAttribute(key, value);
+		}
+		document.head.appendChild(tag);
 	}
-	if (canonical) {
-		const link = document.createElement('link');
-		link.rel = canonical.rel;
-		link.href = canonical.href;
-		document.head.appendChild(link);
+	for (const attributes of head.link) {
+		const tag = document.createElement('link');
+		for (const [key, value] of Object.entries(attributes)) tag.setAttribute(key, value);
+		document.head.appendChild(tag);
 	}
-
-	const description = head.meta.find((meta) => meta.name === 'description')?.content;
-	const keywords = head.meta.find((meta) => meta.name === 'keywords')?.content;
-	const robots = head.meta.find((meta) => meta.name === 'robots')?.content;
-
-	if (description) {
-		updateMetaTag('meta[name="description"]', {
-			name: 'description',
-			content: description,
-		});
-	} else {
-		removeMetaTag('meta[name="description"]');
-	}
-
-	if (keywords) {
-		updateMetaTag('meta[name="keywords"]', {
-			name: 'keywords',
-			content: keywords,
-		});
-	} else {
-		removeMetaTag('meta[name="keywords"]');
-	}
-
-	if (robots) {
-		updateMetaTag('meta[name="robots"]', {
-			name: 'robots',
-			content: robots,
-		});
-	} else {
-		removeMetaTag('meta[name="robots"]');
+	if (normalizePagePath(route.path) !== '/blog') document.getElementById('blog-jsonld')?.remove();
+	if (!head.meta.some((tag) => tag.property === 'og:type' && tag.content === 'article')) {
+		document.getElementById('blog-article-jsonld')?.remove();
 	}
 }
 
 function applyInitialTheme() {
 	initTheme();
-}
-
-function updateMetaTag(selector, attributes) {
-	let tag = document.head.querySelector(selector);
-	if (!tag) {
-		tag = document.createElement('meta');
-		document.head.appendChild(tag);
-	}
-
-	for (const [key, value] of Object.entries(attributes)) {
-		tag.setAttribute(key, value);
-	}
-}
-
-function removeMetaTag(selector) {
-	document.head.querySelector(selector)?.remove();
 }

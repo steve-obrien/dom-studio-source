@@ -301,10 +301,10 @@ function runCommand({ value }) {
 							<span class="rounded-full border border-border bg-secondary px-3 py-1">Own, edit, and ship</span>
 						</div>
 						<h1 class="mt-6 max-w-5xl text-4xl font-bold leading-[1.05] text-canvas-fg sm:text-5xl lg:text-6xl">
-							Build real app UI from primitives that already know the hard parts.
+							Vue UI component library for real applications.
 						</h1>
 						<p class="mt-6 max-w-3xl text-lg leading-8 text-muted-fg">
-							A complete Vue and Web Component UI system you can own, edit, and ship. Headless web components, polished Vue wrappers, app blocks, form schemas, mobile shells, Studio metadata, and LLM-ready docs work together in one editable library.
+							A complete Vue 3 component library you can own, edit, and ship. Headless web components, polished Vue wrappers, app blocks, form schemas, mobile shells, Studio metadata, and LLM-ready docs work together in one editable library.
 						</p>
 						<div class="mt-8 flex flex-wrap items-center gap-3">
 							<DomButton as="router-link" to="/components" size="lg">Browse the library</DomButton>

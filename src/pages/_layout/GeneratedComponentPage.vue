@@ -29,6 +29,11 @@ watch(() => [
 	props.componentSourceLoader,
 ], loadComponent, { immediate: true });
 
+/**
+ * Loads implementation and reference source when asynchronous props change.
+ *
+ * @returns {Promise<void>} Resolves once this page has its component metadata.
+ */
 async function loadComponent() {
 	const run = ++loadRun;
 	loadedComponent.value = props.component || null;

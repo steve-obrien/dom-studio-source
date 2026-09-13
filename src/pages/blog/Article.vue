@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, ref, watch, watchEffect } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import { useAsyncData } from '#now/runtime/asyncData.js';
+import { updateDocumentHead } from '../../main.js';
 import { useHead, useRouteStatus } from '#now/runtime/head.js';
 import { useApiFetch } from '../../composable/useApiFetch.js';
 import DomStudioLayout from '../_layout/DomStudioLayout.vue';
@@ -9,6 +10,7 @@ import { highlight } from '../_layout/docs/shiki.js';
 import { formatArticleDate, loadBlogArticle } from './blogData.js';
 
 const route = useRoute();
+const articlePath = route.path;
 const slug = computed(() => String(route.params.slug || ''));
 const apiFetch = useApiFetch();
 const articleContent = ref(null);
@@ -24,25 +26,24 @@ const head = useHead();
 const setRouteStatus = useRouteStatus();
 
 watchEffect(() => {
+	if (route.path !== articlePath) return;
 	if (!pending.value && !article.value) {
 		setRouteStatus(404);
-		head.setTitle('Article not found | getdom.studio');
-		head.setMeta([{ name: 'robots', content: 'noindex' }]);
+		applyArticleHead({ title: 'Article Not Found | DOM Studio', meta: [{ name: 'robots', content: 'noindex,follow' }], link: [] });
 		return;
 	}
 
 	if (!article.value) return;
 
 	const currentArticle = article.value;
-	const title = `${currentArticle.title} | getdom.studio`;
-	const description = currentArticle.meta_description || `Read ${currentArticle.title} on the getdom.studio blog.`;
+	const title = `${currentArticle.title} | DOM Studio`;
+	const description = currentArticle.meta_description || `Read ${currentArticle.title} on the DOM Studio blog.`;
 	const canonical = `https://getdom.studio/blog/${currentArticle.slug}`;
 	const published = currentArticle.published_at || currentArticle.source_created_at;
 	const modified = currentArticle.updated_at || published;
 	const image = currentArticle.image_url || 'https://getdom.studio/brand-mark.svg';
 
-	head.setTitle(title);
-	head.setMeta([
+	const meta = [
 		{ name: 'description', content: description },
 		{ property: 'og:type', content: 'article' },
 		{ property: 'og:title', content: currentArticle.title },
@@ -56,8 +57,8 @@ watchEffect(() => {
 		{ name: 'twitter:title', content: currentArticle.title },
 		{ name: 'twitter:description', content: description },
 		{ name: 'twitter:image', content: image },
-	]);
-	head.setLink([{ rel: 'canonical', href: canonical }]);
+	];
+	applyArticleHead({ title, meta, link: [{ rel: 'canonical', href: canonical }] });
 	head.setLdJson('blog-article-jsonld', {
 		'@context': 'https://schema.org',
 		'@type': 'BlogPosting',
@@ -84,6 +85,20 @@ watchEffect(() => {
 		keywords: currentArticle.tags.join(', '),
 	});
 }, { flush: 'sync' });
+
+/**
+ * Retains loaded article metadata across hydration and same-article query navigation.
+ *
+ * @param {{ title: string, meta: object[], link: object[] }} articleHead Article head tags.
+ * @returns {void}
+ */
+function applyArticleHead(articleHead) {
+	route.meta.articleHead = { path: route.path, head: articleHead };
+	head.setTitle(articleHead.title);
+	head.setMeta(articleHead.meta);
+	head.setLink(articleHead.link);
+	if (!import.meta.env.SSR) updateDocumentHead(route);
+}
 
 onMounted(highlightArticleCodeBlocks);
 watch(() => article.value?.rendered_html, highlightArticleCodeBlocks, { flush: 'post' });

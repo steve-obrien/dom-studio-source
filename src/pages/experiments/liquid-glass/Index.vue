@@ -116,7 +116,7 @@ onMounted(detectRefractionSupport);
 					Experimental component · Phase 1
 				</p>
 				<h1 class="m-0 text-[clamp(2.35rem,5vw,5rem)] font-[760] leading-[0.96] tracking-[-0.055em]">
-					Liquid glass surface
+					CSS Liquid Glass Effect
 				</h1>
 				<p class="mt-5 max-w-3xl text-[clamp(1rem,1.6vw,1.2rem)] leading-relaxed text-muted-fg">
 					Testing a refractive surface that bends and softens the backdrop to create a liquid-glass effect.

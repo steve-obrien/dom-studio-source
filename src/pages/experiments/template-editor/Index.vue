@@ -3033,7 +3033,7 @@ function isEmptyElement(node) {
 								</button>
 								<div class="min-w-0 flex-1">
 									<p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Experiment</p>
-									<h1 class="mt-1 text-sm font-semibold text-canvas-fg">Template Studio</h1>
+									<h1 class="mt-1 text-sm font-semibold text-canvas-fg">Vue Visual Template Editor</h1>
 									<div class="mt-3 flex flex-wrap items-center gap-1 text-xs text-muted-fg">
 										<button
 											v-for="(name, index) in componentStack"

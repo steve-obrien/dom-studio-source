@@ -688,7 +688,7 @@ async function copyOutput(target, value) {
 			<header class="flex flex-col gap-3 border-b border-border pb-4 lg:flex-row lg:items-end lg:justify-between xl:shrink-0">
 				<div class="max-w-3xl space-y-1.5">
 					<p class="text-xs font-medium uppercase tracking-wide text-muted-fg">Experiments / CSS tools</p>
-					<h1 class="text-2xl font-semibold tracking-normal text-canvas-fg sm:text-3xl">CSS button creator</h1>
+					<h1 class="text-2xl font-semibold tracking-normal text-canvas-fg sm:text-3xl">CSS Button Generator</h1>
 					<p class="max-w-2xl text-sm leading-6 text-muted-fg">
 						Design-tool style button CSS editor with stateful preview and generated output.
 					</p>

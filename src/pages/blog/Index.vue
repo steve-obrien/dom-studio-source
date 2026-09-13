@@ -2,6 +2,7 @@
 import { computed, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { useAsyncData } from '#now/runtime/asyncData.js';
+import { getRouteHead } from '../../seo.js';
 import { useHead } from '#now/runtime/head.js';
 import { useApiFetch } from '../../composable/useApiFetch.js';
 import DomStudioLayout from '../_layout/DomStudioLayout.vue';
@@ -34,12 +35,11 @@ const articles = computed(() => blogData.value?.articles || []);
 const pagination = computed(() => blogData.value?.pagination || defaultBlogData.pagination);
 const featuredArticle = computed(() => articles.value[0] || null);
 const moreArticles = computed(() => articles.value.slice(1));
-const description = 'Practical writing on DOM Studio, AI-ready UI, component systems, and editable product interfaces.';
-const blogUrl = 'https://getdom.studio/blog';
+const description = route.meta.description;
 const head = useHead();
 
 watch(page, loadPage, { flush: 'sync' });
-watch(page, updatePageHead, { immediate: true });
+watch(page, updatePageHead, { immediate: true, flush: 'post' });
 
 /**
  * Loads article data after the route-backed page number changes.
@@ -66,26 +66,15 @@ async function changePage(nextPage) {
 /**
  * Updates page-specific metadata for paginated blog index routes.
  *
- * @param {number} activePage Active blog page number.
+ * @returns {void}
  */
-function updatePageHead(activePage) {
-	const title = activePage > 1
-		? `Blog - Page ${activePage} | getdom.studio`
-		: 'Blog | getdom.studio';
-	const canonical = activePage > 1 ? `${blogUrl}?page=${activePage}` : blogUrl;
-
-	head.setTitle(title);
-	head.setMeta([
-		{ name: 'description', content: description },
-		{ property: 'og:type', content: 'website' },
-		{ property: 'og:title', content: title },
-		{ property: 'og:description', content: description },
-		{ property: 'og:url', content: canonical },
-		{ name: 'twitter:card', content: 'summary' },
-		{ name: 'twitter:title', content: title },
-		{ name: 'twitter:description', content: description },
-	]);
-	head.setLink([{ rel: 'canonical', href: canonical }]);
+function updatePageHead() {
+	if (route.path.replace(/\/$/, '') !== '/blog') return;
+	const pageHead = getRouteHead(route);
+	const canonical = pageHead.link[0].href;
+	head.setTitle(pageHead.title);
+	head.setMeta(pageHead.meta);
+	head.setLink(pageHead.link);
 	head.setLdJson('blog-jsonld', {
 		'@context': 'https://schema.org',
 		'@type': 'Blog',
@@ -122,7 +111,7 @@ function positiveInteger(value, fallback) {
 	<DomStudioLayout>
 		<section class="border-b border-border pb-10">
 			<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">Blog</p>
-			<h1 class="mt-3 text-4xl font-bold tracking-tight text-canvas-fg sm:text-5xl">Notes on building interfaces people can keep owning.</h1>
+			<h1 class="mt-3 text-4xl font-bold tracking-tight text-canvas-fg sm:text-5xl">Vue UI development blog</h1>
 			<p class="mt-4 max-w-2xl text-base leading-relaxed text-muted-fg">
 				Practical writing on component systems, AI-editable UI, and the small decisions that make product surfaces feel steady.
 			</p>

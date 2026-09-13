@@ -115,7 +115,7 @@ const generatedSource = [
 
 		<section class="-mt-6 pb-16 pt-10 text-center">
 			<p class="text-xs font-semibold uppercase tracking-[0.22em] text-muted-fg">Pricing</p>
-			<h1 class="mt-3 text-5xl font-bold leading-[1.05] tracking-tight text-canvas-fg sm:text-6xl">Own the UI system you ship.</h1>
+			<h1 class="mt-3 text-5xl font-bold leading-[1.05] tracking-tight text-canvas-fg sm:text-6xl">Vue component library pricing and licences.</h1>
 			<p class="mx-auto mt-5 max-w-2xl text-lg text-muted-fg">
 				A complete Vue and Web Component UI system you can own, edit, and ship. Choose an Individual or Team licence to unlock DOM Studio source access, generated examples, and the living documentation workflow.
 			</p>
