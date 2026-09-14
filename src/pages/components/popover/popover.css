@@ -1,0 +1,50 @@
+.dom-popover-arrow {
+	position: absolute;
+	z-index: 0;
+	display: block;
+	width: 16px;
+	height: 8px;
+	overflow: visible;
+	fill: var(--skin-bg, var(--canvas));
+	stroke: var(--skin-border, var(--border));
+	stroke-width: 1;
+	stroke-linejoin: round;
+	pointer-events: none;
+}
+
+.dom-popover-arrow-fill {
+	fill: var(--skin-bg, var(--canvas));
+	stroke: none;
+}
+
+.dom-popover-arrow-stroke {
+	fill: none;
+	stroke: var(--skin-border, var(--border));
+	stroke-width: 1;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.dom-floating-transition[data-side="top"] > .dom-popover-card > .dom-popover-arrow {
+	bottom: -8px;
+	left: var(--dom-popover-arrow-x);
+	transform: translateX(-50%) rotate(180deg);
+}
+
+.dom-floating-transition[data-side="bottom"] > .dom-popover-card > .dom-popover-arrow {
+	top: -8px;
+	left: var(--dom-popover-arrow-x);
+	transform: translateX(-50%);
+}
+
+.dom-floating-transition[data-side="left"] > .dom-popover-card > .dom-popover-arrow {
+	right: -12px;
+	top: var(--dom-popover-arrow-y);
+	transform: translateY(-50%) rotate(90deg);
+}
+
+.dom-floating-transition[data-side="right"] > .dom-popover-card > .dom-popover-arrow {
+	left: -12px;
+	top: var(--dom-popover-arrow-y);
+	transform: translateY(-50%) rotate(-90deg);
+}

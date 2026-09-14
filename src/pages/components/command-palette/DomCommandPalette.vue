@@ -67,7 +67,16 @@ const filtered = computed(() => {
 		.map((result) => result.command);
 });
 
-watch(() => props.modelValue, async (open) => {
+watch(() => props.modelValue, syncPaletteOpenState);
+
+/**
+ * Synchronizes visibility and focus for an existing palette or an initially open
+ * palette mounted through an async component after the user requests it.
+ *
+ * @param {boolean} open Whether the palette should be visible.
+ * @returns {Promise<void>} Resolves after the panel is ready for focus.
+ */
+async function syncPaletteOpenState(open) {
 	if (!open) {
 		if (!isRendered.value) return;
 		isVisible.value = false;
@@ -85,7 +94,7 @@ watch(() => props.modelValue, async (open) => {
 		isVisible.value = true;
 		input.value?.focus();
 	});
-});
+}
 watch(query, resetActiveIndex);
 watch(filtered, syncActiveIndex);
 
@@ -112,6 +121,7 @@ function syncActiveIndex(items) {
 onMounted(() => {
 	teleportTarget.value = panel.value?.ownerDocument?.body || document.body;
 	isMounted.value = true;
+	if (props.modelValue) void syncPaletteOpenState(true);
 	window.addEventListener('keydown', onShortcut, { capture: true });
 	document.addEventListener('keydown', onShortcut, { capture: true });
 	window.addEventListener('keyup', onShortcutFallback, { capture: true });

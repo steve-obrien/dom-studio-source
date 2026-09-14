@@ -126,12 +126,12 @@ const rangeInputAttrs = computed(() => ({
 }));
 
 const trackClassName = computed(() => [
-	'dom-range-input__bar pointer-events-none absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-secondary',
+	'pointer-events-none absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-secondary shadow-[inset_0_1px_2px_color-mix(in_oklch,var(--border)_70%,transparent)]',
 	props.trackClass,
 ]);
 
 const progressClassName = computed(() => [
-	'dom-range-input__bar pointer-events-none absolute left-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-primary',
+	'pointer-events-none absolute left-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-primary shadow-[inset_0_1px_2px_color-mix(in_oklch,var(--border)_70%,transparent)]',
 	props.progressClass,
 ]);
 
@@ -288,9 +288,3 @@ onBeforeUnmount(endDrag);
 		</div>
 	</DomField>
 </template>
-
-<style scoped>
-.dom-range-input__bar {
-	box-shadow: inset 0 1px 2px color-mix(in oklch, var(--border) 70%, transparent);
-}
-</style>

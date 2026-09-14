@@ -33,6 +33,7 @@ const router = useRouter();
 const isMounted = ref(false);
 const mobileMenuOpen = ref(false);
 const searchOpen = ref(false);
+const searchReady = ref(false);
 const isHeaderFloating = ref(false);
 const searchCommands = getGlobalSearchCommands();
 const STICKY_HEADER_THRESHOLD = 8;
@@ -144,6 +145,7 @@ function scrollDetailsToTop() {
  * @returns {void}
  */
 function openGlobalSearch() {
+	searchReady.value = true;
 	searchOpen.value = true;
 }
 
@@ -352,7 +354,7 @@ onBeforeUnmount(() => {
 
 		<DomStudioFooter v-if="!showSidebar" />
 		<DomCommandPalette
-			v-if="isMounted"
+			v-if="isMounted && searchReady"
 			v-model="searchOpen"
 			:commands="searchCommands"
 			shortcut=""

@@ -25,6 +25,7 @@ function createViteConfig({ command }) {
 		},
 		plugins: [
 			domStudioComponentCatalogPlugin(projectRoot),
+			domStudioStylesFirstPlugin(),
 			templateEditorTailwindServer(),
 			vue({
 				template: {
@@ -98,3 +99,31 @@ function isDomStudioCustomElement(tag) {
 }
 
 export default defineConfig(createViteConfig);
+
+/**
+ * Places the entry stylesheet before SSR module preloads so the parser discovers
+ * paint-critical CSS before queuing the route's JavaScript dependencies.
+ *
+ * @returns {import('vite').Plugin} Production HTML ordering plugin.
+ */
+function domStudioStylesFirstPlugin() {
+	return {
+		name: 'dom-studio-styles-first',
+		apply: 'build',
+		transformIndexHtml: {
+			order: 'post',
+			/**
+			 * Moves generated stylesheet links ahead of Now's resource hints.
+			 * @param {string} html Built HTML entry template.
+			 * @returns {string} Template with earlier stylesheet discovery.
+			 */
+			handler(html) {
+				const marker = '<!--now-preload-links-->';
+				if (!html.includes(marker)) return html;
+				const styles = html.match(/<link\b[^>]*\brel="stylesheet"[^>]*>/g) || [];
+				for (const style of styles) html = html.replace(style, '');
+				return html.replace(marker, `${styles.join('\n')}\n${marker}`);
+			},
+		},
+	};
+}

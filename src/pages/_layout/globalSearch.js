@@ -9,14 +9,14 @@ import { inspectComponentRecord } from './componentInspector.js';
 import { staticIconPaths } from './sideNavLinks.js';
 import { getBlockRecords } from '../blocks/blockRegistry.js';
 
-const pageModules = import.meta.glob([
+const pagePaths = Object.keys(import.meta.glob([
 	'../**/Index.vue',
 	'!../auth/**/Index.vue',
 	'!../blocks/*/Index.vue',
 	'!../blocks/*/**/Index.vue',
 	'!../experiments/**/Index.vue',
 	'!../paywall/**/Index.vue',
-]);
+]));
 
 const componentSectionOrder = ['components', 'data', 'charts', 'dev', 'forms', 'mobile', 'visual'];
 
@@ -101,7 +101,7 @@ function blockCommands() {
 }
 
 function pageCommands() {
-	const routes = Object.keys(pageModules)
+	const routes = pagePaths
 		.map(routeFromPagePath)
 		.filter(Boolean)
 		.concat('/');

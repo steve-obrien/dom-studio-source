@@ -1,6 +1,7 @@
 <script setup>
-import { defineAsyncComponent, onMounted, ref } from 'vue';
+import { defineAsyncComponent, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
+import { useNearViewport } from '../composable/useNearViewport.js';
 import BrandMark from './_layout/BrandMark.vue';
 import DomStudioLayout from './_layout/DomStudioLayout.vue';
 import {
@@ -20,7 +21,7 @@ import {
 } from './lib/vue';
 
 /**
- * Loads the below-the-fold accordion after the initial page has mounted.
+ * Loads the below-the-fold accordion as its container approaches the viewport.
  *
  * @returns {Promise<object>} Vue SFC module.
  */
@@ -56,7 +57,7 @@ function loadSharedResourceViews() {
 }
 
 /**
- * Loads the interactive media picker only when the homepage is mounted.
+ * Loads the interactive media picker after its tab is first selected.
  *
  * @returns {Promise<object>} Vue SFC module.
  */
@@ -74,6 +75,12 @@ const isMounted = ref(false);
 const showcaseTab = ref('product');
 const completeDemoTab = ref('workspace');
 const commandOpen = ref(false);
+const commandReady = ref(false);
+const mediaReady = ref(false);
+const workspaceContainer = ref(null);
+const accordionContainer = ref(null);
+const workspaceReady = useNearViewport(workspaceContainer);
+const accordionReady = useNearViewport(accordionContainer);
 const activeLayer = ref('dialog');
 const selectedPrimitive = ref('combobox');
 const releaseDate = ref('2026-06-18');
@@ -272,12 +279,39 @@ onMounted(() => {
 	isMounted.value = true;
 });
 
+watch(commandOpen, prepareCommandPalette);
+watch(completeDemoTab, prepareMediaPicker);
+
+/**
+ * Keeps the palette mounted after first use so its close transition can finish.
+ * @param {boolean} open Whether the palette is opening.
+ * @returns {void}
+ */
+function prepareCommandPalette(open) {
+	if (open) commandReady.value = true;
+}
+
+/**
+ * Preserves the media demo's selection after its tab is first visited.
+ * @param {string} tab Selected demo tab.
+ * @returns {void}
+ */
+function prepareMediaPicker(tab) {
+	if (tab === 'media') mediaReady.value = true;
+}
+
+/** Shows confirmation from the homepage's interactive save controls. */
 function showBuildToast() {
 	success('Blueprint saved', {
 		description: 'Dialog, form, toast, and headless behavior are wired together.',
 	});
 }
 
+/**
+ * Handles a homepage command or navigates to its documentation page.
+ * @param {{ value: string }} command Selected command.
+ * @returns {void}
+ */
 function runCommand({ value }) {
 	if (typeof value === 'string' && value.startsWith('/')) {
 		router.push(value);
@@ -518,7 +552,7 @@ function runCommand({ value }) {
 						</div>
 					</div>
 
-					<div class="mt-10 overflow-hidden rounded-[1.75rem] border border-border skin-card shadow-2xl shadow-black/10">
+					<div ref="workspaceContainer" class="mt-10 overflow-hidden rounded-[1.75rem] border border-border skin-card shadow-2xl shadow-black/10">
 						<div class="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-secondary/35 px-4 py-4 sm:px-6">
 							<div>
 								<p class="text-sm font-semibold text-canvas-fg">Live product workspace</p>
@@ -529,7 +563,7 @@ function runCommand({ value }) {
 						<div class="p-3 sm:p-5 lg:p-6">
 							<DomTabs v-model="completeDemoTab" :tabs="completeDemoTabs">
 								<template #workspace>
-									<Suspense v-if="isMounted">
+									<Suspense v-if="workspaceReady">
 										<SharedResourceViews />
 										<template #fallback>
 											<div class="h-[34rem] animate-pulse rounded-xl bg-secondary/45" aria-label="Loading workspace demo"></div>
@@ -541,7 +575,7 @@ function runCommand({ value }) {
 									<div class="min-h-[20rem] rounded-xl border border-border bg-secondary/20 p-4 sm:p-8">
 										<div class="mx-auto max-w-2xl">
 											<p class="mb-6 text-sm leading-6 text-muted-fg">Open the picker to browse folders, change view, select a file, and return its application-owned media id.</p>
-											<Suspense v-if="isMounted">
+											<Suspense v-if="mediaReady">
 												<MediaFilePicker accept="image/*" label="Campaign artwork" store-id="homepage" />
 												<template #fallback>
 													<div class="h-24 animate-pulse rounded-xl bg-secondary/45" aria-label="Loading media picker demo"></div>
@@ -601,8 +635,8 @@ function runCommand({ value }) {
 					<div class="grid gap-4 md:grid-cols-2">
 						<div class="rounded-2xl border border-border skin-card p-5">
 							<p class="text-sm font-semibold text-canvas-fg">Answers without leaving the page</p>
-							<div class="mt-4">
-								<Suspense v-if="isMounted">
+							<div ref="accordionContainer" class="mt-4">
+								<Suspense v-if="accordionReady">
 									<DomAccordion :items="accordionItems" />
 									<template #fallback>
 										<div class="grid gap-2" aria-hidden="true">
@@ -654,7 +688,7 @@ function runCommand({ value }) {
 		</div>
 
 		<template v-if="isMounted">
-			<DomCommandPalette v-model="commandOpen" :commands="commands" @select="runCommand" />
+			<DomCommandPalette v-if="commandReady" v-model="commandOpen" :commands="commands" shortcut="" @select="runCommand" />
 			<DomToastStack :toasts="toasts" position="bottom-right" @dismiss="dismiss" />
 		</template>
 	</DomStudioLayout>

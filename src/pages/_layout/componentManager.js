@@ -1,30 +1,5 @@
 import { componentCatalog } from './componentCatalog.generated.js';
 
-const lazyComponentModules = import.meta.glob([
-	'../components/*/Dom*.vue',
-	'../data/*/Dom*.vue',
-	'../charts/*/Dom*.vue',
-	'../dev/*/Dom*.vue',
-	'../forms/*/Dom*.vue',
-	'../mobile/*/Dom*.vue',
-	'../visual/*/Dom*.vue',
-	'!../components/playground/DomRenderer.vue',
-	'!../components/toast/DomToastItem.vue',
-	'!../forms/_shared/Dom*.vue',
-], { import: 'default' });
-const lazyComponentSourceModules = import.meta.glob([
-	'../components/*/Dom*.vue',
-	'../data/*/Dom*.vue',
-	'../charts/*/Dom*.vue',
-	'../dev/*/Dom*.vue',
-	'../forms/*/Dom*.vue',
-	'../mobile/*/Dom*.vue',
-	'../visual/*/Dom*.vue',
-	'!../components/playground/DomRenderer.vue',
-	'!../components/toast/DomToastItem.vue',
-	'!../forms/_shared/Dom*.vue',
-], { import: 'default', query: '?raw' });
-
 export const componentSections = ['components', 'data', 'charts', 'dev', 'forms', 'mobile', 'visual'];
 
 /**
@@ -49,10 +24,28 @@ export function getLazyComponentRecords() {
 	return getComponentRecords()
 		.map((record) => ({
 			...record,
-			loader: lazyComponentModules[record.path],
-			sourceLoader: lazyComponentSourceModules[record.path],
-		}))
-		.filter((record) => record.loader);
+			loader: createComponentLoader(record.path),
+			sourceLoader: createComponentLoader(record.path, true),
+		}));
+}
+
+/**
+ * Creates a documentation loader without importing the full component import map.
+ *
+ * @param {string} path Catalogued component path.
+ * @param {boolean} source Whether to load raw SFC source.
+ * @returns {Function} Lazy Vue Router or documentation source loader.
+ */
+function createComponentLoader(path, source = false) {
+	/**
+	 * Resolves the shared import map and then the requested component resource.
+	 * @returns {Promise<object|string>} Component implementation or raw source.
+	 */
+	async function load() {
+		const { loadComponent } = await import('./componentLoaders.js');
+		return loadComponent(path, source);
+	}
+	return load;
 }
 
 /**

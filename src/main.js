@@ -1,7 +1,9 @@
 import { createNowApp } from '#now/runtime/createNowApp.js';
 import App from './App.vue';
 import './font.css';
-import './style.css';
+import './site.css';
+// Fold the homepage's intrinsic popover styles into the initial stylesheet.
+import './pages/components/popover/popover.css';
 import { routes } from './routes';
 import { getAuthState, hasEntitlement, refreshSession } from './composable/useAuth.js';
 import { initTheme } from './pages/lib/vue/useTheme.js';

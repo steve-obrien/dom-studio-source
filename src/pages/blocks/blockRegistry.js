@@ -1,6 +1,7 @@
 const blockPageModules = import.meta.glob('./**/Index.vue');
 const blockMetaModules = import.meta.glob('./**/block.meta.js', { eager: true, import: 'default' });
-const blockExampleModules = import.meta.glob('./**/examples/*.vue');
+// Only inventory paths: no example import functions or dependency preload maps.
+const blockExamplePaths = Object.keys(import.meta.glob('./**/examples/*.vue'));
 
 export const defaultBlockIcon = 'M5 5h14v14H5V5Zm4 4h6M9 13h6M9 17h3';
 
@@ -264,7 +265,7 @@ function slugFromText(value) {
 
 function countExamples(blockPath) {
 	const prefix = `./${blockPath}/examples/`;
-	return Object.keys(blockExampleModules).filter((path) => path.startsWith(prefix)).length;
+	return blockExamplePaths.filter((path) => path.startsWith(prefix)).length;
 }
 
 function normalizeBlockPath(value) {
