@@ -1,6 +1,19 @@
 import { componentCatalog } from './componentCatalog.generated.js';
 
 export const componentSections = ['components', 'data', 'charts', 'dev', 'forms', 'mobile', 'visual'];
+export const componentNavigationSections = ['ai', ...componentSections];
+
+/**
+ * Resolves a component's navigation category independently of its source path.
+ * Unknown overrides fall back to the source section so components stay discoverable.
+ *
+ * @param {object} record Component catalogue or inspected metadata record.
+ * @returns {string} Section used by navigation, search, and component indexes.
+ */
+export function getComponentNavigationSection(record) {
+	const section = record.doc?.nav?.section;
+	return componentNavigationSections.includes(section) ? section : record.section;
+}
 
 /**
  * Returns component records that are safe for app-shell navigation and search.
@@ -108,6 +121,7 @@ export function getDevRedirectRecords() {
  */
 export function labelFromSection(section) {
 	return {
+		ai: 'AI',
 		components: 'Components',
 		data: 'Data',
 		charts: 'Data Visualisation',

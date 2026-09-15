@@ -109,6 +109,7 @@ import DomAgentConversationList from './DomAgentConversationList.vue';
 
 defineOptions({
 	__doc: {
+		nav: { section: 'ai', primary: true },
 		name: 'Agent chat shell',
 		tag: '<DomAgentChatShell>',
 		description: 'A three-pane AI chat application shell with a resizable conversation sidebar, scroll-contained conversation window, closable context aside, streaming tool calls, and audio/text handoff controls.',

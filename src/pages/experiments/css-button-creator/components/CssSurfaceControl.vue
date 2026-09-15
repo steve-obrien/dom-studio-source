@@ -1,5 +1,5 @@
 <script setup>
-import { DomColorInput } from '../../../lib/vue';
+import CssColorInput from './CssColorInput.vue';
 import StyleControlSection from './StyleControlSection.vue';
 
 defineProps({
@@ -33,11 +33,11 @@ const emit = defineEmits(['update:modelValue']);
 		<div class="p-3">
 			<div class="grid gap-3 sm:grid-cols-2">
 				<div class="space-y-1.5">
-					<DomColorInput v-model="surface.bg" label="Background" />
+					<CssColorInput v-model="surface.bg" label="Background" />
 					<p v-if="variables.bg" class="truncate font-mono text-[11px] text-muted-fg">{{ variables.bg }}</p>
 				</div>
 				<div class="space-y-1.5">
-					<DomColorInput v-model="surface.fg" label="Foreground" />
+					<CssColorInput v-model="surface.fg" label="Foreground" />
 					<p v-if="variables.fg" class="truncate font-mono text-[11px] text-muted-fg">{{ variables.fg }}</p>
 				</div>
 			</div>

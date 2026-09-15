@@ -50,6 +50,7 @@ import DomStatusPill from '../../visual/status-pill/DomStatusPill.vue';
 
 defineOptions({
 	__doc: {
+		nav: { section: 'ai' },
 		name: 'Agent conversation list',
 		tag: '<DomAgentConversationList>',
 		description: 'A reusable AI conversation navigation list with search, agent labels, unread counts, status pills, and active-thread selection.',

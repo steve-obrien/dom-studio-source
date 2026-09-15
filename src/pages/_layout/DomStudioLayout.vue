@@ -8,6 +8,7 @@ import SideNav from './SideNav.vue';
 import DomStudioFooter from './DomStudioFooter.vue';
 import AccountMenu from './AccountMenu.vue';
 import { getGlobalSearchCommands } from './globalSearch.js';
+import { getComponentNavigationSection, getComponentRecordByRoute } from './componentManager.js';
 import DomLiquidGlassSurface from '../lib/vue/_internal/DomLiquidGlassSurface.vue';
 import { LIQUID_GLASS_EFFECTS } from '../lib/vue/_internal/liquidGlassConfig.js';
 
@@ -79,6 +80,7 @@ const contentMaxWidthClass = computed(() => (
 ));
 
 const topLinks = [
+	{ to: '/ai', label: 'AI', match: '/ai' },
 	{ to: '/components', label: 'Components', match: '/components' },
 	{ to: '/forms', label: 'Forms', match: '/forms' },
 	{ to: '/data', label: 'Data', match: '/data' },
@@ -125,6 +127,8 @@ function connectDetailsPanelScroll(nextPanel, previousPanel) {
  * @returns {boolean} Whether the item is active.
  */
 function isTopLinkActive(link) {
+	const component = getComponentRecordByRoute(route.path);
+	if (component && getComponentNavigationSection(component) === 'ai') return link.to === '/ai';
 	return link.exact
 		? route.path === link.to
 		: route.path.startsWith(link.match || link.to);

@@ -1,139 +1,58 @@
 <script setup>
+import { RouterLink } from 'vue-router';
 import DomStudioLayout from '../_layout/DomStudioLayout.vue';
 import DocPage from '../_layout/DocPage.vue';
 import DocSection from '../_layout/DocSection.vue';
 import CodeBlock from '../_layout/CodeBlock.vue';
+import Playground from '../_layout/docs/Playground.vue';
+import DomStatusPill from '../visual/status-pill/DomStatusPill.vue';
+import statusPillSource from '../visual/status-pill/DomStatusPill.vue?raw';
 
-const discoveryCode = `// Discovered by componentManager.js from:
-// src/pages/components/*/Dom*.vue
-// src/pages/data/*/Dom*.vue
-// src/pages/dev/*/Dom*.vue
-// src/pages/forms/*/Dom*.vue
-// src/pages/mobile/*/Dom*.vue
-// src/pages/visual/*/Dom*.vue
+const sections = [
+	{ id: 'live-example', label: 'Live example' },
+	{ id: 'component-docs', label: 'Component docs' },
+	{ id: 'prop-editors', label: 'Prop editors' },
+	{ id: 'adding-components', label: 'Adding components' },
+];
 
-{
-\t"id": "forms/text-input",
-\t"path": "../forms/text-input/DomTextInput.vue",
-\t"section": "forms",
-\t"slug": "text-input",
-\t"exportName": "DomTextInput",
-\t"route": "/forms/text-input",
-\t"component": "DomTextInput"
-}`;
+const docFields = [
+	['name', 'Readable component name for documentation and navigation.'],
+	['description', 'A short explanation of what the component does and when to use it.'],
+	['tag', 'The component tag shown in documentation and generated usage examples.'],
+	['playground.initial', 'Starting prop values for the generated playground. These override the component defaults in the demo only.'],
+	['slots', 'Slot descriptions, with optional payloads for scoped slots.'],
+	['events', 'Event descriptions and payloads. Event names are also read from Vue emits and component source.'],
+	['keyboard', 'Key and action pairs for pages that include the keyboard reference helper.'],
+	['icon / order / badge', 'An SVG path, numeric ordering hint, and optional badge for the component catalogue.'],
+	['nav', 'Navigation overrides: icon, badge, and hidden.'],
+	['studio', 'Palette settings such as group, icon, hidden, defaults, accepts, and editor hints.'],
+	['hidden', 'Hides the component from navigation and the Studio palette. This does not disable its route or package export.'],
+];
 
-const decoratedCode = `// Returned by inspecting the discovered row and Vue component.
-{
-\t"id": "forms/text-input",
-\t"path": "../forms/text-input/DomTextInput.vue",
-\t"section": "forms",
-\t"slug": "text-input",
-\t"exportName": "DomTextInput",
-\t"route": "/forms/text-input",
-\t"component": "DomTextInput",
-\t"doc": {
-\t\t"name": "Text input",
-\t\t"tag": "${'<' + 'DomTextInput>'}",
-\t\t"description": "A labelled single-line text field."
-\t},
-\t"studio": {
-\t\t"group": "Forms",
-\t\t"hidden": false
-\t},
-\t"label": "Text input",
-\t"badge": null,
-\t"icon": "M5 7h14M12 7v10M8 17h8",
-\t"order": 100,
-\t"hidden": false,
-\t"navHidden": false,
-\t"studioHidden": false,
-\t"props": {
-\t\t"modelValue": { "type": "String", "default": "" },
-\t\t"label": { "type": "String", "default": "" }
-\t}
-}`;
+const editFields = [
+	['description', 'Helper text for the prop reference and inspector field.'],
+	['options', 'Available choices. Uses a select editor when no editor component is specified.'],
+	['component', 'An inspector editor name, such as DomTextInput, DomJsonInput, or DomJsonListInput.'],
+	['props', 'Configuration passed to that editor, such as rows, compact, or schema.'],
+	['label', 'A readable field label. Defaults to a label derived from the prop name.'],
+	['group', 'An optional group heading for related fields in the playground.'],
+];
 
-const componentDocCode = `<script setup>
-defineOptions({
-\t__doc: {
-\t\tname: 'Text input',
-\t\ttag: '${'<' + 'DomTextInput>'}',
-\t\tdescription: 'A labelled single-line text field.',
-\t\ticon: 'M5 7h14M12 7v10M8 17h8',
-\t\torder: 100,
-\t\tbadge: 'New',
-\t\tnav: {
-\t\t\tbadge: 'New',
-\t\t\thidden: false,
-\t\t\ticon: 'M5 7h14M12 7v10M8 17h8',
-\t\t},
-\t\tstudio: {
-\t\t\tgroup: 'Forms',
-\t\t\ticon: 'T',
-\t\t\thidden: false,
-\t\t},
-\t\tslots: [
-\t\t\t{ name: 'prefix', description: 'Rendered before the input.' },
-\t\t],
-\t\tevents: [
-\t\t\t{ name: 'update:modelValue', payload: 'string', description: 'Fired when text changes.' },
-\t\t],
-\t},
-});
-<\/script>`;
-
-const autoDocumenterCode = `// 1. Add or copy a component into a discovered folder.
-src/pages/forms/my-input/DomMyInput.vue
-
-// 2. Give the component lightweight docs metadata.
-defineOptions({
-	__doc: {
-		name: 'My input',
-		tag: '${'<' + 'DomMyInput>'}',
-		description: 'A labelled input for project-specific values.',
-		studio: { group: 'Project forms' },
-	},
-});
-
-// 3. Export it when the app needs package-style imports.
-export { default as DomMyInput } from '../../forms/my-input/DomMyInput.vue';
-
-// 4. The docs route is created automatically if there is no Index.vue.
-/forms/my-input`;
-
-const progressiveDocsCode = `<!-- src/pages/components/status-pill/DomStatusPill.vue -->
-<script setup>
-const props = defineProps({
-	tone: { type: String, default: 'neutral' },
-	label: { type: String, default: 'Draft' },
-});
-<\/script>
-
-<template>
-	<span class="rounded-full border border-border px-2 py-1 text-xs">
-		{{ label }}
-	</span>
-</template>
-
-<!-- Result: /components/status-pill appears automatically.
-The generated page uses the folder/export name, prop definitions, and playground. -->`;
-
-const progressiveOverrideCode = `<!-- Tweak the generated docs without writing a page. -->
-<script setup>
-defineOptions({
+const docCode = `defineOptions({
 	__doc: {
 		name: 'Status pill',
-		tag: '${'<' + 'DomStatusPill>'}',
-		description: 'A compact status label for workflow state.',
-		order: 40,
-		studio: {
-			group: 'Feedback',
-			icon: 'Circle',
+		tag: '<DomStatusPill>',
+		description: 'A compact label for workflow status.',
+		playground: {
+			initial: { label: 'Live', tone: 'success' },
 		},
+		slots: [
+			{ name: '(default)', description: 'Status label.' },
+		],
 	},
-});
+});`;
 
-const props = defineProps({
+const editCode = `const props = defineProps({
 	tone: {
 		type: String,
 		default: 'neutral',
@@ -142,360 +61,139 @@ const props = defineProps({
 			description: 'Visual state shown by the pill.',
 		},
 	},
-	label: { type: String, default: 'Draft' },
-});
-<\/script>
-
-<!-- Override the whole docs page only when needed:
-src/pages/components/status-pill/Index.vue -->`;
-
-const propEditCode = `const props = defineProps({
-\toptions: {
-\t\ttype: Array,
-\t\tdefault: () => [],
-\t\t_edit: {
-\t\t\tcomponent: 'DomJsonListInput',
-\t\t\tdescription: 'Options shown in the picker.',
-\t\t\tprops: {
-\t\t\t\tcompact: true,
-\t\t\t\taddLabel: '+ Add option',
-\t\t\t\tschema: [
-\t\t\t\t\t{ key: 'label', label: 'Label', default: (index) => \`Option \${index + 1}\` },
-\t\t\t\t\t{ key: 'value', label: 'Value', default: (index) => \`option-\${index + 1}\` },
-\t\t\t\t],
-\t\t\t},
-\t\t},
-\t},
 });`;
 
-const studioSpecCode = `// Studio renderer spec. This is different from the component database row.
-{
-\t"id": "email-field",
-\t"label": "Email field",
-\t"component": "DomTextInput",
-\t"props": {
-\t\t"label": "Email address",
-\t\t"placeholder": "you@example.com"
-\t},
-\t"children": []
-}`;
-
-const addComponentCode = `src/pages/forms/my-input/
-\tDomMyInput.vue
-\tIndex.vue
-\texamples/
-\t\tBasic.vue`;
-
-const currentRules = [
-	['Component manager', 'Discovers component files and derives path facts only: section, slug, exportName, route, id, and loader/component.'],
-	['Component inspector', 'Decorates a discovered row by reading the loaded Vue component: __doc, __studio, props, labels, icons, hidden flags, and ordering.'],
-	['Docs routes', 'If a component folder has an Index.vue, that page is used. If it has no Index.vue, GeneratedComponentPage.vue creates a reference page from inspected metadata.'],
-	['Sidebar', 'Uses discovered and inspected rows, but owns display ordering and fallback icons as presentation concerns.'],
-	['Studio', 'Uses discovered and inspected rows to build the palette. It also infers defaults from props and local sample data.'],
-];
-
-const autoDocumenterParts = [
-	['Discovery', 'Finds local Dom*.vue files in configured component folders with Vite glob imports.'],
-	['Inspection', 'Reads __doc, __studio, Vue prop definitions, slots, and events from the component object.'],
-	['Generated page', 'Renders a playground, props table, slots, and events when no bespoke Index.vue exists.'],
-	['Navigation', 'Adds the component to the sidebar unless __doc.hidden or __doc.nav.hidden is set.'],
-	['Studio', 'Makes the component available to visual editing unless __doc.studio.hidden is set.'],
-];
-
-const adoptionSteps = [
-	['Copy the engine', 'Bring componentManager.js, componentInspector.js, GeneratedComponentPage.vue, and the docs helpers used by that page into the app.'],
-	['Point discovery at the app', 'Change the import.meta.glob patterns to match the app component folders that should be documented.'],
-	['Add component metadata', 'Use defineOptions({ __doc }) for name, tag, description, slots, events, nav, and Studio hints.'],
-	['Choose the page style', 'Omit Index.vue for generated docs, or add Index.vue when the component needs authored examples and deeper guidance.'],
-	['Keep examples nearby', 'Store examples beside the component so authored pages and future generated examples can stay close to the source.'],
-];
-
-const progressiveSteps = [
-	['Make the component', 'Build a normal Vue SFC in a discovered folder. No docs ceremony is required for the first pass.'],
-	['It appears in docs', 'The route, sidebar item, generated playground, and props reference are inferred from the folder, export name, and defineProps.'],
-	['Tweak metadata', 'Add __doc when the default label, description, nav order, Studio group, slots, or events need product language.'],
-	['Tune the inspector', 'Add _edit on props when the generated playground should use a richer editor or constrained options.'],
-	['Override the page', 'Add Index.vue beside the component only when the generated docs are no longer enough.'],
-];
-
-const generatedInspectorFields = [
-	{
-		name: 'tone',
-		type: 'String',
-		value: 'neutral',
-		control: 'Text input',
-		note: 'Inferred from defineProps. Add _edit.options later to turn this into a select-style control.',
+const eventsCode = `defineOptions({
+	__doc: {
+		events: [
+			{
+				name: 'update:modelValue',
+				payload: 'string',
+				description: 'The current text after editing.',
+			},
+		],
 	},
-	{
-		name: 'label',
-		type: 'String',
-		value: 'Draft',
-		control: 'Text input',
-		note: 'Seeded from the prop default and bound to the live component preview.',
-	},
-];
+});
 
-const docFields = [
-	['name', 'Human label used by docs and navigation. Falls back to a label from the folder slug.'],
-	['tag', 'Display tag shown at the top of docs, such as ' + '<' + 'DomTextInput>.'],
-	['description', 'Short documentation summary. Used by generated docs.'],
-	['icon', 'SVG path data. This is the preferred component icon location.'],
-	['order', 'Numeric sort order inside the inferred group. Defaults to 100.'],
-	['badge', 'General badge. nav.badge is more specific for sidebar usage.'],
-	['hidden', 'Hide the component from generated docs/navigation/studio discovery.'],
-	['nav', 'Navigation-specific decoration: badge, hidden, icon.'],
-	['studio', 'Studio-specific decoration: group, icon, hidden, defaults, accepts, hints.'],
-	['slots', 'Array of slot docs: name, payload, description.'],
-	['events', 'Array of event docs: name, payload, description, and optional details for exact payload shapes or examples.'],
-];
-
-const editFields = [
-	['component', 'Name of the inspector editor component. Example: DomTextInput, DomJsonInput, DomJsonListInput.'],
-	['description', 'Helper copy shown by the inspector field.'],
-	['options', 'Option values passed to the default editor when useful.'],
-	['props', 'Props passed to the editor component. Use this for compact, rows, schema, addLabel, and similar editor-specific props.'],
-	['type comments', 'Use JSDoc @typedef and @type comments near the component props when array/object shapes need richer documentation.'],
-	['label', 'Optional label override when the editor uses a different visible label.'],
-];
+const emit = defineEmits(['update:modelValue']);`;
 </script>
 
 <template>
 	<DomStudioLayout>
 		<DocPage
-			name="Component Spec"
-			tagline="The current source of truth for how DOM Studio discovers, decorates, documents, and exposes components to Studio."
-			tag="componentManager + componentInspector"
-			eyebrow="Framework contract"
+			name="Component metadata"
+			tagline="DOM Studio reads your Vue props to build documentation and editing controls. Add optional metadata to describe your components and refine how they are edited."
+			eyebrow="Authoring components"
+			class="min-w-0"
 		>
-			<DocSection eyebrow="Purpose" title="One contract, multiple consumers">
-				<div class="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
-						<p class="text-sm leading-6 text-muted-fg">
-							A component should be discoverable from its folder, then decorated by inspecting the Vue component. The docs site, sidebar, generated pages, Studio palette, and future component database should all be able to use the same shape.
+			<div class="min-w-0 space-y-5">
+				<p class="max-w-3xl text-base leading-7 text-muted-fg">
+					Use this guide when adding or adapting components in DOM Studio. For components in your application,
+					start with the
+					<RouterLink to="/install" class="font-medium text-canvas-fg underline decoration-border underline-offset-4 hover:text-primary">installation guide</RouterLink>
+					and their props, slots, and events. Metadata is optional for ordinary Vue usage; installing the package does not add a docs site to your app.
+				</p>
+				<nav aria-label="On this page" class="flex flex-wrap gap-x-6 gap-y-3 text-sm">
+					<a
+						v-for="section in sections"
+						:key="section.id"
+						:href="`#${section.id}`"
+						class="font-medium text-canvas-fg underline decoration-border underline-offset-4 hover:text-primary focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+					>{{ section.label }}</a>
+				</nav>
+			</div>
+
+			<DocSection id="live-example" title="See the metadata at work" class="scroll-mt-28">
+				<p class="max-w-3xl text-sm leading-6 text-muted-fg">
+					This is the real <code class="font-mono text-canvas-fg">DomStatusPill</code> component.
+					Change its label, choose a tone, or toggle the dot. Vue prop types supply the text and toggle controls;
+					<code class="font-mono text-canvas-fg">_edit.options</code> supplies the choices.
+				</p>
+				<Playground
+					:inspect="DomStatusPill"
+					:initial="DomStatusPill.__doc.playground.initial"
+					title="Status pill"
+					description="Edit the properties to update the component and its usage example."
+				/>
+				<details class="min-w-0 rounded-2xl border border-border">
+					<summary class="cursor-pointer rounded-2xl px-4 py-4 text-sm font-medium text-canvas-fg hover:bg-secondary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:px-5">
+						View the complete component source
+					</summary>
+					<div class="min-w-0 border-t border-border">
+						<CodeBlock :code="statusPillSource" filename="DomStatusPill.vue" lang="vue" :framed="false" />
+					</div>
+				</details>
+				<p class="text-sm leading-6 text-muted-fg">
+					The source above is loaded from the same file as the preview.
+					<RouterLink to="/visual/status-pill" class="font-medium text-canvas-fg underline decoration-border underline-offset-4 hover:text-primary">Open the full status pill reference</RouterLink>.
+				</p>
+			</DocSection>
+
+			<DocSection id="component-docs" title="Describe the component with __doc" class="scroll-mt-28">
+				<p class="max-w-3xl text-sm leading-6 text-muted-fg">
+					Add <code class="font-mono text-canvas-fg">__doc</code> inside
+					<code class="font-mono text-canvas-fg">defineOptions()</code> in your component's script setup.
+					Start with a name and description, then document slots and events as needed.
+				</p>
+				<CodeBlock :code="docCode" lang="js" />
+				<dl class="min-w-0 divide-y divide-border rounded-2xl border border-border text-sm">
+					<div v-for="[field, description] in docFields" :key="field" class="grid min-w-0 gap-1 px-4 py-4 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6 sm:px-5">
+						<dt class="min-w-0 break-words font-mono text-xs font-medium leading-6 text-canvas-fg">{{ field }}</dt>
+						<dd class="min-w-0 leading-6 text-muted-fg">{{ description }}</dd>
+					</div>
+				</dl>
+				<details class="min-w-0 rounded-2xl border border-border">
+					<summary class="cursor-pointer rounded-2xl px-4 py-4 text-sm font-medium text-canvas-fg hover:bg-secondary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:px-5">
+						Documenting an input event
+					</summary>
+					<div class="min-w-0 space-y-4 border-t border-border p-4 sm:p-5">
+						<p class="max-w-3xl text-sm leading-6 text-muted-fg">
+							Declare events with Vue's <code class="font-mono text-canvas-fg">defineEmits()</code>, and describe their meaning in
+							<code class="font-mono text-canvas-fg">__doc.events</code>. For an input component, an entry might look like this:
 						</p>
-						<p class="mt-3 text-sm leading-6 text-muted-fg">
-							The names below document what exists now. They are intentionally precise so that future refactors from
-							<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">__doc</code>,
-							<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">__studio</code>, and
-							<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">_edit</code>
-							can be made against a known contract.
-						</p>
+						<CodeBlock :code="eventsCode" lang="js" />
+						<p class="text-sm leading-6 text-muted-fg">Metadata documents the event; the component still needs to emit it when its value changes.</p>
 					</div>
-					<div class="rounded-3xl border border-border bg-secondary/50 p-6">
-						<h3 class="font-semibold tracking-tight text-canvas-fg">Adding a component</h3>
-						<p class="mt-2 text-sm leading-6 text-muted-fg">
-							Put a <code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">Dom*.vue</code> file under
-							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">components</code>,
-							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">data</code>,
-							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">dev</code>,
-							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">forms</code>,
-							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">mobile</code>, or
-							<code class="rounded bg-canvas px-1.5 py-0.5 font-mono text-xs">visual</code>.
-							It should appear in the generated docs and Studio automatically unless hidden.
-						</p>
-					</div>
-				</div>
+				</details>
 			</DocSection>
 
-			<DocSection eyebrow="Auto-documenter" title="Take the docs engine with the components">
-				<div class="grid gap-4 lg:grid-cols-[1fr_1fr]">
-					<div class="space-y-4">
-						<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
-							<h3 class="font-semibold tracking-tight text-canvas-fg">Optional when adopting DOM Studio</h3>
-							<p class="mt-2 text-sm leading-6 text-muted-fg">
-								When someone copies, vendors, or builds on the components, they can also bring the auto-documenter. It turns local Vue component metadata into living docs inside their own app, so the component library does not need a separate Storybook-style setup to stay inspectable.
-							</p>
-						</div>
-						<div class="overflow-hidden rounded-2xl border border-border">
-							<table class="w-full text-left text-sm">
-								<tbody class="divide-y divide-border bg-canvas">
-									<tr v-for="row in autoDocumenterParts" :key="row[0]">
-										<td class="px-4 py-3 font-medium text-canvas-fg">{{ row[0] }}</td>
-										<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
+			<DocSection id="prop-editors" title="Choose editing controls with _edit" class="scroll-mt-28">
+				<p class="max-w-3xl text-sm leading-6 text-muted-fg">
+					String, number, and boolean props get basic editors automatically. Put
+					<code class="font-mono text-canvas-fg">_edit</code> on a prop definition to add help text,
+					provide choices, or use a richer editor. These hints configure the inspector; they do not validate the prop at runtime.
+				</p>
+				<CodeBlock :code="editCode" lang="js" />
+				<dl class="min-w-0 divide-y divide-border rounded-2xl border border-border text-sm">
+					<div v-for="[field, description] in editFields" :key="field" class="grid min-w-0 gap-1 px-4 py-4 sm:grid-cols-[12rem_minmax(0,1fr)] sm:gap-6 sm:px-5">
+						<dt class="min-w-0 break-words font-mono text-xs font-medium leading-6 text-canvas-fg">{{ field }}</dt>
+						<dd class="min-w-0 leading-6 text-muted-fg">{{ description }}</dd>
 					</div>
-					<CodeBlock lang="js" :code="autoDocumenterCode" />
-				</div>
+				</dl>
+				<p class="max-w-3xl text-sm leading-6 text-muted-fg">
+					Array and object props need an explicit editor, such as <code class="font-mono text-canvas-fg">DomJsonInput</code>
+					or <code class="font-mono text-canvas-fg">DomJsonListInput</code>, or a choices hint.
+					Use JSDoc <code class="font-mono text-canvas-fg">@typedef</code> and <code class="font-mono text-canvas-fg">@type</code>
+					comments in the source to describe their data shapes in the prop reference.
+				</p>
 			</DocSection>
 
-			<DocSection eyebrow="Progressive docs" title="Start plain, then refine">
-				<div class="grid gap-4 lg:grid-cols-[1fr_1fr]">
-					<div class="space-y-4">
-						<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
-							<h3 class="font-semibold tracking-tight text-canvas-fg">The happy path</h3>
-							<p class="mt-2 text-sm leading-6 text-muted-fg">
-								The core workflow is deliberately light. Focus on making the component first. Once it lands in a discovered folder, it shows up in the docs automatically. Later, when the generated page reveals what needs better naming, examples, or inspector controls, add only the metadata or custom page you actually need.
-							</p>
-						</div>
-						<div class="overflow-hidden rounded-2xl border border-border">
-							<table class="w-full text-left text-sm">
-								<tbody class="divide-y divide-border bg-canvas">
-									<tr v-for="row in progressiveSteps" :key="row[0]">
-										<td class="px-4 py-3 font-medium text-canvas-fg">{{ row[0] }}</td>
-										<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-						<div class="overflow-hidden rounded-2xl border border-border bg-canvas">
-							<div class="border-b border-border bg-secondary/50 px-4 py-3">
-								<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-fg">Generated inspector</p>
-								<div class="mt-1 flex items-center justify-between gap-3">
-									<h3 class="text-sm font-semibold text-canvas-fg">Status pill</h3>
-									<span class="rounded-full border border-border bg-canvas px-2 py-0.5 text-[11px] text-muted-fg">Auto</span>
-								</div>
-							</div>
-							<div class="space-y-4 p-4">
-								<div v-for="field in generatedInspectorFields" :key="field.name" class="space-y-2">
-									<div class="flex items-start justify-between gap-3">
-										<div>
-											<label class="block text-sm font-medium text-canvas-fg">{{ field.name }}</label>
-											<p class="mt-0.5 text-xs text-muted-fg">{{ field.type }} / {{ field.control }}</p>
-										</div>
-										<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-[11px] text-muted-fg">default</code>
-									</div>
-									<div class="rounded-lg border border-input skin-card px-3 py-2 font-mono text-sm text-canvas-fg">{{ field.value }}</div>
-									<p class="text-xs leading-5 text-muted-fg">{{ field.note }}</p>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="space-y-4">
-						<CodeBlock lang="vue" :code="progressiveDocsCode" />
-						<CodeBlock lang="vue" :code="progressiveOverrideCode" />
-					</div>
-				</div>
-			</DocSection>
-
-			<DocSection eyebrow="Adoption" title="What a consuming app chooses">
-				<div class="overflow-hidden rounded-2xl border border-border">
-					<table class="w-full text-left text-sm">
-						<thead class="bg-secondary text-xs uppercase tracking-[0.14em] text-muted-fg">
-							<tr>
-								<th class="px-4 py-3 font-semibold">Step</th>
-								<th class="px-4 py-3 font-semibold">Why it matters</th>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-border bg-canvas">
-							<tr v-for="row in adoptionSteps" :key="row[0]">
-								<td class="px-4 py-3 font-medium text-canvas-fg">{{ row[0] }}</td>
-								<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</DocSection>
-
-			<DocSection eyebrow="Discovery" title="Component row">
-				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
-						<p class="text-sm leading-6 text-muted-fg">
-							The component row is intentionally plain. It is the database-like record of what exists and where it lives. It does not decide labels, props, visibility, icons, or Studio behaviour.
-						</p>
-					</div>
-					<CodeBlock lang="js" :code="discoveryCode" />
-				</div>
-			</DocSection>
-
-			<DocSection eyebrow="Inspection" title="Decorated component row">
-				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
-						<p class="text-sm leading-6 text-muted-fg">
-							The decorated row is created by inspecting the loaded Vue component. This is the shape consumers usually want when rendering docs, navigation, or Studio UI.
-						</p>
-					</div>
-					<CodeBlock lang="js" :code="decoratedCode" />
-				</div>
-			</DocSection>
-
-			<DocSection eyebrow="Metadata" title="Current __doc contract">
-				<div class="overflow-hidden rounded-2xl border border-border">
-					<table class="w-full text-left text-sm">
-						<thead class="bg-secondary text-xs uppercase tracking-[0.14em] text-muted-fg">
-							<tr>
-								<th class="px-4 py-3 font-semibold">Field</th>
-								<th class="px-4 py-3 font-semibold">Current meaning</th>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-border bg-canvas">
-							<tr v-for="row in docFields" :key="row[0]">
-								<td class="px-4 py-3 font-mono text-xs text-canvas-fg">{{ row[0] }}</td>
-								<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<CodeBlock lang="vue" :code="componentDocCode" />
-			</DocSection>
-
-			<DocSection eyebrow="Inspector" title="Current prop _edit contract">
-				<div class="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-					<div class="space-y-4">
-						<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
-							<p class="text-sm leading-6 text-muted-fg">
-								<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">_edit</code>
-								lives on Vue prop definitions. Studio's inspector reads it to choose the editor component and pass editor-specific props. This is not required for ordinary app usage.
-							</p>
-						</div>
-						<div class="overflow-hidden rounded-2xl border border-border">
-							<table class="w-full text-left text-sm">
-								<tbody class="divide-y divide-border bg-canvas">
-									<tr v-for="row in editFields" :key="row[0]">
-										<td class="px-4 py-3 font-mono text-xs text-canvas-fg">{{ row[0] }}</td>
-										<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-					</div>
-					<CodeBlock lang="js" :code="propEditCode" />
-				</div>
-			</DocSection>
-
-			<DocSection eyebrow="Studio" title="Studio renderer spec">
-				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
-						<p class="text-sm leading-6 text-muted-fg">
-							The Studio renderer spec is a saved UI tree. It references components by name and stores props and children. It is not the same thing as the component row, but it depends on the component registry being able to resolve names back to components.
-						</p>
-					</div>
-					<CodeBlock lang="json" :code="studioSpecCode" />
-				</div>
-			</DocSection>
-
-			<DocSection eyebrow="Responsibilities" title="Where logic belongs today">
-				<div class="overflow-hidden rounded-2xl border border-border">
-					<table class="w-full text-left text-sm">
-						<thead class="bg-secondary text-xs uppercase tracking-[0.14em] text-muted-fg">
-							<tr>
-								<th class="px-4 py-3 font-semibold">Part</th>
-								<th class="px-4 py-3 font-semibold">Responsibility</th>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-border bg-canvas">
-							<tr v-for="row in currentRules" :key="row[0]">
-								<td class="px-4 py-3 font-medium text-canvas-fg">{{ row[0] }}</td>
-								<td class="px-4 py-3 text-muted-fg">{{ row[1] }}</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</DocSection>
-
-			<DocSection eyebrow="Convention" title="Folder shape">
-				<div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg">
-						<p class="text-sm leading-6 text-muted-fg">
-							A custom docs page is optional. If there is no
-							<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">Index.vue</code>,
-							the generated docs page uses component metadata and runtime props. Examples are still recommended because they show intended composition.
-						</p>
-					</div>
-					<CodeBlock lang="txt" :code="addComponentCode" />
-				</div>
+			<DocSection id="adding-components" title="Add a component to this repository" class="scroll-mt-28">
+				<ol class="max-w-3xl list-decimal space-y-3 pl-5 text-sm leading-6 text-muted-fg marker:font-medium marker:text-canvas-fg">
+					<li class="pl-1">Add a <code class="font-mono text-canvas-fg">Dom*.vue</code> file in a component folder under components, data, charts, dev, forms, mobile, or visual.</li>
+					<li class="pl-1">Run the dev server. The generated catalogue supplies the route and navigation entry; a playground and prop reference are created when the folder has no <code class="font-mono text-canvas-fg">Index.vue</code>.</li>
+					<li class="pl-1">Add metadata where it helps. Keep examples beside the component, and add an <code class="font-mono text-canvas-fg">Index.vue</code> when you need an authored documentation page.</li>
+					<li class="pl-1">For a public package component, add its export to <code class="break-words font-mono text-canvas-fg">src/pages/lib/vue/index.js</code> and run <code class="font-mono text-canvas-fg">npm run types:generate</code>.</li>
+				</ol>
+				<p class="max-w-3xl text-sm leading-6 text-muted-fg">
+					The docs engine is part of this repository. Reusing it in another app requires its catalogue generation,
+					loaders, routing, and documentation helpers.
+				</p>
+				<p class="max-w-3xl text-sm leading-6 text-muted-fg">
+					For composing and saving UI layouts, explore
+					<RouterLink to="/components/studio" class="font-medium text-canvas-fg underline decoration-border underline-offset-4 hover:text-primary">Studio</RouterLink>.
+					Saved layout data has a separate renderer format from the component metadata described here.
+				</p>
 			</DocSection>
 		</DocPage>
 	</DomStudioLayout>

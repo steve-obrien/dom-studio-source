@@ -19,6 +19,7 @@ const topLinks = [
 ];
 
 const pageTitle = computed(() => {
+	if (route.path === '/theming') return 'Theme editor';
 	if (route.path.includes('/studio')) return 'Studio';
 	if (route.path.includes('/playground')) return 'Playground';
 	return 'Inspector';
@@ -46,7 +47,9 @@ const pageTitle = computed(() => {
 						? 'bg-primary text-primary-fg'
 						: 'text-muted-fg hover:text-canvas-fg'">{{ l.label }}</RouterLink>
 					<ThemeToggle />
-					<AccountMenu compact class="hidden md:inline-flex" />
+					<div class="hidden md:block">
+						<AccountMenu compact />
+					</div>
 				</nav>
 			</div>
 		</header>

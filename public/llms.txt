@@ -11,9 +11,11 @@ The package root and `@getdom/studio/vue` export the same Vue surface. Import `@
 ## Core Documentation
 
 - [Overview](https://getdom.studio/): Product positioning, package usage, and the main DOM Studio surfaces.
-- [AI builders](https://getdom.studio/ai): Rules for reliable LLM-generated interfaces and when to return Studio specs.
+- [AI components and UI](https://getdom.studio/ai): Agent conversations, voice and camera controls, shared composers, review components, and examples.
+- [AI UI guide](https://getdom.studio/ai/ui): Practical patterns for prompts, context, streaming, tool actions, review, voice, accessibility, and recovery.
+- [AI builders](https://getdom.studio/ai/builders): Rules for reliable LLM-generated interfaces and when to return Studio specs.
 - [Theming](https://getdom.studio/theming): Semantic colour tokens, light and dark themes, material skins, radii, and shadows.
-- [Component and docs contract](https://getdom.studio/component-spec): Auto-discovery, `defineOptions({ __doc })`, prop metadata, generated docs, and Studio registration.
+- [Component metadata](https://getdom.studio/component-spec): Vue props, `defineOptions({ __doc })`, and `_edit` hints for generated documentation and editing controls, with a working component example.
 - [Studio](https://getdom.studio/components/studio): Visual editing and saved UI trees made from components, props, children, stable ids, and human labels.
 
 ## UI Library

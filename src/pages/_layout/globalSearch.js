@@ -1,5 +1,7 @@
 import {
 	componentAnchor,
+	componentNavigationSections,
+	getComponentNavigationSection,
 	getComponentRecords,
 	labelFromSection,
 	labelFromSlug,
@@ -18,14 +20,16 @@ const pagePaths = Object.keys(import.meta.glob([
 	'!../paywall/**/Index.vue',
 ]));
 
-const componentSectionOrder = ['components', 'data', 'charts', 'dev', 'forms', 'mobile', 'visual'];
+const componentSectionOrder = componentNavigationSections;
 
 const pageDescriptions = {
 	'/': 'Page / DOM Studio product overview and library entry point.',
-	'/ai': 'Page / AI builders, generation guidance, and agent-facing workflows.',
+	'/ai': 'Page / AI components for agent chat, conversations, voice, audio, camera input, and review workflows.',
+	'/ai/ui': 'Guide / Designing AI UI: streaming, tool calls, approvals, sources, voice, accessibility, and error recovery.',
+	'/ai/builders': 'Guide / Build interfaces with AI using DOM Studio components, examples, metadata, and editable Studio specs.',
 	'/blocks': 'Page / Block library overview for product screens and app patterns.',
 	'/blog': 'Page / DOM Studio articles and product notes.',
-	'/component-spec': 'Page / Studio component spec format for editable generated UI.',
+	'/component-spec': 'Page / Component metadata, __doc, Vue props, and _edit controls for generated documentation and playgrounds.',
 	'/charts': 'Page / Data visualisation, charts, metrics, and reporting dates.',
 	'/charts/finance': 'Page / Finance, banking, investment portfolios, cashflow, money in and out, cash projections, dynamic data, and simulated bank transactions.',
 	'/data': 'Page / API-backed data components for resource browsing, selection, upload, and management workflows.',
@@ -54,9 +58,9 @@ function componentCommands() {
 		.filter((record) => !record.hidden && !record.navHidden)
 		.sort(sortComponentRecords)
 		.map((record) => {
-			const isPrimary = record.exportName === primaryExportNameForSlug(record.slug);
+			const isPrimary = record.doc.nav?.primary || record.exportName === primaryExportNameForSlug(record.slug);
 			const target = isPrimary ? record.route : `${record.route}#${componentAnchor(record)}`;
-			const section = labelFromSection(record.section);
+			const section = labelFromSection(getComponentNavigationSection(record));
 			const summary = record.doc.description || `${record.label} documentation and examples.`;
 
 			return {
@@ -152,8 +156,18 @@ function routeFromPagePath(pagePath) {
 	return route;
 }
 
+/**
+ * Resolves a readable search label while preserving established page URLs.
+ *
+ * @param {string} route Public page route.
+ * @returns {string} Label displayed in global search.
+ */
 function pageLabel(route) {
 	if (route === '/') return 'Overview';
+	if (route === '/ai') return 'AI Overview';
+	if (route === '/ai/ui') return 'AI UI guide';
+	if (route === '/ai/builders') return 'AI builders';
+	if (route === '/component-spec') return 'Component metadata';
 	const label = labelFromSlug(route.split('/').filter(Boolean).pop());
 	if (['/blocks', '/charts', '/data', '/dev', '/forms', '/headless', '/mobile'].includes(route)) return `${label} Overview`;
 	return label;
@@ -181,8 +195,15 @@ function compactParts(parts) {
 		.join(' / ');
 }
 
+/**
+ * Orders search results by their displayed section, component order, and label.
+ *
+ * @param {object} a First inspected component record.
+ * @param {object} b Second inspected component record.
+ * @returns {number} Sort comparison result.
+ */
 function sortComponentRecords(a, b) {
-	const sectionDelta = componentSectionOrder.indexOf(a.section) - componentSectionOrder.indexOf(b.section);
+	const sectionDelta = componentSectionOrder.indexOf(getComponentNavigationSection(a)) - componentSectionOrder.indexOf(getComponentNavigationSection(b));
 	if (sectionDelta) return sectionDelta;
 	const orderDelta = a.order - b.order;
 	if (orderDelta) return orderDelta;

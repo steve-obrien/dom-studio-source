@@ -1,10 +1,12 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
-import DomStudioLayout from '../_layout/DomStudioLayout.vue';
-import DocPage from '../_layout/DocPage.vue';
+import { computed, onMounted, reactive, ref } from 'vue';
+import InspectorLayout from '../_layout/InspectorLayout.vue';
+import ThemeStage from './ThemeStage.vue';
+import { serializeThemeCss } from './lib/themeExport.js';
+import { clamp, expandHex, hexToOklch, oklchToHex, rgbToHex } from '../lib/css/color.js';
 import DocSection from '../_layout/DocSection.vue';
 import CodeBlock from '../_layout/CodeBlock.vue';
-import { DomPopover } from '../lib/vue';
+import { DomButton } from '../lib/vue';
 import CssComponentEditor from '../experiments/css-button-creator/components/CssComponentEditor.vue';
 import {
 	createCssComponentStyle,
@@ -72,8 +74,6 @@ const tokenPairs = [
 	},
 ];
 
-const fgByBg = Object.fromEntries(tokenPairs.map((pair) => [pair.bg, pair.fg]));
-const bgByFg = Object.fromEntries(tokenPairs.map((pair) => [pair.fg, pair.bg]));
 
 const utilityTokens = [
 	{
@@ -415,6 +415,11 @@ const editableColorTokens = Array.from(new Map(
 	editorTokenGroups.flatMap((group) => group.tokens).map((token) => [token.name, token]),
 ).values());
 
+/**
+ * Creates independent palettes and material defaults for a fresh theme draft.
+ *
+ * @returns {object}
+ */
 function createThemeEditorState() {
 	return {
 		appearance: { ...appearanceTokenDefaults },
@@ -426,6 +431,11 @@ function createThemeEditorState() {
 	};
 }
 
+/**
+ * Clones the default values for every shared skin.
+ *
+ * @returns {object}
+ */
 function createSkinDefaults() {
 	return Object.fromEntries(skinLevels.map((level) => [
 		level.name,
@@ -433,6 +443,12 @@ function createSkinDefaults() {
 	]));
 }
 
+/**
+ * Creates editable material-layer models for each skin.
+ *
+ * @param {object} skins Initial skin values.
+ * @returns {object}
+ */
 function createSkinStyleStates(skins = createSkinDefaults()) {
 	return Object.fromEntries(skinLevels.map((level) => [
 		level.name,
@@ -440,6 +456,13 @@ function createSkinStyleStates(skins = createSkinDefaults()) {
 	]));
 }
 
+/**
+ * Translates a skin recipe into the surface, border, effect and layer editor model.
+ *
+ * @param {string} levelName Known skin name.
+ * @param {object} values Initial CSS values.
+ * @returns {object}
+ */
 function createSkinStyleState(levelName, values = {}) {
 	const defaults = skinTokenDefaults[levelName];
 	const borderWidth = Number.parseFloat(values.borderWidth ?? defaults.borderWidth);
@@ -468,6 +491,11 @@ const defaultSkinStyleValues = Object.fromEntries(skinLevels.map((level) => [
 	cssStyleValues(createSkinStyleState(level.name, skinTokenDefaults[level.name])),
 ]));
 
+/**
+ * Restores the browser-session draft and fills any newly introduced defaults.
+ *
+ * @returns {object}
+ */
 function getThemeEditorState() {
 	const state = typeof window === 'undefined'
 		? createThemeEditorState()
@@ -490,6 +518,12 @@ function getThemeEditorState() {
 		}
 	}
 
+	// Migrate the previous shared draft once, keeping the two layer models independent.
+	state.skinStylesByMode ??= Object.fromEntries(themeModes.map((mode) => [
+		mode.value,
+		createSkinStyleStates(state.skins),
+	]));
+
 	return state;
 }
 
@@ -509,24 +543,6 @@ const decisionRows = [
 	['Focus state', 'focus-visible:ring-ring', 'Use for keyboard focus, usually with a transparent offset.'],
 ];
 
-const themeCode = `:root {
-\t--radius: 0.625rem;
-\t--canvas: oklch(0.984 0.003 247);
-\t--canvas-fg: oklch(0.145 0 0);
-\t--primary: oklch(0.205 0 0);
-\t--primary-fg: oklch(0.985 0 0);
-\t--secondary: oklch(0.97 0 0);
-\t--secondary-fg: oklch(0.205 0 0);
-\t--success: oklch(0.57 0.794 149.350);
-\t--success-fg: oklch(0.985 0 0);
-\t--warning: oklch(0.7 0.2 84);
-\t--warning-fg: oklch(0.28 0.07 46);
-}
-
-:root {
-\t--skin-popover-bg: color-mix(in oklch, var(--canvas) 88%, transparent);
-}`;
-
 const usageCode = `<button class="skin-action rounded-full px-4 py-2">
 \tSave changes
 </button>
@@ -544,60 +560,81 @@ const usageCode = `<button class="skin-action rounded-full px-4 py-2">
 const themeEditorState = getThemeEditorState();
 const tokenHexValues = reactive(themeEditorState.colors);
 const appearanceValues = reactive(themeEditorState.appearance);
-const skinValues = reactive(themeEditorState.skins);
-const skinStyleStates = reactive(createSkinStyleStates(themeEditorState.skins));
+const skinStyleStatesByMode = reactive(themeEditorState.skinStylesByMode);
 const activeMode = ref('light');
-const activeTokenName = ref('--primary');
+const skinStyleStates = computed(() => skinStyleStatesByMode[activeMode.value]);
+const skinValues = computed(() => Object.fromEntries(themeModes.map((mode) => [
+	mode.value,
+	Object.fromEntries(skinLevels.map((level) => [level.name, cssStyleValues(skinStyleStatesByMode[mode.value][level.name])])),
+])));
+const inspectorTab = ref('theme');
+const selectedSkin = ref('card');
+const workspaceView = ref('canvas');
+const mobilePanel = ref('canvas');
+const previewWidth = ref('desktop');
+const zoom = ref('100');
+const copyStatus = ref('');
+const activePreset = ref('neutral');
+const selectedSkinLevel = computed(() => skinLevels.find((level) => level.name === selectedSkin.value));
+const presets = [
+	{ name: 'Neutral', value: 'neutral', color: '#171717' },
+	{ name: 'Ocean', value: 'blue', color: '#1d5ed2' },
+	{ name: 'Forest', value: 'green', color: '#258246' },
+	{ name: 'Rose', value: 'rose', color: '#c63a70' },
+];
 const aiThemePrompt = ref('');
 const aiThemeStatus = ref('');
 const isGeneratingTheme = ref(false);
-const hasGeneratedTheme = ref(false);
 const generatedThemeName = ref('dom-studio-theme');
-let originalTheme = 'light';
-let themeObserver = null;
 const themeAiEndpoint = import.meta.env.VITE_THEME_AI_ENDPOINT || '/api/ai/theme';
 const themeAiPublicToken = import.meta.env.VITE_THEME_AI_PUBLIC_TOKEN || '';
 
-const activeToken = computed(() => editableColorTokens.find((token) => token.name === activeTokenName.value) || editableColorTokens[0]);
-const activeTokenValue = computed(() => hexToOklch(tokenHexValues[activeMode.value][activeTokenName.value]));
-const appearanceCode = computed(() => editableAppearanceTokens
-	.map((token) => `\t${token.name}: ${appearanceCssValue(token.name)};`)
-	.join('\n'));
-const skinCode = computed(() => skinLevels.map((level) => skinPropertyDefinitions
-	.filter((property) => isSkinTokenOverride(level.name, property))
-	.map((property) => `\t${skinTokenName(level.name, property)}: ${skinCssValue(level.name, property)};`)
-	.join('\n')).filter(Boolean).join('\n'));
-const themeEditorCode = computed(() => [
-	`:root {\n${appearanceCode.value}\n${skinCode.value ? `\n${skinCode.value}` : ''}\n}`,
-	...themeModes.map((mode) => `${mode.selector} {\n${editableColorTokens
-		.map((token) => `\t${token.name}: ${hexToOklch(tokenHexValues[mode.value][token.name])};`)
-		.join('\n')}\n}`),
-]
-	.join('\n\n'));
+const themeEditorCode = computed(getThemeEditorCode);
 
-function swatchStyle(pair) {
-	return {
-		background: `var(${pair.bg})`,
-		color: `var(${pair.fg})`,
-	};
+/**
+ * Collects the normalized variables for one skin mode.
+ *
+ * @param {'light'|'dark'} mode Palette and material mode.
+ * @returns {Record<string, string>} Flat CSS custom-property map.
+ */
+function skinVariablesForMode(mode) {
+	return Object.fromEntries(editableSkinTokens.map((token) => [token.name, skinCssValue(token.level, token.property, mode)]));
 }
 
-function utilitySwatchStyle(token) {
-	return {
-		background: `var(${token.token})`,
-	};
+/**
+ * Produces matching preview/export values with dark overrides scoped explicitly.
+ *
+ * @returns {string} Complete light and dark CSS source.
+ */
+function getThemeEditorCode() {
+	return serializeThemeCss({
+		appearance: Object.fromEntries(editableAppearanceTokens.map((token) => [token.name, appearanceCssValue(token.name)])),
+		colors: Object.fromEntries(themeModes.map((mode) => [
+			mode.value,
+			Object.fromEntries(editableColorTokens.map((token) => [token.name, hexToOklch(tokenHexValues[mode.value][token.name])])),
+		])),
+		skins: Object.fromEntries(themeModes.map((mode) => [mode.value, skinVariablesForMode(mode.value)])),
+		skinDefaults: Object.fromEntries(editableSkinTokens.map((token) => [token.name, skinTokenDefaults[token.level][token.property.key]])),
+	});
 }
 
-function variableSwatchStyle(name) {
-	return {
-		background: `var(${name})`,
-	};
-}
-
+/**
+ * Resolves a material property to its public CSS custom-property name.
+ *
+ * @param {string} levelName Skin name.
+ * @param {object} property Skin property definition.
+ * @returns {string}
+ */
 function skinTokenName(levelName, property) {
 	return `--skin-${levelName}-${property.suffix}`;
 }
 
+/**
+ * Maps material-editor properties to their corresponding CSS variables.
+ *
+ * @param {string} levelName Skin name.
+ * @returns {object}
+ */
 function skinCssVariables(levelName) {
 	return Object.fromEntries(skinPropertyDefinitions.map((property) => [
 		property.key,
@@ -605,37 +642,58 @@ function skinCssVariables(levelName) {
 	]));
 }
 
-function skinValue(levelName, property) {
-	return skinValues[levelName]?.[property.key] ?? skinTokenDefaults[levelName][property.key];
+/**
+ * Reads a draft skin value with the default recipe as fallback.
+ *
+ * @param {string} levelName Skin name.
+ * @param {object} property Skin property definition.
+ * @param {'light'|'dark'} mode Material mode, defaulting to the active preview.
+ * @returns {string}
+ */
+function skinValue(levelName, property, mode = activeMode.value) {
+	return skinValues.value[mode][levelName]?.[property.key] ?? skinTokenDefaults[levelName][property.key];
 }
 
-function skinCssValue(levelName, property) {
-	return normalizeSkinValue(property, skinValue(levelName, property)) || skinTokenDefaults[levelName][property.key];
+/**
+ * Normalizes a draft skin value for safe preview and CSS export.
+ *
+ * @param {string} levelName Skin name.
+ * @param {object} property Skin property definition.
+ * @param {'light'|'dark'} mode Material mode, defaulting to the active preview.
+ * @returns {string}
+ */
+function skinCssValue(levelName, property, mode = activeMode.value) {
+	const value = normalizeSkinValue(property, skinValue(levelName, property, mode));
+	// Keep default recipes as variable references so dark shadow tokens still resolve locally.
+	if (!value || value === defaultSkinStyleValues[levelName]?.[property.key]) return skinTokenDefaults[levelName][property.key];
+	return value;
 }
 
-function isSkinTokenOverride(levelName, property) {
-	const value = skinCssValue(levelName, property);
-	return value !== skinTokenDefaults[levelName][property.key]
-		&& value !== defaultSkinStyleValues[levelName]?.[property.key];
-}
 
-function syncSkinStyleBuilders() {
-	for (const level of skinLevels) {
-		Object.assign(skinValues[level.name], cssStyleValues(skinStyleStates[level.name]));
-	}
-	applyActiveTheme();
-}
 
+/**
+ * Restores every material editor to its default recipe.
+ *
+ * @returns {void}
+ */
 function resetSkinStyleBuilders() {
-	for (const level of skinLevels) {
-		replaceCssComponentStyle(skinStyleStates[level.name], createSkinStyleState(level.name, skinTokenDefaults[level.name]));
-		Object.assign(skinValues[level.name], skinTokenDefaults[level.name]);
+	for (const mode of themeModes) {
+		for (const level of skinLevels) {
+			replaceCssComponentStyle(skinStyleStatesByMode[mode.value][level.name], createSkinStyleState(level.name, skinTokenDefaults[level.name]));
+		}
 	}
-	applyActiveTheme();
 }
 
-function updateSkinStyleStateFromValues(levelName, values = {}) {
-	const style = skinStyleStates[levelName];
+/**
+ * Applies supported surface, border and backdrop values to a material editor.
+ *
+ * @param {string} levelName Skin name.
+ * @param {object} values Incoming CSS values.
+ * @param {'light'|'dark'} mode Material mode to update.
+ * @returns {void}
+ */
+function updateSkinStyleStateFromValues(levelName, values = {}, mode = activeMode.value) {
+	const style = skinStyleStatesByMode[mode][levelName];
 	const defaults = skinTokenDefaults[levelName];
 	if ('bg' in values) style.surface.bg = values.bg || defaults.bg;
 	if ('fg' in values) style.surface.fg = values.fg || defaults.fg;
@@ -651,36 +709,62 @@ function updateSkinStyleStateFromValues(levelName, values = {}) {
 	}
 }
 
-function skinPreviewStyle(level) {
-	return Object.fromEntries(skinPropertyDefinitions.filter((property) => isSkinTokenOverride(level.name, property)).map((property) => [
-		skinTokenName(level.name, property),
-		skinCssValue(level.name, property),
-	]));
-}
-
-function updateSkinToken(levelName, property, value) {
-	skinValues[levelName][property.key] = normalizeSkinValue(property, value) || skinTokenDefaults[levelName][property.key];
-	applyActiveTheme();
-}
-
+/**
+ * Commits a valid hex colour to the selected preview mode without changing the site theme.
+ *
+ * @param {string} mode Light or dark palette.
+ * @param {string} name Semantic CSS custom property.
+ * @param {string} value User-entered hex colour.
+ * @returns {void}
+ */
 function updateColorToken(mode, name, value) {
-	tokenHexValues[mode][name] = value;
-	activeMode.value = mode;
-	activeTokenName.value = name;
-	if (typeof document !== 'undefined') {
-		document.documentElement.dataset.theme = mode;
-	}
-	applyActiveTheme();
+	if (!/^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(value)) return;
+	tokenHexValues[mode][name] = expandHex(value);
+	activePreset.value = '';
 }
 
+/**
+ * Previews a complete hex entry immediately while allowing partial typing.
+ *
+ * @param {string} mode Palette being edited.
+ * @param {string} name Semantic token name.
+ * @param {Event} event Native input event.
+ * @returns {void}
+ */
+function previewHexInput(mode, name, event) {
+	const value = event.target.value.trim().replace(/^#/, '');
+	if (/^[0-9a-f]{6}$/i.test(value)) updateColorToken(mode, name, `#${value}`);
+}
+
+/**
+ * Commits a text colour entry and restores the canonical value if it is invalid.
+ *
+ * @param {string} mode Palette being edited.
+ * @param {string} name Semantic token name.
+ * @param {Event} event Native text-field change event.
+ * @returns {void}
+ */
+function commitHexInput(mode, name, event) {
+	const value = event.target.value.trim();
+	updateColorToken(mode, name, value.startsWith('#') ? value : `#${value}`);
+	event.target.value = tokenHex(mode, name).slice(1).toUpperCase();
+}
+
+/**
+ * Changes the mode being previewed and edited, preserving both palettes.
+ *
+ * @param {string} mode The requested light or dark mode.
+ * @returns {void}
+ */
 function setEditorMode(mode) {
 	activeMode.value = mode;
-	if (typeof document !== 'undefined') {
-		document.documentElement.dataset.theme = mode;
-	}
-	applyActiveTheme();
 }
 
+/**
+ * Restores both palettes, shared corners and materials without changing preview mode.
+ *
+ * @returns {void}
+ */
 function resetColorTokens() {
 	for (const mode of themeModes) {
 		for (const token of editableColorTokens) {
@@ -690,52 +774,18 @@ function resetColorTokens() {
 	for (const token of editableAppearanceTokens) {
 		appearanceValues[token.name] = appearanceTokenDefaults[token.name];
 	}
-	for (const level of skinLevels) {
-		for (const property of skinPropertyDefinitions) {
-			skinValues[level.name][property.key] = skinTokenDefaults[level.name][property.key];
-		}
-	}
 	resetSkinStyleBuilders();
-	activeTokenName.value = '--primary';
-	activeMode.value = originalTheme;
-	clearAppliedTheme();
-	if (typeof document !== 'undefined') {
-		document.documentElement.dataset.theme = originalTheme;
-	}
+	activePreset.value = 'neutral';
+	generatedThemeName.value = 'dom-studio-theme';
+	aiThemeStatus.value = '';
 }
 
-function applyActiveTheme() {
-	if (typeof document === 'undefined') return;
-	for (const token of editableAppearanceTokens) {
-		document.documentElement.style.setProperty(token.name, appearanceCssValue(token.name));
-	}
-	for (const token of editableSkinTokens) {
-		if (isSkinTokenOverride(token.level, token.property)) {
-			document.documentElement.style.setProperty(token.name, skinCssValue(token.level, token.property));
-		} else {
-			document.documentElement.style.removeProperty(token.name);
-		}
-	}
-	for (const token of editableColorTokens) {
-		document.documentElement.style.setProperty(token.name, hexToOklch(tokenHexValues[activeMode.value][token.name]));
-	}
-}
 
-function clearAppliedTheme() {
-	if (typeof document === 'undefined') return;
-	for (const token of editableAppearanceTokens) {
-		document.documentElement.style.removeProperty(token.name);
-	}
-	for (const token of editableSkinTokens) {
-		document.documentElement.style.removeProperty(token.name);
-	}
-	for (const token of editableColorTokens) {
-		document.documentElement.style.removeProperty(token.name);
-	}
-}
-
-watch(skinStyleStates, syncSkinStyleBuilders, { deep: true });
-
+/**
+ * Reads the initial host radius and material variables without mutating the document.
+ *
+ * @returns {void}
+ */
 function hydrateAppearanceFromDocument() {
 	if (typeof document === 'undefined') return;
 	const styles = getComputedStyle(document.documentElement);
@@ -748,116 +798,64 @@ function hydrateAppearanceFromDocument() {
 		if (isBuilderOwnedSkinToken(token.property)) continue;
 		const value = styles.getPropertyValue(token.name).trim();
 		if (!value) continue;
-		updateSkinStyleStateFromValues(token.level, {
-			[token.property.key]: normalizeSkinValue(token.property, value) || skinTokenDefaults[token.level][token.property.key],
-		});
+		for (const mode of themeModes) {
+			updateSkinStyleStateFromValues(token.level, {
+				[token.property.key]: normalizeSkinValue(token.property, value) || skinTokenDefaults[token.level][token.property.key],
+			}, mode.value);
+		}
 	}
 }
 
+/**
+ * Reads the hex colour for a semantic token in one palette.
+ *
+ * @param {string} mode Palette name.
+ * @param {string} name CSS custom property.
+ * @returns {string}
+ */
 function tokenHex(mode, name) {
 	return tokenHexValues[mode][name];
 }
 
-function tokenOklch(mode, name) {
-	return hexToOklch(tokenHex(mode, name));
-}
-
-function tokenSwatchStyle(mode, name) {
-	return {
-		backgroundColor: tokenHex(mode, name),
-	};
-}
-
-function pairedTokenSwatchStyle(mode, name) {
-	const fg = fgByBg[name];
-	const bg = bgByFg[name];
-	if (fg) {
-		return {
-			backgroundColor: tokenHex(mode, name),
-			color: tokenHex(mode, fg),
-		};
-	}
-	if (bg) {
-		return {
-			backgroundColor: tokenHex(mode, bg),
-			color: tokenHex(mode, name),
-		};
-	}
-	return tokenSwatchStyle(mode, name);
-}
-
-function tokenSwatchLabel(name) {
-	return fgByBg[name] || bgByFg[name] ? 'Aa' : '';
-}
-
-function groupPairPreviewStyle(mode, group) {
-	const bg = groupBgToken(group);
-	if (!bg) return {};
-	return {
-		backgroundColor: tokenHex(mode, bg.name),
-		color: tokenHex(mode, fgByBg[bg.name]),
-	};
-}
-
-function hasGroupPairPreview(group) {
-	return Boolean(groupBgToken(group));
-}
-
-function groupBgToken(group) {
-	return group.tokens.find((token) => fgByBg[token.name]);
-}
-
-function groupFgToken(group) {
-	const bg = groupBgToken(group);
-	if (!bg) return null;
-	return group.tokens.find((token) => token.name === fgByBg[bg.name]);
-}
-
-function groupPairTokens(group) {
-	return [groupBgToken(group), groupFgToken(group)].filter(Boolean);
-}
-
-function isActiveGroup(group) {
-	return group.tokens.some((token) => isActiveToken(token.name));
-}
-
+/**
+ * Normalizes and stores a shared appearance control value.
+ *
+ * @param {object} token Appearance definition.
+ * @param {string|number} value Input value.
+ * @returns {void}
+ */
 function updateAppearanceToken(token, value) {
 	appearanceValues[token.name] = formatAppearanceInputValue(token, value);
-	applyActiveTheme();
 }
 
+/**
+ * Converts an appearance value into the native control representation.
+ *
+ * @param {object} token Appearance definition.
+ * @returns {string|number}
+ */
 function appearanceInputValue(token) {
 	const value = appearanceValues[token.name];
 	if (token.type === 'color') return value;
 	return Number.parseFloat(value) || 0;
 }
 
-function appearanceDisplayValue(token) {
-	if (token.type === 'color') return appearanceCssValue(token.name);
-	return appearanceValues[token.name];
-}
-
+/**
+ * Reads a normalized appearance CSS value.
+ *
+ * @param {string} name CSS custom property.
+ * @returns {string}
+ */
 function appearanceCssValue(name) {
 	const value = appearanceValues[name];
 	return value;
 }
 
-function appearancePreviewStyle() {
-	return {
-		borderRadius: 'calc(var(--radius) * 2.2)',
-	};
-}
-
-function isActiveToken(name) {
-	return activeTokenName.value === name;
-}
-
-function themeColumnStyle(mode) {
-	return {
-		...Object.fromEntries(editableColorTokens.map((token) => [token.name, hexToOklch(tokenHexValues[mode][token.name])])),
-	};
-}
-
+/**
+ * Serializes the current draft for the existing theme-generation endpoint.
+ *
+ * @returns {object}
+ */
 function themeSnapshot() {
 	return {
 		appearance: Object.fromEntries(editableAppearanceTokens.map((token) => [token.name, appearanceValues[token.name]])),
@@ -872,6 +870,11 @@ function themeSnapshot() {
 	};
 }
 
+/**
+ * Requests a theme from the configured endpoint and reports loading or failure state.
+ *
+ * @returns {Promise<void>}
+ */
 async function generateThemeWithAi() {
 	if (!themeAiEndpoint) {
 		aiThemeStatus.value = 'AI theme generation needs a secure API endpoint. Use the randomizer here, or point VITE_THEME_AI_ENDPOINT at a server route.';
@@ -907,6 +910,11 @@ async function generateThemeWithAi() {
 	}
 }
 
+/**
+ * Applies a local theme mix from the optional direction prompt.
+ *
+ * @returns {void}
+ */
 function generateRandomTheme() {
 	const theme = createLocalTheme(aiThemePrompt.value);
 	applyThemePayload(theme);
@@ -914,11 +922,22 @@ function generateRandomTheme() {
 	aiThemeStatus.value = theme.name;
 }
 
+/**
+ * Updates the draft title after applying a generated theme.
+ *
+ * @param {object} theme Applied theme payload.
+ * @returns {void}
+ */
 function rememberGeneratedTheme(theme) {
 	generatedThemeName.value = theme?.name || 'dom-studio-theme';
-	hasGeneratedTheme.value = true;
+	activePreset.value = '';
 }
 
+/**
+ * Downloads the current manual or generated draft as a CSS file.
+ *
+ * @returns {void}
+ */
 function downloadThemeCss() {
 	if (typeof document === 'undefined') return;
 	const blob = new Blob([`${themeEditorCode.value}\n`], { type: 'text/css' });
@@ -932,6 +951,12 @@ function downloadThemeCss() {
 	URL.revokeObjectURL(url);
 }
 
+/**
+ * Converts a draft title into a safe, nonempty download filename.
+ *
+ * @param {string} value Draft title.
+ * @returns {string}
+ */
 function slugifyThemeName(value) {
 	const slug = String(value || '')
 		.toLowerCase()
@@ -941,6 +966,12 @@ function slugifyThemeName(value) {
 	return slug || 'dom-studio-theme';
 }
 
+/**
+ * Applies supported generated tokens while preserving editor-owned shadow and fill layers.
+ *
+ * @param {object} theme Incoming theme payload.
+ * @returns {void}
+ */
 function applyThemePayload(theme) {
 	const appearance = theme.appearance || {};
 	for (const token of editableAppearanceTokens) {
@@ -958,7 +989,7 @@ function applyThemePayload(theme) {
 			if (value == null) continue;
 			values[property.key] = normalizeSkinValue(property, value) || skinTokenDefaults[level.name][property.key];
 		}
-		updateSkinStyleStateFromValues(level.name, values);
+		for (const mode of themeModes) updateSkinStyleStateFromValues(level.name, values, mode.value);
 	}
 	for (const mode of themeModes) {
 		const source = theme[mode.value] || {};
@@ -968,23 +999,42 @@ function applyThemePayload(theme) {
 			tokenHexValues[mode.value][token.name] = normalizeThemeColor(value);
 		}
 	}
-	applyActiveTheme();
 }
 
+/**
+ * Identifies material values maintained by the dedicated layer editors.
+ *
+ * @param {object} property Skin property definition.
+ * @returns {boolean}
+ */
 function isBuilderOwnedSkinToken(property) {
 	return property.key === 'shadow' || property.key === 'bgImage';
 }
 
+/**
+ * Converts an incoming appearance value into its bounded CSS representation.
+ *
+ * @param {object} token Appearance definition.
+ * @param {string|number} value Incoming value.
+ * @returns {string}
+ */
 function normalizeAppearanceValue(token, value) {
 	if (token.type === 'color') return normalizeThemeColor(value);
 	return formatAppearanceInputValue(token, Number.parseFloat(value));
 }
 
+/**
+ * Validates a supported CSS material value and rejects malformed or external-resource input.
+ *
+ * @param {object} property Skin property definition.
+ * @param {unknown} value Incoming CSS value.
+ * @returns {string}
+ */
 function normalizeSkinValue(property, value) {
 	const raw = String(value ?? '').trim();
 	if (!raw || raw.length > property.maxLength || /[;{}@]/.test(raw) || /\burl\s*\(/i.test(raw)) return '';
 	if (property.key === 'borderWidth') {
-		return /^(0|[0-4](?:\.\d+)?px)$/i.test(raw) ? raw : '';
+		return /^(0|[0-5](?:\.\d+)?px|6(?:\.0+)?px)$/i.test(raw) ? raw : '';
 	}
 	if (property.key === 'borderStyle') {
 		return skinBorderStyleOptions.includes(raw) ? raw : '';
@@ -992,6 +1042,13 @@ function normalizeSkinValue(property, value) {
 	return raw;
 }
 
+/**
+ * Clamps and formats an appearance control value with the expected CSS unit.
+ *
+ * @param {object} token Appearance definition.
+ * @param {string|number} value Input value.
+ * @returns {string}
+ */
 function formatAppearanceInputValue(token, value) {
 	if (token.type === 'color') return normalizeThemeColor(value);
 	const number = clamp(Number.parseFloat(value) || 0, token.min, token.max);
@@ -999,6 +1056,12 @@ function formatAppearanceInputValue(token, value) {
 	return `${rounded}${token.unit}`;
 }
 
+/**
+ * Converts supported hex or OKLCH colours to the editor hex format.
+ *
+ * @param {unknown} value Incoming colour value.
+ * @returns {string}
+ */
 function normalizeThemeColor(value) {
 	const color = String(value).trim();
 	if (/^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(color)) return expandHex(color);
@@ -1006,6 +1069,12 @@ function normalizeThemeColor(value) {
 	return '#000000';
 }
 
+/**
+ * Builds complementary light and dark palettes from a named or random hue.
+ *
+ * @param {string} prompt Optional theme direction.
+ * @returns {object}
+ */
 function createLocalTheme(prompt = '') {
 	const hue = promptHue(prompt);
 	const accentHue = (hue + 34) % 360;
@@ -1017,7 +1086,7 @@ function createLocalTheme(prompt = '') {
 	const primarySaturation = bold ? 88 : 74;
 
 	return {
-		name: 'Applied a local theme mix.',
+		name: 'Custom theme',
 		appearance: createLocalAppearance(prompt),
 		skins: createLocalSkins(prompt),
 		light: {
@@ -1065,6 +1134,12 @@ function createLocalTheme(prompt = '') {
 	};
 }
 
+/**
+ * Selects a shared corner radius from the local theme direction.
+ *
+ * @param {string} prompt Optional theme direction.
+ * @returns {object}
+ */
 function createLocalAppearance(prompt = '') {
 	const lower = prompt.toLowerCase();
 	const sharp = /\b(sharp|square|brutalist|flat corners)\b/i.test(lower);
@@ -1075,6 +1150,12 @@ function createLocalAppearance(prompt = '') {
 	};
 }
 
+/**
+ * Builds material recipes from the local theme direction.
+ *
+ * @param {string} prompt Optional theme direction.
+ * @returns {object}
+ */
 function createLocalSkins(prompt = '') {
 	const lower = prompt.toLowerCase();
 	const flat = /\b(flat|minimal|quiet|plain|low shadow|no shadow|shadcn)\b/i.test(lower);
@@ -1156,6 +1237,12 @@ function createLocalSkins(prompt = '') {
 	};
 }
 
+/**
+ * Resolves a named hue from the prompt, falling back to a random hue.
+ *
+ * @param {string} prompt Optional theme direction.
+ * @returns {number}
+ */
 function promptHue(prompt) {
 	const lower = prompt.toLowerCase();
 	const namedHues = [
@@ -1178,10 +1265,26 @@ function promptHue(prompt) {
 	return Math.floor(Math.random() * 360);
 }
 
+/**
+ * Chooses a light or dark foreground for a locally generated colour.
+ *
+ * @param {number} hue Hue in degrees.
+ * @param {number} saturation Saturation percentage.
+ * @param {number} lightness Lightness percentage.
+ * @returns {string}
+ */
 function contrastText(hue, saturation, lightness) {
 	return lightness > 56 ? hslToHex(hue, saturation, 10) : '#ffffff';
 }
 
+/**
+ * Converts an HSL colour to a six-digit hex value.
+ *
+ * @param {number} hue Hue in degrees.
+ * @param {number} saturation Saturation percentage.
+ * @param {number} lightness Lightness percentage.
+ * @returns {string}
+ */
 function hslToHex(hue, saturation, lightness) {
 	const s = saturation / 100;
 	const l = lightness / 100;
@@ -1198,599 +1301,505 @@ function hslToHex(hue, saturation, lightness) {
 	return rgbToHex([r + m, g + m, b + m]);
 }
 
-function expandHex(hex) {
-	const clean = hex.replace('#', '');
-	if (clean.length === 6) return `#${clean.toLowerCase()}`;
-	return `#${clean.split('').map((part) => part + part).join('').toLowerCase()}`;
+/**
+ * Builds the complete token scope for the preview. Skin references are declared
+ * alongside their palette so inherited var() values resolve inside the stage.
+ *
+ * @returns {Record<string, string>} Preview-only CSS custom properties.
+ */
+function getPreviewStyle() {
+	return {
+		colorScheme: activeMode.value,
+		...Object.fromEntries(editableColorTokens.map((token) => [token.name, tokenHexValues[activeMode.value][token.name]])),
+		...Object.fromEntries(editableAppearanceTokens.map((token) => [token.name, appearanceCssValue(token.name)])),
+		...skinVariablesForMode(activeMode.value),
+	};
 }
 
-function hexToOklch(hex) {
-	const [red, green, blue] = hexToRgb(hex).map(srgbToLinear);
-	const l = 0.4122214708 * red + 0.5363325363 * green + 0.0514459929 * blue;
-	const m = 0.2119034982 * red + 0.6806995451 * green + 0.1073969566 * blue;
-	const s = 0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue;
-	const lRoot = Math.cbrt(l);
-	const mRoot = Math.cbrt(m);
-	const sRoot = Math.cbrt(s);
-	const lightness = 0.2104542553 * lRoot + 0.793617785 * mRoot - 0.0040720468 * sRoot;
-	const a = 1.9779984951 * lRoot - 2.428592205 * mRoot + 0.4505937099 * sRoot;
-	const b = 0.0259040371 * lRoot + 0.7827717662 * mRoot - 0.808675766 * sRoot;
-	const chroma = Math.sqrt((a * a) + (b * b));
-	const hue = chroma < 0.0005 ? 0 : (Math.atan2(b, a) * 180 / Math.PI + 360) % 360;
+const previewStyle = computed(getPreviewStyle);
 
-	return `oklch(${formatNumber(lightness)} ${formatNumber(chroma)} ${formatNumber(hue)})`;
+/**
+ * Applies a named starting palette, resetting previous material overrides first.
+ *
+ * @param {{name: string, value: string}} preset Selected starting theme.
+ * @returns {void}
+ */
+function applyPreset(preset) {
+	resetColorTokens();
+	if (preset.value !== 'neutral') applyThemePayload(createLocalTheme(preset.value));
+	activePreset.value = preset.value;
+	generatedThemeName.value = preset.value === 'neutral' ? 'dom-studio-theme' : `${preset.name} theme`;
 }
 
-function oklchToHex(value) {
-	const match = value.match(/oklch\(\s*([0-9.]+%?)\s+([0-9.]+)\s+([0-9.]+)/i);
-	if (!match) return '#000000';
-
-	const lightness = clamp(match[1].endsWith('%') ? Number.parseFloat(match[1]) / 100 : Number.parseFloat(match[1]), 0, 1);
-	const chroma = Number.parseFloat(match[2]);
-	const hue = Number.parseFloat(match[3]) * Math.PI / 180;
-	const a = Math.cos(hue) * chroma;
-	const b = Math.sin(hue) * chroma;
-	const lRoot = lightness + 0.3963377774 * a + 0.2158037573 * b;
-	const mRoot = lightness - 0.1055613458 * a - 0.0638541728 * b;
-	const sRoot = lightness - 0.0894841775 * a - 1.291485548 * b;
-	const l = lRoot ** 3;
-	const m = mRoot ** 3;
-	const s = sRoot ** 3;
-	const red = linearToSrgb(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s);
-	const green = linearToSrgb(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s);
-	const blue = linearToSrgb(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s);
-
-	return rgbToHex([red, green, blue]);
+/**
+ * Connects a selected stage specimen to its matching skin inspector.
+ *
+ * @param {string} name Existing skin name.
+ * @returns {void}
+ */
+function inspectSkin(name) {
+	selectedSkin.value = name;
+	inspectorTab.value = 'skins';
+	mobilePanel.value = 'theme';
 }
 
-function hexToRgb(hex) {
-	const clean = hex.replace('#', '');
-	const value = clean.length === 3
-		? clean.split('').map((part) => part + part).join('')
-		: clean.padEnd(6, '0').slice(0, 6);
-
-	return [
-		Number.parseInt(value.slice(0, 2), 16) / 255,
-		Number.parseInt(value.slice(2, 4), 16) / 255,
-		Number.parseInt(value.slice(4, 6), 16) / 255,
-	];
+/**
+ * Copies the current light/dark CSS with explicit success and failure feedback.
+ *
+ * @returns {Promise<void>} Resolves after the clipboard request finishes.
+ */
+async function copyThemeCss() {
+	try {
+		await navigator.clipboard.writeText(`${themeEditorCode.value}\n`);
+		copyStatus.value = 'Copied CSS';
+	} catch {
+		copyStatus.value = 'Copy unavailable. Select the CSS below or download it.';
+	}
 }
 
-function rgbToHex(values) {
-	return `#${values
-		.map((value) => Math.round(clamp(value, 0, 1) * 255).toString(16).padStart(2, '0'))
-		.join('')}`;
-}
-
-function srgbToLinear(value) {
-	return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
-}
-
-function linearToSrgb(value) {
-	return value <= 0.0031308 ? 12.92 * value : 1.055 * (value ** (1 / 2.4)) - 0.055;
-}
-
-function clamp(value, min, max) {
-	return Math.min(Math.max(value, min), max);
-}
-
-function formatNumber(value) {
-	return Number(value.toFixed(3)).toString();
-}
-
-onMounted(() => {
-	originalTheme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-	activeMode.value = originalTheme;
+/**
+ * Initializes material defaults from the host stylesheet on the first visit.
+ * Existing drafts remain intact when navigating back to the workspace.
+ *
+ * @returns {void}
+ */
+function initializeEditor() {
+	if (themeEditorState.initialized) return;
 	hydrateAppearanceFromDocument();
-	applyActiveTheme();
-	themeObserver = new MutationObserver(() => {
-		const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-		if (nextTheme !== activeMode.value) {
-			activeMode.value = nextTheme;
-			applyActiveTheme();
-		}
-	});
-	themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-});
+	themeEditorState.initialized = true;
+}
 
-onBeforeUnmount(() => {
-	themeObserver?.disconnect();
-});
+onMounted(initializeEditor);
 </script>
 
 <template>
-	<DomStudioLayout>
-		<DocPage
-			name="Theming"
-			tagline="DOM Studio uses css variable design tokens: base tokens paint skins, and matching -fg tokens keep text readable."
-			tag="style.css"
-			eyebrow="Foundation"
-		>
-			<DocSection eyebrow="Model" title="Colour and fg pairs">
-				<div class="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-					<div class="rounded-3xl border border-border skin-card p-6 text-canvas-fg shadow-xl shadow-black/5">
-						<p class="text-sm leading-6 text-muted-fg">
-							Use the base token when you are painting a background. Use the matching
-							<code class="rounded bg-secondary px-1.5 py-0.5 font-mono text-xs">*-fg</code>
-							token when text or icons need to sit on it.
-						</p>
-						<div class="mt-6 grid gap-3 sm:grid-cols-2">
-							<div class="rounded-2xl bg-primary p-4 text-primary-fg">
-								<p class="text-xs font-semibold uppercase tracking-[0.16em] opacity-75">Filled action</p>
-								<p class="mt-2 text-lg font-semibold">bg-primary</p>
-								<p class="mt-1 text-sm opacity-80">text-primary-fg</p>
-							</div>
-							<div class="rounded-2xl border border-border bg-secondary p-4 text-canvas-fg">
-								<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Quiet panel</p>
-								<p class="mt-2 text-lg font-semibold">bg-secondary</p>
-								<p class="mt-1 text-sm text-muted-fg">text-secondary-fg or text-canvas-fg</p>
-							</div>
-						</div>
-					</div>
-					<div class="rounded-3xl border border-border bg-secondary/50 p-6">
-						<p class="text-sm font-semibold text-canvas-fg">Token naming convention</p>
-						<dl class="mt-4 space-y-3 text-sm">
-							<div class="rounded-2xl border border-border bg-canvas p-3">
-								<dt class="font-mono text-xs text-muted-fg">Bg token</dt>
-								<dd class="mt-1 font-mono text-canvas-fg">DOM Studio --primary</dd>
-							</div>
-							<div class="rounded-2xl border border-border bg-canvas p-3">
-								<dt class="font-mono text-xs text-muted-fg">Fg token</dt>
-								<dd class="mt-1 font-mono text-canvas-fg">DOM Studio --primary-fg</dd>
-							</div>
-							<div class="rounded-2xl border border-border bg-canvas p-3">
-								<dt class="font-mono text-xs text-muted-fg">Added pairs</dt>
-								<dd class="mt-1 font-mono text-canvas-fg">primary, secondary, muted, accent, status</dd>
-							</div>
-						</dl>
-					</div>
+	<InspectorLayout>
+		<div class="flex min-h-0 flex-1 flex-col [--editor-selection:var(--chart-1)]">
+			<div
+				class="flex min-h-14 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2 sm:px-5"
+			>
+				<div class="flex min-w-0 items-center gap-3">
+					<h1 class="truncate text-sm font-semibold">
+						{{ generatedThemeName === 'dom-studio-theme' ? 'Untitled theme' : generatedThemeName }}
+					</h1>
+					<span class="hidden rounded-md bg-secondary px-2 py-1 text-[10px] text-muted-fg sm:inline">
+						Draft
+					</span>
 				</div>
-			</DocSection>
-
-			<DocSection eyebrow="At a glance" title="Read the theme as product UI">
-				<div class="overflow-hidden rounded-3xl border border-border bg-canvas shadow-2xl shadow-black/5">
-					<div class="border-b border-border skin-card px-5 py-4">
-						<div class="flex flex-wrap items-center justify-between gap-3">
-							<div>
-								<p class="text-sm font-semibold text-canvas-fg">Project dashboard</p>
-								<p class="text-xs text-muted-fg">Example composition using only semantic tokens.</p>
-							</div>
-							<div class="flex items-center gap-2">
-								<span class="rounded-full bg-success px-2.5 py-1 text-xs font-medium text-success-fg">Saved</span>
-								<button class="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-fg shadow-sm">Publish</button>
-							</div>
-						</div>
-					</div>
-					<div class="grid gap-4 p-5 lg:grid-cols-[1fr_18rem]">
-						<div class="space-y-4">
-							<div class="rounded-2xl border border-border skin-card p-4 text-canvas-fg">
-								<div class="flex items-start justify-between gap-4">
-									<div>
-										<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Revenue</p>
-										<p class="mt-2 text-3xl font-semibold tracking-tight">GBP 42,860</p>
-									</div>
-									<span class="rounded-full bg-success/15 px-2.5 py-1 text-xs font-medium text-success">+12.4%</span>
-								</div>
-								<div class="mt-5 grid h-20 grid-cols-6 items-end gap-1 border-b border-border">
-									<span v-for="height in [32, 48, 38, 64, 52, 78]" :key="height" class="rounded-t-lg bg-primary/80" :style="{ height: `${height}px` }"></span>
-								</div>
-							</div>
-							<div class="grid gap-4 sm:grid-cols-2">
-								<div class="rounded-2xl border border-border bg-secondary/70 p-4">
-									<p class="text-sm font-medium text-canvas-fg">Quiet panel</p>
-									<p class="mt-1 text-sm text-muted-fg">Secondary skins group nearby controls without demanding attention.</p>
-								</div>
-								<div class="rounded-2xl border border-warning/40 bg-warning/15 p-4 text-warning">
-									<p class="text-sm font-semibold">Review needed</p>
-									<p class="mt-1 text-sm opacity-80">Warning tokens should feel noticeable, not alarming.</p>
-								</div>
-							</div>
-						</div>
-						<div class="space-y-3 rounded-2xl border border-border skin-popover p-3 text-canvas-fg shadow-xl shadow-black/10">
-							<p class="px-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Command menu</p>
-							<button class="block w-full rounded-xl bg-accent px-3 py-2 text-left text-sm font-medium text-accent-fg">Open project</button>
-							<button class="block w-full rounded-xl px-3 py-2 text-left text-sm text-muted-fg hover:bg-accent hover:text-accent-fg">Invite teammate</button>
-							<button class="block w-full rounded-xl px-3 py-2 text-left text-sm text-destructive hover:bg-destructive hover:text-destructive-fg">Delete project</button>
-						</div>
-					</div>
+				<div class="flex items-center gap-1.5">
+					<DomButton variant="ghost" size="sm" @click="resetColorTokens">Reset</DomButton>
+					<DomButton size="sm" @click="downloadThemeCss">Export CSS</DomButton>
 				</div>
-			</DocSection>
+			</div>
 
-			<DocSection id="theme-builder" eyebrow="Editor" title="Tune CSS variable colours">
-				<div class="space-y-4 rounded-2xl border border-border skin-card p-4 text-canvas-fg">
-					<div class="flex flex-wrap items-start justify-between gap-3">
-						<div>
-							<p class="text-sm font-semibold text-canvas-fg">{{ activeToken.label }} - {{ activeMode }}</p>
-							<p class="font-mono text-xs text-muted-fg">{{ activeToken.name }}: {{ activeTokenValue }}</p>
-						</div>
-						<div class="flex flex-wrap items-center gap-2">
-							<div class="inline-flex rounded-full border border-border bg-canvas p-1">
-								<button
-									v-for="mode in themeModes"
-									:key="mode.value"
-									type="button"
-									class="rounded-full px-3 py-1.5 text-sm font-medium transition-colors"
-									:class="activeMode === mode.value ? 'bg-primary text-primary-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'"
-									@click="setEditorMode(mode.value)"
-								>
-									Preview {{ mode.label }}
-								</button>
-							</div>
+			<div class="flex shrink-0 border-b border-border p-1 lg:hidden" aria-label="Workspace panel">
+				<button
+					v-for="panel in ['canvas', 'theme']"
+					:key="panel"
+					type="button"
+					class="flex-1 rounded-md px-3 py-2 text-xs font-medium capitalize focus-visible:outline-2 focus-visible:outline-ring"
+					:class="mobilePanel === panel ? 'bg-secondary text-canvas-fg' : 'text-muted-fg'"
+					:aria-pressed="mobilePanel === panel"
+					@click="mobilePanel = panel"
+				>
+					{{ panel }}
+				</button>
+			</div>
+
+			<div class="flex min-h-0 flex-1">
+				<section
+					class="min-h-0 min-w-0 flex-1 flex-col lg:flex"
+					:class="mobilePanel === 'canvas' ? 'flex' : 'hidden'"
+					aria-label="Component stage"
+				>
+					<div
+						class="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border bg-canvas px-4"
+					>
+						<div class="flex gap-1" aria-label="Stage view">
 							<button
+								v-for="view in ['canvas', 'guide', 'css']"
+								:key="view"
 								type="button"
-								class="rounded-full border border-border bg-canvas px-4 py-2 text-sm font-medium text-canvas-fg transition-colors hover:bg-secondary"
-								@click="resetColorTokens"
+								class="rounded-md px-2.5 py-1.5 text-xs font-medium capitalize focus-visible:outline-2 focus-visible:outline-ring"
+								:class="
+									workspaceView === view
+										? 'bg-secondary text-canvas-fg'
+										: 'text-muted-fg hover:text-canvas-fg'
+								"
+								:aria-pressed="workspaceView === view"
+								@click="workspaceView = view"
 							>
-								Reset
+								{{ view === 'canvas' ? 'Components' : view === 'css' ? 'CSS' : view }}
 							</button>
+						</div>
+						<div v-if="workspaceView === 'canvas'" class="flex items-center gap-2">
+							<select
+								v-model="previewWidth"
+								aria-label="Preview width"
+								class="hidden max-w-28 rounded-md bg-transparent p-1.5 text-xs text-muted-fg focus-visible:outline-2 focus-visible:outline-ring sm:block"
+							>
+								<option value="desktop">Responsive</option>
+								<option value="mobile">Mobile</option>
+							</select>
+							<select
+								v-model="zoom"
+								aria-label="Canvas zoom"
+								class="rounded-md bg-transparent p-1.5 text-xs text-muted-fg focus-visible:outline-2 focus-visible:outline-ring"
+							>
+								<option value="75">75%</option>
+								<option value="100">100%</option>
+								<option value="125">125%</option>
+							</select>
 						</div>
 					</div>
-					<div>
-						<label class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg" for="theme-ai-prompt">AI theme direction</label>
-						<div class="mt-2 grid gap-2 lg:grid-cols-[1fr_auto_auto_auto]">
-							<input
-								id="theme-ai-prompt"
-								v-model="aiThemePrompt"
-								type="text"
-								class="h-10 min-w-0 rounded-lg border border-input bg-canvas px-3 text-sm text-canvas-fg outline-none transition-colors focus:border-ring"
-								placeholder="brand color is yellow and big and bold"
-							>
-							<button
-								type="button"
-								class="rounded-lg border border-border bg-canvas px-4 py-2 text-sm font-medium text-canvas-fg transition-colors hover:bg-secondary"
-								@click="generateRandomTheme"
-							>
-								Random mix
-							</button>
-							<button
-								type="button"
-								class="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg transition-colors hover:opacity-90 disabled:pointer-events-none disabled:opacity-50"
-								:disabled="isGeneratingTheme"
-								@click="generateThemeWithAi"
-							>
-								{{ isGeneratingTheme ? 'Asking AI' : 'Ask AI' }}
-							</button>
-							<button
-								type="button"
-								class="rounded-lg border border-border bg-canvas px-4 py-2 text-sm font-medium text-canvas-fg transition-colors hover:bg-secondary disabled:pointer-events-none disabled:opacity-50"
-								:disabled="!hasGeneratedTheme"
-								@click="downloadThemeCss"
-							>
-								Download CSS
-							</button>
-						</div>
-						<p v-if="aiThemeStatus" class="mt-2 text-sm text-muted-fg">{{ aiThemeStatus }}</p>
-					</div>
-				</div>
 
-				<div class="grid gap-4">
-					<div class="grid gap-4 lg:grid-cols-2">
-						<section
-							v-for="group in appearanceTokenGroups"
-							:key="group.label"
-							class="rounded-2xl border border-border skin-card p-4 text-canvas-fg"
+					<div
+						v-show="workspaceView === 'canvas'"
+						class="min-h-0 flex-1 overflow-auto bg-secondary/70 bg-[radial-gradient(var(--border)_1px,transparent_1px)] bg-size-[16px_16px] p-4 sm:p-8 lg:p-10"
+						tabindex="0"
+						aria-label="Scrollable component canvas"
+					>
+						<div
+							class="mx-auto transition-[max-width] duration-200"
+							:class="previewWidth === 'mobile' ? 'max-w-95' : 'max-w-200'"
+							:style="{ zoom: Number(zoom) / 100 }"
 						>
-							<div>
-								<p class="text-sm font-semibold text-canvas-fg">{{ group.label }}</p>
-								<p class="mt-1 text-sm text-muted-fg">{{ group.description }}</p>
+							<div class="mb-3 flex items-center justify-between text-[11px] text-muted-fg">
+								<span>
+									Components
+									<span class="mx-1 opacity-50">/</span>
+									{{ activeMode === 'light' ? 'Light' : 'Dark' }}
+								</span>
+								<span>{{ previewWidth === 'mobile' ? 'Mobile' : 'Responsive' }}</span>
 							</div>
-							<div class="mt-4 space-y-4">
-								<label
-									v-for="token in group.tokens"
-									:key="token.name"
-									class="block rounded-xl border border-border bg-canvas p-3"
-								>
-									<span class="flex items-start justify-between gap-3">
-										<span class="min-w-0">
-											<span class="block text-sm font-medium text-canvas-fg">{{ token.label }}</span>
-											<span class="mt-0.5 block font-mono text-xs text-muted-fg">{{ token.name }}: {{ appearanceDisplayValue(token) }}</span>
-										</span>
+							<ThemeStage
+								:style="previewStyle"
+								:data-theme="activeMode"
+								class="border border-border shadow-md"
+								:selected-skin="inspectorTab === 'skins' ? selectedSkin : ''"
+								@inspect="inspectSkin"
+							/>
+						</div>
+					</div>
+
+					<div
+						v-if="workspaceView === 'css'"
+						class="flex min-h-0 flex-1 flex-col gap-4 overflow-auto p-5 sm:p-8"
+					>
+						<div class="flex items-start justify-between gap-4">
+							<div>
+								<h2 class="text-lg font-semibold">Your theme CSS</h2>
+								<p class="mt-1 text-xs leading-5 text-muted-fg">
+									Light and dark colours and skins, with shared corners. Add this after DOM Studio's
+									styles.
+								</p>
+							</div>
+							<DomButton variant="secondary" size="sm" @click="copyThemeCss">Copy CSS</DomButton>
+						</div>
+						<p v-if="copyStatus" role="status" class="text-xs text-muted-fg">{{ copyStatus }}</p>
+						<CodeBlock
+							:code="themeEditorCode"
+							lang="css"
+							filename="theme.css"
+							aria-label="Exported theme CSS"
+							tabindex="0"
+							class="min-h-80 flex-1 focus-visible:outline-2 focus-visible:outline-ring"
+						/>
+					</div>
+
+					<div v-if="workspaceView === 'guide'" class="min-h-0 flex-1 overflow-auto p-5 sm:p-8">
+						<div class="mx-auto max-w-2xl space-y-8">
+							<div>
+								<h2 class="text-xl font-semibold">A small set of tokens. A whole interface.</h2>
+								<p class="mt-3 text-sm leading-6 text-muted-fg">
+									Choose a starting palette, edit its colours, then fine-tune component styles. Every
+									change appears on the canvas.
+								</p>
+							</div>
+							<DocSection title="Colours come in pairs">
+								<p class="text-sm leading-6 text-muted-fg">
+									Each background has a matching text colour. For example, primary buttons use
+									<code>--primary</code>
+									for the background and
+									<code>--primary-fg</code>
+									for text. Check both Light and Dark before exporting.
+								</p>
+							</DocSection>
+							<DocSection title="Shared component styles">
+								<p class="text-sm leading-6 text-muted-fg">
+									Skins define the surface, border, shadow and effects for each component family.
+									Select a component on the canvas to edit its skin. Corners and skins are shared by
+									both colour modes.
+								</p>
+							</DocSection>
+							<DocSection title="Which token should I use?">
+								<dl class="divide-y divide-border">
+									<div v-for="row in decisionRows" :key="row[0]" class="py-3">
+										<dt class="text-xs font-semibold">{{ row[0] }}</dt>
+										<dd class="mt-1 break-words font-mono text-xs text-muted-fg">{{ row[1] }}</dd>
+										<dd class="mt-1 text-xs leading-5 text-muted-fg">{{ row[2] }}</dd>
+									</div>
+								</dl>
+							</DocSection>
+							<CodeBlock lang="html" :code="usageCode" />
+						</div>
+					</div>
+					<div
+						class="flex h-9 shrink-0 items-center justify-between gap-2 border-t border-border bg-canvas px-4 text-[10px] text-muted-fg"
+					>
+						<span>Click a component label to inspect its style</span>
+						<span class="hidden sm:inline">Changes apply to the preview</span>
+					</div>
+				</section>
+
+				<aside
+					class="min-h-0 w-full shrink-0 flex-col bg-canvas lg:flex lg:w-80 lg:border-l lg:border-border xl:w-84"
+					:class="mobilePanel === 'theme' ? 'flex' : 'hidden'"
+					aria-label="Theme inspector"
+				>
+					<div
+						class="flex h-12 shrink-0 items-center gap-4 border-b border-border px-4"
+						aria-label="Inspector view"
+					>
+						<button
+							v-for="tab in ['theme', 'skins']"
+							:key="tab"
+							type="button"
+							class="h-full border-b-2 px-1 text-xs font-semibold capitalize focus-visible:outline-2 focus-visible:outline-ring"
+							:class="
+								inspectorTab === tab
+									? 'border-canvas-fg text-canvas-fg'
+									: 'border-transparent text-muted-fg'
+							"
+							:aria-pressed="inspectorTab === tab"
+							@click="inspectorTab = tab"
+						>
+							{{ tab }}
+						</button>
+					</div>
+					<div class="shrink-0 border-b border-border p-4">
+						<div class="mb-3 flex items-center justify-between">
+							<h2 class="text-xs font-semibold">Appearance</h2>
+							<span class="text-[10px] text-muted-fg">Editing {{ activeMode }}</span>
+						</div>
+						<div class="grid grid-cols-2 gap-1 rounded-lg bg-secondary p-1" aria-label="Theme mode">
+							<button
+								v-for="mode in themeModes"
+								:key="mode.value"
+								type="button"
+								class="rounded-md px-3 py-1.5 text-xs font-medium focus-visible:outline-2 focus-visible:outline-ring"
+								:class="
+									activeMode === mode.value
+										? 'bg-canvas text-canvas-fg shadow-xs'
+										: 'text-muted-fg'
+								"
+								:aria-pressed="activeMode === mode.value"
+								@click="setEditorMode(mode.value)"
+							>
+								{{ mode.label }}
+							</button>
+						</div>
+					</div>
+					<div class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+						<template v-if="inspectorTab === 'theme'">
+							<section class="border-b border-border p-4">
+								<h3 class="mb-3 text-xs font-semibold">Starting point</h3>
+								<div class="grid grid-cols-4 gap-2">
+									<button
+										v-for="preset in presets"
+										:key="preset.value"
+										type="button"
+										class="flex flex-col items-center gap-2 rounded-lg border px-1 py-2.5 text-[10px] focus-visible:outline-2 focus-visible:outline-ring"
+										:class="
+											activePreset === preset.value
+												? 'border-canvas-fg bg-secondary/50'
+												: 'border-border hover:bg-secondary'
+										"
+										:aria-pressed="activePreset === preset.value"
+										@click="applyPreset(preset)"
+									>
 										<span
-											v-if="token.type === 'color'"
-											class="size-9 shrink-0 rounded-lg border border-border shadow-sm"
-											:style="{ backgroundColor: appearanceValues[token.name] }"
+											class="size-5 rounded-full border border-border/20"
+											:style="{ backgroundColor: preset.color }"
 										></span>
-									</span>
+										{{ preset.name }}
+									</button>
+								</div>
+							</section>
+
+							<section class="border-b border-border p-4">
+								<div class="mb-3 flex items-center justify-between">
+									<h3 class="text-xs font-semibold">Colours</h3>
+									<div class="grid w-39 grid-cols-2 gap-2 text-center text-[10px] text-muted-fg">
+										<span>Fill</span>
+										<span>Text</span>
+									</div>
+								</div>
+								<div class="space-y-2">
+									<div
+										v-for="pair in tokenPairs"
+										:key="pair.bg"
+										class="flex items-center justify-between gap-2"
+									>
+										<span class="text-xs" :title="pair.use">
+											{{ pair.name === 'Background' ? 'Canvas' : pair.name }}
+										</span>
+										<div class="grid w-39 shrink-0 grid-cols-2 gap-2">
+											<div
+												v-for="(name, index) in [pair.bg, pair.fg]"
+												:key="name"
+												class="flex h-8 min-w-0 items-center gap-1 rounded-md border border-border px-1.5 focus-within:ring-1 focus-within:ring-ring"
+											>
+												<label
+													class="relative size-4 shrink-0 overflow-hidden rounded-sm border border-border/50"
+													:style="{ backgroundColor: tokenHex(activeMode, name) }"
+												>
+													<input
+														type="color"
+														:value="tokenHex(activeMode, name)"
+														:aria-label="`${pair.name} ${index ? 'text' : 'fill'} colour`"
+														class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+														@input="updateColorToken(activeMode, name, $event.target.value)"
+													/>
+												</label>
+												<input
+													:value="tokenHex(activeMode, name).slice(1).toUpperCase()"
+													:aria-label="`${pair.name} ${index ? 'text' : 'fill'} hex`"
+													maxlength="7"
+													spellcheck="false"
+													class="min-w-0 w-full bg-transparent font-mono text-[10px] uppercase outline-none"
+													@input="previewHexInput(activeMode, name, $event)"
+													@blur="commitHexInput(activeMode, name, $event)"
+												/>
+											</div>
+										</div>
+									</div>
+								</div>
+								<details class="mt-4 border-t border-border pt-3">
+									<summary class="cursor-pointer text-xs font-medium">Borders & focus</summary>
+									<div class="mt-3 space-y-2">
+										<label
+											v-for="token in utilityTokens"
+											:key="token.token"
+											class="flex items-center justify-between text-xs"
+										>
+											{{ token.name }}
+											<input
+												type="color"
+												:value="tokenHex(activeMode, token.token)"
+												:aria-label="`${token.name} colour`"
+												class="h-7 w-16 cursor-pointer rounded border border-border bg-transparent"
+												@input="updateColorToken(activeMode, token.token, $event.target.value)"
+											/>
+										</label>
+									</div>
+								</details>
+							</section>
+
+							<section class="border-b border-border p-4">
+								<div class="mb-3 flex items-center justify-between">
+									<h3 class="text-xs font-semibold">Corners</h3>
+									<span class="text-[10px] text-muted-fg">Shared across modes</span>
+								</div>
+								<label
+									v-for="token in editableAppearanceTokens"
+									:key="token.name"
+									class="flex items-center gap-4"
+								>
 									<input
-										v-if="token.type === 'range'"
 										type="range"
-										class="mt-3 w-full accent-primary"
 										:min="token.min"
 										:max="token.max"
 										:step="token.step"
 										:value="appearanceInputValue(token)"
 										:aria-label="token.label"
+										class="min-w-0 flex-1 accent-canvas-fg"
 										@input="updateAppearanceToken(token, $event.target.value)"
+									/>
+									<span
+										class="w-16 rounded-md border border-border px-2 py-1.5 text-right font-mono text-[10px]"
 									>
-									<input
-										v-else
-										type="color"
-										class="mt-3 h-10 w-full cursor-pointer rounded-lg border border-border bg-canvas p-1"
-										:value="appearanceValues[token.name]"
-										:aria-label="token.label"
-										@input="updateAppearanceToken(token, $event.target.value)"
-									>
-									<span class="mt-2 block text-xs text-muted-fg">{{ token.use }}</span>
+										{{ appearanceValues[token.name] }}
+									</span>
 								</label>
-							</div>
-						</section>
-						<div class="rounded-2xl border border-border skin-card p-4 text-canvas-fg">
-							<div>
-								<p class="text-sm font-semibold text-canvas-fg">Shape preview</p>
-								<p class="mt-1 text-sm text-muted-fg">Radius is still global because it affects every rounded utility.</p>
-							</div>
-							<div class="mt-4 space-y-4">
-								<div class="border border-border bg-canvas p-4" :style="appearancePreviewStyle()">
-									<p class="text-sm font-semibold text-canvas-fg">Rounded frame</p>
-									<p class="mt-1 text-sm text-muted-fg">Uses the same radius scale as components.</p>
-								</div>
-								<div class="grid grid-cols-3 gap-2">
-									<span class="h-12 rounded-sm border border-border bg-secondary"></span>
-									<span class="h-12 rounded-lg border border-border bg-secondary"></span>
-									<span class="h-12 rounded-3xl border border-border bg-secondary"></span>
-								</div>
-							</div>
-						</div>
-					</div>
-					<section class="rounded-2xl border border-border skin-card p-4 text-canvas-fg">
-						<div>
-							<p class="text-sm font-semibold text-canvas-fg">Skin recipes</p>
-							<p class="mt-1 text-sm text-muted-fg">These Tailwind-like utilities carry material, border, shadow, blur, and gradient from variables.</p>
-						</div>
-						<div class="mt-4 grid gap-4 2xl:grid-cols-2">
-							<article
-								v-for="level in skinLevels"
-								:key="level.name"
-								class="rounded-xl border border-border bg-canvas p-3"
-							>
-								<div
-									class="min-h-24 rounded-xl p-4"
-									:class="level.className"
-									:style="skinPreviewStyle(level)"
-								>
-									<p class="text-sm font-semibold">{{ level.label }}</p>
-									<p class="mt-1 text-xs opacity-75">{{ level.className }}</p>
-								</div>
-								<p class="mt-3 text-xs leading-5 text-muted-fg">{{ level.use }}</p>
-								<CssComponentEditor
-									class="mt-3"
-									:style="skinStyleStates[level.name]"
-									:variables="skinCssVariables(level.name)"
-									:title="level.label"
-								/>
-							</article>
-						</div>
-					</section>
-				</div>
-
-				<div class="grid gap-4 xl:grid-cols-2">
-					<div
-						v-for="mode in themeModes"
-						:key="mode.value"
-						class="relative rounded-2xl border border-border skin-card text-canvas-fg"
-						:data-theme="mode.value"
-						:style="themeColumnStyle(mode.value)"
-					>
-						<div class="flex items-center justify-between gap-3 border-b border-border bg-secondary/45 px-4 py-3">
-							<div>
-								<p class="text-sm font-semibold text-canvas-fg">{{ mode.label }} mode</p>
-								<p class="text-xs text-muted-fg">{{ mode.selector }}</p>
-							</div>
-							<button
-								type="button"
-								class="rounded-full border border-border bg-canvas px-3 py-1.5 text-xs font-medium text-canvas-fg transition-colors hover:bg-secondary"
-								@click="setEditorMode(mode.value)"
-							>
-								Preview
-							</button>
-						</div>
-						<div class="divide-y divide-border">
-							<section v-for="group in editorTokenGroups" :key="group.label">
-								<div class="bg-secondary/30 px-4 py-3">
-									<div class="flex items-center justify-between gap-3">
-										<div class="min-w-0">
-											<p class="truncate text-sm font-semibold text-canvas-fg">{{ group.label }}</p>
-											<p class="mt-0.5 line-clamp-2 text-xs text-muted-fg">{{ group.description }}</p>
-										</div>
-										<DomPopover
-											v-if="hasGroupPairPreview(group)"
-											position="bottom-end"
-											width="w-64"
-											padding="p-3"
-											:collision-padding="12"
-											:aria-label="`Edit ${group.label} ${mode.value} colors`"
-										>
-											<template #trigger>
-												<button
-													type="button"
-													class="grid h-10 w-16 shrink-0 place-items-center rounded-lg border border-border text-sm font-semibold shadow-sm transition-shadow hover:ring-2 hover:ring-ring/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-													:style="groupPairPreviewStyle(mode.value, group)"
-													:title="`${group.label} bg and fg preview`"
-													:aria-label="`Edit ${group.label} ${mode.value} colors`"
-												>
-													Aa
-												</button>
-											</template>
-											<div>
-												<div>
-													<p class="text-sm font-semibold">{{ group.label }}</p>
-													<p class="mt-0.5 line-clamp-2 text-xs text-muted-fg">{{ group.description }}</p>
-												</div>
-												<div class="mt-3 grid gap-2">
-													<label
-														v-for="token in groupPairTokens(group)"
-														:key="token.name"
-														class="relative grid cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-lg border border-border bg-canvas px-2.5 py-2 transition-colors hover:border-ring"
-													>
-														<span
-															class="size-6 rounded-md border border-border shadow-sm"
-															:style="tokenSwatchStyle(mode.value, token.name)"
-														></span>
-														<span class="block truncate font-mono text-xs">{{ token.name }}</span>
-														<input
-															type="color"
-															class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-															:value="tokenHex(mode.value, token.name)"
-															:aria-label="`${token.label} ${mode.value} color`"
-															@focus="activeTokenName = token.name"
-															@input="updateColorToken(mode.value, token.name, $event.target.value)"
-														/>
-													</label>
-												</div>
-											</div>
-										</DomPopover>
-										<div v-else class="flex shrink-0 overflow-hidden rounded-lg border border-border">
-											<span
-												v-for="token in group.tokens"
-												:key="token.name"
-												class="size-6 border-l border-border first:border-l-0"
-												:style="tokenSwatchStyle(mode.value, token.name)"
-											></span>
-										</div>
-									</div>
-								</div>
-								<div v-if="!hasGroupPairPreview(group)" class="divide-y divide-border">
-									<label
-										v-for="token in group.tokens"
-										:key="token.name"
-										class="relative flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/60"
-										:class="isActiveToken(token.name) && 'bg-accent text-accent-fg hover:bg-accent'"
-									>
-										<span
-											class="grid size-10 shrink-0 place-items-center rounded-lg border border-border text-[11px] font-semibold shadow-sm"
-											:style="pairedTokenSwatchStyle(mode.value, token.name)"
-										>
-											{{ tokenSwatchLabel(token.name) }}
-										</span>
-										<span class="min-w-0 flex-1">
-											<span class="flex flex-wrap items-center gap-2">
-												<span class="truncate text-sm font-medium">{{ token.label }}</span>
-												<span class="rounded-full bg-canvas/70 px-2 py-0.5 text-[11px] font-medium text-muted-fg ring-1 ring-border">{{ token.role }}</span>
-											</span>
-											<span class="mt-0.5 block truncate font-mono text-xs opacity-70">{{ token.name }}: {{ tokenOklch(mode.value, token.name) }}</span>
-										</span>
-										<span class="font-mono text-xs opacity-70">{{ tokenHex(mode.value, token.name) }}</span>
-										<input
-											type="color"
-											class="absolute inset-y-0 left-4 my-auto size-10 cursor-pointer opacity-0"
-											:value="tokenHex(mode.value, token.name)"
-											:aria-label="`${token.label} ${mode.value} color`"
-											@focus="activeTokenName = token.name"
-											@input="updateColorToken(mode.value, token.name, $event.target.value)"
-										/>
-									</label>
-								</div>
 							</section>
-						</div>
+
+							<details class="p-4">
+								<summary class="cursor-pointer text-xs font-semibold">Generate with AI</summary>
+								<form class="mt-3 space-y-3" @submit.prevent="generateThemeWithAi">
+									<label for="theme-ai-prompt" class="block text-xs text-muted-fg">
+										Describe a direction
+									</label>
+									<textarea
+										id="theme-ai-prompt"
+										v-model="aiThemePrompt"
+										rows="3"
+										placeholder="Warm neutrals with a forest green accent…"
+										class="w-full resize-y rounded-lg border border-input bg-canvas p-3 text-xs leading-5 focus-visible:outline-2 focus-visible:outline-ring"
+									></textarea>
+									<div class="flex gap-2">
+										<DomButton type="submit" size="sm" :loading="isGeneratingTheme">
+											Generate theme
+										</DomButton>
+										<DomButton
+											type="button"
+											variant="secondary"
+											size="sm"
+											:disabled="isGeneratingTheme"
+											@click="generateRandomTheme"
+										>
+											Randomise
+										</DomButton>
+									</div>
+									<p v-if="aiThemeStatus" role="status" class="text-xs leading-5 text-muted-fg">
+										{{ aiThemeStatus }}
+									</p>
+								</form>
+							</details>
+						</template>
+
+						<template v-else>
+							<div class="border-b border-border p-4">
+								<h3 class="mb-3 text-xs font-semibold">Component style</h3>
+								<div class="grid grid-cols-3 gap-1.5">
+									<button
+										v-for="level in skinLevels"
+										:key="level.name"
+										type="button"
+										class="rounded-md border px-2 py-2 text-[11px] focus-visible:outline-2 focus-visible:outline-ring"
+										:class="
+											selectedSkin === level.name
+												? 'border-canvas-fg bg-secondary font-semibold'
+												: 'border-border text-muted-fg hover:bg-secondary'
+										"
+										:aria-pressed="selectedSkin === level.name"
+										@click="selectedSkin = level.name"
+									>
+										{{ level.label }}
+									</button>
+								</div>
+								<p class="mt-3 text-xs leading-5 text-muted-fg">{{ selectedSkinLevel.use }}</p>
+								<p class="mt-2 text-[10px] text-muted-fg">
+									Editing {{ activeMode }} styles. The other mode stays unchanged.
+								</p>
+							</div>
+							<CssComponentEditor
+								:key="`${selectedSkin}-${activeMode}`"
+								:framed="false"
+								:color-variables="previewStyle"
+								:style="skinStyleStates[selectedSkin]"
+								:variables="skinCssVariables(selectedSkin)"
+								:title="selectedSkinLevel.label"
+							/>
+						</template>
 					</div>
-				</div>
-
-				<CodeBlock lang="css" :code="themeEditorCode" :default-open="false" />
-			</DocSection>
-
-			<DocSection eyebrow="Tokens" title="Palette and pairs">
-				<div class="grid gap-4 md:grid-cols-2">
-					<article
-						v-for="pair in tokenPairs"
-						:key="pair.name"
-						class="overflow-hidden rounded-2xl border border-border skin-card text-canvas-fg"
+					<div
+						class="flex min-h-9 shrink-0 items-center border-t border-border px-4 py-2 text-[10px] text-muted-fg"
 					>
-						<div class="flex min-h-28 items-end p-4" :style="swatchStyle(pair)">
-							<div>
-								<p class="text-lg font-semibold">{{ pair.name }}</p>
-								<p class="font-mono text-xs opacity-80">{{ pair.utilities }}</p>
-							</div>
-						</div>
-						<div class="space-y-3 p-4">
-							<p class="text-sm text-muted-fg">{{ pair.use }}</p>
-							<div class="grid gap-2 text-xs">
-								<div class="flex items-center justify-between gap-3">
-									<span class="text-muted-fg">Bg</span>
-									<label class="relative flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-secondary">
-										<code class="font-mono text-canvas-fg">{{ pair.bg }}</code>
-										<span
-											class="size-3 rounded-full ring-1 ring-border"
-											:style="variableSwatchStyle(pair.bg)"
-										></span>
-										<input
-											type="color"
-											class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-											:value="tokenHex(activeMode, pair.bg)"
-											:aria-label="`Edit ${pair.name} bg ${activeMode} color`"
-											@focus="activeTokenName = pair.bg"
-											@input="updateColorToken(activeMode, pair.bg, $event.target.value)"
-										/>
-									</label>
-								</div>
-								<div class="flex items-center justify-between gap-3">
-									<span class="text-muted-fg">Fg</span>
-									<label class="relative flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-secondary">
-										<code class="font-mono text-canvas-fg">{{ pair.fg }}</code>
-										<span
-											class="size-3 rounded-full ring-1 ring-border"
-											:style="variableSwatchStyle(pair.fg)"
-										></span>
-										<input
-											type="color"
-											class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-											:value="tokenHex(activeMode, pair.fg)"
-											:aria-label="`Edit ${pair.name} fg ${activeMode} color`"
-											@focus="activeTokenName = pair.fg"
-											@input="updateColorToken(activeMode, pair.fg, $event.target.value)"
-										/>
-									</label>
-								</div>
-							</div>
-						</div>
-					</article>
-				</div>
-
-				<div class="mt-4 grid gap-4 md:grid-cols-3">
-					<article
-						v-for="token in utilityTokens"
-						:key="token.name"
-						class="rounded-2xl border border-border skin-card p-4 text-canvas-fg"
-					>
-						<div class="flex items-center gap-3">
-							<span class="size-10 rounded-xl ring-1 ring-border" :style="utilitySwatchStyle(token)"></span>
-							<div>
-								<p class="font-semibold">{{ token.name }}</p>
-								<code class="font-mono text-xs text-muted-fg">{{ token.token }}</code>
-							</div>
-						</div>
-						<p class="mt-3 text-sm text-muted-fg">{{ token.use }}</p>
-						<p class="mt-3 rounded-lg bg-secondary px-2 py-1 font-mono text-xs text-muted-fg">{{ token.utility }}</p>
-					</article>
-				</div>
-			</DocSection>
-
-			<DocSection eyebrow="Decision guide" title="Which token should I use?">
-				<div class="overflow-x-auto overflow-y-hidden rounded-2xl border border-border">
-					<table class="w-full min-w-[42rem] text-left text-sm">
-						<thead class="bg-secondary text-xs uppercase tracking-[0.14em] text-muted-fg">
-							<tr>
-								<th class="px-4 py-3 font-semibold">Intent</th>
-								<th class="px-4 py-3 font-semibold">Utility</th>
-								<th class="px-4 py-3 font-semibold">Rule of thumb</th>
-							</tr>
-						</thead>
-						<tbody class="divide-y divide-border bg-canvas">
-							<tr v-for="row in decisionRows" :key="row[0]">
-								<td class="px-4 py-3 font-medium text-canvas-fg">{{ row[0] }}</td>
-								<td class="px-4 py-3"><code class="font-mono text-xs text-muted-fg">{{ row[1] }}</code></td>
-								<td class="px-4 py-3 text-muted-fg">{{ row[2] }}</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</DocSection>
-
-			<DocSection eyebrow="Code" title="Define and consume tokens">
-				<div class="grid gap-4 lg:grid-cols-2">
-					<CodeBlock lang="css" :code="themeCode" />
-					<CodeBlock lang="html" :code="usageCode" />
-				</div>
-			</DocSection>
-		</DocPage>
-	</DomStudioLayout>
+						Export includes both light and dark themes
+					</div>
+				</aside>
+			</div>
+		</div>
+	</InspectorLayout>
 </template>

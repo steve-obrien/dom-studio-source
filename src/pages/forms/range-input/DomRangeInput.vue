@@ -11,6 +11,10 @@ defineOptions({
 		description: 'A compact slider input for numeric values with a stylable track and handle.',
 		icon: 'M5 12h14M8 12a2 2 0 1 0 0.01 0M16 12a2 2 0 1 0 0.01 0',
 		slots: [],
+		events: [
+			{ name: 'update:modelValue', payload: 'number', description: 'The value changed through pointer or keyboard input.' },
+			{ name: 'update:dragging', payload: 'boolean', description: 'Pointer scrubbing started or finished, including cancellation.' },
+		],
 		playground: {
 			initial: {
 				label: 'Confidence',
@@ -60,6 +64,11 @@ const props = defineProps({
 		default: '',
 		_edit: { description: 'Classes applied to the visual range track.' },
 	},
+	controlClass: {
+		type: [String, Array, Object],
+		default: '',
+		_edit: { description: 'Classes applied to the interactive track area, including its touch target height.' },
+	},
 	progressClass: {
 		type: [String, Array, Object],
 		default: '',
@@ -76,11 +85,14 @@ const props = defineProps({
 		_edit: { description: 'Additional classes applied to the handle while it is being dragged.' },
 	},
 });
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'update:dragging', 'focus', 'blur']);
 const field = useField(props, emit, { idPrefix: 'dom-range-input' });
 const control = ref(null);
 const rangeInput = ref(null);
 const dragging = ref(false);
+const keyboardFocused = ref(false);
+let dragWindow;
+let dragPointerId;
 
 const displayValue = computed(() => {
 	const value = field.value.value === '' ? props.min : Number(field.value.value);
@@ -110,10 +122,11 @@ const handleStyle = computed(() => ({
 	left: `${progress.value}%`,
 }));
 
-const controlClass = computed(() => [
-	'dom-range-input__control group relative min-h-7 w-full rounded-full outline-none',
+const controlClassName = computed(() => [
+	'dom-range-input__control group group/range relative min-h-7 w-full touch-none rounded-full outline-none',
 	field.disabled.value || field.readOnly.value ? 'cursor-not-allowed' : 'cursor-pointer',
 	(field.disabled.value || field.readOnly.value) && 'opacity-50',
+	props.controlClass,
 ]);
 
 const inputClass = computed(() => [
@@ -141,11 +154,13 @@ const handleClassName = computed(() => [
 	dragging.value && props.activeHandleClass,
 ]);
 
+/** Converts native range values to numbers without discarding unparseable input. */
 function toNumber(value) {
 	const number = Number(value);
 	return Number.isNaN(number) ? value : number;
 }
 
+/** Commits native input changes while preserving read-only field values. */
 function onInput(value, event) {
 	if (field.readOnly.value) {
 		event.target.value = displayValue.value;
@@ -155,51 +170,75 @@ function onInput(value, event) {
 	field.onInput(toNumber(value));
 }
 
+/** Starts one primary-pointer drag in the control's owning window, including iframe previews. */
 function beginDrag(event) {
+	if (event.button !== 0 || !event.isPrimary || dragging.value) return;
 	if (field.disabled.value || field.readOnly.value) {
 		event.preventDefault();
 		return;
 	}
 
 	event.preventDefault();
-	rangeInput.value?.focus({ preventScroll: true });
+	keyboardFocused.value = false;
 	dragging.value = true;
+	rangeInput.value?.focus({ preventScroll: true });
+	dragPointerId = event.pointerId;
+	dragWindow = control.value.ownerDocument.defaultView;
+	emit('update:dragging', true);
 	updateFromPointer(event);
-	window.addEventListener('pointermove', moveDrag);
-	window.addEventListener('pointerup', endDrag, { once: true });
-	window.addEventListener('pointercancel', endDrag, { once: true });
+	dragWindow.addEventListener('pointermove', moveDrag);
+	dragWindow.addEventListener('pointerup', endDrag);
+	dragWindow.addEventListener('pointercancel', endDrag);
+	dragWindow.addEventListener('blur', endDrag);
 }
 
+/** Follows only the pointer that started the current drag. */
 function moveDrag(event) {
+	if (event.pointerId !== dragPointerId) return;
+	if (field.disabled.value || field.readOnly.value) {
+		endDrag();
+		return;
+	}
 	event.preventDefault();
 	updateFromPointer(event);
 }
 
-function endDrag() {
+/** Releases drag listeners on completion, cancellation, window blur, or unmount. */
+function endDrag(event) {
+	if (event?.pointerId != null && event.pointerId !== dragPointerId) return;
+	const wasDragging = dragging.value;
 	dragging.value = false;
-	window.removeEventListener('pointermove', moveDrag);
-	window.removeEventListener('pointerup', endDrag);
-	window.removeEventListener('pointercancel', endDrag);
+	dragWindow?.removeEventListener('pointermove', moveDrag);
+	dragWindow?.removeEventListener('pointerup', endDrag);
+	dragWindow?.removeEventListener('pointercancel', endDrag);
+	dragWindow?.removeEventListener('blur', endDrag);
+	dragWindow = undefined;
+	dragPointerId = undefined;
+	if (wasDragging) emit('update:dragging', false);
 }
 
+/** Writes the pointer's clamped and step-aligned value to the shared field state. */
 function updateFromPointer(event) {
 	field.onInput(valueFromPointer(event));
 }
 
+/** Maps horizontal pointer position onto the finite numeric range. */
 function valueFromPointer(event) {
 	const rect = control.value?.getBoundingClientRect();
 	const min = Number(props.min);
 	const max = Number(props.max);
 	const range = max - min;
 
-	if (!rect || !Number.isFinite(min) || !Number.isFinite(max) || range <= 0) return displayValue.value;
+	if (!rect?.width || !Number.isFinite(min) || !Number.isFinite(max) || range <= 0) return displayValue.value;
 
 	const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
 	return snapValue(min + ratio * range);
 }
 
+/** Implements native slider keyboard navigation with the same bounds and stepping as pointer input. */
 function onKeydown(event) {
 	if (field.disabled.value || field.readOnly.value) return;
+	keyboardFocused.value = true;
 
 	const step = stepSize();
 	const current = displayValue.value;
@@ -219,6 +258,19 @@ function onKeydown(event) {
 	field.onInput(snapValue(next));
 }
 
+/** Reveals keyboard focus while excluding the programmatic focus used during pointer scrubbing. */
+function onFocus(event) {
+	keyboardFocused.value = !dragging.value;
+	field.onFocus(event);
+}
+
+/** Clears the keyboard indicator and preserves shared field blur and validation behavior. */
+function onBlur(event) {
+	keyboardFocused.value = false;
+	field.onBlur(event);
+}
+
+/** Clamps a requested value and snaps it to the nearest increment relative to the minimum. */
 function snapValue(value) {
 	const min = Number(props.min);
 	const max = Number(props.max);
@@ -234,16 +286,19 @@ function snapValue(value) {
 	return roundToStep(next, step);
 }
 
+/** Resolves a positive step, falling back to the native range default. */
 function stepSize() {
 	const step = Number(props.step);
 	return Number.isFinite(step) && step > 0 ? step : 1;
 }
 
+/** Removes floating-point noise without losing precision required by the configured step. */
 function roundToStep(value, step) {
 	const decimals = decimalPlaces(step);
 	return Number(value.toFixed(Math.min(12, decimals + 2)));
 }
 
+/** Counts decimal precision for ordinary and negative-exponent step values. */
 function decimalPlaces(value) {
 	const text = String(value);
 	if (text.includes('e-')) return Number(text.split('e-')[1]) || 0;
@@ -259,9 +314,10 @@ onBeforeUnmount(endDrag);
 		<div class="flex w-full items-center gap-3">
 			<div
 				ref="control"
-				:class="controlClass"
+				:class="controlClassName"
 				:style="rangeStyle"
 				:data-dragging="dragging ? 'true' : undefined"
+				:data-keyboard-focus="keyboardFocused ? '' : undefined"
 				@pointerdown="beginDrag"
 			>
 				<span aria-hidden="true" :class="trackClassName"></span>
@@ -270,6 +326,8 @@ onBeforeUnmount(endDrag);
 				<input
 					ref="rangeInput"
 					v-bind="rangeInputAttrs"
+					:aria-label="$attrs['aria-label']"
+					:aria-valuetext="$attrs['aria-valuetext']"
 					type="range"
 					:min="min"
 					:max="max"
@@ -278,8 +336,8 @@ onBeforeUnmount(endDrag);
 					:class="inputClass"
 					@input="onInput($event.target.value, $event)"
 					@keydown="onKeydown"
-					@focus="field.onFocus"
-					@blur="field.onBlur"
+					@focus="onFocus"
+					@blur="onBlur"
 				/>
 			</div>
 			<output v-if="showValue" class="min-w-10 text-right font-mono text-xs text-muted-fg">

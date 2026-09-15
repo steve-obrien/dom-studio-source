@@ -1,7 +1,7 @@
 <script setup>
+import CssColorInput from './CssColorInput.vue';
 import {
 	DomButton,
-	DomColorInput,
 	DomNativeSelect,
 	DomPopover,
 	DomRangeInput,
@@ -86,11 +86,27 @@ function closeLayerPopoverElement(popover) {
 
 		<div class="divide-y divide-border">
 			<p v-if="variables.shadow" class="px-3 py-2 font-mono text-[11px] text-muted-fg">{{ variables.shadow }}</p>
-			<article v-for="(shadow, index) in shadows" :key="shadow.id" class="px-3 py-2" :class="!shadow.enabled && 'opacity-60'">
+			<article
+				v-for="(shadow, index) in shadows"
+				:key="shadow.id"
+				class="px-3 py-2"
+				:class="!shadow.enabled && 'opacity-60'"
+			>
 				<div class="grid grid-cols-[1fr_auto] items-center gap-2">
-					<DomPopover :data-layer-popover-id="shadow.id" position="start-bottom" width="w-[22rem] max-w-[calc(100vw-2rem)]" padding="p-0" :collision-padding="12" @open="closeOtherLayerPopovers(shadow.id)">
+					<DomPopover
+						:data-layer-popover-id="shadow.id"
+						position="start-bottom"
+						width="w-[22rem] max-w-[calc(100vw-2rem)]"
+						padding="p-0"
+						:collision-padding="12"
+						@open="closeOtherLayerPopovers(shadow.id)"
+					>
 						<template #trigger>
-							<button type="button" class="w-full min-w-0 rounded-md text-left transition hover:bg-secondary/60" @pointerdown.capture="closeAllLayerPopovers">
+							<button
+								type="button"
+								class="w-full min-w-0 rounded-md text-left transition hover:bg-secondary/60"
+								@pointerdown.capture="closeAllLayerPopovers"
+							>
 								<span class="flex min-w-0 items-center gap-2">
 									<span class="font-mono text-[11px] text-muted-fg">{{ index + 1 }}</span>
 									<span class="truncate text-sm font-medium">{{ shadowTitle(shadow) }}</span>
@@ -102,13 +118,45 @@ function closeLayerPopoverElement(popover) {
 								<p class="truncate text-sm font-semibold">{{ shadowTitle(shadow) }}</p>
 							</div>
 							<div class="grid gap-3 p-3 sm:grid-cols-2">
-								<DomNativeSelect v-model="shadow.kind" label="Type" :options="shadowKindOptions" placeholder="" />
-								<DomColorInput v-model="shadow.color" label="Colour" />
+								<DomNativeSelect
+									v-model="shadow.kind"
+									label="Type"
+									:options="shadowKindOptions"
+									placeholder=""
+								/>
+								<CssColorInput v-model="shadow.color" label="Colour" />
 								<DomRangeInput v-model="shadow.alpha" label="Alpha" :min="0" :max="100" suffix="%" />
-								<DomRangeInput v-model="shadow.x" label="Horizontal" :min="-80" :max="80" suffix="px" :disabled="shadow.kind === 'ring'" />
-								<DomRangeInput v-model="shadow.y" label="Vertical" :min="-80" :max="80" suffix="px" :disabled="shadow.kind === 'ring'" />
-								<DomRangeInput v-model="shadow.blur" label="Blur" :min="0" :max="120" suffix="px" :disabled="shadow.kind === 'ring'" />
-								<DomRangeInput v-model="shadow.spread" label="Spread" :min="-80" :max="80" suffix="px" />
+								<DomRangeInput
+									v-model="shadow.x"
+									label="Horizontal"
+									:min="-80"
+									:max="80"
+									suffix="px"
+									:disabled="shadow.kind === 'ring'"
+								/>
+								<DomRangeInput
+									v-model="shadow.y"
+									label="Vertical"
+									:min="-80"
+									:max="80"
+									suffix="px"
+									:disabled="shadow.kind === 'ring'"
+								/>
+								<DomRangeInput
+									v-model="shadow.blur"
+									label="Blur"
+									:min="0"
+									:max="120"
+									suffix="px"
+									:disabled="shadow.kind === 'ring'"
+								/>
+								<DomRangeInput
+									v-model="shadow.spread"
+									label="Spread"
+									:min="-80"
+									:max="80"
+									suffix="px"
+								/>
 							</div>
 						</div>
 					</DomPopover>

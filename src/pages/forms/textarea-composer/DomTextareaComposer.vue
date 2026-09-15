@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import DomIconButton from '../../components/icon-button/DomIconButton.vue';
 import DomField from '../field/DomField.vue';
 import { fieldProps } from '../field/fieldProps.js';
@@ -23,11 +23,11 @@ defineOptions({
 			{ name: 'attachments', payload: '{ value, disabled, readOnly }', description: 'File, image, reference, or context previews shown above the text.' },
 			{ name: 'leading', payload: '{ value, submit, disabled }', description: 'Controls at the start of the bottom action row, such as add or tool buttons.' },
 			{ name: 'actions', payload: '{ value, submit, disabled }', description: 'Additional controls before the built-in submit action.' },
-			{ name: 'submit', payload: '{ submit, disabled, submitting, label }', description: 'Replace the built-in circular submit button.' },
+			{ name: 'submit', payload: '{ submit, disabled, submitting, label, pressed }', description: 'Replace the built-in circular submit button. Bind pressed to DomButton or DomIconButton to retain keyboard submit feedback.' },
 		],
 		keyboard: [
-			{ keys: 'Enter', action: 'Submit when submitOnEnter is enabled.' },
-			{ keys: 'Shift + Enter', action: 'Insert a new line.' },
+			{ keys: 'Enter', action: 'Submit with button press feedback when submitOnEnter is enabled; otherwise insert a new line.' },
+			{ keys: 'Shift + Enter', action: 'Insert a new line when submitOnEnter is enabled; otherwise submit with button press feedback.' },
 		],
 	},
 });
@@ -77,7 +77,7 @@ const props = defineProps({
 	submitOnEnter: {
 		type: Boolean,
 		default: true,
-		_edit: { group: 'Submit props', description: 'Submit on Enter while Shift + Enter continues to add a new line.' },
+		_edit: { group: 'Submit props', description: 'When enabled, Enter submits and Shift + Enter adds a new line. When disabled, Enter adds a new line and Shift + Enter submits.' },
 	},
 	allowEmptySubmit: {
 		type: Boolean,
@@ -107,6 +107,85 @@ const { textarea, resize } = useTextareaAutosize({
 	rows,
 	maxRows,
 });
+const submitPressed = ref(false);
+let enterHeld = false;
+let pressTimer;
+let ownerWindow;
+
+/**
+ * Keeps quick submit shortcuts visible while retaining feedback for a held key.
+ *
+ * @returns {void}
+ */
+function pressSubmit() {
+	clearTimeout(pressTimer);
+	enterHeld = true;
+	submitPressed.value = true;
+	pressTimer = setTimeout(() => {
+		pressTimer = undefined;
+		if (!enterHeld) submitPressed.value = false;
+	}, 150);
+}
+
+/**
+ * Releases Enter feedback even if submission moved focus or disabled the field.
+ *
+ * @param {KeyboardEvent} event Native window keyup event.
+ * @returns {void}
+ */
+function onKeyup(event) {
+	if (event.key !== 'Enter') return;
+	enterHeld = false;
+	if (pressTimer === undefined) submitPressed.value = false;
+}
+
+/**
+ * Clears pending feedback when focus leaves the composer or its window.
+ *
+ * @returns {void}
+ */
+function resetSubmitPress() {
+	clearTimeout(pressTimer);
+	pressTimer = undefined;
+	enterHeld = false;
+	submitPressed.value = false;
+}
+
+/**
+ * Preserves field blur handling and cancels any outstanding Enter press.
+ *
+ * @param {FocusEvent} event Native textarea blur event.
+ * @returns {void}
+ */
+function onBlur(event) {
+	resetSubmitPress();
+	field.onBlur(event);
+}
+
+/**
+ * Observes key release and window blur in the textarea's owning document.
+ *
+ * @returns {void}
+ */
+function mountPressListeners() {
+	ownerWindow = textarea.value?.ownerDocument.defaultView ?? window;
+	ownerWindow?.addEventListener('keyup', onKeyup, true);
+	ownerWindow?.addEventListener('blur', resetSubmitPress);
+}
+
+/**
+ * Removes native listeners and timers when the composer is unmounted.
+ *
+ * @returns {void}
+ */
+function unmountPressListeners() {
+	ownerWindow?.removeEventListener('keyup', onKeyup, true);
+	ownerWindow?.removeEventListener('blur', resetSubmitPress);
+	resetSubmitPress();
+}
+
+onMounted(mountPressListeners);
+onBeforeUnmount(unmountPressListeners);
 
 /**
  * Writes native composer input through the shared form-field contract.
@@ -131,7 +210,7 @@ function submit(event) {
 }
 
 /**
- * Exposes keyboard activity and applies the composer Enter convention.
+ * Exposes keyboard activity and applies the selected submit/newline shortcut pair.
  *
  * @param {KeyboardEvent} event Native keydown event.
  * @returns {void}
@@ -140,12 +219,13 @@ function onKeydown(event) {
 	emit('keydown', event);
 	if (
 		event.defaultPrevented
-		|| !props.submitOnEnter
 		|| event.isComposing
 		|| event.key !== 'Enter'
-		|| event.shiftKey
+		|| event.shiftKey === props.submitOnEnter
 	) return;
 	event.preventDefault();
+	if (event.repeat || enterHeld || !canSubmit.value) return;
+	pressSubmit();
 	submit(event);
 }
 
@@ -198,7 +278,7 @@ defineExpose({ focus, resize });
 				@input="onInput"
 				@keydown="onKeydown"
 				@focus="field.onFocus"
-				@blur="field.onBlur"
+				@blur="onBlur"
 			></textarea>
 
 			<div
@@ -217,11 +297,13 @@ defineExpose({ focus, resize });
 						:disabled="!canSubmit"
 						:submitting="submitting"
 						:label="submitLabel"
+						:pressed="submitPressed"
 					>
 						<DomIconButton
 							:label="submitLabel"
 							:disabled="!canSubmit"
 							:loading="submitting"
+							:pressed="submitPressed"
 							variant="primary"
 							icon="M12 19V5m0 0-6 6m6-6 6 6"
 							@click="submit"

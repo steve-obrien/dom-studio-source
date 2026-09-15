@@ -11,6 +11,8 @@ import DesktopActionSheet from './action-sheet/examples/DesktopActionSheet.vue';
 import DesktopActionSheetSource from './action-sheet/examples/DesktopActionSheet.vue?raw';
 import CodeBlock from '../_layout/CodeBlock.vue';
 import SettingsStackSource from './examples/SettingsStack.vue?raw';
+import MobileInbox from './examples/MobileInbox.vue';
+import MobileInboxSource from './examples/MobileInbox.vue?raw';
 
 const mobileFoundations = [
 	['DomAppShell', 'Full-screen app surface with safe-area-aware top and bottom slots.'],
@@ -23,6 +25,8 @@ const mobileFoundations = [
 	['DomAppStackScreen', 'Slot-driven screen registration for custom stack content inside DomAppStack.'],
 	['DomTextInput', 'Use the shared text input with type="search" for mobile search fields.'],
 	['DomActionSheet', 'Bottom action sheet for app choices and destructive commands.'],
+	['DomBottomSheet', 'Expandable content sheet with snap heights, a scrolling body, and pinned controls.'],
+	['DomSwipeActions', 'Swipe row actions, optional full-swipe shortcuts, and accessible button controls.'],
 ];
 
 const platformPoints = [
@@ -62,6 +66,12 @@ const layoutExample = `<DomAppShell :content-scroll="false">
 						<p class="mt-1 text-xs leading-5 text-muted-fg">{{ point.description }}</p>
 					</div>
 				</div>
+			</DocSection>
+
+			<DocSection eyebrow="Touch interactions" title="An inbox with swipe actions">
+				<p class="mb-5 max-w-2xl text-sm leading-7 text-muted-fg">Swipe to mark messages read or archive them, open a conversation in an expandable sheet, and add a reply. Actions have button alternatives and local undo.</p>
+				<a href="/mobile/inbox?preview=1" class="mb-5 inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4">Open full-screen inbox</a>
+				<Example :source="MobileInboxSource" title="Studio Mail" filename="MobileInbox.vue" presentation="mobile" device-title="Studio Mail" :frame-height="780" :preview-lines="12"><MobileInbox /></Example>
 			</DocSection>
 
 			<MobileExampleSection

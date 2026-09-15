@@ -140,6 +140,7 @@ import DomStatusPill from '../../visual/status-pill/DomStatusPill.vue';
 
 defineOptions({
 	__doc: {
+		nav: { section: 'ai' },
 		name: 'Agent conversation',
 		tag: '<DomAgentConversation>',
 		description: 'A scroll-contained AI conversation surface with a fixed header, streaming messages, reasoning summaries, audio/text mode switching, tool-call rendering, and a composer footer.',

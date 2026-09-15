@@ -1,5 +1,6 @@
 <script setup>
 import { computed, useAttrs } from 'vue';
+import { buttonInteraction } from './buttonStyles.js';
 
 defineOptions({
 	inheritAttrs: false,
@@ -35,6 +36,11 @@ const props = defineProps({
 			description: 'Five balanced sizes.',
 		},
 	},
+	pressed: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Show native press feedback for an external activation, such as a keyboard shortcut. Does not represent toggle selection.' },
+	},
 	loading: {
 		type: Boolean,
 		default: false,
@@ -47,7 +53,6 @@ const props = defineProps({
 	},
 });
 const attrs = useAttrs();
-const interaction = 'select-none active:bg-[linear-gradient(rgb(0_0_0/6%)_0_0)] active:scale-[0.97] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] motion-reduce:active:scale-100';
 const variants = {
 	primary: 'skin-action hover:opacity-90',
 	secondary: 'skin-control hover:brightness-[0.98]',
@@ -64,7 +69,7 @@ const sizes = {
 };
 
 const classes = computed(() => [
-	interaction,
+	buttonInteraction,
 	'inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap rounded-full font-medium tracking-tight transition',
 	'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
 	variants[props.variant] || variants.primary,
@@ -123,7 +128,7 @@ function onClick(event) {
 </script>
 
 <template>
-	<component :is="as" v-bind="componentAttrs" :class="classes" @click="onClick">
+	<component :is="as" v-bind="componentAttrs" :class="classes" :data-pressed="pressed ? '' : undefined" @click="onClick">
 		<svg v-if="loading" class="size-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 			<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-opacity="0.25" />
 			<path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />

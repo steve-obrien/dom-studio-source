@@ -28,6 +28,14 @@ const typeByConstructor = {
 };
 
 const manualPropTypes = {
+	DomAudioVisualizer: { stream: 'MediaStream | null' },
+	DomAudioControls: { constraints: 'MediaTrackConstraints | null' },
+	DomAudioInput: { constraints: 'MediaTrackConstraints | null' },
+	DomCameraInput: { constraints: 'MediaTrackConstraints | null' },
+	DomSwipeActions: { startActions: 'Array<SwipeAction>', endActions: 'Array<SwipeAction>' },
+	DomBottomSheet: { snapPoints: 'Array<number>', snapPoint: 'number | null', keyboardInset: 'number | null' },
+	DomAppShell: { keyboardInset: 'number | null' },
+	DomVideoFeed: { items: 'Array<VideoFeedItem>', fit: "'cover' | 'contain'" },
 	DomGantt: {
 		rows: 'Array<DomUnknownRecord>',
 		items: 'Array<DomUnknownRecord>',
@@ -303,6 +311,8 @@ const defineComponentAssignments = {
 };
 
 const componentDocTypes = {
+	DomSwipeActions: ['SwipeAction', 'SwipeActionPayload'],
+	DomVideoFeed: ['VideoFeedItem', 'VideoFeedTrack'],
 	DomGantt: ['GanttRangePayload', 'GanttItemPayload', 'GanttItemChangePayload'],
 	DomFilterBar: [
 		'FilterBarOption',
@@ -802,6 +812,32 @@ function buildVueTypes(componentEntries) {
  */
 function sharedVueTypes() {
 	return [
+		'/** An application-owned row command. Full-swipe execution is opt-in. */',
+		'export interface SwipeAction {',
+		'\tvalue: string | number;',
+		'\tlabel: string;',
+		'\ticon?: string;',
+		'\tvariant?: \'default\' | \'success\' | \'danger\';',
+		'\tdisabled?: boolean;',
+		'\tfullSwipe?: boolean;',
+		'\t[key: string]: unknown;',
+		'}',
+		'/** Action requested by a revealed button, explicit menu, or full swipe. */',
+		'export interface SwipeActionPayload { action: SwipeAction; side: \'start\' | \'end\'; source: \'button\' | \'swipe\'; }',
+		'/** An application-owned video with a stable identity and an optional caption track. */',
+		'export interface VideoFeedItem {',
+		'\tid: string | number;',
+		'\tsrc: string;',
+		'\ttitle: string;',
+		'\tposter?: string;',
+		'\tcreator?: string;',
+		'\tdescription?: string;',
+		'\tobjectPosition?: string;',
+		'\ttracks?: Array<VideoFeedTrack>;',
+		'\t[key: string]: unknown;',
+		'}',
+		'/** WebVTT captions served from the same origin or with appropriate CORS headers. */',
+		'export interface VideoFeedTrack { src: string; srclang: string; label: string; default?: boolean; }',
 		'export interface ChartDateRange { start: string; end: string; }',
 		'export interface ChartSeries { key: string; label?: string; color?: string; dashed?: boolean; }',
 		'export type JsonPrimitive = string | number | boolean | null;',

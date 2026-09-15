@@ -55,6 +55,8 @@ The package root exports the same Vue surface as `@getdom/studio/vue`. Use headl
 - Use `DomAppShell`, `DomAppTopBar`, `DomAppBottomNav`, `DomAppListItem`, `DomAppProfile`, `DomSafeArea`, and `DomActionSheet` for Capacitor-style app screens. `DomAppProfile` combines an image, account name, email, and action above settings rows; stack screen slots can contain any Vue components, forms, or toggles.
 - `DomAppShell` and `DomAppStack` default to `height="100dvh"`; use `height="100%"` only in a sized parent. Nest a stack in `<DomAppShell :content-scroll="false">` with stack `height="100%"` so each screen owns scrolling. Both reserve safe areas without another wrapper. Mobile stack headers show Back and the current title; the `breadcrumb` slot is desktop-only and the `header` slot customizes mobile. Visited screens retain local state and scroll while the stack stays mounted.
 - `DomActionSheet` works independently as a viewport overlay on mobile or desktop. In a shell, put it in `#overlay` for app-contained positioning. Use `DomAppListItem as="div"` for rows with switches or inputs. Use `DomToggle` with `label` and `chrome="none"` when the row supplies the visible label.
+- Use `DomSwipeActions` for leading/trailing row commands with gesture and button access. Full-swipe execution requires `fullSwipe` on the component and on the first action for that side. Applications own mutations, pending state, and undo. Use `DomBottomSheet` for arbitrary content at configurable snap heights, with native body scrolling and a pinned footer. Put it in the shell's `overlay` slot for containment. The combined example is `/mobile/inbox`.
+- `DomAppShell` detects keyboard-sized visual viewport changes while editing. Set `hideBottomOnKeyboard` for navigation, leave it false for a composer, or use `keyboardBehavior="none"` when the native host owns layout. `keyboardInset` accepts a native keyboard height in CSS pixels. Device keyboard verification needs the full-screen `/mobile/inbox?preview=1` page, because iframe previews do not expose the top-level visual viewport.
 
 ## Studio Specs
 
@@ -84,6 +86,12 @@ Return a Studio spec when generated UI should be editable later. A spec is a UI 
 ```
 
 Use component export names such as `DomTextInput` or ordinary HTML tags such as `section`, `h2`, and `p`. Avoid anonymous layers and large unstructured HTML blobs when a spec would preserve intent.
+
+## Realtime media input
+
+Use `/ai` as the entry point for AI components and examples. `/ai/ui` covers interaction patterns; `/ai/builders` covers generating interfaces with DOM Studio. Set `__doc.nav.section: 'ai'` on component metadata to include it in the AI sidebar, search category, and overview while preserving its source location and public URL.
+
+Use `DomAudioControls` for click-to-talk capture with a waveform, stop, mute, and microphone picker. Use `DomAudioInput` for a standalone microphone setup and `DomCameraInput` for independent webcam selection and local preview. Each owns its capture stream and emits `@stream` with replacements or `null` on stop. Use one capture component per input session; pass its stream to `DomAudioVisualizer` for additional displays. The visualizer never owns or stops media tracks. Consumers own AI processing, recording, network transport, and remote connection state. Capture requires HTTPS/localhost and explicit user interaction; embeds need a microphone/camera permissions policy. See `/components/audio-controls` for examples and lifecycle details.
 
 ## Charts and reporting
 

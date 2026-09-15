@@ -11,6 +11,110 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "components/audio-controls",
+		"path": "../components/audio-controls/DomAudioControls.vue",
+		"section": "components",
+		"slug": "audio-controls",
+		"exportName": "DomAudioControls",
+		"route": "/components/audio-controls",
+		"doc": {
+			"nav": {
+				"section": "ai"
+			},
+			"name": "Audio controls",
+			"tag": "<DomAudioControls>",
+			"description": "Click to talk becomes a compact microphone control: stop, live waveform, mute, and input selection. Ready for voice AI, calls, and collaboration.",
+			"icon": "M4 9v6M8 5v14M12 8v8M16 3v18M20 9v6",
+			"events": [
+				{
+					"name": "stream",
+					"payload": "(stream: MediaStream | null)",
+					"description": "Initial/replacement microphone stream, or null on stop. This component releases its owned tracks."
+				},
+				{
+					"name": "update:deviceId",
+					"payload": "(deviceId: string)",
+					"description": "Committed input selection, with v-model:deviceId support."
+				},
+				{
+					"name": "update:muted",
+					"payload": "(muted: boolean)",
+					"description": "Microphone mute state, with v-model:muted support."
+				},
+				{
+					"name": "state",
+					"payload": "(state: 'idle' | 'requesting' | 'active' | 'error')",
+					"description": "Local capture lifecycle, independent of your remote connection."
+				},
+				{
+					"name": "error",
+					"payload": "({ name, message })",
+					"description": "Permission, missing device, or capture failure."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Tab",
+					"action": "Move between stop, mute, and microphone settings."
+				},
+				{
+					"keys": "Enter / Space",
+					"action": "Activate the focused control."
+				},
+				{
+					"keys": "Escape",
+					"action": "Dismiss microphone settings and return to the trigger."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "components/audio-input",
+		"path": "../components/audio-input/DomAudioInput.vue",
+		"section": "components",
+		"slug": "audio-input",
+		"exportName": "DomAudioInput",
+		"route": "/components/audio-input",
+		"doc": {
+			"nav": {
+				"section": "ai"
+			},
+			"name": "Audio input",
+			"tag": "<DomAudioInput>",
+			"description": "Microphone setup with device selection, a live input meter, mute, and explicit start/stop. Emits a local MediaStream for your meeting or AI application.",
+			"icon": "M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3ZM5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8",
+			"events": [
+				{
+					"name": "stream",
+					"payload": "(stream: MediaStream | null)",
+					"description": "Emits the initial or replacement stream; null means capture stopped. This component owns and releases its tracks."
+				},
+				{
+					"name": "update:deviceId",
+					"payload": "(deviceId: string)",
+					"description": "Committed microphone selection. Supports v-model:deviceId."
+				},
+				{
+					"name": "update:muted",
+					"payload": "(muted: boolean)",
+					"description": "Track enabled state changed. Supports v-model:muted."
+				},
+				{
+					"name": "state",
+					"payload": "(state: 'idle' | 'requesting' | 'active' | 'error')",
+					"description": "Local device lifecycle. Active does not imply a network connection."
+				},
+				{
+					"name": "error",
+					"payload": "({ name, message })",
+					"description": "Actionable capture failure. A failed microphone switch keeps the previous stream."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "components/breadcrumbs",
 		"path": "../components/breadcrumbs/DomBreadcrumbs.vue",
 		"section": "components",
@@ -71,6 +175,46 @@ export const componentCatalog = [
 				{
 					"name": "(default)",
 					"description": "Button label and/or icons."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "components/camera-input",
+		"path": "../components/camera-input/DomCameraInput.vue",
+		"section": "components",
+		"slug": "camera-input",
+		"exportName": "DomCameraInput",
+		"route": "/components/camera-input",
+		"doc": {
+			"nav": {
+				"section": "ai"
+			},
+			"name": "Camera input",
+			"tag": "<DomCameraInput>",
+			"description": "Select a webcam and check a private local preview before joining a call. Emits a video-only MediaStream and releases the camera when stopped.",
+			"icon": "M3 5h12v14H3zM15 10l6-4v12l-6-4",
+			"events": [
+				{
+					"name": "stream",
+					"payload": "(stream: MediaStream | null)",
+					"description": "Video-only local stream or null when released. Cameras are released before switching for mobile compatibility."
+				},
+				{
+					"name": "update:deviceId",
+					"payload": "(deviceId: string)",
+					"description": "Committed camera selection. Supports v-model:deviceId."
+				},
+				{
+					"name": "state",
+					"payload": "(state: 'idle' | 'requesting' | 'active' | 'error')",
+					"description": "Local camera capture state."
+				},
+				{
+					"name": "error",
+					"payload": "({ name, message })",
+					"description": "Camera access or device failure."
 				}
 			]
 		},
@@ -1202,6 +1346,81 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "components/video-feed",
+		"path": "../components/video-feed/DomVideoFeed.vue",
+		"section": "components",
+		"slug": "video-feed",
+		"exportName": "DomVideoFeed",
+		"route": "/components/video-feed",
+		"doc": {
+			"name": "Video feed",
+			"tag": "<DomVideoFeed>",
+			"description": "A vertical video feed with touch scrolling, snap navigation, and one active player. Built for desktop and mobile.",
+			"icon": "M8 3h8v18H8zM11 9l4 3-4 3M3 9l2-2 2 2M3 15l2 2 2-2",
+			"slots": [
+				{
+					"name": "caption",
+					"payload": "{ item, index }",
+					"description": "Replaces the title, creator, and description overlay. Include media attribution here when required."
+				},
+				{
+					"name": "actions",
+					"payload": "{ item, index }",
+					"description": "Application-owned actions beside the caption, such as save or like."
+				},
+				{
+					"name": "empty",
+					"description": "Content shown when the feed has no items."
+				}
+			],
+			"events": [
+				{
+					"name": "update:index",
+					"payload": "(index: number)",
+					"description": "The active item changed through scrolling, keyboard, or navigation."
+				},
+				{
+					"name": "update:muted",
+					"payload": "(muted: boolean)",
+					"description": "The viewer changed the sound preference."
+				},
+				{
+					"name": "change",
+					"payload": "({ item, index })",
+					"description": "Active item changed; use this to request another page near the end."
+				},
+				{
+					"name": "error",
+					"payload": "({ item, index, error })",
+					"description": "A video failed to load or play. Autoplay policy blocks show a play button instead."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "↑ / ↓",
+					"action": "Previous or next video when the feed is focused."
+				},
+				{
+					"keys": "Home / End",
+					"action": "First or last video."
+				},
+				{
+					"keys": "Space / K",
+					"action": "Play or pause."
+				},
+				{
+					"keys": "M",
+					"action": "Toggle sound."
+				},
+				{
+					"keys": "Tab",
+					"action": "Move through playback, seek, caption, and application controls."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "data/activity-timeline",
 		"path": "../data/activity-timeline/DomActivityTimeline.vue",
 		"section": "data",
@@ -1260,6 +1479,10 @@ export const componentCatalog = [
 		"exportName": "DomAgentChatShell",
 		"route": "/data/agent-chat",
 		"doc": {
+			"nav": {
+				"section": "ai",
+				"primary": true
+			},
 			"name": "Agent chat shell",
 			"tag": "<DomAgentChatShell>",
 			"description": "A three-pane AI chat application shell with a resizable conversation sidebar, scroll-contained conversation window, closable context aside, streaming tool calls, and audio/text handoff controls.",
@@ -1354,6 +1577,9 @@ export const componentCatalog = [
 		"exportName": "DomAgentConversation",
 		"route": "/data/agent-chat",
 		"doc": {
+			"nav": {
+				"section": "ai"
+			},
 			"name": "Agent conversation",
 			"tag": "<DomAgentConversation>",
 			"description": "A scroll-contained AI conversation surface with a fixed header, streaming messages, reasoning summaries, audio/text mode switching, tool-call rendering, and a composer footer.",
@@ -1457,6 +1683,9 @@ export const componentCatalog = [
 		"exportName": "DomAgentConversationList",
 		"route": "/data/agent-chat",
 		"doc": {
+			"nav": {
+				"section": "ai"
+			},
 			"name": "Agent conversation list",
 			"tag": "<DomAgentConversationList>",
 			"description": "A reusable AI conversation navigation list with search, agent labels, unread counts, status pills, and active-thread selection.",
@@ -3590,6 +3819,18 @@ export const componentCatalog = [
 			"description": "A compact slider input for numeric values with a stylable track and handle.",
 			"icon": "M5 12h14M8 12a2 2 0 1 0 0.01 0M16 12a2 2 0 1 0 0.01 0",
 			"slots": [],
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "number",
+					"description": "The value changed through pointer or keyboard input."
+				},
+				{
+					"name": "update:dragging",
+					"payload": "boolean",
+					"description": "Pointer scrubbing started or finished, including cancellation."
+				}
+			],
 			"playground": {
 				"initial": {
 					"label": "Confidence",
@@ -3819,18 +4060,18 @@ export const componentCatalog = [
 				},
 				{
 					"name": "submit",
-					"payload": "{ submit, disabled, submitting, label }",
-					"description": "Replace the built-in circular submit button."
+					"payload": "{ submit, disabled, submitting, label, pressed }",
+					"description": "Replace the built-in circular submit button. Bind pressed to DomButton or DomIconButton to retain keyboard submit feedback."
 				}
 			],
 			"keyboard": [
 				{
 					"keys": "Enter",
-					"action": "Submit when submitOnEnter is enabled."
+					"action": "Submit with button press feedback when submitOnEnter is enabled; otherwise insert a new line."
 				},
 				{
 					"keys": "Shift + Enter",
-					"action": "Insert a new line."
+					"action": "Insert a new line when submitOnEnter is enabled; otherwise submit with button press feedback."
 				}
 			]
 		},
@@ -4206,6 +4447,66 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "mobile/bottom-sheet",
+		"path": "../mobile/bottom-sheet/DomBottomSheet.vue",
+		"section": "mobile",
+		"slug": "bottom-sheet",
+		"exportName": "DomBottomSheet",
+		"route": "/mobile/bottom-sheet",
+		"doc": {
+			"name": "Bottom sheet",
+			"tag": "<DomBottomSheet>",
+			"description": "A modal content sheet with configurable snap heights, a draggable and keyboard-operable handle, scrolling body, and pinned footer. Uses the shared drawer for focus, dismissal, and scroll locking. Works standalone or in the DomAppShell overlay slot.",
+			"slots": [
+				{
+					"name": "(default)",
+					"payload": "{ close, expand }",
+					"description": "Scrollable sheet content."
+				},
+				{
+					"name": "header",
+					"description": "Custom heading content beside the close button."
+				},
+				{
+					"name": "footer",
+					"payload": "{ close, expand }",
+					"description": "Pinned controls, such as a reply composer."
+				}
+			],
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "boolean",
+					"description": "Open or dismiss the sheet."
+				},
+				{
+					"name": "update:snapPoint",
+					"payload": "number",
+					"description": "The selected fraction of the available sheet viewport."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Handle: Arrow Up / Down",
+					"action": "Expand or collapse to the next visible stop."
+				},
+				{
+					"keys": "Handle: Home / End",
+					"action": "Choose the smallest or largest visible stop."
+				},
+				{
+					"keys": "Handle: Enter / Space",
+					"action": "Cycle through visible snap heights."
+				},
+				{
+					"keys": "Escape",
+					"action": "Dismiss and return focus to the opener."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "mobile/list-item",
 		"path": "../mobile/list-item/DomAppListItem.vue",
 		"section": "mobile",
@@ -4318,11 +4619,19 @@ export const componentCatalog = [
 				},
 				{
 					"name": "bottom",
-					"description": "Bottom navigation, tab bar, or persistent controls."
+					"payload": "{ keyboardOpen }",
+					"description": "Bottom navigation or persistent controls. Receives the detected keyboard state."
 				},
 				{
 					"name": "overlay",
 					"description": "Absolute overlay layer for drawers, action sheets, and app-level panels."
+				}
+			],
+			"events": [
+				{
+					"name": "keyboard-change",
+					"payload": "{ open, height }",
+					"description": "Estimated keyboard state or the app-supplied native keyboard inset."
 				}
 			],
 			"playground": {
@@ -4453,6 +4762,58 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "mobile/swipe-actions",
+		"path": "../mobile/swipe-actions/DomSwipeActions.vue",
+		"section": "mobile",
+		"slug": "swipe-actions",
+		"exportName": "DomSwipeActions",
+		"route": "/mobile/swipe-actions",
+		"doc": {
+			"name": "Swipe actions",
+			"tag": "<DomSwipeActions>",
+			"description": "Reveal row actions with a horizontal swipe while preserving vertical scrolling. Includes an Actions button, keyboard access, coordinated open rows, and opt-in full-swipe shortcuts. Applications own mutations and undo.",
+			"slots": [
+				{
+					"name": "(default)",
+					"description": "Row content, including an ordinary button or link."
+				},
+				{
+					"name": "action",
+					"payload": "{ action, side }",
+					"description": "Optional visual content inside each action button."
+				}
+			],
+			"events": [
+				{
+					"name": "action",
+					"payload": "SwipeActionPayload",
+					"typeRef": "SwipeActionPayload",
+					"description": "An enabled action selected by button or full swipe. source is button or swipe."
+				},
+				{
+					"name": "open",
+					"payload": "string",
+					"description": "The revealed side: start, end, or menu."
+				},
+				{
+					"name": "close",
+					"description": "All action controls have closed."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Actions button",
+					"action": "Shows every action without requiring a gesture."
+				},
+				{
+					"keys": "Escape",
+					"action": "Closes revealed actions and returns focus to Actions."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "mobile/top-bar",
 		"path": "../mobile/top-bar/DomAppTopBar.vue",
 		"section": "mobile",
@@ -4526,6 +4887,36 @@ export const componentCatalog = [
 					"name": "dismiss",
 					"payload": "MouseEvent",
 					"description": "Emitted after a dismissible alert has finished fading away."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "visual/audio-visualizer",
+		"path": "../visual/audio-visualizer/DomAudioVisualizer.vue",
+		"section": "visual",
+		"slug": "audio-visualizer",
+		"exportName": "DomAudioVisualizer",
+		"route": "/visual/audio-visualizer",
+		"doc": {
+			"nav": {
+				"section": "ai"
+			},
+			"name": "Audio visualizer",
+			"tag": "<DomAudioVisualizer>",
+			"description": "A live waveform of input levels from a MediaStream. Shows real audio activity without recording, playing, or transmitting the stream.",
+			"icon": "M4 10v4M8 6v12M12 3v18M16 7v10M20 10v4",
+			"events": [
+				{
+					"name": "level",
+					"payload": "(level: number)",
+					"description": "Measured RMS amplitude from 0 to 1, emitted at most ten times per second. This is input activity, not speech detection."
+				},
+				{
+					"name": "error",
+					"payload": "({ name, message })",
+					"description": "Web Audio could not analyse the stream. Capture remains owned by the caller."
 				}
 			]
 		},

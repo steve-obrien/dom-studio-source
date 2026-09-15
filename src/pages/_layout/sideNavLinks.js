@@ -1,5 +1,7 @@
 import {
 	componentAnchor,
+	componentNavigationSections,
+	getComponentNavigationSection,
 	getComponentRecords,
 	labelFromSection,
 	primaryExportNameForSlug,
@@ -7,10 +9,12 @@ import {
 import { inspectComponentRecord } from './componentInspector.js';
 import { getBlockNavItems } from '../blocks/blockRegistry.js';
 
-const sidebarComponentSectionOrder = ['components', 'data', 'charts', 'dev', 'forms', 'mobile', 'visual'];
+const sidebarComponentSectionOrder = componentNavigationSections;
 
 export const staticIconPaths = {
 	Documentation: 'M6 4h9l3 3v13H6V4Zm9 0v4h4M9 11h6M9 15h6',
+	AI: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z',
+	'AI UI guide': 'M4 5h16v14H4V5Zm4 4h8M8 13h5',
 	Install: 'M12 3v12M7 10l5 5 5-5M5 20h14',
 	'AI builders': 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Zm6 9 .9 2.6 2.6.9-2.6.9L18 20l-.9-2.6-2.6-.9 2.6-.9L18 12Z',
 	Tools: 'M5 5h14v4H5V5Zm0 6h6v8H5v-8Zm8 0h6v8h-6v-8Z',
@@ -19,7 +23,7 @@ export const staticIconPaths = {
 	'Liquid glass': 'M12 3c4 4 7 7 7 11a7 7 0 0 1-14 0c0-4 3-7 7-11Zm-4 12c1 2 3 3 5 3',
 	'JSON Unstringifier': 'M8 8l-3 4 3 4M16 8l3 4-3 4M11 6h2M10 18h4',
 	Theming: 'M5 18c4-7 10-11 14-12-1 4-5 10-12 14l-2-2Zm4-1 8-8M6 13l5 5',
-	'Component spec': 'M6 5h12v14H6V5Zm3 4h6M9 13h6M9 17h3',
+	'Component metadata': 'M6 5h12v14H6V5Zm3 4h6M9 13h6M9 17h3',
 	'Form schema': 'M6 4h8l4 4v12H6V4Zm8 0v5h5M9 12h6M9 16h8',
 	Icons: 'M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z',
 	Studio: 'M4 5h16v14H4V5Zm4 4h8M8 13h5',
@@ -132,11 +136,11 @@ export const sideNavLinks = [
 		label: 'Documentation',
 		items: [
 			{ to: '/install', label: 'Install', tag: 'New' },
-			{ to: '/ai', label: 'AI builders', tag: 'New' },
 			{ to: '/theming', label: 'Theming', tag: 'New' },
-			{ to: '/component-spec', label: 'Component spec' },
+			{ to: '/component-spec', label: 'Component metadata' },
 		],
 	},
+	...componentNavGroups.filter((group) => group.label === 'AI'),
 	{
 		label: 'Tools',
 		items: [
@@ -152,7 +156,7 @@ export const sideNavLinks = [
 			{ to: '/experiments/liquid-glass', label: 'Liquid glass', tag: 'New' },
 		],
 	},
-	...componentNavGroups,
+	...componentNavGroups.filter((group) => group.label !== 'AI'),
 	{
 		label: 'Blocks',
 		items: blockNavItems,
@@ -182,6 +186,11 @@ export const sideNavLinks = [
 	})),
 }));
 
+/**
+ * Groups component families by their navigation metadata while retaining stable URLs.
+ *
+ * @returns {Array<object>} Sidebar categories and their component links.
+ */
 function groupsFromDiscoveredComponents() {
 	const records = getComponentRecords()
 		.map(inspectComponentRecord)
@@ -199,6 +208,11 @@ function groupsFromDiscoveredComponents() {
 			label: labelFromSection(section),
 			badge: section === 'mobile' ? 'Beta' : undefined,
 			items: [
+				...(section === 'ai' ? [
+					{ to: '/ai', label: 'Overview', icon: staticIconPaths.AI },
+					{ to: '/ai/ui', label: 'AI UI guide' },
+					{ to: '/ai/builders', label: 'AI builders' },
+				] : []),
 				...(section === 'components' ? [{ to: '/components', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...(section === 'forms' ? [{ to: '/forms', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...(section === 'charts' ? [{ to: '/charts', label: 'Overview', icon: staticIconPaths.Overview }, { to: '/charts/finance', label: 'Finance', icon: staticIconPaths.Finance, tag: 'New' }] : []),
@@ -207,7 +221,7 @@ function groupsFromDiscoveredComponents() {
 				...(section === 'mobile' ? [{ to: '/mobile', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...(section === 'visual' ? [{ to: '/icons', label: 'Icons', icon: staticIconPaths.Icons }] : []),
 				...Array.from(families.values())
-					.filter((family) => family[0]?.section === section)
+					.filter((family) => getComponentNavigationSection(primaryRecord(family)) === section)
 					.map(navItemFromFamily),
 			],
 		}))
