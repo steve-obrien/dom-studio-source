@@ -761,6 +761,86 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "components/menu-stack",
+		"path": "../components/menu-stack/DomMenuStack.vue",
+		"section": "components",
+		"slug": "menu-stack",
+		"exportName": "DomMenuStack",
+		"route": "/components/menu-stack",
+		"doc": {
+			"name": "Menu stack",
+			"tag": "<DomMenuStack>",
+			"description": "Nested navigation that slides inside its container on mobile and desktop. Reuses App stack transitions, retained page state, scrolling, and focus. Each item has a unique id and label, plus children, a component and props, or a named slot for richer pages. Leaf items accept to or href, or emit select for application actions.",
+			"slots": [
+				{
+					"name": "root",
+					"payload": "{ screen, stack }",
+					"description": "Content above the root menu rows."
+				},
+				{
+					"name": "(item.slot)",
+					"payload": "{ screen, stack }",
+					"description": "Page content above child rows. Set an item’s slot to this slot name; components receive screen and stack props too."
+				}
+			],
+			"events": [
+				{
+					"name": "select",
+					"payload": "(item)",
+					"description": "A leaf was selected. Close the containing popover here if desired."
+				},
+				{
+					"name": "update:path",
+					"payload": "(path: string[])",
+					"description": "Two-way stack path, starting with root."
+				},
+				{
+					"name": "navigate",
+					"payload": "({ path, previousPath, direction, screen, reason })",
+					"description": "A contained page opened or returned."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Tab / Shift+Tab",
+					"action": "Move between visible links, rows, Back, and custom page controls."
+				},
+				{
+					"keys": "Enter / Space",
+					"action": "Activate a focused button. Enter follows links."
+				}
+			],
+			"playground": {
+				"initial": {
+					"title": "Workspace",
+					"items": [
+						{
+							"id": "account",
+							"label": "Account",
+							"children": [
+								{
+									"id": "preferences",
+									"label": "Preferences",
+									"children": [
+										{
+											"id": "language",
+											"label": "English (UK)"
+										}
+									]
+								}
+							]
+						},
+						{
+							"id": "help",
+							"label": "Help"
+						}
+					]
+				}
+			}
+		},
+		"studio": {}
+	},
+	{
 		"id": "components/pagination",
 		"path": "../components/pagination/DomPagination.vue",
 		"section": "components",

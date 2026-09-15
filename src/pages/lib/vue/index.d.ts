@@ -248,6 +248,21 @@ export interface IconSelectorItem {
 	component?: DomVueComponent;
 	[key: string]: unknown;
 }
+/** A contained menu page, route link, or application-owned action. */
+export interface MenuStackItem {
+	id: string;
+	label?: string;
+	title?: string;
+	description?: string;
+	meta?: string;
+	disabled?: boolean;
+	children?: Array<MenuStackItem>;
+	component?: DomVueComponent;
+	props?: Record<string, unknown>;
+	slot?: string;
+	to?: string | Record<string, unknown>;
+	href?: string;
+}
 export interface DomMenuItemRecord {
 	label?: string;
 	value?: string | number;
@@ -1601,6 +1616,30 @@ export interface DomAccordionProps {
 	multiple?: boolean;
 }
 export declare const DomAccordion: DomComponent<DomAccordionProps>;
+
+export interface DomMenuStackProps {
+	/**
+	 * Nested items: unique id, label, description, meta, disabled, children, component, props, slot, to, or href. Page items open their children; use a leaf for a route or action.
+	 */
+	items?: Array<MenuStackItem>;
+	/**
+	 * Root page heading.
+	 */
+	title?: string;
+	/**
+	 * Bounded container height. Use 100% in an explicitly sized parent.
+	 */
+	height?: string;
+	/**
+	 * Controlled path of page ids starting with root. Bind with v-model:path.
+	 */
+	path?: Array<string> | null;
+	/**
+	 * Enable sliding transitions; reduced-motion preferences are respected.
+	 */
+	animate?: boolean;
+}
+export declare const DomMenuStack: DomComponent<DomMenuStackProps>;
 
 export interface DomMenuProps {
 	/**

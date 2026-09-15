@@ -267,10 +267,11 @@ defineExpose({ reveal, close });
 					</slot>
 				</button>
 			</div>
+			<!-- Ignore bubbled capture loss when a touched child transfers implicit capture to this surface. -->
 			<div ref="surface" data-swipe-surface class="relative bg-canvas text-canvas-fg transition-transform duration-200 ease-out motion-reduce:transition-none [touch-action:pan-y_pinch-zoom]"
 				:class="[actions.length && !disabled && 'pe-11', dragging && 'select-none']"
 				:style="{ transform: `translateX(${offset}px)`, transition: dragging ? 'none' : undefined }"
-				@pointerdown="onPointerDown" @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerCancel" @lostpointercapture="onPointerCancel" @click.capture="onSurfaceClick" @dragstart.prevent>
+				@pointerdown="onPointerDown" @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerCancel" @lostpointercapture.self="onPointerCancel" @click.capture="onSurfaceClick" @dragstart.prevent>
 				<slot />
 				<button v-if="actions.length && !disabled" ref="menuButton" data-swipe-toggle type="button" class="absolute end-0 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-lg text-muted-fg hover:bg-secondary focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-ring"
 					:aria-label="`Actions for ${label}`" :aria-expanded="menuOpen" :aria-controls="menuId" @click="toggleMenu">

@@ -5,6 +5,9 @@ import { useTheme } from '../../composable/useTheme';
 import ThemeToggle from './ThemeToggle.vue';
 import BrandLockup from './BrandLockup.vue';
 import SideNav from './SideNav.vue';
+import { sideNavLinks } from './sideNavLinks.js';
+import DomPopover from '../components/popover/DomPopover.vue';
+import DomMenuStack from '../components/menu-stack/DomMenuStack.vue';
 import DomStudioFooter from './DomStudioFooter.vue';
 import AccountMenu from './AccountMenu.vue';
 import { getGlobalSearchCommands } from './globalSearch.js';
@@ -33,6 +36,7 @@ const route = useRoute();
 const router = useRouter();
 const isMounted = ref(false);
 const mobileMenuOpen = ref(false);
+const mobileMenu = ref(null);
 const searchOpen = ref(false);
 const searchReady = ref(false);
 const isHeaderFloating = ref(false);
@@ -91,7 +95,34 @@ const topLinks = [
 	{ to: '/headless', label: 'Headless', match: '/headless' },
 ];
 
+/** Converts sidebar groups into stable nested pages, retaining branch overview links. */
+function menuItems(items, prefix) {
+	return items.map((item, index) => {
+		const id = `${prefix}-${index}`;
+		return {
+			id,
+			label: item.label,
+			to: item.to,
+			...(item.children?.length ? { children: [
+				...(item.to ? [{ id: `${id}-overview`, label: `${item.label} overview`, to: item.to }] : []),
+				...menuItems(item.children, id),
+			] } : {}),
+		};
+	});
+}
+
+const mobileNavigation = sideNavLinks.map((group, index) => ({
+	id: `section-${index}`,
+	label: group.label,
+	children: menuItems(group.items, `section-${index}`),
+}));
+
 const detailsPanel = ref(null);
+
+/** Closes the mobile popover when desktop navigation replaces its trigger. */
+function closeMenuAtDesktopWidth() {
+	if (window.innerWidth >= 1024) mobileMenu.value?.close();
+}
 
 /**
  * Updates the condensed header treatment from either viewport or docs-panel scrolling.
@@ -166,7 +197,7 @@ function runGlobalSearch(event) {
 }
 
 watch(() => route.path, async () => {
-	mobileMenuOpen.value = false;
+	mobileMenu.value?.close();
 	await nextTick();
 	scrollDetailsToTop();
 	updateStickyHeaderState();
@@ -179,6 +210,7 @@ onMounted(() => {
 	if (typeof window === 'undefined') return;
 	window.addEventListener(globalSearchOpenEvent, openGlobalSearch);
 	window.addEventListener('scroll', updateStickyHeaderState, { passive: true });
+	window.addEventListener('resize', closeMenuAtDesktopWidth, { passive: true });
 	updateStickyHeaderState();
 });
 
@@ -186,6 +218,7 @@ onBeforeUnmount(() => {
 	if (typeof window === 'undefined') return;
 	window.removeEventListener(globalSearchOpenEvent, openGlobalSearch);
 	window.removeEventListener('scroll', updateStickyHeaderState);
+	window.removeEventListener('resize', closeMenuAtDesktopWidth);
 	detailsPanel.value?.removeEventListener('scroll', updateStickyHeaderState);
 });
 </script>
@@ -267,10 +300,10 @@ onBeforeUnmount(() => {
 					<button
 						type="button"
 						class="grid size-9 place-items-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+						id="mobile-site-menu-trigger"
 						:aria-expanded="mobileMenuOpen"
 						aria-controls="mobile-site-menu"
 						:aria-label="mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'"
-						@click="mobileMenuOpen = !mobileMenuOpen"
 					>
 						<svg
 							v-if="!mobileMenuOpen"
@@ -301,37 +334,36 @@ onBeforeUnmount(() => {
 					</button>
 				</div>
 			</div>
-			<div
-				v-if="mobileMenuOpen"
-				id="mobile-site-menu"
-				class="relative z-[1] max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border/60 shadow-lg lg:hidden"
-				:class="LIQUID_GLASS_EFFECTS.stickyHeader && isHeaderFloating
-					? 'bg-transparent'
-					: 'bg-canvas/95 backdrop-blur'"
-			>
-				<nav class="grid gap-1 px-4 py-3 text-sm">
-					<RouterLink
-						v-for="l in topLinks"
-						:key="l.to"
-						:to="l.to"
-						class="rounded-lg px-3 py-2 font-medium transition"
-						:class="isTopLinkActive(l)
-							? 'bg-primary text-primary-fg'
-							: 'text-muted-fg hover:bg-secondary hover:text-canvas-fg'"
-					>{{ l.label }}</RouterLink>
-				</nav>
-				<div v-if="showSidebar" class="border-t border-border/60 px-4 py-4">
-					<SideNav
-						persist-scroll
-						scroll-key="dom-studio-mobile-side-nav-scroll"
-					/>
-				</div>
-				<div class="flex items-center justify-between border-t border-border/60 px-4 py-3">
-					<ThemeToggle />
-					<AccountMenu compact />
-				</div>
-			</div>
 		</header>
+
+		<DomPopover
+			ref="mobileMenu"
+			trigger-id="mobile-site-menu-trigger"
+			position="bottom-end"
+			:arrow="false"
+			:flip="false"
+			width="w-[min(24rem,calc(100vw-2rem))]"
+			padding="p-0"
+			@open="mobileMenuOpen = true"
+			@close="mobileMenuOpen = false"
+		>
+			<template #default="{ close }">
+				<div id="mobile-site-menu" class="overflow-hidden rounded-lg">
+					<DomMenuStack
+						v-if="mobileMenuOpen"
+						title="Explore DOM Studio"
+						:items="mobileNavigation"
+						height="min(32rem, calc(100dvh - 10rem))"
+						class="border-0"
+						@select="close"
+					/>
+					<div class="flex items-center justify-between border-t border-border px-4 py-3">
+						<ThemeToggle />
+						<AccountMenu compact />
+					</div>
+				</div>
+			</template>
+		</DomPopover>
 
 		<div v-if="showSidebar" class="w-full px-4 md:-mt-16">
 			<div class="flex min-h-0 min-w-0 gap-0 py-10 md:h-screen md:gap-12 md:overflow-hidden md:py-0">

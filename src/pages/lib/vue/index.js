@@ -17,6 +17,7 @@ export { default as DomTabs } from '../../components/tabs/DomTabs.vue';
 export { default as DomTooltip } from '../../components/tooltip/DomTooltip.vue';
 export { vDomTooltip } from '../../components/tooltip/vDomTooltip.js';
 export { default as DomAccordion } from '../../components/accordion/DomAccordion.vue';
+export { default as DomMenuStack } from '../../components/menu-stack/DomMenuStack.vue';
 export { default as DomMenu } from '../../components/menu/DomMenu.vue';
 export { default as DomMenuItem } from '../../components/menu/DomMenuItem.vue';
 export { default as MenuItem } from '../../components/menu/DomMenuItem.vue';

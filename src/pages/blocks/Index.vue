@@ -88,12 +88,12 @@ function blockSearchText(block) {
 					<p class="shrink-0 text-sm text-muted-fg">{{ filteredBlockRecords.length }} of {{ blockRecords.length }}</p>
 				</div>
 
-				<div class="grid gap-3">
+				<div class="grid min-w-0 grid-cols-1 gap-3">
 					<RouterLink
 						v-for="block in filteredBlockRecords"
 						:key="block.id"
 						:to="block.route"
-						class="group rounded-lg border border-border skin-card p-4 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+						class="group min-w-0 rounded-lg border border-border skin-card p-4 transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
 					>
 						<div class="flex items-start gap-3">
 							<div class="grid size-10 shrink-0 place-items-center rounded-lg border border-border bg-secondary text-canvas-fg">
@@ -112,7 +112,7 @@ function blockSearchText(block) {
 								<p class="mt-3 text-xs font-medium text-muted-fg">
 									{{ block.exampleCount }} {{ block.exampleCount === 1 ? 'example' : 'examples' }}
 									<span aria-hidden="true"> / </span>
-									<code>{{ block.sourcePath }}</code>
+									<code class="[overflow-wrap:anywhere]">{{ block.sourcePath }}</code>
 								</p>
 							</div>
 							<span class="mt-1 text-muted-fg transition group-hover:translate-x-0.5 group-hover:text-canvas-fg" aria-hidden="true">
