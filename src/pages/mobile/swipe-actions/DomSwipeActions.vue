@@ -71,7 +71,7 @@ function cancelGesture() {
 	gesture = null;
 	dragging.value = false;
 	armed.value = false;
-	if (previous && surface.value?.hasPointerCapture?.(previous.id)) surface.value.releasePointerCapture(previous.id);
+	if (previous && !previous.touch && surface.value?.hasPointerCapture?.(previous.id)) surface.value.releasePointerCapture(previous.id);
 }
 
 /** Closes both gesture and button presentations, optionally returning focus. */
@@ -121,14 +121,62 @@ function selectAction(action, side, source = 'button') {
 
 /** Starts observation without capturing the pointer until horizontal intent is clear. */
 function onPointerDown(event) {
-	if (props.disabled || event.button !== 0 || !event.isPrimary || gesture) return;
+	if (event.pointerType === 'touch' || props.disabled || event.button !== 0 || !event.isPrimary || gesture) return;
 	if (event.target.closest('input, textarea, select, [contenteditable], [data-swipe-toggle], [data-no-swipe]')) return;
-	gesture = { id: event.pointerId, x: event.clientX, y: event.clientY, start: offset.value, lastX: event.clientX, time: event.timeStamp, velocity: 0, initialSide: openSide.value, active: false };
+	gesture = { id: event.pointerId, touch: event.pointerType === 'direct-touch', x: event.clientX, y: event.clientY, start: offset.value, lastX: event.clientX, time: event.timeStamp, velocity: 0, initialSide: openSide.value, active: false };
+}
+
+/**
+ * Adapts a touch sample to the shared gesture coordinates. String ids keep native
+ * pointer cancellation separate from the touch stream that owns scrolling.
+ * @param {TouchEvent} event Native event whose scrolling default may be cancelled.
+ * @param {Touch} touch The single tracked contact.
+ * @returns {object} Gesture sample accepted by the shared handlers.
+ */
+function touchSample(event, touch) {
+	return {
+		pointerId: `touch-${touch.identifier}`, pointerType: 'direct-touch',
+		clientX: touch.clientX, clientY: touch.clientY, timeStamp: event.timeStamp,
+		target: event.target, button: 0, isPrimary: true,
+		/** Prevents native scrolling only after horizontal intent is established. */
+		preventDefault() { if (event.cancelable) event.preventDefault(); },
+	};
+}
+
+/** Observes one finger while leaving taps, vertical scrolling, and pinch zoom native. */
+function onTouchStart(event) {
+	if (event.touches.length !== 1) {
+		if (gesture?.touch) onPointerCancel({ pointerId: gesture.id });
+		return;
+	}
+	onPointerDown(touchSample(event, event.touches[0]));
+}
+
+/**
+ * Locks scrolling for the rest of a horizontal gesture, including curved thumb
+ * paths. A non-passive listener must cancel touchmove before native scrolling
+ * starts; preventing pointermove or changing touch-action mid-gesture is too late.
+ */
+function onTouchMove(event) {
+	if (!gesture?.touch) return;
+	if (event.touches.length !== 1 || !event.cancelable) return onPointerCancel({ pointerId: gesture.id });
+	const touch = Array.from(event.touches).find((touch) => `touch-${touch.identifier}` === gesture.id);
+	if (touch) onPointerMove(touchSample(event, touch));
+}
+
+/** Settles only the tracked contact; interrupted or multi-touch gestures never commit. */
+function onTouchEnd(event) {
+	if (!gesture?.touch) return;
+	const touch = Array.from(event.changedTouches).find((touch) => `touch-${touch.identifier}` === gesture.id);
+	if (!touch) return;
+	const sample = touchSample(event, touch);
+	if (event.type === 'touchcancel') onPointerCancel(sample);
+	else onPointerUp(sample);
 }
 
 /**
  * Tracks horizontal movement on the initially revealed side, clamping reversals at closed.
- * Vertical pans remain native until horizontal intent captures the pointer.
+ * The initial axis decision stays locked until release, even when a thumb arcs.
  * @param {PointerEvent} event Current pointer position and timing.
  * @returns {void}
  */
@@ -138,17 +186,20 @@ function onPointerMove(event) {
 	const dy = event.clientY - gesture.y;
 	if (!gesture.active) {
 		if (Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) return cancelGesture();
-		if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+		if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
 		gesture.active = true;
 		gesture.side = gesture.initialSide || (dx * direction() > 0 ? 'start' : 'end');
 		dragging.value = true;
 		menuOpen.value = false;
-		surface.value.setPointerCapture(event.pointerId);
+		if (!gesture.touch) surface.value.setPointerCapture(event.pointerId);
 		announce(gesture.side);
 	}
 	event.preventDefault();
 	const elapsed = Math.max(1, event.timeStamp - gesture.time);
-	gesture.velocity = (event.clientX - gesture.lastX) / elapsed;
+	const velocity = (event.clientX - gesture.lastX) / elapsed;
+	// Smooth sample jitter, but react immediately to a reversal or a paused finger.
+	gesture.velocity = elapsed > 100 || Math.sign(velocity) !== Math.sign(gesture.velocity)
+		? velocity : velocity * 0.65 + gesture.velocity * 0.35;
 	gesture.lastX = event.clientX;
 	gesture.time = event.timeStamp;
 	const next = gesture.start + dx;
@@ -227,6 +278,10 @@ function actionClass(action) {
 /** Installs listeners in the row's document, including adopted iframe previews. */
 function mount() {
 	doc = root.value.ownerDocument;
+	surface.value.addEventListener('touchstart', onTouchStart, { passive: true });
+	surface.value.addEventListener('touchmove', onTouchMove, { passive: false });
+	surface.value.addEventListener('touchend', onTouchEnd);
+	surface.value.addEventListener('touchcancel', onTouchEnd);
 	doc.addEventListener('dom:swipe-open', onSiblingOpen);
 	doc.addEventListener('pointerdown', onOutsidePointer, true);
 	observer = new doc.defaultView.ResizeObserver(() => { if (openSide.value && !gesture) reveal(openSide.value); });
@@ -236,6 +291,10 @@ function mount() {
 /** Releases document listeners, capture, and geometry observation. */
 function unmount() {
 	cancelGesture();
+	surface.value?.removeEventListener('touchstart', onTouchStart);
+	surface.value?.removeEventListener('touchmove', onTouchMove);
+	surface.value?.removeEventListener('touchend', onTouchEnd);
+	surface.value?.removeEventListener('touchcancel', onTouchEnd);
 	doc?.removeEventListener('dom:swipe-open', onSiblingOpen);
 	doc?.removeEventListener('pointerdown', onOutsidePointer, true);
 	observer?.disconnect();

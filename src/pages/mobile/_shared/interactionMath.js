@@ -23,13 +23,15 @@ export function resolveSnapPoint(points, position, velocity = 0) {
 
 /**
  * Determines whether a released swipe closes, reveals buttons, or commits an action.
- * Full swipes require explicit opt-in and actual distance, never velocity alone.
+ * Full swipes require explicit opt-in and deliberate travel, then project release
+ * velocity over 180ms so a shorter outward flick can cross the commit threshold.
  * @param {object} options Measured gesture and action availability.
  * @returns {'close'|'reveal'|'commit'} Release outcome.
  */
 export function resolveSwipeRelease({ distance, velocity = 0, actionWidth, rowWidth, fullSwipe = false, cancelled = false }) {
 	if (cancelled || !actionWidth) return 'close';
-	if (fullSwipe && distance >= Math.max(actionWidth + 48, rowWidth * 0.72)) return 'commit';
+	const projected = distance + velocity * 180;
+	if (fullSwipe && distance >= Math.max(48, rowWidth * 0.16) && projected >= Math.max(actionWidth + 48, rowWidth * 0.72)) return 'commit';
 	return distance + velocity * 120 >= Math.min(48, actionWidth * 0.5) ? 'reveal' : 'close';
 }
 

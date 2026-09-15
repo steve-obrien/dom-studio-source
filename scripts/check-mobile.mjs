@@ -116,6 +116,16 @@ test('swiping needs distance and explicit opt-in before it can commit', () => {
 	assert.equal(resolveSwipeRelease({ ...row, distance: 320, fullSwipe: true, actionWidth: 0 }), 'close');
 });
 
+test('deliberate flicks project momentum into full actions while pauses and reversals do not', () => {
+	const row = { rowWidth: 390, actionWidth: 100, fullSwipe: true };
+	assert.equal(resolveSwipeRelease({ ...row, distance: 110, velocity: 1.2 }), 'commit');
+	assert.equal(resolveSwipeRelease({ ...row, distance: 110, velocity: 0 }), 'reveal');
+	assert.equal(resolveSwipeRelease({ ...row, distance: 20, velocity: 4 }), 'reveal');
+	assert.equal(resolveSwipeRelease({ ...row, distance: 300, velocity: -1 }), 'reveal');
+	assert.equal(resolveSwipeRelease({ ...row, distance: 110, velocity: 1.2, fullSwipe: false }), 'reveal');
+	assert.equal(resolveSwipeRelease({ ...row, distance: 110, velocity: 1.2, cancelled: true }), 'close');
+});
+
 test('keyboard detection excludes browser chrome, pinch zoom, and unfocused resize', () => {
 	assert.equal(keyboardHeight({ baseline: 844, viewportHeight: 520, editing: true }), 324);
 	assert.equal(keyboardHeight({ baseline: 844, viewportHeight: 760, editing: true }), 0);
