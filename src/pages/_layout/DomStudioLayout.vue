@@ -50,9 +50,11 @@ const sidebarRoutePrefixes = [
 	'/data',
 	'/charts',
 	'/dev',
+	'/designer',
 	'/forms',
 	'/headless',
 	'/icons',
+	'/install',
 	'/mobile',
 	'/tools',
 	'/theming',
@@ -65,6 +67,7 @@ const wideContentRoutePrefixes = [
 	'/data',
 	'/charts',
 	'/dev',
+	'/designer',
 	'/forms',
 	'/headless',
 	'/icons',
@@ -118,6 +121,36 @@ const mobileNavigation = sideNavLinks.map((group, index) => ({
 }));
 
 const detailsPanel = ref(null);
+const sidebarCollapsed = ref(false);
+const SIDEBAR_COLLAPSED_KEY = 'dom-studio-side-nav-collapsed';
+
+/**
+ * Reads the desktop documentation-sidebar preference when browser storage is available.
+ *
+ * @returns {void}
+ */
+function restoreSidebarPreference() {
+	if (typeof window === 'undefined') return;
+	try {
+		sidebarCollapsed.value = window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
+	} catch {
+		// Keep the expanded default when storage is unavailable.
+	}
+}
+
+/**
+ * Expands or collapses the desktop documentation sidebar and persists the choice.
+ *
+ * @returns {void}
+ */
+function toggleSidebar() {
+	sidebarCollapsed.value = !sidebarCollapsed.value;
+	try {
+		window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebarCollapsed.value));
+	} catch {
+		// The in-memory state still works when storage is unavailable.
+	}
+}
 
 /** Closes the mobile popover when desktop navigation replaces its trigger. */
 function closeMenuAtDesktopWidth() {
@@ -207,6 +240,7 @@ watch(detailsPanel, connectDetailsPanelScroll, { flush: 'post' });
 onMounted(() => {
 	isMounted.value = true;
 	initTheme();
+	restoreSidebarPreference();
 	if (typeof window === 'undefined') return;
 	window.addEventListener(globalSearchOpenEvent, openGlobalSearch);
 	window.addEventListener('scroll', updateStickyHeaderState, { passive: true });
@@ -366,8 +400,32 @@ onBeforeUnmount(() => {
 		</DomPopover>
 
 		<div v-if="showSidebar" class="w-full px-4 md:-mt-16">
-			<div class="flex min-h-0 min-w-0 gap-0 py-10 md:h-screen md:gap-12 md:overflow-hidden md:py-0">
-				<SideNav persist-scroll class="docs-sidebar hidden w-56 shrink-0 md:block md:h-full md:overflow-y-auto md:pb-10 md:pt-[6.5rem] md:pr-2" />
+			<div class="flex min-h-0 min-w-0 gap-0 py-10 md:h-screen md:gap-6 md:overflow-hidden md:py-0">
+				<aside
+					class="docs-sidebar hidden shrink-0 transition-[width] duration-200 md:block md:h-full md:pt-[5.25rem]"
+					:class="sidebarCollapsed ? 'w-10' : 'w-56'"
+				>
+					<div class="flex h-10 items-center" :class="sidebarCollapsed ? 'justify-center' : 'justify-end pr-2'">
+						<button
+							type="button"
+							class="grid size-8 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+							:aria-label="sidebarCollapsed ? 'Expand documentation navigation' : 'Collapse documentation navigation'"
+							:title="sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'"
+							@click="toggleSidebar"
+						>
+							<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<path d="M4 5h16v14H4V5Zm5 0v14" />
+								<path v-if="sidebarCollapsed" d="m13 9 3 3-3 3" />
+								<path v-else d="m16 9-3 3 3 3" />
+							</svg>
+						</button>
+					</div>
+					<SideNav
+						v-show="!sidebarCollapsed"
+						persist-scroll
+						class="h-[calc(100%-2.5rem)] overflow-y-auto pb-10 pr-2"
+					/>
+				</aside>
 
 				<main ref="detailsPanel" class="min-h-0 min-w-0 flex-1 md:h-full md:overflow-y-auto md:pb-10 md:pt-[6.5rem] md:pr-2">
 					<div class="mx-auto w-full min-w-0" :class="contentMaxWidthClass">

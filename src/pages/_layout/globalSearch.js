@@ -24,6 +24,7 @@ const componentSectionOrder = componentNavigationSections;
 
 const pageDescriptions = {
 	'/': 'Page / DOM Studio product overview and library entry point.',
+	'/designer': 'Page / Beta UI designer components for HTML stages, layer trees, colour swatches and CSS shadows.',
 	'/ai': 'Page / AI components for agent chat, conversations, voice, audio, camera input, and review workflows.',
 	'/ai/ui': 'Guide / Designing AI UI: streaming, tool calls, approvals, sources, voice, accessibility, and error recovery.',
 	'/ai/builders': 'Guide / Build interfaces with AI using DOM Studio components, examples, metadata, and editable Studio specs.',

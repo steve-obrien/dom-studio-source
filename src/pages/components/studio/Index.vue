@@ -1,7 +1,7 @@
 <script setup>
-import TemplateEditor from '../../experiments/template-editor/Index.vue';
+import DesignerStudio from '../../designer/studio/Index.vue';
 </script>
 
 <template>
-	<TemplateEditor />
+	<DesignerStudio />
 </template>

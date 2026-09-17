@@ -5407,8 +5407,17 @@ export interface DomNumberInputProps {
 	 * Render default field chrome, or hide chrome while keeping form state wiring.
 	 */
 	chrome?: "field" | "none" | false;
+	/**
+	 * Minimum accepted number and native spinbutton boundary.
+	 */
 	min?: number;
+	/**
+	 * Maximum accepted number and native spinbutton boundary.
+	 */
 	max?: number;
+	/**
+	 * Increment used by the browser spin buttons and arrow keys.
+	 */
 	step?: number;
 }
 export declare const DomNumberInput: DomComponent<DomNumberInputProps>;
@@ -7634,6 +7643,28 @@ export interface DomChartTooltipProps {
 }
 export declare const DomChartTooltip: DomComponent<DomChartTooltipProps>;
 
+export interface DomColorSwatchProps {
+	modelValue?: string;
+	label?: string;
+}
+export declare const DomColorSwatch: DomComponent<DomColorSwatchProps>;
+
+export interface DomShadowEditorProps {
+	modelValue?: Array<DesignerShadowLayer>;
+	title?: string;
+}
+export declare const DomShadowEditor: DomComponent<DomShadowEditorProps>;
+
+export type DomDesignerLayersProps = DomTreeViewProps;
+export declare const DomDesignerLayers: typeof DomTreeView;
+
+export interface DomDesignerStageProps {
+	modelValue?: string;
+	positioning?: boolean;
+	interactive?: boolean;
+}
+export declare const DomDesignerStage: DomComponent<DomDesignerStageProps>;
+
 export declare const popoverProps: DomRuntimeProps;
 export declare const calendarProps: DomRuntimeProps;
 export declare const filterBarProps: DomRuntimeProps;
@@ -7664,6 +7695,9 @@ export declare const themeModeValues: Array<DomThemeMode>;
 export declare const resolvedTheme: ComputedRef<DomResolvedTheme>;
 export declare const vDomTooltip: Directive<HTMLElement, DomTooltipDirectiveValue>;
 
+export interface DesignerShadowLayer { id: string; enabled: boolean; open?: boolean; kind: 'drop' | 'inset' | 'ring'; color: string; alpha: number; x: number; y: number; blur: number; spread: number; }
+export declare function createShadow(overrides?: Partial<DesignerShadowLayer>): DesignerShadowLayer;
+export declare function shadowListToCss(layers: Array<DesignerShadowLayer>): string;
 export declare function normalizeThemeMode(value: unknown): DomThemeMode;
 export declare function resolveThemeMode(value?: unknown, prefersDark?: boolean): DomResolvedTheme;
 export declare function readThemeMode(): DomThemeMode;

@@ -3793,7 +3793,39 @@ export const componentCatalog = [
 		"slug": "number-input",
 		"exportName": "DomNumberInput",
 		"route": "/forms/number-input",
-		"doc": {},
+		"doc": {
+			"name": "Vue number input",
+			"tag": "<DomNumberInput>",
+			"description": "An accessible Vue 3 number input with v-model, labels, validation, and native min, max, and step constraints.",
+			"icon": "M8 7h8M8 12h8M8 17h8",
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "number | string",
+					"description": "Fired with a number as the user types, or an empty string when cleared."
+				},
+				{
+					"name": "focus",
+					"payload": "FocusEvent",
+					"description": "Fired when the number input receives focus."
+				},
+				{
+					"name": "blur",
+					"payload": "FocusEvent",
+					"description": "Fired when the number input loses focus."
+				}
+			],
+			"playground": {
+				"initial": {
+					"label": "Quantity",
+					"description": "Choose between 1 and 99 items.",
+					"modelValue": 3,
+					"min": 1,
+					"max": 99,
+					"step": 1
+				}
+			}
+		},
 		"studio": {}
 	},
 	{
@@ -5410,6 +5442,58 @@ export const componentCatalog = [
 					"description": "Fired after the viewer switches between the diff, current text, and replacement text."
 				}
 			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "designer/color-swatch",
+		"path": "../designer/color-swatch/DomColorSwatch.vue",
+		"section": "designer",
+		"slug": "color-swatch",
+		"exportName": "DomColorSwatch",
+		"route": "/designer/color-swatch",
+		"doc": {
+			"name": "Color swatch",
+			"description": "Beta CSS colour swatch with an editable expression and native picker."
+		},
+		"studio": {}
+	},
+	{
+		"id": "designer/layers",
+		"path": "../designer/layers/DomDesignerLayers.vue",
+		"section": "designer",
+		"slug": "layers",
+		"exportName": "DomDesignerLayers",
+		"route": "/designer/layers",
+		"doc": {
+			"name": "Designer layers",
+			"description": "Beta layer tree shared with Studio. Accepts the full DomTreeView props, slots and events."
+		},
+		"studio": {}
+	},
+	{
+		"id": "designer/shadow-editor",
+		"path": "../designer/shadow-editor/DomShadowEditor.vue",
+		"section": "designer",
+		"slug": "shadow-editor",
+		"exportName": "DomShadowEditor",
+		"route": "/designer/shadow-editor",
+		"doc": {
+			"name": "Shadow editor",
+			"description": "Beta controlled CSS box-shadow layers: drop, inner and ring."
+		},
+		"studio": {}
+	},
+	{
+		"id": "designer/stage",
+		"path": "../designer/stage/DomDesignerStage.vue",
+		"section": "designer",
+		"slug": "stage",
+		"exportName": "DomDesignerStage",
+		"route": "/designer/stage",
+		"doc": {
+			"name": "Designer stage",
+			"description": "Beta HTML stage with controlled selection and opt-in absolute movement and resizing."
 		},
 		"studio": {}
 	}

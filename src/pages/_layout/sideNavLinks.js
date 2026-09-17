@@ -145,7 +145,6 @@ export const sideNavLinks = [
 		label: 'Tools',
 		items: [
 			{ to: '/tools/json-unstringifier', label: 'JSON Unstringifier', tag: 'New' },
-			{ to: '/components/studio', label: 'Studio', tag: 'Pro' },
 			{ to: '/components/playground', label: 'Playground' },
 		],
 	},
@@ -206,8 +205,13 @@ function groupsFromDiscoveredComponents() {
 	return sidebarComponentSectionOrder
 		.map((section) => ({
 			label: labelFromSection(section),
-			badge: section === 'mobile' ? 'Beta' : undefined,
+			badge: ['mobile', 'designer'].includes(section) ? 'Beta' : undefined,
 			items: [
+				...(section === 'designer' ? [
+					{ to: '/designer', label: 'Overview' },
+					{ to: '/designer/social-card', label: 'Social card' },
+					{ to: '/designer/studio', label: 'Studio', tag: 'Beta' },
+				] : []),
 				...(section === 'ai' ? [
 					{ to: '/ai', label: 'Overview', icon: staticIconPaths.AI },
 					{ to: '/ai/ui', label: 'AI UI guide' },

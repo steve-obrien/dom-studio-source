@@ -1,6 +1,6 @@
 <script setup>
 import { cloneVNode, computed, defineComponent, h, isVNode, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { DomClassToggleInput, DomCodeInput, DomSplitterPanel, DomTreeView } from '../../lib/vue';
+import { DomClassToggleInput, DomCodeInput, DomSplitterPanel, DomDesignerLayers } from '../../lib/vue';
 import { tailwindClassIndex } from '../../forms/_shared/serverLookup.js';
 import { componentRegistry as elementsComponentRegistry, groupedRegistry as elementsGroupedRegistry } from '../../_layout/inspector/componentRegistry.js';
 import InspectorField from '../../_layout/inspector/InspectorField.vue';
@@ -3158,7 +3158,7 @@ function isEmptyElement(node) {
 								<span class="font-mono text-sm">{{ sidebarPanels.layers ? '-' : '+' }}</span>
 							</button>
 							<div v-show="sidebarPanels.layers" class="min-h-0 flex-1 overflow-y-auto bg-canvas">
-								<DomTreeView
+								<DomDesignerLayers
 									:model-value="selectedLayerValue"
 									:items="layerTreeItems"
 									:open-values="layerOpenValues"

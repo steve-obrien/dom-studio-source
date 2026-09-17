@@ -1,6 +1,9 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
+import { RouterLink, useRoute } from 'vue-router';
 import InspectorLayout from '../_layout/InspectorLayout.vue';
+import DomStudioLayout from '../_layout/DomStudioLayout.vue';
+import DocPage from '../_layout/DocPage.vue';
 import ThemeStage from './ThemeStage.vue';
 import { serializeThemeCss } from './lib/themeExport.js';
 import { clamp, expandHex, hexToOklch, oklchToHex, rgbToHex } from '../lib/css/color.js';
@@ -14,6 +17,25 @@ import {
 	parseBackdropValue,
 	replaceCssComponentStyle,
 } from '../experiments/css-button-creator/lib/styleModel.js';
+
+const route = useRoute();
+const isThemeEditor = computed(() => route.path === '/theming/editor');
+const quickThemeInstall = `import '@getdom/studio/style.css';`;
+const ownedThemeInstall = `/* src/app.css */
+@import "tailwindcss";
+@import "@getdom/studio/tailwind.css";
+
+/* Add your light and dark semantic theme variables below these imports. */`;
+const themeUsage = `<script setup>
+import { DomButton, DomCard } from '@getdom/studio/vue';
+<\/script>
+
+<template>
+	<DomCard class="space-y-4 p-6">
+		<p class="text-muted-fg">Components consume your semantic theme tokens.</p>
+		<DomButton>Continue</DomButton>
+	</DomCard>
+</template>`;
 
 const tokenPairs = [
 	{
@@ -1364,6 +1386,7 @@ async function copyThemeCss() {
  * @returns {void}
  */
 function initializeEditor() {
+	if (!isThemeEditor.value) return;
 	if (themeEditorState.initialized) return;
 	hydrateAppearanceFromDocument();
 	themeEditorState.initialized = true;
@@ -1373,25 +1396,68 @@ onMounted(initializeEditor);
 </script>
 
 <template>
-	<InspectorLayout>
-		<div class="flex min-h-0 flex-1 flex-col [--editor-selection:var(--chart-1)]">
-			<div
-				class="flex min-h-14 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border px-3 py-2 sm:px-5"
-			>
-				<div class="flex min-w-0 items-center gap-3">
-					<h1 class="truncate text-sm font-semibold">
-						{{ generatedThemeName === 'dom-studio-theme' ? 'Untitled theme' : generatedThemeName }}
-					</h1>
-					<span class="hidden rounded-md bg-secondary px-2 py-1 text-[10px] text-muted-fg sm:inline">
-						Draft
-					</span>
-				</div>
-				<div class="flex items-center gap-1.5">
-					<DomButton variant="ghost" size="sm" @click="resetColorTokens">Reset</DomButton>
-					<DomButton size="sm" @click="downloadThemeCss">Export CSS</DomButton>
-				</div>
-			</div>
+	<DomStudioLayout v-if="!isThemeEditor">
+		<DocPage
+			name="Theming"
+			eyebrow="Documentation"
+			tag="CSS variables"
+			tagline="Install a default theme in one import, or own the semantic tokens that style every DOM Studio component."
+		>
+			<DocSection eyebrow="Quick start" title="Install the default theme">
+				<p class="mb-4 max-w-2xl text-sm leading-6 text-muted-fg">
+					For the fastest working render, import the complete stylesheet once in your Vue application entry file. It includes Tailwind, component integration, and DOM Studio's default light and dark themes.
+				</p>
+				<CodeBlock lang="js" :code="quickThemeInstall" />
+			</DocSection>
 
+			<DocSection eyebrow="Production setup" title="Move the theme into your app">
+				<p class="mb-4 max-w-2xl text-sm leading-6 text-muted-fg">
+					Import the Tailwind integration from your application stylesheet, then define the semantic theme variables underneath it. Your app owns those values while DOM Studio components consume them.
+				</p>
+				<CodeBlock filename="src/app.css" lang="css" :code="ownedThemeInstall" />
+			</DocSection>
+
+			<DocSection eyebrow="How it works" title="Semantic tokens, not component overrides">
+				<div class="mb-6 max-w-3xl text-sm leading-6 text-muted-fg">
+					<p>
+						Prefer shared variables such as <code>--primary</code>, <code>--canvas</code>, <code>--radius</code>, and the surface tokens when you want a consistent theme across the library. This keeps components aligned and makes light and dark modes easier to maintain.
+					</p>
+					<p class="mt-2">
+						For a deliberate one-off, copy the component into your project and edit its Tailwind utilities directly. Component source remains yours to change when its structure or styling should differ from the wider system.
+					</p>
+				</div>
+				<div class="grid gap-4 md:grid-cols-3">
+					<div class="rounded-xl border border-border p-4">
+						<p class="font-semibold text-canvas-fg">Colour roles</p>
+						<p class="mt-1 text-sm leading-6 text-muted-fg">Tokens such as <code>--canvas</code>, <code>--primary</code>, <code>--muted</code>, and their foreground pairs keep contrast and meaning consistent.</p>
+					</div>
+					<div class="rounded-xl border border-border p-4">
+						<p class="font-semibold text-canvas-fg">Light and dark modes</p>
+						<p class="mt-1 text-sm leading-6 text-muted-fg">Define light values on <code>:root</code> and dark values on <code>[data-theme="dark"]</code>. Components switch without per-component changes.</p>
+					</div>
+					<div class="rounded-xl border border-border p-4">
+						<p class="font-semibold text-canvas-fg">Shared surfaces</p>
+						<p class="mt-1 text-sm leading-6 text-muted-fg">Radius, shadows, borders, inputs, controls, and overlays use the same theme contract throughout the library.</p>
+					</div>
+				</div>
+				<CodeBlock class="mt-5" lang="vue" :code="themeUsage" />
+			</DocSection>
+
+			<DocSection eyebrow="Theme editor" title="Generate a theme against live components">
+				<div class="max-w-2xl rounded-xl border border-primary/20 bg-primary/5 p-5">
+					<p class="text-sm leading-6 text-muted-fg">
+						Use the full-width editor to choose light and dark colours, adjust component surfaces, preview the result, and export the finished CSS. The editor keeps documentation navigation available from its collapsed sidebar button.
+					</p>
+					<RouterLink to="/theming/editor" class="mt-4 inline-flex h-10 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-fg transition hover:opacity-90">
+						Open theme editor
+					</RouterLink>
+				</div>
+			</DocSection>
+		</DocPage>
+	</DomStudioLayout>
+
+	<InspectorLayout v-else>
+		<div class="flex min-h-0 flex-1 flex-col [--editor-selection:var(--chart-1)]">
 			<div class="flex shrink-0 border-b border-border p-1 lg:hidden" aria-label="Workspace panel">
 				<button
 					v-for="panel in ['canvas', 'theme']"
@@ -1432,24 +1498,28 @@ onMounted(initializeEditor);
 								{{ view === 'canvas' ? 'Components' : view === 'css' ? 'CSS' : view }}
 							</button>
 						</div>
-						<div v-if="workspaceView === 'canvas'" class="flex items-center gap-2">
-							<select
-								v-model="previewWidth"
-								aria-label="Preview width"
-								class="hidden max-w-28 rounded-md bg-transparent p-1.5 text-xs text-muted-fg focus-visible:outline-2 focus-visible:outline-ring sm:block"
-							>
-								<option value="desktop">Responsive</option>
-								<option value="mobile">Mobile</option>
-							</select>
-							<select
-								v-model="zoom"
-								aria-label="Canvas zoom"
-								class="rounded-md bg-transparent p-1.5 text-xs text-muted-fg focus-visible:outline-2 focus-visible:outline-ring"
-							>
-								<option value="75">75%</option>
-								<option value="100">100%</option>
-								<option value="125">125%</option>
-							</select>
+						<div class="flex items-center gap-2">
+							<DomButton variant="ghost" size="sm" @click="resetColorTokens">Reset</DomButton>
+							<DomButton size="sm" @click="downloadThemeCss">Export CSS</DomButton>
+							<template v-if="workspaceView === 'canvas'">
+								<select
+									v-model="previewWidth"
+									aria-label="Preview width"
+									class="hidden max-w-28 rounded-md bg-transparent p-1.5 text-xs text-muted-fg focus-visible:outline-2 focus-visible:outline-ring sm:block"
+								>
+									<option value="desktop">Responsive</option>
+									<option value="mobile">Mobile</option>
+								</select>
+								<select
+									v-model="zoom"
+									aria-label="Canvas zoom"
+									class="rounded-md bg-transparent p-1.5 text-xs text-muted-fg focus-visible:outline-2 focus-visible:outline-ring"
+								>
+									<option value="75">75%</option>
+									<option value="100">100%</option>
+									<option value="125">125%</option>
+								</select>
+							</template>
 						</div>
 					</div>
 

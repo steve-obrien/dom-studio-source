@@ -239,3 +239,10 @@ export { default as DomDateRangePicker } from '../../charts/date-range-picker/Do
 export { default as DomChartContainer } from '../../charts/_shared/ChartContainer.vue';
 export { default as DomChartLegend } from '../../charts/_shared/ChartLegend.vue';
 export { default as DomChartTooltip } from '../../charts/_shared/ChartTooltip.vue';
+
+// Beta UI designer primitives.
+export { default as DomColorSwatch } from '../../designer/color-swatch/DomColorSwatch.vue';
+export { default as DomShadowEditor } from '../../designer/shadow-editor/DomShadowEditor.vue';
+export { default as DomDesignerLayers } from '../../designer/layers/DomDesignerLayers.vue';
+export { default as DomDesignerStage } from '../../designer/stage/DomDesignerStage.vue';
+export { createShadow, shadowListToCss } from '../../designer/shadow-editor/shadowModel.js';

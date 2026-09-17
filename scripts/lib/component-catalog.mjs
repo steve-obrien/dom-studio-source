@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 
-export const componentCatalogSections = ['components', 'data', 'charts', 'dev', 'forms', 'mobile', 'visual'];
+export const componentCatalogSections = ['components', 'data', 'charts', 'dev', 'forms', 'mobile', 'visual', 'designer'];
 
 /**
  * Resolves the generated component catalog file path.

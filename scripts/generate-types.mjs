@@ -28,6 +28,7 @@ const typeByConstructor = {
 };
 
 const manualPropTypes = {
+	DomShadowEditor: { modelValue: 'Array<DesignerShadowLayer>' },
 	DomAudioVisualizer: { stream: 'MediaStream | null' },
 	DomAudioControls: { constraints: 'MediaTrackConstraints | null' },
 	DomAudioInput: { constraints: 'MediaTrackConstraints | null' },
@@ -788,6 +789,10 @@ function buildVueTypes(componentEntries) {
 
 	const emittedInterfaces = new Set();
 	for (const component of componentEntries) {
+		if (component.name === 'DomDesignerLayers') {
+			lines.push('export type DomDesignerLayersProps = DomTreeViewProps;', 'export declare const DomDesignerLayers: typeof DomTreeView;', '');
+			continue;
+		}
 		if (component.aliasOf) {
 			lines.push(`export type ${component.name}Props = ${component.aliasOf}Props;`);
 			lines.push(`export declare const ${component.name}: typeof ${component.aliasOf};`);
@@ -2047,6 +2052,9 @@ function libraryFunctionTypes() {
 		'export declare const resolvedTheme: ComputedRef<DomResolvedTheme>;',
 		'export declare const vDomTooltip: Directive<HTMLElement, DomTooltipDirectiveValue>;',
 		'',
+		'export interface DesignerShadowLayer { id: string; enabled: boolean; open?: boolean; kind: \'drop\' | \'inset\' | \'ring\'; color: string; alpha: number; x: number; y: number; blur: number; spread: number; }',
+		'export declare function createShadow(overrides?: Partial<DesignerShadowLayer>): DesignerShadowLayer;',
+		'export declare function shadowListToCss(layers: Array<DesignerShadowLayer>): string;',
 		'export declare function normalizeThemeMode(value: unknown): DomThemeMode;',
 		'export declare function resolveThemeMode(value?: unknown, prefersDark?: boolean): DomResolvedTheme;',
 		'export declare function readThemeMode(): DomThemeMode;',

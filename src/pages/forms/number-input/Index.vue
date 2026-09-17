@@ -1,78 +1,120 @@
 <script setup>
-import { ref } from 'vue';
 import DomStudioLayout from '../../_layout/DomStudioLayout.vue';
 import DocPage from '../../_layout/DocPage.vue';
 import DocSection from '../../_layout/DocSection.vue';
 import CodeBlock from '../../_layout/CodeBlock.vue';
-import Demo from '../../_layout/Demo.vue';
+import Example from '../../_layout/docs/Example.vue';
 import Playground from '../../_layout/docs/Playground.vue';
-import PropsTable from '../../_layout/PropsTable.vue';
+import ComponentProps from '../../_layout/docs/ComponentProps.vue';
+import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
 import { DomNumberInput } from '../../lib/vue';
 
-const qty = ref(3);
+import QuantityInput from './examples/QuantityInput.vue';
+import QuantityInputSrc from './examples/QuantityInput.vue?raw';
+import DecimalAndPercentage from './examples/DecimalAndPercentage.vue';
+import DecimalAndPercentageSrc from './examples/DecimalAndPercentage.vue?raw';
 
-const usage = `<script setup>
-import { DomNumberInput } from '@getdom/studio/vue';
-import { ref } from 'vue';
-const qty = ref(1);
-<\/script>
+const doc = DomNumberInput.__doc;
 
-<template>
-  <DomNumberInput
-    v-model="qty"
-    label="Quantity"
-    description="Between 1 and 99."
-    :min="1"
-    :max="99"
-  />
-</template>`;
+const installCommand = 'npm install @getdom/studio';
+const styleImport = "import '@getdom/studio/style.css';";
+const aiPrompt = `Add DOM Studio's Vue 3 number input to this project.
 
-const props = [
-	{ name: 'v-model', type: 'number', default: '0', description: 'Bound numeric value.' },
-	{ name: 'label', type: 'string', default: '—', description: 'Label above the input.' },
-	{ name: 'description', type: 'string', default: '—', description: 'Hint shown below the input.' },
-	{ name: 'min / max / step', type: 'number', default: '—', description: 'Native numeric constraints.' },
-	{ name: 'disabled', type: 'boolean', default: 'false', description: 'Disable the input.' },
-];
+1. Install @getdom/studio.
+2. Import DomNumberInput from '@getdom/studio/vue'.
+3. Import '@getdom/studio/style.css' once in the app entry file if it is not already imported.
+4. Add a ref named quantity and bind it with v-model.
+5. Render a labelled Quantity field with min 1, max 99, and step 1.
+
+Use the project's existing package manager and Vue conventions. Do not replace unrelated form code.`;
 </script>
 
 <template>
 	<DomStudioLayout>
-		<DocPage
-			name="Number input"
-			tagline="A labelled number field with native min / max / step support."
-			tag="<DomNumberInput>"
-		>
-			<DocSection eyebrow="Playground" title="Try every prop live">
+		<DocPage :name="doc.name" :tagline="doc.description" :tag="doc.tag">
+			<div class="prose prose-sm max-w-none text-muted-fg">
+				<p>
+					Use <code>DomNumberInput</code> when a Vue form needs a real numeric value with native browser
+					spinbutton behavior. It works with Vue 3 <code>v-model</code>, emits numbers while the user types,
+					and shares DOM Studio's accessible label, description, disabled, required, and error UI.
+				</p>
+			</div>
+
+			<DocSection eyebrow="Quick start" title="Prompt your AI to add it">
+				<p class="mb-4 max-w-3xl text-sm leading-6 text-muted-fg">
+					Paste this into your coding agent. It contains the package, imports, model, and constraints needed for a working Vue number input.
+				</p>
+				<CodeBlock :code="aiPrompt" lang="text" />
+			</DocSection>
+
+			<DocSection eyebrow="Quick start" title="Or add it manually in three steps">
+				<div class="mb-5 grid gap-4 text-sm leading-6 text-muted-fg md:grid-cols-3">
+					<div class="rounded-lg border border-border p-4">
+						<p class="font-semibold text-canvas-fg">1. Install</p>
+						<p class="mt-1">Add the DOM Studio package to your Vue 3 project.</p>
+					</div>
+					<div class="rounded-lg border border-border p-4">
+						<p class="font-semibold text-canvas-fg">2. Load styles once</p>
+						<p class="mt-1">Import the complete stylesheet in your app entry file.</p>
+					</div>
+					<div class="rounded-lg border border-border p-4">
+						<p class="font-semibold text-canvas-fg">3. Import and bind</p>
+						<p class="mt-1">Import the component in any SFC and use ordinary <code>v-model</code>.</p>
+					</div>
+				</div>
+				<CodeBlock :code="installCommand" lang="shell" />
+				<CodeBlock :code="styleImport" lang="js" />
+				<Example
+					:source="QuantityInputSrc"
+					filename="QuantityInput.vue"
+					title="Copy the smallest useful implementation"
+					description="A ref, one import, v-model, and native numeric boundaries are enough."
+					:default-open="true"
+					:code-first="true"
+				>
+					<QuantityInput />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Examples" title="Decimal steps and validation">
+				<p class="mb-4 max-w-3xl text-sm leading-6 text-muted-fg">
+					Use <code>step</code> for fractional values. Native <code>min</code> and <code>max</code> constraints guide browser controls;
+					pass your application errors through <code>errors</code> when you need an inline validation message.
+				</p>
+				<Example
+					:source="DecimalAndPercentageSrc"
+					filename="DecimalAndPercentage.vue"
+					description="A bounded percentage and a decimal number input with quarter-hour increments."
+				>
+					<DecimalAndPercentage />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Behavior" title="What value does v-model receive?">
+				<div class="grid gap-4 text-sm leading-6 text-muted-fg md:grid-cols-2">
+					<div class="rounded-lg border border-border p-4">
+						<p class="font-semibold text-canvas-fg">While filled</p>
+						<p class="mt-1"><code>v-model</code> receives a JavaScript number, so calculations do not need a separate string conversion.</p>
+					</div>
+					<div class="rounded-lg border border-border p-4">
+						<p class="font-semibold text-canvas-fg">When cleared</p>
+						<p class="mt-1">The value is an empty string. Treat that as missing input and validate it before saving.</p>
+					</div>
+				</div>
+			</DocSection>
+
+			<DocSection eyebrow="Playground" title="Try the Vue number input">
 				<Playground
 					:inspect="DomNumberInput"
-					:initial="{ label: 'Quantity', description: 'Items per order.', min: 1, max: 99, step: 1, modelValue: 1 }"
+					:initial="doc.playground.initial"
 					title="Number input playground"
-					description="Edit props in the inspector — min, max, step, and label update live."
+					description="Change the label, description, value, min, max, step, disabled state, and validation props live."
 				/>
 			</DocSection>
 
-			<DocSection eyebrow="Demo" title="Live preview">
-				<Demo>
-					<div class="w-full max-w-sm">
-						<DomNumberInput
-							v-model="qty"
-							label="Quantity"
-							description="Between 1 and 99."
-							:min="1"
-							:max="99"
-						/>
-						<p class="mt-3 text-xs text-muted-fg">Value: <code class="text-canvas-fg">{{ qty }}</code></p>
-					</div>
-				</Demo>
-			</DocSection>
-
-			<DocSection eyebrow="Usage" title="Vue">
-				<CodeBlock :code="usage" lang="vue" />
-			</DocSection>
-
-			<DocSection title="Props">
-				<PropsTable :rows="props" />
+			<DocSection title="Vue number input API">
+				<ComponentProps :component="DomNumberInput" />
+				<ComponentEvents :component="DomNumberInput" />
 			</DocSection>
 		</DocPage>
 	</DomStudioLayout>

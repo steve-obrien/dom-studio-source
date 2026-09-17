@@ -150,7 +150,7 @@ const headlessCode = `import '@getdom/studio/headless';`;
 						<p class="mt-1 text-sm leading-6 text-muted-fg">Generate a starting point, tweak every token against live components, then copy the finished CSS into your stylesheet.</p>
 					</div>
 					<RouterLink
-						to="/theming#theme-builder"
+						to="/theming/editor"
 						class="shrink-0 text-sm font-semibold text-canvas-fg underline decoration-border underline-offset-4 transition hover:text-primary"
 					>
 						Open theme builder

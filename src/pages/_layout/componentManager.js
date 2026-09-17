@@ -1,6 +1,6 @@
 import { componentCatalog } from './componentCatalog.generated.js';
 
-export const componentSections = ['components', 'data', 'charts', 'dev', 'forms', 'mobile', 'visual'];
+export const componentSections = ['components', 'data', 'charts', 'dev', 'forms', 'mobile', 'visual', 'designer'];
 export const componentNavigationSections = ['ai', ...componentSections];
 
 /**
@@ -122,6 +122,7 @@ export function getDevRedirectRecords() {
 export function labelFromSection(section) {
 	return {
 		ai: 'AI',
+		designer: 'UI designer',
 		components: 'Components',
 		data: 'Data',
 		charts: 'Data Visualisation',

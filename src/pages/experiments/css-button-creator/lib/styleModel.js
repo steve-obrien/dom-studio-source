@@ -1,3 +1,5 @@
+import { createShadow, enabledShadows, shadowToCss, shadowListToCss, addShadowLayer, duplicateShadowLayer, removeShadowLayer, shadowTitle, shadowKindOptions } from '../../../designer/shadow-editor/shadowModel.js';
+export { createShadow, enabledShadows, shadowToCss, shadowListToCss, addShadowLayer, duplicateShadowLayer, removeShadowLayer, shadowTitle, shadowKindOptions } from '../../../designer/shadow-editor/shadowModel.js';
 import { cssColorWithAlpha } from '../../../lib/css/color.js';
 
 export const fillTypeOptions = [
@@ -6,11 +8,7 @@ export const fillTypeOptions = [
 	{ label: 'Radial gradient', value: 'radial' },
 ];
 
-export const shadowKindOptions = [
-	{ label: 'Drop shadow', value: 'drop' },
-	{ label: 'Inner shadow', value: 'inset' },
-	{ label: 'Ring', value: 'ring' },
-];
+
 
 export const borderStyleOptions = [
 	{ label: 'Solid', value: 'solid' },
@@ -146,21 +144,6 @@ export function createFill(overrides = {}) {
 	};
 }
 
-export function createShadow(overrides = {}) {
-	return {
-		enabled: true,
-		open: true,
-		kind: 'drop',
-		color: '#000000',
-		alpha: 20,
-		x: 0,
-		y: 8,
-		blur: 18,
-		spread: -6,
-		...overrides,
-		id: createId(),
-	};
-}
 
 export function enabledFills(fillList) {
 	return fillList.filter((fill) => fill.enabled);
@@ -188,21 +171,8 @@ export function backgroundImageToCss(background) {
 	return css === 'transparent' ? 'none' : css;
 }
 
-export function enabledShadows(shadowList) {
-	return shadowList.filter((shadow) => shadow.enabled);
-}
 
-export function shadowToCss(shadow) {
-	const color = cssColorWithAlpha(shadow.color, shadow.alpha);
-	if (shadow.kind === 'ring') return `0 0 0 ${shadow.spread}px ${color}`;
-	return `${shadow.kind === 'inset' ? 'inset ' : ''}${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px ${color}`;
-}
 
-export function shadowListToCss(shadowList) {
-	const visibleShadows = enabledShadows(shadowList);
-	if (!visibleShadows.length) return 'none';
-	return visibleShadows.map((shadow) => shadowToCss(shadow)).join(', ');
-}
 
 export function backdropToCss(backdrop) {
 	if (!backdrop?.enabled) return 'none';
@@ -334,26 +304,9 @@ export function removeFillLayer(background, index) {
 	background.fills.splice(index, 1);
 }
 
-export function addShadowLayer(shadowList) {
-	shadowList.forEach((shadow) => {
-		shadow.open = false;
-	});
-	shadowList.push(createShadow());
-}
 
-export function duplicateShadowLayer(shadowList, index) {
-	shadowList.splice(index + 1, 0, createShadow({ ...shadowList[index], open: true }));
-}
 
-export function removeShadowLayer(shadowList, index) {
-	shadowList.splice(index, 1);
-}
 
-export function shadowTitle(shadow) {
-	if (shadow.kind === 'ring') return 'Ring';
-	if (shadow.kind === 'inset') return 'Inner shadow';
-	return 'Drop shadow';
-}
 
 function createId() {
 	return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
