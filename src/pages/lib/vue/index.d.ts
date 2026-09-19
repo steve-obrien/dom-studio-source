@@ -7662,8 +7662,32 @@ export interface DomDesignerStageProps {
 	modelValue?: string;
 	positioning?: boolean;
 	interactive?: boolean;
+	snapping?: boolean;
+	/**
+	 * Repeat horizontal and vertical layer gaps while dragging. Independent of alignment snapping; disabled by default.
+	 */
+	spacingSnapping?: boolean;
 }
 export declare const DomDesignerStage: DomComponent<DomDesignerStageProps>;
+
+export interface DomBorderEditorProps {
+	modelValue?: Record<string, unknown>;
+	title?: string;
+	maxWidth?: number;
+}
+export declare const DomBorderEditor: DomComponent<DomBorderEditorProps>;
+
+export interface DomBackgroundEditorProps {
+	modelValue?: Record<string, unknown>;
+	title?: string;
+}
+export declare const DomBackgroundEditor: DomComponent<DomBackgroundEditorProps>;
+
+export interface DomBackdropEditorProps {
+	modelValue?: Record<string, unknown>;
+	title?: string;
+}
+export declare const DomBackdropEditor: DomComponent<DomBackdropEditorProps>;
 
 export declare const popoverProps: DomRuntimeProps;
 export declare const calendarProps: DomRuntimeProps;
@@ -7696,6 +7720,17 @@ export declare const resolvedTheme: ComputedRef<DomResolvedTheme>;
 export declare const vDomTooltip: Directive<HTMLElement, DomTooltipDirectiveValue>;
 
 export interface DesignerShadowLayer { id: string; enabled: boolean; open?: boolean; kind: 'drop' | 'inset' | 'ring'; color: string; alpha: number; x: number; y: number; blur: number; spread: number; }
+export interface DesignerBackdrop { enabled: boolean; blur: number; saturate: number; open?: boolean; }
+export interface DesignerFill { id: string; enabled: boolean; open?: boolean; kind: string; color: string; alpha: number; gradientFrom: string; gradientTo: string; gradientFromAlpha: number; gradientToAlpha: number; gradientAngle: number; gradientFromStop: number; gradientToStop: number; }
+export interface DesignerBackground { enabled: boolean; open?: boolean; blendMode?: string; fills: DesignerFill[]; }
+export declare function createBackdrop(overrides?: Partial<DesignerBackdrop>): DesignerBackdrop;
+export declare function backdropToCss(backdrop?: DesignerBackdrop): string;
+export declare function createFill(overrides?: Partial<DesignerFill>): DesignerFill;
+export declare function createBackgroundState(overrides?: Omit<Partial<DesignerBackground>, "fills"> & { fills?: Partial<DesignerFill>[] }, options?: { allowEmpty?: boolean }): DesignerBackground;
+export declare function backgroundImageToCss(background?: DesignerBackground): string;
+export interface DesignerBorder { enabled: boolean; width: number; style: string; color: string; }
+export declare function createDesignerBorder(overrides?: Partial<DesignerBorder>): DesignerBorder;
+export declare function borderToCss(border?: DesignerBorder): string;
 export declare function createShadow(overrides?: Partial<DesignerShadowLayer>): DesignerShadowLayer;
 export declare function shadowListToCss(layers: Array<DesignerShadowLayer>): string;
 export declare function normalizeThemeMode(value: unknown): DomThemeMode;

@@ -9,6 +9,7 @@ import { getAuthState, hasEntitlement, refreshSession } from './composable/useAu
 import { initTheme } from './pages/lib/vue/useTheme.js';
 
 import { getRouteHead, normalizePagePath } from './seo.js';
+import { installGoogleAnalytics } from './analytics.js';
 export { getRouteHead } from './seo.js';
 const globalSearchOpenEvent = 'dom-studio:open-global-search';
 const documentationRoutePrefixes = [
@@ -70,6 +71,7 @@ export function createDomStudioApp() {
 		applyInitialTheme();
 		installAuthGuard(router);
 		router.afterEach((to) => updateDocumentHead(to));
+		installGoogleAnalytics(router);
 	}
 
 	return { app, router, pinia };

@@ -5446,6 +5446,45 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "designer/backdrop-editor",
+		"path": "../designer/backdrop-editor/DomBackdropEditor.vue",
+		"section": "designer",
+		"slug": "backdrop-editor",
+		"exportName": "DomBackdropEditor",
+		"route": "/designer/backdrop-editor",
+		"doc": {
+			"name": "Backdrop editor",
+			"description": "Beta controlled CSS backdrop editor shared with the theme designer."
+		},
+		"studio": {}
+	},
+	{
+		"id": "designer/background-editor",
+		"path": "../designer/background-editor/DomBackgroundEditor.vue",
+		"section": "designer",
+		"slug": "background-editor",
+		"exportName": "DomBackgroundEditor",
+		"route": "/designer/background-editor",
+		"doc": {
+			"name": "Background editor",
+			"description": "Beta controlled CSS background editor shared with the theme designer."
+		},
+		"studio": {}
+	},
+	{
+		"id": "designer/border-editor",
+		"path": "../designer/border-editor/DomBorderEditor.vue",
+		"section": "designer",
+		"slug": "border-editor",
+		"exportName": "DomBorderEditor",
+		"route": "/designer/border-editor",
+		"doc": {
+			"name": "Border editor",
+			"description": "Beta controlled CSS border width, style and colour, shared with the CSS button creator."
+		},
+		"studio": {}
+	},
+	{
 		"id": "designer/color-swatch",
 		"path": "../designer/color-swatch/DomColorSwatch.vue",
 		"section": "designer",

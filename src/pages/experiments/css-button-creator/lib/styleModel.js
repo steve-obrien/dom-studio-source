@@ -1,22 +1,11 @@
+import { createBackdrop, backdropToCss, parseBackdropValue } from '../../../designer/backdrop-editor/backdropModel.js';
+export { createBackdrop, backdropToCss, parseBackdropValue } from '../../../designer/backdrop-editor/backdropModel.js';
+import { fillTypeOptions, createFillLayers, createBackgroundState, createFill, enabledFills, fillToCss, fillListToCss, backgroundImageToCss, addFillLayer, duplicateFillLayer, removeFillLayer } from '../../../designer/background-editor/backgroundModel.js';
+export { fillTypeOptions, createFillLayers, createBackgroundState, createFill, enabledFills, fillToCss, fillListToCss, backgroundImageToCss, addFillLayer, duplicateFillLayer, removeFillLayer } from '../../../designer/background-editor/backgroundModel.js';
 import { createShadow, enabledShadows, shadowToCss, shadowListToCss, addShadowLayer, duplicateShadowLayer, removeShadowLayer, shadowTitle, shadowKindOptions } from '../../../designer/shadow-editor/shadowModel.js';
 export { createShadow, enabledShadows, shadowToCss, shadowListToCss, addShadowLayer, duplicateShadowLayer, removeShadowLayer, shadowTitle, shadowKindOptions } from '../../../designer/shadow-editor/shadowModel.js';
-import { cssColorWithAlpha } from '../../../lib/css/color.js';
 
-export const fillTypeOptions = [
-	{ label: 'Solid', value: 'solid' },
-	{ label: 'Linear gradient', value: 'linear' },
-	{ label: 'Radial gradient', value: 'radial' },
-];
-
-
-
-export const borderStyleOptions = [
-	{ label: 'Solid', value: 'solid' },
-	{ label: 'Dashed', value: 'dashed' },
-	{ label: 'Dotted', value: 'dotted' },
-	{ label: 'Double', value: 'double' },
-	{ label: 'None', value: 'none' },
-];
+export { borderStyleOptions } from '../../../designer/border-editor/borderModel.js';
 
 export function createButtonState(overrides = {}) {
 	return {
@@ -54,23 +43,6 @@ export function createButtonState(overrides = {}) {
 	};
 }
 
-export function createFillLayers(background = {}, options = {}) {
-	if (Array.isArray(background.fills) && background.fills.length) {
-		return background.fills.map((fill, index) => createFill({ ...fill, open: index === 0 }));
-	}
-	if (options.allowEmpty) return [];
-	return [createFill()];
-}
-
-export function createBackgroundState(overrides = {}, options = {}) {
-	return {
-		enabled: overrides.enabled ?? true,
-		open: overrides.open ?? true,
-		blendMode: overrides.blendMode ?? 'normal',
-		fills: createFillLayers(overrides, options),
-	};
-}
-
 export function createSurface(overrides = {}) {
 	return {
 		bg: 'transparent',
@@ -88,18 +60,6 @@ export function createBorder(overrides = {}) {
 		color: '#171717',
 		...overrides,
 		width: Number.parseFloat(overrides.width ?? 1),
-	};
-}
-
-export function createBackdrop(overrides = {}) {
-	return {
-		enabled: false,
-		open: true,
-		blur: 0,
-		saturate: 1,
-		...overrides,
-		blur: Number.parseFloat(overrides.blur ?? 0),
-		saturate: Number.parseFloat(overrides.saturate ?? 1),
 	};
 }
 
@@ -123,75 +83,6 @@ export function replaceCssComponentStyle(target, source) {
 	target.background.blendMode = source.background.blendMode;
 	target.background.fills.splice(0, target.background.fills.length, ...source.background.fills.map((fill, index) => createFill({ ...fill, open: index === 0 })));
 	target.shadows.splice(0, target.shadows.length, ...source.shadows.map((shadow, index) => createShadow({ ...shadow, open: index === 0 })));
-}
-
-export function createFill(overrides = {}) {
-	return {
-		enabled: true,
-		open: true,
-		kind: 'solid',
-		color: '#171717',
-		alpha: 100,
-		gradientFrom: '#171717',
-		gradientFromAlpha: 100,
-		gradientTo: '#4f46e5',
-		gradientToAlpha: 100,
-		gradientAngle: 135,
-		gradientFromStop: 0,
-		gradientToStop: 100,
-		...overrides,
-		id: createId(),
-	};
-}
-
-
-export function enabledFills(fillList) {
-	return fillList.filter((fill) => fill.enabled);
-}
-
-export function fillToCss(fill) {
-	if (fill.kind === 'linear') {
-		return `linear-gradient(${fill.gradientAngle}deg, ${cssColorWithAlpha(fill.gradientFrom, fill.gradientFromAlpha)} ${fill.gradientFromStop}%, ${cssColorWithAlpha(fill.gradientTo, fill.gradientToAlpha)} ${fill.gradientToStop}%)`;
-	}
-	if (fill.kind === 'radial') {
-		return `radial-gradient(circle at 50% 45%, ${cssColorWithAlpha(fill.gradientFrom, fill.gradientFromAlpha)} ${fill.gradientFromStop}%, ${cssColorWithAlpha(fill.gradientTo, fill.gradientToAlpha)} ${fill.gradientToStop}%)`;
-	}
-	return cssColorWithAlpha(fill.color, fill.alpha);
-}
-
-export function fillListToCss(fillList) {
-	const visibleFills = enabledFills(fillList);
-	if (!visibleFills.length) return 'transparent';
-	return visibleFills.map((fill) => fillToCss(fill)).join(', ');
-}
-
-export function backgroundImageToCss(background) {
-	if (!background?.enabled) return 'none';
-	const css = fillListToCss(background.fills || []);
-	return css === 'transparent' ? 'none' : css;
-}
-
-
-
-
-export function backdropToCss(backdrop) {
-	if (!backdrop?.enabled) return 'none';
-	const parts = [];
-	const blur = Number.parseFloat(backdrop.blur);
-	const saturate = Number.parseFloat(backdrop.saturate);
-	if (blur > 0) parts.push(`blur(${formatCssNumber(blur)}px)`);
-	if (Number.isFinite(saturate) && saturate !== 1) parts.push(`saturate(${formatCssNumber(saturate)})`);
-	return parts.length ? parts.join(' ') : 'none';
-}
-
-export function parseBackdropValue(value) {
-	const raw = String(value || '').trim();
-	if (!raw || raw === 'none') return createBackdrop();
-	return createBackdrop({
-		enabled: true,
-		blur: Number.parseFloat(raw.match(/blur\(\s*(-?\d+(?:\.\d+)?)px\s*\)/i)?.[1] ?? 0),
-		saturate: Number.parseFloat(raw.match(/saturate\(\s*(-?\d+(?:\.\d+)?)\s*\)/i)?.[1] ?? 1),
-	});
 }
 
 export function cssStyleValues(style) {
@@ -287,29 +178,6 @@ export function cssStyleToVariables(style, variables = {}) {
 	return Object.fromEntries(Object.entries(values)
 		.filter(([key]) => variables[key])
 		.map(([key, value]) => [variables[key], value]));
-}
-
-export function addFillLayer(background) {
-	background.fills.forEach((fill) => {
-		fill.open = false;
-	});
-	background.fills.unshift(createFill({ kind: 'linear' }));
-}
-
-export function duplicateFillLayer(background, index) {
-	background.fills.splice(index + 1, 0, createFill({ ...background.fills[index], open: true }));
-}
-
-export function removeFillLayer(background, index) {
-	background.fills.splice(index, 1);
-}
-
-
-
-
-
-function createId() {
-	return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
 }
 
 function formatCssNumber(value) {

@@ -2,13 +2,13 @@ import './motionDebug.css';
 
 const MOTION_DEBUG_ATTRIBUTE = 'data-dom-studio-motion-debug';
 const MOTION_DEBUG_LOCKED_ATTRIBUTE = 'data-dom-studio-motion-debug-locked';
-const OPTION_DOUBLE_TAP_WINDOW_MS = 500;
+const CHORD_DOUBLE_TAP_WINDOW_MS = 500;
 
 /**
  * Installs the development motion debugger on a browser event target.
  *
- * Holding Option or Alt stretches CSS animations and transitions to the
- * configured debug duration. Double-tapping the modifier locks or unlocks
+ * Holding Option+A or Alt+A stretches CSS animations and transitions to the
+ * configured debug duration. Double-tapping the chord locks or unlocks
  * slow motion so pointer interactions remain available without holding a key.
  *
  * @param {EventTarget} [eventTarget=window] Browser target receiving keyboard and blur events.
@@ -19,9 +19,9 @@ export function installMotionDebugging(
 	eventTarget = window,
 	root = document.documentElement,
 ) {
-	let optionHeld = false;
+	let chordHeld = false;
 	let motionLocked = false;
-	let lastOptionKeyDownAt = Number.NEGATIVE_INFINITY;
+	let lastChordKeyDownAt = Number.NEGATIVE_INFINITY;
 
 	/**
 	 * Synchronizes the root debug attributes with held and locked state.
@@ -29,51 +29,46 @@ export function installMotionDebugging(
 	 * @returns {void}
 	 */
 	function syncMotionState() {
-		root.toggleAttribute(MOTION_DEBUG_ATTRIBUTE, optionHeld || motionLocked);
+		root.toggleAttribute(MOTION_DEBUG_ATTRIBUTE, chordHeld || motionLocked);
 		root.toggleAttribute(MOTION_DEBUG_LOCKED_ATTRIBUTE, motionLocked);
 	}
 
 	/**
-	 * Enables slow motion when Option or Alt participates in a key press.
+	 * Enables slow motion only for Alt+A, using physical KeyA for macOS Option characters.
 	 *
 	 * @param {KeyboardEvent} event Browser keyboard event.
 	 * @returns {void}
 	 */
 	function handleKeyDown(event) {
-		if (event.key !== 'Alt') {
-			if (!event.altKey) return;
+		if (!event.altKey || event.code !== 'KeyA' || event.ctrlKey || event.metaKey || event.isComposing) return;
+		if (event.target?.isContentEditable || event.target?.closest?.('input, textarea, select, [contenteditable="true"]')) return;
+		event.preventDefault();
+		if (event.repeat || chordHeld) return;
 
-			optionHeld = true;
-			syncMotionState();
-			return;
-		}
+		const timeSinceLastPress = event.timeStamp - lastChordKeyDownAt;
 
-		if (event.repeat) return;
+		chordHeld = true;
 
-		const timeSinceLastPress = event.timeStamp - lastOptionKeyDownAt;
-
-		optionHeld = true;
-
-		if (timeSinceLastPress > 0 && timeSinceLastPress <= OPTION_DOUBLE_TAP_WINDOW_MS) {
+		if (timeSinceLastPress > 0 && timeSinceLastPress <= CHORD_DOUBLE_TAP_WINDOW_MS) {
 			motionLocked = !motionLocked;
-			lastOptionKeyDownAt = Number.NEGATIVE_INFINITY;
+			lastChordKeyDownAt = Number.NEGATIVE_INFINITY;
 		} else {
-			lastOptionKeyDownAt = event.timeStamp;
+			lastChordKeyDownAt = event.timeStamp;
 		}
 
 		syncMotionState();
 	}
 
 	/**
-	 * Stops momentary slow motion when Option or Alt is released.
+	 * Stops momentary slow motion when either Alt or the physical A key is released.
 	 *
 	 * @param {KeyboardEvent} event Browser keyboard event.
 	 * @returns {void}
 	 */
 	function handleKeyUp(event) {
-		if (event.key !== 'Alt') return;
+		if (event.key !== 'Alt' && event.code !== 'KeyA') return;
 
-		optionHeld = false;
+		chordHeld = false;
 		syncMotionState();
 	}
 
@@ -83,7 +78,8 @@ export function installMotionDebugging(
 	 * @returns {void}
 	 */
 	function restoreMotion() {
-		optionHeld = false;
+		chordHeld = false;
+		lastChordKeyDownAt = Number.NEGATIVE_INFINITY;
 		syncMotionState();
 	}
 
@@ -100,7 +96,7 @@ export function installMotionDebugging(
 		eventTarget.removeEventListener('keydown', handleKeyDown);
 		eventTarget.removeEventListener('keyup', handleKeyUp);
 		eventTarget.removeEventListener('blur', restoreMotion);
-		optionHeld = false;
+		chordHeld = false;
 		motionLocked = false;
 		syncMotionState();
 	};

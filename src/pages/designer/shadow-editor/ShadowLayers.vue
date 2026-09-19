@@ -2,7 +2,6 @@
 import { ref } from 'vue';
 import CssColorInput from '../color-swatch/DomColorSwatch.vue';
 import {
-	DomButton,
 	DomNativeSelect,
 	DomPopover,
 	DomRangeInput,
@@ -42,6 +41,7 @@ const emit = defineEmits(['update:modelValue']);
 
 /** Adds a default layer to the editor-owned draft. */
 function addShadow() {
+	emit('update:modelValue', true);
 	addShadowLayer(props.shadows);
 }
 
@@ -90,7 +90,7 @@ function closeLayerPopoverElement(popover) {
 		@update:model-value="emit('update:modelValue', $event)"
 	>
 		<template #actions>
-			<DomButton size="sm" type="button" @click.stop="addShadow">Add</DomButton>
+			<ControlIconButton icon="plus" label="Add shadow layer" @click.stop="addShadow" />
 		</template>
 
 		<div class="divide-y divide-border">

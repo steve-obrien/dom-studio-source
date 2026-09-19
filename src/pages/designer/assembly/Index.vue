@@ -1,0 +1,130 @@
+<script setup>
+import DomStudioLayout from '../../_layout/DomStudioLayout.vue';
+import DocPage from '../../_layout/DocPage.vue';
+import DocSection from '../../_layout/DocSection.vue';
+import Example from '../../_layout/docs/Example.vue';
+import CodeBlock from '../../_layout/CodeBlock.vue';
+import { sourceHrefForPath } from '../../_layout/docs/sourceLinks.js';
+import HtmlDesigner from './examples/HtmlDesigner.vue';
+import htmlSource from './examples/HtmlDesigner.vue?raw';
+import LayerAppearance from './examples/LayerAppearance.vue';
+import appearanceSource from './examples/LayerAppearance.vue?raw';
+import FlowDesigner from './examples/FlowDesigner.vue';
+import flowSource from './examples/FlowDesigner.vue?raw';
+import posterSource from '../poster/Index.vue?raw';
+import posterModel from '../poster/posterModel.js?raw';
+import socialSource from '../social-card/Index.vue?raw';
+import fullFlowSource from '../flowchart/Index.vue?raw';
+
+const pieces = [
+	['DomSplitterPanel', '/components/splitter-panel', 'Resizes the shell panes. Bind startSize/endSize if your app wants to remember widths.'],
+	['DomDesignerLayers', '/designer/layers', 'Displays your tree. Its selected ID is shared with the stage and inspector.'],
+	['DomDesignerStage', '/designer/stage', 'Selects marked HTML and emits CSS patches for movement and resizing. Positioning and snapping are opt-in.'],
+	['DomColorSwatch', '/designer/color-swatch', 'Edits a CSS colour string. Bind it to the selected layer’s colour or fill.'],
+	['DomBorderEditor', '/designer/border-editor', 'Edits a border record; borderToCss produces the CSS border value.'],
+	['DomShadowEditor', '/designer/shadow-editor', 'Edits shadow records; shadowListToCss produces box-shadow.'],
+	['DomBackgroundEditor', '/designer/background-editor', 'Edits ordered fills; backgroundImageToCss produces stacked CSS backgrounds.'],
+	['DomBackdropEditor', '/designer/backdrop-editor', 'Edits blur/saturation; backdropToCss produces backdrop-filter.'],
+];
+const setup = "import '@getdom/studio/style.css';";
+const flowSetup = 'npm install @vue-flow/core @vue-flow/background @vue-flow/controls @vue-flow/minimap';
+const studioExample = `// Repository-local example, beside the template-editor Index.vue.
+import { parseSource, buildSource } from './lib/editorModel.js';
+
+const parsed = parseSource('<template><h2>Hello</h2></template>');
+// Keep parsed.tree as the editable model. Its nodes have editor IDs.
+const { rows, lineMap } = buildSource(parsed.tree, {
+	props: parsed.props,
+	scriptData: parsed.scriptData,
+});
+const source = rows.map((row) => row.text).join('\\n');
+// row.id links a source row to a tree node; lineMap[id] finds its line.
+// Rebuild after visual edits. Reparse after a committed source edit.`;
+const zoomExample = `<!-- Keep document coordinates separate from viewport scale. -->
+<div class="overflow-auto">
+	<div :style="{ width: width * zoom + 'px', height: height * zoom + 'px' }">
+		<DomDesignerStage
+			v-model="selected" positioning snapping
+			:style="{ width: width + 'px', height: height + 'px', transform: 'scale(' + zoom + ')', transformOrigin: 'top left', position: 'relative' }"
+			@style-change="applyStyle"
+		>
+			<!-- Render your layers here. -->
+		</DomDesignerStage>
+	</div>
+</div>`;
+const sources = [
+	{ name: 'Poster editor', filename: 'src/pages/designer/poster/Index.vue', code: posterSource },
+	{ name: 'Poster model and HTML export', filename: 'src/pages/designer/poster/posterModel.js', code: posterModel },
+	{ name: 'Social card editor', filename: 'src/pages/designer/social-card/Index.vue', code: socialSource },
+	{ name: 'Flowchart editor', filename: 'src/pages/designer/flowchart/Index.vue', code: fullFlowSource },
+];
+</script>
+
+<template>
+	<DomStudioLayout>
+		<DocPage name="Build your own designer" eyebrow="UI designer · Assembly guide" tag="Beta" tagline="Working examples, component contracts and the application code that turns them into an editor.">
+			<DocSection title="Start here">
+				<p class="mb-4 text-sm leading-7 text-muted-fg">The demos are reference applications. Start with the smaller examples below, then add the behaviour your product needs. Each preview and its copyable source come from the same Vue file.</p>
+				<nav class="flex flex-wrap gap-4 text-sm text-primary" aria-label="Assembly recipes"><a href="#html">HTML editor</a><a href="#appearance">Appearance</a><a href="#poster">Poster</a><a href="#social-card">Social card</a><a href="#flowchart">Flowchart</a><a href="#studio">Studio</a><a href="#sources">Full source</a></nav>
+				<p class="my-4 text-sm leading-7 text-muted-fg">Use the package in an existing Vue 3 application, or copy the components through the example’s Source option. The examples use Tailwind CSS v4 utilities; keep your app’s Tailwind setup scanning the files you copy. <RouterLink to="/install" class="text-primary underline">Installation guide</RouterLink>.</p>
+				<CodeBlock code="npm install @getdom/studio" lang="bash" />
+				<CodeBlock :code="setup" lang="javascript" filename="Application entry point" />
+			</DocSection>
+			<DocSection title="Choose the pieces">
+				<div class="overflow-auto"><table class="w-full text-left text-sm"><thead><tr class="border-b border-border"><th class="p-3">Component</th><th class="p-3">Responsibility</th></tr></thead><tbody><tr v-for="[name, path, role] in pieces" :key="name" class="border-b border-border"><td class="p-3 align-top"><RouterLink :to="path" class="text-primary underline">{{ name }}</RouterLink></td><td class="p-3 leading-6 text-muted-fg">{{ role }}</td></tr></tbody></table></div>
+			</DocSection>
+			<DocSection id="html" title="1. Connect layers, stage and inspector">
+				<p class="text-sm leading-7 text-muted-fg">Keep stable IDs, content and styles in your own records. Bind one selected ID to both the tree and stage. Mark rendered elements with data-designer-id. The inspector finds that record by ID; apply each style-change { id, style } patch to it. Vue then updates the HTML. The stage does not create records, CSS classes or stylesheet rules.</p>
+				<Example :source="htmlSource" filename="HtmlDesigner.vue" title="A minimal HTML editor" description="Select from the tree or stage, edit the text, drag the outline, resize its handles, or resize the sidebar." default-open><HtmlDesigner /></Example>
+				<p class="text-sm leading-7 text-muted-fg">For repeated gaps, add :spacing-snapping="true" to the stage. This independent, default-off step fills axes without an alignment match while dragging. <RouterLink to="/designer/stage#spacing" class="text-primary underline">Try the equal-spacing example and copy its source →</RouterLink></p>
+				<p class="text-sm leading-7 text-muted-fg">The example scrolls horizontally on narrow screens. The poster demo instead switches between Layers, Poster and Inspect tabs. Use positioning=false for selection without dragging, interactive=true to pass clicks through to preview content, and snapping=true for stage and visible-layer alignment. Hold Control to bypass snapping. Uniform stage scaling is supported; rotated layers and independently transformed ancestors are not supported in this beta.</p>
+			</DocSection>
+			<DocSection id="appearance" title="2. Turn control records into CSS">
+				<p class="text-sm leading-7 text-muted-fg">Controls expose v-model values; serializers turn those values into CSS. In a multi-layer editor, store these records on each layer and bind the controls to the selected layer. Give every layer its own records and arrays. The controls do not apply styles to a selected DOM element themselves.</p>
+				<Example :source="appearanceSource" filename="LayerAppearance.vue" title="Compose the appearance controls" description="Border, shadows, backgrounds and backdrop effects applied to one HTML element."><LayerAppearance /></Example>
+				<p class="text-sm leading-7 text-muted-fg">Background fill order follows CSS: the first image is on top. Backdrop effects need translucent content to be visible. Box shadows and borders do not require a special layer class. Create fill records on the client, or assign deterministic fill IDs when server rendering.</p>
+			</DocSection>
+			<DocSection id="poster" title="3. Assemble the poster editor">
+				<RouterLink to="/designer/poster" class="text-primary underline">Open poster demo →</RouterLink>
+				<ol class="my-4 list-decimal space-y-3 pl-5 text-sm leading-7 text-muted-fg">
+					<li>Start with the HTML editor above. Add image, text and shape records with x, y, width and height in document pixels. The demo’s posterModel.js supplies factories, geometry conversion and style serialization.</li>
+					<li>Put the layer tree in the splitter’s start slot, the scrollable stage in its default slot and the selected-layer controls in its end slot. Bind startSize and endSize independently.</li>
+					<li>Use a fixed document size and scale the viewport separately. ResizeObserver recalculates “Fit” when a splitter moves. Convert style-change CSS values into numeric document coordinates before saving.</li>
+					<li>Add history around model mutations. The demo batches continuous edits into snapshots; layer creation, duplication and deletion form separate undo actions. Viewport zoom is not a document edit.</li>
+					<li>Export from the model, including the serialized appearance values. Keep selection outlines, guides and editor attributes out of the output. Local uploads are embedded; linked photos remain external.</li>
+				</ol>
+				<CodeBlock :code="zoomExample" lang="vue" filename="Viewport pattern (inside your editor)" />
+				<p class="mt-4 text-sm leading-7 text-muted-fg">Cmd/Ctrl + wheel uses a non-passive listener on the workspace, changes the zoom and compensates scroll position around the pointer. It leaves normal scrolling alone. See wheelZoom, mount and cleanup in the full source below for the complete implementation, including listener cleanup.</p>
+			</DocSection>
+			<DocSection id="social-card" title="4. Add a source view to a social card">
+				<RouterLink to="/designer/social-card" class="text-primary underline">Open social-card demo →</RouterLink>
+				<p class="mt-4 text-sm leading-7 text-muted-fg">Use the same layer model and selection contract as the HTML starter. Derive source lines from your records and attach the matching layer ID to each line. Clicking a line assigns selected; selecting on the stage highlights the corresponding line. This demo’s source display is a model projection, not an editable HTML parser. Its layerStyle, sourceLines and copyHtml functions show how to serialize text and CSS safely for copying.</p>
+			</DocSection>
+			<DocSection id="flowchart" title="5. Assemble a flowchart editor">
+				<RouterLink to="/designer/flowchart" class="text-primary underline">Open flowchart demo →</RouterLink>
+				<p class="my-4 text-sm leading-7 text-muted-fg">Vue Flow owns the graph viewport, node dragging and connection geometry. DOM Studio provides the surrounding splitter, inputs and actions. There is no public DomFlowchart component: this is a composition with a separate Vue Flow dependency. Install the core and whichever companion components you use.</p>
+				<CodeBlock :code="flowSetup" lang="bash" />
+				<Example :source="flowSource" filename="FlowDesigner.vue" title="A minimal graph editor" description="Drag from the bottom dot of one node to the top dot of the other. Move nodes, pan empty space and use the zoom buttons."><FlowDesigner /></Example>
+				<p class="text-sm leading-7 text-muted-fg">Give the graph a sized parent and an instance ID. Bind nodes and edges to application state; handle connect by adding an edge. Mount the interactive viewport after hydration. The full demo adds a node-step slot with Handle ports, an inspector, Controls and MiniMap. screenToFlowCoordinate converts a pointer or viewport centre into graph coordinates. toObject exports nodes, edges and viewport; fromObject restores a saved graph. Validate imported data in your app before restoring it.</p>
+			</DocSection>
+			<DocSection id="studio" title="6. Understand the source-linked Studio">
+				<RouterLink to="/designer/studio" class="text-primary underline">Open Studio demo →</RouterLink>
+				<p class="my-4 text-sm leading-7 text-muted-fg">Studio shares DomDesignerLayers and DomSplitterPanel, but its parser, source editor and stage renderer are still repository-local experiment modules. It is not an exported, drop-in Studio component. Use the HTML starter for a model-driven creation tool; use Studio’s source as a reference when you need actual Vue source editing.</p>
+				<ul class="list-disc space-y-3 pl-5 text-sm leading-7 text-muted-fg">
+					<li><code>src/pages/experiments/template-editor/lib/editorModel.js</code> parses Vue template source into an editor tree and builds source back from that tree.</li>
+					<li><code>components/TemplateMonacoEditor.vue</code> provides the code editor; <code>components/StageViewport.vue</code> provides its viewport shell. The experiment’s Index.vue coordinates preview rendering, source locations, tree selection and inspector edits.</li>
+					<li><code>lib/componentStorageClient.js</code> connects the demo to repository-specific file APIs. Replace storage and component discovery for your host application; they are not part of the designer component API.</li>
+				</ul>
+				<CodeBlock :code="studioExample" lang="javascript" filename="Studio parser / source projection" />
+				<div class="flex flex-wrap gap-4 text-sm text-primary"><a :href="sourceHrefForPath('src/pages/experiments/template-editor/Index.vue')">Open Studio orchestration source →</a><a :href="sourceHrefForPath('src/pages/experiments/template-editor/lib/editorModel.js')">Open parser and source builder →</a></div>
+			</DocSection>
+			<DocSection title="What your application owns">
+				<p class="text-sm leading-7 text-muted-fg">Own the document schema, IDs, history, persistence, asset uploads, import validation and export. The poster, social-card and flowchart demos keep edits in memory until exported; they do not provide a storage service or run workflows. Studio uses the repository-specific storage adapter described above. For production, save the model rather than the live editor DOM, restore stable IDs, and keep selection and viewport preferences separate from document changes. The beta APIs may change.</p>
+			</DocSection>
+			<DocSection id="sources" title="Full demo source">
+				<p class="mb-4 text-sm leading-7 text-muted-fg">These are the actual repository files, including local imports and route links. Use the starter examples above for a standalone component; use these files to inspect the complete application wiring. Poster needs both files plus the shared designer components and serializers.</p>
+				<details v-for="source in sources" :key="source.filename" class="mb-3 rounded-xl border border-border p-4"><summary class="cursor-pointer text-sm font-semibold">{{ source.name }}</summary><CodeBlock :code="source.code" :filename="source.filename" :lang="source.filename.endsWith('.js') ? 'javascript' : 'vue'" /></details>
+			</DocSection>
+		</DocPage>
+	</DomStudioLayout>
+</template>

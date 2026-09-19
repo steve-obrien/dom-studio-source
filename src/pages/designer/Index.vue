@@ -3,9 +3,15 @@ import DomStudioLayout from '../_layout/DomStudioLayout.vue';
 import DocPage from '../_layout/DocPage.vue';
 import DocSection from '../_layout/DocSection.vue';
 const links = [
+	{ to: '/designer/assembly', title: 'Build your own designer', description: 'Working Vue examples and assembly documentation for HTML editors, appearance controls and flowcharts.' },
+	{ to: '/designer/flowchart', title: 'Flowchart designer', description: 'An infinite workspace powered by Vue Flow. Connect editable steps, pan, zoom, navigate with a minimap and export your graph.' },
+	{ to: '/designer/poster', title: 'Poster studio', description: 'Create a portrait flyer with editable image, text and shape layers, typography, filters, zoom, undo and HTML export.' },
 	{ to: '/designer/social-card', title: 'Social card designer', description: 'A small HTML creation tool with linked layers, properties and source. Move and resize with an absolute-positioned bounding box.' },
 	{ to: '/designer/studio', title: 'Studio', description: 'The existing Vue editor: code, layers and a live stage, with component insertion and source editing.' },
 	{ to: '/designer/color-swatch', title: 'Colour swatch', description: 'The theme editor’s colour control, available independently with a CSS expression and native picker.' },
+	{ to: '/designer/background-editor', title: 'Background layers', description: 'Stack solid fills, linear gradients and radial gradients with independent opacity.' },
+	{ to: '/designer/backdrop-editor', title: 'Backdrop effects', description: 'Blur and saturate the content behind translucent HTML elements.' },
+	{ to: '/designer/border-editor', title: 'CSS border editor', description: 'Edit border width, style and colour with the shared CSS border control.' },
 	{ to: '/designer/shadow-editor', title: 'CSS shadow editor', description: 'Compose drop shadows, inner shadows and rings. Reuses the theme editor’s layer controls.' },
 	{ to: '/designer/stage', title: 'HTML stage', description: 'Add selection and optional movement to your own HTML. Your application owns the content and applies style changes.' },
 	{ to: '/designer/layers', title: 'Layer tree', description: 'The same tree used by Studio, with selection, keyboard navigation and optional drag-and-drop.' },

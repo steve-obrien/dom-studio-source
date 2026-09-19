@@ -53,7 +53,7 @@ async function copyHtml() {
 <template>
 	<main class="min-h-dvh bg-canvas text-canvas-fg">
 		<header class="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
-			<div class="flex items-center gap-3"><RouterLink to="/designer" class="text-sm text-muted-fg">← UI designer</RouterLink><h1 class="font-semibold">Social card</h1><span class="rounded bg-primary/10 px-2 py-1 text-xs text-primary">Beta</span></div>
+			<div class="flex flex-wrap items-center gap-3"><RouterLink to="/designer" class="text-sm text-muted-fg">← UI designer</RouterLink><RouterLink to="/designer/assembly#social-card" class="text-sm text-primary underline underline-offset-4">Assembly guide</RouterLink><h1 class="font-semibold">Social card</h1><span class="rounded bg-primary/10 px-2 py-1 text-xs text-primary">Beta</span></div>
 			<div class="flex items-center gap-3"><label class="flex items-center gap-2 text-sm"><input v-model="positioning" type="checkbox" />Move &amp; resize</label><DomButton size="sm" @click="copyHtml">Copy HTML</DomButton></div>
 		</header>
 		<p class="border-b border-border px-5 py-2 text-xs text-muted-fg">Select a layer, the HTML, or an element on the stage. Drag the selection box; use its corner to resize. Changes stay in this page until copied. <span role="status">{{ notice }}</span></p>

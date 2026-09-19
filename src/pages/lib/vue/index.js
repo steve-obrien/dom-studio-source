@@ -246,3 +246,11 @@ export { default as DomShadowEditor } from '../../designer/shadow-editor/DomShad
 export { default as DomDesignerLayers } from '../../designer/layers/DomDesignerLayers.vue';
 export { default as DomDesignerStage } from '../../designer/stage/DomDesignerStage.vue';
 export { createShadow, shadowListToCss } from '../../designer/shadow-editor/shadowModel.js';
+
+export { default as DomBorderEditor } from '../../designer/border-editor/DomBorderEditor.vue';
+export { createDesignerBorder, borderToCss } from '../../designer/border-editor/borderModel.js';
+
+export { default as DomBackgroundEditor } from '../../designer/background-editor/DomBackgroundEditor.vue';
+export { createBackgroundState, createFill, backgroundImageToCss } from '../../designer/background-editor/backgroundModel.js';
+export { default as DomBackdropEditor } from '../../designer/backdrop-editor/DomBackdropEditor.vue';
+export { createBackdrop, backdropToCss } from '../../designer/backdrop-editor/backdropModel.js';

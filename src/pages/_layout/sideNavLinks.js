@@ -209,7 +209,10 @@ function groupsFromDiscoveredComponents() {
 			items: [
 				...(section === 'designer' ? [
 					{ to: '/designer', label: 'Overview' },
+					{ to: '/designer/assembly', label: 'Assembly guide' },
+					{ to: '/designer/flowchart', label: 'Flowchart designer', tag: 'Beta' },
 					{ to: '/designer/social-card', label: 'Social card' },
+					{ to: '/designer/poster', label: 'Poster studio', tag: 'Beta' },
 					{ to: '/designer/studio', label: 'Studio', tag: 'Beta' },
 				] : []),
 				...(section === 'ai' ? [
