@@ -14,12 +14,15 @@ const props = defineProps({
 	interactive: { type: Boolean, default: false },
 	snapping: { type: Boolean, default: false },
 	spacingSnapping: { type: Boolean, default: false, _edit: { description: 'Repeat horizontal and vertical layer gaps while dragging. Independent of alignment snapping; disabled by default.' } },
+	frameScoped: { type: Boolean, default: false, _edit: { description: 'Only move children of an absolute data-designer-frame. Snap to that frame and its direct children.' } },
 });
 const emit = defineEmits(['update:modelValue', 'style-change']);
 const root = ref(null);
 const box = ref(null);
 const viewScale = ref(1);
 const guides = ref({});
+const canPosition = ref(false);
+const guideClip = ref(null);
 let moveFrame;
 let pendingMove;
 let observer;
@@ -31,9 +34,19 @@ function selectedElement() {
 	if (gesture?.element) return gesture.element;
 	return [...(root.value?.querySelectorAll('[data-designer-id]') || [])].find((el) => el.dataset.designerId === props.modelValue);
 }
+/** Resolves the nearest containing frame without changing legacy stage behaviour. */
+function containingFrame(element) {
+	return element?.parentElement?.closest('[data-designer-frame]');
+}
+/** Allows free movement only where the parent, rather than the selected frame, is absolute. */
+function permitsPositioning(element) {
+	const frame = containingFrame(element);
+	return props.positioning && (!props.frameScoped || (frame?.dataset.designerFrame === 'absolute' && element.parentElement === frame));
+}
 /** Measures the selection in the stage's CSS coordinates, including its scroll offset. */
 function measure() {
 	const el = selectedElement();
+	canPosition.value = permitsPositioning(el);
 	if (!el || !root.value) { box.value = null; return; }
 	const r = el.getBoundingClientRect();
 	const stage = root.value.getBoundingClientRect();
@@ -52,11 +65,11 @@ function select(event) {
 }
 /** Begins a captured pointer gesture; conversion to absolute positioning occurs on movement. */
 function begin(event, resize = '') {
-	if (!props.positioning || event.button !== 0) return;
+	if (event.button !== 0) return;
 	const el = selectedElement();
-	if (!el) return;
+	if (!el || !permitsPositioning(el)) return;
 	if (!resize) {
-		const hit = document.elementsFromPoint(event.clientX, event.clientY).find((item) => item.hasAttribute('data-designer-id') && root.value.contains(item));
+		const hit = el.ownerDocument.elementsFromPoint(event.clientX, event.clientY).find((item) => item.hasAttribute('data-designer-id') && root.value.contains(item));
 		if (hit && hit.dataset.designerId !== props.modelValue) {
 			emit('update:modelValue', hit.dataset.designerId);
 			return;
@@ -74,11 +87,16 @@ function begin(event, resize = '') {
 		const stage = root.value.getBoundingClientRect();
 		const stageScale = stage.width / root.value.offsetWidth || 1;
 		const origin = { left: (rect.left - stage.left) / stageScale - root.value.clientLeft + root.value.scrollLeft, top: (rect.top - stage.top) / stageScale - root.value.clientTop + root.value.scrollTop };
-		const rects = [{ left: 0, top: 0, width: root.value.clientWidth, height: root.value.clientHeight }];
+		const scope = props.frameScoped ? containingFrame(el) : null;
+		const scopeRect = scope?.getBoundingClientRect();
+		const rects = [scope ? { left: (scopeRect.left - stage.left) / stageScale - root.value.clientLeft + root.value.scrollLeft + scope.clientLeft, top: (scopeRect.top - stage.top) / stageScale - root.value.clientTop + root.value.scrollTop + scope.clientTop, width: scope.clientWidth, height: scope.clientHeight } : { left: 0, top: 0, width: root.value.clientWidth, height: root.value.clientHeight }];
+		const bounds = rects[0];
+		guideClip.value = scope ? `inset(${bounds.top}px ${Math.max(0, root.value.clientWidth - bounds.left - bounds.width)}px ${Math.max(0, root.value.clientHeight - bounds.top - bounds.height)}px ${bounds.left}px)` : null;
 		for (const target of root.value.querySelectorAll('[data-designer-id]')) {
 			if (target === el || el.contains(target) || target.contains(el)) continue;
+			if (scope && target.parentElement !== scope) continue;
 			const r = target.getBoundingClientRect();
-			const style = getComputedStyle(target);
+			const style = target.ownerDocument.defaultView.getComputedStyle(target);
 			if (!r.width || !r.height || style.visibility === 'hidden' || style.display === 'none') continue;
 			const left = (r.left - stage.left) / stageScale - root.value.clientLeft + root.value.scrollLeft;
 			const top = (r.top - stage.top) / stageScale - root.value.clientTop + root.value.scrollTop;
@@ -150,6 +168,7 @@ function end() {
 	moveFrame = null;
 	pendingMove = null;
 	guides.value = {};
+	guideClip.value = null;
 	const g = gesture;
 	gesture = null;
 	if (g?.handle.hasPointerCapture(g.pointer)) g.handle.releasePointerCapture(g.pointer);
@@ -158,7 +177,7 @@ function end() {
 function nudge(event, handle = '') {
 	if (!props.positioning || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;
 	const el = selectedElement();
-	if (!el) return;
+	if (!el || !permitsPositioning(el)) return;
 	event.preventDefault();
 	const step = event.shiftKey ? 10 : 1;
 	const horizontal = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
@@ -200,7 +219,7 @@ function cleanup() {
 	mutationObserver?.disconnect();
 	window.removeEventListener('resize', measure);
 }
-watch(() => [props.modelValue, props.positioning, props.interactive, props.snapping, props.spacingSnapping], async () => { end(); await nextTick(); measure(); });
+watch(() => [props.modelValue, props.positioning, props.interactive, props.snapping, props.spacingSnapping, props.frameScoped], async () => { end(); await nextTick(); measure(); });
 onMounted(mount);
 onBeforeUnmount(cleanup);
 </script>
@@ -208,11 +227,11 @@ onBeforeUnmount(cleanup);
 <template>
 	<div ref="root" class="relative isolate" @click.capture="select" @scroll.capture="measure">
 		<slot />
-		<div data-designer-overlay aria-hidden="true" class="pointer-events-none absolute inset-0 z-[2147483647]">
+		<div data-designer-overlay aria-hidden="true" class="pointer-events-none absolute inset-0 z-[2147483647]" :style="{ clipPath: guideClip }">
 			<div v-if="guides.x && guides.x.kind !== 'spacing'" class="absolute inset-y-0 bg-primary" :style="{ left: `${guides.x.target}px`, width: `${1 / viewScale}px` }" />
 			<div v-if="guides.y && guides.y.kind !== 'spacing'" class="absolute inset-x-0 bg-primary" :style="{ top: `${guides.y.target}px`, height: `${1 / viewScale}px` }" />
 			<SpacingGuides :matches="guides" :scale="viewScale" />
 		</div>
-		<DesignerBounds v-if="box && !interactive" :box="box" :scale="viewScale" :positioning="positioning" @begin="begin($event.event, $event.handle)" @move="move" @finish="finish" @cancel="end" @nudge="nudge($event.event, $event.handle)" />
+		<DesignerBounds v-if="box && !interactive" :box="box" :scale="viewScale" :positioning="canPosition" @begin="begin($event.event, $event.handle)" @move="move" @finish="finish" @cancel="end" @nudge="nudge($event.event, $event.handle)" />
 	</div>
 </template>

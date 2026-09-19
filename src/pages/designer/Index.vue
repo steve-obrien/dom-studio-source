@@ -3,6 +3,7 @@ import DomStudioLayout from '../_layout/DomStudioLayout.vue';
 import DocPage from '../_layout/DocPage.vue';
 import DocSection from '../_layout/DocSection.vue';
 const links = [
+	{ to: '/designer/frames', title: 'Nested frames & HTML import', description: 'Nest flow, flex, grid and absolute frames. Switch layouts, snap within a frame, and import Tailwind HTML into an editable canvas.' },
 	{ to: '/designer/assembly', title: 'Build your own designer', description: 'Working Vue examples and assembly documentation for HTML editors, appearance controls and flowcharts.' },
 	{ to: '/designer/flowchart', title: 'Flowchart designer', description: 'An infinite workspace powered by Vue Flow. Connect editable steps, pan, zoom, navigate with a minimap and export your graph.' },
 	{ to: '/designer/poster', title: 'Poster studio', description: 'Create a portrait flyer with editable image, text and shape layers, typography, filters, zoom, undo and HTML export.' },

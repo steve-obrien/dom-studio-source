@@ -241,6 +241,9 @@ export { default as DomChartLegend } from '../../charts/_shared/ChartLegend.vue'
 export { default as DomChartTooltip } from '../../charts/_shared/ChartTooltip.vue';
 
 // Beta UI designer primitives.
+export { default as DomDesignerFrame } from '../../designer/frame/DomDesignerFrame.vue';
+export { default as DomFrameLayoutEditor } from '../../designer/frame/DomFrameLayoutEditor.vue';
+export { createFrameLayout, frameLayoutStyle } from '../../designer/frame/frameLayout.js';
 export { default as DomColorSwatch } from '../../designer/color-swatch/DomColorSwatch.vue';
 export { default as DomShadowEditor } from '../../designer/shadow-editor/DomShadowEditor.vue';
 export { default as DomDesignerLayers } from '../../designer/layers/DomDesignerLayers.vue';

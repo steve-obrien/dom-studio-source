@@ -28,6 +28,8 @@ const typeByConstructor = {
 };
 
 const manualPropTypes = {
+	DomDesignerFrame: { layout: 'Partial<DesignerFrameLayout>' },
+	DomFrameLayoutEditor: { modelValue: 'DesignerFrameLayout' },
 	DomShadowEditor: { modelValue: 'Array<DesignerShadowLayer>' },
 	DomAudioVisualizer: { stream: 'MediaStream | null' },
 	DomAudioControls: { constraints: 'MediaTrackConstraints | null' },
@@ -2052,6 +2054,9 @@ function libraryFunctionTypes() {
 		'export declare const resolvedTheme: ComputedRef<DomResolvedTheme>;',
 		'export declare const vDomTooltip: Directive<HTMLElement, DomTooltipDirectiveValue>;',
 		'',
+		'export interface DesignerFrameLayout { mode: \'flow\' | \'flex\' | \'grid\' | \'absolute\'; direction: \'row\' | \'column\' | \'row-reverse\' | \'column-reverse\'; wrap: \'nowrap\' | \'wrap\'; gap: number; padding: number; justify: \'start\' | \'center\' | \'end\' | \'space-between\' | \'space-around\' | \'space-evenly\'; align: \'start\' | \'center\' | \'end\' | \'stretch\' | \'baseline\'; justifyItems: \'start\' | \'center\' | \'end\' | \'stretch\'; autoFlow: \'row\' | \'column\' | \'row dense\' | \'column dense\'; columns: string; rows: string; }',
+		'export declare function createFrameLayout(value?: Partial<DesignerFrameLayout>): DesignerFrameLayout;',
+		'export declare function frameLayoutStyle(value?: Partial<DesignerFrameLayout>): Record<string, string>;',
 		'export interface DesignerShadowLayer { id: string; enabled: boolean; open?: boolean; kind: \'drop\' | \'inset\' | \'ring\'; color: string; alpha: number; x: number; y: number; blur: number; spread: number; }',
 		'export interface DesignerBackdrop { enabled: boolean; blur: number; saturate: number; open?: boolean; }',
 		'export interface DesignerFill { id: string; enabled: boolean; open?: boolean; kind: string; color: string; alpha: number; gradientFrom: string; gradientTo: string; gradientFromAlpha: number; gradientToAlpha: number; gradientAngle: number; gradientFromStop: number; gradientToStop: number; }',

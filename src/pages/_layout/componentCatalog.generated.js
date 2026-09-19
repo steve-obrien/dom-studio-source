@@ -5498,6 +5498,38 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "designer/frame",
+		"path": "../designer/frame/DomDesignerFrame.vue",
+		"section": "designer",
+		"slug": "frame",
+		"exportName": "DomDesignerFrame",
+		"route": "/designer/frame",
+		"doc": {
+			"name": "Designer frame",
+			"description": "An ordinary container with independent flow, flex, grid or absolute child layout.",
+			"slots": [
+				{
+					"name": "default",
+					"description": "Frame content. Applications own child placement."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
+		"id": "designer/frame",
+		"path": "../designer/frame/DomFrameLayoutEditor.vue",
+		"section": "designer",
+		"slug": "frame",
+		"exportName": "DomFrameLayoutEditor",
+		"route": "/designer/frame",
+		"doc": {
+			"name": "Frame layout editor",
+			"description": "Controlled layout settings for flow, flex, grid and absolute frames."
+		},
+		"studio": {}
+	},
+	{
 		"id": "designer/layers",
 		"path": "../designer/layers/DomDesignerLayers.vue",
 		"section": "designer",
