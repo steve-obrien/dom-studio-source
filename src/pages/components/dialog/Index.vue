@@ -28,6 +28,10 @@ import ProgrammaticDialogs from './examples/ProgrammaticDialogs.vue';
 import ProgrammaticDialogsSrc from './examples/ProgrammaticDialogs.vue?raw';
 import Custom from './examples/Custom.vue';
 import CustomSrc from './examples/Custom.vue?raw';
+import CompanionAssistant from './examples/CompanionAssistant.vue';
+import CompanionAssistantSrc from './examples/CompanionAssistant.vue?raw';
+import CompanionReference from './examples/CompanionReference.vue';
+import CompanionReferenceSrc from './examples/CompanionReference.vue?raw';
 
 const doc = DomDialog.__doc;
 const lifecycleSource = `<script setup>
@@ -111,6 +115,26 @@ function resetDialogData() {
 					description="A near-full-page dialog for dense editorial workflows — custom width and height keep form fields scrollable while the action footer stays available."
 				>
 					<EditPostDialog />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Companion" title="Contextual AI assistant">
+				<Example
+					:source="CompanionAssistantSrc"
+					filename="CompanionAssistant.vue"
+					description="A controlled companion beside a wide editorial dialog. On narrow screens it covers the main panel, consumes the first Escape press, and returns focus to the AI chat trigger when closed. Suggestions remain application-owned and update the same form setter used by manual edits."
+				>
+					<CompanionAssistant />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Companion" title="Contextual reference panel">
+				<Example
+					:source="CompanionReferenceSrc"
+					filename="CompanionReference.vue"
+					description="The companion is content-agnostic. This settings example uses a narrower reference surface and a different overlay breakpoint without adding another drawer or dialog lifecycle."
+				>
+					<CompanionReference />
 				</Example>
 			</DocSection>
 

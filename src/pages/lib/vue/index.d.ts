@@ -1385,6 +1385,22 @@ export interface DomDialogProps {
 	 * Show the footer region and default Close action when no footer slot is provided.
 	 */
 	footer?: boolean;
+	/**
+	 * Whether the optional companion slot is visible.
+	 */
+	companionOpen?: boolean;
+	/**
+	 * Desktop width of the companion surface.
+	 */
+	companionWidth?: string | number;
+	/**
+	 * Viewport width at which the companion switches from a side-by-side surface to a covering dialog.
+	 */
+	companionBreakpoint?: string | number;
+	/**
+	 * Accessible name for the companion surface.
+	 */
+	companionLabel?: string;
 }
 export declare const DomDialog: DomComponent<DomDialogProps>;
 

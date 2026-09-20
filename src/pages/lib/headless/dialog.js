@@ -153,6 +153,7 @@ export class DomDialogElement extends DomElementBase {
 		events: [
 			{ name: 'dom:before-open', description: 'Fired immediately before the dialog opens so callers can prepare render state.' },
 			{ name: 'dom:open', description: 'Fired when the dialog opens.' },
+			{ name: 'dom:request-close', description: 'Cancelable dismissal request with { reason: "escape" | "backdrop" | "control" }. Prevent the event to keep the dialog open.' },
 			{ name: 'dom:close', description: 'Fired when the dialog closes (Esc, .close(), backdrop, or data-close).' },
 			{ name: 'dom:close-complete', description: 'Fired after the close transition completes so callers can release retained data.' },
 		],
@@ -207,16 +208,17 @@ export class DomDialogElement extends DomElementBase {
 
 		this.on(this, 'click', (ev) => {
 			const closer = ev.target.closest?.('[data-close]');
-			if (closer && this.contains(closer)) this._setOpen(false);
+			if (closer && this.contains(closer)) this._requestClose('control');
 		});
 
 		this.on(this._dialog, 'click', (e) => {
 			if (this.hasAttribute('static')) return;
-			if (e.target === this._dialog) this._setOpen(false);
+			if (e.target === this._dialog) this._requestClose('backdrop');
 		});
 
 		this.on(this._dialog, 'cancel', (e) => {
-			if (this.hasAttribute('static')) e.preventDefault();
+			e.preventDefault();
+			this._requestClose('escape');
 		});
 		this.on(this._dialog, 'keydown', (e) => {
 			if (this.hasAttribute('static') && e.key === 'Escape') e.preventDefault();
@@ -249,6 +251,23 @@ export class DomDialogElement extends DomElementBase {
 			if (value) this._dialog.setAttribute(name, value);
 			else this._dialog.removeAttribute(name);
 		}
+	}
+
+	/**
+	 * Ask consumers whether a user-initiated dismissal may close the dialog.
+	 *
+	 * @param {'escape'|'backdrop'|'control'} reason Dismissal source.
+	 * @returns {void}
+	 */
+	_requestClose(reason) {
+		const request = new CustomEvent('dom:request-close', {
+			detail: { reason },
+			bubbles: true,
+			composed: true,
+			cancelable: true,
+		});
+		const blockedByStatic = this.hasAttribute('static') && reason !== 'control';
+		if (this.dispatchEvent(request) && !blockedByStatic) this._setOpen(false);
 	}
 
 	/** Fallback when Invoker Commands are unavailable — wire [commandfor] buttons by id. */

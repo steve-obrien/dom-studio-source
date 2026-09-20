@@ -310,12 +310,17 @@ export const componentCatalog = [
 				},
 				{
 					"name": "header",
-					"payload": "{ title, description, titleId, descriptionId }",
-					"description": "Replace the default title and description block. Apply the provided IDs to custom heading and description elements to preserve the dialog accessibility relationships."
+					"payload": "{ title, description, titleId, descriptionId, companionOpen, companionMode, companionTriggerProps, toggleCompanion }",
+					"description": "Replace the default title and description block. Apply the provided IDs to custom heading and description elements to preserve the dialog accessibility relationships. Companion helpers wire an in-dialog toggle when the companion slot is present."
 				},
 				{
 					"name": "footer",
 					"description": "Action buttons. Add `data-close` on a control to dismiss the dialog."
+				},
+				{
+					"name": "companion",
+					"payload": "{ open, mode, closeCompanion, toggleCompanion }",
+					"description": "Optional contextual surface shown beside the dialog on wide screens and over it below companionBreakpoint."
 				}
 			],
 			"events": [
@@ -329,6 +334,11 @@ export const componentCatalog = [
 					"description": "Emitted immediately before the dialog opens; prepare draft data or item snapshots here."
 				},
 				{
+					"name": "update:companionOpen",
+					"payload": "(open: boolean)",
+					"description": "Emitted when the companion surface opens or closes."
+				},
+				{
 					"name": "close",
 					"description": "Emitted when the dialog is dismissed."
 				},
@@ -340,7 +350,7 @@ export const componentCatalog = [
 			"keyboard": [
 				{
 					"keys": "Esc",
-					"action": "Closes the topmost open dialog unless `static` is set."
+					"action": "Closes an open companion first, then closes the dialog unless `static` is set."
 				},
 				{
 					"keys": "Tab / Shift+Tab",
