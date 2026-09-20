@@ -2596,6 +2596,80 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "data/notification-inbox",
+		"path": "../data/notification-inbox/DomNotificationInbox.vue",
+		"section": "data",
+		"slug": "notification-inbox",
+		"exportName": "DomNotificationInbox",
+		"route": "/data/notification-inbox",
+		"doc": {
+			"name": "Notification inbox",
+			"tag": "<DomNotificationInbox>",
+			"description": "A polished notification bell and durable inbox panel for application-owned in-app records, including unread, action, archive, pagination, loading, and failure-ready states.",
+			"icon": "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4",
+			"slots": [
+				{
+					"name": "trigger",
+					"payload": "{ unreadCount, open }",
+					"description": "Replace the default bell trigger while retaining the inbox popover."
+				},
+				{
+					"name": "header",
+					"payload": "{ unreadCount, refresh }",
+					"description": "Replace the panel heading and refresh control."
+				},
+				{
+					"name": "item",
+					"payload": "{ item, unread, transition, action }",
+					"description": "Replace one notification row while retaining the panel list and state helpers."
+				},
+				{
+					"name": "item-icon",
+					"payload": "{ item, tone }",
+					"description": "Replace the semantic icon shown for one default notification row."
+				},
+				{
+					"name": "empty",
+					"description": "Replace the caught-up empty state."
+				},
+				{
+					"name": "footer",
+					"payload": "{ hasMore, loadingMore, loadMore }",
+					"description": "Replace the optional pagination footer."
+				}
+			],
+			"events": [
+				{
+					"name": "transition",
+					"payload": "({ item, transition: \"read\" | \"unread\" | \"archive\" })",
+					"description": "Requests an application-owned durable state transition."
+				},
+				{
+					"name": "action",
+					"payload": "({ item, action })",
+					"description": "Fired when the recipient follows a notification action."
+				},
+				{
+					"name": "refresh",
+					"description": "Requests a fresh first page without marking any item read."
+				},
+				{
+					"name": "load-more",
+					"description": "Requests the next application-owned inbox page."
+				},
+				{
+					"name": "open",
+					"description": "Fired when the inbox popover opens."
+				},
+				{
+					"name": "close",
+					"description": "Fired when the inbox popover closes."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "data/week-planner",
 		"path": "../data/week-planner/DomWeekPlanner.vue",
 		"section": "data",

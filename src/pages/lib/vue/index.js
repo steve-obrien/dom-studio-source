@@ -49,6 +49,7 @@ export { default as DomPopover } from '../../components/popover/DomPopover.vue';
 export { default as DomDrawer } from '../../components/drawer/DomDrawer.vue';
 export { default as DomToastStack } from '../../components/toast/DomToastStack.vue';
 export { default as DomToastItem } from '../../components/toast/DomToastItem.vue';
+export { default as DomNotificationInbox } from '../../data/notification-inbox/DomNotificationInbox.vue';
 export { default as DomCommandPalette } from '../../components/command-palette/DomCommandPalette.vue';
 export { default as DomContextMenu } from '../../components/context-menu/DomContextMenu.vue';
 export { default as DomDataGrid } from '../../data/data-grid/DomDataGrid.vue';
@@ -84,6 +85,7 @@ export { monthCalendarProps } from '../../data/month-calendar/DomMonthCalendar.v
 export { weekPlannerProps } from '../../data/week-planner/DomWeekPlanner.vue';
 export { popoverProps } from '../../components/popover/DomPopover.vue';
 export { useToasts } from '../../components/toast/useToasts.js';
+export { notificationTone, notificationToast } from '../../data/notification-inbox/notificationPresentation.js';
 export { useDialogs } from '../../components/dialog/useDialogs.js';
 export {
 	THEME_MODE_STORAGE_KEY,

@@ -981,6 +981,26 @@ export interface ToastApi {
 	dismiss(id: string): void;
 	clear(): void;
 }
+export type InAppNotificationSeverity = 'info' | 'success' | 'warning' | 'error';
+export type InAppNotificationPresentation = 'inbox' | 'toast' | 'banner';
+export interface InAppNotificationAction { label: string; href: string; }
+export interface InAppNotificationMessage {
+	title: string;
+	body: string;
+	severity?: InAppNotificationSeverity;
+	presentation?: InAppNotificationPresentation;
+	action?: InAppNotificationAction;
+}
+export interface InAppNotificationItem {
+	id: string;
+	type: string;
+	message: InAppNotificationMessage;
+	createdAt: string;
+	readAt: string | null;
+	dismissedAt: string | null;
+	archivedAt: string | null;
+}
+export interface NotificationToastOptions { duration?: number; dismissible?: boolean; }
 export type DialogTone = 'default' | 'danger' | string;
 export type DialogType = 'dialog' | 'confirm' | 'form' | string;
 export type DialogFormSchema = Array<DomFormNode>;
@@ -2065,6 +2085,86 @@ export interface DomToastItemProps {
 	dismissible?: boolean;
 }
 export declare const DomToastItem: DomComponent<DomToastItemProps>;
+
+export interface DomNotificationInboxProps {
+	/**
+	 * Application-owned durable notification items. The shape matches db3.ai InAppItem records.
+	 */
+	items?: Array<InAppNotificationItem>;
+	/**
+	 * Authoritative unread count for the full scoped inbox. Omit to count unread supplied items.
+	 */
+	unreadCount?: number;
+	/**
+	 * Show initial inbox loading placeholders when no items are available.
+	 */
+	loading?: boolean;
+	/**
+	 * Show refresh progress without replacing already loaded items.
+	 */
+	refreshing?: boolean;
+	/**
+	 * Show progress on the pagination action.
+	 */
+	loadingMore?: boolean;
+	/**
+	 * Item IDs with a durable state transition currently in flight.
+	 */
+	updatingIds?: Array<string>;
+	/**
+	 * Show a control that requests the next application-owned page.
+	 */
+	hasMore?: boolean;
+	/**
+	 * Compact recoverable error shown above the notification list.
+	 */
+	error?: string;
+	/**
+	 * Inbox panel heading.
+	 */
+	title?: string;
+	/**
+	 * Accessible label for the default bell trigger.
+	 */
+	triggerLabel?: string;
+	/**
+	 * Empty-state heading.
+	 */
+	emptyTitle?: string;
+	/**
+	 * Empty-state supporting copy.
+	 */
+	emptyDescription?: string;
+	/**
+	 * Pagination action label.
+	 */
+	loadMoreLabel?: string;
+	/**
+	 * Show the application-owned refresh action in the default header.
+	 */
+	showRefresh?: boolean;
+	/**
+	 * Show an archive action for every default notification row.
+	 */
+	showArchive?: boolean;
+	/**
+	 * Optional formatter receiving createdAt and the complete item.
+	 */
+	formatTimestamp?: (createdAt: string, item: InAppNotificationItem) => string;
+	/**
+	 * Preferred popover placement around the trigger.
+	 */
+	position?: "bottom-end" | "bottom-start" | "top-end" | "top-start";
+	/**
+	 * Tailwind width utilities applied to the popover panel.
+	 */
+	panelWidth?: string;
+	/**
+	 * CSS maximum height for the scrolling notification list.
+	 */
+	maxHeight?: string;
+}
+export declare const DomNotificationInbox: DomComponent<DomNotificationInboxProps>;
 
 export interface DomCommandPaletteProps {
 	/**
@@ -7776,6 +7876,8 @@ export declare function cycleThemeMode(): DomResolvedTheme;
 export declare function applyThemeMode(value?: unknown): DomResolvedTheme;
 export declare function useTheme(): DomThemeApi;
 export declare function useToasts(defaults?: ToastOptions): ToastApi;
+export declare function notificationTone(severity?: InAppNotificationSeverity | 'danger' | null): 'info' | 'success' | 'warning' | 'danger';
+export declare function notificationToast(item: InAppNotificationItem, options?: NotificationToastOptions): ToastOptions & { id: string };
 export declare function useDialogs(defaults?: DialogOptions): DialogApi;
 export declare function defineAgentChatStore(storeId?: string, options?: AgentChatStoreOptions): Function;
 export declare function createAgentChatRestApi(options?: AgentChatStoreOptions): Record<string, Function>;

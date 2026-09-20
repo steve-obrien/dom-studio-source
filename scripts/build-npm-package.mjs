@@ -10,6 +10,7 @@ const entryFiles = [
 	'src/pages/lib/headless/index.js',
 ];
 const staticFiles = [
+	'CHANGELOG.md',
 	'LICENSE.md',
 	'SKILL.md',
 	'public/llms.txt',
