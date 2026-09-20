@@ -9,6 +9,16 @@
 	transition-duration: var(--dom-studio-motion-debug-duration) !important;
 }
 
+:root[data-dom-studio-motion-debug] {
+	--dom-dialog-backdrop-duration: var(--dom-studio-motion-debug-duration);
+}
+
+/* Shadow DOM descendants are outside the universal selector above. */
+:root[data-dom-studio-motion-debug] dom-dialog::part(dialog) {
+	animation-duration: var(--dom-studio-motion-debug-duration) !important;
+	transition-duration: var(--dom-studio-motion-debug-duration) !important;
+}
+
 :root[data-dom-studio-motion-debug]::after {
 	position: fixed;
 	top: 0.75rem;

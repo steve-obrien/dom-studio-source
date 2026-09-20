@@ -388,7 +388,7 @@ defineExpose({
 		>
 			<div
 				ref="mainPanel"
-				class="skin-overlay flex min-w-0 flex-1 self-stretch flex-col overflow-hidden rounded-2xl p-6 outline-none"
+				class="skin-overlay flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl p-6 outline-none"
 				:style="dialogPanelStyle"
 				:inert="companionOverlay && companionActive"
 				:aria-hidden="companionOverlay && companionActive ? 'true' : undefined"
@@ -410,7 +410,7 @@ defineExpose({
 						<p v-if="description" :id="descriptionId" class="text-sm text-muted-fg">{{ description }}</p>
 					</div>
 				</slot>
-				<div class="-mx-1 -mb-1 min-h-0 overflow-y-auto px-1 pb-1" :class="($slots.header || title || description) ? 'mt-3 pt-1' : '-mt-1 pt-1'">
+				<div class="-mx-1 -mb-1 min-h-0 flex-1 overflow-y-auto px-1 pb-1" :class="($slots.header || title || description) ? 'mt-3 pt-1' : '-mt-1 pt-1'">
 					<slot />
 				</div>
 				<div v-if="footer || $slots.footer" class="mt-6 flex shrink-0 items-center justify-end gap-2">
@@ -423,25 +423,27 @@ defineExpose({
 					</slot>
 				</div>
 			</div>
-			<aside
-				v-if="hasCompanion"
-				v-show="companionActive"
-				:id="companionId"
-				ref="companionPanel"
-				class="dom-dialog-companion skin-overlay"
-				:role="companionOverlay ? 'dialog' : 'region'"
-				:aria-modal="companionOverlay ? 'true' : undefined"
-				:aria-label="companionLabel"
-				tabindex="-1"
-			>
-				<slot
-					name="companion"
-					:open="companionActive"
-					:mode="companionMode"
-					:close-companion="closeCompanion"
-					:toggle-companion="toggleCompanion"
-				/>
-			</aside>
+			<Transition name="dom-dialog-companion">
+				<div v-if="hasCompanion" v-show="companionActive" class="dom-dialog-companion-track">
+					<aside
+						:id="companionId"
+						ref="companionPanel"
+						class="dom-dialog-companion skin-overlay"
+						:role="companionOverlay ? 'dialog' : 'region'"
+						:aria-modal="companionOverlay ? 'true' : undefined"
+						:aria-label="companionLabel"
+						tabindex="-1"
+					>
+						<slot
+							name="companion"
+							:open="companionActive"
+							:mode="companionMode"
+							:close-companion="closeCompanion"
+							:toggle-companion="toggleCompanion"
+						/>
+					</aside>
+				</div>
+			</Transition>
 		</div>
 	</dom-dialog>
 </template>
@@ -464,29 +466,58 @@ defineExpose({
 .dom-dialog-shell {
 	position: relative;
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 	gap: 0;
 	width: 100%;
 	max-width: var(--dom-dialog-panel-width);
 	margin-inline: auto;
-	transition: max-width 200ms ease;
+	transition: max-width 280ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dom-dialog-shell--open[data-companion-mode="beside"] {
-	gap: 0.875rem;
 	max-width: calc(var(--dom-dialog-panel-width) + var(--dom-dialog-companion-width) + 0.875rem);
+}
+
+.dom-dialog-companion-track {
+	display: flex;
+	flex: 0 0 calc(var(--dom-dialog-companion-width) + 0.875rem);
+	min-width: 0;
+	overflow: clip;
 }
 
 .dom-dialog-companion {
 	display: flex;
-	flex: none;
-	align-self: stretch;
+	flex: 0 0 var(--dom-dialog-companion-width);
 	width: var(--dom-dialog-companion-width);
 	min-height: 20rem;
 	max-height: calc(100dvh - 2rem);
+	margin-left: 0.875rem;
 	overflow: hidden;
 	border-radius: 1rem;
 	outline: none;
+}
+
+.dom-dialog-companion-enter-active,
+.dom-dialog-companion-leave-active {
+	transition: flex-basis 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dom-dialog-companion-enter-active .dom-dialog-companion,
+.dom-dialog-companion-leave-active .dom-dialog-companion {
+	transition:
+		opacity 180ms ease,
+		transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dom-dialog-companion-enter-from,
+.dom-dialog-companion-leave-to {
+	flex-basis: 0;
+}
+
+.dom-dialog-companion-enter-from .dom-dialog-companion,
+.dom-dialog-companion-leave-to .dom-dialog-companion {
+	opacity: 0;
+	transform: translateX(2rem);
 }
 
 .dom-dialog-shell--open[data-companion-mode="overlay"] {
@@ -494,17 +525,34 @@ defineExpose({
 	max-width: var(--dom-dialog-panel-width);
 }
 
-[data-companion-mode="overlay"] .dom-dialog-companion {
+[data-companion-mode="overlay"] .dom-dialog-companion-track {
 	position: absolute;
 	inset: 0;
 	z-index: 1;
+	display: flex;
+	overflow: hidden;
+}
+
+[data-companion-mode="overlay"] .dom-dialog-companion {
+	flex-basis: 100%;
 	width: auto;
 	min-height: 0;
 	max-height: none;
+	margin-left: 0;
+}
+
+[data-companion-mode="overlay"] .dom-dialog-companion-enter-from .dom-dialog-companion,
+[data-companion-mode="overlay"] .dom-dialog-companion-leave-to .dom-dialog-companion {
+	opacity: 1;
+	transform: translateX(100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.dom-dialog-shell {
+	.dom-dialog-shell,
+	.dom-dialog-companion-enter-active,
+	.dom-dialog-companion-leave-active,
+	.dom-dialog-companion-enter-active .dom-dialog-companion,
+	.dom-dialog-companion-leave-active .dom-dialog-companion {
 		transition-duration: 0s;
 	}
 }

@@ -51,9 +51,9 @@ function getTemplate() {
 		-webkit-backdrop-filter: blur(4px);
 		opacity: 0;
 		transition:
-			opacity 140ms ease,
-			overlay 140ms ease allow-discrete,
-			display 140ms ease allow-discrete;
+			opacity var(--dom-dialog-backdrop-duration, 140ms) ease,
+			overlay var(--dom-dialog-backdrop-duration, 140ms) ease allow-discrete,
+			display var(--dom-dialog-backdrop-duration, 140ms) ease allow-discrete;
 	}
 	dialog[open]::backdrop { opacity: 1; }
 	:host([no-backdrop]) dialog::backdrop {
