@@ -70,5 +70,11 @@ If npm succeeds but GitHub fails, rerun the tag workflow. If GitHub succeeds but
 the website has stale notes, check the server token, connectivity and cache refresh.
 Do not republish an npm version to repair a website failure.
 
+If the workflow itself needs repair, commit the workflow fix to main and use
+its manual dispatch with `release_tag` set to the existing annotated tag. It
+checks out and validates that original source, without moving the tag. The
+workflow explicitly refreshes the tag object because checkout can otherwise
+replace an annotated tag with its peeled commit in the runner's local clone.
+
 The old 0.2.0 changelog predates its npm publication by one day; the website shows
 the actual npm publication date. Earlier 0.1.x notes have not been reconstructed.
