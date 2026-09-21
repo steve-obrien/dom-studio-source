@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.2.1 - 2026-09-21
+
+Vue Router 5 support and a public home for DOM Studio release notes.
+
+### Added
+
+- A release history at `/releases`, with publication dates, version links and
+  upgrade notes. Published GitHub Releases supply the notes through the server.
+- A release preparation command and tag-triggered publishing workflow that checks
+  the package, verifies npm publication, then creates matching GitHub Release notes.
+
+### Improved
+
+- Added Vue Router 5 support while retaining compatibility with Vue Router 4.
+- Updated the development and package-smoke toolchains to validate the current
+  Vue, Pinia, Vite, and Vue Router release line.
+
+### Upgrade notes
+
+- Vue must be version 3.5.34 or newer within Vue 3. Vue Router 4 remains supported.
+- When using Vue Router 5.3 with Pinia, use Pinia 3.0.4 or newer within Pinia 3.
+  Vue Router 5.3 also requires Vite 7.3 or 8 when Vite is installed.
+
 ## 0.2.0 - 2026-09-20
 
 This release expands DOM Studio from its initial public package with new

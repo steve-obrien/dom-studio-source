@@ -1,11 +1,15 @@
 {
 	"name": "@getdom/studio",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "A Vue 3 and Web Component interface system for application UI.",
 	"type": "module",
 	"license": "SEE LICENSE IN LICENSE.md",
 	"author": "Steve O'Brien",
 	"homepage": "https://getdom.studio",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/steve-obrien/dom.studio.git"
+	},
 	"keywords": [
 		"vue",
 		"web-components",
@@ -50,8 +54,8 @@
 	"peerDependencies": {
 		"pinia": "^2.3.0 || ^3.0.0",
 		"tailwindcss": "^4.2.0",
-		"vue": "^3.5.0",
-		"vue-router": "^4.6.0"
+		"vue": "^3.5.34",
+		"vue-router": "^4.6.0 || ^5.0.0"
 	},
 	"dependencies": {
 		"@tiptap/extension-code-block": "3.27.3",

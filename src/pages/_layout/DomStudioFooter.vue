@@ -14,6 +14,7 @@ import { openAnalyticsSettings } from '../../analytics.js';
 			<div class="flex max-w-full flex-wrap items-center gap-x-5 gap-y-2">
 				<RouterLink to="/" class="hover:text-canvas-fg">Overview</RouterLink>
 				<RouterLink to="/blog" class="hover:text-canvas-fg">Blog</RouterLink>
+				<RouterLink to="/releases" class="hover:text-canvas-fg">Releases</RouterLink>
 				<RouterLink to="/ai" class="hover:text-canvas-fg">AI</RouterLink>
 				<RouterLink to="/tools/json-unstringifier" class="hover:text-canvas-fg">Tools</RouterLink>
 				<RouterLink to="/theming" class="hover:text-canvas-fg">Theming</RouterLink>

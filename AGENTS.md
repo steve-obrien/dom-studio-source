@@ -61,3 +61,33 @@ Choose the smallest validation that matches the change:
 - `npm run check:theme-ai` only makes sense when the theme AI endpoint and credentials are reachable.
 
 When making frontend changes, verify the affected route in a browser at desktop and mobile sizes when practical.
+
+## Preparing and publishing releases
+
+When asked to prepare a release, use `docs/releases.md`. AI agents should write
+the changelog from the actual diff and commits since the previous release tag,
+including work performed in the current task. Read commit bodies and verify the
+implementation; do not turn every commit into a public claim or invent outcomes.
+Describe customer-visible changes under Added, Improved, Fixed, and Upgrade notes
+as relevant. Never include secrets, internal URLs, private customer details, or
+private repository links: GitHub Release bodies become public website content.
+
+`CHANGELOG.md` is the reviewed source for release notes. The package version lives
+in `packages/studio/package.template.json`; the private root package version is
+not the npm release version. Run `npm run release:prepare -- VERSION` (or `patch`
+for the next candidate). Without an argument, interactive use prompts with a
+suggested patch. Preparation validates only; it does not commit, tag, push or publish.
+
+Inspect the full working tree before release. Preserve unrelated edits and do
+not silently include them. Run validation in an isolated checkout if needed to
+test exactly the committed release. Never publish from a dirty working directory.
+When publishing is authorized, commit the reviewed files, push main, create an
+annotated `vVERSION` tag at that commit and push the tag. The release workflow
+publishes the tested artifact and verifies npm integrity before creating the
+GitHub Release. Never move a published tag or overwrite an existing version.
+
+Report preparation, commit, push, npm publication, GitHub Release, and website
+deployment independently. A tag or changelog entry alone is not proof of release.
+For partial failures, rerun the same workflow; identical npm integrity is required
+before it skips publishing and resumes the announcement. Document any manual
+recovery. Do not ask users to share OTPs in chat.

@@ -9,10 +9,10 @@
 		"@getdom/studio": "file:../../dist/npm",
 		"@tailwindcss/vite": "^4.2.4",
 		"@vitejs/plugin-vue": "^6.0.6",
-		"pinia": "^3.0.0",
+		"pinia": "^3.0.4",
 		"tailwindcss": "^4.2.4",
 		"vite": "^8.0.10",
-		"vue": "^3.5.33",
-		"vue-router": "^4.6.4"
+		"vue": "^3.5.34",
+		"vue-router": "^5.3.1"
 	}
 }
