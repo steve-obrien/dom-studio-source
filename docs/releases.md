@@ -75,6 +75,8 @@ its manual dispatch with `release_tag` set to the existing annotated tag. It
 checks out and validates that original source, without moving the tag. The
 workflow explicitly refreshes the tag object because checkout can otherwise
 replace an annotated tag with its peeled commit in the runner's local clone.
+Recovery uses the publishing driver from the workflow commit, while all package
+contents, notes, builds and tests still come from the unchanged release tag.
 
 The old 0.2.0 changelog predates its npm publication by one day; the website shows
 the actual npm publication date. Earlier 0.1.x notes have not been reconstructed.
