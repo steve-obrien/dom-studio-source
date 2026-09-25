@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import Stripe from 'stripe';
+import { get as checkout } from '../api/billing/checkout.get.js';
 import { createBillingOffer, getPriceForOffer } from '../../shared/billing.js';
 import { getBillingOffer } from './billingOffer.js';
 import { getCheckoutReference, getPaymentLinkId, validatePaymentLink } from './billingCheckout.js';
@@ -87,7 +89,6 @@ test('checkout rejects inactive links, discounts, extras, quantity changes, and 
 	const offer = createBillingOffer().individual;
 	for (const changes of [
 		{ active: false },
-		{ allow_promotion_codes: true },
 		{ optional_items: [{ price: 'price_extra' }] },
 		{ url: 'https://example.com/checkout' },
 	]) {
@@ -107,6 +108,11 @@ test('checkout rejects inactive links, discounts, extras, quantity changes, and 
 	assert.throws(() => validatePaymentLink(extra, offer));
 });
 
+test('checkout allows customer-entered promotion codes without changing the advertised base price', () => {
+	const offer = createBillingOffer().individual;
+	assert.equal(validatePaymentLink({ ...paymentLink(offer), allow_promotion_codes: true }, offer).hostname, 'buy.stripe.com');
+});
+
 test('Stripe-owned licence metadata wins over a modified client reference', () => {
 	assert.deepEqual(getCheckoutReference({
 		client_reference_id: 'user-123_team',
@@ -119,4 +125,35 @@ test('existing paid purchases retain legacy reference compatibility', () => {
 		assert.deepEqual(getCheckoutReference({ client_reference_id: reference }), { userId: 'user-123', licenceType: 'individual' });
 	}
 	assert.deepEqual(getCheckoutReference({ client_reference_id: 'user-123_team' }), { userId: 'user-123', licenceType: 'team' });
+});
+
+test('guest checkout goes directly to Stripe and requires the correct confirmation destination', async (t) => {
+	const keys = ['STRIPE_SECRET_KEY', 'RESEND_API_KEY', 'LICENCE_EMAIL_FROM', 'STRIPE_INDIVIDUAL_USD_INTRO_PAYMENT_LINK_ID', 'BILLING_PUBLIC_URL', 'BILLING_PRICING_PHASE'];
+	const previous = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
+	t.after(() => {
+		for (const key of keys) {
+			if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key];
+		}
+	});
+	Object.assign(process.env, {
+		STRIPE_SECRET_KEY: 'sk_test_placeholder', RESEND_API_KEY: 're_test_placeholder', LICENCE_EMAIL_FROM: 'licences@example.com',
+		STRIPE_INDIVIDUAL_USD_INTRO_PAYMENT_LINK_ID: 'plink_individual', BILLING_PUBLIC_URL: 'https://getdom.studio', BILLING_PRICING_PHASE: 'introductory',
+	});
+	let link = paymentLink(createBillingOffer().individual);
+	link.after_completion = { type: 'redirect', redirect: { url: 'https://getdom.studio/licence/thanks?session_id={CHECKOUT_SESSION_ID}' } };
+	t.mock.method(Stripe.resources.PaymentLinks.prototype, 'retrieve', async (id) => {
+		assert.equal(id, 'plink_individual');
+		return link;
+	});
+	t.mock.method(console, 'error', () => {});
+	const req = { headers: {}, query: { licence: 'individual' } };
+	const res = { setHeader() {}, status(code) { this.code = code; }, redirect(url) { this.url = url; } };
+	await checkout(req, res);
+	assert.equal(new URL(res.url).hostname, 'buy.stripe.com');
+	assert.equal(new URL(res.url).searchParams.has('client_reference_id'), false);
+	delete res.url;
+	link.after_completion.redirect.url = 'https://getdom.studio/auth/sign-up';
+	assert.match((await checkout(req, res)).error, /temporarily unavailable/);
+	assert.equal(res.code, 503);
+	assert.equal(res.url, undefined);
 });

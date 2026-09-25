@@ -24,7 +24,7 @@ const menuItems = computed(() => {
 	if (!isLoggedIn.value) {
 		return [
 			{ label: 'Sign in', value: 'sign-in' },
-			{ label: 'Create account', value: 'sign-up' },
+			{ label: 'Find my licence', value: 'licences' },
 			{ separator: true },
 			{ label: 'Get source access', value: 'purchase' },
 		];
@@ -54,6 +54,7 @@ const menuItems = computed(() => {
 	}
 
 	items.push(
+		{ label: 'My licences', value: 'licences' },
 		{ separator: true },
 		{ label: 'Log out', value: 'logout', tone: 'danger' },
 	);
@@ -61,6 +62,7 @@ const menuItems = computed(() => {
 	return items;
 });
 
+/** Opens the selected account action or ends the active session. */
 async function selectAccountAction(value) {
 	if (value === 'account' || value === 'source-active') return;
 
@@ -69,8 +71,8 @@ async function selectAccountAction(value) {
 		return;
 	}
 
-	if (value === 'sign-up') {
-		await router.push('/auth/sign-up');
+	if (value === 'licences') {
+		await router.push('/licence');
 		return;
 	}
 
@@ -104,8 +106,8 @@ async function selectAccountAction(value) {
 				Sign In
 			</DomButton>
 			<DomButton
-				:as="'router-link'"
-				to="/auth/sign-up"
+				:as="'a'"
+				href="/api/billing/checkout?licence=individual"
 				:size="compact ? 'sm' : 'md'"
 				:aria-label="compact ? 'Get full access' : undefined"
 				:title="compact ? 'Get full access' : undefined"
@@ -150,8 +152,8 @@ async function selectAccountAction(value) {
 		</DomDropdown>
 		<template v-if="needsPurchase">
 			<DomButton
-				:as="'router-link'"
-				to="/auth/sign-up"
+				:as="'a'"
+				href="/api/billing/checkout?licence=individual"
 				:size="compact ? 'sm' : 'md'"
 				:aria-label="compact ? 'Get full access' : undefined"
 				:title="compact ? 'Get full access' : undefined"

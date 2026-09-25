@@ -25,6 +25,7 @@ export async function post(req, res) {
 
 	res.setHeader('Set-Cookie', createSessionCookie({
 		userId: user.id,
+		sessionVersion: user.session_version,
 	}));
 
 	return {

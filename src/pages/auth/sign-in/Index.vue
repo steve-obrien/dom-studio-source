@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import DomStudioLayout from '../../_layout/DomStudioLayout.vue';
 import { DomButton, DomPasswordInput, DomTextInput } from '../../lib/vue';
+import EmailLinkForm from '../../licence/_components/EmailLinkForm.vue';
 import { useAccountStatus } from '../../../composable/useAuth.js';
 
 const route = useRoute();
@@ -15,13 +16,13 @@ const needsPurchase = account.needsPurchase;
 
 const email = ref('');
 const password = ref('');
-const accessCode = ref('');
+const usePassword = ref(false);
 const error = ref('');
 const loading = ref(false);
 
 const returnTo = computed(() => {
 	const value = Array.isArray(route.query.from) ? route.query.from[0] : route.query.from;
-	return value && value.startsWith('/') ? value : '/';
+	return value && value.startsWith('/') && !value.startsWith('//') && !value.includes('\\') ? value : '/licence';
 });
 const licence = computed(() => route.query.licence === 'team' ? 'team' : 'individual');
 const checkoutUrl = computed(() => `/api/billing/checkout?licence=${licence.value}&from=${encodeURIComponent(returnTo.value)}`);
@@ -30,6 +31,7 @@ const continueTo = computed(() => {
 	return returnTo.value;
 });
 
+/** Signs in an existing password account and restores its requested page. */
 async function submit() {
 	error.value = '';
 	loading.value = true;
@@ -38,7 +40,6 @@ async function submit() {
 		await account.signIn({
 			email: email.value,
 			password: password.value,
-			accessCode: accessCode.value,
 		});
 		await router.push(returnTo.value);
 	} catch (err) {
@@ -48,12 +49,14 @@ async function submit() {
 	}
 }
 
+/** Submits the password form once when Enter is pressed in its input. */
 function submitFromPassword(event) {
 	if (loading.value || event.target?.type !== 'password') return;
 	event.preventDefault();
 	submit();
 }
 
+/** Ends the current account session. */
 async function signOut() {
 	await account.signOut();
 }
@@ -112,6 +115,15 @@ async function signOut() {
 					</div>
 				</div>
 
+				<div v-else-if="!usePassword" class="p-6 sm:p-10">
+					<div class="mx-auto max-w-sm">
+						<h2 class="mb-3 text-3xl font-bold tracking-tight">Sign in with your email</h2>
+						<p class="mb-8 text-sm leading-6 text-muted-fg">Bought a licence? Use the email from your Stripe checkout to set up your account or sign in.</p>
+						<EmailLinkForm />
+						<DomButton variant="secondary" class="mt-5 w-full" @click="usePassword = true">Use an existing password</DomButton>
+					</div>
+				</div>
+
 				<form v-else class="p-6 sm:p-10" @submit.prevent="submit" @keydown.enter="submitFromPassword">
 					<div class="mx-auto max-w-sm">
 						<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">Account</p>
@@ -143,8 +155,8 @@ async function signOut() {
 						</div>
 
 						<p class="mt-6 text-center text-sm text-muted-fg">
-							Need an account?
-							<RouterLink class="font-medium text-canvas-fg hover:underline" :to="{ path: '/auth/sign-up', query: { from: returnTo, licence } }">Create one</RouterLink>
+							Prefer a sign-in link?
+							<button type="button" class="font-medium text-canvas-fg hover:underline" @click="usePassword = false">Use email</button>
 						</p>
 					</div>
 				</form>

@@ -8,6 +8,10 @@ import { getBillingOffer } from '../server/lib/billingOffer.js';
 export async function render(url, ssrContext, serverContext = {}) {
 	ssrContext.req = serverContext.req || { headers: {} };
 	ssrContext.res = serverContext.res || {};
+	if (/^\/(?:auth|licence)(?:[/?#]|$)/.test(url)) {
+		ssrContext.res.setHeader?.('Cache-Control', 'no-store');
+		ssrContext.res.setHeader?.('Referrer-Policy', 'no-referrer');
+	}
 
 	const { app, router, pinia } = createDomStudioApp();
 	const auth = await getAuthSession(ssrContext.req);

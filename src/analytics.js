@@ -62,6 +62,7 @@ export function installGoogleAnalytics(router) {
 	analyticsInstalled = true;
 
 	router.afterEach((to) => {
+		if (isPrivateAccountPage(to.path)) disableGoogleAnalytics();
 		trackPageView(to.fullPath, document.title);
 	});
 
@@ -84,7 +85,7 @@ export function installGoogleAnalytics(router) {
  * @returns {void}
  */
 function enableGoogleAnalytics() {
-	if (!isPublicProductionSite()) return;
+	if (!isPublicProductionSite() || isPrivateAccountPage(window.location.pathname)) return;
 	window[`ga-disable-${googleAnalyticsMeasurementId}`] = false;
 	if (googleTagLoaded) {
 		window.gtag('consent', 'update', { analytics_storage: 'granted' });
@@ -132,7 +133,7 @@ function disableGoogleAnalytics() {
  * @returns {void}
  */
 function trackPageView(pagePath, pageTitle) {
-	if (getAnalyticsConsent() !== 'granted' || !isPublicProductionSite()) return;
+	if (isPrivateAccountPage(pagePath) || getAnalyticsConsent() !== 'granted' || !isPublicProductionSite()) return;
 	enableGoogleAnalytics();
 	window.gtag('event', 'page_view', {
 		page_location: window.location.href,
@@ -148,4 +149,14 @@ function trackPageView(pagePath, pageTitle) {
  */
 function isPublicProductionSite() {
 	return window.location.hostname === 'getdom.studio' || window.location.hostname === 'www.getdom.studio';
+}
+
+/**
+ * Excludes purchase and authentication capabilities from analytics collection.
+ *
+ * @param {string} path Browser or router path.
+ * @returns {boolean} Whether the route contains private account or purchase details.
+ */
+function isPrivateAccountPage(path) {
+	return /^\/(?:auth|licence)(?:[/?#]|$)/.test(path);
 }

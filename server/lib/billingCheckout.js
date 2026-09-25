@@ -34,7 +34,7 @@ export function validatePaymentLink(link, offer) {
 		|| price.currency !== 'usd' || price.unit_amount !== amount
 		|| item.amount_subtotal !== amount || link.currency !== 'usd'
 		|| link.metadata?.dom_studio_licence !== offer.licence
-		|| link.allow_promotion_codes || link.optional_items?.length
+		|| link.optional_items?.length
 		|| url.protocol !== 'https:' || url.hostname !== 'buy.stripe.com') {
 		throw new Error('Stripe payment link does not match the advertised DOM Studio offer.');
 	}

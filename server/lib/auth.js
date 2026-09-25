@@ -16,15 +16,22 @@ export async function getAuthSession(req) {
 	if (!session) return { ...defaultSession };
 
 	const user = await findUserById(session.userId);
-	if (!user || user.suspended_at) return { ...defaultSession };
+	if (!user || user.suspended_at || Number(session.sessionVersion || 0) !== Number(user.session_version || 0)) return { ...defaultSession };
 	return serializeUserSession(user);
 }
 
-export function createSessionCookie({ userId } = {}) {
+/**
+ * Issues an account session bound to its credential version so inbox recovery can revoke old sessions.
+ *
+ * @param {{ userId?: string, sessionVersion?: number }} input Verified account identity.
+ * @returns {string} Signed HTTP-only session cookie.
+ */
+export function createSessionCookie({ userId, sessionVersion = 0 } = {}) {
 	const now = Math.floor(Date.now() / 1000);
 	const maxAge = Number(process.env.AUTH_SESSION_MAX_AGE || 60 * 60 * 24 * 30);
 	const payload = {
 		userId: userId || '',
+		sessionVersion: Number(sessionVersion || 0),
 		iat: now,
 		exp: now + maxAge,
 	};
