@@ -127,7 +127,7 @@ export const agentConversationProps = {
 	maxMessageWidth: {
 		type: String,
 		default: '48rem',
-		_edit: { description: 'CSS max-width applied to message bubbles.' },
+		_edit: { description: 'CSS max-width applied to the centered message column and composer.' },
 	},
 };
 </script>
@@ -136,6 +136,10 @@ export const agentConversationProps = {
 import { computed, nextTick, ref, useId, watch } from 'vue';
 import DomIconButton from '../../components/icon-button/DomIconButton.vue';
 import DomTextareaComposer from '../../forms/textarea-composer/DomTextareaComposer.vue';
+import DomToggleButtonGroup from '../../forms/toggle-button-group/DomToggleButtonGroup.vue';
+import DomAvatar from '../../visual/avatar/DomAvatar.vue';
+import DomEmptyState from '../../visual/empty-state/DomEmptyState.vue';
+import DomSkeleton from '../../visual/skeleton/DomSkeleton.vue';
 import DomStatusPill from '../../visual/status-pill/DomStatusPill.vue';
 
 defineOptions({
@@ -181,6 +185,11 @@ const emit = defineEmits([
 	'scroll-bottom',
 ]);
 
+const modeOptions = [
+	{ label: 'Text', value: 'text' },
+	{ label: 'Audio', value: 'audio' },
+];
+
 const scroller = ref(null);
 const isPinnedToBottom = ref(true);
 const titleId = useId();
@@ -192,7 +201,7 @@ const statusTone = computed(() => statusToneFor(props.streaming ? 'streaming' : 
 const visibleMessages = computed(() => props.messages.filter(isVisibleMessage));
 const canSubmit = computed(() => !props.disabled && !props.streaming && props.modelValue.trim().length > 0);
 const composerPlaceholder = computed(() => props.mode === 'audio' ? 'Describe what you want to say, or connect this to speech input...' : props.placeholder);
-const messageWidthStyle = computed(() => ({ maxWidth: props.maxMessageWidth }));
+const columnStyle = computed(() => ({ maxWidth: props.maxMessageWidth }));
 const shouldShowJumpButton = computed(() => !isPinnedToBottom.value && visibleMessages.value.length > 2);
 
 watch(() => props.conversation?.id, async () => {
@@ -352,22 +361,6 @@ function authorName(message) {
 }
 
 /**
- * Resolves the short avatar label for a message.
- *
- * @param {AgentChatMessage} message Message record.
- * @returns {string} Avatar initials.
- */
-function avatarLabel(message) {
-	return authorName(message)
-		.split(/\s+/)
-		.filter(Boolean)
-		.slice(0, 2)
-		.map(firstCharacter)
-		.join('')
-		.toUpperCase() || 'AI';
-}
-
-/**
  * Resolves the timestamp label for a message.
  *
  * @param {AgentChatMessage} message Message record.
@@ -417,19 +410,27 @@ function toolStatusLabel(status) {
 }
 
 /**
- * Returns status indicator classes for a tool card.
+ * Returns the status pill tone for a tool part.
  *
  * @param {string} status Tool status.
- * @returns {string} Token-based class list.
+ * @returns {'neutral'|'info'|'success'|'danger'} Status pill tone.
  */
-function toolStatusClass(status) {
+function toolStatusTone(status) {
 	return {
-		queued: 'border-border bg-secondary text-muted-fg',
-		running: 'border-primary/35 bg-primary/10 text-primary',
-		complete: 'border-success/35 bg-success/10 text-success',
-		error: 'border-destructive/35 bg-destructive/10 text-destructive',
-		cancelled: 'border-border bg-muted text-muted-fg',
-	}[status] || 'border-border bg-secondary text-muted-fg';
+		running: 'info',
+		complete: 'success',
+		error: 'danger',
+	}[status] || 'neutral';
+}
+
+/**
+ * Resolves the avatar image for a message author.
+ *
+ * @param {AgentChatMessage} message Message record.
+ * @returns {string} Avatar URL.
+ */
+function avatarUrl(message) {
+	return (findAgentById(props.agents, message.agentId) || activeAgent.value)?.avatarUrl || '';
 }
 
 /**
@@ -489,139 +490,138 @@ function statusToneFor(status) {
 function trimText(value) {
 	return String(value || '').trim();
 }
-
-/**
- * Returns the first character from a word.
- *
- * @param {string} value Source word.
- * @returns {string} First character.
- */
-function firstCharacter(value) {
-	return value.charAt(0);
-}
 </script>
+
 
 <template>
 	<section
-		class="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-sm"
+		class="flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-canvas text-canvas-fg shadow-sm"
 		:aria-labelledby="titleId"
 	>
-		<header v-if="showHeader" class="flex min-h-16 shrink-0 items-center gap-3 border-b border-border bg-secondary/25 px-3 py-2 sm:px-4">
+		<header v-if="showHeader" class="flex h-14 shrink-0 items-center gap-2 border-b border-border/70 px-3 sm:px-4">
 			<slot name="header-leading" :conversation="conversation" :active-agent="activeAgent" />
 			<div class="min-w-0 flex-1">
 				<div class="flex min-w-0 items-center gap-2">
-					<h2 :id="titleId" class="truncate text-sm font-semibold text-canvas-fg">{{ conversationTitle }}</h2>
-					<DomStatusPill class="hidden sm:inline-flex" size="sm" :tone="statusTone">{{ streaming ? 'Streaming' : (conversation?.status || 'Idle') }}</DomStatusPill>
+					<h2 :id="titleId" class="truncate text-sm font-semibold tracking-tight text-canvas-fg">{{ conversationTitle }}</h2>
+					<DomStatusPill class="hidden shrink-0 capitalize sm:inline-flex" size="sm" :tone="statusTone" :pulse="streaming">{{ streaming ? 'Streaming' : (conversation?.status || 'Idle') }}</DomStatusPill>
 				</div>
-				<p class="mt-0.5 truncate text-xs text-muted-fg">{{ conversationSummary }}</p>
+				<p class="truncate text-xs text-muted-fg">{{ conversationSummary }}</p>
 			</div>
-			<div class="flex shrink-0 items-center gap-1">
-				<button
-					type="button"
-					class="rounded-full px-2.5 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-					:class="mode === 'text' ? 'bg-primary text-primary-fg' : 'text-muted-fg hover:bg-secondary hover:text-canvas-fg'"
-					:aria-pressed="mode === 'text'"
-					@click="setMode('text')"
-				>
-					Text
-				</button>
-				<button
-					type="button"
-					class="rounded-full px-2.5 py-1 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-					:class="mode === 'audio' ? 'bg-primary text-primary-fg' : 'text-muted-fg hover:bg-secondary hover:text-canvas-fg'"
-					:aria-pressed="mode === 'audio'"
-					@click="setMode('audio')"
-				>
-					Audio
-				</button>
+			<div class="flex shrink-0 items-center gap-1.5">
+				<DomToggleButtonGroup
+					:model-value="mode"
+					:options="modeOptions"
+					:chrome="false"
+					label="Input mode"
+					size="sm"
+					variant="switch"
+					@update:model-value="setMode"
+				/>
 				<slot name="header-actions" :conversation="conversation" :active-agent="activeAgent" :streaming="streaming" />
 			</div>
 		</header>
 
 		<div
 			ref="scroller"
-			class="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-5"
+			class="min-h-0 flex-1 overflow-y-auto"
 			@scroll.passive="updateScrollState"
 		>
-			<div v-if="loading" class="mx-auto flex min-h-full max-w-3xl flex-col justify-end gap-3">
-				<div v-for="index in 3" :key="index" class="h-24 animate-pulse rounded-lg border border-border bg-secondary/35"></div>
-			</div>
-
-			<slot v-else-if="!visibleMessages.length" name="empty">
-				<div class="flex min-h-full items-center justify-center">
-					<div class="max-w-sm text-center">
-						<div class="mx-auto grid size-12 place-items-center rounded-full bg-secondary text-muted-fg">
-							<svg viewBox="0 0 24 24" class="size-5" fill="none" aria-hidden="true">
-								<path d="M5 7h14M5 12h10M5 17h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-							</svg>
+			<div class="mx-auto flex min-h-full w-full flex-col px-4 py-6 sm:px-6" :style="columnStyle">
+				<div v-if="loading" class="mt-auto flex flex-col gap-8">
+					<div v-for="index in 2" :key="index" class="flex flex-col gap-8">
+						<DomSkeleton class="ml-auto h-10 w-2/5 rounded-2xl" />
+						<div class="flex gap-3">
+							<DomSkeleton variant="circle" width="2rem" height="2rem" class="shrink-0" />
+							<DomSkeleton class="flex-1" variant="text" :lines="3" />
 						</div>
-						<p class="mt-3 text-sm font-semibold text-canvas-fg">No messages yet</p>
-						<p class="mt-1 text-sm leading-6 text-muted-fg">{{ emptyText }}</p>
 					</div>
 				</div>
-			</slot>
 
-			<div v-else class="mx-auto flex max-w-5xl flex-col gap-5">
-				<article
-					v-for="message in visibleMessages"
-					:key="message.id"
-					class="flex min-w-0 gap-3"
-					:class="isUserMessage(message) ? 'justify-end' : 'justify-start'"
-				>
-					<div v-if="!isUserMessage(message)" class="mt-1 hidden size-8 shrink-0 place-items-center rounded-full border border-border bg-secondary text-xs font-semibold text-muted-fg sm:grid">
-						{{ avatarLabel(message) }}
+				<slot v-else-if="!visibleMessages.length" name="empty">
+					<div class="flex flex-1 items-center justify-center">
+						<DomEmptyState
+							class="w-full max-w-sm border-transparent bg-transparent"
+							size="sm"
+							title="No messages yet"
+							:description="emptyText"
+							icon="M7 8h10M7 12h6m-9 8 2.6-3H18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v14Z"
+						/>
 					</div>
+				</slot>
 
-					<slot name="message" :message="message" :active-agent="activeAgent" :parts="partsForMessage(message)">
-						<div
-							class="min-w-0"
-							:class="isUserMessage(message) ? 'flex justify-end' : 'flex justify-start'"
-							:style="messageWidthStyle"
-						>
+				<div v-else class="flex flex-col gap-7">
+					<article
+						v-for="message in visibleMessages"
+						:key="message.id"
+						class="flex min-w-0 gap-3"
+						:class="isUserMessage(message) ? 'justify-end' : 'justify-start'"
+					>
+						<DomAvatar
+							v-if="!isUserMessage(message)"
+							class="mt-0.5 hidden sm:inline-grid"
+							size="sm"
+							shape="rounded"
+							:src="avatarUrl(message)"
+							:name="authorName(message)"
+						/>
+
+						<slot name="message" :message="message" :active-agent="activeAgent" :parts="partsForMessage(message)">
 							<div
-								class="min-w-0 rounded-lg border px-4 py-3 text-sm leading-6 shadow-sm"
-								:class="isUserMessage(message)
-									? 'border-primary/20 bg-primary text-primary-fg'
-									: 'border-border bg-canvas'"
+								class="flex min-w-0 flex-col"
+								:class="isUserMessage(message) ? 'max-w-[85%] items-end' : 'flex-1'"
 							>
-								<div class="mb-2 flex items-center justify-between gap-3 text-xs" :class="isUserMessage(message) ? 'text-primary-fg/80' : 'text-muted-fg'">
-									<span class="font-semibold">{{ authorName(message) }}</span>
-									<span v-if="messageTime(message)">{{ messageTime(message) }}</span>
+								<div v-if="!isUserMessage(message)" class="mb-1 flex h-6 items-center gap-2 text-xs">
+									<span class="font-semibold text-canvas-fg">{{ authorName(message) }}</span>
+									<span v-if="messageTime(message)" class="text-muted-fg">{{ messageTime(message) }}</span>
 								</div>
 
-								<div class="space-y-3">
+								<div
+									class="min-w-0 space-y-3 text-sm"
+									:class="isUserMessage(message)
+										? 'rounded-2xl rounded-br-md bg-secondary px-4 py-2.5 leading-6 text-secondary-fg'
+										: 'leading-7 text-canvas-fg'"
+								>
 									<template v-for="(part, index) in partsForMessage(message)" :key="part.id || `${message.id}-${index}`">
-										<div v-if="part.type === 'text'" class="space-y-2">
+										<div v-if="part.type === 'text'" class="space-y-3">
 											<p v-for="paragraph in textParagraphs(part.text)" :key="paragraph" class="whitespace-pre-wrap">{{ paragraph }}</p>
 										</div>
 
 										<details
 											v-else-if="part.type === 'reasoning' && showReasoning"
-											class="rounded-md border border-border bg-secondary/35 px-3 py-2"
+											class="group/reasoning"
 											:open="part.open"
 										>
-											<summary class="cursor-pointer text-xs font-semibold text-muted-fg">Reasoning summary</summary>
-											<p class="mt-2 whitespace-pre-wrap text-xs leading-5 text-muted-fg">{{ part.text }}</p>
+											<summary class="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-md text-xs font-medium text-muted-fg transition hover:text-canvas-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
+												<svg viewBox="0 0 24 24" class="size-3.5" fill="none" aria-hidden="true">
+													<path d="M12 3v3m0 12v3M3 12h3m12 0h3M6.3 6.3l2.1 2.1m7.2 7.2 2.1 2.1m0-11.4-2.1 2.1m-7.2 7.2-2.1 2.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+												</svg>
+												Reasoning
+												<svg viewBox="0 0 24 24" class="size-3.5 transition group-open/reasoning:rotate-90" fill="none" aria-hidden="true">
+													<path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+												</svg>
+											</summary>
+											<p class="mt-2 whitespace-pre-wrap border-l-2 border-border pl-3 text-xs leading-5 text-muted-fg">{{ part.text }}</p>
 										</details>
 
-										<div v-else-if="part.type === 'audio'" class="rounded-md border border-border bg-secondary/35 p-3">
-											<div class="flex items-center gap-3">
-												<div class="grid size-8 place-items-center rounded-full bg-primary/10 text-primary">
-													<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
-														<path d="M12 5v14M7 9v6M17 9v6M4 11v2M20 11v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-													</svg>
+										<div v-else-if="part.type === 'audio'" class="flex items-center gap-3 rounded-xl bg-secondary/70 p-2.5 pr-4 text-secondary-fg">
+											<span class="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-primary-fg">
+												<svg viewBox="0 0 24 24" class="size-4" fill="none" aria-hidden="true">
+													<path d="M12 4a3 3 0 0 0-3 3v5a3 3 0 1 0 6 0V7a3 3 0 0 0-3-3Zm-6 8a6 6 0 0 0 12 0m-6 6v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+												</svg>
+											</span>
+											<div class="min-w-0 flex-1">
+												<p class="text-xs font-medium">{{ part.label || 'Audio message' }}</p>
+												<div class="mt-1 flex h-5 items-center gap-0.5" aria-hidden="true">
+													<span v-for="bar in 28" :key="bar" class="w-0.5 rounded-full bg-current opacity-40" :style="{ height: `${4 + ((bar * 7) % 16)}px` }"></span>
 												</div>
-												<div class="min-w-0 flex-1">
-													<p class="text-xs font-semibold text-canvas-fg">{{ part.label || 'Audio message' }}</p>
-													<div class="mt-2 flex h-6 items-end gap-1" aria-hidden="true">
-														<span v-for="bar in 18" :key="bar" class="w-1 rounded-full bg-primary/45" :style="{ height: `${8 + ((bar * 7) % 18)}px` }"></span>
-													</div>
-												</div>
+												<p v-if="part.text" class="mt-1 text-xs leading-5 text-muted-fg">{{ part.text }}</p>
 											</div>
-											<p v-if="part.text" class="mt-2 text-xs leading-5 text-muted-fg">{{ part.text }}</p>
 										</div>
 
-										<div v-else-if="part.type === 'tool-call' || part.type === 'tool-result'" class="rounded-md border border-border bg-secondary/25 p-3">
+										<div
+											v-else-if="part.type === 'tool-call' || part.type === 'tool-result'"
+											class="overflow-hidden rounded-xl border border-border bg-canvas text-canvas-fg shadow-xs"
+										>
 											<slot
 												name="tool"
 												:tool="part"
@@ -637,50 +637,59 @@ function firstCharacter(value) {
 													:result="part.result"
 													@action="emitToolAction($event, part, message)"
 												/>
-												<div v-else class="space-y-3">
-													<div class="flex items-start justify-between gap-3">
-														<div class="min-w-0">
-															<p class="truncate text-sm font-semibold text-canvas-fg">{{ part.label || part.name || 'Tool call' }}</p>
-															<p class="mt-0.5 text-xs text-muted-fg">{{ part.name || 'tool' }}</p>
-														</div>
-														<span class="shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium" :class="toolStatusClass(part.status)">
-															{{ toolStatusLabel(part.status) }}
+												<details v-else class="group/tool">
+													<summary class="flex cursor-pointer list-none items-center gap-3 px-3 py-2.5 transition hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
+														<span class="grid size-7 shrink-0 place-items-center rounded-lg bg-secondary text-muted-fg">
+															<svg viewBox="0 0 24 24" class="size-3.5" fill="none" aria-hidden="true">
+																<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L4 16.8V20h3.2l5.3-5.3a4 4 0 0 0 5.2-5.4l-2.5 2.5-2.3-.7-.7-2.3 2.5-2.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+															</svg>
 														</span>
-													</div>
-													<div class="grid gap-3 md:grid-cols-2">
-														<div>
-															<p class="mb-1 text-[11px] font-semibold uppercase text-muted-fg">Arguments</p>
-															<pre class="max-h-40 overflow-auto rounded-md border border-border bg-canvas p-2 text-xs leading-5 text-muted-fg">{{ formatJson(part.args) }}</pre>
+														<span class="min-w-0 flex-1">
+															<span class="block truncate text-sm font-medium leading-5">{{ part.label || part.name || 'Tool call' }}</span>
+															<span class="block truncate font-mono text-[11px] leading-4 text-muted-fg">{{ part.name || 'tool' }}</span>
+														</span>
+														<DomStatusPill class="shrink-0" size="sm" :tone="toolStatusTone(part.status)" :pulse="part.status === 'running'">{{ toolStatusLabel(part.status) }}</DomStatusPill>
+														<svg viewBox="0 0 24 24" class="size-4 shrink-0 text-muted-fg transition group-open/tool:rotate-90" fill="none" aria-hidden="true">
+															<path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+														</svg>
+													</summary>
+													<div class="grid gap-3 border-t border-border bg-secondary/30 p-3 md:grid-cols-2">
+														<div class="min-w-0">
+															<p class="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-fg">Arguments</p>
+															<pre class="max-h-40 overflow-auto rounded-lg bg-canvas p-2.5 font-mono text-xs leading-5 text-muted-fg ring-1 ring-border">{{ formatJson(part.args) }}</pre>
 														</div>
-														<div>
-															<p class="mb-1 text-[11px] font-semibold uppercase text-muted-fg">Result</p>
-															<pre class="max-h-40 overflow-auto rounded-md border border-border bg-canvas p-2 text-xs leading-5 text-muted-fg">{{ formatJson(part.result) }}</pre>
+														<div class="min-w-0">
+															<p class="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-fg">Result</p>
+															<pre class="max-h-40 overflow-auto rounded-lg bg-canvas p-2.5 font-mono text-xs leading-5 text-muted-fg ring-1 ring-border">{{ formatJson(part.result) }}</pre>
 														</div>
 													</div>
-												</div>
+												</details>
 											</slot>
 										</div>
 
-										<div v-else-if="part.type === 'handoff'" class="rounded-md border border-warning/35 bg-warning/10 p-3 text-warning">
-											<p class="text-xs font-semibold">{{ part.label || 'Agent handoff' }}</p>
-											<p class="mt-1 text-xs leading-5">{{ part.text }}</p>
+										<div v-else-if="part.type === 'handoff'" class="flex gap-2.5 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2.5">
+											<svg viewBox="0 0 24 24" class="mt-0.5 size-4 shrink-0 text-warning" fill="none" aria-hidden="true">
+												<path d="M7 7h11m0 0-3-3m3 3-3 3M17 17H6m0 0 3-3m-3 3 3 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+											</svg>
+											<div class="min-w-0">
+												<p class="text-xs font-semibold text-canvas-fg">{{ part.label || 'Agent handoff' }}</p>
+												<p class="mt-0.5 text-xs leading-5 text-muted-fg">{{ part.text }}</p>
+											</div>
 										</div>
 									</template>
 
-									<div v-if="isStreamingMessage(message)" class="flex items-center gap-1.5 pt-1 text-muted-fg" aria-label="Assistant is typing">
+									<div v-if="isStreamingMessage(message)" class="flex h-6 items-center gap-1 text-muted-fg" role="status" aria-label="Assistant is typing">
 										<span class="size-1.5 animate-pulse rounded-full bg-current"></span>
-										<span class="size-1.5 animate-pulse rounded-full bg-current [animation-delay:120ms]"></span>
-										<span class="size-1.5 animate-pulse rounded-full bg-current [animation-delay:240ms]"></span>
+										<span class="size-1.5 animate-pulse rounded-full bg-current [animation-delay:150ms]"></span>
+										<span class="size-1.5 animate-pulse rounded-full bg-current [animation-delay:300ms]"></span>
 									</div>
 								</div>
-							</div>
-						</div>
-					</slot>
 
-					<div v-if="isUserMessage(message)" class="mt-1 hidden size-8 shrink-0 place-items-center rounded-full border border-primary/25 bg-primary/10 text-xs font-semibold text-primary sm:grid">
-						{{ avatarLabel(message) }}
-					</div>
-				</article>
+								<span v-if="isUserMessage(message) && messageTime(message)" class="mt-1 px-1 text-[11px] text-muted-fg">{{ messageTime(message) }}</span>
+							</div>
+						</slot>
+					</article>
+				</div>
 			</div>
 		</div>
 
@@ -695,16 +704,16 @@ function firstCharacter(value) {
 			/>
 		</div>
 
-		<footer v-if="showFooter" class="shrink-0 border-t border-border bg-canvas p-3">
+		<footer v-if="showFooter" class="relative shrink-0 px-3 pb-3 sm:px-4 sm:pb-4 before:pointer-events-none before:absolute before:inset-x-0 before:bottom-full before:h-6 before:bg-linear-to-t before:from-canvas before:to-transparent">
 			<slot name="footer" :value="modelValue" :mode="mode" :submit="submitComposer" :set-mode="setMode">
-				<div>
+				<div class="mx-auto w-full [--skin-input-shadow:var(--shadow-md)] [&_.skin-input]:rounded-2xl" :style="columnStyle">
 					<DomTextareaComposer
 						:model-value="modelValue"
 						:placeholder="composerPlaceholder"
 						:disabled="disabled || streaming"
 						:submit-disabled="!canSubmit"
 						:show-submit="!streaming"
-						:rows="2"
+						:rows="1"
 						:max-rows="8"
 						:chrome="false"
 						@update:model-value="updateComposer"
@@ -727,9 +736,9 @@ function firstCharacter(value) {
 							/>
 						</template>
 					</DomTextareaComposer>
-					<div class="mt-2 flex items-center justify-between gap-2 px-1 text-[11px] text-muted-fg">
-						<span>{{ mode === 'audio' ? 'Audio handoff ready' : 'Enter to send, Shift + Enter for a new line' }}</span>
-						<span v-if="activeAgent">{{ activeAgent.model }}</span>
+					<div class="mt-2 flex items-center justify-between gap-2 px-2 text-[11px] text-muted-fg">
+						<span class="hidden truncate sm:inline">{{ mode === 'audio' ? 'Audio handoff ready' : 'Enter to send · Shift + Enter for a new line' }}</span>
+						<span v-if="activeAgent?.model" class="ml-auto shrink-0 whitespace-nowrap font-mono">{{ activeAgent.model }}</span>
 					</div>
 				</div>
 			</slot>

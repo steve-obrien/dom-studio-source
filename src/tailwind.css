@@ -109,7 +109,7 @@
 	}
 
 	.skin-control {
-		background-color: var(--skin-control-bg, var(--secondary));
+		background-color: var(--skin-control-bg, var(--canvas));
 		background-image: var(--skin-control-bg-image, none);
 		border-color: var(--skin-control-border, var(--border));
 		border-style: var(--skin-control-border-style, solid);

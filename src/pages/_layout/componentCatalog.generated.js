@@ -1778,7 +1778,7 @@ export const componentCatalog = [
 			},
 			"name": "Agent conversation list",
 			"tag": "<DomAgentConversationList>",
-			"description": "A reusable AI conversation navigation list with search, agent labels, unread counts, status pills, and active-thread selection.",
+			"description": "A reusable AI conversation navigation list with search, agent labels, unread counts, status indicators, and active-thread selection.",
 			"icon": "M5 6h14M5 12h14M5 18h8",
 			"events": [
 				{

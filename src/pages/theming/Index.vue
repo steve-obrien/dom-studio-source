@@ -336,7 +336,7 @@ const skinTokenDefaults = {
 		bgImage: 'none',
 	},
 	control: {
-		bg: 'var(--secondary)',
+		bg: 'var(--canvas)',
 		fg: 'var(--secondary-fg)',
 		border: 'var(--border)',
 		borderWidth: '1px',
@@ -1243,7 +1243,7 @@ function createLocalSkins(prompt = '') {
 		},
 		control: {
 			...skinTokenDefaults.control,
-			bg: glass ? 'color-mix(in oklch, var(--secondary) 70%, transparent)' : 'var(--secondary)',
+			bg: glass ? 'color-mix(in oklch, var(--canvas) 70%, transparent)' : skinTokenDefaults.control.bg,
 			border: softBorder,
 			shadow: flat ? 'none' : 'var(--shadow-xs)',
 			backdrop: glass ? 'blur(12px) saturate(1.1)' : 'none',

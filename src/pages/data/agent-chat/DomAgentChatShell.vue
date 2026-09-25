@@ -103,6 +103,8 @@ export const agentChatShellProps = {
 import { computed, useId } from 'vue';
 import DomIconButton from '../../components/icon-button/DomIconButton.vue';
 import DomSplitterPanel from '../../components/splitter-panel/DomSplitterPanel.vue';
+import DomAvatar from '../../visual/avatar/DomAvatar.vue';
+import DomBadge from '../../visual/badge/DomBadge.vue';
 import DomStatusPill from '../../visual/status-pill/DomStatusPill.vue';
 import DomAgentConversation from './DomAgentConversation.vue';
 import DomAgentConversationList from './DomAgentConversationList.vue';
@@ -364,7 +366,7 @@ function conversationStatusTone() {
 <template>
 	<section
 		:id="shellId"
-		class="h-full min-h-0 w-full min-w-0 overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-sm"
+		class="h-full min-h-0 w-full min-w-0 overflow-hidden rounded-xl border border-border bg-canvas text-canvas-fg shadow-sm"
 		:aria-label="title"
 	>
 		<div class="hidden h-full min-h-0 md:block">
@@ -376,7 +378,7 @@ function conversationStatusTone() {
 				:min-main="minConversation"
 				:min-end="asideMinimum"
 				:handle-size="8"
-				handle-class="transition hover:bg-border/70 data-[dragging=true]:bg-ring/30"
+				handle-class="relative before:pointer-events-none before:absolute before:inset-y-0 before:left-1/2 before:w-px before:-translate-x-1/2 before:bg-border/70 before:transition hover:before:bg-ring/60 data-[dragging=true]:before:bg-ring"
 				@update:start-size="updateSidebarSize"
 				@update:end-size="updateAsideSize"
 			>
@@ -440,70 +442,67 @@ function conversationStatusTone() {
 				<template v-if="asideOpen" #end>
 					<slot name="aside" :conversation="conversation" :active-agent="activeAgent" :tool-parts="toolParts">
 						<aside class="flex h-full min-h-0 flex-col bg-canvas">
-							<header class="shrink-0 border-b border-border bg-secondary/25 p-4">
-								<div class="flex items-start justify-between gap-3">
+							<header class="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border/70 px-4">
+								<div class="flex min-w-0 items-center gap-2.5">
+									<DomAvatar size="sm" shape="rounded" :src="activeAgent?.avatarUrl || ''" :name="activeAgentLabel()" />
 									<div class="min-w-0">
-										<p class="text-xs font-semibold uppercase text-muted-fg">Agent context</p>
-										<h2 class="mt-1 truncate text-sm font-semibold text-canvas-fg">{{ activeAgentLabel() }}</h2>
+										<h2 class="truncate text-sm font-semibold tracking-tight text-canvas-fg">{{ activeAgentLabel() }}</h2>
+										<p class="truncate font-mono text-[11px] text-muted-fg">{{ activeModelLabel() }}</p>
 									</div>
-									<DomIconButton label="Close context panel" size="sm" variant="ghost" icon="M6 6l12 12M18 6 6 18" @click="setAsideOpen(false)" />
 								</div>
+								<DomIconButton label="Close context panel" size="sm" variant="ghost" icon="M6 6l12 12M18 6 6 18" @click="setAsideOpen(false)" />
 							</header>
-							<div class="min-h-0 flex-1 overflow-y-auto p-4">
-								<div class="rounded-lg border border-border bg-secondary/25 p-4">
-									<p class="text-xs font-semibold text-muted-fg">Runtime</p>
-									<p class="mt-1 text-sm font-semibold text-canvas-fg">{{ activeModelLabel() }}</p>
-									<p class="mt-2 text-sm leading-6 text-muted-fg">{{ activeAgent?.role || 'Connect an agent to show instructions, tools, and memory context here.' }}</p>
-								</div>
-
-								<div class="mt-4 rounded-lg border border-border p-4">
-									<div class="flex items-center justify-between gap-3">
-										<p class="text-xs font-semibold uppercase text-muted-fg">Conversation</p>
-										<DomStatusPill size="sm" :tone="conversationStatusTone()">{{ streaming ? 'streaming' : (conversation?.status || 'idle') }}</DomStatusPill>
-									</div>
-									<dl class="mt-3 grid grid-cols-2 gap-3 text-sm">
-										<div>
-											<dt class="text-xs text-muted-fg">Messages</dt>
-											<dd class="font-semibold text-canvas-fg">{{ messages.length }}</dd>
+							<div class="min-h-0 flex-1 divide-y divide-border/70 overflow-y-auto">
+								<section class="p-4">
+									<p class="text-sm leading-6 text-muted-fg">{{ activeAgent?.role || 'Connect an agent to show instructions, tools, and memory context here.' }}</p>
+									<dl class="mt-4 grid grid-cols-3 gap-2">
+										<div class="rounded-lg bg-secondary/60 px-3 py-2">
+											<dt class="text-[11px] text-muted-fg">Status</dt>
+											<dd class="mt-1">
+												<DomStatusPill class="capitalize" size="sm" :tone="conversationStatusTone()" :pulse="streaming">{{ streaming ? 'streaming' : (conversation?.status || 'idle') }}</DomStatusPill>
+											</dd>
 										</div>
-										<div>
-											<dt class="text-xs text-muted-fg">Tools</dt>
-											<dd class="font-semibold text-canvas-fg">{{ toolParts.length }}</dd>
+										<div class="rounded-lg bg-secondary/60 px-3 py-2">
+											<dt class="text-[11px] text-muted-fg">Messages</dt>
+											<dd class="mt-0.5 text-base font-semibold tabular-nums text-canvas-fg">{{ messages.length }}</dd>
+										</div>
+										<div class="rounded-lg bg-secondary/60 px-3 py-2">
+											<dt class="text-[11px] text-muted-fg">Tools</dt>
+											<dd class="mt-0.5 text-base font-semibold tabular-nums text-canvas-fg">{{ toolParts.length }}</dd>
 										</div>
 									</dl>
-								</div>
+								</section>
 
-								<div class="mt-4 rounded-lg border border-border p-4">
-									<p class="text-xs font-semibold uppercase text-muted-fg">Tool calls</p>
-									<div v-if="toolParts.length" class="mt-3 space-y-2">
-										<div
+								<section class="p-4">
+									<h3 class="text-xs font-medium uppercase tracking-wide text-muted-fg">Tool calls</h3>
+									<ul v-if="toolParts.length" class="mt-2 -mx-2">
+										<li
 											v-for="tool in toolParts"
 											:key="`${tool.messageId}-${tool.id || tool.name}`"
-											class="rounded-md border border-border bg-secondary/25 p-3"
+											class="flex items-center gap-3 rounded-lg px-2 py-2 transition hover:bg-secondary/50"
 										>
-											<div class="flex items-start justify-between gap-2">
-												<p class="min-w-0 truncate text-sm font-semibold text-canvas-fg">{{ tool.label || tool.name }}</p>
-												<span class="shrink-0 text-xs text-muted-fg">{{ tool.status || 'ready' }}</span>
-											</div>
-											<p class="mt-1 truncate text-xs text-muted-fg">{{ tool.name }}</p>
-										</div>
-									</div>
-									<p v-else class="mt-3 text-sm leading-6 text-muted-fg">Tool activity appears here as the agent works.</p>
-								</div>
+											<span class="grid size-7 shrink-0 place-items-center rounded-lg bg-secondary text-muted-fg">
+												<svg viewBox="0 0 24 24" class="size-3.5" fill="none" aria-hidden="true">
+													<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L4 16.8V20h3.2l5.3-5.3a4 4 0 0 0 5.2-5.4l-2.5 2.5-2.3-.7-.7-2.3 2.5-2.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+												</svg>
+											</span>
+											<span class="min-w-0 flex-1">
+												<span class="block truncate text-sm font-medium text-canvas-fg">{{ tool.label || tool.name }}</span>
+												<span class="block truncate font-mono text-[11px] text-muted-fg">{{ tool.name }}</span>
+											</span>
+											<span class="shrink-0 text-xs capitalize text-muted-fg">{{ tool.status || 'ready' }}</span>
+										</li>
+									</ul>
+									<p v-else class="mt-2 text-sm leading-6 text-muted-fg">Tool activity appears here as the agent works.</p>
+								</section>
 
-								<div class="mt-4 rounded-lg border border-border p-4">
-									<p class="text-xs font-semibold uppercase text-muted-fg">Available tools</p>
-									<div v-if="activeAgent?.tools?.length" class="mt-3 flex flex-wrap gap-2">
-										<span
-											v-for="tool in activeAgent.tools"
-											:key="tool"
-											class="rounded-full border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-muted-fg"
-										>
-											{{ tool }}
-										</span>
+								<section class="p-4">
+									<h3 class="text-xs font-medium uppercase tracking-wide text-muted-fg">Available tools</h3>
+									<div v-if="activeAgent?.tools?.length" class="mt-3 flex flex-wrap gap-1.5">
+										<DomBadge v-for="tool in activeAgent.tools" :key="tool" class="font-mono" size="sm">{{ tool }}</DomBadge>
 									</div>
-									<p v-else class="mt-3 text-sm leading-6 text-muted-fg">No tool manifest supplied.</p>
-								</div>
+									<p v-else class="mt-2 text-sm leading-6 text-muted-fg">No tool manifest supplied.</p>
+								</section>
 							</div>
 						</aside>
 					</slot>

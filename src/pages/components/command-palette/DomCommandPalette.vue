@@ -439,11 +439,16 @@ function matchesShortcut(event, shortcut) {
 .command-panel-blur {
 	--skin-overlay-bg: var(
 		--dom-command-palette-background,
-		color-mix(in oklch, var(--canvas) 82%, transparent)
+		color-mix(in oklch, var(--canvas) 68%, transparent)
 	);
 	--skin-overlay-backdrop: var(
 		--dom-command-palette-backdrop,
 		blur(20px) saturate(1.12)
+	);
+	--skin-overlay-shadow: var(
+		--dom-command-palette-shadow,
+		0 40px 100px -24px rgb(15 23 42 / 0.3),
+		0 16px 40px -20px rgb(15 23 42 / 0.2)
 	);
 }
 

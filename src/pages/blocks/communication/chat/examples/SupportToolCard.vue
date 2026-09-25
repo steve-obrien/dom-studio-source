@@ -26,7 +26,7 @@ function retryTool() {
 </script>
 
 <template>
-	<div class="space-y-3">
+	<div class="space-y-3 p-3">
 		<div class="flex items-start justify-between gap-3">
 			<div class="min-w-0">
 				<p class="truncate text-sm font-semibold text-canvas-fg">{{ tool.label || tool.name }}</p>
