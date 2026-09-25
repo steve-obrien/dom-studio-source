@@ -5,6 +5,7 @@ import DomStudioLayout from '../_layout/DomStudioLayout.vue';
 import { DomButton } from '../lib/vue';
 import { useAuth } from '../../composable/useAuth.js';
 import { useBillingOffer } from '../../composable/useBillingOffer.js';
+import { formatBillingPrice } from '../../../shared/billing.js';
 
 const route = useRoute();
 const { isAuthenticated, user } = useAuth();
@@ -45,15 +46,16 @@ const checkoutHref = computed(() => `/api/billing/checkout?licence=individual&fr
 
 			<div class="rounded-3xl border border-border bg-secondary/40 p-6 shadow-2xl shadow-black/10">
 				<div class="rounded-2xl border border-border bg-canvas p-5">
-					<div class="flex items-center justify-between gap-4 border-b border-border pb-4">
+					<div class="flex flex-col gap-4 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
 						<div>
 							<p class="text-sm font-semibold text-canvas-fg">Individual licence</p>
-							<p class="mt-1 text-sm text-muted-fg">Lifetime DOM Studio v1 access</p>
+							<p class="mt-1 text-sm text-muted-fg">Use forever. All v1 updates included.</p>
 						</div>
-						<div class="text-right">
-							<p v-if="hasIndividualPromotion" class="text-sm font-semibold text-muted-fg line-through">£{{ individual.originalPrice }}</p>
-							<p class="text-3xl font-bold tracking-tight text-canvas-fg">£{{ individualPrice }}</p>
+						<div class="sm:text-right">
+							<p class="text-3xl font-bold tracking-tight text-canvas-fg">{{ formatBillingPrice(individualPrice) }}</p>
+							<p class="mt-1 text-xs text-muted-fg">USD · One-time payment</p>
 							<p v-if="individual.offerLabel" class="mt-1 text-xs font-semibold uppercase tracking-wider text-success">{{ individual.offerLabel }}</p>
+							<p v-if="hasIndividualPromotion" class="mt-1 text-xs text-muted-fg">Regular price: {{ formatBillingPrice(individual.originalPrice) }} USD</p>
 						</div>
 					</div>
 					<ul class="mt-5 space-y-3 text-sm text-muted-fg">
@@ -70,6 +72,7 @@ const checkoutHref = computed(() => `/api/billing/checkout?licence=individual&fr
 							<span>Copy, import, or vendor the workspace into your product.</span>
 						</li>
 					</ul>
+					<p class="mt-5 text-xs text-muted-fg">Unlimited personal, commercial, and client projects for one developer. Future major upgrades are optional.</p>
 				</div>
 			</div>
 		</section>

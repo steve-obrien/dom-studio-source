@@ -1,38 +1,17 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import dotenv from 'dotenv';
+import Stripe from 'stripe';
 import { getAuthSession } from '../../lib/auth.js';
 import { getOfferForLicence, normalizeLicence } from '../../lib/billingOffer.js';
+import { getPaymentLinkId, validatePaymentLink } from '../../lib/billingCheckout.js';
 
-const paymentLinkKeys = [
-	'STRIPE_PAYMENT_LINK',
-	'VITE_STRIPE_PAYMENT_LINK',
-];
-
-const licencePaymentLinkKeys = {
-	individual: [
-		'STRIPE_INDIVIDUAL_PAYMENT_LINK',
-		'STRIPE_PAYMENT_LINK',
-		'VITE_STRIPE_PAYMENT_LINK',
-	],
-	team: [
-		'STRIPE_TEAM_PAYMENT_LINK',
-		'STRIPE_PAYMENT_LINK',
-		'VITE_STRIPE_PAYMENT_LINK',
-	],
-};
-
+/**
+ * Sends an authenticated buyer to a verified USD payment link for their licence.
+ *
+ * @param {import('express').Request} req Incoming checkout request.
+ * @param {import('express').Response} res HTTP response.
+ * @returns {Promise<object|undefined>} Safe error response, or a checkout redirect.
+ */
 export async function get(req, res) {
 	const licence = normalizeLicence(req.query?.licence);
-	const paymentLink = getPaymentLink(licence);
-
-	if (!paymentLink) {
-		res.status(503);
-		return {
-			error: 'Stripe payment link is not configured yet.',
-		};
-	}
-
 	const auth = await getAuthSession(req);
 	if (!auth.isAuthenticated || !auth.user?.id) {
 		const from = typeof req.query?.from === 'string' ? req.query.from : '/paywall';
@@ -40,32 +19,24 @@ export async function get(req, res) {
 		return;
 	}
 
-	const checkoutUrl = new URL(paymentLink);
 	const offer = getOfferForLicence(licence);
-	checkoutUrl.searchParams.set('client_reference_id', `${auth.user.id}_${licence}`);
-	if (auth.user.email) checkoutUrl.searchParams.set('prefilled_email', auth.user.email);
-	if (offer.promotionCode) checkoutUrl.searchParams.set('prefilled_promo_code', offer.promotionCode);
-
-	res.redirect(checkoutUrl.toString());
-}
-
-function getPaymentLink(licence = 'individual') {
-	const keys = licencePaymentLinkKeys[licence] || paymentLinkKeys;
-
-	for (const key of keys) {
-		if (process.env[key]) return process.env[key];
+	const paymentLinkId = getPaymentLinkId(offer);
+	const apiKey = process.env.STRIPE_SECRET_KEY;
+	if (!paymentLinkId || !apiKey) {
+		res.status(503);
+		return { error: 'Checkout is temporarily unavailable. Please try again shortly.' };
 	}
 
-	const parsed = readDotEnv();
-	for (const key of keys) {
-		if (parsed[key]) return parsed[key];
+	try {
+		const stripe = new Stripe(apiKey, { maxNetworkRetries: 1, timeout: 10000 });
+		const link = await stripe.paymentLinks.retrieve(paymentLinkId, { expand: ['line_items'] });
+		const checkoutUrl = validatePaymentLink(link, offer);
+		checkoutUrl.searchParams.set('client_reference_id', `${auth.user.id}_${licence}`);
+		if (auth.user.email) checkoutUrl.searchParams.set('prefilled_email', auth.user.email);
+		res.redirect(checkoutUrl.toString());
+	} catch (error) {
+		console.error('DOM Studio checkout unavailable', { licence, code: error.code || 'payment_link_mismatch' });
+		res.status(503);
+		return { error: 'Checkout is temporarily unavailable. Please try again shortly.' };
 	}
-
-	return '';
-}
-
-function readDotEnv() {
-	const envPath = path.join(process.cwd(), '.env');
-	if (!fs.existsSync(envPath)) return {};
-	return dotenv.parse(fs.readFileSync(envPath));
 }

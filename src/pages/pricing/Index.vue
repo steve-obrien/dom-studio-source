@@ -4,18 +4,19 @@ import DomStudioLayout from '../_layout/DomStudioLayout.vue';
 import CodeBlock from '../_layout/CodeBlock.vue';
 import { DomButton, DomAccordion } from '../lib/vue';
 import { useBillingOffer } from '../../composable/useBillingOffer.js';
+import { formatBillingPrice } from '../../../shared/billing.js';
 
 const { hasIndividualPromotion, hasTeamPromotion, individual, individualPrice, team, teamPrice } = useBillingOffer();
 
 const licences = computed(() => [
 	{
 		name: 'Individual',
-		tagline: 'For one maker building with DOM Studio in their own products.',
+		tagline: 'For one developer building their own products and client projects.',
 		price: individualPrice.value,
 		originalPrice: individual.value.originalPrice,
 		hasPromotion: hasIndividualPromotion.value,
 		offerLabel: individual.value.offerLabel,
-		priceSuffix: 'one-time · lifetime v1 access',
+		priceSuffix: 'Use forever · All v1 updates included',
 		cta: 'Get individual access',
 		ctaTo: '/api/billing/checkout?licence=individual',
 		ctaExternal: true,
@@ -26,18 +27,18 @@ const licences = computed(() => [
 			'Private source repo and downloadable releases',
 			'Copy, import, or vendor with git subtree',
 			'Portable docs for your own app components',
-			'Use in your own personal and commercial products',
-			'Lifetime access to DOM Studio v1 releases',
+			'Unlimited personal, commercial, and client projects',
+			'Perpetual use with all v1 updates included',
 		],
 	},
 	{
 		name: 'Team',
-		tagline: 'For a company or client-facing team shipping one editable UI system.',
+		tagline: 'For a company sharing one editable UI system across its team.',
 		price: teamPrice.value,
 		originalPrice: team.value.originalPrice,
 		hasPromotion: hasTeamPromotion.value,
 		offerLabel: team.value.offerLabel,
-		priceSuffix: 'one-time · lifetime v1 access · team licence',
+		priceSuffix: 'Use forever · All v1 updates included',
 		cta: 'Get team access',
 		ctaTo: '/api/billing/checkout?licence=team',
 		ctaExternal: true,
@@ -48,7 +49,7 @@ const licences = computed(() => [
 			'Client-project licence for customer codebases',
 			'App blocks for admin, billing, settings, and onboarding',
 			'Private examples and implementation notes',
-			'Architecture review for your component workflow',
+			'Employees and contractors working for your company',
 		],
 	},
 ]);
@@ -72,8 +73,11 @@ const faqs = [
 	{ title: 'Do I have to use DOM Studio as a dependency?', content: 'No. Import mode is there when it is convenient. Copy mode and git subtree mode are there when you want to own and edit the code inside your app.' },
 	{ title: 'Can I package the docs with my own app?', content: 'That is the plan. The docs engine is designed to discover your copied components and examples, so each app can carry its own living component library without setting up Storybook.' },
 	{ title: 'Can I change the theme?', content: 'Yes. Theme values are CSS variables and component styles are designed to be copied into your project. The host app owns the final tokens, not the package.' },
-	{ title: 'Is this really lifetime?', content: 'Individual and Team licences are one-time purchases with lifetime access to DOM Studio v1 releases. Future major versions may be sold separately, with upgrade pricing for existing customers.' },
-	{ title: 'How does the team licence work?', content: 'Team includes unlimited seats inside your organisation and the right to ship DOM Studio source into client codebases as part of paid project work.' },
+	{ title: 'What does perpetual use include?', content: 'Pay once and use the versions you receive forever. All v1 updates are included. Future major upgrades are optional and may be sold separately; you can keep using your existing version without paying again.' },
+	{ title: 'Can I use Individual for client work?', content: 'Yes. One named developer can use Individual for unlimited personal, commercial, and bespoke client projects. Clients can receive and maintain their finished product, but need their own licence to reuse DOM Studio in other products. Choose Team when multiple developers need to use the component library.' },
+	{ title: 'How does the team licence work?', content: 'Team includes unlimited seats inside one organisation, including employees and contractors working on its behalf. It covers your own products and bespoke client projects.' },
+	{ title: 'Are architecture reviews included?', content: 'Architecture reviews and consulting are separate services, scoped and priced independently of the software licence.' },
+	{ title: 'What happens to existing purchases?', content: 'Existing purchases, including the £1 introductory offer, keep their purchased access. Any additional rights or services promised with your original purchase remain included.' },
 ];
 
 const comparisonRows = [
@@ -83,8 +87,7 @@ const comparisonRows = [
 	{ feature: 'Portable docs engine', individual: true, team: true },
 	{ feature: 'Use in your own products', individual: true, team: true },
 	{ feature: 'Unlimited team seats', individual: false, team: true },
-	{ feature: 'Client-project licence', individual: false, team: true },
-	{ feature: 'Architecture review', individual: false, team: true },
+	{ feature: 'Client-project licence', individual: true, team: true },
 ];
 
 const generatedSource = [
@@ -121,7 +124,7 @@ const generatedSource = [
 			</p>
 			<div class="mt-6 inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-4 py-1.5 text-xs font-medium uppercase tracking-wider text-muted-fg">
 				<span class="size-1.5 rounded-full bg-success"></span>
-				One-time payment · Lifetime v1 access · No subscription
+				One-time payment · Perpetual use · No subscription
 			</div>
 		</section>
 
@@ -132,18 +135,19 @@ const generatedSource = [
 				class="relative flex flex-col rounded-3xl border bg-canvas p-7 transition"
 				:class="t.highlight ? 'border-primary shadow-2xl shadow-black/10 ring-1 ring-ring/10' : 'border-border'"
 			>
-				<span v-if="t.highlight" class="absolute -top-3 left-7 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary-fg">Most popular</span>
+				<span v-if="t.highlight" class="absolute -top-3 left-7 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary-fg">For solo developers</span>
 				<div>
 					<p class="text-sm font-semibold tracking-tight text-canvas-fg">{{ t.name }}</p>
 					<p class="mt-1 text-sm text-muted-fg">{{ t.tagline }}</p>
 				</div>
 				<div class="mt-6 flex items-baseline gap-1">
-					<span v-if="t.hasPromotion" class="mr-2 text-2xl font-semibold tracking-tight text-muted-fg line-through">£{{ t.originalPrice }}</span>
-					<span class="text-5xl font-bold tracking-tight text-canvas-fg">£{{ t.price }}</span>
-					<span class="text-sm text-muted-fg">once</span>
+					<span class="text-5xl font-bold tracking-tight text-canvas-fg">{{ formatBillingPrice(t.price) }}</span>
+					<span class="text-sm text-muted-fg">USD · once</span>
 				</div>
 				<p v-if="t.offerLabel" class="mt-2 text-xs font-semibold uppercase tracking-wider text-success">{{ t.offerLabel }}</p>
+				<p v-if="t.hasPromotion" class="mt-1 text-sm text-muted-fg">Regular price: {{ formatBillingPrice(t.originalPrice) }} USD</p>
 				<p v-if="t.priceSuffix" class="mt-1 text-xs font-medium uppercase tracking-wider text-muted-fg">{{ t.priceSuffix }}</p>
+				<p class="mt-2 text-xs text-muted-fg">Future major upgrades are optional.</p>
 				<ul class="mt-6 space-y-2.5 text-sm">
 					<li v-for="f in t.features" :key="f" class="flex items-start gap-2 text-muted-fg">
 						<svg viewBox="0 0 20 20" class="mt-0.5 size-4 shrink-0" fill="none">
@@ -248,8 +252,8 @@ const generatedSource = [
 				<h2 class="text-3xl font-bold tracking-tight text-canvas-fg">Own, edit, and ship your UI system.</h2>
 				<p class="mt-3 text-muted-fg">Buy once for DOM Studio v1 access. Copy components into your app, vendor the workspace with git subtree, and keep the living docs close to the code.</p>
 				<div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-					<DomButton :as="'a'" href="/api/billing/checkout?licence=individual" size="lg">Individual - £{{ individualPrice }} once</DomButton>
-					<DomButton :as="'a'" href="/api/billing/checkout?licence=team" variant="secondary" size="lg">Team - £{{ teamPrice }} once</DomButton>
+					<DomButton :as="'a'" href="/api/billing/checkout?licence=individual" size="lg">Individual - {{ formatBillingPrice(individualPrice) }} USD once</DomButton>
+					<DomButton :as="'a'" href="/api/billing/checkout?licence=team" variant="secondary" size="lg">Team - {{ formatBillingPrice(teamPrice) }} USD once</DomButton>
 				</div>
 				<p class="mt-4 text-xs text-muted-fg">14-day refund. No subscription required.</p>
 			</div>

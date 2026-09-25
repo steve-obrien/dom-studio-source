@@ -73,7 +73,7 @@ async function signOut() {
 					</div>
 					<div class="rounded-2xl border border-primary-fg/15 bg-primary-fg/10 p-4">
 						<p class="text-sm font-medium">Pay once, Own forever.</p>
-						<p class="mt-1 text-sm text-primary-fg/70">Lifetime access and updates</p>
+						<p class="mt-1 text-sm text-primary-fg/70">Perpetual use. All v1 updates included.</p>
 					</div>
 				</div>
 

@@ -28,11 +28,14 @@ the order confirmation.
 An Individual licence permits one named individual to:
 
 - use and modify the Software in unlimited personal or commercial products owned by that individual;
+- incorporate the Software into bespoke products created for that individual's clients;
 - deploy and distribute those products to end users; and
 - maintain those products for their end users.
 
-The Individual licence does not permit sharing the Software or paid source
-access with colleagues, employees, contractors, or clients.
+The Individual licence covers one named developer. It does not permit sharing
+the component library or paid source access with colleagues, employees, or
+contractors. A client may receive the Software as part of a bespoke end product
+under the client-delivery terms below.
 
 ### Team
 
@@ -44,9 +47,14 @@ A Team licence permits the purchasing legal entity to:
 - incorporate the Software into bespoke products created for its clients.
 
 Contractors may use the Software only while working on behalf of the purchasing
-entity and must not retain or reuse it for unrelated work. A client may receive
-the Software only as part of a bespoke end product and may not extract or reuse
-it as a standalone component library unless the client obtains its own licence.
+entity and must not retain or reuse it for unrelated work.
+
+### Client delivery
+
+Under either commercial licence, a client may receive the Software only as part
+of a bespoke end product. The client may operate and maintain that end product,
+but may not extract or reuse the Software as a standalone component library or
+in another product unless the client obtains its own licence.
 
 ## Permitted modifications and distribution
 
@@ -69,10 +77,16 @@ You must not:
 
 ## Updates
 
-A purchase described as "lifetime v1 access" includes releases published under
-major version 1 while DOM Studio makes them available. It does not include a
-right to future major versions, hosted services, consulting, or support unless
-the order confirmation says otherwise.
+A commercial licence permits perpetual use of the versions obtained under it,
+subject to the terms of this licence. Included updates cover releases published
+under major version 1 while DOM Studio makes them available. Future major
+upgrades are optional and may be sold separately; declining an upgrade does not
+end the right to use the versions already obtained.
+
+Hosted services, architecture reviews, consulting, and support are not included
+unless the order confirmation says otherwise. Existing purchases, including
+introductory £1 purchases and purchases described as "lifetime v1 access", retain
+their purchased access and any additional rights or services promised at purchase.
 
 ## Ownership
 

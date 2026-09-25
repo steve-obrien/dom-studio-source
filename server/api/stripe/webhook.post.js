@@ -1,11 +1,19 @@
 import Stripe from 'stripe';
 import { getDb } from '../../lib/db.js';
-import { markUserPaid, normalizeLicenceType } from '../../lib/users.js';
+import { markUserPaid } from '../../lib/users.js';
+import { getCheckoutReference } from '../../lib/billingCheckout.js';
 
 export const config = {
 	body: 'raw',
 };
 
+/**
+ * Verifies Stripe events and fulfils completed or subsequently settled purchases.
+ *
+ * @param {import('express').Request} req Raw webhook request.
+ * @param {import('express').Response} res HTTP response.
+ * @returns {Promise<object>} Webhook acknowledgement or safe verification error.
+ */
 export async function post(req, res) {
 	const secret = process.env.STRIPE_WEBHOOK_SECRET || '';
 	const apiKey = process.env.STRIPE_SECRET_KEY || '';
@@ -29,15 +37,22 @@ export async function post(req, res) {
 		return { error: `Webhook signature failed: ${error.message}` };
 	}
 
-	if (event.type === 'checkout.session.completed') {
+	if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
 		await fulfillCheckoutSession(event.data.object, event.id);
 	}
 
 	return { received: true };
 }
 
+/**
+ * Records the purchase idempotently and grants access only after payment clears.
+ *
+ * @param {object} session Verified Stripe Checkout Session.
+ * @param {string} eventId Stripe event ID for reconciliation.
+ * @returns {Promise<void>}
+ */
 async function fulfillCheckoutSession(session, eventId) {
-	const reference = parseClientReference(session.client_reference_id);
+	const reference = getCheckoutReference(session);
 	const userId = reference.userId;
 	if (!userId) return;
 
@@ -71,20 +86,12 @@ async function fulfillCheckoutSession(session, eventId) {
 	}
 }
 
-function parseClientReference(value) {
-	const reference = String(value || '');
-	const separator = reference.includes(':')
-		? reference.indexOf(':')
-		: reference.lastIndexOf('_');
-	const userId = separator > 0 ? reference.slice(0, separator) : reference;
-	const licenceType = separator > 0 ? reference.slice(separator + 1) : 'individual';
-
-	return {
-		userId,
-		licenceType: normalizeLicenceType(licenceType),
-	};
-}
-
+/**
+ * Extracts an ID from either form of an expandable Stripe reference.
+ *
+ * @param {string|object|null} value Stripe reference.
+ * @returns {string} Reference ID or an empty string.
+ */
 function stringifyStripeId(value) {
 	if (!value) return '';
 	if (typeof value === 'string') return value;
