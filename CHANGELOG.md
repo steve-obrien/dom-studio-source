@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.2.2 - 2026-09-26
+
+More flexible calendar highlights, refined agent chat, and updated website
+licensing flows.
+
+### Added
+
+- `DomMonthCalendar` now accepts `todayIndicator="both"` to show the cell outline
+  and date circle together. `todayDateClass` customises the circle in either
+  `circle` or `both` mode, with matching TypeScript declarations and an interactive
+  example.
+- Website support for account-optional licence checkout, downloadable purchase
+  confirmations, and email-verified licence claiming. Checkout requires configured
+  transactional email delivery.
+
+### Improved
+
+- Agent chat uses a shared centred width for messages and the composer, compact
+  conversation rows with avatars and unread counts, expandable tool details,
+  and clearer loading, empty, streaming, and agent-context displays.
+- Default control backgrounds use the canvas colour. The command palette has
+  updated translucency and theme-aware shadows.
+- The homepage includes interactive workspace, agent-chat, analytics, and designer
+  demos. Website pricing and checkout use consistent USD licence offers.
+
+### Fixed
+
+- Calendar date numbers keep consistent spacing across all today-indicator modes,
+  and week numbers align with dates in the desktop grid.
+- Website checkout validates the configured price and licence before redirecting
+  to payment. Delayed payment handling and repeat webhook processing preserve
+  the recorded licence and its fulfilment state.
+
+### Upgrade notes
+
+- Existing calendar indicator values remain supported; `cell` is still the default.
+- `DomAgentConversation.maxMessageWidth` now controls the centred message column
+  and composer together. Review custom conversation layouts after upgrading.
+- Applications that supply their own theme can set `--skin-control-bg` to retain
+  a different control background.
+
 ## 0.2.1 - 2026-09-21
 
 Vue Router 5 support and a public home for DOM Studio release notes.

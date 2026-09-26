@@ -14,6 +14,8 @@
 	--dom-month-calendar-row-rail-direction: row;
 	--dom-month-calendar-row-rail-justify: space-between;
 	--dom-month-calendar-row-rail-min-height: 2.5rem;
+	--dom-month-calendar-row-rail-padding: 0.5rem;
+	--dom-month-calendar-week-number-order: 0;
 	--dom-month-calendar-week-columns: minmax(0, 1fr);
 }
 
@@ -33,6 +35,8 @@
 		--dom-month-calendar-row-rail-direction: column;
 		--dom-month-calendar-row-rail-justify: flex-start;
 		--dom-month-calendar-row-rail-min-height: 11rem;
+		--dom-month-calendar-row-rail-padding: 0.75rem;
+		--dom-month-calendar-week-number-order: -1;
 		--dom-month-calendar-week-columns: var(--dom-month-calendar-wide-week-columns);
 		--dom-month-calendar-wide-border-left-width: 1px;
 		--dom-month-calendar-wide-border-top-width: 0;

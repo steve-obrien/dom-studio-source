@@ -1,11 +1,17 @@
 <script setup>
 import { ref } from 'vue';
-import { DomMonthCalendar, DomToggle } from '../../../lib/vue';
+import { DomMonthCalendar, DomNativeSelect, DomToggle } from '../../../lib/vue';
 
 const stickyDayHeaders = ref(true);
 const stickyMonthHeaders = ref(true);
 const showDayNames = ref(false);
-const circleToday = ref(true);
+const todayIndicator = ref('both');
+const todayIndicatorOptions = [
+	{ value: 'cell', label: 'Cell outline' },
+	{ value: 'circle', label: 'Date circle' },
+	{ value: 'both', label: 'Cell outline and date circle' },
+	{ value: 'none', label: 'None' },
+];
 const continuous = ref(false);
 </script>
 
@@ -15,17 +21,18 @@ const continuous = ref(false);
 			<DomToggle v-model="stickyDayHeaders" label="Sticky weekday headers" />
 			<DomToggle v-model="stickyMonthHeaders" label="Sticky month titles" />
 			<DomToggle v-model="showDayNames" label="Weekday names in cells" />
-			<DomToggle v-model="circleToday" label="Circle around today" />
 			<DomToggle v-model="continuous" label="Continuous calendar" />
 		</div>
-		<p class="text-sm text-muted-fg">Scroll the schedule to keep the headers in view. Today has a coloured date circle.</p>
+		<DomNativeSelect v-model="todayIndicator" label="Today indicator" :options="todayIndicatorOptions" :placeholder="''" class="max-w-xs" />
+		<p class="text-sm text-muted-fg">Scroll the schedule to keep the headers in view. Choose a cell outline, a coloured date circle, or both to highlight today.</p>
 		<div class="max-h-[36rem] overflow-auto overscroll-contain rounded-2xl border border-border px-4 pb-4" data-testid="sticky-calendar-scrollport">
 			<DomMonthCalendar
 				:months="3"
+				show-week-numbers
 				:sticky-day-headers="stickyDayHeaders"
 				:sticky-month-headers="stickyMonthHeaders"
 				:show-day-names="showDayNames"
-				:today-indicator="circleToday ? 'circle' : 'cell'"
+				:today-indicator="todayIndicator"
 				today-date-class="bg-destructive text-destructive-fg"
 				:continuous="continuous"
 				:contained-continuous-scroll="false"

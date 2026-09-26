@@ -2644,11 +2644,11 @@ export interface DomMonthCalendarProps {
 	 */
 	showDayNames?: boolean;
 	/**
-	 * Highlight today with a cell outline, a coloured circle behind the date, or no visual indicator.
+	 * Highlight today with a cell outline, a coloured circle behind the date, both, or no visual indicator.
 	 */
-	todayIndicator?: "cell" | "circle" | "none";
+	todayIndicator?: "cell" | "circle" | "both" | "none";
 	/**
-	 * Classes for today’s date circle. Replaces the default primary background and foreground colours when todayIndicator is circle.
+	 * Classes for today’s date circle. Replaces the default primary background and foreground colours when todayIndicator is circle or both.
 	 */
 	todayDateClass?: string | Array<unknown> | Record<string, unknown> | ((...args: Array<unknown>) => unknown);
 	/**

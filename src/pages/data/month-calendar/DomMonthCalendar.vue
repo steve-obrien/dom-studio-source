@@ -264,8 +264,8 @@ export const monthCalendarProps = {
 		 * @param {string} value Requested indicator style.
 		 * @returns {boolean} Whether the indicator is supported.
 		 */
-		validator: (value) => ['cell', 'circle', 'none'].includes(value),
-		_edit: { group: 'Styling', options: ['cell', 'circle', 'none'], description: 'Highlight today with a cell outline, a coloured circle behind the date, or no visual indicator.' },
+		validator: (value) => ['cell', 'circle', 'both', 'none'].includes(value),
+		_edit: { group: 'Styling', options: ['cell', 'circle', 'both', 'none'], description: 'Highlight today with a cell outline, a coloured circle behind the date, both, or no visual indicator.' },
 	},
 	/**
 	 * @type {MonthCalendarDayClass}
@@ -273,7 +273,7 @@ export const monthCalendarProps = {
 	todayDateClass: {
 		type: [String, Array, Object, Function],
 		default: 'bg-primary text-primary-fg',
-		_edit: { group: 'Styling', description: 'Classes for today’s date circle. Replaces the default primary background and foreground colours when todayIndicator is circle.' },
+		_edit: { group: 'Styling', description: 'Classes for today’s date circle. Replaces the default primary background and foreground colours when todayIndicator is circle or both.' },
 	},
 	/**
 	 * @type {MonthCalendarDayClass}
@@ -1632,7 +1632,7 @@ function onDayClick(cell, event) {
 							v-if="hasRowRail"
 							role="rowheader"
 							:aria-label="rowHeaderLabelFor(week)"
-							class="dom-month-calendar__row-rail flex gap-3 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-fg"
+							class="dom-month-calendar__row-rail flex gap-3 px-3 py-[var(--dom-month-calendar-row-rail-padding)] text-xs font-semibold uppercase tracking-wide text-muted-fg"
 							:class="[
 								week.index > 0 && 'border-t border-border',
 								section.continuous ? 'bg-canvas' : 'bg-secondary/35',
@@ -1648,7 +1648,7 @@ function onDayClick(cell, event) {
 									{{ label }}
 								</span>
 							</div>
-							<span v-if="showWeekNumbers" class="text-base leading-none tabular-nums">{{ week.weekNumber }}</span>
+							<span v-if="showWeekNumbers" class="order-[var(--dom-month-calendar-week-number-order)] inline-flex size-7 shrink-0 items-center justify-center text-base leading-none tabular-nums">{{ week.weekNumber }}</span>
 						</div>
 						<component
 							:is="clickable ? 'button' : 'div'"
@@ -1681,7 +1681,7 @@ function onDayClick(cell, event) {
 								clickable && !cell.disabled && hoverableDays && 'hover:bg-secondary/50',
 								clickable && cell.disabled && 'cursor-not-allowed opacity-55',
 								!clickable && 'cursor-default',
-								cell.today && !cell.hidden && todayIndicator === 'cell' && 'ring-2 ring-inset ring-ring/40',
+								cell.today && !cell.hidden && (todayIndicator === 'cell' || todayIndicator === 'both') && 'ring-2 ring-inset ring-ring/40',
 								dayClassFor(cell),
 								dragAndDrop && dragState.active && canDropOnCell(cell) && !isDropTarget(cell) && 'bg-primary/5',
 								dragAndDrop && isDropTarget(cell) && 'bg-primary/10 ring-2 ring-inset ring-ring/60',
@@ -1698,10 +1698,9 @@ function onDayClick(cell, event) {
 							<template v-if="!cell.hidden">
 								<div class="flex items-center justify-between gap-2">
 									<span
-										class="text-base font-bold leading-none tabular-nums"
+										class="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-base font-bold leading-none tabular-nums"
 										:class="[
-											todayIndicator === 'circle' && 'inline-flex size-7 shrink-0 items-center justify-center rounded-full',
-											cell.today && todayIndicator === 'circle' && resolveDayClass(todayDateClass, cell),
+											cell.today && (todayIndicator === 'circle' || todayIndicator === 'both') && resolveDayClass(todayDateClass, cell),
 										]"
 									>{{ cell.day }}</span>
 									<span v-if="showDayNames" class="text-base lowercase leading-none tabular-nums">{{ cell.weekday }}</span>
