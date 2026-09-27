@@ -130,7 +130,7 @@ export class DomDropdownElement extends DomElementBase {
 			if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
 				e.preventDefault();
 				const position = e.key === 'ArrowUp' ? 'last' : 'preferred';
-				if (this._open || isPopoverOpen(this._menu)) {
+				if (this._open) {
 					this._focusMenuStart(position, true);
 					return;
 				}
@@ -363,9 +363,10 @@ export class DomDropdownElement extends DomElementBase {
 		this._syncOpen(next, false);
 	}
 
+	/** Toggle logical state, including while a previous close animation is finishing. */
 	toggle() {
 		if (!this._ensureMenu()) return;
-		this._syncOpen(!isPopoverOpen(this._menu), false);
+		this._syncOpen(!this._open, false);
 	}
 
 	_select(el, ev) {

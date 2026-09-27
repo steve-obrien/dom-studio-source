@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.2.3 - 2026-09-27
+
+Searchable Google Fonts previews, shared paginated option lists, and more reliable
+selection controls.
+
+### Added
+
+- `DomFontPicker` with searchable family previews, incremental browsing and a
+  lightweight snapshot of 1,946 Google Fonts families. Font files are not bundled;
+  the mounted picker requests only selected and visible preview families, with
+  text subsetting and component-owned stylesheet cleanup.
+- Multiple selection in `DomSelect`, with an array model, checked options and a
+  clear-all action. Selected labels are retained when searches replace remote pages.
+- Shared incremental loading for Select, Combobox, Autocomplete and Tag combobox,
+  using `hasMore` and `load-more` for scroll, keyboard and explicit-button paging.
+  Documentation includes real HTTP examples with retry and stale-request handling.
+- Query and selected-state slot data for custom option rendering, plus a matched-text
+  highlighting example that keeps HTML-like labels as plain text.
+
+### Improved
+
+- Opening a picker shows the loaded choices without treating its committed value
+  as a permanent search filter. Selected checkmarks remain distinct from keyboard
+  navigation, and loaded single selections open in context.
+- Select and Tag combobox documentation explains compact multi-selection versus
+  removable tokens, optional custom entries and paste support, alongside their
+  shared option, field-state and paging foundations.
+- Public TypeScript declarations cover the font picker, multiple selection,
+  retained selected records and paginated option lists.
+
+### Fixed
+
+- Dropdowns reopen reliably while an earlier close animation finishes, and late
+  option updates no longer reopen a dismissed combobox or autocomplete.
+- Selected options remain visible and checked in combobox and tag suggestions.
+  Disabled and read-only controls do not commit selections through their action buttons.
+- Select keeps its arrow at the right edge and centers the clear button to its
+  left. Long selections truncate within narrow containers, and clearing returns
+  keyboard focus to the trigger.
+
+### Upgrade notes
+
+- Single-select models remain scalar values. Use an array model when enabling
+  `multiple`; Tag combobox continues to use an array of selected values.
+- For server-filtered lists, set `filterOptions` to false and handle `query` and
+  `load-more` in the application. Supply `selectedOptions` for initial selected
+  records outside the loaded page. Seeking directly to a later remote page remains
+  application-owned; controls do not fetch or paginate an endpoint themselves.
+- Google Fonts previews need no API key. Applications own loading the selected
+  font for content outside the picker. A live Developer API catalogue should be
+  fetched and cached server-side or at build time, with its key kept out of client code.
+
 ## 0.2.2 - 2026-09-26
 
 More flexible calendar highlights, refined agent chat, and updated website

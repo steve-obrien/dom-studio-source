@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { DomSelect } from '@getdom/studio/vue';
 
-const selectedContact = ref('aisha-adams');
+const selectedContact = ref('maya-martin');
 const contactGroups = [
 	{ letter: 'A', names: ['Aisha Adams', 'Alina Alvarez'] },
 	{ letter: 'B', names: ['Benjamin Brooks', 'Bianca Bennett'] },
@@ -92,7 +92,7 @@ function contactValue(name) {
 		<DomSelect
 			v-model="selectedContact"
 			label="Contact"
-			description="Scroll through the directory to test the alphabetical sticky headings."
+			description="Opens near Maya in the middle of the directory. Search remains empty until you type."
 			:options="contacts"
 			searchable
 			search-placeholder="Search contacts..."

@@ -2,6 +2,9 @@
 import { computed, nextTick, onMounted, ref, shallowRef, useId, watch } from 'vue';
 import { resolveFloatingTeleportTarget } from '../../lib/vue/floatingTeleportTarget.js';
 import { booleanProp, normalizeOption, searchableText } from '../_shared/options.js';
+import DomOptionStatus from '../_shared/DomOptionStatus.vue';
+import { useOptionPaging } from '../_shared/useOptionPaging.js';
+import { useSelectedOptions } from '../_shared/useSelectedOptions.js';
 import DomField from '../field/DomField.vue';
 import { fieldProps } from '../field/fieldProps.js';
 import { useField } from '../field/useField.js';
@@ -16,13 +19,18 @@ defineOptions({
 		tag: '<DomSelect>',
 		description: 'A styled select control with a closed trigger, floating listbox, keyboard navigation, and rich option slots.',
 		slots: [
-			{ name: 'value', payload: '{ option, value, label, placeholder }', description: 'Custom selected-value markup inside the trigger.' },
-			{ name: 'option', payload: '{ option, index, selected, optionId }', description: 'Custom option markup inside the floating list. optionId identifies the focusable option button for external floating UI.' },
+			{ name: 'value', payload: '{ option, options, value, label, placeholder }', description: 'Custom selected-value markup inside the trigger. options contains all selected records in multiple mode.' },
+			{ name: 'option', payload: '{ option, index, selected, query, optionId }', description: 'Custom option markup with the transient query for safe text highlighting. optionId identifies the focusable row.' },
 			{ name: 'group', payload: '{ group, options, index }', description: 'Custom heading markup for options that share a group.' },
 		],
 		events: [
-			{ name: 'update:modelValue', payload: '(value: string)', description: 'Emitted when the selected option changes.' },
+			{ name: 'update:modelValue', payload: 'string | number | Array<string | number>', description: 'Emitted with one committed value or an array in multiple mode.' },
 			{ name: 'select', payload: '({ option, value, label })', description: 'Emitted with the selected option record.' },
+			{ name: 'query', payload: 'string', description: 'Emitted on open with an empty query and as the user types in the separate search input.' },
+			{ name: 'load-more', payload: '{ query }', description: 'Request another page when hasMore is true. The application owns cursors, requests, errors and appending options.' },
+			{ name: 'list-scroll', payload: 'Event', description: 'Scroll event for optional visibility-based previews.' },
+			{ name: 'open', description: 'Emitted when the panel opens.' },
+			{ name: 'close', description: 'Emitted when the panel closes.' },
 		],
 		keyboard: [
 			{ keys: 'Enter / Space / ↓', action: 'Open the listbox.' },
@@ -37,7 +45,7 @@ defineOptions({
 const props = defineProps({
 	...fieldProps,
 	modelValue: {
-		type: [String, Number],
+		type: [String, Number, Array],
 		default: '',
 		_edit: { group: 'Control props', description: 'Selected option value.' },
 	},
@@ -98,35 +106,50 @@ const props = defineProps({
 		default: 'Search options...',
 		_edit: { group: 'Control props', description: 'Placeholder shown inside the panel search input.' },
 	},
+	multiple: { type: [Boolean, String], default: false, _edit: { description: 'Toggle multiple values without closing the panel. Use an array v-model.' } },
+	filterOptions: { type: [Boolean, String], default: true, _edit: { description: 'Disable local filtering for server-ranked options.' } },
+	loading: { type: [Boolean, String], default: false },
+	hasMore: { type: [Boolean, String], default: false },
+	selectedOptions: { type: Array, default: () => [], _edit: { description: 'Resolved records for initial values outside the currently loaded server page.' } },
+	clearable: { type: [Boolean, String], default: false },
 });
-const emit = defineEmits(['update:modelValue', 'select', 'focus', 'blur']);
+const emit = defineEmits(['update:modelValue', 'select', 'query', 'load-more', 'list-scroll', 'open', 'close', 'focus', 'blur']);
 
 const root = ref(null);
 const listbox = ref(null);
 const searchInput = ref(null);
 const searchQuery = ref('');
+const isOpen = ref(false);
 const isMounted = ref(false);
 const teleportTarget = shallowRef(null);
 const field = useField(props, emit, { idPrefix: 'dom-select' });
 const isSearchable = computed(() => booleanProp(props.searchable, false));
+const isMultiple = computed(() => booleanProp(props.multiple));
+const isLoading = computed(() => booleanProp(props.loading));
+const hasMoreOptions = computed(() => booleanProp(props.hasMore));
+const filterLocally = computed(() => booleanProp(props.filterOptions, true));
 
 const optionList = computed(() => props.options.map((option) => normalizeOption(option, {
-	stringifyValue: true,
 	allowEmptyValue: true,
 })).filter(Boolean));
 const filteredOptions = computed(() => {
-	if (!isSearchable.value) return optionList.value;
+	if (!isSearchable.value || !filterLocally.value) return optionList.value;
 	const needle = searchQuery.value.trim().toLowerCase();
 	if (!needle) return optionList.value;
 	return optionList.value.filter((option) => searchableText(option).includes(needle));
 });
 const optionSections = computed(buildOptionSections);
 const hasOptionGroups = computed(() => optionSections.value.some((section) => section.group));
-const selectedOption = computed(() => optionList.value.find((option) => String(option.value) === String(field.value.value)) || null);
-const selectedLabel = computed(() => selectedOption.value?.label ?? '');
-const selectedValue = computed(() => String(field.value.value ?? ''));
+const selectedValues = computed(() => isMultiple.value ? (Array.isArray(field.value.value) ? field.value.value : []) : [field.value.value ?? '']);
+const selectedKeys = computed(() => new Set(selectedValues.value.map(String)));
+const selectedItems = useSelectedOptions(optionList, selectedValues, () => props.selectedOptions);
+const selectedOption = computed(() => selectedItems.value[0] && (selectedItems.value[0].value !== '' || optionList.value.some((option) => option.value === '')) ? selectedItems.value[0] : null);
+const selectedLabel = computed(() => selectedItems.value.map((option) => option.label).join(', '));
+const selectedValue = computed(() => isMultiple.value ? JSON.stringify(selectedValues.value.map(String)) : String(field.value.value ?? ''));
+const paging = useOptionPaging(props, emit, { list: listbox, options: filteredOptions, query: searchQuery, open: isOpen });
 const triggerClasses = computed(() => [
-	'skin-input flex h-auto min-h-10 cursor-pointer items-center justify-between gap-3 py-2 pr-3 text-left',
+	'skin-input relative flex h-auto min-h-10 cursor-pointer items-center py-2 text-left',
+	booleanProp(props.clearable) && selectedLabel.value ? 'pr-18' : 'pr-10',
 	(field.disabled.value || field.readOnly.value) && 'cursor-not-allowed opacity-60',
 	field.invalid.value && 'border-destructive focus:border-destructive focus:ring-destructive/25',
 ]);
@@ -205,7 +228,8 @@ onMounted(async () => {
 	]);
 	listbox.value?.addEventListener('dom:select', onSelect);
 	root.value?.addEventListener('dom:open', onOpen);
-	root.value?.addEventListener('dom:close', resetSearch);
+	root.value?.addEventListener('dom:close', onClose);
+	listbox.value?.addEventListener('dom:load-more', () => paging.requestMore());
 });
 
 watch(selectedValue, () => {
@@ -223,15 +247,19 @@ watch(isSearchable, () => {
  */
 function onSelect(event) {
 	if (field.disabled.value || field.readOnly.value) return;
-	const value = event.detail.value;
-	const option = optionList.value.find((item) => String(item.value) === String(value)) || null;
-	field.onInput(value);
+	const option = optionList.value.find((item) => String(item.value) === String(event.detail.value)) || null;
+	if (!option || option.disabled) return;
+	const value = option.value;
+	const nextValue = isMultiple.value
+		? selectedKeys.value.has(String(value)) ? selectedValues.value.filter((item) => String(item) !== String(value)) : [...selectedValues.value, value]
+		: value;
+	field.onInput(nextValue);
 	emit('select', {
 		option,
 		value,
 		label: option?.label ?? value,
 	});
-	close();
+	if (!isMultiple.value) close();
 }
 
 /**
@@ -240,9 +268,49 @@ function onSelect(event) {
  * @returns {void}
  */
 function onOpen() {
+	isOpen.value = true;
 	resetSearch();
-	if (!isSearchable.value) return;
-	nextTick(() => searchInput.value?.focus());
+	emit('query', '');
+	emit('open');
+	nextTick(() => {
+		if (isSearchable.value) searchInput.value?.focus({ preventScroll: true });
+		const selected = listbox.value?.querySelector('[aria-selected="true"]');
+		if (!isMultiple.value && selected && listbox.value) {
+			const row = selected.getBoundingClientRect();
+			const viewport = listbox.value.getBoundingClientRect();
+			// Enter animations scale the panel; scrollTop uses untransformed CSS pixels.
+			const scale = viewport.height / listbox.value.offsetHeight || 1;
+			listbox.value.scrollTop += (row.top - viewport.top) / scale - (listbox.value.clientHeight - selected.offsetHeight) / 2;
+		} else if (listbox.value) listbox.value.scrollTop = 0;
+	});
+}
+
+/** Reset only transient search on close, without launching another server request. */
+function onClose() {
+	isOpen.value = false;
+	resetSearch();
+	emit('close');
+}
+
+/**
+ * Clear committed values while preserving the single/multiple value contract.
+ * Restore focus to the persistent trigger when the clear button disappears.
+ *
+ * @returns {void}
+ */
+function clearSelection() {
+	if (field.disabled.value || field.readOnly.value) return;
+	const value = isMultiple.value ? [] : '';
+	field.onInput(value);
+	emit('select', { option: null, value, label: '' });
+	close();
+	nextTick(() => root.value?.querySelector('[slot="trigger"]')?.focus({ preventScroll: true }));
+}
+
+/** Forward intentional typing and reset the result viewport for the new query. */
+function onQuery() {
+	if (listbox.value) listbox.value.scrollTop = 0;
+	emit('query', searchQuery.value);
 }
 
 /**
@@ -313,7 +381,7 @@ function onSearchKeydown(event) {
 	if (event.key === 'Enter') {
 		event.preventDefault();
 		event.stopPropagation();
-		selectOption(filteredOptions.value[0]);
+		selectOption(filteredOptions.value.find((option) => !option.disabled));
 		return;
 	}
 	if (event.key === 'Home' || event.key === 'End') {
@@ -323,12 +391,14 @@ function onSearchKeydown(event) {
 </script>
 
 <template>
-	<DomField v-bind="field.fieldAttrs.value" :chrome="chrome">
+	<DomField v-bind="field.fieldAttrs.value" :chrome="chrome" class="min-w-0">
 		<input
-			v-if="field.htmlName.value"
+			v-for="(value, index) in (isMultiple ? selectedValues : [field.value.value ?? ''])"
+			:key="index"
 			type="hidden"
 			:name="field.htmlName.value"
-			:value="field.value.value ?? ''"
+			:value="value"
+			:disabled="field.disabled.value"
 		/>
 		<dom-dropdown
 			ref="root"
@@ -358,7 +428,8 @@ function onSearchKeydown(event) {
 					<slot
 						name="value"
 						:option="selectedOption"
-						:value="selectedValue"
+						:options="selectedItems"
+						:value="field.value.value"
 						:label="selectedLabel"
 						:placeholder="placeholder"
 					>
@@ -367,8 +438,21 @@ function onSearchKeydown(event) {
 						</span>
 					</slot>
 				</span>
-				<svg viewBox="0 0 20 20" class="size-4 shrink-0 text-muted-fg" fill="none" aria-hidden="true">
+				<svg viewBox="0 0 20 20" class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-fg" fill="none" aria-hidden="true">
 					<path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+				</svg>
+			</button>
+			<button
+				v-if="booleanProp(clearable) && selectedLabel"
+				type="button"
+				aria-label="Clear selection"
+				class="absolute right-9 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-muted-fg hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
+				:disabled="field.disabled.value || field.readOnly.value"
+				@click.stop="clearSelection"
+				@mousedown.prevent
+			>
+				<svg viewBox="0 0 20 20" class="size-4" fill="none" aria-hidden="true">
+					<path d="M6 6l8 8M14 6l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
 				</svg>
 			</button>
 			<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
@@ -394,12 +478,17 @@ function onSearchKeydown(event) {
 							@focus="field.onFocus"
 							@blur="field.onBlur"
 							@keydown="onSearchKeydown"
+							@input="onQuery"
 						/>
 					</div>
 					<dom-listbox
 						:id="listId"
 						ref="listbox"
 						:value="selectedValue"
+						:multiple="isMultiple ? '' : null"
+						:has-more="hasMoreOptions ? '' : null"
+						:aria-busy="isLoading"
+						@scroll="paging.onScroll"
 						class="min-h-0 overflow-auto"
 						:class="hasOptionGroups ? 'px-1 pb-1' : 'p-1'"
 					>
@@ -431,6 +520,7 @@ function onSearchKeydown(event) {
 								role="option"
 								type="button"
 								:data-value="entry.option.value"
+								:aria-selected="selectedKeys.has(String(entry.option.value))"
 								:disabled="entry.option.disabled || undefined"
 								class="dom-select-option flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm text-canvas-fg outline-none transition disabled:cursor-not-allowed disabled:opacity-50"
 							>
@@ -439,7 +529,8 @@ function onSearchKeydown(event) {
 										name="option"
 										:option="entry.option"
 										:index="entry.index"
-										:selected="String(entry.option.value) === selectedValue"
+										:selected="selectedKeys.has(String(entry.option.value))"
+										:query="searchQuery"
 										:option-id="`${listId}-option-${entry.index}`"
 									>
 										<span class="block font-medium">{{ entry.option.label }}</span>
@@ -447,7 +538,7 @@ function onSearchKeydown(event) {
 									</slot>
 								</span>
 								<svg
-									v-if="String(entry.option.value) === selectedValue"
+									v-if="selectedKeys.has(String(entry.option.value))"
 									viewBox="0 0 20 20"
 									class="size-4 shrink-0"
 									fill="none"
@@ -457,9 +548,7 @@ function onSearchKeydown(event) {
 								</svg>
 							</button>
 						</div>
-						<div v-if="isSearchable && !filteredOptions.length" class="px-3 py-6 text-center text-sm text-muted-fg">
-							No options found
-						</div>
+						<DomOptionStatus :loading="isLoading" :has-more="hasMoreOptions" :empty="!filteredOptions.length" @load-more="paging.requestMore(true)" />
 					</dom-listbox>
 				</div>
 			</Teleport>

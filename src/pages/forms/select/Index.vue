@@ -20,6 +20,10 @@ import GroupedContentTypes from './examples/GroupedContentTypes.vue';
 import GroupedContentTypesSrc from './examples/GroupedContentTypes.vue?raw';
 import ContactDirectory from './examples/ContactDirectory.vue';
 import ContactDirectorySrc from './examples/ContactDirectory.vue?raw';
+import ServerLoadedPeople from './examples/ServerLoadedPeople.vue';
+import ServerLoadedPeopleSrc from './examples/ServerLoadedPeople.vue?raw';
+import OptionPagingGuide from '../_shared/OptionPagingGuide.vue';
+import SelectionControlGuide from '../_shared/SelectionControlGuide.vue';
 
 const doc = DomSelect.__doc;
 const options = [
@@ -40,6 +44,8 @@ const options = [
 					description="Use DomSelect instead of DomNativeSelect when options need custom rows, metadata, status, or previews."
 				/>
 			</DocSection>
+
+			<SelectionControlGuide />
 
 			<DocSection eyebrow="Demo" title="Workspace switcher">
 				<Example
@@ -90,6 +96,14 @@ const options = [
 					<OptionalAssignment />
 				</Example>
 			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Server-loaded multi-select">
+				<Example :source="ServerLoadedPeopleSrc" filename="ServerLoadedPeople.vue" description="A real cursor-paginated HTTP endpoint; multiple selections survive searching and appending pages.">
+					<ServerLoadedPeople />
+				</Example>
+			</DocSection>
+
+			<OptionPagingGuide />
 
 			<DocSection title="Reference">
 				<ComponentProps :component="DomSelect" />

@@ -12,14 +12,16 @@ import EmailRecipients from './examples/EmailRecipients.vue';
 import EmailRecipientsSrc from './examples/EmailRecipients.vue?raw';
 import ServerLoadedClasses from './examples/ServerLoadedClasses.vue';
 import ServerLoadedClassesSrc from './examples/ServerLoadedClasses.vue?raw';
+import OptionPagingGuide from '../_shared/OptionPagingGuide.vue';
+import SelectionControlGuide from '../_shared/SelectionControlGuide.vue';
 
 const options = [
-	{ value: 'text-sm', label: 'text-sm', group: 'Typography' },
-	{ value: 'text-lg', label: 'text-lg', group: 'Typography' },
-	{ value: 'text-zinc-900', label: 'text-zinc-900', group: 'Typography' },
-	{ value: 'bg-white', label: 'bg-white', group: 'Background' },
-	{ value: 'rounded-xl', label: 'rounded-xl', group: 'Borders' },
-	{ value: 'shadow-sm', label: 'shadow-sm', group: 'Effects' },
+	{ value: 'text-sm', label: 'text-sm', group: 'Typography', description: '' },
+	{ value: 'text-lg', label: 'text-lg', group: 'Typography', description: '' },
+	{ value: 'text-zinc-900', label: 'text-zinc-900', group: 'Typography', description: '' },
+	{ value: 'bg-white', label: 'bg-white', group: 'Background', description: '' },
+	{ value: 'rounded-xl', label: 'rounded-xl', group: 'Borders', description: '' },
+	{ value: 'shadow-sm', label: 'shadow-sm', group: 'Effects', description: '' },
 ];
 
 const props = [
@@ -30,7 +32,9 @@ const props = [
 	{ name: 'loading', type: 'boolean', default: 'false', description: 'Show an inline spinner while async options are being fetched.' },
 	{ name: 'emptyText', type: 'string', default: "'No matches'", description: 'Message shown when there are no matches.' },
 	{ name: 'placeholder', type: 'string', default: "'Add tags...'", description: 'Input placeholder when no query is active.' },
-	{ name: 'maxOptions', type: 'number', default: '8', description: 'Maximum matching suggestions to show.' },
+	{ name: 'maxOptions', type: 'number', default: '8', description: 'Maximum local suggestions. Ignored when filterOptions=false so remote pages are not truncated.' },
+	{ name: 'hasMore', type: 'boolean', default: 'false', description: 'Enable scroll and keyboard paging through @load-more.' },
+	{ name: 'selectedOptions', type: 'DomOption[]', default: '[]', description: 'Resolved labels for initial values outside the loaded page.' },
 	{ name: 'tokenSeparators', type: 'string[]', default: "[' ', ',']", description: 'Characters used to split pasted text into multiple tags.' },
 	{ name: 'clearable', type: 'boolean', default: 'false', description: 'Show a clear-all button when tags are selected.' },
 ];
@@ -42,6 +46,7 @@ const events = [
 	{ name: 'remove', description: 'Fired when a tag is removed.' },
 	{ name: 'select', description: 'Fired when an option or custom value is committed.' },
 	{ name: 'change', description: 'Fired after the selected values array changes.' },
+	{ name: 'load-more', description: 'Requests the next page while preserving existing selected values.' },
 ];
 
 const keys = [
@@ -64,6 +69,8 @@ const keys = [
 					description="Toggle allowCustom to switch between known-option-only and free-entry modes."
 				/>
 			</DocSection>
+
+			<SelectionControlGuide />
 
 			<DocSection eyebrow="Demo" title="Tailwind class tokens">
 				<Example
@@ -95,6 +102,7 @@ const keys = [
 				</Example>
 			</DocSection>
 
+			<OptionPagingGuide />
 			<DocSection title="Props">
 				<PropsTable :rows="props" />
 			</DocSection>

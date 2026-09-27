@@ -1,27 +1,11 @@
 <script setup>
 import { ref } from 'vue';
 import { DomCombobox } from '@getdom/studio/vue';
-import { searchPeople } from '../../_shared/serverLookup.js';
+import { usePagedLookup } from '../../_shared/usePagedLookup.js';
+import LookupStatus from '../../_shared/LookupStatus.vue';
 
 const value = ref('');
-const options = ref([]);
-const loading = ref(false);
-let requestId = 0;
-
-async function queryPeople(query) {
-	const currentRequest = ++requestId;
-	if (!query.trim()) {
-		options.value = [];
-		loading.value = false;
-		return;
-	}
-
-	loading.value = true;
-	const results = await searchPeople(query);
-	if (currentRequest !== requestId) return;
-	options.value = results;
-	loading.value = false;
-}
+const { options, loading, hasMore, error, total, search, loadMore } = usePagedLookup('people');
 </script>
 
 <template>
@@ -30,21 +14,20 @@ async function queryPeople(query) {
 			v-model="value"
 			:options="options"
 			:loading="loading"
+			:has-more="hasMore"
+			:filter-options="false"
 			label="Assign owner"
-			description="Options are fetched by the parent in response to @query."
-			placeholder="Type a name"
-			class="w-full"
-			@query="queryPeople"
+			description="A real HTTP endpoint returns 12 of 602 synthetic contacts at a time."
+			placeholder="Search or browse people"
+			@query="search"
+			@load-more="loadMore"
 		>
 			<template #item="{ item }">
-				<span class="block min-w-0">
-					<span class="block truncate font-medium">{{ item.label }}</span>
-					<span class="block truncate text-xs text-muted-fg">{{ item.email }} - {{ item.role }}</span>
-				</span>
+				<span class="block truncate font-medium">{{ item.label }}</span>
+				<span class="block truncate text-xs text-muted-fg">{{ item.email }} · {{ item.role }}</span>
 			</template>
 		</DomCombobox>
-		<p class="rounded-2xl border border-border bg-secondary/40 p-3 text-xs text-muted-fg">
-			Selected value: <code class="font-mono text-canvas-fg">{{ value || 'None' }}</code>
-		</p>
+		<LookupStatus :error="error" :count="options.length" :total="total" @retry="loadMore" />
+		<p class="text-xs text-muted-fg">Value: <code>{{ value || 'None' }}</code></p>
 	</div>
 </template>

@@ -3090,8 +3090,8 @@ export const componentCatalog = [
 			"slots": [
 				{
 					"name": "item",
-					"payload": "{ item, index }",
-					"description": "Replaces the rendering of each suggestion."
+					"payload": "{ item, index, selected, query }",
+					"description": "Replaces each suggestion body without replacing the selection checkmark."
 				}
 			],
 			"events": [
@@ -3109,6 +3109,19 @@ export const componentCatalog = [
 					"name": "commit",
 					"payload": "({ value, label, custom })",
 					"description": "Fired when the current text is committed with Enter."
+				},
+				{
+					"name": "load-more",
+					"payload": "{ query }",
+					"description": "Request the next page when hasMore is true."
+				},
+				{
+					"name": "open",
+					"description": "Fired when suggestions open."
+				},
+				{
+					"name": "close",
+					"description": "Fired when suggestions close."
 				}
 			]
 		},
@@ -3308,8 +3321,8 @@ export const componentCatalog = [
 			"slots": [
 				{
 					"name": "item",
-					"payload": "{ item, index }",
-					"description": "Replaces the rendering of each option."
+					"payload": "{ item, index, selected, query }",
+					"description": "Replaces each option body. The control keeps the selected checkmark."
 				}
 			],
 			"events": [
@@ -3322,6 +3335,24 @@ export const componentCatalog = [
 					"name": "select",
 					"payload": "({ item, value, label })",
 					"description": "Fired when an option is selected. item is the original option object."
+				},
+				{
+					"name": "list-scroll",
+					"payload": "(event: Event)",
+					"description": "Fired when the floating option list scrolls."
+				},
+				{
+					"name": "load-more",
+					"payload": "{ query }",
+					"description": "Request the next page when hasMore is true. The parent owns fetching and appending options."
+				},
+				{
+					"name": "open",
+					"description": "Fired when the options open with an empty transient query."
+				},
+				{
+					"name": "close",
+					"description": "Fired when the options close."
 				}
 			]
 		},
@@ -3634,6 +3665,49 @@ export const componentCatalog = [
 					"maxFiles": 3
 				}
 			}
+		},
+		"studio": {}
+	},
+	{
+		"id": "forms/font-picker",
+		"path": "../forms/font-picker/DomFontPicker.vue",
+		"section": "forms",
+		"slug": "font-picker",
+		"exportName": "DomFontPicker",
+		"route": "/forms/font-picker",
+		"doc": {
+			"name": "Font picker",
+			"tag": "<DomFontPicker>",
+			"description": "Searchable Google Fonts picker that previews only visible families and keeps font network loading inside the mounted control.",
+			"icon": "M5 5h14M12 5v14M8 19h8",
+			"playground": {
+				"initial": {
+					"label": "Font family",
+					"modelValue": "Lato",
+					"placeholder": "Search Google Fonts",
+					"category": "",
+					"pageSize": 24,
+					"previewText": "",
+					"loadFonts": true
+				}
+			},
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "string",
+					"description": "Fired with the selected font value."
+				},
+				{
+					"name": "select",
+					"payload": "{ item, value, label }",
+					"description": "Fired when a font family is selected."
+				},
+				{
+					"name": "query",
+					"payload": "string",
+					"description": "Fired as the user searches the catalog."
+				}
+			]
 		},
 		"studio": {}
 	},
@@ -4053,13 +4127,13 @@ export const componentCatalog = [
 			"slots": [
 				{
 					"name": "value",
-					"payload": "{ option, value, label, placeholder }",
-					"description": "Custom selected-value markup inside the trigger."
+					"payload": "{ option, options, value, label, placeholder }",
+					"description": "Custom selected-value markup inside the trigger. options contains all selected records in multiple mode."
 				},
 				{
 					"name": "option",
-					"payload": "{ option, index, selected, optionId }",
-					"description": "Custom option markup inside the floating list. optionId identifies the focusable option button for external floating UI."
+					"payload": "{ option, index, selected, query, optionId }",
+					"description": "Custom option markup with the transient query for safe text highlighting. optionId identifies the focusable row."
 				},
 				{
 					"name": "group",
@@ -4070,13 +4144,36 @@ export const componentCatalog = [
 			"events": [
 				{
 					"name": "update:modelValue",
-					"payload": "(value: string)",
-					"description": "Emitted when the selected option changes."
+					"payload": "string | number | Array<string | number>",
+					"description": "Emitted with one committed value or an array in multiple mode."
 				},
 				{
 					"name": "select",
 					"payload": "({ option, value, label })",
 					"description": "Emitted with the selected option record."
+				},
+				{
+					"name": "query",
+					"payload": "string",
+					"description": "Emitted on open with an empty query and as the user types in the separate search input."
+				},
+				{
+					"name": "load-more",
+					"payload": "{ query }",
+					"description": "Request another page when hasMore is true. The application owns cursors, requests, errors and appending options."
+				},
+				{
+					"name": "list-scroll",
+					"payload": "Event",
+					"description": "Scroll event for optional visibility-based previews."
+				},
+				{
+					"name": "open",
+					"description": "Emitted when the panel opens."
+				},
+				{
+					"name": "close",
+					"description": "Emitted when the panel closes."
 				}
 			],
 			"keyboard": [
@@ -4129,8 +4226,8 @@ export const componentCatalog = [
 			"slots": [
 				{
 					"name": "item",
-					"payload": "{ item, index, active, custom }",
-					"description": "Replaces each suggestion row."
+					"payload": "{ item, index, active, selected, query, custom }",
+					"description": "Replaces each suggestion row while retaining the selected checkmark."
 				},
 				{
 					"name": "tag",
@@ -4163,6 +4260,11 @@ export const componentCatalog = [
 					"name": "change",
 					"payload": "Array",
 					"description": "Fired after the selected values array changes."
+				},
+				{
+					"name": "load-more",
+					"payload": "{ query }",
+					"description": "Request the next server page when hasMore is true."
 				}
 			]
 		},

@@ -1,8 +1,11 @@
 <script setup>
-import { computed, onMounted, ref, shallowRef, useId, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, shallowRef, useId, watch } from 'vue';
 import { resolveFloatingTeleportTarget } from '../../lib/vue/floatingTeleportTarget.js';
 import DomFieldLoadingSpinner from '../_shared/DomFieldLoadingSpinner.vue';
-import { booleanProp, normalizeOption } from '../_shared/options.js';
+import { booleanProp, normalizeOption, searchableText } from '../_shared/options.js';
+import DomOptionStatus from '../_shared/DomOptionStatus.vue';
+import { useOptionPaging } from '../_shared/useOptionPaging.js';
+import { useSelectedOptions } from '../_shared/useSelectedOptions.js';
 import DomField from '../field/DomField.vue';
 import { fieldProps } from '../field/fieldProps.js';
 import { useField } from '../field/useField.js';
@@ -15,11 +18,15 @@ defineOptions({
 		tag: '<DomCombobox>',
 		description: 'Select-like combobox with a styled input, floating list, keyboard navigation, and query events for async lookups.',
 		slots: [
-			{ name: 'item', payload: '{ item, index }', description: 'Replaces the rendering of each option.' },
+			{ name: 'item', payload: '{ item, index, selected, query }', description: 'Replaces each option body. The control keeps the selected checkmark.' },
 		],
 		events: [
 			{ name: 'query', payload: '(query: string)', description: 'Fired as the user types. Use it to fetch or replace options.' },
 			{ name: 'select', payload: '({ item, value, label })', description: 'Fired when an option is selected. item is the original option object.' },
+			{ name: 'list-scroll', payload: '(event: Event)', description: 'Fired when the floating option list scrolls.' },
+			{ name: 'load-more', payload: '{ query }', description: 'Request the next page when hasMore is true. The parent owns fetching and appending options.' },
+			{ name: 'open', description: 'Fired when the options open with an empty transient query.' },
+			{ name: 'close', description: 'Fired when the options close.' },
 		],
 	},
 });
@@ -72,11 +79,17 @@ const props = defineProps({
 		default: false,
 		_edit: { group: 'Control props', description: 'Show an inline spinner while async options are being fetched.' },
 	},
+	filterOptions: { type: [Boolean, String], default: true },
+	hasMore: { type: [Boolean, String], default: false },
+	selectedOptions: { type: Array, default: () => [] },
 });
-const emit = defineEmits(['update:modelValue', 'query', 'select', 'focus', 'blur']);
+const emit = defineEmits(['update:modelValue', 'query', 'select', 'list-scroll', 'load-more', 'open', 'close', 'focus', 'blur']);
 
 const root = ref(null);
 const inputEl = ref(null);
+const list = ref(null);
+const query = ref('');
+const isOpen = ref(false);
 const isMounted = ref(false);
 const teleportTarget = shallowRef(null);
 const field = useField(props, emit, { idPrefix: 'dom-combobox' });
@@ -96,6 +109,11 @@ const inputPaddingClass = computed(() => {
 const loadingPositionClass = computed(() => (isClearable.value && hasSelection.value ? 'right-[4.25rem]' : 'right-9'));
 
 const optionList = computed(() => props.options.map((option) => normalizeOption(option)).filter(Boolean));
+const selectedItems = useSelectedOptions(optionList, computed(() => [field.value.value]), () => props.selectedOptions);
+const hasMoreOptions = computed(() => booleanProp(props.hasMore));
+const filterLocally = computed(() => booleanProp(props.filterOptions, true));
+const matchingOptions = computed(() => optionList.value.filter((option) => !filterLocally.value || searchableText(option, ['label', 'value', 'description', 'group', 'email', 'role']).includes(query.value.trim().toLowerCase())));
+const paging = useOptionPaging(props, emit, { list, options: optionList, query, open: isOpen });
 
 /**
  * Resolve the user-facing text shown for a committed value.
@@ -104,7 +122,7 @@ const optionList = computed(() => props.options.map((option) => normalizeOption(
  * @returns {string|number} Option label or raw value fallback.
  */
 function displayForValue(value) {
-	const selected = optionList.value.find((option) => String(option.value ?? option.label) === String(value));
+	const selected = selectedItems.value.find((option) => String(option.value) === String(value));
 	return selected ? (selected.label ?? selected.value ?? '') : (value ?? '');
 }
 
@@ -133,6 +151,7 @@ function syncInputAfterOptionsChange() {
 onMounted(async () => {
 	teleportTarget.value = resolveFloatingTeleportTarget(root.value);
 	isMounted.value = true;
+	await nextTick();
 	await import('../../lib/headless/combobox.js');
 	syncInputFromModel();
 	root.value?.addEventListener('dom:change', (event) => field.onInput(event.detail.value));
@@ -146,8 +165,12 @@ onMounted(async () => {
 		});
 	});
 	root.value?.addEventListener('dom:query', (event) => {
+		query.value = event.detail.query;
 		emit('query', event.detail.query);
 	});
+	root.value?.addEventListener('dom:open', () => { isOpen.value = true; emit('open'); });
+	root.value?.addEventListener('dom:close', () => { isOpen.value = false; emit('close'); });
+	root.value?.addEventListener('dom:load-more', () => paging.requestMore());
 });
 
 watch(field.value, syncInputFromModel);
@@ -159,6 +182,7 @@ watch(optionList, syncInputAfterOptionsChange);
  * @returns {void}
  */
 function clearSelection() {
+	if (field.disabled.value || field.readOnly.value) return;
 	field.setValue('');
 	if (root.value) root.value.value = '';
 	if (inputEl.value) inputEl.value.value = '';
@@ -173,8 +197,11 @@ function clearSelection() {
 		<dom-combobox
 			ref="root"
 			:data-menu-id="listId"
+			:value-label="displayForValue(field.value.value)"
 			:placement="placement"
 			:floating-mode="floatingMode"
+			:filter-options="String(filterLocally)"
+			:has-more="hasMoreOptions ? '' : null"
 			class="relative block"
 		>
 			<input
@@ -197,6 +224,7 @@ function clearSelection() {
 				type="button"
 				class="absolute right-9 top-1 inline-flex size-8 items-center justify-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 				aria-label="Clear selection"
+				:disabled="field.disabled.value || field.readOnly.value"
 				@click.stop="clearSelection"
 				@mousedown.prevent
 			>
@@ -210,6 +238,7 @@ function clearSelection() {
 				type="button"
 				class="absolute right-1 top-1 inline-flex size-8 items-center justify-center rounded-full text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
 				aria-label="Show options"
+				:disabled="field.disabled.value || field.readOnly.value"
 			>
 				<svg viewBox="0 0 20 20" class="size-4" fill="none">
 					<path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
@@ -218,7 +247,11 @@ function clearSelection() {
 			<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
 				<ul
 					:id="listId"
+					ref="list"
+					hidden
+					:aria-busy="isLoading"
 					class="dom-floating-transition skin-popover z-50 max-h-[min(15rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"
+					@scroll="paging.onScroll"
 				>
 					<li
 						v-for="(option, index) in optionList"
@@ -226,10 +259,14 @@ function clearSelection() {
 						:data-value="option.value"
 						:data-label="option.label"
 						:data-index="index"
-						class="cursor-pointer rounded-xl px-3 py-2 text-sm transition data-[active]:bg-accent aria-selected:bg-accent"
+						:data-search="searchableText(option, ['label', 'value', 'description', 'group', 'email', 'role'])"
+						:aria-disabled="option.disabled || undefined"
+						class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-sm transition data-[active]:bg-accent aria-selected:bg-accent aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
 					>
-						<slot name="item" :item="option" :index="index">{{ option.label }}</slot>
+						<span class="min-w-0 flex-1"><slot name="item" :item="option" :index="index" :selected="String(option.value) === String(field.value.value)" :query="query">{{ option.label }}</slot></span>
+						<svg v-if="String(option.value) === String(field.value.value)" viewBox="0 0 20 20" class="size-4 shrink-0" fill="none" aria-hidden="true"><path d="M4.5 10.5 8 14l7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
 					</li>
+					<DomOptionStatus as="li" :loading="isLoading" :has-more="hasMoreOptions" :empty="!matchingOptions.length" @load-more="paging.requestMore(true)" />
 				</ul>
 			</Teleport>
 		</dom-combobox>

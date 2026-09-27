@@ -14,6 +14,7 @@ import ServerLoadedPeople from './examples/ServerLoadedPeople.vue';
 import ServerLoadedPeopleSrc from './examples/ServerLoadedPeople.vue?raw';
 import Example from '../../_layout/docs/Example.vue';
 import { RouterLink } from 'vue-router';
+import OptionPagingGuide from '../_shared/OptionPagingGuide.vue';
 
 const peoplePlaygroundInspect = {
 	props: {
@@ -76,6 +77,9 @@ const props = [
 	{ name: 'floatingMode', type: "'viewport' | 'anchor'", default: "'viewport'", description: 'Choose whether the list stays in the browser or follows the input while scrolling.' },
 	{ name: 'clearable', type: 'boolean', default: 'true', description: 'Show an inline clear button when an option is selected.' },
 	{ name: 'loading', type: 'boolean', default: 'false', description: 'Show an inline spinner while async options are being fetched.' },
+	{ name: 'filterOptions', type: 'boolean', default: 'true', description: 'Set false for server-filtered or server-ranked options.' },
+	{ name: 'hasMore', type: 'boolean', default: 'false', description: 'Enable incremental scrolling, keyboard paging and the Load more button through @load-more.' },
+	{ name: 'selectedOptions', type: 'DomOption[]', default: '[]', description: 'Resolved initial selected records outside the currently loaded page.' },
 ];
 const keys = [
 	{ k: '↑ / ↓', d: 'Move active option.' },
@@ -113,7 +117,7 @@ const keys = [
 				<Example
 					:source="PeopleLookupSrc"
 					filename="PeopleLookup.vue"
-					description="Use the item slot for richer option rendering. The input still displays the label and v-model still receives the value."
+					description="Type ob to highlight Steve Obrien and Robin. The item slot uses query and escaped text segments inside mark elements; literal <Ops> text never becomes HTML."
 				>
 					<PeopleLookup />
 				</Example>
@@ -142,6 +146,7 @@ const keys = [
 				</RouterLink>
 			</DocSection>
 
+			<OptionPagingGuide />
 			<DocSection title="Props">
 				<PropsTable :rows="props" />
 			</DocSection>

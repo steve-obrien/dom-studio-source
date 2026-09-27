@@ -248,6 +248,14 @@ export interface IconSelectorItem {
 	component?: DomVueComponent;
 	[key: string]: unknown;
 }
+export interface FontPickerItem {
+	family: string;
+	value?: string;
+	label?: string;
+	category?: 'sans-serif' | 'serif' | 'display' | 'handwriting' | 'monospace' | string;
+	keywords?: string | Array<string>;
+	[key: string]: unknown;
+}
 /** A contained menu page, route link, or application-owned action. */
 export interface MenuStackItem {
 	id: string;
@@ -3331,7 +3339,7 @@ export interface DomAgentConversationProps {
 	 */
 	toolComponents?: AgentChatToolComponentMap;
 	/**
-	 * CSS max-width applied to message bubbles.
+	 * CSS max-width applied to the centered message column and composer.
 	 */
 	maxMessageWidth?: string;
 }
@@ -4285,7 +4293,7 @@ export interface DomSelectProps {
 	/**
 	 * Selected option value.
 	 */
-	modelValue?: string | number;
+	modelValue?: string | number | Array<string | number>;
 	/**
 	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
 	 */
@@ -4374,6 +4382,21 @@ export interface DomSelectProps {
 	 * Placeholder shown inside the panel search input.
 	 */
 	searchPlaceholder?: string;
+	/**
+	 * Toggle multiple values without closing the panel. Use an array v-model.
+	 */
+	multiple?: boolean | string;
+	/**
+	 * Disable local filtering for server-ranked options.
+	 */
+	filterOptions?: boolean | string;
+	loading?: boolean | string;
+	hasMore?: boolean | string;
+	/**
+	 * Resolved records for initial values outside the currently loaded server page.
+	 */
+	selectedOptions?: Array<DomOption>;
+	clearable?: boolean | string;
 }
 export declare const DomSelect: DomComponent<DomSelectProps>;
 
@@ -4458,6 +4481,9 @@ export interface DomComboboxProps {
 	 * Show an inline spinner while async options are being fetched.
 	 */
 	loading?: boolean | string;
+	filterOptions?: boolean | string;
+	hasMore?: boolean | string;
+	selectedOptions?: Array<DomOption>;
 }
 export declare const DomCombobox: DomComponent<DomComboboxProps>;
 
@@ -4538,6 +4564,8 @@ export interface DomAutocompleteProps {
 	 * Show an inline spinner while async suggestions are being fetched.
 	 */
 	loading?: boolean | string;
+	filterOptions?: boolean | string;
+	hasMore?: boolean | string;
 }
 export declare const DomAutocomplete: DomComponent<DomAutocompleteProps>;
 
@@ -4545,7 +4573,7 @@ export interface DomTagComboboxProps {
 	/**
 	 * Selected tag values.
 	 */
-	modelValue?: Array<string>;
+	modelValue?: Array<string | number>;
 	/**
 	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
 	 */
@@ -4634,6 +4662,8 @@ export interface DomTagComboboxProps {
 	 * Show a clear-all button when tags are selected.
 	 */
 	clearable?: boolean | string;
+	hasMore?: boolean | string;
+	selectedOptions?: Array<DomOption>;
 }
 export declare const DomTagCombobox: DomComponent<DomTagComboboxProps>;
 
@@ -4732,6 +4762,106 @@ export interface DomIconSelectorProps {
 	panelMinWidth?: string;
 }
 export declare const DomIconSelector: DomComponent<DomIconSelectorProps>;
+
+export interface DomFontPickerProps {
+	/**
+	 * Selected font family or application-defined font value.
+	 */
+	modelValue?: string;
+	/**
+	 * Optional ID override. By default parent forms derive the input ID from the field path using underscores.
+	 */
+	id?: string;
+	/**
+	 * Local field name. Parent forms derive the full field path and native HTML name from the form hierarchy.
+	 */
+	name?: string;
+	/**
+	 * Visible field label.
+	 */
+	label?: string;
+	/**
+	 * Optional helper copy below the field.
+	 */
+	description?: string;
+	/**
+	 * Placeholder shown when the control is empty.
+	 */
+	placeholder?: string;
+	/**
+	 * Mark the field as required.
+	 */
+	required?: boolean;
+	/**
+	 * Disable field interaction.
+	 */
+	disabled?: boolean;
+	/**
+	 * Show the value but prevent editing.
+	 */
+	readOnly?: boolean;
+	/**
+	 * Mark the field invalid.
+	 */
+	invalid?: boolean;
+	/**
+	 * Validation errors for this field.
+	 */
+	errors?: Array<unknown> | Record<string, unknown> | string;
+	/**
+	 * Show or hide the field.
+	 */
+	visible?: boolean;
+	/**
+	 * Validators attached to this field. Use functions in Vue code, or serializable records such as { name: "minLength", props: { min: 2 } } in generated schemas.
+	 */
+	validators?: Array<unknown>;
+	/**
+	 * Run validators when the field loses focus.
+	 */
+	validateOnBlur?: boolean;
+	/**
+	 * Render default field chrome, or hide chrome while keeping form state wiring.
+	 */
+	chrome?: "field" | "none" | false;
+	/**
+	 * Lightweight family metadata. Font files are never bundled in this array.
+	 */
+	fonts?: Array<FontPickerItem | string>;
+	/**
+	 * Optionally restrict results to one Google Fonts category.
+	 */
+	category?: "" | "sans-serif" | "serif" | "display" | "handwriting" | "monospace";
+	/**
+	 * Number of metadata rows appended near the end. Preview fonts load only near the viewport.
+	 */
+	pageSize?: number;
+	/**
+	 * Optional shared sample. Empty uses each family name as its own preview.
+	 */
+	previewText?: string;
+	/**
+	 * Load the mounted selected label and visible previews from Google Fonts.
+	 */
+	loadFonts?: boolean;
+	/**
+	 * Google Fonts CSS v2 endpoint or an application-controlled compatible proxy.
+	 */
+	stylesheetUrl?: string;
+	/**
+	 * Show a clear button after a font is selected.
+	 */
+	clearable?: boolean;
+	/**
+	 * Preferred side before collision handling.
+	 */
+	placement?: "bottom" | "top" | "right" | "left";
+	/**
+	 * viewport keeps the list inside the browser; anchor keeps it attached while scrolling.
+	 */
+	floatingMode?: "viewport" | "anchor";
+}
+export declare const DomFontPicker: DomComponent<DomFontPickerProps>;
 
 export interface DomClassToggleInputProps {
 	/**

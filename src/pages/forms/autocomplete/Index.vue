@@ -11,6 +11,7 @@ import SearchPeopleSrc from './examples/SearchPeople.vue?raw';
 import ServerLoadedPeople from './examples/ServerLoadedPeople.vue';
 import ServerLoadedPeopleSrc from './examples/ServerLoadedPeople.vue?raw';
 import { RouterLink } from 'vue-router';
+import OptionPagingGuide from '../_shared/OptionPagingGuide.vue';
 
 const people = [
 	{ value: '1', label: 'Ada Lovelace', email: 'ada@example.com' },
@@ -24,6 +25,8 @@ const props = [
 	{ name: 'placeholder', type: 'string', default: "'Search...'", description: 'Input placeholder.' },
 	{ name: 'floatingMode', type: "'viewport' | 'anchor'", default: "'viewport'", description: 'Choose whether suggestions stay in the browser or follow the input while scrolling.' },
 	{ name: 'loading', type: 'boolean', default: 'false', description: 'Show an inline spinner while async suggestions are being fetched.' },
+	{ name: 'filterOptions', type: 'boolean', default: 'true', description: 'Set false for server-filtered suggestions.' },
+	{ name: 'hasMore', type: 'boolean', default: 'false', description: 'Request more through @load-more when scrolling or navigating beyond the loaded page.' },
 ];
 
 const events = [
@@ -31,6 +34,7 @@ const events = [
 	{ name: 'query', description: 'Fired as the user types. Use this to fetch suggestions.' },
 	{ name: 'select', description: 'Fired when a suggestion is chosen. Receives the original item plus value, label, text, and query.' },
 	{ name: 'commit', description: 'Fired when Enter commits the current text.' },
+	{ name: 'load-more', description: 'Requests the next page. The parent appends options and updates loading/hasMore.' },
 ];
 </script>
 
@@ -79,6 +83,7 @@ const events = [
 				</RouterLink>
 			</DocSection>
 
+			<OptionPagingGuide />
 			<DocSection title="Props">
 				<PropsTable :rows="props" />
 			</DocSection>

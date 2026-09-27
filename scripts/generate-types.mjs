@@ -66,6 +66,9 @@ const manualPropTypes = {
 		modelValue: 'string | number | boolean | DomVueComponent',
 		items: 'Array<IconSelectorItem>',
 	},
+	DomFontPicker: {
+		fonts: 'Array<FontPickerItem | string>',
+	},
 	DomTreeView: {
 		items: 'TreeItems',
 		openValues: 'Array<string | number>',
@@ -224,16 +227,20 @@ const manualPropTypes = {
 	},
 	DomSelect: {
 		options: 'Array<DomOption>',
+		modelValue: 'string | number | Array<string | number>',
+		selectedOptions: 'Array<DomOption>',
 	},
 	DomCombobox: {
 		options: 'Array<DomOption>',
+		selectedOptions: 'Array<DomOption>',
 	},
 	DomAutocomplete: {
 		options: 'Array<DomOption>',
 	},
 	DomTagCombobox: {
-		modelValue: 'Array<string>',
+		modelValue: 'Array<string | number>',
 		options: 'Array<DomOption>',
+		selectedOptions: 'Array<DomOption>',
 		separators: 'Array<string>',
 	},
 	DomToggleButtonGroup: {
@@ -1069,6 +1076,14 @@ function sharedVueTypes() {
 		'\tviewBox?: string;',
 		'\tkeywords?: string | Array<string>;',
 		'\tcomponent?: DomVueComponent;',
+		'\t[key: string]: unknown;',
+		'}',
+		'export interface FontPickerItem {',
+		'\tfamily: string;',
+		'\tvalue?: string;',
+		'\tlabel?: string;',
+		'\tcategory?: \'sans-serif\' | \'serif\' | \'display\' | \'handwriting\' | \'monospace\' | string;',
+		'\tkeywords?: string | Array<string>;',
 		'\t[key: string]: unknown;',
 		'}',
 		'/** A contained menu page, route link, or application-owned action. */',
@@ -2196,7 +2211,7 @@ function writeHeadlessTypes() {
 		'toggle.d.ts': elementType('DomToggleElement', ['checked: boolean;', 'toggle(): void;']),
 		'checkbox.d.ts': elementType('DomCheckboxElement', ['checked: boolean;', 'toggle(): void;']),
 		'radio-group.d.ts': elementType('DomRadioGroupElement', ['value: string;', 'readonly radios: Array<HTMLElement>;']),
-		'listbox.d.ts': elementType('DomListboxElement', ['value: string;', 'readonly options: Array<HTMLElement>;']),
+		'listbox.d.ts': elementType('DomListboxElement', ['value: string;', 'readonly values: Array<string>;', 'readonly options: Array<HTMLElement>;']),
 		'menu.d.ts': elementType('DomMenuElement', ['readonly items: Array<HTMLElement>;']),
 		'tabs.d.ts': elementType('DomTabsElement', ['value: string | null;']),
 		'combobox.d.ts': comboTypes(),

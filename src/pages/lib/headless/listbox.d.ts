@@ -5,6 +5,7 @@ export declare class DomListboxElement extends DomElementBase {
 	static readonly observedAttributes?: Array<string>;
 	static readonly __doc?: HeadlessElementDoc;
 	value: string;
+	readonly values: Array<string>;
 	readonly options: Array<HTMLElement>;
 }
 export interface HeadlessElementDoc {

@@ -130,6 +130,7 @@ export { default as DomCombobox } from '../../forms/combobox/DomCombobox.vue';
 export { default as DomAutocomplete } from '../../forms/autocomplete/DomAutocomplete.vue';
 export { default as DomTagCombobox } from '../../forms/tag-combobox/DomTagCombobox.vue';
 export { default as DomIconSelector } from '../../forms/icon-selector/DomIconSelector.vue';
+export { default as DomFontPicker } from '../../forms/font-picker/DomFontPicker.vue';
 export { default as DomClassToggleInput } from '../../forms/class-toggle-input/DomClassToggleInput.vue';
 export { default as DomField } from '../../forms/field/DomField.vue';
 export { default as DomGridFieldLayout } from '../../forms/field/layouts/DomGridFieldLayout.vue';
