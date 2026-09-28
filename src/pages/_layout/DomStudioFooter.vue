@@ -22,6 +22,8 @@ import { openAnalyticsSettings } from '../../analytics.js';
 				<RouterLink to="/visual/card" class="hover:text-canvas-fg">Visual</RouterLink>
 				<RouterLink to="/blocks" class="hover:text-canvas-fg">Blocks</RouterLink>
 				<RouterLink to="/pricing" class="hover:text-canvas-fg">Pricing</RouterLink>
+				<RouterLink to="/privacy" class="hover:text-canvas-fg">Privacy</RouterLink>
+				<RouterLink to="/terms-and-conditions" class="hover:text-canvas-fg">Terms and conditions</RouterLink>
 				<button type="button" class="hover:text-canvas-fg" @click="openAnalyticsSettings">Cookie settings</button>
 				<a href="https://github.com/steve-obrien/getdom-studio" target="_blank" rel="noopener" class="hover:text-canvas-fg">GitHub</a>
 			</div>

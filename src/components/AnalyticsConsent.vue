@@ -1,5 +1,6 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { RouterLink } from 'vue-router';
 import DomButton from '../pages/components/button/DomButton.vue';
 import { getAnalyticsConsent, setAnalyticsConsent } from '../analytics.js';
 
@@ -56,6 +57,7 @@ onBeforeUnmount(() => {
 			<p id="analytics-consent-title" class="font-semibold">Help improve DOM Studio</p>
 			<p id="analytics-consent-description" class="mt-1 text-sm leading-6 text-muted-fg">
 				Allow privacy-conscious Google Analytics to measure visits and understand which documentation is useful. Analytics stays off unless you choose to allow it.
+				<RouterLink to="/privacy" class="text-primary underline underline-offset-4">Privacy policy</RouterLink>.
 			</p>
 		</div>
 		<div class="mt-4 flex shrink-0 flex-wrap gap-2 sm:mt-0">

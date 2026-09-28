@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { RouterLink } from 'vue-router';
 import DomStudioLayout from '../_layout/DomStudioLayout.vue';
 import CodeBlock from '../_layout/CodeBlock.vue';
 import { DomButton, DomAccordion } from '../lib/vue';
@@ -165,6 +166,10 @@ const generatedSource = [
 						size="lg"
 						class="w-full"
 					>{{ t.cta }}</DomButton>
+					<p class="mt-3 text-xs leading-5 text-muted-fg">
+						Read our <RouterLink to="/terms-and-conditions" class="text-primary underline underline-offset-4">Terms and conditions</RouterLink>
+						and <RouterLink to="/privacy" class="text-primary underline underline-offset-4">Privacy policy</RouterLink> before purchasing.
+					</p>
 				</div>
 			</div>
 		</section>
