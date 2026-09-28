@@ -5,6 +5,7 @@ import knex from 'knex';
 import config from '../../knexfile.js';
 import { up as authSchema } from '../db/migrations/20260607190000_create_auth_foundation.js';
 import { up as licenceSchema } from '../db/migrations/20260925180000_add_guest_licences.js';
+import { up as repairLicenceTypes, down as retainLicenceTypes } from '../db/migrations/20260928150000_repair_licence_type_columns.js';
 import { fulfillLicence, isLicenceCheckout, isCompletedLicence, licenceEmail, serializeLicence } from './licences.js';
 import { consumeLicenceSignIn, hashEmailToken, requestLicenceSignIn } from './licenceAuth.js';
 import { allowBillingMutation, billingClientAddress } from './billingHttp.js';
@@ -64,6 +65,35 @@ after(async () => {
 		try { await admin.raw('DROP DATABASE IF EXISTS ??', [database]); }
 		finally { await admin.destroy(); }
 	}
+});
+
+test('legacy schema repair restores fulfilment and claiming without losing existing licence types', { skip: !integration }, async () => {
+	await db.schema.alterTable('users', (table) => table.dropColumn('licence_type'));
+	await db.schema.alterTable('stripe_checkout_sessions', (table) => table.dropColumn('licence_type'));
+	const userId = randomUUID();
+	await db('users').insert({ id: userId, email: 'buyer@example.com', email_verified_at: db.fn.now() });
+	await repairLicenceTypes(db);
+	assert.equal((await db('users').where({ id: userId }).first()).licence_type, null);
+	const purchase = await fulfillLicence(session({ metadata: { dom_studio_licence: 'team' }, payment_link: 'plink_team' }), 'evt_repaired', { db, send, env });
+	await consumeLicenceSignIn(await proof(), { db });
+	await repairLicenceTypes(db);
+	await retainLicenceTypes(db);
+	assert.equal((await db('users').where({ id: userId }).first()).licence_type, 'team');
+	const saved = await db('stripe_checkout_sessions').where({ id: purchase.id }).first();
+	assert.equal(saved.licence_type, 'team');
+	assert.equal(saved.user_id, userId);
+	assert.equal(saved.payment_status, 'paid');
+	assert.equal((await db('entitlements').where({ user_id: userId, key: 'source' }).first()).provider, 'stripe');
+	assert.equal(messages.length, 1);
+});
+
+test('licence schema repair completes a partial upgrade and preserves the existing column', { skip: !integration }, async () => {
+	const userId = randomUUID();
+	await db('users').insert({ id: userId, email: 'buyer@example.com', licence_type: 'team' });
+	await db.schema.alterTable('stripe_checkout_sessions', (table) => table.dropColumn('licence_type'));
+	await repairLicenceTypes(db);
+	assert.equal(await db.schema.hasColumn('stripe_checkout_sessions', 'licence_type'), true);
+	assert.equal((await db('users').where({ id: userId }).first()).licence_type, 'team');
 });
 
 test('only configured Stripe licence links identify new purchases', () => {
