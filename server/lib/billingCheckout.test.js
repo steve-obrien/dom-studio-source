@@ -157,3 +157,61 @@ test('guest checkout goes directly to Stripe and requires the correct confirmati
 	assert.equal(res.code, 503);
 	assert.equal(res.url, undefined);
 });
+
+test('both licence checkout redirects work without email configuration in either pricing phase', async (t) => {
+	const keys = [
+		'STRIPE_SECRET_KEY', 'RESEND_API_KEY', 'LICENCE_EMAIL_FROM', 'BILLING_PUBLIC_URL', 'BILLING_PRICING_PHASE',
+		'STRIPE_INDIVIDUAL_USD_INTRO_PAYMENT_LINK_ID', 'STRIPE_TEAM_USD_INTRO_PAYMENT_LINK_ID',
+		'STRIPE_INDIVIDUAL_USD_PAYMENT_LINK_ID', 'STRIPE_TEAM_USD_PAYMENT_LINK_ID',
+	];
+	const previous = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
+	t.after(() => {
+		for (const key of keys) {
+			if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key];
+		}
+	});
+	Object.assign(process.env, {
+		STRIPE_SECRET_KEY: 'sk_test_placeholder', BILLING_PUBLIC_URL: 'https://getdom.studio',
+		STRIPE_INDIVIDUAL_USD_INTRO_PAYMENT_LINK_ID: 'plink_individual_intro', STRIPE_TEAM_USD_INTRO_PAYMENT_LINK_ID: 'plink_team_intro',
+		STRIPE_INDIVIDUAL_USD_PAYMENT_LINK_ID: 'plink_individual_regular', STRIPE_TEAM_USD_PAYMENT_LINK_ID: 'plink_team_regular',
+	});
+	delete process.env.RESEND_API_KEY;
+	delete process.env.LICENCE_EMAIL_FROM;
+	let expectedId;
+	let link;
+	let requests = 0;
+	t.mock.method(Stripe.resources.PaymentLinks.prototype, 'retrieve', async (id) => {
+		requests += 1;
+		assert.equal(id, expectedId);
+		return link;
+	});
+	for (const phase of ['introductory', 'regular']) {
+		process.env.BILLING_PRICING_PHASE = phase;
+		for (const licence of ['individual', 'team']) {
+			const offer = createBillingOffer(phase)[licence];
+			expectedId = `plink_${licence}_${phase === 'regular' ? 'regular' : 'intro'}`;
+			link = paymentLink(offer);
+			link.url = `https://buy.stripe.com/${licence}_${phase}`;
+			link.after_completion = { type: 'redirect', redirect: { url: 'https://getdom.studio/licence/thanks?session_id={CHECKOUT_SESSION_ID}' } };
+			const res = {
+				/** Records response headers for checkout privacy assertions. */
+				setHeader(name, value) { this[name] = value; },
+				/** Records an HTTP error status without issuing a real response. */
+				status(code) { this.code = code; },
+				/** Captures the verified Stripe destination without creating a payment. */
+				redirect(url) { this.url = url; },
+			};
+			await checkout({ headers: {}, query: { licence } }, res);
+			assert.equal(res.url, link.url);
+			assert.equal(res.code, undefined);
+			assert.equal(res['Cache-Control'], 'no-store');
+			delete res.url;
+			process.env.STRIPE_SECRET_KEY = '';
+			assert.match((await checkout({ headers: {}, query: { licence } }, res)).error, /temporarily unavailable/);
+			assert.equal(res.code, 503);
+			assert.equal(res.url, undefined);
+			process.env.STRIPE_SECRET_KEY = 'sk_test_placeholder';
+		}
+	}
+	assert.equal(requests, 4);
+});

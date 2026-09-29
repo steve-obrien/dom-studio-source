@@ -2,11 +2,12 @@ import Stripe from 'stripe';
 import { getAuthSession } from '../../lib/auth.js';
 import { getOfferForLicence, normalizeLicence } from '../../lib/billingOffer.js';
 import { getPaymentLinkId, validatePaymentLink } from '../../lib/billingCheckout.js';
-import { getBillingOrigin, isLicenceEmailConfigured } from '../../lib/licenceEmail.js';
+import { getBillingOrigin } from '../../lib/licenceEmail.js';
 import { privateBillingResponse } from '../../lib/billingHttp.js';
 
 /**
  * Sends a guest or signed-in buyer straight to a verified licence Payment Link.
+ * Email delivery is handled after purchase and must not block the Stripe redirect.
  *
  * @param {import('express').Request} req Incoming checkout request.
  * @param {import('express').Response} res HTTP response.
@@ -20,7 +21,7 @@ export async function get(req, res) {
 	const offer = getOfferForLicence(licence);
 	const paymentLinkId = getPaymentLinkId(offer);
 	const apiKey = process.env.STRIPE_SECRET_KEY;
-	if (!paymentLinkId || !apiKey || !isLicenceEmailConfigured()) {
+	if (!paymentLinkId || !apiKey) {
 		res.status(503);
 		return { error: 'Checkout is temporarily unavailable. Please try again shortly.' };
 	}
