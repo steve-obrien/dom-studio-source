@@ -122,6 +122,10 @@ const headlessCode = `import '@getdom/studio/headless';`;
 					<CodeBlock lang="sh" :code="sourceCopyCode" />
 					<CodeBlock lang="js" :code="sourceComponentCode" />
 				</div>
+				<p class="mt-4 max-w-2xl text-sm leading-6 text-muted-fg">
+					The source keeps each component beside its examples and documentation page. This repeatable folder structure gives humans and AI the context to understand and change it together.
+					<RouterLink to="/ai/builders#component-context" class="font-semibold text-canvas-fg underline decoration-border underline-offset-4 hover:text-primary">See why the components live in the website.</RouterLink>
+				</p>
 			</DocSection>
 
 			<DocSection title="4. Use your own stylesheet">

@@ -113,6 +113,12 @@ const studioCode = `{
 \t}
 }`;
 
+const componentFolderCode = `component-name/
+	DomComponentName.vue
+	examples/
+		Basic.vue
+	Index.vue`;
+
 const componentDocCode = `<script setup>
 defineOptions({
 \t__doc: {
@@ -167,6 +173,40 @@ const promptCode = `When building with DOM Studio:
 							The output should be easy to read, easy to change, and when needed, easy to round-trip through Studio as a named tree of components, props, and children.
 						</p>
 					</div>
+				</div>
+			</DocSection>
+
+			<DocSection id="component-context" class="scroll-mt-28" eyebrow="Source structure" title="Why the components live in the website">
+				<div class="mb-4 max-w-3xl space-y-3 text-sm leading-6 text-muted-fg">
+					<p>
+						The DOM Studio website is the working documentation for the same components exported by the package. The implementations, runnable examples, and documentation live together under <code>src/pages</code>, so the website demonstrates the actual components you use in an application.
+					</p>
+					<p>
+						Keeping library source inside a website's page tree is a little unusual. It is deliberate: each component folder brings the context for understanding, using, and changing that component into one predictable place.
+					</p>
+				</div>
+				<CodeBlock lang="text" :code="componentFolderCode" />
+				<dl class="mt-4 max-w-3xl space-y-3 text-sm leading-6">
+					<div>
+						<dt class="font-semibold text-canvas-fg"><code>DomComponentName.vue</code></dt>
+						<dd class="text-muted-fg">The implementation, props, and <code>__doc</code> metadata describe what the component does and the contract it exposes.</dd>
+					</div>
+					<div>
+						<dt class="font-semibold text-canvas-fg"><code>examples/</code></dt>
+						<dd class="text-muted-fg">Runnable Vue examples show intended usage, composition, and application-owned state.</dd>
+					</div>
+					<div>
+						<dt class="font-semibold text-canvas-fg"><code>Index.vue</code></dt>
+						<dd class="text-muted-fg">The documentation page brings the component, examples, and reference material together. Components without a custom page can use generated documentation from their metadata.</dd>
+					</div>
+				</dl>
+				<div class="mt-5 max-w-3xl space-y-3 break-words text-sm leading-6 text-muted-fg">
+					<p>
+						This repeatable structure works well with AI because the context is co-located. An agent can read the implementation, inspect a working example, and check the documented contract before making a change. The next component follows the same pattern, and its docs and examples are nearby to update and verify together.
+					</p>
+					<p>
+						For a concrete example, <code>src/pages/components/menu-stack/</code> contains <code>DomMenuStack.vue</code>, <code>examples/Workspace.vue</code>, and <code>Index.vue</code>. This is DOM Studio's source organisation; applications can import the package or copy its source without adopting the website's routing or documentation shell.
+					</p>
 				</div>
 			</DocSection>
 
