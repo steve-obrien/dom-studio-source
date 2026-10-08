@@ -5,6 +5,7 @@ import { chartPoints, chartSeries, formatChartValue, percentagePoints } from './
 import ChartContainer from './ChartContainer.vue';
 import ChartLegend from './ChartLegend.vue';
 import ChartTooltip from './ChartTooltip.vue';
+import CompactChartTooltip from './CompactChartTooltip.vue';
 
 const props = defineProps({
 	...chartProps,
@@ -13,12 +14,14 @@ const props = defineProps({
 	percentage: { type: Boolean, default: false },
 	horizontal: { type: Boolean, default: false },
 	compact: { type: Boolean, default: false },
+	tooltip: { type: Boolean, default: true },
 });
 const emit = defineEmits(['retry', 'select']);
 const renderer = shallowRef(null);
 const loadError = ref('');
 const hiddenKeys = ref([]);
 const inspected = ref(null);
+const plot = ref(null);
 let disposed = false;
 const allSeries = computed(() => chartSeries(props.series));
 const visibleSeries = computed(() => allSeries.value.filter((item) => !hiddenKeys.value.includes(item.key)));
@@ -108,16 +111,18 @@ function scrub(event) { inspected.value = points.value[Number(event.target.value
 <template>
 	<ChartContainer :title="title" :description="description" :height="safeHeight" :compact="compact" :loading="loading" :error="error || validationError || loadError" :empty="!hasData" :empty-label="emptyLabel" @retry="retry">
 		<div
+			ref="plot"
 			class="relative rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 			:style="{ height: `${safeHeight}px` }" tabindex="0" role="group"
 			:aria-label="`${title}. Use arrow keys to inspect values; Enter selects a row.`"
-			@keydown="navigate" @focus="inspect(points[0])" @blur="inspect(null)" @mouseleave="inspect(null)" @click="selectPoint"
+			@keydown="navigate" @focus="inspect(inspected || points[0])" @blur="inspect(null)" @mouseleave="inspect(null)" @click="selectPoint"
 		>
 			<div aria-hidden="true">
 				<component :is="renderer" v-if="renderer" :key="`${kind}-${horizontal}-${stacked}-${percentage}`" :points="renderPoints" :series="visibleSeries" :kind="kind" :height="safeHeight" :curve="curve" :stacked="stacked || percentage" :percentage="percentage" :horizontal="horizontal" :compact="compact" :grid="grid" :x-type="xType" :format-x="formatAxisLabel" :format-y="formatAxisValue" @inspect="inspect" />
 				<div v-else class="h-full w-full" />
 			</div>
-			<ChartTooltip v-if="inspected && !compact" class="absolute right-2 top-2 z-10" :label="formatLabel(inspected.row[xKey])" :items="tooltipItems" />
+			<CompactChartTooltip v-if="inspected && tooltip && compact" :anchor="plot" :label="formatLabel(inspected.row[xKey])" :items="tooltipItems" />
+			<ChartTooltip v-else-if="inspected && tooltip" class="absolute right-2 top-2 z-10" :label="formatLabel(inspected.row[xKey])" :items="tooltipItems" />
 			<span class="sr-only" aria-live="polite">{{ inspected ? `${formatLabel(inspected.row[xKey])}: ${tooltipItems.map(item => `${item.label} ${item.value}`).join(', ')}` : '' }}</span>
 		</div>
 		<template #legend>

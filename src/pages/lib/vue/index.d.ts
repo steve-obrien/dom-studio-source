@@ -7811,6 +7811,10 @@ export interface DomSparklineProps {
 	 * Line interpolation. Linear avoids implying unobserved smooth changes.
 	 */
 	curve?: "linear" | "monotoneX" | "step";
+	/**
+	 * Show formatted values on hover or keyboard inspection in a floating tooltip outside the compact plot.
+	 */
+	tooltip?: boolean;
 }
 export declare const DomSparkline: DomComponent<DomSparklineProps>;
 

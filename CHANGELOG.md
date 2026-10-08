@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.2.4 - 2026-10-08
+
+Reliable chart hover values and optional sparkline tooltips.
+
+### Added
+
+- Opt-in sparkline tooltips with `tooltip`, showing the inspected label and
+  formatted series values on hover or keyboard navigation. The floating panel
+  stays outside the compact plot and escapes scrolling-table clipping.
+- Website privacy policy and terms pages, linked from checkout and the footer.
+
+### Improved
+
+- Documentation explains how component source, runnable examples and reference
+  pages live together, and how that structure supports human and AI development.
+
+### Fixed
+
+- Line and area chart tooltips update as the pointer moves between data points,
+  without requiring a click. Clicking preserves and selects the hovered record.
+- Shared chart bindings forward Unovis configuration using its expected names,
+  including crosshair callbacks and stacked-series inspection.
+- Chart values dismiss when the crosshair leaves the plot.
+- Website licence checkout no longer depends on email delivery being configured.
+  Existing installations receive a repair migration for missing licence columns.
+
+### Upgrade notes
+
+- Sparkline tooltips remain off by default. Add `tooltip` to `DomSparkline` to
+  enable them; existing value and label formatters also apply to the tooltip.
+- Email-based licence claiming and recovery still require a configured sender.
+
 ## 0.2.3 - 2026-09-27
 
 Searchable Google Fonts previews, shared paginated option lists, and more reliable

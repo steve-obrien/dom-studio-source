@@ -20,6 +20,7 @@ const doc = DomSparkline.__doc;
 			</DocSection>
 			<DocSection title="Working with your data">
 				<p class="max-w-3xl text-sm leading-7 text-muted-fg">The compact chart hides its heading visually, but retains an accessible name and keyboard inspection. Provide a meaningful title when embedding it in a card or table. Enable showTable when a standalone data alternative is needed.</p>
+				<p class="max-w-3xl text-sm leading-7 text-muted-fg">Add <code>tooltip</code> to show the current label and formatted values on hover or keyboard inspection. Tooltips float outside the compact plot, including inside scrolling tables. They are off by default.</p>
 				<RouterLink to="/charts" class="text-sm font-medium underline underline-offset-4">Explore Data Visualisation</RouterLink>
 			</DocSection>
 			<DocSection title="Reference"><ComponentProps :component="DomSparkline" /><ComponentEvents :component="DomSparkline" /><ComponentKeyboard :component="DomSparkline" /></DocSection>

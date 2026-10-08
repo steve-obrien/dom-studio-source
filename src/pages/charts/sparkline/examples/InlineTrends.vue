@@ -12,7 +12,7 @@ function trendRows(values) { return values.map((value, index) => ({ week: `Week 
 	<div class="w-full overflow-auto">
 		<table class="w-full text-left text-sm"><caption class="sr-only">Revenue and seven-week trends by plan</caption>
 			<thead class="text-xs text-muted-fg"><tr><th scope="col" class="py-3">Plan</th><th scope="col" class="py-3 text-right">Revenue</th><th scope="col" class="py-3 pl-6">Seven-week trend</th></tr></thead>
-			<tbody><tr v-for="product in products" :key="product.name" class="border-t border-border"><th scope="row" class="py-4 font-medium">{{ product.name }}</th><td class="py-4 text-right tabular-nums">{{ product.revenue }}</td><td class="w-40 py-4 pl-6"><DomSparkline :title="`${product.name} revenue trend`" :rows="trendRows(product.values)" x-key="week" :series="[{ key: 'value', color: 'chart-2' }]" /></td></tr></tbody>
+			<tbody><tr v-for="product in products" :key="product.name" class="border-t border-border"><th scope="row" class="py-4 font-medium">{{ product.name }}</th><td class="py-4 text-right tabular-nums">{{ product.revenue }}</td><td class="w-40 py-4 pl-6"><DomSparkline tooltip :title="`${product.name} revenue trend`" :rows="trendRows(product.values)" x-key="week" :series="[{ key: 'value', color: 'chart-2' }]" /></td></tr></tbody>
 		</table>
 	</div>
 </template>

@@ -21,6 +21,7 @@ const props = defineProps({
 	height: { type: Number, default: 48 },
 	legend: { type: Boolean, default: false },
 	showTable: { type: Boolean, default: false },
+	tooltip: { type: Boolean, default: false, _edit: { description: 'Show formatted values on hover or keyboard inspection in a floating tooltip outside the compact plot.' } },
 });
 defineEmits(['select', 'retry']);
 </script>

@@ -56,35 +56,42 @@ function getX(point) { return point.x; }
 /** @param {unknown} _datum Unovis datum. @param {number} index Series index. @returns {string} Stable colour. */
 function getColor(_datum, index) { return props.series[index]?.color || 'var(--primary)'; }
 
-/** @param {number} _x Pointer coordinate. @param {object} point Nearest datum. @returns {void} */
-function inspectPoint(_x, point) { emit('inspect', point || null); }
+/**
+ * Synchronizes inspection with the crosshair, including plot-boundary dismissal.
+ * Unovis can retain the nearest datum while clearing the pointer coordinate.
+ * @param {number|Date|undefined} x Pointer coordinate; absent when hidden.
+ * @param {object|undefined} point Nearest datum.
+ * @returns {void}
+ */
+function inspectPoint(x, point) { emit('inspect', x == null ? null : point || null); }
 
 /** @param {object} datum Bar or stack datum. @returns {void} Inspects horizontal and touch-selected bars. */
 function inspectBar(datum) { emit('inspect', datum.datum || datum); }
 </script>
 
 <template>
+	<!-- Unovis 1.7 forwards undeclared attributes verbatim; config bindings must use camelCase. -->
 	<VisXYContainer
 		:data="points" :height="height" :duration="0" class="block w-full"
-		:x-domain="horizontal ? valueDomain : undefined" :y-domain="horizontal ? undefined : valueDomain"
-		:y-direction="horizontal ? 'south' : 'north'"
+		:xDomain="horizontal ? valueDomain : undefined" :yDomain="horizontal ? undefined : valueDomain"
+		:yDirection="horizontal ? 'south' : 'north'"
 		:margin="compact ? { top: 4, bottom: 4, left: 4, right: 4 } : { top: 12, right: 12 }"
 	>
 		<template v-if="kind === 'line'">
-			<VisLine v-for="(item, index) in series" :key="item.key" :x="getX" :y="accessors[index]" :color="item.color" :curve-type="curve" :line-width="2" :line-dash-array="item.dashed ? [5, 4] : undefined" :duration="0" />
+			<VisLine v-for="(item, index) in series" :key="item.key" :x="getX" :y="accessors[index]" :color="item.color" :curveType="curve" :lineWidth="2" :lineDashArray="item.dashed ? [5, 4] : undefined" :duration="0" />
 			<VisScatter v-if="points.length === 1" :x="getX" :y="accessors" :color="getColor" :size="24" :duration="0" />
 		</template>
 		<template v-else-if="kind === 'area'">
-			<VisArea v-if="stacked" :x="getX" :y="accessors" :color="getColor" :curve-type="curve" :opacity="0.45" :duration="0" />
-			<VisArea v-for="(item, index) in stacked ? [] : series" :key="item.key" :x="getX" :y="accessors[index]" :color="item.color" :curve-type="curve" :opacity="0.15" :line="true" :line-color="item.color" :duration="0" />
+			<VisArea v-if="stacked" :x="getX" :y="accessors" :color="getColor" :curveType="curve" :opacity="0.45" :duration="0" />
+			<VisArea v-for="(item, index) in stacked ? [] : series" :key="item.key" :x="getX" :y="accessors[index]" :color="item.color" :curveType="curve" :opacity="0.15" :line="true" :lineColor="item.color" :duration="0" />
 		</template>
 		<component
 			:is="stacked ? VisStackedBar : VisGroupedBar" v-else
 			:x="getX" :y="accessors" :color="getColor" :orientation="horizontal ? 'horizontal' : 'vertical'"
-			:bar-padding="stacked ? 0.3 : 0.1" :group-padding="0.3" :rounded-corners="3" :bar-min-height="0" :duration="0" :events="barEvents"
+			:barPadding="stacked ? 0.3 : 0.1" :groupPadding="0.3" :roundedCorners="3" :barMinHeight="0" :duration="0" :events="barEvents"
 		/>
-		<VisAxis v-if="!compact" :key="`category-${horizontal}`" :type="horizontal ? 'y' : 'x'" :tick-values="categoryTicks" :tick-format="formatX" :grid-line="false" :domain-line="false" :tick-line="false" :tick-text-width="horizontal ? 90 : 72" :tick-text-hide-overlapping="true" :tick-text-adaptive-sets="true" :duration="0" />
-		<VisAxis v-if="!compact" :key="`value-${horizontal}`" :type="horizontal ? 'x' : 'y'" :tick-format="formatY" :grid-line="grid" :domain-line="false" :tick-line="false" :tick-text-width="90" :tick-text-hide-overlapping="true" :num-ticks="4" :duration="0" />
-		<VisCrosshair v-if="!horizontal" :x="getX" :y="stacked ? [] : accessors" :y-stacked="stacked ? accessors : undefined" :color="getColor" :hide-when-far-from-pointer="false" :on-crosshair-move="inspectPoint" :duration="0" />
+		<VisAxis v-if="!compact" :key="`category-${horizontal}`" :type="horizontal ? 'y' : 'x'" :tickValues="categoryTicks" :tickFormat="formatX" :gridLine="false" :domainLine="false" :tickLine="false" :tickTextWidth="horizontal ? 90 : 72" :tickTextHideOverlapping="true" :tickTextAdaptiveSets="true" :duration="0" />
+		<VisAxis v-if="!compact" :key="`value-${horizontal}`" :type="horizontal ? 'x' : 'y'" :tickFormat="formatY" :gridLine="grid" :domainLine="false" :tickLine="false" :tickTextWidth="90" :tickTextHideOverlapping="true" :numTicks="4" :duration="0" />
+		<VisCrosshair v-if="!horizontal" :x="getX" :y="stacked ? [] : accessors" :yStacked="stacked ? accessors : undefined" :color="getColor" :hideWhenFarFromPointer="false" :onCrosshairMove="inspectPoint" :duration="0" />
 	</VisXYContainer>
 </template>
