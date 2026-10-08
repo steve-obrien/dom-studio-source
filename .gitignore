@@ -8,5 +8,6 @@ dist
 !.env.example
 output
 .playwright-cli
+release-history.json
 localhost+*-key.pem
 localhost+*.pem
