@@ -2216,6 +2216,14 @@ export declare const DomContextMenu: DomComponent<DomContextMenuProps>;
 
 export interface DomDataGridProps {
 	/**
+	 * Card keeps the bordered container. Flush removes outer side borders, rounding and shadow; the application owns the surrounding width.
+	 */
+	layout?: "card" | "flush";
+	/**
+	 * Horizontal padding classes for flush toolbar, footer and outer cell edges, such as px-4 sm:px-6 or px-[var(--page-gutter)]. Ignored in card layout.
+	 */
+	gutterClass?: string;
+	/**
 	 * Rows to render. Each row should be a plain object from an API, store, or database result.
 	 */
 	rows?: Array<unknown>;

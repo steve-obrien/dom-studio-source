@@ -7,6 +7,10 @@ defineOptions({
 });
 
 const props = defineProps({
+	gutterClass: {
+		type: String,
+		default: '',
+	},
 	rows: {
 		type: Array,
 		default: () => [],
@@ -168,7 +172,7 @@ function spacerStyle(height) {
 			v-for="item in renderedRows"
 			:key="resolvedRowKey(item.row, item.index)"
 			class="group bg-canvas transition hover:bg-secondary/45"
-			:class="rowSelected(item.row, item.index) && 'bg-sky-500/5'"
+			:class="[rowSelected(item.row, item.index) && 'bg-sky-500/5', gutterClass]"
 			:aria-rowindex="item.index + 1"
 			:aria-selected="rowSelected(item.row, item.index) || undefined"
 			:style="rowStyle()"

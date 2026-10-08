@@ -55,6 +55,16 @@
 */
 
 export const dataGridProps = {
+	layout: {
+		type: String,
+		default: 'card',
+		_edit: { description: 'Card keeps the bordered container. Flush removes outer side borders, rounding and shadow; the application owns the surrounding width.', options: ['card', 'flush'] },
+	},
+	gutterClass: {
+		type: String,
+		default: 'px-3',
+		_edit: { description: 'Horizontal padding classes for flush toolbar, footer and outer cell edges, such as px-4 sm:px-6 or px-[var(--page-gutter)]. Ignored in card layout.' },
+	},
 	rows: {
 		type: Array,
 		default: () => [],
@@ -1178,10 +1188,12 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 
 <template>
 	<section
-		class="dom-data-grid overflow-hidden rounded-lg border border-border bg-canvas text-canvas-fg shadow-sm"
+		class="dom-data-grid overflow-hidden border-border bg-canvas text-canvas-fg"
+		:class="layout === 'flush' ? 'border-y' : 'rounded-lg border shadow-sm'"
+		:data-layout="layout"
 		:aria-labelledby="titleId"
 	>
-		<header v-if="toolbar" class="border-b border-border bg-secondary/35 px-3 py-3">
+		<header v-if="toolbar" class="border-b border-border bg-secondary/35 py-3" :class="layout === 'flush' ? gutterClass : 'px-3'">
 			<div class="flex flex-wrap items-center gap-3">
 				<div class="min-w-0 flex-1">
 					<h2 :id="titleId" class="truncate text-sm font-semibold tracking-tight text-canvas-fg">{{ title }}</h2>
@@ -1241,7 +1253,7 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 			</div>
 		</header>
 
-		<div ref="scrollViewport" class="overflow-auto pb-3" :style="gridHeightStyle" @scroll="onViewportScroll">
+		<div ref="scrollViewport" class="overflow-auto pb-3" data-grid-viewport :style="gridHeightStyle" @scroll="onViewportScroll">
 			<table class="w-full table-fixed border-separate border-spacing-0 text-sm" :style="tableStyle">
 				<colgroup>
 					<col v-if="selectable" class="w-11" />
@@ -1254,7 +1266,7 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 				</colgroup>
 
 				<thead class="text-xs">
-					<tr v-if="showColumnLetters" class="bg-secondary/60 text-muted-fg">
+					<tr v-if="showColumnLetters" class="bg-secondary/60 text-muted-fg" :class="layout === 'flush' && gutterClass">
 						<th
 							v-if="selectable"
 							class="border-b border-r border-border px-2 py-1.5 font-semibold"
@@ -1275,7 +1287,7 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 						</th>
 					</tr>
 
-					<tr class="bg-canvas text-muted-fg">
+					<tr class="bg-canvas text-muted-fg" :class="layout === 'flush' && gutterClass">
 						<th
 							v-if="selectable"
 							class="border-b border-r border-border px-2 text-center"
@@ -1506,6 +1518,7 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 					:row-key="rowKey"
 					:cell-value="cellValue"
 					:formatted-cell="formattedCell"
+					:gutter-class="layout === 'flush' ? gutterClass : ''"
 					:cell-align-class="cellAlignClass"
 					:row-density-class="rowDensityClass"
 					:selected-keys="internalSelectedKeys"
@@ -1555,12 +1568,12 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 				</DataGridVirtualRows>
 
 				<tbody v-else>
-					<tr v-if="loading">
+					<tr v-if="loading" :class="layout === 'flush' && gutterClass">
 						<td :colspan="emptyColspan" class="border-b border-border px-4 py-10 text-center text-sm text-muted-fg">
 							Loading {{ resourceLabel }}...
 						</td>
 					</tr>
-					<tr v-else-if="!displayRows.length">
+					<tr v-else-if="!displayRows.length" :class="layout === 'flush' && gutterClass">
 						<td :colspan="emptyColspan" class="px-4 py-12 text-center text-sm text-muted-fg">
 							<slot name="empty">{{ emptyText }}</slot>
 						</td>
@@ -1570,7 +1583,7 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 							v-for="(row, rowIndex) in displayRows"
 							:key="rowKey(row, rowIndex)"
 							class="group bg-canvas transition hover:bg-secondary/45"
-							:class="rowSelected(row, rowIndex) && 'bg-sky-500/5'"
+							:class="[rowSelected(row, rowIndex) && 'bg-sky-500/5', layout === 'flush' && gutterClass]"
 							:aria-selected="rowSelected(row, rowIndex) || undefined"
 							@click="emit('row-click', { row, index: rowIndex })"
 						>
@@ -1634,10 +1647,35 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 			</table>
 		</div>
 
-		<footer class="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-secondary/25 px-3 py-2 text-xs text-muted-fg">
+		<footer class="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-secondary/25 py-2 text-xs text-muted-fg" :class="layout === 'flush' ? gutterClass : 'px-3'">
 			<span>{{ visibleColumns.length }} columns</span>
 			<span v-if="internalSelectedKeys.length">{{ internalSelectedKeys.length }} selected</span>
 			<span v-else>Ready</span>
 		</footer>
 	</section>
 </template>
+
+<style scoped>
+/* Row padding does not affect table layout. Only the two outer cell edges
+ * inherit it, so responsive/custom utility classes remain application-owned.
+ * Direct table ancestry prevents these rules leaking into nested cell content. */
+[data-layout="flush"] > [data-grid-viewport] > table > :deep(:is(thead, tbody) > tr:not([aria-hidden="true"]) > :is(th, td):first-child) {
+	padding-left: inherit;
+}
+
+[data-layout="flush"] > [data-grid-viewport] > table > :deep(:is(thead, tbody) > tr:not([aria-hidden="true"]) > :is(th, td):last-child) {
+	padding-right: inherit;
+}
+
+/* The sortable header has two inner wrappers; remove their extra edge inset
+ * so the label starts on the same gutter as the toolbar and body cells. */
+[data-layout="flush"] > [data-grid-viewport] > table > thead > tr > th:first-child > div,
+[data-layout="flush"] > [data-grid-viewport] > table > thead > tr > th:first-child > div > button {
+	padding-left: 0;
+}
+
+[data-layout="flush"] > [data-grid-viewport] > table > thead > tr > th:last-child > div:not(.pr-9),
+[data-layout="flush"] > [data-grid-viewport] > table > thead > tr > th:last-child > div > button {
+	padding-right: 0;
+}
+</style>

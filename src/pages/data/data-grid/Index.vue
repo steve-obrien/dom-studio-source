@@ -27,9 +27,13 @@ import CustomColumnComponentsSrc from './examples/CustomColumnComponents.vue?raw
 import EditNameCellSrc from './examples/EditNameCell.vue?raw';
 import RowActionsCellSrc from './examples/RowActionsCell.vue?raw';
 
+import FlushGrid from './examples/FlushGrid.vue';
+import FlushGridSrc from './examples/FlushGrid.vue?raw';
+
 const doc = DomDataGrid.__doc;
 const installationMethod = ref('npm');
 const exampleSources = {
+	flushGrid: createComponentExampleSources(FlushGridSrc),
 	customerDatabase: createComponentExampleSources(CustomerDatabaseSrc),
 	largeMemoryGrid: createComponentExampleSources(LargeMemoryGridSrc),
 	keywordOpportunityGrid: createComponentExampleSources(KeywordOpportunityGridSrc),
@@ -115,6 +119,13 @@ const resourceApiCode = `// Request
 					:preview-lines="0"
 				>
 					<CustomerDatabase />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Layout" title="Flush page edges">
+				<p class="mb-4 text-sm text-muted-fg">Use layout="flush" to remove side borders, rounding and shadow. Supply horizontal padding with gutter-class="px-4 sm:px-6" to align the toolbar, footer and outer header/body cell edges. Middle cells retain their spacing. The application owns the negative-margin wrapper and its page gutter; CSS variable classes such as px-[var(--page-gutter)] also work. The default card layout is unchanged, and flush defaults to px-3 when no gutter is supplied.</p>
+				<Example title="Full-width article library" :code="FlushGridSrc" :source-variants="exampleSources.flushGrid" v-model:installation-method="installationMethod">
+					<FlushGrid />
 				</Example>
 			</DocSection>
 

@@ -21,6 +21,8 @@ const rows = [
 			:rows="rows"
 			:columns="columns"
 			title="Customers"
+			layout="flush"
+			gutter-class="px-4 sm:px-6"
 			height="24rem"
 		/>
 

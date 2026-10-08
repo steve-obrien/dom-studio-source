@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.5 - 2026-10-08
+
+### Added
+
+- Data grids support `layout="flush"` with application-owned `gutter-class`
+  padding, including responsive utilities and CSS variable values. Toolbar,
+  footer and outer header/body cell edges align while middle cells retain their
+  spacing. Works with ordinary and virtual rows.
+- A copyable full-width article library example documents the layout contract.
+
+### Upgrade notes
+
+- Existing grids keep their card layout. Applications own the surrounding width
+  and negative margins; flush removes side borders, corner rounding and shadow.
+
 ## 0.2.4 - 2026-10-08
 
 Reliable chart hover values and optional sparkline tooltips.
