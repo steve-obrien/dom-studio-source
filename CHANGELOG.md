@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.6 - 2026-10-10
+
+### Fixed
+
+- The date and time picker scrolls its selected time option into view when the
+  popover opens, including after the selected time changes between openings.
+  Scrolling stays within the time list and preserves calendar keyboard focus.
+
 ## 0.2.5 - 2026-10-08
 
 ### Added

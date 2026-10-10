@@ -544,9 +544,23 @@ function setOptionRef(value, element) {
 	else optionRefs.delete(value);
 }
 
-async function focusCalendar() {
+/**
+ * Focus the calendar and reveal the selected time after the popover is laid out.
+ * Scroll only the time list so opening the picker does not move the page.
+ * @returns {Promise<void>}
+ */
+async function onPopoverOpen() {
 	await nextTick();
 	await calendar.value?.focusSelectedDate?.();
+	const selectedOption = timeOptions.value.find((option) => selectedTimeSeconds(option.value) === selectedTimeSeconds(selectedTime.value));
+	const option = optionRefs.get(selectedOption?.value);
+	const list = option?.parentElement;
+	if (!option || !list || !list.clientHeight) return;
+
+	const optionTop = option.offsetTop;
+	const optionBottom = optionTop + option.offsetHeight;
+	if (optionTop < list.scrollTop) list.scrollTop = optionTop;
+	else if (optionBottom > list.scrollTop + list.clientHeight) list.scrollTop = optionBottom - list.clientHeight;
 }
 
 function todayValue() {
@@ -593,7 +607,7 @@ function selectedTimeSeconds(value) {
 		<DomPopover
 			ref="popover"
 			v-bind="resolvedPopoverProps"
-			@open="focusCalendar"
+			@open="onPopoverOpen"
 		>
 			<div class="grid max-h-[calc(100vh-1rem)] gap-0 overflow-auto md:grid-cols-[20rem_14rem]">
 				<DomCalendar
@@ -607,7 +621,7 @@ function selectedTimeSeconds(value) {
 						<p class="text-sm font-semibold text-canvas-fg">Time</p>
 						<p class="text-xs text-muted-fg">{{ selectedTime ? formatTimeDisplay(selectedTime, props) : 'Choose time' }}</p>
 					</div>
-					<div class="grid max-h-72 grid-cols-2 gap-1 overflow-auto pr-1" role="listbox" :aria-label="`${props.label || 'Date time'} time options`">
+					<div class="relative grid max-h-72 grid-cols-2 gap-1 overflow-auto pr-1" role="listbox" :aria-label="`${props.label || 'Date time'} time options`">
 						<button
 							v-for="option in timeOptions"
 							:key="option.value"
