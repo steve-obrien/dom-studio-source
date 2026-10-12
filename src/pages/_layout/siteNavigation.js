@@ -2,7 +2,7 @@
  * Site-wide header navigation.
  *
  * The header leads with the products a licence pays for: the data grid,
- * scheduler, DOM designer, charts and AI surfaces. Simple primitives (cards,
+ * scheduler, documents, DOM designer, charts and AI surfaces. Simple primitives (cards,
  * badges, inputs) remain fully documented but sit one level down in the
  * Library menu.
  */
@@ -34,6 +34,7 @@ export const primaryNavigation = [
 			},
 		],
 	},
+	{ id: 'documents', to: '/data/document-editor', label: 'Documents', match: ['/data/document-editor'], description: 'Rich text editing with comments, review and live collaboration.' },
 	{ id: 'designer', to: '/designer', label: 'Designer', match: ['/designer'], description: 'DOM-based visual editor for HTML and Vue output.' },
 	{ id: 'charts', to: '/charts', label: 'Charts', match: ['/charts'], description: 'Analytics and finance visualisation.' },
 	{ id: 'ai', to: '/ai', label: 'AI', match: ['/ai', '/data/agent-chat'], description: 'Agent chat, builders and review surfaces.' },
@@ -55,7 +56,6 @@ export const libraryMenu = {
 			items: [
 				{ to: '/blocks', label: 'Blocks', match: ['/blocks'], description: 'Complete product screens you can copy and own.' },
 				{ to: '/data/kanban', label: 'Kanban', match: ['/data/kanban'], description: 'Boards with drag between columns.' },
-				{ to: '/data/document-editor', label: 'Document editor', match: ['/data/document-editor'], description: 'Rich text with comments and review.' },
 				{ to: '/data', label: 'All data components', match: ['/data'], description: 'Timelines, inboxes, media and more.' },
 			],
 		},
