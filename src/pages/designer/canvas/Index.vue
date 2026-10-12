@@ -1,36 +1,35 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { DomButton, DomDesignerLayers, DomDesignerStage, DomFrameLayoutEditor, DomNativeSelect, DomNumberInput, DomTextInput, DomTextareaInput } from '../../lib/vue';
-import { componentRegistry, lookupByName } from '../../_layout/inspector/componentRegistry.js';
+import { DomButton, DomDesignerLayers, DomDesignerStage, DomFrameLayoutEditor, DomJsonInput, DomNativeSelect, DomNumberInput, DomTextInput, DomTextareaInput } from '../../lib/vue';
+import { lookupByName } from '../../_layout/inspector/componentRegistry.js';
 import { alignFrameChild, createFrameLayout, measureFrameChild, readFrameLayout } from '../frame/frameLayout.js';
-import { flattenFrames, isFrameNode } from '../frames/frameDocument.js';
+import { isFrameNode } from '../frames/frameDocument.js';
+import { componentType, createEditorTypes, studioComponentEntries } from '../core/componentTypes.js';
+import NodeInspector from '../core/NodeInspector.vue';
+import { copySubtree, fromTree, subtreeIds } from '../core/editorDocument.js';
+import { EditorRender } from '../core/EditorRender.js';
+import { createHistory } from '../core/history.js';
+import { previewData, scriptData } from '../core/previewData.js';
+import { treeFromType } from '../core/typeRegistry.js';
+import { tailwindContent } from '../core/vueAdapter.js';
 import ArtboardViewport from './ArtboardViewport.vue';
-import { CanvasNode } from './CanvasNode.js';
-import {
-	buildVueFile,
-	canvasId,
-	canvasTailwindContent,
-	cloneWithNewIds,
-	createCanvasDemo,
-	createCanvasNode,
-	createTextNode,
-	findNode,
-	importVueFile,
-	isCanvasContainer,
-	sampleVueFile,
-	toTemplateLiteral,
-} from './canvasDocument.js';
+import { sampleVueFile } from './canvasDocument.js';
+import { applyWorkspaceOperation, createCanvasDemo, exportFile, importFile, restoreWorkspace, workspaceId } from './canvasWorkspace.js';
 
 /**
- * Canvas: the first slice of the DOM designer.
+ * Canvas: the DOM designer built on the shared editor core.
  *
  * Figma-style pan and zoom over artboards, where every artboard is real HTML
  * rendered by Vue in its own iframe. Artboards are views of Vue files, so the
- * same component can be designed at several widths at once. Files import from,
- * and export back to, Vue SFC source with the original script and style kept.
+ * same component can be designed at several widths at once.
+ *
+ * Each file is an editor document (a flat map of nodes keyed by id), every
+ * edit is an operation with an inverse, and the inspector is generated from
+ * each node's type. Bindings render with preview data, or as variables.
  */
 
-const STORAGE_KEY = 'dom-studio-canvas-v1';
+const STORAGE_KEY = 'dom-studio-canvas-v2';
+const LEGACY_STORAGE_KEY = 'dom-studio-canvas-v1';
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 4;
 const artboardPresets = [
@@ -39,18 +38,29 @@ const artboardPresets = [
 	{ label: 'Desktop', width: 1200 },
 	{ label: 'Wide', width: 1440 },
 ];
+const absoluteBox = (width, height) => ({ placements: { absolute: { left: 24, top: 24, width, height } } });
 const primitives = [
-	{ id: 'frame', label: 'Frame', description: 'Flex container', create: () => createCanvasNode({ tag: 'div', label: 'Frame', layout: createFrameLayout({ mode: 'flex', gap: 12, padding: 16 }), attrs: { class: 'rounded-xl border border-border' }, placements: { absolute: { left: 24, top: 24, width: 280, height: 160 } } }) },
-	{ id: 'section', label: 'Section', description: 'Padded page section', create: () => createCanvasNode({ tag: 'section', attrs: { class: 'space-y-4 p-6' }, children: [createCanvasNode({ tag: 'h2', attrs: { class: 'text-2xl font-semibold tracking-tight' }, children: [createTextNode('Section title')] })] }) },
-	{ id: 'heading', label: 'Heading', description: 'h2', create: () => createCanvasNode({ tag: 'h2', attrs: { class: 'text-2xl font-semibold tracking-tight' }, placements: { absolute: { left: 24, top: 24, width: 240, height: 40 } }, children: [createTextNode('Heading')] }) },
-	{ id: 'text', label: 'Text', description: 'Paragraph', create: () => createCanvasNode({ tag: 'p', attrs: { class: 'text-sm leading-6 text-muted-fg' }, placements: { absolute: { left: 24, top: 24, width: 240, height: 48 } }, children: [createTextNode('Write something useful.')] }) },
-	{ id: 'image', label: 'Image', description: 'img', create: () => createCanvasNode({ tag: 'img', attrs: { src: 'https://placehold.co/480x320', alt: '', class: 'w-full rounded-xl' }, placements: { absolute: { left: 24, top: 24, width: 240, height: 160 } } }) },
-	{ id: 'link', label: 'Link', description: 'a', create: () => createCanvasNode({ tag: 'a', attrs: { href: '#', class: 'text-sm font-medium text-primary underline underline-offset-4' }, placements: { absolute: { left: 24, top: 24, width: 120, height: 24 } }, children: [createTextNode('Learn more')] }) },
+	{ id: 'frame', label: 'Frame', description: 'Flex container', tree: () => ({ type: 'html:div', label: 'Frame', layout: createFrameLayout({ mode: 'flex', gap: 12, padding: 16 }), props: { class: 'rounded-xl border border-border' }, children: [], ...absoluteBox(280, 160) }) },
+	{ id: 'section', label: 'Section', description: 'Padded page section', tree: () => ({ type: 'html:section', props: { class: 'space-y-4 p-6' }, children: [{ type: 'html:h2', props: { class: 'text-2xl font-semibold tracking-tight' }, children: [{ type: 'text', props: { value: 'Section title' } }] }] }) },
+	{ id: 'heading', label: 'Heading', description: 'h2', tree: () => typeTree('html:h2', absoluteBox(240, 40)) },
+	{ id: 'text', label: 'Text', description: 'Paragraph', tree: () => typeTree('html:p', absoluteBox(240, 48)) },
+	{ id: 'image', label: 'Image', description: 'img', tree: () => typeTree('html:img', absoluteBox(240, 160)) },
+	{ id: 'link', label: 'Link', description: 'a', tree: () => typeTree('html:a', absoluteBox(120, 24)) },
 ];
 
-const doc = ref(createCanvasDemo());
-const activeArtboardId = ref(doc.value.artboards[0].id);
+/** Shared empty map; a fresh `{}` per render would re-render inactive artboards forever. */
+const noDetectedLayouts = Object.freeze({});
+const types = createEditorTypes();
+const htmlTypeGroups = Object.entries(types.list().filter((entry) => entry.adapter === 'html' && entry.type !== 'text').reduce((groups, entry) => {
+	(groups[entry.group] ||= []).push(entry);
+	return groups;
+}, {}));
+const studioEntries = studioComponentEntries();
+
+const workspace = ref(createCanvasDemo());
+const activeArtboardId = ref(workspace.value.artboards[0].id);
 const selected = ref('');
+const viewMode = ref('data');
 const css = ref('');
 const compilerNotice = ref('');
 const notice = ref('');
@@ -65,41 +75,48 @@ const showCode = ref(false);
 const importDraft = ref(sampleVueFile);
 const importName = ref('Component.vue');
 const snapping = ref(true);
-const newAttribute = ref({ name: '', value: '' });
 const detected = ref({});
-const past = ref([]);
-const future = ref([]);
+const historySize = ref({ undo: 0, redo: 0 });
 const viewport = ref(null);
 const artboardRefs = new Map();
-let lastSnapshot = snapshot();
-let historyTimer;
 let saveTimer;
 let compileTimer;
 let compiledContent = '';
 let gesture = null;
 let disposed = false;
 
-const artboards = computed(() => doc.value.artboards);
+const history = createHistory({
+	apply: (operation) => applyWorkspaceOperation(workspace.value, operation),
+	onChange() {
+		historySize.value = history.size();
+		queueSave();
+		queueCompile();
+	},
+});
+
+const artboards = computed(() => workspace.value.artboards);
 const activeArtboard = computed(() => artboards.value.find((board) => board.id === activeArtboardId.value) || artboards.value[0]);
-const activeFile = computed(() => doc.value.files.find((file) => file.id === activeArtboard.value?.fileId) || doc.value.files[0]);
-const entries = computed(() => (activeFile.value ? flattenFrames(activeFile.value.root) : []));
-const activeEntry = computed(() => entries.value.find(({ node }) => node.id === selected.value) || null);
-const active = computed(() => activeEntry.value?.node || null);
-const parent = computed(() => activeEntry.value?.parent || null);
+const activeFile = computed(() => fileById(activeArtboard.value?.fileId) || workspace.value.files[0]);
+const doc = computed(() => activeFile.value?.doc || null);
+const active = computed(() => doc.value?.nodes[selected.value] || null);
+const parent = computed(() => (active.value?.parent ? doc.value.nodes[active.value.parent] : null));
+const activeType = computed(() => (active.value ? types.get(active.value.type) : null));
+const textChild = computed(() => {
+	const children = active.value?.children || [];
+	const child = children.length === 1 ? doc.value.nodes[children[0]] : null;
+	return child?.type === 'text' ? child : null;
+});
 const layout = computed(() => active.value?.layout || detected.value[selected.value] || createFrameLayout());
 const parentMode = computed(() => parent.value?.layout?.mode || detected.value[parent.value?.id]?.mode || 'flow');
-const textNode = computed(() => (active.value?.children?.length === 1 && active.value.children[0].tag === '#text' && !active.value.children[0].expression ? active.value.children[0] : null));
-const layers = computed(() => (activeFile.value ? [layer(activeFile.value.root)] : []));
-const fileSource = computed(() => (activeFile.value ? buildVueFile(activeFile.value, isStudioComponent) : ''));
+const layers = computed(() => (doc.value ? [layer(doc.value.rootId)] : []));
+const fileSource = computed(() => (activeFile.value ? exportFile(activeFile.value, isStudioComponent) : ''));
 const zoomLabel = computed(() => `${Math.round(zoom.value * 100)}%`);
+const previews = computed(() => Object.fromEntries(workspace.value.files.map((file) => [file.id, previewData(file.doc, file)])));
+const scriptKeys = computed(() => Object.keys(scriptData(activeFile.value?.script || '')));
 const insertableComponents = computed(() => {
 	const query = insertQuery.value.trim().toLowerCase();
-	return componentRegistry
-		.filter((entry) => entry.component && typeof entry.component === 'object' && entry.componentName)
-		.filter((entry) => !query || `${entry.label} ${entry.componentName} ${entry.group}`.toLowerCase().includes(query))
-		.slice(0, 80);
+	return studioEntries.filter((entry) => !query || `${entry.label} ${entry.componentName} ${entry.group}`.toLowerCase().includes(query)).slice(0, 80);
 });
-const attributeEntries = computed(() => Object.entries(active.value?.attrs || {}).filter(([key]) => key !== 'class'));
 const geometry = computed(() => {
 	if (active.value?.placements?.absolute) return active.value.placements.absolute;
 	const element = activeViewport()?.element(selected.value);
@@ -107,33 +124,26 @@ const geometry = computed(() => {
 	return element && host ? measureFrameChild(element, host) : {};
 });
 
-/** Serialises the document for undo and local persistence. */
-function snapshot() { return JSON.stringify(doc.value); }
+function fileById(id) { return workspace.value.files.find((file) => file.id === id) || null; }
+function tagOf(node) { return types.get(node.type)?.tag || node.type.split(':').pop(); }
+function isFrame(node) { return !!node && node.type.startsWith('html:') && isFrameNode({ tag: tagOf(node) }); }
+/** Nodes that take inserted children: frames and components with a default slot. */
+function canNest(node) { return !!node && (isFrame(node) || (node.type.startsWith('vue:') && types.get(node.type)?.container !== false)); }
+function typeTree(type, overrides) { return treeFromType(types.get(type), overrides); }
 
-/** Builds layer tree items, hiding whitespace text so the tree mirrors what designers see. */
-function layer(node) {
-	const label = node.label || (node.component ? node.tag : `${node.tag}${node.attrs?.id ? ` #${node.attrs.id}` : ''}`);
-	const flags = node.directives?.filter((source) => /^v-(if|else|for)/.test(source)).map((source) => source.split('=')[0]) || [];
+/** Builds layer tree items, hiding text so the tree mirrors what designers see. */
+function layer(id) {
+	const node = doc.value.nodes[id];
+	const tag = tagOf(node);
+	const label = node.label || (node.type.startsWith('vue:') ? tag : `${tag}${typeof node.props.id === 'string' ? ` #${node.props.id}` : ''}`);
+	const flags = (node.directives || []).filter((source) => /^v-(if|else|for)/.test(source)).map((source) => source.split('=')[0]);
 	return {
-		id: node.id,
+		id,
 		label: flags.length ? `${label} · ${flags.join(' ')}` : label,
 		open: true,
-		acceptsChildren: isCanvasContainer(node),
-		children: node.children.filter((child) => child.tag !== '#text').map(layer),
+		acceptsChildren: canNest(node),
+		children: node.children.filter((child) => doc.value.nodes[child]?.type !== 'text').map(layer),
 	};
-}
-
-/** Shared empty map; a fresh `{}` per render would re-render inactive artboards forever. */
-const noDetectedLayouts = Object.freeze({});
-const componentCache = new Map();
-
-/** Resolves a template tag to a live DOM Studio component, or null for a placeholder. Cached: registry lookup is linear. */
-function resolveComponent(tag) {
-	if (!componentCache.has(tag)) {
-		const entry = lookupByName(tag);
-		componentCache.set(tag, entry && typeof entry.component === 'object' ? entry.component : null);
-	}
-	return componentCache.get(tag);
 }
 
 /** Only DOM Studio components get an import line in newly created files. */
@@ -151,59 +161,56 @@ function setArtboardRef(id, instance) {
 	else artboardRefs.delete(id);
 }
 
-/* History ---------------------------------------------------------------- */
+/* Operations and history ------------------------------------------------------- */
 
-/** Records one undo point after a burst of edits. */
-function commitHistory() {
-	clearTimeout(historyTimer);
-	const next = snapshot();
-	if (next === lastSnapshot) return;
-	past.value = [...past.value.slice(-59), lastSnapshot];
-	future.value = [];
-	lastSnapshot = next;
+/** Tags a document operation with the active file. */
+function onFile(operation) { return { file: activeFile.value.id, ...operation }; }
+
+/**
+ * Applies operations as one undo step. `merge` folds continuous input (typing,
+ * dragging) into the same step.
+ */
+function run(operations, options = {}) {
+	try {
+		history.run(operations, options);
+	} catch (error) {
+		notice.value = error.message;
+	}
+	afterChange();
 }
-/** Debounces continuous input (typing, dragging) into a single undo point. */
-function queueHistory() {
-	clearTimeout(historyTimer);
-	historyTimer = setTimeout(commitHistory, 300);
-	queueSave();
-	queueCompile();
-}
-/** Restores a snapshot, keeping the selection when the node still exists. */
-function restore(value) {
-	doc.value = JSON.parse(value);
-	lastSnapshot = value;
+function undo() { history.undo(); afterChange(); }
+function redo() { history.redo(); afterChange(); }
+
+/** Keeps the selection and active artboard valid after any change. */
+function afterChange() {
 	if (!artboards.value.some((board) => board.id === activeArtboardId.value)) activeArtboardId.value = artboards.value[0]?.id;
-	if (!entries.value.some(({ node }) => node.id === selected.value)) selected.value = '';
-	refresh();
-}
-function undo() { commitHistory(); if (past.value.length) { future.value.push(lastSnapshot); restore(past.value.pop()); } }
-function redo() { if (future.value.length) { past.value.push(lastSnapshot); restore(future.value.pop()); } }
-
-/** Wraps a structural edit in its own undo point. */
-function edit(change) {
-	commitHistory();
-	change();
-	commitHistory();
+	if (selected.value && !doc.value?.nodes[selected.value]) selected.value = '';
 	refresh();
 }
 
-/* Persistence and styles --------------------------------------------------- */
+/** Sets a prop on a node; called by the generated inspector. */
+function setProp(id, { key, value, merge }) {
+	run(onFile({ op: 'setProp', id, key, value }), { merge: merge ? `prop:${id}:${key}` : '' });
+}
+
+/* Persistence and styles --------------------------------------------------------- */
 
 /** Saves the canvas in this browser only; storage failures leave the session working. */
 function queueSave() {
 	clearTimeout(saveTimer);
 	saveTimer = setTimeout(() => {
-		try { window.localStorage.setItem(STORAGE_KEY, snapshot()); } catch { /* Private mode or quota: keep working in memory. */ }
+		try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace.value)); } catch { /* Private mode or quota: keep working in memory. */ }
 	}, 500);
 }
 
-/** Loads a saved canvas, ignoring anything that does not look like one. */
+/** Loads a saved canvas, upgrading the first canvas format, and ignoring anything else. */
 function loadSaved() {
-	try {
-		const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || 'null');
-		if (saved?.files?.length && saved?.artboards?.length) return saved;
-	} catch { /* Corrupt or blocked storage falls back to the demo. */ }
+	for (const key of [STORAGE_KEY, LEGACY_STORAGE_KEY]) {
+		try {
+			const restored = restoreWorkspace(JSON.parse(window.localStorage.getItem(key) || 'null'));
+			if (restored) return restored;
+		} catch { /* Corrupt or blocked storage falls back to the demo. */ }
+	}
 	return null;
 }
 
@@ -213,7 +220,7 @@ function queueCompile() {
 	compileTimer = setTimeout(compileCss, 400);
 }
 async function compileCss() {
-	const content = canvasTailwindContent(doc.value.files);
+	const content = tailwindContent(workspace.value.files);
 	if (!content || content === compiledContent) return;
 	compiledContent = content;
 	try {
@@ -226,67 +233,83 @@ async function compileCss() {
 	}
 }
 
-/* Layout detection and geometry ------------------------------------------- */
+/* Layout detection and geometry ---------------------------------------------------- */
 
 /** Reads each frame's resolved layout in the active artboard after the DOM settles. */
 async function refresh() {
 	await nextTick();
-	if (disposed) return;
+	if (disposed || !doc.value) return;
 	const view = activeViewport();
 	const next = {};
-	for (const { node } of entries.value) {
-		const element = view?.element(node.id);
-		if (isFrameNode(node) && element) next[node.id] = readFrameLayout(element);
+	for (const node of Object.values(doc.value.nodes)) {
+		const element = isFrame(node) ? view?.element(node.id) : null;
+		if (element) next[node.id] = readFrameLayout(element);
 	}
 	detected.value = next;
 }
 
-/** Captures each child's box so switching a frame to absolute keeps things where they are. */
-function captureChildren(node) {
+/** Operations that record each child's box, so switching a frame to absolute keeps things where they are. */
+function captureOperations(hostId) {
 	const view = activeViewport();
-	const element = view?.element(node.id);
-	if (!element) return;
-	for (const child of node.children) {
-		const target = view.element(child.id);
-		if (target) child.placements.absolute = measureFrameChild(target, element);
-	}
+	const element = view?.element(hostId);
+	if (!element) return [];
+	return doc.value.nodes[hostId].children.flatMap((childId) => {
+		const child = doc.value.nodes[childId];
+		const target = child.type === 'text' ? null : view.element(childId);
+		return target ? [onFile({ op: 'setField', id: childId, key: 'placements', value: { ...(child.placements || {}), absolute: measureFrameChild(target, element) } })] : [];
+	});
+}
+
+/** Operations that make a frame's detected absolute layout explicit before its children move. */
+function adoptOperations(hostId) {
+	const host = doc.value.nodes[hostId];
+	if (!host || host.layout) return [];
+	return [...captureOperations(hostId), onFile({ op: 'setField', id: hostId, key: 'layout', value: detected.value[hostId] || createFrameLayout({ mode: 'absolute' }) })];
 }
 
 /** Changes a frame's child layout, preserving geometry when entering absolute mode. */
 async function setLayout(value) {
 	const node = active.value;
-	if (!node || !isFrameNode(node)) return;
-	commitHistory();
+	if (!isFrame(node)) return;
+	const merge = `layout:${node.id}:${Date.now()}`;
 	const oldMode = node.layout?.mode || detected.value[node.id]?.mode;
 	if (value.mode === 'absolute' && oldMode !== 'absolute') {
-		node.children = node.children.filter((child) => child.tag !== '#text' || child.text.trim()).map((child) => (child.tag === '#text' ? createCanvasNode({ tag: 'span', children: [child] }) : child));
+		// Absolute children must be elements, so loose text is wrapped in spans (in reverse, to keep indexes valid).
+		const wraps = [];
+		[...node.children].reverse().forEach((childId) => {
+			const child = doc.value.nodes[childId];
+			if (child.type !== 'text') return;
+			const index = node.children.indexOf(childId);
+			wraps.push(onFile({ op: 'remove', id: childId }));
+			if (typeof child.props.value === 'object' || String(child.props.value).trim()) {
+				wraps.push(onFile({ op: 'insert', parent: node.id, index, fragment: fromTree({ type: 'html:span', props: {}, children: [{ type: 'text', props: { ...child.props } }] }) }));
+			}
+		});
+		if (wraps.length) run(wraps, { merge });
 		await nextTick();
 		const element = activeViewport()?.element(node.id);
-		if (element) node.absoluteHeight ??= element.offsetHeight;
-		captureChildren(node);
+		const sizing = element && !node.absoluteHeight ? [onFile({ op: 'setField', id: node.id, key: 'absoluteHeight', value: element.offsetHeight })] : [];
+		run([...sizing, ...captureOperations(node.id), onFile({ op: 'setField', id: node.id, key: 'layout', value })], { merge });
+		return;
 	}
-	node.layout = value;
-	commitHistory();
-	refresh();
+	run(onFile({ op: 'setField', id: node.id, key: 'layout', value }), { merge: `layout:${node.id}` });
 }
 
-/** Applies stage drags and resizes to the document; a source-absolute parent is adopted first. */
+/** Applies stage drags and resizes; a source-absolute parent is adopted first. */
 function patch({ id, style }) {
-	const entry = findNode(activeFile.value.root, id);
-	if (!entry?.parent) return;
-	if (!entry.parent.layout) {
-		captureChildren(entry.parent);
-		entry.parent.layout = detected.value[entry.parent.id] || createFrameLayout({ mode: 'absolute' });
-	}
-	entry.node.placements.absolute = Object.fromEntries(['left', 'top', 'width', 'height'].map((key) => [key, parseFloat(style[key])]));
+	const node = doc.value?.nodes[id];
+	if (!node?.parent) return;
+	const absolute = Object.fromEntries(['left', 'top', 'width', 'height'].map((key) => [key, parseFloat(style[key])]));
+	run([...adoptOperations(node.parent), onFile({ op: 'setField', id, key: 'placements', value: { ...(node.placements || {}), absolute } })], { merge: `move:${id}` });
 }
 
 /** Numeric geometry edits for absolute children. */
 function setGeometry(key, value) {
 	if (value === '' || !Number.isFinite(Number(value)) || !active.value || !parent.value) return;
-	if (!parent.value.layout) { captureChildren(parent.value); parent.value.layout = detected.value[parent.value.id] || createFrameLayout({ mode: 'absolute' }); }
-	if (!active.value.placements.absolute) captureChildren(parent.value);
-	active.value.placements.absolute[key] = ['width', 'height'].includes(key) ? Math.max(16, Number(value)) : Number(value);
+	const adopt = adoptOperations(parent.value.id);
+	const current = active.value.placements?.absolute || geometry.value;
+	const next = { ...current, [key]: ['width', 'height'].includes(key) ? Math.max(16, Number(value)) : Number(value) };
+	run([...adopt, onFile({ op: 'setField', id: active.value.id, key: 'placements', value: { ...(active.value.placements || {}), absolute: next } })], { merge: `geometry:${active.value.id}:${key}` });
 }
 
 /** Aligns the selection inside its frame. */
@@ -296,147 +319,133 @@ function align(alignment) {
 	const element = view?.element(host?.id);
 	const child = view?.element(selected.value);
 	if (!element || !child) return;
-	edit(() => {
-		if (!host.layout) { captureChildren(host); host.layout = detected.value[host.id] || createFrameLayout({ mode: 'absolute' }); }
-		active.value.placements.absolute = alignFrameChild(measureFrameChild(child, element), { width: element.clientWidth, height: element.clientHeight }, alignment, host.layout.padding);
-	});
+	const rect = alignFrameChild(measureFrameChild(child, element), { width: element.clientWidth, height: element.clientHeight }, alignment, (host.layout || detected.value[host.id])?.padding);
+	run([...adoptOperations(host.id), onFile({ op: 'setField', id: active.value.id, key: 'placements', value: { ...(active.value.placements || {}), absolute: rect } })]);
 }
 
 /** Sets a CSS length on the selection, rejecting values that are not valid CSS. */
 function setSize(key, value) {
 	const clean = String(value).trim();
-	if (!clean) { delete active.value.style[key]; return; }
-	if (!CSS.supports(key, clean) || /url|expression|[;{}]/i.test(clean)) return;
-	active.value.style[key] = clean;
+	if (clean && (!CSS.supports(key, clean) || /url|expression|[;{}]/i.test(clean))) return;
+	const style = { ...(active.value.style || {}) };
+	if (clean) style[key] = clean;
+	else delete style[key];
+	run(onFile({ op: 'setField', id: active.value.id, key: 'style', value: Object.keys(style).length ? style : undefined }), { merge: `size:${active.value.id}:${key}` });
 }
 
-/* Structure ----------------------------------------------------------------- */
+/* Structure ---------------------------------------------------------------------- */
 
-/** Inserts inside the selected container, or after the selected leaf. */
-function insert(node) {
-	if (!activeFile.value) return;
-	edit(() => {
-		const target = active.value && isCanvasContainer(active.value) ? active.value : parent.value || activeFile.value.root;
-		if (!target.layout && detected.value[target.id]?.mode === 'absolute') { captureChildren(target); target.layout = detected.value[target.id]; }
-		if (active.value && !isCanvasContainer(active.value) && parent.value === target) target.children.splice(target.children.indexOf(active.value) + 1, 0, node);
-		else target.children.push(node);
-		selected.value = node.id;
-	});
+/** Inserts a tree inside the selected container, or after the selected leaf. */
+function insert(tree) {
+	if (!doc.value) return;
+	const target = canNest(active.value) ? active.value : parent.value || doc.value.nodes[doc.value.rootId];
+	const adopt = !target.layout && detected.value[target.id]?.mode === 'absolute' ? adoptOperations(target.id) : [];
+	const index = active.value && !canNest(active.value) && parent.value === target ? target.children.indexOf(active.value.id) + 1 : target.children.length;
+	const fragment = fromTree(tree);
+	run([...adopt, onFile({ op: 'insert', parent: target.id, index, fragment })]);
+	selected.value = fragment.rootId;
 }
 
-/** Creates a component node from the registry's starter props. */
+/** Inserts any registered type with its starter props and content. */
+function insertType(type, box = absoluteBox(240, 64)) {
+	insert(treeFromType(type, box));
+}
+
+/** Inserts a DOM Studio component from the registry. */
 function insertComponent(entry) {
-	const attrs = {};
-	const bindings = {};
-	for (const [key, value] of Object.entries(entry.defaults?.props || {})) {
-		if (value === undefined || typeof value === 'function') continue;
-		if (typeof value === 'string') attrs[key] = value;
-		else bindings[key] = toTemplateLiteral(value);
-	}
-	const children = entry.defaults?.text ? [createTextNode(entry.defaults.text)] : [];
-	insert(createCanvasNode({ tag: entry.componentName, component: true, attrs, bindings, children, placements: { absolute: { left: 24, top: 24, width: 240, height: 64 } } }));
+	insertType(types.get(`vue:${entry.componentName}`) || componentType(entry));
 }
 
 /** Removes the selection; the file root stays so every artboard has something to render. */
 function remove() {
 	if (!parent.value) return;
-	const host = parent.value;
-	edit(() => {
-		host.children = host.children.filter((child) => child.id !== selected.value);
-		selected.value = host.id;
-	});
+	const host = parent.value.id;
+	run(onFile({ op: 'remove', id: selected.value }));
+	selected.value = host;
 }
 
 /** Duplicates the selection next to itself with fresh ids. */
 function duplicate() {
 	if (!parent.value) return;
-	const host = parent.value;
-	const copy = cloneWithNewIds(active.value);
+	const fragment = copySubtree(doc.value, selected.value, { freshIds: true });
+	const copy = fragment.nodes[fragment.rootId];
 	if (copy.placements?.absolute) copy.placements.absolute = { ...copy.placements.absolute, left: copy.placements.absolute.left + 16, top: copy.placements.absolute.top + 16 };
-	edit(() => {
-		host.children.splice(host.children.indexOf(active.value) + 1, 0, copy);
-		selected.value = copy.id;
-	});
+	run(onFile({ op: 'insert', parent: parent.value.id, index: parent.value.children.indexOf(selected.value) + 1, fragment }));
+	selected.value = fragment.rootId;
 }
 
 /** Moves the selection earlier or later among its siblings. */
 function reorder(direction) {
 	const siblings = parent.value?.children;
 	if (!siblings) return;
-	const index = siblings.indexOf(active.value);
-	const target = index + direction;
+	const target = siblings.indexOf(selected.value) + direction;
 	if (target < 0 || target >= siblings.length) return;
-	edit(() => { [siblings[index], siblings[target]] = [siblings[target], siblings[index]]; });
+	run(onFile({ op: 'move', id: selected.value, parent: parent.value.id, index: target }));
 }
 
 /** Applies a drag in the layer tree to the document. */
 function moveLayer(event) {
-	const root = activeFile.value?.root;
-	const source = findNode(root, String(event.sourceValue));
-	const target = findNode(root, String(event.targetValue));
-	if (!source?.parent || !target || source.node === target.node) return;
-	if (flattenFrames(source.node).some(({ node }) => node === target.node)) return;
-	edit(() => {
-		source.parent.children = source.parent.children.filter((child) => child !== source.node);
-		if (event.position === 'inside' && isCanvasContainer(target.node)) target.node.children.push(source.node);
-		else if (target.parent) {
-			const list = target.parent.children;
-			list.splice(list.indexOf(target.node) + (event.position === 'after' ? 1 : 0), 0, source.node);
-		} else target.node.children.push(source.node);
-		selected.value = source.node.id;
-	});
+	const source = doc.value.nodes[String(event.sourceValue)];
+	const target = doc.value.nodes[String(event.targetValue)];
+	if (!source?.parent || !target || source === target) return;
+	if (subtreeIds(doc.value, source.id).includes(target.id)) return;
+	if (event.position === 'inside' && canNest(target)) {
+		run(onFile({ op: 'move', id: source.id, parent: target.id, index: target.children.length }));
+	} else if (target.parent) {
+		const siblings = doc.value.nodes[target.parent].children.filter((id) => id !== source.id);
+		run(onFile({ op: 'move', id: source.id, parent: target.parent, index: siblings.indexOf(target.id) + (event.position === 'after' ? 1 : 0) }));
+	} else {
+		run(onFile({ op: 'move', id: source.id, parent: target.id, index: target.children.length }));
+	}
+	selected.value = source.id;
 }
 
-/** Adds or overwrites a static attribute or prop. */
-function addAttribute() {
-	const name = newAttribute.value.name.trim();
-	if (!/^[A-Za-z_:][\w:.-]*$/.test(name) || /^on/i.test(name) || !active.value) return;
-	edit(() => { active.value.attrs[name] = newAttribute.value.value; });
-	newAttribute.value = { name: '', value: '' };
+/** Replaces the file's preview data; the exported file never includes it. */
+function setData(value) {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) return;
+	// The editor echoes the value it was given; only real edits become undo steps.
+	if (JSON.stringify(value) === JSON.stringify(previews.value[activeFile.value.id])) return;
+	run(onFile({ op: 'setData', path: [], value }), { merge: 'data' });
 }
 
-/** Removes a static attribute or binding from the selection. */
-function removeAttribute(key, kind = 'attrs') {
-	edit(() => { delete active.value[kind][key]; });
-}
-
-/* Files and artboards ------------------------------------------------------- */
+/* Files and artboards ------------------------------------------------------------- */
 
 /** Adds an artboard for the active file to the right of the existing ones. */
 function addArtboard(preset) {
 	const right = Math.max(0, ...artboards.value.map((board) => board.x + board.width + 80));
-	const board = { id: canvasId('board'), fileId: activeFile.value.id, name: preset.label, x: right, y: 0, width: preset.width, height: 760 };
-	edit(() => { doc.value.artboards.push(board); activeArtboardId.value = board.id; });
+	const board = { id: workspaceId('board'), fileId: activeFile.value.id, name: preset.label, x: right, y: 0, width: preset.width, height: 760 };
+	run({ op: 'addArtboard', board });
+	activeArtboardId.value = board.id;
 	nextTick(() => focusArtboard(board));
 }
 
 /** Removes an artboard; its file is removed too when no other artboard shows it. */
 function removeArtboard(board) {
 	if (artboards.value.length < 2) return;
-	edit(() => {
-		doc.value.artboards = artboards.value.filter((item) => item.id !== board.id);
-		if (!doc.value.artboards.some((item) => item.fileId === board.fileId)) doc.value.files = doc.value.files.filter((file) => file.id !== board.fileId);
-		activeArtboardId.value = doc.value.artboards[0].id;
-		selected.value = '';
-	});
+	const orphan = !artboards.value.some((item) => item.id !== board.id && item.fileId === board.fileId);
+	run([{ op: 'removeArtboard', id: board.id }, orphan ? { op: 'removeFile', id: board.fileId } : null]);
+	activeArtboardId.value = artboards.value[0].id;
+	selected.value = '';
+}
+
+/** Edits an artboard field; typing merges into one undo step. */
+function setArtboard(board, key, value) {
+	run({ op: 'setArtboard', id: board.id, key, value }, { merge: `board:${board.id}:${key}` });
 }
 
 /** Starts a blank Vue file with one desktop artboard. */
 function newFile() {
-	const root = createCanvasNode({ tag: 'section', attrs: { class: 'min-h-full space-y-4 bg-canvas p-8 text-canvas-fg' }, children: [createCanvasNode({ tag: 'h1', attrs: { class: 'text-3xl font-semibold tracking-tight' }, children: [createTextNode('Untitled page')] })] });
-	addFile({ id: canvasId('file'), name: `Page${doc.value.files.length + 1}.vue`, root, script: '', style: '' });
+	const { file } = importFile(`<section class="min-h-full space-y-4 bg-canvas p-8 text-canvas-fg">\n\t<h1 class="text-3xl font-semibold tracking-tight">Untitled page</h1>\n</section>`, `Page${workspace.value.files.length + 1}.vue`);
+	addFile(file);
 }
 
 /** Adds a file and a desktop artboard for it below the current artboards. */
 function addFile(file) {
 	const bottom = Math.max(0, ...artboards.value.map((board) => board.y + (artboardRefs.get(board.id)?.$el?.offsetHeight || board.height) + 160));
-	const board = { id: canvasId('board'), fileId: file.id, name: file.name.replace(/\.vue$/, ''), x: 0, y: bottom, width: 1200, height: 760 };
-	edit(() => {
-		doc.value.files.push(file);
-		doc.value.artboards.push(board);
-		activeArtboardId.value = board.id;
-		selected.value = file.root.id;
-	});
+	const board = { id: workspaceId('board'), fileId: file.id, name: file.name.replace(/\.vue$/, ''), x: 0, y: bottom, width: 1200, height: 760 };
+	run([{ op: 'addFile', value: file }, { op: 'addArtboard', board }]);
+	activeArtboardId.value = board.id;
+	selected.value = file.doc.rootId;
 	nextTick(() => focusArtboard(board));
 }
 
@@ -444,14 +453,16 @@ function addFile(file) {
 function importSource(replace = false) {
 	try {
 		const name = importName.value.trim().replace(/[^\w.-]/g, '') || 'Component.vue';
-		const { file, unsupported } = importVueFile(importDraft.value, /\.vue$/.test(name) ? name : `${name}.vue`);
+		const { file, unsupported, seeded } = importFile(importDraft.value, /\.vue$/.test(name) ? name : `${name}.vue`);
 		if (replace && activeFile.value) {
-			edit(() => Object.assign(activeFile.value, { root: file.root, script: file.script, style: file.style, name: file.name }));
-			selected.value = file.root.id;
+			const id = activeFile.value.id;
+			run(['doc', 'script', 'style', 'name'].map((key) => ({ op: 'setFile', id, key, value: file[key] })));
+			selected.value = file.doc.rootId;
 		} else addFile(file);
 		showImport.value = false;
-		notice.value = `${file.name} opened.${unsupported ? ` ${unsupported} unsupported nodes or event attributes were left out.` : ''} Script and style blocks are kept for export.`;
-		queueCompile();
+		const dropped = unsupported ? ` ${unsupported} unsupported nodes or event attributes were left out.` : '';
+		const data = seeded.length ? ` Preview data from the script: ${seeded.join(', ')}.` : '';
+		notice.value = `${file.name} opened.${dropped}${data} Script and style blocks are kept for export.`;
 	} catch (error) {
 		notice.value = error.message;
 	}
@@ -485,11 +496,13 @@ function downloadSource() {
 
 /** Resets to the starter canvas as an undoable action. */
 function resetDemo() {
-	edit(() => { doc.value = createCanvasDemo(); activeArtboardId.value = doc.value.artboards[0].id; selected.value = ''; });
+	run({ op: 'setWorkspace', value: createCanvasDemo() });
+	activeArtboardId.value = artboards.value[0].id;
+	selected.value = '';
 	nextTick(fitAll);
 }
 
-/* Canvas navigation ---------------------------------------------------------- */
+/* Canvas navigation ----------------------------------------------------------------- */
 
 /** Zooms around a screen point so the content under the pointer stays put. */
 function zoomAt(clientX, clientY, next) {
@@ -560,7 +573,7 @@ function onArtboardTitlePointerdown(event, board) {
 	event.preventDefault();
 	event.stopPropagation();
 	activeArtboardId.value = board.id;
-	commitHistory();
+	history.seal();
 	gesture = { kind: 'artboard', board, pointer: event.pointerId, x: event.clientX, y: event.clientY, origin: { x: board.x, y: board.y } };
 	viewport.value.setPointerCapture(event.pointerId);
 }
@@ -571,14 +584,17 @@ function onCanvasPointermove(event) {
 	const dy = event.clientY - gesture.y;
 	if (gesture.kind === 'pan') pan.value = { x: gesture.origin.x + dx, y: gesture.origin.y + dy };
 	else {
-		gesture.board.x = Math.round(gesture.origin.x + dx / zoom.value);
-		gesture.board.y = Math.round(gesture.origin.y + dy / zoom.value);
+		const id = gesture.board.id;
+		run([
+			{ op: 'setArtboard', id, key: 'x', value: Math.round(gesture.origin.x + dx / zoom.value) },
+			{ op: 'setArtboard', id, key: 'y', value: Math.round(gesture.origin.y + dy / zoom.value) },
+		], { merge: `drag:${id}` });
 	}
 }
 
 function onCanvasPointerup(event) {
 	if (!gesture || gesture.pointer !== event.pointerId) return;
-	if (gesture.kind === 'artboard') commitHistory();
+	if (gesture.kind === 'artboard') history.seal();
 	gesture = null;
 	panning.value = false;
 	if (viewport.value?.hasPointerCapture(event.pointerId)) viewport.value.releasePointerCapture(event.pointerId);
@@ -590,7 +606,7 @@ function selectFromArtboard(board, id) {
 	selected.value = id;
 }
 
-/* Keyboard ------------------------------------------------------------------ */
+/* Keyboard -------------------------------------------------------------------------- */
 
 /** True while the user is typing, so shortcuts never steal keystrokes. */
 function isTyping(event) {
@@ -617,14 +633,13 @@ function onKeyup(event) {
 	if (event.code === 'Space') spaceHeld.value = false;
 }
 
-watch(doc, queueHistory, { deep: true, flush: 'sync' });
 watch(activeArtboardId, refresh);
+watch(viewMode, refresh);
 
 onMounted(() => {
 	const saved = loadSaved();
 	if (saved) {
-		doc.value = saved;
-		lastSnapshot = snapshot();
+		workspace.value = saved;
 		activeArtboardId.value = saved.artboards[0].id;
 	}
 	window.addEventListener('keydown', onKeydown);
@@ -637,7 +652,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
 	disposed = true;
-	clearTimeout(historyTimer);
 	clearTimeout(compileTimer);
 	clearTimeout(saveTimer);
 	window.removeEventListener('keydown', onKeydown);
@@ -658,8 +672,12 @@ onBeforeUnmount(() => {
 				<DomButton size="sm" variant="secondary" @click="showImport = !showImport">Open Vue file</DomButton>
 				<DomButton size="sm" variant="ghost" @click="newFile">New file</DomButton>
 				<span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
-				<DomButton size="sm" variant="ghost" :disabled="!past.length" title="Undo (⌘Z)" @click="undo">Undo</DomButton>
-				<DomButton size="sm" variant="ghost" :disabled="!future.length" title="Redo (⇧⌘Z)" @click="redo">Redo</DomButton>
+				<DomButton size="sm" variant="ghost" :disabled="!historySize.undo" title="Undo (⌘Z)" @click="undo">Undo</DomButton>
+				<DomButton size="sm" variant="ghost" :disabled="!historySize.redo" title="Redo (⇧⌘Z)" @click="redo">Redo</DomButton>
+				<span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
+				<div class="flex rounded-lg bg-secondary p-0.5" role="group" aria-label="Show bindings as">
+					<button v-for="mode in [{ id: 'data', label: 'Data', title: 'Render bindings with preview data' }, { id: 'variables', label: 'Variables', title: 'Show each binding as a variable, every v-if branch and one item per list' }]" :key="mode.id" type="button" :aria-pressed="viewMode === mode.id" :title="mode.title" class="rounded-md px-2.5 py-1 text-xs font-medium transition" :class="viewMode === mode.id ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'" @click="viewMode = mode.id">{{ mode.label }}</button>
+				</div>
 			</div>
 			<div class="ml-auto flex flex-wrap items-center gap-1.5">
 				<label class="mr-2 hidden items-center gap-2 text-xs text-muted-fg md:flex"><input v-model="snapping" type="checkbox">Snap</label>
@@ -695,7 +713,7 @@ onBeforeUnmount(() => {
 		<div class="grid grid-cols-1 lg:min-h-0 lg:flex-1 lg:grid-cols-[16rem_minmax(0,1fr)_19rem]">
 			<aside class="order-2 flex max-h-[28rem] min-h-0 flex-col border-t border-border lg:order-none lg:max-h-none lg:border-t-0 lg:border-r">
 				<div class="flex shrink-0 gap-1 border-b border-border p-2" role="tablist" aria-label="Left panel">
-					<button v-for="tab in ['layers', 'insert']" :key="tab" type="button" role="tab" :aria-selected="leftTab === tab" class="flex-1 rounded-md px-2 py-1 text-xs font-medium capitalize transition" :class="leftTab === tab ? 'bg-secondary text-canvas-fg' : 'text-muted-fg hover:text-canvas-fg'" @click="leftTab = tab">{{ tab }}</button>
+					<button v-for="tab in ['layers', 'insert', 'data']" :key="tab" type="button" role="tab" :aria-selected="leftTab === tab" class="flex-1 rounded-md px-2 py-1 text-xs font-medium capitalize transition" :class="leftTab === tab ? 'bg-secondary text-canvas-fg' : 'text-muted-fg hover:text-canvas-fg'" @click="leftTab = tab">{{ tab }}</button>
 				</div>
 				<div v-if="leftTab === 'layers'" class="min-h-0 flex-1 space-y-4 overflow-auto p-3">
 					<section>
@@ -714,15 +732,26 @@ onBeforeUnmount(() => {
 						<DomDesignerLayers v-model="selected" :items="layers" @reorder="moveLayer" />
 					</section>
 				</div>
-				<div v-else class="min-h-0 flex-1 space-y-4 overflow-auto p-3">
+				<div v-else-if="leftTab === 'insert'" class="min-h-0 flex-1 space-y-4 overflow-auto p-3">
 					<section>
 						<h2 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">HTML</h2>
 						<div class="grid grid-cols-2 gap-1.5">
-							<button v-for="item in primitives" :key="item.id" type="button" class="rounded-lg border border-border p-2 text-left transition hover:border-primary" @click="insert(item.create())">
+							<button v-for="item in primitives" :key="item.id" type="button" class="rounded-lg border border-border p-2 text-left transition hover:border-primary" @click="insert(item.tree())">
 								<span class="block text-sm font-medium">{{ item.label }}</span>
 								<span class="block text-[11px] text-muted-fg">{{ item.description }}</span>
 							</button>
 						</div>
+						<details class="mt-2 rounded-lg border border-border">
+							<summary class="cursor-pointer px-2 py-1.5 text-xs font-medium text-muted-fg hover:text-canvas-fg">All HTML elements</summary>
+							<div class="space-y-2 border-t border-border p-2">
+								<div v-for="[group, entries] in htmlTypeGroups" :key="group">
+									<p class="mb-1 text-[11px] font-medium text-muted-fg">{{ group }}</p>
+									<div class="flex flex-wrap gap-1">
+										<button v-for="entry in entries" :key="entry.type" type="button" class="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] transition hover:bg-primary/10 hover:text-primary" :title="`<${entry.tag}>`" @click="insertType(entry)">{{ entry.label }}</button>
+									</div>
+								</div>
+							</div>
+						</details>
 					</section>
 					<section>
 						<h2 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">DOM Studio components</h2>
@@ -736,6 +765,14 @@ onBeforeUnmount(() => {
 							</li>
 						</ul>
 					</section>
+				</div>
+				<div v-else class="min-h-0 flex-1 space-y-3 overflow-auto p-3">
+					<div>
+						<h2 class="px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">Preview data · {{ activeFile?.name }}</h2>
+						<p class="mt-1 px-1 text-xs leading-5 text-muted-fg">Bindings such as <code v-pre class="font-mono">{{ project.name }}</code> render with these values. Samples are generated from what the template reads<template v-if="scriptKeys.length">, and <span class="font-mono">{{ scriptKeys.join(', ') }}</span> come from the script</template>. Edits stay in the canvas and are never exported.</p>
+					</div>
+					<DomJsonInput v-if="activeFile" :model-value="previews[activeFile.id]" label="Data" :rows="18" @update:model-value="setData" />
+					<DomButton size="sm" variant="secondary" :disabled="!Object.keys(doc?.data || {}).length" @click="run(onFile({ op: 'setData', path: [], value: {} }))">Reset to samples</DomButton>
 				</div>
 			</aside>
 
@@ -784,11 +821,13 @@ onBeforeUnmount(() => {
 										@update:model-value="selectFromArtboard(board, $event)"
 										@style-change="patch"
 									>
-										<CanvasNode
-											v-if="doc.files.find((file) => file.id === board.fileId)"
-											:node="doc.files.find((file) => file.id === board.fileId).root"
+										<EditorRender
+											v-if="fileById(board.fileId)"
+											:doc="fileById(board.fileId).doc"
+											:types="types"
+											:data="previews[board.fileId]"
+											:mode="viewMode"
 											:detected="board.id === activeArtboard?.id ? detected : noDetectedLayouts"
-											:resolve-component="resolveComponent"
 										/>
 									</DomDesignerStage>
 								</ArtboardViewport>
@@ -814,38 +853,21 @@ onBeforeUnmount(() => {
 			</section>
 
 			<aside class="order-3 min-h-0 space-y-5 border-t border-border p-4 lg:order-none lg:overflow-auto lg:border-t-0 lg:border-l">
-				<template v-if="active">
+				<template v-if="active && activeType">
 					<div>
-						<p class="text-xs text-muted-fg">{{ active.component ? 'Vue component' : isFrameNode(active) ? 'Frame' : 'Element' }}</p>
-						<h2 class="mt-0.5 font-mono text-sm font-semibold">&lt;{{ active.tag }}&gt;</h2>
-						<p class="mt-1 text-xs text-muted-fg">{{ parent ? `Inside ${parent.label || parent.tag} · ${parentMode}` : 'File root' }}</p>
+						<p class="text-xs text-muted-fg">{{ activeType.adapter === 'vue' ? (activeType.placeholder ? 'Local Vue component' : `Vue component · ${activeType.label}`) : isFrame(active) ? 'Frame' : activeType.label }}</p>
+						<h2 class="mt-0.5 font-mono text-sm font-semibold">&lt;{{ activeType.tag }}&gt;</h2>
+						<p class="mt-1 text-xs text-muted-fg">{{ parent ? `Inside ${parent.label || tagOf(parent)} · ${parentMode}` : 'File root' }}</p>
 					</div>
-					<div v-if="active.directives.length" class="space-y-1">
+					<div v-if="active.directives?.length" class="space-y-1">
 						<p class="text-xs font-medium">Template logic</p>
 						<ul class="flex flex-wrap gap-1"><li v-for="source in active.directives" :key="source" class="rounded bg-secondary px-1.5 py-0.5 font-mono text-[11px]">{{ source }}</li></ul>
-						<p class="text-[11px] leading-4 text-muted-fg">Kept on export. The canvas shows every branch and one item of each loop.</p>
+						<p class="text-[11px] leading-4 text-muted-fg">Kept on export. Data view runs lists and conditions on preview data; Variables view shows every branch and one item of each list.</p>
 					</div>
-					<DomTextareaInput v-if="textNode" v-model="textNode.text" label="Text" :rows="3" />
-					<DomTextareaInput v-if="active.tag !== 'template'" :model-value="active.attrs.class || ''" label="Classes" :rows="3" description="Tailwind utilities and theme classes." @update:model-value="active.attrs.class = $event" />
+					<NodeInspector v-if="textChild" :key="`text-${textChild.id}`" :node="textChild" :type="types.get('text')" :data="previews[activeFile.id]" @set-prop="setProp(textChild.id, $event)" />
+					<NodeInspector :key="active.id" :node="active" :type="activeType" :data="previews[activeFile.id]" @set-prop="setProp(active.id, $event)" />
 
-					<section class="space-y-2 border-t border-border pt-4">
-						<h3 class="text-sm font-semibold">{{ active.component ? 'Props' : 'Attributes' }}</h3>
-						<div v-for="[key, value] in attributeEntries" :key="key" class="flex items-end gap-1.5">
-							<DomTextInput class="min-w-0 flex-1" :label="key" :model-value="value" @update:model-value="active.attrs[key] = $event" />
-							<DomButton size="sm" variant="ghost" :aria-label="`Remove ${key}`" @click="removeAttribute(key)">×</DomButton>
-						</div>
-						<div v-for="(value, key) in active.bindings" :key="`bind-${key}`" class="flex items-end gap-1.5">
-							<DomTextInput class="min-w-0 flex-1 font-mono" :label="`:${key}`" :model-value="value" @update:model-value="active.bindings[key] = $event" />
-							<DomButton size="sm" variant="ghost" :aria-label="`Remove :${key}`" @click="removeAttribute(key, 'bindings')">×</DomButton>
-						</div>
-						<form class="flex items-end gap-1.5" @submit.prevent="addAttribute">
-							<DomTextInput v-model="newAttribute.name" class="min-w-0 flex-1" label="Name" placeholder="title" />
-							<DomTextInput v-model="newAttribute.value" class="min-w-0 flex-1" label="Value" />
-							<DomButton size="sm" type="submit">Add</DomButton>
-						</form>
-					</section>
-
-					<section v-if="isFrameNode(active)" class="space-y-3 border-t border-border pt-4">
+					<section v-if="isFrame(active)" class="space-y-3 border-t border-border pt-4">
 						<h3 class="text-sm font-semibold">Layout</h3>
 						<p v-if="!active.layout" class="text-xs leading-5 text-muted-fg">Read from the HTML at {{ activeArtboard?.width }}px. Changing a control adds an explicit override.</p>
 						<DomFrameLayoutEditor :model-value="layout" @update:model-value="setLayout" />
@@ -858,7 +880,7 @@ onBeforeUnmount(() => {
 					</section>
 					<section v-else-if="parent" class="space-y-3 border-t border-border pt-4">
 						<h3 class="text-sm font-semibold">Size and spacing</h3>
-						<div class="grid grid-cols-2 gap-2"><DomTextInput v-for="key in ['width', 'height', 'margin-top', 'margin-bottom']" :key="key" :label="key" :model-value="active.style[key] || ''" placeholder="From classes" @update:model-value="setSize(key, $event)" /></div>
+						<div class="grid grid-cols-2 gap-2"><DomTextInput v-for="key in ['width', 'height', 'margin-top', 'margin-bottom']" :key="key" :label="key" :model-value="active.style?.[key] || ''" placeholder="From classes" @update:model-value="setSize(key, $event)" /></div>
 					</section>
 
 					<div v-if="parent" class="flex flex-wrap gap-1.5 border-t border-border pt-4">
@@ -876,10 +898,10 @@ onBeforeUnmount(() => {
 						<h2 class="mt-0.5 font-semibold">{{ activeArtboard.name }}</h2>
 						<p class="mt-1 text-xs text-muted-fg">Select a layer on the canvas or in the layer list.</p>
 					</div>
-					<DomTextInput v-model="activeArtboard.name" label="Name" />
-					<DomNumberInput :model-value="activeArtboard.width" label="Width" :min="240" :max="2560" @update:model-value="Number.isFinite(Number($event)) && (activeArtboard.width = Math.min(2560, Math.max(240, Number($event))))" />
-					<DomNativeSelect label="Preset" :model-value="String(activeArtboard.width)" :options="artboardPresets.map((preset) => ({ label: `${preset.label} · ${preset.width}`, value: String(preset.width) }))" @update:model-value="activeArtboard.width = Number($event)" />
-					<DomTextInput v-if="activeFile" v-model="activeFile.name" label="File name" />
+					<DomTextInput :model-value="activeArtboard.name" label="Name" @update:model-value="setArtboard(activeArtboard, 'name', $event)" />
+					<DomNumberInput :model-value="activeArtboard.width" label="Width" :min="240" :max="2560" @update:model-value="Number.isFinite(Number($event)) && setArtboard(activeArtboard, 'width', Math.min(2560, Math.max(240, Number($event))))" />
+					<DomNativeSelect label="Preset" :model-value="String(activeArtboard.width)" :options="artboardPresets.map((preset) => ({ label: `${preset.label} · ${preset.width}`, value: String(preset.width) }))" @update:model-value="setArtboard(activeArtboard, 'width', Number($event))" />
+					<DomTextInput v-if="activeFile" :model-value="activeFile.name" label="File name" @update:model-value="run({ op: 'setFile', id: activeFile.id, key: 'name', value: $event }, { merge: `file:${activeFile.id}:name` })" />
 					<section class="space-y-2 border-t border-border pt-4">
 						<h3 class="text-sm font-semibold">Add a breakpoint</h3>
 						<p class="text-xs leading-5 text-muted-fg">A new artboard for {{ activeFile?.name }}. Edits show in every artboard of the same file.</p>
