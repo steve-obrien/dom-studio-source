@@ -9,6 +9,9 @@ import { createHtmlTypeRegistry, treeFromType } from '../src/pages/designer/core
 import { exportVue, importVue } from '../src/pages/designer/core/vueAdapter.js';
 import { applyWorkspaceOperation, createCanvasDemo, exportFile, restoreWorkspace } from '../src/pages/designer/canvas/canvasWorkspace.js';
 import { importVueFile, sampleVueFile } from '../src/pages/designer/canvas/canvasDocument.js';
+import { alignRects, boundsOf, distributeRects } from '../src/pages/designer/stage/alignGeometry.js';
+import { createPoster, createSocialCard, exportPosterHtml } from '../src/pages/designer/poster/posterModel.js';
+import { createPosterTypes, documentToPoster, posterToDocument } from '../src/pages/designer/poster/posterTypes.js';
 
 function counter() {
 	let index = 0;
@@ -227,4 +230,49 @@ test('canvases saved in the first format are upgraded', () => {
 	assert.equal(exportFile(restored.files[0]), exportFile({ ...createCanvasDemo().files[0] }));
 	assert.equal(restoreWorkspace({ files: [], artboards: [] }), null);
 	assert.equal(restoreWorkspace('nonsense'), null);
+});
+
+test('align and distribute rectangles', () => {
+	const rects = [{ id: 'a', left: 10, top: 0, width: 20, height: 10 }, { id: 'b', left: 50, top: 30, width: 40, height: 10 }, { id: 'c', left: 200, top: 60, width: 10, height: 10 }];
+	assert.deepEqual(boundsOf(rects), { left: 10, top: 0, width: 200, height: 70 });
+	assert.deepEqual(alignRects(rects, 'left').map((rect) => rect.left), [10, 10, 10]);
+	assert.deepEqual(alignRects(rects, 'right').map((rect) => rect.left), [190, 170, 200]);
+	assert.deepEqual(alignRects(rects, 'middle').map((rect) => rect.top), [30, 30, 30]);
+	assert.deepEqual(alignRects([rects[0]], 'center', { left: 0, top: 0, width: 100, height: 100 })[0].left, 40);
+	// Gaps become equal: occupied 70 of the 200 span leaves two gaps of 65.
+	const spaced = distributeRects(rects, 'horizontal');
+	assert.deepEqual(spaced.map((rect) => rect.left), [10, 95, 200]);
+	assert.deepEqual(distributeRects(rects.slice(0, 2), 'horizontal'), rects.slice(0, 2));
+});
+
+test('poster documents round-trip and export the same HTML', () => {
+	for (const create of [createPoster, createSocialCard]) {
+		const poster = create();
+		const doc = posterToDocument(poster);
+		assert.deepEqual(validateDocument(doc), []);
+		assert.equal(doc.rootId, 'frame');
+		assert.deepEqual(documentToPoster(doc), poster);
+		assert.equal(exportPosterHtml(documentToPoster(doc)), exportPosterHtml(poster));
+	}
+	const doc = posterToDocument(createPoster());
+	assert.equal(doc.nodes.photo.locked, true);
+	assert.equal(doc.nodes.photo.label, 'Glencoe, Scottish Highlands');
+	const types = createPosterTypes();
+	assert.ok(types.get('poster:text').schema.some((field) => field.key === 'fontSize'));
+	assert.ok(!types.get('poster:image').schema.some((field) => field.key === 'fontSize'));
+	assert.equal(types.get('vue:DomButton'), null);
+});
+
+test('poster edits are operations with undo', () => {
+	const doc = posterToDocument(createPoster());
+	const history = createHistory({ apply: (operation) => applyOperation(doc, operation) });
+	history.run([{ op: 'setProp', id: 'headline', key: 'x', value: 120 }, { op: 'setField', id: 'headline', key: 'hidden', value: true }]);
+	assert.equal(documentToPoster(doc).layers[1].x, 120);
+	assert.equal(documentToPoster(doc).layers[1].hidden, true);
+	assert.ok(!exportPosterHtml(documentToPoster(doc)).includes('THE HIGHLANDS'));
+	history.run({ op: 'move', id: 'headline', parent: 'frame', index: 0 });
+	assert.deepEqual(doc.nodes.frame.children, ['headline', 'photo']);
+	history.undo();
+	history.undo();
+	assert.deepEqual(documentToPoster(doc), createPoster());
 });

@@ -14,6 +14,10 @@ import { UNKNOWN, createScope, evaluate } from './expression.js';
  * hold a literal, edited with its registered editor, or a binding to data,
  * edited as an expression. Props the type does not describe (from imported
  * code) are listed too, so nothing in the source is hidden.
+ *
+ * A type can order its groups with `groups`, and a field with `half: true`
+ * shares a row. Number fields are clamped to their `min` and `max`. Editors
+ * without data bindings (the poster) turn off `bindable` and `extraProps`.
  */
 defineOptions({ name: 'NodeInspector' });
 
@@ -21,9 +25,13 @@ const props = defineProps({
 	node: { type: Object, required: true },
 	type: { type: Object, required: true },
 	data: { type: Object, default: () => ({}) },
+	bindable: { type: Boolean, default: true },
+	extraProps: { type: Boolean, default: true },
+	disabled: { type: Boolean, default: false },
 });
 const emit = defineEmits(['set-prop']);
-const groupOrder = ['Style', 'Props', 'Content', 'Attributes'];
+const defaultGroupOrder = ['Style', 'Props', 'Content', 'Attributes'];
+const numericEditors = new Set(['DomNumberInput', 'DomRangeInput']);
 const draft = ref({ name: '', value: '' });
 
 const schemaKeys = computed(() => new Set(props.type.schema.map((field) => field.key)));
@@ -36,15 +44,26 @@ const groups = computed(() => {
 	}
 	return [...map.entries()].sort(([a], [b]) => rank(a) - rank(b));
 });
-const extraProps = computed(() => Object.entries(props.node.props || {}).filter(([key]) => !schemaKeys.value.has(key) && !(props.node.type === 'text' && key === 'value')));
+const otherProps = computed(() => Object.entries(props.node.props || {}).filter(([key]) => !schemaKeys.value.has(key) && !(props.node.type === 'text' && key === 'value')));
 
 function rank(group) {
-	const index = groupOrder.indexOf(group);
-	return index < 0 ? groupOrder.length : index;
+	const order = props.type.groups || defaultGroupOrder;
+	const index = order.indexOf(group);
+	return index < 0 ? order.length : index;
 }
 
 function set(key, value, merge = true) {
 	emit('set-prop', { key, value, merge });
+}
+
+/** Sets a field's literal value; numbers are finite and within the field's range. */
+function setField(field, value) {
+	if (numericEditors.has(field.component)) {
+		if (value === '' || value === null || !Number.isFinite(Number(value))) return;
+		const { min = -Infinity, max = Infinity } = { ...field, ...field.props };
+		value = Math.min(max, Math.max(min, Number(value)));
+	}
+	set(field.key, value);
 }
 
 /** Binds a literal prop to an expression, starting from its current value. */
@@ -68,10 +87,10 @@ function addProp() {
 </script>
 
 <template>
-	<div class="space-y-5">
-		<section v-for="[group, fields] in groups" :key="group" class="space-y-3">
-			<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-fg">{{ group }}</h3>
-			<div v-for="field in fields" :key="field.key" class="group/field relative">
+	<fieldset :disabled="disabled" class="min-w-0 space-y-5 disabled:opacity-50">
+		<section v-for="[group, fields] in groups" :key="group" class="grid grid-cols-2 gap-3">
+			<h3 class="col-span-2 text-xs font-semibold uppercase tracking-wide text-muted-fg">{{ group }}</h3>
+			<div v-for="field in fields" :key="field.key" class="group/field relative min-w-0" :class="field.half ? 'col-span-1' : 'col-span-2'">
 				<div v-if="isExpr(node.props[field.key])" class="flex items-end gap-1.5">
 					<DomTextInput
 						class="min-w-0 flex-1 font-mono"
@@ -82,9 +101,9 @@ function addProp() {
 					<DomButton size="sm" variant="ghost" title="Use the preview value instead of a binding" @click="unbind(field.key)">Unbind</DomButton>
 				</div>
 				<template v-else>
-					<InspectorField :field="field" :model-value="node.props[field.key]" @update:model-value="set(field.key, $event)" />
+					<InspectorField :field="field" :model-value="node.props[field.key]" @update:model-value="setField(field, $event)" />
 					<button
-						v-if="node.type !== 'text' || field.key === 'value'"
+						v-if="bindable && (node.type !== 'text' || field.key === 'value')"
 						type="button"
 						class="absolute right-0 top-0 rounded px-1 font-mono text-[11px] text-muted-fg opacity-0 transition hover:bg-secondary hover:text-primary focus:opacity-100 group-hover/field:opacity-100"
 						:title="`Bind ${field.label || field.key} to data`"
@@ -94,9 +113,9 @@ function addProp() {
 			</div>
 		</section>
 
-		<section v-if="node.type !== 'text'" class="space-y-2">
-			<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-fg">{{ extraProps.length ? 'Other props' : 'Add a prop' }}</h3>
-			<div v-for="[key, value] in extraProps" :key="key" class="flex items-end gap-1.5">
+		<section v-if="extraProps && node.type !== 'text'" class="space-y-2">
+			<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-fg">{{ otherProps.length ? 'Other props' : 'Add a prop' }}</h3>
+			<div v-for="[key, value] in otherProps" :key="key" class="flex items-end gap-1.5">
 				<DomTextInput
 					class="min-w-0 flex-1"
 					:class="isExpr(value) && 'font-mono'"
@@ -112,5 +131,5 @@ function addProp() {
 				<DomButton size="sm" type="submit">Add</DomButton>
 			</form>
 		</section>
-	</div>
+	</fieldset>
 </template>

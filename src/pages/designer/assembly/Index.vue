@@ -11,15 +11,16 @@ import LayerAppearance from './examples/LayerAppearance.vue';
 import appearanceSource from './examples/LayerAppearance.vue?raw';
 import FlowDesigner from './examples/FlowDesigner.vue';
 import flowSource from './examples/FlowDesigner.vue?raw';
-import posterSource from '../poster/Index.vue?raw';
+import posterSource from '../poster/PosterStudio.vue?raw';
 import posterModel from '../poster/posterModel.js?raw';
+import posterTypes from '../poster/posterTypes.js?raw';
 import socialSource from '../social-card/Index.vue?raw';
 import fullFlowSource from '../flowchart/Index.vue?raw';
 
 const pieces = [
 	['DomSplitterPanel', '/components/splitter-panel', 'Resizes the shell panes. Bind startSize/endSize if your app wants to remember widths.'],
 	['DomDesignerLayers', '/designer/layers', 'Displays your tree. Its selected ID is shared with the stage and inspector.'],
-	['DomDesignerStage', '/designer/stage', 'Selects marked HTML and emits CSS patches for movement and resizing. Positioning and snapping are opt-in.'],
+	['DomDesignerStage', '/designer/stage', 'Selects marked HTML and emits CSS patches for movement and resizing. Positioning, snapping, multi-select (v-model:selection) and flow reordering are opt-in.'],
 	['DomColorSwatch', '/designer/color-swatch', 'Edits a CSS colour string. Bind it to the selected layer’s colour or fill.'],
 	['DomBorderEditor', '/designer/border-editor', 'Edits a border record; borderToCss produces the CSS border value.'],
 	['DomShadowEditor', '/designer/shadow-editor', 'Edits shadow records; shadowListToCss produces box-shadow.'],
@@ -53,9 +54,10 @@ const zoomExample = `<!-- Keep document coordinates separate from viewport scale
 	</div>
 </div>`;
 const sources = [
-	{ name: 'Poster editor', filename: 'src/pages/designer/poster/Index.vue', code: posterSource },
+	{ name: 'Poster studio', filename: 'src/pages/designer/poster/PosterStudio.vue', code: posterSource },
+	{ name: 'Poster types and document conversion', filename: 'src/pages/designer/poster/posterTypes.js', code: posterTypes },
 	{ name: 'Poster model and HTML export', filename: 'src/pages/designer/poster/posterModel.js', code: posterModel },
-	{ name: 'Social card editor', filename: 'src/pages/designer/social-card/Index.vue', code: socialSource },
+	{ name: 'Social card preset', filename: 'src/pages/designer/social-card/Index.vue', code: socialSource },
 	{ name: 'Flowchart editor', filename: 'src/pages/designer/flowchart/Index.vue', code: fullFlowSource },
 ];
 </script>
@@ -87,10 +89,11 @@ const sources = [
 			<DocSection id="poster" title="3. Assemble the poster editor">
 				<RouterLink to="/designer/poster" class="text-primary underline">Open poster demo →</RouterLink>
 				<ol class="my-4 list-decimal space-y-3 pl-5 text-sm leading-7 text-muted-fg">
-					<li>Start with the HTML editor above. Add image, text and shape records with x, y, width and height in document pixels. The demo’s posterModel.js supplies factories, geometry conversion and style serialization.</li>
+					<li>Start with the HTML editor above. The poster is an editor document: a <code>poster:frame</code> root with text, image and shape layers whose x, y, width and height are document pixels. posterTypes.js declares each layer type’s inspector fields and converts the document to the poster model; posterModel.js supplies factories and style serialization.</li>
 					<li>Put the layer tree in the splitter’s start slot, the scrollable stage in its default slot and the selected-layer controls in its end slot. Bind startSize and endSize independently.</li>
 					<li>Use a fixed document size and scale the viewport separately. ResizeObserver recalculates “Fit” when a splitter moves. Convert style-change CSS values into numeric document coordinates before saving.</li>
-					<li>Add history around model mutations. The demo batches continuous edits into snapshots; layer creation, duplication and deletion form separate undo actions. Viewport zoom is not a document edit.</li>
+					<li>Make every change an operation (setProp, insert, remove, move) and run it through the core history. Continuous edits pass a merge key so a drag or a typed value is one undo step. Viewport zoom is not a document edit.</li>
+					<li>Bind <code>v-model:selection</code> on the stage for shift-click multi-select. alignRects and distributeRects in alignGeometry.js return new positions for the selection; DesignerRulers draws rulers around the scaled artwork.</li>
 					<li>Export from the model, including the serialized appearance values. Keep selection outlines, guides and editor attributes out of the output. Local uploads are embedded; linked photos remain external.</li>
 				</ol>
 				<CodeBlock :code="zoomExample" lang="vue" filename="Viewport pattern (inside your editor)" />
@@ -98,7 +101,7 @@ const sources = [
 			</DocSection>
 			<DocSection id="social-card" title="4. Add a source view to a social card">
 				<RouterLink to="/designer/social-card" class="text-primary underline">Open social-card demo →</RouterLink>
-				<p class="mt-4 text-sm leading-7 text-muted-fg">Use the same layer model and selection contract as the HTML starter. Derive source lines from your records and attach the matching layer ID to each line. Clicking a line assigns selected; selecting on the stage highlights the corresponding line. This demo’s source display is a model projection, not an editable HTML parser. Its layerStyle, sourceLines and copyHtml functions show how to serialize text and CSS safely for copying.</p>
+				<p class="mt-4 text-sm leading-7 text-muted-fg">The social card is the poster studio with a different starting document and link-preview formats, with its linked HTML open. posterHtmlLines derives one source line per layer and attaches the layer ID to it. Clicking a line selects the layer; selecting on the stage highlights the line. The source view is a projection of the document, not an editable HTML parser; two-way code editing is the next step for the canvas.</p>
 			</DocSection>
 			<DocSection id="flowchart" title="5. Assemble a flowchart editor">
 				<RouterLink to="/designer/flowchart" class="text-primary underline">Open flowchart demo →</RouterLink>
@@ -122,7 +125,7 @@ const sources = [
 				<p class="text-sm leading-7 text-muted-fg">Own the document schema, IDs, history, persistence, asset uploads, import validation and export. The poster, social-card and flowchart demos keep edits in memory until exported; they do not provide a storage service or run workflows. Studio uses the repository-specific storage adapter described above. For production, save the model rather than the live editor DOM, restore stable IDs, and keep selection and viewport preferences separate from document changes. The beta APIs may change.</p>
 			</DocSection>
 			<DocSection id="sources" title="Full demo source">
-				<p class="mb-4 text-sm leading-7 text-muted-fg">These are the actual repository files, including local imports and route links. Use the starter examples above for a standalone component; use these files to inspect the complete application wiring. Poster needs both files plus the shared designer components and serializers.</p>
+				<p class="mb-4 text-sm leading-7 text-muted-fg">These are the actual repository files, including local imports and route links. Use the starter examples above for a standalone component; use these files to inspect the complete application wiring. Poster needs its three files plus the shared editor core, designer components and serializers.</p>
 				<details v-for="source in sources" :key="source.filename" class="mb-3 rounded-xl border border-border p-4"><summary class="cursor-pointer text-sm font-semibold">{{ source.name }}</summary><CodeBlock :code="source.code" :filename="source.filename" :lang="source.filename.endsWith('.js') ? 'javascript' : 'vue'" /></details>
 			</DocSection>
 		</DocPage>

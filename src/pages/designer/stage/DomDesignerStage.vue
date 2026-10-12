@@ -15,14 +15,19 @@ const props = defineProps({
 	snapping: { type: Boolean, default: false },
 	spacingSnapping: { type: Boolean, default: false, _edit: { description: 'Repeat horizontal and vertical layer gaps while dragging. Independent of alignment snapping; disabled by default.' } },
 	frameScoped: { type: Boolean, default: false, _edit: { description: 'Only move children of an absolute data-designer-frame. Snap to that frame and its direct children.' } },
+	selection: { type: Array, default: undefined, _edit: { description: 'Selected IDs for multi-select. Shift-click adds or removes a layer; dragging moves every selected layer that can be positioned.' } },
+	reorder: { type: Boolean, default: false, _edit: { description: 'Drag layers inside flow, flex and grid frames to reorder them. Emits reorder with the new parent and the sibling it goes before.' } },
 });
-const emit = defineEmits(['update:modelValue', 'style-change']);
+const emit = defineEmits(['update:modelValue', 'update:selection', 'style-change', 'reorder']);
 const root = ref(null);
 const box = ref(null);
 const viewScale = ref(1);
 const guides = ref({});
 const canPosition = ref(false);
 const guideClip = ref(null);
+const others = ref([]);
+const canReorder = ref(false);
+const drop = ref(null);
 let moveFrame;
 let pendingMove;
 let observer;
@@ -47,12 +52,36 @@ function permitsPositioning(element) {
 function measure() {
 	const el = selectedElement();
 	canPosition.value = permitsPositioning(el);
+	canReorder.value = !canPosition.value && Boolean(reorderHost(el));
+	others.value = (props.selection || []).filter((id) => id !== props.modelValue).map((id) => markedElement(id)).filter(Boolean).map(stageBox);
 	if (!el || !root.value) { box.value = null; return; }
+	box.value = stageBox(el);
+}
+/** Measures an element in the stage's CSS coordinates, including its scroll offset. */
+function stageBox(el) {
 	const r = el.getBoundingClientRect();
 	const stage = root.value.getBoundingClientRect();
 	const scale = stage.width / root.value.offsetWidth || 1;
 	viewScale.value = scale;
-	box.value = { left: (r.left - stage.left) / scale - root.value.clientLeft + root.value.scrollLeft, top: (r.top - stage.top) / scale - root.value.clientTop + root.value.scrollTop, width: r.width / scale, height: r.height / scale };
+	return { left: (r.left - stage.left) / scale - root.value.clientLeft + root.value.scrollLeft, top: (r.top - stage.top) / scale - root.value.clientTop + root.value.scrollTop, width: r.width / scale, height: r.height / scale };
+}
+/** Finds the first rendered element for an ID; repeated list items share their source's ID. */
+function markedElement(id) {
+	return [...(root.value?.querySelectorAll('[data-designer-id]') || [])].find((el) => el.dataset.designerId === id && !el.hasAttribute('data-designer-repeat'));
+}
+/** Measures an element relative to its offset parent, as CSS left/top/width/height. */
+function parentBox(el) {
+	const parent = el.offsetParent || root.value;
+	const rect = el.getBoundingClientRect();
+	const pr = parent.getBoundingClientRect();
+	const scale = pr.width / parent.offsetWidth || 1;
+	return { left: (rect.left - pr.left) / scale - parent.clientLeft + parent.scrollLeft, top: (rect.top - pr.top) / scale - parent.clientTop + parent.scrollTop, width: rect.width / scale, height: rect.height / scale, scale };
+}
+/** The flow, flex or grid frame an element can be reordered within, when reordering is on. */
+function reorderHost(el) {
+	if (!props.reorder || !el || el.hasAttribute('data-designer-repeat')) return null;
+	const host = el.parentElement?.closest('[data-designer-id]');
+	return host && root.value?.contains(host) && host.dataset.designerFrame && host.dataset.designerFrame !== 'absolute' ? host : null;
 }
 /** Selects the innermost marked HTML layer and prevents preview controls from activating. */
 function select(event) {
@@ -61,28 +90,47 @@ function select(event) {
 	if (!el || !root.value.contains(el)) return;
 	event.preventDefault();
 	event.stopPropagation();
-	emit('update:modelValue', el.dataset.designerId);
+	choose(el.dataset.designerId, event.shiftKey || event.metaKey);
+}
+/** Shift-click adds to the selection, so it must not also extend the browser's text selection. */
+function keepTextSelection(event) {
+	if (props.selection && !props.interactive && (event.shiftKey || event.metaKey) && !event.target.closest('[data-designer-overlay]')) event.preventDefault();
+}
+/** Selects one layer, or adds and removes it from a multi-selection. */
+function choose(id, additive = false) {
+	if (!props.selection) { emit('update:modelValue', id); return; }
+	if (!additive) {
+		emit('update:selection', [id]);
+		emit('update:modelValue', id);
+		return;
+	}
+	const current = props.selection.includes(props.modelValue) || !props.modelValue ? props.selection : [...props.selection, props.modelValue];
+	const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id];
+	emit('update:selection', next);
+	emit('update:modelValue', next.includes(id) ? id : next[next.length - 1] || '');
 }
 /** Begins a captured pointer gesture; conversion to absolute positioning occurs on movement. */
 function begin(event, resize = '') {
 	if (event.button !== 0) return;
 	const el = selectedElement();
-	if (!el || !permitsPositioning(el)) return;
+	if (!el) return;
 	if (!resize) {
 		const hit = el.ownerDocument.elementsFromPoint(event.clientX, event.clientY).find((item) => item.hasAttribute('data-designer-id') && root.value.contains(item));
-		if (hit && hit.dataset.designerId !== props.modelValue) {
-			emit('update:modelValue', hit.dataset.designerId);
+		if (hit && (hit.dataset.designerId !== props.modelValue || (props.selection && (event.shiftKey || event.metaKey)))) {
+			choose(hit.dataset.designerId, event.shiftKey || event.metaKey);
 			return;
 		}
 	}
+	if (!resize && !permitsPositioning(el) && reorderHost(el)) { beginReorder(event, el); return; }
+	if (!permitsPositioning(el)) return;
 	event.preventDefault();
 	event.currentTarget.focus();
-	const parent = el.offsetParent || root.value;
 	const rect = el.getBoundingClientRect();
-	const pr = parent.getBoundingClientRect();
-	const scale = pr.width / parent.offsetWidth || 1;
-	gesture = { id: props.modelValue, pointer: event.pointerId, handle: event.currentTarget, x: event.clientX, y: event.clientY, scale, resize, left: (rect.left - pr.left) / scale - parent.clientLeft + parent.scrollLeft, top: (rect.top - pr.top) / scale - parent.clientTop + parent.scrollTop, width: rect.width / scale, height: rect.height / scale };
+	const start = parentBox(el);
+	gesture = { id: props.modelValue, pointer: event.pointerId, handle: event.currentTarget, x: event.clientX, y: event.clientY, resize, ...start };
 	gesture.element = el;
+	// Other selected layers follow a move, keeping their offsets from the dragged one.
+	gesture.followers = resize ? [] : (props.selection || []).filter((id) => id !== props.modelValue).map((id) => ({ id, element: markedElement(id) })).filter((item) => item.element && permitsPositioning(item.element) && !item.element.contains(el) && !el.contains(item.element)).map((item) => ({ ...item, ...parentBox(item.element) }));
 	if (props.snapping || (props.spacingSnapping && !resize)) {
 		const stage = root.value.getBoundingClientRect();
 		const stageScale = stage.width / root.value.offsetWidth || 1;
@@ -94,6 +142,7 @@ function begin(event, resize = '') {
 		guideClip.value = scope ? `inset(${bounds.top}px ${Math.max(0, root.value.clientWidth - bounds.left - bounds.width)}px ${Math.max(0, root.value.clientHeight - bounds.top - bounds.height)}px ${bounds.left}px)` : null;
 		for (const target of root.value.querySelectorAll('[data-designer-id]')) {
 			if (target === el || el.contains(target) || target.contains(el)) continue;
+			if (gesture.followers.some((item) => item.element === target || item.element.contains(target) || target.contains(item.element))) continue;
 			if (scope && target.parentElement !== scope) continue;
 			const r = target.getBoundingClientRect();
 			const style = target.ownerDocument.defaultView.getComputedStyle(target);
@@ -128,6 +177,7 @@ function flushMove() {
 function applyMove(event) {
 	if (!gesture || gesture.pointer !== event.pointerId) return;
 	const g = gesture;
+	if (g.reorder) { moveReorder(event); return; }
 	const dx = (event.clientX - g.x) / g.scale;
 	const dy = (event.clientY - g.y) / g.scale;
 	if (!g.moved && Math.abs(dx) + Math.abs(dy) < 2) return;
@@ -154,13 +204,51 @@ function applyMove(event) {
 	}
 	const style = { position: 'absolute', margin: '0px', boxSizing: 'border-box', left: `${Math.round(left)}px`, top: `${Math.round(top)}px`, width: `${Math.max(16, Math.round(width))}px`, height: `${Math.max(16, Math.round(height))}px` };
 	emit('style-change', { id: g.id, style });
+	for (const item of g.followers) emit('style-change', { id: item.id, style: { ...style, left: `${Math.round(item.left + left - g.left)}px`, top: `${Math.round(item.top + top - g.top)}px`, width: `${Math.round(item.width)}px`, height: `${Math.round(item.height)}px` } });
 	nextTick(measure);
+}
+/** Starts dragging a flow child; the drop position is shown as a line between siblings. */
+function beginReorder(event, el) {
+	event.preventDefault();
+	event.currentTarget.focus();
+	gesture = { reorder: true, id: props.modelValue, pointer: event.pointerId, handle: event.currentTarget, x: event.clientX, y: event.clientY, element: el, box: stageBox(el) };
+	event.currentTarget.setPointerCapture(event.pointerId);
+}
+/** Finds the frame under the pointer and the sibling the dragged layer would precede. */
+function moveReorder(event) {
+	const g = gesture;
+	const dx = (event.clientX - g.x) / viewScale.value;
+	const dy = (event.clientY - g.y) / viewScale.value;
+	if (!g.moved && Math.abs(dx) + Math.abs(dy) < 4) return;
+	g.moved = true;
+	const host = g.element.ownerDocument.elementsFromPoint(event.clientX, event.clientY).find((item) => item.dataset?.designerFrame && item.dataset.designerFrame !== 'absolute' && item.dataset.designerId && root.value.contains(item) && !item.closest('[data-designer-overlay]') && !g.element.contains(item) && !item.closest('[data-designer-repeat]'));
+	if (!host) { drop.value = { ghost: { ...g.box, left: g.box.left + dx, top: g.box.top + dy } }; g.target = null; return; }
+	const children = [...host.querySelectorAll('[data-designer-id]')].filter((item) => item.parentElement.closest('[data-designer-id]') === host && item !== g.element && !item.hasAttribute('data-designer-repeat'));
+	const style = host.ownerDocument.defaultView.getComputedStyle(host);
+	const vertical = !/flex|grid/.test(style.display) || (style.display.includes('flex') && style.flexDirection.startsWith('column'));
+	const pointer = { x: event.clientX, y: event.clientY };
+	const before = children.find((item) => {
+		const r = item.getBoundingClientRect();
+		if (vertical) return pointer.y < r.top + r.height / 2;
+		return pointer.y < r.top || (pointer.y <= r.bottom && pointer.x < r.left + r.width / 2);
+	});
+	const frame = stageBox(host);
+	const edge = before ? stageBox(before) : children.length ? stageBox(children[children.length - 1]) : null;
+	const thickness = 3 / viewScale.value;
+	let line;
+	if (!edge) line = vertical ? { left: frame.left, top: frame.top + frame.height / 2, width: frame.width, height: thickness } : { left: frame.left + frame.width / 2, top: frame.top, width: thickness, height: frame.height };
+	else if (vertical) line = { left: edge.left, top: before ? edge.top - thickness : edge.top + edge.height, width: edge.width, height: thickness };
+	else line = { left: before ? edge.left - thickness : edge.left + edge.width, top: edge.top, width: thickness, height: edge.height };
+	g.target = { parent: host.dataset.designerId, before: before?.dataset.designerId || null };
+	drop.value = { frame, line, ghost: { ...g.box, left: g.box.left + dx, top: g.box.top + dy } };
 }
 /** Flushes the last queued sample before a normal pointer release. */
 function finish() {
 	if (moveFrame) cancelAnimationFrame(moveFrame);
 	flushMove();
+	const g = gesture;
 	end();
+	if (g?.reorder && g.moved && g.target) emit('reorder', { id: g.id, ...g.target });
 }
 /** Releases capture on completion, cancellation, selection change or unmount. */
 function end() {
@@ -169,6 +257,7 @@ function end() {
 	pendingMove = null;
 	guides.value = {};
 	guideClip.value = null;
+	drop.value = null;
 	const g = gesture;
 	gesture = null;
 	if (g?.handle.hasPointerCapture(g.pointer)) g.handle.releasePointerCapture(g.pointer);
@@ -180,6 +269,18 @@ function nudge(event, handle = '') {
 	if (!el || !permitsPositioning(el)) return;
 	event.preventDefault();
 	const step = event.shiftKey ? 10 : 1;
+	if (!handle && !event.altKey) {
+		const horizontal = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
+		const delta = ['ArrowLeft', 'ArrowUp'].includes(event.key) ? -step : step;
+		for (const id of [props.modelValue, ...(props.selection || []).filter((item) => item !== props.modelValue)]) {
+			const target = id === props.modelValue ? el : markedElement(id);
+			if (!target || !permitsPositioning(target)) continue;
+			const { scale, ...geometry } = parentBox(target);
+			geometry[horizontal ? 'left' : 'top'] += delta;
+			emit('style-change', { id, style: { position: 'absolute', margin: '0px', boxSizing: 'border-box', ...Object.fromEntries(Object.entries(geometry).map(([name, value]) => [name, `${Math.round(value)}px`])) } });
+		}
+		return;
+	}
 	const horizontal = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
 	const delta = ['ArrowLeft', 'ArrowUp'].includes(event.key) ? -step : step;
 	const key = event.altKey ? (horizontal ? 'width' : 'height') : (horizontal ? 'left' : 'top');
@@ -219,19 +320,27 @@ function cleanup() {
 	mutationObserver?.disconnect();
 	window.removeEventListener('resize', measure);
 }
-watch(() => [props.modelValue, props.positioning, props.interactive, props.snapping, props.spacingSnapping, props.frameScoped], async () => { end(); await nextTick(); measure(); });
+watch(() => [props.modelValue, props.selection?.join(' '), props.positioning, props.interactive, props.snapping, props.spacingSnapping, props.frameScoped, props.reorder], async () => { end(); await nextTick(); measure(); });
 onMounted(mount);
 onBeforeUnmount(cleanup);
 </script>
 
 <template>
-	<div ref="root" class="relative isolate" @click.capture="select" @scroll.capture="measure">
+	<div ref="root" class="relative isolate" @click.capture="select" @mousedown.capture="keepTextSelection" @scroll.capture="measure">
 		<slot />
 		<div data-designer-overlay aria-hidden="true" class="pointer-events-none absolute inset-0 z-[2147483647]" :style="{ clipPath: guideClip }">
 			<div v-if="guides.x && guides.x.kind !== 'spacing'" class="absolute inset-y-0 bg-primary" :style="{ left: `${guides.x.target}px`, width: `${1 / viewScale}px` }" />
 			<div v-if="guides.y && guides.y.kind !== 'spacing'" class="absolute inset-x-0 bg-primary" :style="{ top: `${guides.y.target}px`, height: `${1 / viewScale}px` }" />
 			<SpacingGuides :matches="guides" :scale="viewScale" />
+			<template v-if="!interactive">
+				<div v-for="(item, index) in others" :key="index" class="absolute border-primary" :style="{ borderWidth: `${1 / viewScale}px`, left: `${item.left}px`, top: `${item.top}px`, width: `${item.width}px`, height: `${item.height}px` }" />
+			</template>
+			<template v-if="drop">
+				<div v-if="drop.frame" class="absolute border-dashed border-primary" :style="{ borderWidth: `${1 / viewScale}px`, left: `${drop.frame.left}px`, top: `${drop.frame.top}px`, width: `${drop.frame.width}px`, height: `${drop.frame.height}px` }" />
+				<div class="absolute border-dashed border-primary/60 bg-primary/5" :style="{ borderWidth: `${1 / viewScale}px`, left: `${drop.ghost.left}px`, top: `${drop.ghost.top}px`, width: `${drop.ghost.width}px`, height: `${drop.ghost.height}px` }" />
+				<div v-if="drop.line" class="absolute bg-primary" :style="{ left: `${drop.line.left}px`, top: `${drop.line.top}px`, width: `${drop.line.width}px`, height: `${drop.line.height}px` }" />
+			</template>
 		</div>
-		<DesignerBounds v-if="box && !interactive" :box="box" :scale="viewScale" :positioning="canPosition" @begin="begin($event.event, $event.handle)" @move="move" @finish="finish" @cancel="end" @nudge="nudge($event.event, $event.handle)" />
+		<DesignerBounds v-if="box && !interactive" :box="box" :scale="viewScale" :positioning="canPosition" :reorderable="canReorder" @begin="begin($event.event, $event.handle)" @move="move" @finish="finish" @cancel="end" @nudge="nudge($event.event, $event.handle)" />
 	</div>
 </template>

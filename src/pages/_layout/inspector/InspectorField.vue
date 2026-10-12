@@ -19,7 +19,7 @@ const editor = computed(() => getEditor(props.field.component) || getDefaultEdit
 // pick up their own props (options, rows, min/max/step, placeholder, …).
 const editorProps = computed(() => {
 	// eslint-disable-next-line no-unused-vars
-	const { key, component, target, label, description, props: fieldProps = {}, ...rest } = props.field;
+	const { key, component, target, label, description, group, half, props: fieldProps = {}, ...rest } = props.field;
 	return { ...rest, ...fieldProps };
 });
 </script>

@@ -12,6 +12,7 @@ import CodeBlock from '../../_layout/CodeBlock.vue';
 import Example from '../../_layout/docs/Example.vue';
 import EqualSpacing from './examples/EqualSpacing.vue';
 import equalSpacingSource from './examples/EqualSpacing.vue?raw';
+const multiExample = '<DomDesignerStage v-model="primary" v-model:selection="selection" positioning reorder @style-change="applyStyle" @reorder="moveLayer">\n\t<!-- Marked layers -->\n</DomDesignerStage>';
 const example = '<DomDesignerStage v-model="selected" positioning @style-change="applyStyle">\n\t<h2 data-designer-id="title" :style="titleStyle">Real HTML</h2>\n</DomDesignerStage>';
 </script>
 <template>
@@ -25,6 +26,11 @@ const example = '<DomDesignerStage v-model="selected" positioning @style-change=
 				<Example :source="equalSpacingSource" filename="EqualSpacing.vue" title="Repeat an existing gap" description="A 10px horizontal gap with independent alignment and spacing switches. The same behaviour works vertically."><EqualSpacing /></Example>
 				<p class="text-sm leading-7 text-muted-fg">At pointer-down, the stage snapshots eligible visible layers, excluding itself, the dragged layer and its ancestors/descendants. A gap is a positive distance to the next non-overlapping neighbour in a shared row or column. The moving layer must overlap that shared row/column. Targets extend the gap before and after the pair; they do not distribute items, edit padding or enforce collision avoidance.</p>
 				<p class="text-sm leading-7 text-muted-fg">Spacing uses the existing 6-screen-pixel acquisition and 10-screen-pixel release distances at any zoom. Rulers show the reference and repeated gaps in document pixels. The interval sweep builds O(n log n) indexes once per gesture, with O(n) targets; pointer updates search only targets within the snap range and reuse that snapshot. Turning spacing off skips its index construction entirely.</p>
+			</DocSection>
+			<DocSection id="multi-select" title="Multi-select and reordering">
+				<p class="text-sm leading-7 text-muted-fg">Bind v-model:selection to an array of IDs to allow several layers. Shift-click (or Cmd-click) adds or removes a layer; a plain click selects one. v-model stays the primary layer, which shows the handles. Dragging it, or nudging with the arrow keys, emits a style-change for every selected layer that can be positioned, so the group moves together. Align and distribute are application operations: alignRects and distributeRects in alignGeometry.js return new positions.</p>
+				<p class="text-sm leading-7 text-muted-fg">Set reorder to drag layers inside flow, flex and grid frames (elements marked data-designer-frame). A line shows where the layer will land; on release the stage emits reorder { id, parent, before }, where before is the sibling it goes in front of, or null for the end. Apply it as a move in your model. Absolute frames keep free positioning.</p>
+				<CodeBlock :code="multiExample" lang="vue" filename="Selection and reorder" />
 			</DocSection>
 		</DocPage>
 	</DomStudioLayout>

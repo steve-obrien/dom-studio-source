@@ -37,6 +37,21 @@ export function createPoster() {
 	};
 }
 
+/** Returns a link-preview card at the Open Graph size, built from the same layers as the poster. */
+export function createSocialCard() {
+	const sans = fontOptions[1].value;
+	const text = { fontFamily: sans, textAlign: 'left', textTransform: 'none', letterSpacing: 0 };
+	return {
+		version: 1, title: 'Small ideas. Worth sharing.', width: 1200, height: 630, background: '#f4f1ea',
+		layers: [
+			createPosterLayer('shape', 'accent', { name: 'Accent', x: 0, y: 0, width: 24, height: 630, fill: '#e4572e' }),
+			createPosterLayer('text', 'brand', { name: 'Brand', value: 'DOM STUDIO / FIELD NOTES', x: 80, y: 72, width: 640, height: 40, ...text, fontSize: 24, fontWeight: '700', letterSpacing: 4, lineHeight: 1.2, color: '#e4572e' }),
+			createPosterLayer('text', 'headline', { name: 'Headline', value: 'Small ideas.\nWorth sharing.', x: 80, y: 160, width: 1000, height: 260, ...text, fontSize: 104, fontWeight: '900', letterSpacing: -3, lineHeight: 1.02 }),
+			createPosterLayer('text', 'caption', { name: 'Caption', value: 'Made with real HTML. Ready for your next idea.', x: 80, y: 470, width: 900, height: 60, ...text, fontSize: 32, lineHeight: 1.3, color: '#525252' }),
+		],
+	};
+}
+
 /** Projects a layer into ordinary CSS, shared by the visible HTML and exported document. */
 export function posterLayerStyle(layer, index) {
 	return {

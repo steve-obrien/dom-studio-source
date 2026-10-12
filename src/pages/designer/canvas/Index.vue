@@ -400,6 +400,18 @@ function moveLayer(event) {
 	selected.value = source.id;
 }
 
+/** Applies a drop from the stage: the node moves into a flow frame before a sibling, or to its end. */
+function reorderFromStage({ id, parent: hostId, before }) {
+	const source = doc.value?.nodes[id];
+	const host = doc.value?.nodes[hostId];
+	if (!source?.parent || !host || subtreeIds(doc.value, id).includes(hostId)) return;
+	const siblings = host.children.filter((child) => child !== id);
+	const index = before && siblings.includes(before) ? siblings.indexOf(before) : siblings.length;
+	if (source.parent === hostId && host.children.indexOf(id) === index) return;
+	run(onFile({ op: 'move', id, parent: hostId, index }));
+	selected.value = id;
+}
+
 /** Replaces the file's preview data; the exported file never includes it. */
 function setData(value) {
 	if (!value || typeof value !== 'object' || Array.isArray(value)) return;
@@ -814,12 +826,14 @@ onBeforeUnmount(() => {
 										:model-value="board.fileId === activeFile?.id ? selected : ''"
 										positioning
 										frame-scoped
+										reorder
 										:snapping="snapping"
 										:spacing-snapping="snapping"
 										class="bg-canvas text-canvas-fg"
 										:style="{ minHeight: `${board.height}px` }"
 										@update:model-value="selectFromArtboard(board, $event)"
 										@style-change="patch"
+										@reorder="reorderFromStage"
 									>
 										<EditorRender
 											v-if="fileById(board.fileId)"

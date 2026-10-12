@@ -22,6 +22,7 @@
  * - `props` values are literals, or `{ expr }` for a binding or interpolation.
  * - `directives` keeps template logic (`v-if`, `v-for`, `@click`, `#slot`) verbatim.
  * - `style`, `layout` and `placements` carry designer geometry for frames.
+ * - `locked` and `hidden` are editor states: a locked node cannot be moved or edited, a hidden one is not rendered.
  * - `data` is preview data used to render bindings. It is never exported.
  *
  * The document is plain JSON, so it can be stored, diffed, sent over a socket,
@@ -32,7 +33,7 @@ export const DOCUMENT_VERSION = 1;
 const idAlphabet = 'abcdefghijkmnopqrstuvwxyz23456789';
 
 /** Node fields other than props that operations may set. */
-export const nodeFields = ['label', 'slot', 'directives', 'style', 'layout', 'placements', 'absoluteHeight', 'sourceAbsolute'];
+export const nodeFields = ['label', 'slot', 'directives', 'style', 'layout', 'placements', 'absoluteHeight', 'sourceAbsolute', 'locked', 'hidden'];
 
 /**
  * Creates a node id: `n_` plus ten random characters.

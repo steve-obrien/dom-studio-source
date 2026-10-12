@@ -7976,6 +7976,14 @@ export interface DomDesignerStageProps {
 	 * Only move children of an absolute data-designer-frame. Snap to that frame and its direct children.
 	 */
 	frameScoped?: boolean;
+	/**
+	 * Selected IDs for multi-select. Shift-click adds or removes a layer; dragging moves every selected layer that can be positioned.
+	 */
+	selection?: Array<unknown>;
+	/**
+	 * Drag layers inside flow, flex and grid frames to reorder them. Emits reorder with the new parent and the sibling it goes before.
+	 */
+	reorder?: boolean;
 }
 export declare const DomDesignerStage: DomComponent<DomDesignerStageProps>;
 
