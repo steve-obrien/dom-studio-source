@@ -73,12 +73,12 @@ export function parseStyleAttribute(value = '') {
  * Plain HTML (no `<template>` block) is treated as the template itself.
  *
  * @param {string} source Vue SFC or HTML fragment.
- * @returns {{ template: string, script: string, style: string, isSfc: boolean }} Parts of the file.
+ * @returns {{ template: string, script: string, style: string, isSfc: boolean, templateLine: number }} Parts of the file; `templateLine` is the file line where the template content starts.
  */
 export function splitVueSource(source) {
 	const value = String(source || '');
 	if (value.length > maxSourceBytes) throw new Error('Use a file under 200 KB.');
-	if (!/^\s*(?:<!--[\s\S]*?-->\s*)*<(?:template|script|style)[\s>]/.test(value)) return { template: value, script: '', style: '', isSfc: false };
+	if (!/^\s*(?:<!--[\s\S]*?-->\s*)*<(?:template|script|style)[\s>]/.test(value)) return { template: value, script: '', style: '', isSfc: false, templateLine: 1 };
 	const { descriptor, errors } = parseSfc(value, { filename: 'Canvas.vue' });
 	if (errors.length) throw new Error(`This Vue file did not parse: ${errors[0].message || errors[0]}`);
 	if (!descriptor.template) throw new Error('This Vue file has no <template> block to design.');
@@ -94,6 +94,7 @@ export function splitVueSource(source) {
 		script: scripts.map((block) => fullBlock(block, 'script')).join('\n\n'),
 		style: descriptor.styles.map((block) => fullBlock(block, 'style')).join('\n\n'),
 		isSfc: true,
+		templateLine: descriptor.template.loc.start.line,
 	};
 }
 
@@ -125,10 +126,11 @@ export function parseTemplate(template) {
 	/** Converts one AST node, keeping directives verbatim and literal bindings evaluable. */
 	function visit(node) {
 		if (++count > maxNodes) throw new Error('Use a template with fewer than 3,000 nodes.');
-		if (node.type === NodeTypes.TEXT) return node.content.trim() ? createTextNode(node.content.replace(/\s+/g, ' ')) : null;
+		const loc = { start: node.loc.start.line, end: node.loc.end.line };
+		if (node.type === NodeTypes.TEXT) return node.content.trim() ? { ...createTextNode(node.content.replace(/\s+/g, ' ')), loc } : null;
 		if (node.type === NodeTypes.INTERPOLATION) {
 			const expression = node.content.content.trim();
-			return createTextNode(`{{ ${expression} }}`, expression);
+			return { ...createTextNode(`{{ ${expression} }}`, expression), loc };
 		}
 		if (node.type !== NodeTypes.ELEMENT) { unsupported++; return null; }
 		if (['script', 'style', 'iframe', 'object', 'embed'].includes(node.tag)) { unsupported++; return null; }
@@ -150,7 +152,7 @@ export function parseTemplate(template) {
 			directives.push(prop.loc.source);
 		}
 		const children = node.children.map(visit).filter(Boolean);
-		return createCanvasNode({ tag: node.tag, component: isComponentTag(node.tag), attrs, bindings, directives, style, children });
+		return createCanvasNode({ tag: node.tag, component: isComponentTag(node.tag), attrs, bindings, directives, style, children, loc });
 	}
 
 	const children = ast.children.map(visit).filter(Boolean);
@@ -207,17 +209,24 @@ function cssName(key) {
 /**
  * Serialises a canvas node tree back to an indented Vue template, using tabs.
  *
+ * Pass `ranges` to receive a source map: each node id gets the zero-based
+ * `{ start, end }` lines it occupies. Text printed inline with its element
+ * shares the element's line.
+ *
  * @param {object} root Root node.
+ * @param {Record<string, { start: number, end: number }>} [ranges] Filled with line ranges by node id.
  * @returns {string} Template markup without the surrounding `<template>` tag.
  */
-export function buildTemplate(root) {
+export function buildTemplate(root, ranges = null) {
 	const lines = [];
+	const mark = (node, start) => { if (ranges && node.id) ranges[node.id] = { start, end: lines.length - 1 }; };
 	/** Emits one node; elements whose only children are text stay on one line. */
 	function emit(node, parent, depth) {
 		const indent = '\t'.repeat(depth);
+		const start = lines.length;
 		if (node.tag === '#text') {
 			const text = node.expression ? `{{ ${node.expression} }}` : encodeText(node.text).trim();
-			if (text) lines.push(`${indent}${text}`);
+			if (text) { lines.push(`${indent}${text}`); mark(node, start); }
 			return;
 		}
 		const style = Object.entries(frameNodeStyle(node, parent)).map(([key, value]) => `${cssName(key)}: ${value}`).join('; ');
@@ -229,15 +238,21 @@ export function buildTemplate(root) {
 			...node.directives.filter((source) => !/^(v-(if|else-if|else|for)\b)/.test(source)),
 		];
 		const open = `${indent}<${node.tag}${attributes.length ? ` ${attributes.join(' ')}` : ''}`;
-		if (voidTags.has(node.tag)) { lines.push(`${open} />`); return; }
-		if (!node.children.length) { lines.push(node.component ? `${open} />` : `${open}></${node.tag}>`); return; }
+		if (voidTags.has(node.tag)) { lines.push(`${open} />`); mark(node, start); return; }
+		if (!node.children.length) { lines.push(node.component ? `${open} />` : `${open}></${node.tag}>`); mark(node, start); return; }
 		if (node.children.every((child) => child.tag === '#text')) {
 			const text = node.children.map((child) => (child.expression ? `{{ ${child.expression} }}` : encodeText(child.text))).join('').trim();
-			if (text.length + open.length < 120) { lines.push(`${open}>${text}</${node.tag}>`); return; }
+			if (text.length + open.length < 120) {
+				lines.push(`${open}>${text}</${node.tag}>`);
+				mark(node, start);
+				node.children.forEach((child) => mark(child, start));
+				return;
+			}
 		}
 		lines.push(`${open}>`);
 		node.children.forEach((child) => emit(child, node, depth + 1));
 		lines.push(`${indent}</${node.tag}>`);
+		mark(node, start);
 	}
 	emit(root, null, 0);
 	return lines.join('\n');
@@ -257,13 +272,29 @@ export function usedComponents(root) {
  * @returns {string} Vue SFC source.
  */
 export function buildVueFile(file, isStudioComponent = () => true) {
-	const template = buildTemplate(file.root).split('\n').map((line) => `\t${line}`).join('\n');
+	return buildMappedVueFile(file, isStudioComponent).source;
+}
+
+/**
+ * Builds a Vue SFC and its source map: the one-based `{ start, end }` lines of
+ * every node in the whole file.
+ *
+ * @param {object} file Canvas file.
+ * @param {(tag: string) => boolean} isStudioComponent Whether a tag is exported by `@getdom/studio/vue`.
+ * @returns {{ source: string, ranges: Record<string, { start: number, end: number }> }} Source and line ranges by node id.
+ */
+export function buildMappedVueFile(file, isStudioComponent = () => true) {
+	const local = {};
+	const template = buildTemplate(file.root, local).split('\n').map((line) => `\t${line}`).join('\n');
 	let script = file.script;
 	if (!script) {
 		const imports = usedComponents(file.root).filter(isStudioComponent);
 		script = imports.length ? `<script setup>\nimport { ${imports.join(', ')} } from '@getdom/studio/vue';\n</script>` : '';
 	}
-	return [script, `<template>\n${template}\n</template>`, file.style].filter(Boolean).join('\n\n') + '\n';
+	// Template lines start after the script block, a blank line and the <template> tag.
+	const offset = script ? script.split('\n').length + 2 : 1;
+	const ranges = Object.fromEntries(Object.entries(local).map(([id, range]) => [id, { start: range.start + offset + 1, end: range.end + offset + 1 }]));
+	return { source: [script, `<template>\n${template}\n</template>`, file.style].filter(Boolean).join('\n\n') + '\n', ranges };
 }
 
 /** Literal class tokens for the on-demand Tailwind compiler. */

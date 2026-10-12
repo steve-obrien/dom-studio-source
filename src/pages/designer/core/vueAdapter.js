@@ -1,4 +1,4 @@
-import { buildVueFile, canvasTailwindContent, createCanvasNode, createTextNode, isComponentTag, parseTemplate, splitVueSource, toTemplateLiteral } from '../canvas/canvasDocument.js';
+import { buildMappedVueFile, canvasTailwindContent, createCanvasNode, createTextNode, isComponentTag, parseTemplate, splitVueSource, toTemplateLiteral } from '../canvas/canvasDocument.js';
 import { createDocument, isExpr, nodeId, toTree } from './editorDocument.js';
 import { scriptData } from './previewData.js';
 
@@ -96,16 +96,28 @@ export function splitType(type) {
 /**
  * Imports a Vue SFC or HTML fragment.
  *
+ * `ranges` is the source map of the imported text: the one-based
+ * `{ start, end }` file lines of each node, so a cursor in the code can find
+ * its node.
+ *
  * @param {string} source File source.
  * @param {{ makeId?: () => string }} [options] Id factory.
- * @returns {{ doc: object, script: string, style: string, unsupported: number, seeded: Array<string> }} Document, kept blocks, dropped node count and data keys read from the script.
+ * @returns {{ doc: object, script: string, style: string, unsupported: number, seeded: Array<string>, ranges: Record<string, { start: number, end: number }> }} Document, kept blocks, dropped node count, data keys read from the script and line ranges.
  */
 export function importVue(source, { makeId = nodeId } = {}) {
 	const parts = splitVueSource(source);
 	const { root, unsupported } = parseTemplate(parts.template);
-	const doc = createDocument(fromCanvasNode(root), { makeId });
+	const tree = fromCanvasNode(root);
+	const ranges = {};
+	// Ids are assigned here, beside the parsed locations, so the source map uses the document's ids.
+	(function assign(canvasNode, item) {
+		item.id = makeId();
+		if (canvasNode.loc) ranges[item.id] = { start: canvasNode.loc.start + parts.templateLine - 1, end: canvasNode.loc.end + parts.templateLine - 1 };
+		(canvasNode.children || []).forEach((child, index) => assign(child, item.children[index]));
+	})(root, tree);
+	const doc = createDocument(tree, { makeId });
 	const seeded = Object.keys(scriptData(parts.script));
-	return { doc, script: parts.script, style: parts.style, unsupported, seeded };
+	return { doc, script: parts.script, style: parts.style, unsupported, seeded, ranges };
 }
 
 /**
@@ -117,7 +129,19 @@ export function importVue(source, { makeId = nodeId } = {}) {
  * @returns {string} Vue SFC source.
  */
 export function exportVue(file, isStudioComponent) {
-	return buildVueFile({ root: toCanvasNode(file.doc), script: file.script || '', style: file.style || '' }, isStudioComponent);
+	return exportMappedVue(file, isStudioComponent).source;
+}
+
+/**
+ * Exports a file as a Vue SFC with its source map: the one-based
+ * `{ start, end }` lines of every node, keyed by node id.
+ *
+ * @param {{ doc: object, script?: string, style?: string }} file Editor file.
+ * @param {(tag: string) => boolean} [isStudioComponent] Whether a tag comes from `@getdom/studio/vue`.
+ * @returns {{ source: string, ranges: Record<string, { start: number, end: number }> }} Source and line ranges.
+ */
+export function exportMappedVue(file, isStudioComponent) {
+	return buildMappedVueFile({ root: toCanvasNode(file.doc), script: file.script || '', style: file.style || '' }, isStudioComponent);
 }
 
 /**

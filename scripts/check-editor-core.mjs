@@ -10,6 +10,14 @@ import { exportVue, importVue } from '../src/pages/designer/core/vueAdapter.js';
 import { applyWorkspaceOperation, createCanvasDemo, exportFile, restoreWorkspace } from '../src/pages/designer/canvas/canvasWorkspace.js';
 import { importVueFile, sampleVueFile } from '../src/pages/designer/canvas/canvasDocument.js';
 import { alignRects, boundsOf, distributeRects } from '../src/pages/designer/stage/alignGeometry.js';
+import { applySource, matchNodes, nodeAtLine } from '../src/pages/designer/core/sourceSync.js';
+import { exportMappedVue } from '../src/pages/designer/core/vueAdapter.js';
+import { createBrowserStorage, createHttpStorage, createMemoryStorage, createSaver } from '../src/pages/designer/core/storage.js';
+import { handleFileRequest, safeFilePath } from '../src/pages/designer/core/fileStorageServer.js';
+import { mkdtemp, readFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { PassThrough } from 'node:stream';
 import { createPoster, createSocialCard, exportPosterHtml } from '../src/pages/designer/poster/posterModel.js';
 import { createPosterTypes, documentToPoster, posterToDocument } from '../src/pages/designer/poster/posterTypes.js';
 
@@ -275,4 +283,107 @@ test('poster edits are operations with undo', () => {
 	history.undo();
 	history.undo();
 	assert.deepEqual(documentToPoster(doc), createPoster());
+});
+
+test('export maps every node to its source lines', () => {
+	const file = createCanvasDemo().files[0];
+	const { source, ranges } = exportMappedVue(file);
+	const lines = source.split('\n');
+	const h1 = Object.values(file.doc.nodes).find((node) => node.type === 'html:h1');
+	assert.match(lines[ranges[h1.id].start - 1], /<h1 /);
+	const root = ranges[file.doc.rootId];
+	assert.match(lines[root.start - 1], /^\t<section/);
+	assert.match(lines[root.end - 1], /^\t<\/section>/);
+	assert.equal(nodeAtLine(ranges, ranges[h1.id].start, (id) => file.doc.nodes[id].type !== 'text'), h1.id);
+});
+
+test('code edits reconcile with the document and keep ids', () => {
+	const file = createCanvasDemo().files[0];
+	const { source } = exportMappedVue(file);
+	assert.equal(applySource(file, source).changed, false);
+	const h1 = Object.values(file.doc.nodes).find((node) => node.type === 'html:h1');
+	const grid = Object.values(file.doc.nodes).find((node) => String(node.props.class).includes('grid-cols-1'));
+	applyOperation(file.doc, { op: 'setField', id: grid.id, key: 'layout', value: { mode: 'flex', gap: 12, padding: 16 } });
+	applyOperation(file.doc, { op: 'setField', id: h1.id, key: 'label', value: 'Title' });
+	const edited = exportMappedVue(file).source.replace('Next milestone', 'Next big milestone').replace('text-3xl font-semibold tracking-tight', 'text-4xl font-semibold tracking-tight');
+	const result = applySource(file, edited);
+	assert.equal(result.changed, true);
+	assert.equal(result.doc.rootId, file.doc.rootId);
+	assert.equal(result.doc.nodes[h1.id].props.class, 'text-4xl font-semibold tracking-tight');
+	// A changed node keeps its layer name; an untouched frame keeps its explicit layout.
+	assert.equal(result.doc.nodes[h1.id].label, 'Title');
+	assert.equal(result.doc.nodes[grid.id].layout.mode, 'flex');
+	const line = edited.split('\n').findIndex((text) => text.includes('Next big')) + 1;
+	assert.equal(result.doc.nodes[nodeAtLine(result.ranges, line, (id) => result.doc.nodes[id].type !== 'text')].type, 'html:h2');
+	assert.throws(() => applySource(file, edited.replace('</section>', '</section')));
+});
+
+test('matching pairs children in order by type', () => {
+	const previous = createDocument({ type: 'html:div', children: [{ type: 'html:p' }, { type: 'html:h2' }, { type: 'html:p' }] }, { makeId: counter() });
+	const next = createDocument({ type: 'html:div', children: [{ type: 'html:h2' }, { type: 'html:p' }] }, { makeId: () => nodeId() });
+	const pairs = matchNodes(previous, next);
+	const [h2, p] = next.nodes[next.rootId].children;
+	assert.equal(pairs.get(h2), 'n_003');
+	assert.equal(pairs.get(p), 'n_004');
+});
+
+test('storage adapters load, save, list and batch', async () => {
+	const backing = new Map();
+	const fake = { getItem: (key) => backing.get(key) ?? null, setItem: (key, value) => backing.set(key, value), key: (index) => [...backing.keys()][index], get length() { return backing.size; } };
+	const browser = createBrowserStorage({ prefix: 'test:', storage: fake });
+	assert.equal(await browser.load('a'), null);
+	await browser.save('a', { value: 1 });
+	assert.deepEqual(await browser.load('a'), { value: 1 });
+	assert.deepEqual(await browser.list(), [{ id: 'a' }]);
+	const failing = createBrowserStorage({ storage: { getItem() { throw new Error('blocked'); }, setItem() { throw new Error('full'); } }, onError: () => {} });
+	assert.equal(await failing.load('a'), null);
+	await failing.save('a', 1);
+
+	const memory = createMemoryStorage();
+	const seen = [];
+	memory.subscribe('doc', (change) => seen.push(change.value.n));
+	await memory.save('doc', { n: 1 }, { operations: [{ op: 'setProp' }] });
+	assert.deepEqual(seen, [1]);
+
+	const requests = [];
+	const http = createHttpStorage({ endpoint: '/api/documents/', fetch: async (url, init = {}) => {
+		requests.push([init.method || 'GET', url, init.body]);
+		if (url.endsWith('/missing')) return new Response('', { status: 404 });
+		return new Response(JSON.stringify({ value: { ok: true }, items: [{ id: 'home' }] }), { status: 200 });
+	} });
+	assert.equal(await http.load('missing'), null);
+	assert.deepEqual(await http.load('home page'), { ok: true });
+	await http.save('home', { title: 'Home' }, { operations: [{ op: 'setProp' }] });
+	assert.deepEqual(requests[1].slice(0, 2), ['GET', '/api/documents/home%20page']);
+	assert.deepEqual(JSON.parse(requests[2][2]), { value: { title: 'Home' }, operations: [{ op: 'setProp' }] });
+
+	const saved = [];
+	const saver = createSaver({ save: async (id, value, { operations }) => saved.push([id, value, operations.length]) }, { delay: 5 });
+	saver.queue('x', 1, [{}]);
+	saver.queue('x', 2, [{}]);
+	await saver.flush();
+	assert.deepEqual(saved, [['x', 2, 2]]);
+});
+
+test('file storage endpoint stays inside its folder', async () => {
+	const root = await mkdtemp(path.join(tmpdir(), 'designer-files-'));
+	assert.throws(() => safeFilePath(root, '../secrets.vue'));
+	assert.throws(() => safeFilePath(root, '.hidden/a.vue'));
+	assert.throws(() => safeFilePath(root, 'notes.txt'));
+	assert.equal(safeFilePath(root, 'pages/Home.vue').relative, 'pages/Home.vue');
+	async function call(method, url, body) {
+		const request = new PassThrough();
+		Object.assign(request, { method, url });
+		const response = { headers: {}, statusCode: 200, setHeader(key, value) { this.headers[key] = value; }, end(value) { this.body = value; } };
+		const done = handleFileRequest(root, request, response);
+		request.end(body ? JSON.stringify(body) : undefined);
+		await done;
+		return response;
+	}
+	assert.equal((await call('PUT', '/', { path: 'pages/Home.vue', source: '<template><p>Hi</p></template>' })).statusCode, 200);
+	assert.equal(await readFile(path.join(root, 'pages/Home.vue'), 'utf8'), '<template><p>Hi</p></template>\n');
+	assert.deepEqual(JSON.parse((await call('GET', '/')).body), { files: [{ path: 'pages/Home.vue' }] });
+	assert.equal(JSON.parse((await call('GET', '/?path=pages%2FHome.vue')).body).source, '<template><p>Hi</p></template>\n');
+	assert.equal((await call('GET', '/?path=missing.vue')).statusCode, 404);
+	assert.equal((await call('PUT', '/', { path: '../x.vue', source: '' })).statusCode, 400);
 });

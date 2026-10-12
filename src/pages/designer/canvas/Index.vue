@@ -11,10 +11,13 @@ import { EditorRender } from '../core/EditorRender.js';
 import { createHistory } from '../core/history.js';
 import { previewData, scriptData } from '../core/previewData.js';
 import { treeFromType } from '../core/typeRegistry.js';
-import { tailwindContent } from '../core/vueAdapter.js';
+import { exportMappedVue, tailwindContent } from '../core/vueAdapter.js';
+import CodeView from '../core/CodeView.vue';
+import { applySource, nodeAtLine } from '../core/sourceSync.js';
+import { createBrowserStorage, createFileStorage, createSaver } from '../core/storage.js';
 import ArtboardViewport from './ArtboardViewport.vue';
 import { sampleVueFile } from './canvasDocument.js';
-import { applyWorkspaceOperation, createCanvasDemo, exportFile, importFile, restoreWorkspace, workspaceId } from './canvasWorkspace.js';
+import { applyWorkspaceOperation, createCanvasDemo, importFile, restoreWorkspace, workspaceId } from './canvasWorkspace.js';
 
 /**
  * Canvas: the DOM designer built on the shared editor core.
@@ -72,6 +75,11 @@ const leftTab = ref('layers');
 const insertQuery = ref('');
 const showImport = ref(false);
 const showCode = ref(false);
+const codeDraft = ref(null);
+const codeRanges = ref(null);
+const codeError = ref('');
+const codeWarning = ref('');
+const projectFiles = ref(null);
 const importDraft = ref(sampleVueFile);
 const importName = ref('Component.vue');
 const snapping = ref(true);
@@ -79,7 +87,11 @@ const detected = ref({});
 const historySize = ref({ undo: 0, redo: 0 });
 const viewport = ref(null);
 const artboardRefs = new Map();
-let saveTimer;
+// The canvas saves through storage adapters: this browser always, project files when the dev server offers them.
+const browserStorage = createBrowserStorage({ prefix: '' });
+const fileStorage = createFileStorage();
+const saver = createSaver(browserStorage, { delay: 500 });
+let codeTimer;
 let compileTimer;
 let compiledContent = '';
 let gesture = null;
@@ -109,7 +121,10 @@ const textChild = computed(() => {
 const layout = computed(() => active.value?.layout || detected.value[selected.value] || createFrameLayout());
 const parentMode = computed(() => parent.value?.layout?.mode || detected.value[parent.value?.id]?.mode || 'flow');
 const layers = computed(() => (doc.value ? [layer(doc.value.rootId)] : []));
-const fileSource = computed(() => (activeFile.value ? exportFile(activeFile.value, isStudioComponent) : ''));
+const mappedSource = computed(() => (activeFile.value ? exportMappedVue(activeFile.value, isStudioComponent) : { source: '', ranges: {} }));
+const fileSource = computed(() => mappedSource.value.source);
+const codeText = computed(() => codeDraft.value ?? fileSource.value);
+const codeHighlight = computed(() => (codeDraft.value === null ? mappedSource.value.ranges : codeRanges.value || {})[selected.value] || null);
 const zoomLabel = computed(() => `${Math.round(zoom.value * 100)}%`);
 const previews = computed(() => Object.fromEntries(workspace.value.files.map((file) => [file.id, previewData(file.doc, file)])));
 const scriptKeys = computed(() => Object.keys(scriptData(activeFile.value?.script || '')));
@@ -195,23 +210,58 @@ function setProp(id, { key, value, merge }) {
 
 /* Persistence and styles --------------------------------------------------------- */
 
-/** Saves the canvas in this browser only; storage failures leave the session working. */
+/** Saves the canvas in this browser; storage failures leave the session working. */
 function queueSave() {
-	clearTimeout(saveTimer);
-	saveTimer = setTimeout(() => {
-		try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(workspace.value)); } catch { /* Private mode or quota: keep working in memory. */ }
-	}, 500);
+	saver.queue(STORAGE_KEY, workspace.value);
 }
 
 /** Loads a saved canvas, upgrading the first canvas format, and ignoring anything else. */
-function loadSaved() {
+async function loadSaved() {
 	for (const key of [STORAGE_KEY, LEGACY_STORAGE_KEY]) {
-		try {
-			const restored = restoreWorkspace(JSON.parse(window.localStorage.getItem(key) || 'null'));
-			if (restored) return restored;
-		} catch { /* Corrupt or blocked storage falls back to the demo. */ }
+		const restored = restoreWorkspace(await browserStorage.load(key));
+		if (restored) return restored;
 	}
 	return null;
+}
+
+/** Lists project files when the dev server's file endpoint exists; the published site has none. */
+async function loadProjectFiles() {
+	try {
+		projectFiles.value = await fileStorage.list();
+	} catch {
+		projectFiles.value = null;
+	}
+}
+
+/** Opens a project file as a new canvas file; its path is kept so Save writes it back. */
+async function openProjectFile(path) {
+	if (!path) return;
+	try {
+		const source = await fileStorage.load(path);
+		if (source === null) { notice.value = `${path} no longer exists.`; return; }
+		const { file, unsupported } = importFile(source, path.split('/').pop());
+		file.path = path;
+		addFile(file);
+		showImport.value = false;
+		notice.value = `${path} opened from the project.${unsupported ? ` ${unsupported} unsupported nodes were left out.` : ''} Save writes it back.`;
+	} catch (error) {
+		notice.value = error.message;
+	}
+}
+
+/** Writes the active file's source to the project, at its own path or under its name. */
+async function saveProjectFile() {
+	const file = activeFile.value;
+	if (!file) return;
+	const path = file.path || file.name;
+	try {
+		await fileStorage.save(path, fileSource.value);
+		if (file.path !== path) run({ op: 'setFile', id: file.id, key: 'path', value: path });
+		notice.value = `Saved ${path} to the project.`;
+		loadProjectFiles();
+	} catch (error) {
+		notice.value = error.message;
+	}
 }
 
 /** Compiles utilities used by imported files so arbitrary Tailwind classes render in artboards. */
@@ -496,6 +546,53 @@ async function copySource() {
 	catch { notice.value = 'Clipboard unavailable. Select the code to copy it.'; }
 }
 
+/* Code view ------------------------------------------------------------------------ */
+
+/** Typing in the code view: the text is kept as typed and applied after a pause. */
+function editCode(value) {
+	codeDraft.value = value;
+	clearTimeout(codeTimer);
+	codeTimer = setTimeout(applyCode, 300);
+}
+
+/** Parses the edited source into the document; ids survive where the structure still matches. */
+function applyCode() {
+	clearTimeout(codeTimer);
+	const file = activeFile.value;
+	if (codeDraft.value === null || !file) return;
+	let result;
+	try {
+		result = applySource(file, codeDraft.value, { isStudioComponent });
+	} catch (error) {
+		codeError.value = error.message;
+		return;
+	}
+	codeError.value = '';
+	codeWarning.value = result.unsupported ? `${result.unsupported} unsupported ${result.unsupported === 1 ? 'node was' : 'nodes were'} left out: scripts, iframes or inline event handlers.` : '';
+	codeRanges.value = result.ranges;
+	if (!result.changed) return;
+	const operations = [{ op: 'setFile', id: file.id, key: 'doc', value: result.doc }];
+	if (result.script !== (file.script || '')) operations.push({ op: 'setFile', id: file.id, key: 'script', value: result.script });
+	if (result.style !== (file.style || '')) operations.push({ op: 'setFile', id: file.id, key: 'style', value: result.style });
+	run(operations, { merge: `code:${file.id}` });
+}
+
+/** Selects the element under the caret, so the layers, stage and inspector follow the code. */
+function selectFromCode(line) {
+	const ranges = codeDraft.value === null ? mappedSource.value.ranges : codeRanges.value;
+	const id = ranges && nodeAtLine(ranges, line, (nodeId) => doc.value?.nodes[nodeId] && doc.value.nodes[nodeId].type !== 'text');
+	if (id) selected.value = id;
+}
+
+/** Leaving the code view shows the exported source again, unless the text does not parse. */
+function leaveCode() {
+	applyCode();
+	if (codeError.value) return;
+	codeDraft.value = null;
+	codeRanges.value = null;
+	history.seal();
+}
+
 /** Downloads the generated SFC under the file's name. */
 function downloadSource() {
 	const url = URL.createObjectURL(new Blob([fileSource.value], { type: 'text/plain' }));
@@ -646,11 +743,14 @@ function onKeyup(event) {
 }
 
 watch(activeArtboardId, refresh);
+// A draft belongs to one file; switching files or closing the panel shows the export again.
+watch(() => [activeFile.value?.id, showCode.value], () => { clearTimeout(codeTimer); codeDraft.value = null; codeRanges.value = null; codeError.value = ''; codeWarning.value = ''; });
 watch(viewMode, refresh);
 
-onMounted(() => {
-	const saved = loadSaved();
-	if (saved) {
+onMounted(async () => {
+	loadProjectFiles();
+	const saved = await loadSaved();
+	if (saved && !disposed) {
 		workspace.value = saved;
 		activeArtboardId.value = saved.artboards[0].id;
 	}
@@ -665,7 +765,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
 	disposed = true;
 	clearTimeout(compileTimer);
-	clearTimeout(saveTimer);
+	saver.flush();
 	window.removeEventListener('keydown', onKeydown);
 	window.removeEventListener('keyup', onKeyup);
 	viewport.value?.removeEventListener('wheel', onWheel);
@@ -713,6 +813,7 @@ onBeforeUnmount(() => {
 				<div class="space-y-3">
 					<DomTextInput v-model="importName" label="File name" />
 					<label class="block text-sm"><span class="mb-1 block font-medium">Or choose a file</span><input type="file" accept=".vue,.html,.htm,text/html" class="block w-full text-xs" @change="readUpload"></label>
+					<DomNativeSelect v-if="projectFiles" :model-value="''" label="Or open a project file" :placeholder="projectFiles.length ? 'Choose a file…' : 'No files yet'" :options="projectFiles.map((item) => ({ label: item.name, value: item.id }))" @update:model-value="openProjectFile" />
 					<div class="flex flex-wrap gap-2">
 						<DomButton size="sm" @click="importSource(false)">Open as new file</DomButton>
 						<DomButton size="sm" variant="secondary" @click="importSource(true)">Replace current</DomButton>
@@ -857,12 +958,15 @@ onBeforeUnmount(() => {
 					<div class="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
 						<p class="truncate font-mono text-xs">{{ activeFile?.name }}</p>
 						<div class="flex gap-1.5">
+							<DomButton v-if="projectFiles" size="sm" variant="secondary" :title="`Write ${activeFile?.path || activeFile?.name} to the project folder`" @click="saveProjectFile">Save to project</DomButton>
 							<DomButton size="sm" variant="secondary" @click="copySource">Copy</DomButton>
 							<DomButton size="sm" variant="secondary" @click="downloadSource">Download</DomButton>
 							<DomButton size="sm" variant="ghost" @click="showCode = false">Close</DomButton>
 						</div>
 					</div>
-					<pre class="min-h-0 flex-1 overflow-auto p-4 font-mono text-xs leading-5 [tab-size:2]">{{ fileSource }}</pre>
+					<p class="border-b border-border px-4 py-2 text-[11px] leading-4 text-muted-fg">Edit the code and the design follows. Click a line to select its element; select an element to find its code.</p>
+					<CodeView class="flex-1" :model-value="codeText" :highlight="codeHighlight" :label="`${activeFile?.name} source`" @update:model-value="editCode" @cursor="selectFromCode" @blur="leaveCode" />
+					<p v-if="codeError || codeWarning" role="status" class="border-t border-border bg-secondary px-4 py-2 text-xs" :class="codeError ? 'text-destructive' : 'text-muted-fg'">{{ codeError || codeWarning }}</p>
 				</aside>
 			</section>
 

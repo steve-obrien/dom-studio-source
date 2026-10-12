@@ -16,14 +16,14 @@ import { sampleVueFile } from './canvasDocument.js';
  * | --- | --- |
  * | any document operation | `{ file, op: 'setProp', … }` |
  * | addFile / removeFile | `{ op: 'addFile', value: file, index }`, `{ op: 'removeFile', id }` |
- * | setFile | `{ op: 'setFile', id, key: 'name' \| 'script' \| 'style' \| 'doc', value }` |
+ * | setFile | `{ op: 'setFile', id, key: 'name' \| 'path' \| 'script' \| 'style' \| 'doc', value }` |
  * | addArtboard / removeArtboard | `{ op: 'addArtboard', board, index }`, `{ op: 'removeArtboard', id }` |
  * | setArtboard | `{ op: 'setArtboard', id, key, value }` |
  * | setWorkspace | `{ op: 'setWorkspace', value }` |
  */
 
 export const WORKSPACE_VERSION = 2;
-const fileKeys = ['name', 'script', 'style', 'doc'];
+const fileKeys = ['name', 'path', 'script', 'style', 'doc'];
 const artboardKeys = ['name', 'x', 'y', 'width', 'height'];
 
 /** Allocates a file or artboard id. */
