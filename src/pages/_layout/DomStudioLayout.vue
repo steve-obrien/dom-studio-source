@@ -6,6 +6,7 @@ import ThemeToggle from './ThemeToggle.vue';
 import BrandLockup from './BrandLockup.vue';
 import SideNav from './SideNav.vue';
 import { sideNavLinks } from './sideNavLinks.js';
+import { headerMenus, isLibraryActive, isNavigationItemActive, libraryMenu, pricingLink, primaryNavigation } from './siteNavigation.js';
 import DomPopover from '../components/popover/DomPopover.vue';
 import DomMenuStack from '../components/menu-stack/DomMenuStack.vue';
 import DomStudioFooter from './DomStudioFooter.vue';
@@ -86,17 +87,18 @@ const contentMaxWidthClass = computed(() => (
 		: 'max-w-4xl'
 ));
 
-const topLinks = [
-	{ to: '/ai', label: 'AI', match: '/ai' },
-	{ to: '/components', label: 'Components', match: '/components' },
-	{ to: '/forms', label: 'Forms', match: '/forms' },
-	{ to: '/data', label: 'Data', match: '/data' },
-	{ to: '/charts', label: 'Charts', match: '/charts' },
-	{ to: '/visual/card', label: 'Visual', match: '/visual' },
-	{ to: '/mobile', label: 'Mobile', match: '/mobile' },
-	{ to: '/blocks', label: 'Blocks', match: '/blocks' },
-	{ to: '/headless', label: 'Headless', match: '/headless' },
-];
+const headerMenuRefs = {};
+const openHeaderMenu = ref('');
+const libraryActive = computed(() => isLibraryActive(route.path));
+
+/**
+ * Closes every header dropdown, for route changes and narrow layouts.
+ *
+ * @returns {void}
+ */
+function closeHeaderMenus() {
+	Object.values(headerMenuRefs).forEach((menu) => menu?.close());
+}
 
 /** Converts sidebar groups into stable nested pages, retaining branch overview links. */
 function menuItems(items, prefix) {
@@ -155,6 +157,7 @@ function toggleSidebar() {
 /** Closes the mobile popover when desktop navigation replaces its trigger. */
 function closeMenuAtDesktopWidth() {
 	if (window.innerWidth >= 1024) mobileMenu.value?.close();
+	else closeHeaderMenus();
 }
 
 /**
@@ -185,17 +188,15 @@ function connectDetailsPanelScroll(nextPanel, previousPanel) {
 }
 
 /**
- * Checks whether a top-level navigation item matches the current route.
+ * Checks whether a header navigation item matches the current route.
  *
- * @param {{ exact?: boolean, match?: string, to: string }} link Navigation item.
+ * @param {{ match?: string[], to: string }} link Navigation item.
  * @returns {boolean} Whether the item is active.
  */
 function isTopLinkActive(link) {
 	const component = getComponentRecordByRoute(route.path);
 	if (component && getComponentNavigationSection(component) === 'ai') return link.to === '/ai';
-	return link.exact
-		? route.path === link.to
-		: route.path.startsWith(link.match || link.to);
+	return isNavigationItemActive(link, route.path);
 }
 
 /**
@@ -231,6 +232,7 @@ function runGlobalSearch(event) {
 
 watch(() => route.path, async () => {
 	mobileMenu.value?.close();
+	closeHeaderMenus();
 	await nextTick();
 	scrollDetailsToTop();
 	updateStickyHeaderState();
@@ -282,22 +284,66 @@ onBeforeUnmount(() => {
 			/>
 
 			<div class="relative z-[1] mx-auto flex h-16 w-full min-w-0 items-center justify-between gap-3 px-4 sm:px-6">
-				<RouterLink to="/" class="flex min-w-0 items-center gap-2 text-canvas-fg">
+				<RouterLink to="/" class="flex min-w-0 shrink-0 items-center gap-2 text-canvas-fg">
 					<BrandLockup />
 				</RouterLink>
-				<nav class="hidden min-w-0 items-center gap-1 text-sm lg:flex">
+				<nav class="hidden min-w-0 items-center gap-0.5 whitespace-nowrap text-sm lg:flex xl:gap-1">
+					<template v-for="l in primaryNavigation" :key="l.id">
+						<button
+							v-if="l.groups"
+							:id="`header-menu-${l.id}-trigger`"
+							type="button"
+							:title="l.description"
+							class="flex items-center gap-1 rounded-full px-2 py-1.5 font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 xl:px-3"
+							:class="isTopLinkActive(l)
+								? 'bg-primary text-primary-fg'
+								: 'text-muted-fg hover:text-canvas-fg'"
+							:aria-expanded="openHeaderMenu === l.id"
+							:aria-controls="`header-menu-${l.id}`"
+							aria-haspopup="true"
+						>
+							{{ l.label }}
+							<svg viewBox="0 0 24 24" class="size-3.5 transition" :class="openHeaderMenu === l.id && 'rotate-180'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<path d="m7 10 5 5 5-5" />
+							</svg>
+						</button>
+						<RouterLink
+							v-else
+							:to="l.to"
+							:title="l.description"
+							class="rounded-full px-2 py-1.5 font-medium transition xl:px-3"
+							:class="isTopLinkActive(l)
+								? 'bg-primary text-primary-fg'
+								: 'text-muted-fg hover:text-canvas-fg'"
+						>{{ l.label }}</RouterLink>
+					</template>
+					<span class="mx-1 h-4 w-px bg-border" aria-hidden="true"></span>
+					<button
+						:id="`header-menu-${libraryMenu.id}-trigger`"
+						type="button"
+						class="flex items-center gap-1 rounded-full px-2 py-1.5 font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 xl:px-3"
+						:class="libraryActive
+							? 'bg-secondary text-canvas-fg'
+							: 'text-muted-fg hover:text-canvas-fg'"
+						:aria-expanded="openHeaderMenu === libraryMenu.id"
+						:aria-controls="`header-menu-${libraryMenu.id}`"
+						aria-haspopup="true"
+					>
+						{{ libraryMenu.label }}
+						<svg viewBox="0 0 24 24" class="size-3.5 transition" :class="openHeaderMenu === libraryMenu.id && 'rotate-180'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="m7 10 5 5 5-5" />
+						</svg>
+					</button>
 					<RouterLink
-						v-for="l in topLinks"
-						:key="l.to"
-						:to="l.to"
-						class="rounded-full px-2.5 py-1.5 font-medium transition xl:px-3"
-						:class="isTopLinkActive(l)
+						:to="pricingLink.to"
+						class="rounded-full px-2 py-1.5 font-medium transition xl:px-3"
+						:class="isTopLinkActive(pricingLink)
 							? 'bg-primary text-primary-fg'
 							: 'text-muted-fg hover:text-canvas-fg'"
-					>{{ l.label }}</RouterLink>
+					>{{ pricingLink.label }}</RouterLink>
 					<button
 						type="button"
-						class="ml-1 grid size-9 shrink-0 place-items-center rounded-full border border-border bg-secondary text-sm font-medium text-muted-fg transition hover:bg-accent hover:text-accent-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 xl:ml-2 xl:flex xl:w-auto xl:gap-2 xl:px-3"
+						class="ml-1 grid size-9 shrink-0 place-items-center rounded-full border border-border bg-secondary text-sm font-medium text-muted-fg transition hover:bg-accent hover:text-accent-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 min-[1400px]:ml-2 min-[1400px]:flex min-[1400px]:w-auto min-[1400px]:gap-2 min-[1400px]:px-3"
 						aria-label="Search DOM Studio"
 						title="Search DOM Studio"
 						@click="openGlobalSearch"
@@ -305,16 +351,16 @@ onBeforeUnmount(() => {
 						<svg viewBox="0 0 24 24" class="size-4 shrink-0" fill="none" aria-hidden="true">
 							<path d="M11 5a6 6 0 1 0 0 12 6 6 0 0 0 0-12Zm4.5 10.5L20 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
 						</svg>
-						<span class="hidden xl:inline">Search</span>
-						<kbd class="hidden rounded border border-border bg-canvas px-1.5 py-0.5 text-[11px] font-semibold text-muted-fg xl:inline">⌘K</kbd>
+						<span class="hidden min-[1400px]:inline">Search</span>
+						<kbd class="hidden rounded border border-border bg-canvas px-1.5 py-0.5 text-[11px] font-semibold text-muted-fg min-[1400px]:inline">⌘K</kbd>
 					</button>
 					<div class="ml-1 xl:ml-2">
 						<ThemeToggle />
 					</div>
-					<div class="ml-1 xl:hidden">
+					<div class="ml-1 min-[1400px]:hidden">
 						<AccountMenu compact />
 					</div>
-					<div class="ml-2 hidden xl:block">
+					<div class="ml-2 hidden min-[1400px]:block">
 						<AccountMenu />
 					</div>
 				</nav>
@@ -369,6 +415,45 @@ onBeforeUnmount(() => {
 				</div>
 			</div>
 		</header>
+
+		<DomPopover
+			v-for="menu in headerMenus"
+			:key="menu.id"
+			:ref="(instance) => { headerMenuRefs[menu.id] = instance; }"
+			:trigger-id="`header-menu-${menu.id}-trigger`"
+			position="bottom-start"
+			:arrow="false"
+			:width="menu.groups.length > 1 ? 'w-[min(46rem,calc(100vw-2rem))]' : 'w-[min(22rem,calc(100vw-2rem))]'"
+			padding="p-0"
+			@open="openHeaderMenu = menu.id"
+			@close="openHeaderMenu === menu.id && (openHeaderMenu = '')"
+		>
+			<template #default="{ close }">
+				<div :id="`header-menu-${menu.id}`" class="grid gap-0" :class="menu.groups.length > 1 && 'sm:grid-cols-3'">
+					<section
+						v-for="(group, index) in menu.groups"
+						:key="group.label"
+						class="p-3"
+						:class="index && 'border-t border-border sm:border-t-0 sm:border-l'"
+					>
+						<h2 class="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-fg">{{ group.label }}</h2>
+						<ul class="grid gap-0.5">
+							<li v-for="item in group.items" :key="item.to">
+								<RouterLink
+									:to="item.to"
+									class="block rounded-md px-2 py-1.5 transition hover:bg-accent hover:text-accent-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+									:class="isNavigationItemActive(item, route.path) && 'bg-accent text-accent-fg'"
+									@click="close"
+								>
+									<span class="block text-sm font-medium">{{ item.label }}</span>
+									<span class="block text-xs leading-5 text-muted-fg">{{ item.description }}</span>
+								</RouterLink>
+							</li>
+						</ul>
+					</section>
+				</div>
+			</template>
+		</DomPopover>
 
 		<DomPopover
 			ref="mobileMenu"

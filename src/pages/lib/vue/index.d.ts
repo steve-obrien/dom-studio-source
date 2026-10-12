@@ -2327,6 +2327,42 @@ export interface DomDataGridProps {
 	 * Message shown when no rows are visible.
 	 */
 	emptyText?: string;
+	/**
+	 * Controlled pin map keyed by column key, such as { account: 'left', actions: 'right' }. When omitted, each column's pinned value is used.
+	 */
+	pinnedColumns?: Record<string, unknown>;
+	/**
+	 * Column key, or ordered column keys, to group rows by. Group rows show a count and each column aggregate.
+	 */
+	groupBy?: string | Array<unknown>;
+	/**
+	 * Whether groups start expanded.
+	 */
+	groupsExpanded?: boolean;
+	/**
+	 * Show a totals row pinned to the bottom with each column aggregate over the filtered rows.
+	 */
+	showTotals?: boolean;
+	/**
+	 * Allow inline editing of plain cells. Edits emit cell-update; column editable overrides this per column.
+	 */
+	editable?: boolean;
+	/**
+	 * Spreadsheet cell focus: arrow-key navigation, drag or Shift range selection, copy, paste, delete and undo.
+	 */
+	cellSelection?: boolean;
+	/**
+	 * Show a menu on every header with pin and group actions beside the column filter.
+	 */
+	columnMenu?: boolean;
+	/**
+	 * Show an Export menu in the toolbar for CSV and Excel (.xlsx) downloads of the filtered, sorted rows.
+	 */
+	exportable?: boolean;
+	/**
+	 * Export file name without an extension. Defaults to the title.
+	 */
+	exportFileName?: string;
 }
 export declare const DomDataGrid: DomComponent<DomDataGridProps>;
 

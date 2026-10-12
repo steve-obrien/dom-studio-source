@@ -12,6 +12,8 @@ import ComponentSlots from '../../_layout/docs/ComponentSlots.vue';
 import { createComponentExampleSources } from '../../_layout/docs/componentExampleSources.js';
 import DomDataGrid from './DomDataGrid.vue';
 import DomDataGridSrc from './DomDataGrid.vue?raw';
+import TradingDeskGrid from './examples/TradingDeskGrid.vue';
+import TradingDeskGridSrc from './examples/TradingDeskGrid.vue?raw';
 import CustomerDatabase from './examples/CustomerDatabase.vue';
 import CustomerDatabaseSrc from './examples/CustomerDatabase.vue?raw';
 import LargeMemoryGrid from './examples/LargeMemoryGrid.vue';
@@ -33,6 +35,7 @@ import FlushGridSrc from './examples/FlushGrid.vue?raw';
 const doc = DomDataGrid.__doc;
 const installationMethod = ref('npm');
 const exampleSources = {
+	tradingDeskGrid: createComponentExampleSources(TradingDeskGridSrc),
 	flushGrid: createComponentExampleSources(FlushGridSrc),
 	customerDatabase: createComponentExampleSources(CustomerDatabaseSrc),
 	largeMemoryGrid: createComponentExampleSources(LargeMemoryGridSrc),
@@ -41,6 +44,15 @@ const exampleSources = {
 	liveSqlQueryLog: createComponentExampleSources(LiveSqlQueryLogSrc),
 	customColumnComponents: createComponentExampleSources(CustomColumnComponentsSrc),
 };
+
+const proFeatures = [
+	{ title: 'Pinned columns', props: 'column.pinned, pinnedColumns', text: 'Keep identifiers on the left and totals on the right while wide sheets scroll. Pin or unpin from the column menu.' },
+	{ title: 'Inline editing', props: 'editable, column.editable, validate', text: 'Double-click, press Enter or just type. Typed editors for numbers, currency, dates, options and booleans, with validation.' },
+	{ title: 'Range copy and paste', props: 'cellSelection', text: 'Drag or Shift-select a range, copy it into Excel, paste a block back. Delete clears, Cmd+Z undoes.' },
+	{ title: 'Grouping and totals', props: 'groupBy, column.aggregate, showTotals', text: 'Group by any column, nest groups, and roll up sum, average, count, min and max per group and overall.' },
+	{ title: 'Excel and CSV export', props: 'exportable, exportExcel(), exportCsv()', text: 'A real .xlsx with typed numbers, dates and currency, or UTF-8 CSV. Exports follow the current filters, sort and grouping.' },
+	{ title: 'Virtual rows', props: 'virtualRows', text: 'Every feature above works on large in-memory sets; only the visible rows are mounted.' },
+];
 
 const resourceApiCode = `// Request
 {
@@ -108,6 +120,27 @@ const resourceApiCode = `// Request
 	<DomStudioLayout>
 		<DocPage :name="doc.name" :tagline="doc.description" :tag="doc.tag">
 			<ComponentQuickStart component-name="DomDataGrid" />
+
+			<DocSection eyebrow="Grid Pro" title="Trading desk: edit, group, pin and export">
+				<Example
+					v-model:installation-method="installationMethod"
+					:source="TradingDeskGridSrc"
+					:source-variants="exampleSources.tradingDeskGrid"
+					filename="TradingDeskGrid.vue"
+					description="2,500 positions grouped by desk, with Ticker pinned left and P&L pinned right. Click a cell and use the arrow keys, drag a range to see its sum, double-click or type to edit, copy and paste to and from a spreadsheet, and export the current view to Excel. Open a column menu to pin or group by another column."
+					:preview-lines="0"
+				>
+					<TradingDeskGrid />
+				</Example>
+
+				<div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+					<div v-for="feature in proFeatures" :key="feature.title" class="rounded-lg border border-border bg-canvas p-4">
+						<p class="text-sm font-semibold text-canvas-fg">{{ feature.title }}</p>
+						<p class="mt-1 text-sm leading-6 text-muted-fg">{{ feature.text }}</p>
+						<p class="mt-2 font-mono text-xs text-muted-fg">{{ feature.props }}</p>
+					</div>
+				</div>
+			</DocSection>
 
 			<DocSection eyebrow="Demo" title="Database-style account table">
 				<Example
