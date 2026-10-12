@@ -234,10 +234,10 @@ onBeforeUnmount(cleanup);
 			<div class="flex flex-wrap items-center gap-3"><RouterLink to="/designer" class="text-sm text-muted-fg hover:text-canvas-fg">← UI designer</RouterLink><RouterLink to="/designer/assembly#poster" class="text-sm text-primary underline underline-offset-4">Assembly guide</RouterLink><span class="h-4 border-l border-border"></span><h1 class="text-sm font-semibold">Poster studio</h1><span class="rounded bg-secondary px-2 py-1 text-[10px] font-semibold uppercase tracking-wide">Beta</span></div>
 			<div class="flex items-center gap-2"><DomButton size="sm" variant="ghost" :disabled="!past.length && JSON.stringify(poster) === lastSnapshot" @click="undo">Undo</DomButton><DomButton size="sm" variant="ghost" :disabled="!future.length" @click="redo">Redo</DomButton><DomButton size="sm" variant="ghost" :aria-pressed="showCode" @click="showCode = !showCode">HTML</DomButton><DomButton size="sm" @click="download">Export HTML</DomButton></div>
 		</header>
-		<nav class="flex shrink-0 border-b border-border p-1 lg:hidden" aria-label="Editor panels"><button v-for="panel in ['layers', 'poster', 'inspect']" :key="panel" type="button" class="flex-1 rounded px-3 py-2 text-sm capitalize" :class="mobilePanel === panel ? 'bg-secondary font-semibold' : 'text-muted-fg'" :aria-pressed="mobilePanel === panel" @click="mobilePanel = panel">{{ panel }}</button></nav>
+		<nav class="flex shrink-0 border-b border-border p-1 md:hidden" aria-label="Editor panels"><button v-for="panel in ['layers', 'poster', 'inspect']" :key="panel" type="button" class="flex-1 rounded px-3 py-2 text-sm capitalize" :class="mobilePanel === panel ? 'bg-secondary font-semibold' : 'text-muted-fg'" :aria-pressed="mobilePanel === panel" @click="mobilePanel = panel">{{ panel }}</button></nav>
 		<DomSplitterPanel v-model:start-size="leftPanelWidth" v-model:end-size="rightPanelWidth" :min-start="180" :min-main="280" :min-end="240" class="poster-panels min-h-0 flex-1" :data-panel="mobilePanel">
 			<template #start>
-			<aside class="h-full min-h-0 overflow-auto border-r border-border" :class="mobilePanel === 'layers' ? 'block' : 'hidden lg:block'" aria-label="Poster layers">
+			<aside class="h-full min-h-0 overflow-auto border-r border-border" :class="mobilePanel === 'layers' ? 'block' : 'hidden md:block'" aria-label="Poster layers">
 				<div class="border-b border-border p-4"><p class="mb-3 text-[10px] font-semibold uppercase tracking-widest text-muted-fg">Document</p><DomTextInput v-model="poster.title" label="Title" /><div class="mt-3"><DomNativeSelect :model-value="`${poster.width}x${poster.height}`" :options="presets" label="Format" @update:model-value="setPreset" /></div></div>
 				<div class="p-4"><h2 class="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-fg">Add a layer</h2><div class="grid grid-cols-3 gap-1"><DomButton size="sm" variant="secondary" @click="addLayer('text')">Text</DomButton><DomButton size="sm" variant="secondary" @click="addLayer('image')">Image</DomButton><DomButton size="sm" variant="secondary" @click="addLayer('shape')">Shape</DomButton></div></div>
 				<div class="px-2"><div class="flex items-center justify-between px-2 pb-2"><h2 class="text-xs font-semibold">Layers</h2><span class="text-[10px] text-muted-fg">Front to back</span></div><DomDesignerLayers v-model="selected" :items="layers" label="Poster layers" /></div>
@@ -245,7 +245,7 @@ onBeforeUnmount(cleanup);
 			</aside>
 			</template>
 			<template #default>
-			<section class="flex h-full min-h-0 min-w-0 flex-col" :class="mobilePanel === 'poster' ? 'flex' : 'hidden lg:flex'" aria-label="Poster workspace">
+			<section class="flex h-full min-h-0 min-w-0 flex-col" :class="mobilePanel === 'poster' ? 'flex' : 'hidden md:flex'" aria-label="Poster workspace">
 				<div class="flex h-10 shrink-0 items-center justify-between border-b border-border px-4 text-[11px] text-muted-fg"><span class="truncate">{{ poster.title }}</span><span class="shrink-0">{{ poster.width }} × {{ poster.height }}</span></div>
 				<div ref="workspace" class="poster-workspace min-h-0 flex-1 overflow-auto p-9">
 					<div ref="artwork" class="relative mx-auto shadow-xl" :style="{ width: `${poster.width * scale}px`, height: `${poster.height * scale}px` }">
@@ -264,7 +264,7 @@ onBeforeUnmount(cleanup);
 			</section>
 			</template>
 			<template #end>
-			<aside class="h-full min-h-0 overflow-auto border-l border-border" :class="mobilePanel === 'inspect' ? 'block' : 'hidden lg:block'" aria-label="Poster properties">
+			<aside class="h-full min-h-0 overflow-auto border-l border-border" :class="mobilePanel === 'inspect' ? 'block' : 'hidden md:block'" aria-label="Poster properties">
 				<div class="flex items-center justify-between border-b border-border px-4 py-3"><h2 class="text-sm font-semibold">{{ active?.name || 'Poster background' }}</h2><span class="text-[10px] uppercase tracking-wider text-muted-fg">{{ active?.type || 'Frame' }}</span></div>
 				<template v-if="active">
 					<div class="flex flex-wrap gap-1 border-b border-border p-3"><DomButton size="sm" variant="ghost" @click="act(() => active.locked = !active.locked)">{{ active.locked ? 'Unlock' : 'Lock' }}</DomButton><DomButton size="sm" variant="ghost" :disabled="active.locked" @click="act(() => active.hidden = !active.hidden)">{{ active.hidden ? 'Show' : 'Hide' }}</DomButton><DomButton size="sm" variant="ghost" @click="duplicate">Duplicate</DomButton><DomButton size="sm" variant="ghost" :disabled="active.locked" @click="remove">Delete</DomButton></div>
@@ -315,7 +315,7 @@ onBeforeUnmount(cleanup);
 	background-size: 16px 16px;
 }
 /* Slot wrappers belong to the splitter; on mobile expose only the selected panel. */
-@media (max-width: 1023px) {
+@media (max-width: 767px) {
 	.poster-panels { display: block; min-width: 0 !important; }
 	.poster-panels :deep(> button), .poster-panels :deep(> section) { display: none; }
 	.poster-panels[data-panel="layers"] :deep(> section:nth-child(1)),
