@@ -10,10 +10,10 @@ import { inspectComponentRecord } from './componentInspector.js';
 import { getBlockNavItems } from '../blocks/blockRegistry.js';
 
 /**
- * Sidebar order follows the header: advanced tools first, simple primitives later.
+ * Sidebar order follows the header: paid products first, simple primitives later.
  * Any section added to the component manager but missing here is appended so it stays discoverable.
  */
-const advancedSections = ['designer', 'ai', 'data', 'charts'];
+const advancedSections = ['data', 'designer', 'charts', 'ai'];
 const sidebarComponentSectionOrder = [
 	...advancedSections,
 	...componentNavigationSections.filter((section) => !advancedSections.includes(section)),

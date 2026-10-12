@@ -6,7 +6,7 @@ import ThemeToggle from './ThemeToggle.vue';
 import BrandLockup from './BrandLockup.vue';
 import SideNav from './SideNav.vue';
 import { sideNavLinks } from './sideNavLinks.js';
-import { isLibraryActive, isNavigationItemActive, libraryNavigation, pricingLink, primaryNavigation } from './siteNavigation.js';
+import { headerMenus, isLibraryActive, isNavigationItemActive, libraryMenu, pricingLink, primaryNavigation } from './siteNavigation.js';
 import DomPopover from '../components/popover/DomPopover.vue';
 import DomMenuStack from '../components/menu-stack/DomMenuStack.vue';
 import DomStudioFooter from './DomStudioFooter.vue';
@@ -87,9 +87,18 @@ const contentMaxWidthClass = computed(() => (
 		: 'max-w-4xl'
 ));
 
-const libraryMenu = ref(null);
-const libraryMenuOpen = ref(false);
+const headerMenuRefs = {};
+const openHeaderMenu = ref('');
 const libraryActive = computed(() => isLibraryActive(route.path));
+
+/**
+ * Closes every header dropdown, for route changes and narrow layouts.
+ *
+ * @returns {void}
+ */
+function closeHeaderMenus() {
+	Object.values(headerMenuRefs).forEach((menu) => menu?.close());
+}
 
 /** Converts sidebar groups into stable nested pages, retaining branch overview links. */
 function menuItems(items, prefix) {
@@ -148,7 +157,7 @@ function toggleSidebar() {
 /** Closes the mobile popover when desktop navigation replaces its trigger. */
 function closeMenuAtDesktopWidth() {
 	if (window.innerWidth >= 1024) mobileMenu.value?.close();
-	else libraryMenu.value?.close();
+	else closeHeaderMenus();
 }
 
 /**
@@ -223,7 +232,7 @@ function runGlobalSearch(event) {
 
 watch(() => route.path, async () => {
 	mobileMenu.value?.close();
-	libraryMenu.value?.close();
+	closeHeaderMenus();
 	await nextTick();
 	scrollDetailsToTop();
 	updateStickyHeaderState();
@@ -279,30 +288,49 @@ onBeforeUnmount(() => {
 					<BrandLockup />
 				</RouterLink>
 				<nav class="hidden min-w-0 items-center gap-1 text-sm lg:flex">
-					<RouterLink
-						v-for="l in primaryNavigation"
-						:key="l.to"
-						:to="l.to"
-						:title="l.description"
-						class="rounded-full px-2.5 py-1.5 font-medium transition xl:px-3"
-						:class="isTopLinkActive(l)
-							? 'bg-primary text-primary-fg'
-							: 'text-muted-fg hover:text-canvas-fg'"
-					>{{ l.label }}</RouterLink>
+					<template v-for="l in primaryNavigation" :key="l.id">
+						<button
+							v-if="l.groups"
+							:id="`header-menu-${l.id}-trigger`"
+							type="button"
+							:title="l.description"
+							class="flex items-center gap-1 rounded-full px-2.5 py-1.5 font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 xl:px-3"
+							:class="isTopLinkActive(l)
+								? 'bg-primary text-primary-fg'
+								: 'text-muted-fg hover:text-canvas-fg'"
+							:aria-expanded="openHeaderMenu === l.id"
+							:aria-controls="`header-menu-${l.id}`"
+							aria-haspopup="true"
+						>
+							{{ l.label }}
+							<svg viewBox="0 0 24 24" class="size-3.5 transition" :class="openHeaderMenu === l.id && 'rotate-180'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<path d="m7 10 5 5 5-5" />
+							</svg>
+						</button>
+						<RouterLink
+							v-else
+							:to="l.to"
+							:title="l.description"
+							class="rounded-full px-2.5 py-1.5 font-medium transition xl:px-3"
+							:class="isTopLinkActive(l)
+								? 'bg-primary text-primary-fg'
+								: 'text-muted-fg hover:text-canvas-fg'"
+						>{{ l.label }}</RouterLink>
+					</template>
 					<span class="mx-1 h-4 w-px bg-border" aria-hidden="true"></span>
 					<button
-						id="library-menu-trigger"
+						:id="`header-menu-${libraryMenu.id}-trigger`"
 						type="button"
 						class="flex items-center gap-1 rounded-full px-2.5 py-1.5 font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 xl:px-3"
 						:class="libraryActive
 							? 'bg-secondary text-canvas-fg'
 							: 'text-muted-fg hover:text-canvas-fg'"
-						:aria-expanded="libraryMenuOpen"
-						aria-controls="library-menu"
+						:aria-expanded="openHeaderMenu === libraryMenu.id"
+						:aria-controls="`header-menu-${libraryMenu.id}`"
 						aria-haspopup="true"
 					>
-						Library
-						<svg viewBox="0 0 24 24" class="size-3.5 transition" :class="libraryMenuOpen && 'rotate-180'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+						{{ libraryMenu.label }}
+						<svg viewBox="0 0 24 24" class="size-3.5 transition" :class="openHeaderMenu === libraryMenu.id && 'rotate-180'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 							<path d="m7 10 5 5 5-5" />
 						</svg>
 					</button>
@@ -389,22 +417,24 @@ onBeforeUnmount(() => {
 		</header>
 
 		<DomPopover
-			ref="libraryMenu"
-			trigger-id="library-menu-trigger"
+			v-for="menu in headerMenus"
+			:key="menu.id"
+			:ref="(instance) => { headerMenuRefs[menu.id] = instance; }"
+			:trigger-id="`header-menu-${menu.id}-trigger`"
 			position="bottom-start"
 			:arrow="false"
-			width="w-[min(34rem,calc(100vw-2rem))]"
+			:width="menu.groups.length > 1 ? 'w-[min(46rem,calc(100vw-2rem))]' : 'w-[min(22rem,calc(100vw-2rem))]'"
 			padding="p-0"
-			@open="libraryMenuOpen = true"
-			@close="libraryMenuOpen = false"
+			@open="openHeaderMenu = menu.id"
+			@close="openHeaderMenu === menu.id && (openHeaderMenu = '')"
 		>
 			<template #default="{ close }">
-				<div id="library-menu" class="grid gap-0 sm:grid-cols-[1.4fr_1fr]">
+				<div :id="`header-menu-${menu.id}`" class="grid gap-0" :class="menu.groups.length > 1 && 'sm:grid-cols-3'">
 					<section
-						v-for="(group, index) in libraryNavigation"
+						v-for="(group, index) in menu.groups"
 						:key="group.label"
 						class="p-3"
-						:class="index && 'border-t border-border bg-secondary/40 sm:border-t-0 sm:border-l'"
+						:class="index && 'border-t border-border sm:border-t-0 sm:border-l'"
 					>
 						<h2 class="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-fg">{{ group.label }}</h2>
 						<ul class="grid gap-0.5">
