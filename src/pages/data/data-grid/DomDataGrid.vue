@@ -17,6 +17,14 @@
 * @property {Function} [accessor] Function that receives a row and returns the cell value.
 * @property {Function} [sortAccessor] Function that receives a row and column and returns the value used for local sorting.
 * @property {Function} [format] Function that receives value, row, and column and returns display text.
+* @property {'left'|'right'|boolean} [pinned] Pin the column to the left or right edge so it stays visible while the grid scrolls sideways. true pins left.
+* @property {boolean|Function} [editable] Allow inline editing for this column, or a function that receives row and column and decides per cell. Defaults to the grid editable prop for plain cells.
+* @property {Function} [parse] Function that receives typed text and column and returns the value to store. Overrides the built-in parser for edits and paste.
+* @property {Function} [validate] Function that receives value, row, and column. Return true to accept, or a message to reject the edit.
+* @property {'sum'|'avg'|'count'|'min'|'max'|Function} [aggregate] Aggregate shown on group rows and the totals row. A function receives values, rows, and column.
+* @property {Function} [formatAggregate] Function that receives the aggregate value, column, and aggregate kind and returns display text.
+* @property {boolean} [exportable] Set false to leave the column out of CSV and Excel exports.
+* @property {Function} [exportValue] Function that receives value, row, and column and returns the exported and copied value.
 */
 
 /**
@@ -199,6 +207,51 @@ export const dataGridProps = {
 		default: 'No rows match the current filters.',
 		_edit: { description: 'Message shown when no rows are visible.' },
 	},
+	pinnedColumns: {
+		type: Object,
+		default: null,
+		_edit: { description: 'Controlled pin map keyed by column key, such as { account: \'left\', actions: \'right\' }. When omitted, each column\'s pinned value is used.' },
+	},
+	groupBy: {
+		type: [String, Array],
+		default: '',
+		_edit: { description: 'Column key, or ordered column keys, to group rows by. Group rows show a count and each column aggregate.' },
+	},
+	groupsExpanded: {
+		type: Boolean,
+		default: true,
+		_edit: { description: 'Whether groups start expanded.' },
+	},
+	showTotals: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Show a totals row pinned to the bottom with each column aggregate over the filtered rows.' },
+	},
+	editable: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Allow inline editing of plain cells. Edits emit cell-update; column editable overrides this per column.' },
+	},
+	cellSelection: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Spreadsheet cell focus: arrow-key navigation, drag or Shift range selection, copy, paste, delete and undo.' },
+	},
+	columnMenu: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Show a menu on every header with pin and group actions beside the column filter.' },
+	},
+	exportable: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Show an Export menu in the toolbar for CSV and Excel (.xlsx) downloads of the filtered, sorted rows.' },
+	},
+	exportFileName: {
+		type: String,
+		default: '',
+		_edit: { description: 'Export file name without an extension. Defaults to the title.' },
+	},
 };
 </script>
 
@@ -207,6 +260,7 @@ import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, reactive, ref,
 import DomPopover from '../../components/popover/DomPopover.vue';
 import { resolveResourceKey, resolveResourceValue } from '../_shared/resourceRecord.js';
 import DataGridVirtualRows from './DataGridVirtualRows.vue';
+import { csvBlob, downloadBlob, parseTsv, toCsv, toTsv, xlsxBlob } from './gridExport.js';
 
 defineOptions({
 	__doc: {
@@ -223,7 +277,12 @@ defineOptions({
 			{ name: 'query-change', payload: 'DataGridQuery', description: 'Fired with the normalized search, filters, and sort state. Use this to call a resource API.' },
 			{ name: 'viewport-scroll', payload: '{ scrollTop, scrollHeight, clientHeight, remaining, atEnd }', description: 'Fired when the scrollable row viewport scrolls.' },
 			{ name: 'viewport-end', payload: '{ scrollTop, scrollHeight, clientHeight, remaining, atEnd }', description: 'Fired when the scrollable row viewport reaches the bottom threshold. Useful for cursor pagination and infinite loading.' },
-			{ name: 'cell-update', payload: '({ row, column, rowIndex, rowKey, value, previousValue })', description: 'Re-emitted when a column component emits update:value.' },
+			{ name: 'cell-update', payload: '({ row, column, rowIndex, rowKey, value, previousValue, source })', description: 'Fired when a cell value changes: an inline edit, paste, delete, undo or redo (source), or a column component emitting update:value. The grid does not mutate rows; write value back to your data.' },
+			{ name: 'cells-update', payload: '({ source, changes })', description: 'Fired once per edit, paste, delete, undo or redo with every change, after the individual cell-update events. Use it instead of cell-update to apply a batch in one step.' },
+			{ name: 'range-change', payload: '({ startRow, endRow, startColumn, endColumn, rows, columns }) | null', description: 'Fired when the selected cell range changes. Indexes are visible positions.' },
+			{ name: 'update:pinnedColumns', payload: 'Record<string, \'left\' | \'right\'>', description: 'Fired when a column is pinned or unpinned from the column menu.' },
+			{ name: 'update:groupBy', payload: 'string | Array<string>', description: 'Fired when grouping changes from the column menu or toolbar.' },
+			{ name: 'export', payload: '({ format, rows, columns, fileName })', description: 'Fired after a CSV or Excel export is built.' },
 			{ name: 'cell-action', payload: '({ row, column, rowIndex, rowKey, value, formatted, action, payload })', description: 'Re-emitted when a column component emits action.' },
 			{ name: 'column-resize', payload: '({ column, key, width, previousWidth, startWidth })', description: 'Fired while a header divider is dragged and a column width changes.' },
 			{ name: 'column-resize-end', payload: '({ column, key, width, previousWidth, startWidth })', description: 'Fired when the user finishes resizing a column.' },
@@ -232,13 +291,19 @@ defineOptions({
 		],
 		slots: [
 			{ name: 'cell', payload: '{ row, column, value, formatted, rowIndex, rowKey }', description: 'Custom cell renderer.' },
-			{ name: 'toolbar-actions', payload: '{ query, clearFilters }', description: 'Extra controls rendered next to search and Clear filters.' },
+			{ name: 'toolbar-actions', payload: '{ query, clearFilters, exportCsv, exportExcel }', description: 'Extra controls rendered next to search and Clear filters.' },
 			{ name: 'empty', description: 'Custom empty state.' },
 		],
 		keyboard: [
 			{ keys: 'Enter / Space on a header', action: 'Toggle sort when the column is sortable.' },
 			{ keys: 'Enter / Space on a filter button', action: 'Open the typed filter popover.' },
-			{ keys: 'Esc', action: 'Close an open filter popover.' },
+			{ keys: 'Esc', action: 'Close an open filter popover, cancel an edit, or collapse a range to the active cell.' },
+			{ keys: 'Arrow keys / Tab', action: 'Move the active cell when cellSelection is on. Shift extends the range; Cmd or Ctrl jumps to the edge.' },
+			{ keys: 'Enter / F2 / typing', action: 'Edit the active cell when it is editable. Enter commits and moves down; Tab commits and moves right.' },
+			{ keys: 'Cmd/Ctrl + C, X, V', action: 'Copy, cut and paste the range as tab-separated text, compatible with Excel and Google Sheets.' },
+			{ keys: 'Delete / Backspace', action: 'Clear editable cells in the range.' },
+			{ keys: 'Cmd/Ctrl + A', action: 'Select every visible cell.' },
+			{ keys: 'Cmd/Ctrl + Z, Shift + Cmd/Ctrl + Z', action: 'Undo and redo edits made in the grid.' },
 		],
 	},
 });
@@ -261,21 +326,52 @@ const emit = defineEmits([
 	'update:selectedKeys',
 	'selection-change',
 	'row-click',
+	'cells-update',
+	'range-change',
+	'update:pinnedColumns',
+	'update:groupBy',
+	'export',
 ]);
 
 const titleId = `dom-data-grid-${useId()}`;
 const filterDrafts = reactive({});
 const resizedColumnWidths = reactive({});
-const viewportState = reactive({ scrollTop: 0, clientHeight: 0 });
+const viewportState = reactive({ scrollTop: 0, clientHeight: 0, clientWidth: 0 });
 const internalFilters = ref({});
 const internalSort = ref(normalizeSort(props.sort));
 const internalSearch = ref(props.search || '');
 const internalSelectedKeys = ref([...props.selectedKeys]);
 const columnResize = ref(null);
 const scrollViewport = ref(null);
+const headerElement = ref(null);
+const headerHeight = ref(0);
+const internalPins = ref({});
+const internalGroupBy = ref(normalizeGroupBy(props.groupBy));
+const groupOpenState = reactive({});
+const activeCell = ref(null);
+const rangeAnchor = ref(null);
+const editingCell = ref(null);
+const editHistory = { past: [], future: [] };
+let editorElement = null;
+let rangeDragging = false;
 let resizeListenersAttached = false;
+const blankGroupKey = '\u0000blank';
+const interactiveSelector = 'input, button, select, textarea, a[href], label, [contenteditable=""], [contenteditable="true"], [data-grid-interactive]';
+const gridNotice = ref('');
+const utilityColumnCount = computed(() => (props.selectable ? 1 : 0) + (props.showRowNumbers ? 1 : 0));
+const singleCellRange = computed(() => {
+	const rect = rangeRect.value;
+	return !rect || (rect.top === rect.bottom && rect.left === rect.right);
+});
+const groupDefaultOpen = ref(props.groupsExpanded);
+let noticeTimer = null;
+
 let previousBodyCursor = '';
 let previousBodyUserSelect = '';
+
+watch(() => props.groupsExpanded, (value) => {
+	groupDefaultOpen.value = value;
+});
 
 const sourceRows = computed(() => Array.isArray(props.rows) ? props.rows : []);
 const normalizedColumns = computed(() => {
@@ -287,7 +383,56 @@ const normalizedColumns = computed(() => {
 		.filter((column) => column && column.hidden !== true && column.key)
 		.map((column) => normalizeColumn(column));
 });
-const visibleColumns = computed(() => normalizedColumns.value);
+// Pinning is suspended when pinned columns would leave too little room to
+// scroll the rest, such as a wide pinned set on a phone.
+const pinsSuspended = computed(() => {
+	const width = viewportState.clientWidth;
+	if (!width) return false;
+	const pinnedWidth = normalizedColumns.value.reduce((total, column) => total + (columnPin(column) ? columnPixelWidth(column) : 0), 0);
+	if (!pinnedWidth) return false;
+	const utilityWidth = (props.selectable ? 44 : 0) + (props.showRowNumbers ? 54 : 0);
+	return utilityWidth + pinnedWidth > width * 0.7;
+});
+const visibleColumns = computed(() => {
+	const left = [];
+	const center = [];
+	const right = [];
+	for (const column of normalizedColumns.value) {
+		const pinned = pinsSuspended.value ? '' : columnPin(column);
+		const entry = pinned === column.pinned ? column : { ...column, pinned };
+		if (pinned === 'left') left.push(entry);
+		else if (pinned === 'right') right.push(entry);
+		else center.push(entry);
+	}
+	return [...left, ...center, ...right];
+});
+const pinLayout = computed(() => {
+	const columns = {};
+	const utilityLeft = (props.selectable ? 44 : 0) + (props.showRowNumbers ? 54 : 0);
+	const leftColumns = visibleColumns.value.filter((column) => column.pinned === 'left');
+	const rightColumns = visibleColumns.value.filter((column) => column.pinned === 'right');
+	let left = utilityLeft;
+	leftColumns.forEach((column, index) => {
+		columns[column.key] = { side: 'left', offset: left, edge: index === leftColumns.length - 1 };
+		left += columnPixelWidth(column);
+	});
+	let right = 0;
+	for (let index = rightColumns.length - 1; index >= 0; index -= 1) {
+		const column = rightColumns[index];
+		columns[column.key] = { side: 'right', offset: right, edge: index === 0 };
+		right += columnPixelWidth(column);
+	}
+	return {
+		columns,
+		hasLeft: leftColumns.length > 0,
+		leftWidth: leftColumns.length ? left : 0,
+		rightWidth: right,
+	};
+});
+const groupColumns = computed(() => internalGroupBy.value
+	.map((key) => normalizedColumns.value.find((column) => column.key === key))
+	.filter(Boolean));
+const aggregateColumns = computed(() => visibleColumns.value.filter((column) => column.aggregate));
 const activeFilters = computed(() => normalizeFilterMap(internalFilters.value));
 const activeSortRules = computed(() => sortRules(internalSort.value));
 const query = computed(() => ({
@@ -304,6 +449,85 @@ const displayRows = computed(() => {
 	if (!activeSortRules.value.length) return filteredRows.value;
 
 	return [...filteredRows.value].sort((a, b) => compareRows(a, b, activeSortRules.value));
+});
+const displayItems = computed(() => {
+	const entries = displayRows.value.map((row, index) => ({ row, index }));
+	const items = [];
+	if (groupColumns.value.length) appendGroupItems(entries, 0, '', items, true);
+	else for (const entry of entries) items.push(rowItem(entry));
+
+	let line = 0;
+	items.forEach((item, position) => {
+		item.position = position;
+		if (item.type === 'row') {
+			item.line = line;
+			line += 1;
+		}
+	});
+	return items;
+});
+const navRows = computed(() => displayItems.value.filter((item) => item.type === 'row'));
+const totalAggregates = computed(() => props.showTotals ? computeAggregates(displayRows.value) : {});
+const rangeRect = computed(() => {
+	if (!props.cellSelection || !activeCell.value) return null;
+	const anchor = rangeAnchor.value || activeCell.value;
+	return {
+		top: Math.min(anchor.row, activeCell.value.row),
+		bottom: Math.max(anchor.row, activeCell.value.row),
+		left: Math.min(anchor.col, activeCell.value.col),
+		right: Math.max(anchor.col, activeCell.value.col),
+	};
+});
+const rangeSummary = computed(() => {
+	const rect = rangeRect.value;
+	if (!rect || (rect.top === rect.bottom && rect.left === rect.right)) return null;
+
+	let count = 0;
+	let numericCount = 0;
+	let sum = 0;
+	let numericColumn = null;
+	let mixedNumeric = false;
+	for (let line = rect.top; line <= Math.min(rect.bottom, rect.top + 5000); line += 1) {
+		const item = navRows.value[line];
+		if (!item) break;
+		for (let col = rect.left; col <= rect.right; col += 1) {
+			const column = visibleColumns.value[col];
+			if (!column) continue;
+			const value = cellValue(item.row, column);
+			if (value === null || value === undefined || value === '') continue;
+			count += 1;
+			if (column.type !== 'number' && column.type !== 'currency') continue;
+			const number = Number(value);
+			if (!Number.isFinite(number)) continue;
+			numericCount += 1;
+			sum += number;
+			if (!numericColumn) numericColumn = column;
+			else if (numericColumn.type !== column.type || numericColumn.currency !== column.currency) mixedNumeric = true;
+		}
+	}
+
+	const formatColumn = numericColumn && !mixedNumeric
+		? { ...numericColumn, format: undefined }
+		: { type: 'number', format: (value) => new Intl.NumberFormat('en-GB', { maximumFractionDigits: 2 }).format(value) };
+	return {
+		cells: (rect.bottom - rect.top + 1) * (rect.right - rect.left + 1),
+		count,
+		sum: numericCount ? formatValue(sum, null, formatColumn) : '',
+		average: numericCount ? formatValue(sum / numericCount, null, formatColumn) : '',
+	};
+});
+const editingError = computed(() => editingCell.value?.error || '');
+const headerRowCount = computed(() => props.showColumnLetters ? 2 : 1);
+const viewportStyle = computed(() => ({
+	...gridHeightStyle.value,
+	scrollPaddingTop: `${headerHeight.value}px`,
+	scrollPaddingLeft: `${pinLayout.value.leftWidth}px`,
+	scrollPaddingRight: `${pinLayout.value.rightWidth}px`,
+	scrollPaddingBottom: props.showTotals ? '2.5rem' : undefined,
+}));
+const exportBaseName = computed(() => {
+	const base = (props.exportFileName || props.title || 'data-grid').trim();
+	return base.replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ') || 'data-grid';
 });
 const remoteTotalRows = computed(() => Number.isFinite(props.totalRows) ? props.totalRows : sourceRows.value.length);
 const shownRowCount = computed(() => props.remote ? sourceRows.value.length : displayRows.value.length);
@@ -367,14 +591,63 @@ watch(query, (value) => {
 watch(() => [props.height, props.virtualRows, props.density, displayRows.value.length], () => {
 	nextTick(refreshViewportMetrics);
 });
+watch(() => props.pinnedColumns, (value) => {
+	internalPins.value = value && typeof value === 'object' ? normalizePinMap(value) : {};
+}, { deep: true, immediate: true });
+watch(() => props.groupBy, (value) => {
+	internalGroupBy.value = normalizeGroupBy(value);
+}, { deep: true });
+watch(() => [internalSort.value, activeFilters.value, internalSearch.value, internalGroupBy.value], () => {
+	editingCell.value = null;
+}, { deep: true });
+watch(() => [navRows.value.length, visibleColumns.value.length], ([rowCount, columnCount]) => {
+	if (!activeCell.value) return;
+	if (!rowCount || !columnCount) {
+		clearRange();
+		return;
+	}
+	const clamp = (cell) => cell && {
+		row: Math.min(cell.row, rowCount - 1),
+		col: Math.min(cell.col, columnCount - 1),
+	};
+	activeCell.value = clamp(activeCell.value);
+	rangeAnchor.value = clamp(rangeAnchor.value);
+	if (editingCell.value && (editingCell.value.line >= rowCount || editingCell.value.col >= columnCount)) editingCell.value = null;
+});
+watch(rangeRect, (rect) => {
+	emit('range-change', rect ? rangePayload(rect) : null);
+});
 
 onBeforeUnmount(() => {
 	removeColumnResizeListeners();
 	columnResize.value = null;
+	if (typeof document === 'undefined') return;
+	document.removeEventListener('copy', onDocumentCopy);
+	document.removeEventListener('cut', onDocumentCut);
+	document.removeEventListener('paste', onDocumentPaste);
+	document.removeEventListener('pointerup', stopRangeDrag);
+	window.removeEventListener('resize', refreshViewportMetrics);
 });
 
 onMounted(() => {
 	nextTick(refreshViewportMetrics);
+	document.addEventListener('copy', onDocumentCopy);
+	document.addEventListener('cut', onDocumentCut);
+	document.addEventListener('paste', onDocumentPaste);
+	document.addEventListener('pointerup', stopRangeDrag);
+	window.addEventListener('resize', refreshViewportMetrics, { passive: true });
+});
+
+defineExpose({
+	exportCsv,
+	exportExcel,
+	getRange,
+	selectRange,
+	clearRange,
+	undo,
+	redo,
+	expandAllGroups: () => setAllGroups(true),
+	collapseAllGroups: () => setAllGroups(false),
 });
 
 function inferColumns(rows) {
@@ -392,6 +665,7 @@ function normalizeColumn(column) {
 	return {
 		...column,
 		type,
+		pinned: normalizePin(column.pinned),
 		label: column.label || labelFromKey(column.key),
 		component: column.component ? markRaw(column.component) : null,
 		width: columnWidth(column.width, type),
@@ -581,7 +855,18 @@ function cellValue(row, column) {
 }
 
 function formattedCell(row, column) {
-	const value = cellValue(row, column);
+	return formatValue(cellValue(row, column), row, column);
+}
+
+/**
+ * Formats a raw value with a column's formatter and type defaults.
+ *
+ * @param {unknown} value Raw value.
+ * @param {Record<string, unknown>|null} row Row the value belongs to, or null for aggregates.
+ * @param {DataGridColumn} column Column definition.
+ * @returns {string} Display text.
+ */
+function formatValue(value, row, column) {
 	if (typeof column.format === 'function') return column.format(value, row, column);
 	if (value === null || value === undefined || value === '') return '';
 
@@ -591,7 +876,7 @@ function formattedCell(row, column) {
 		return new Intl.NumberFormat(column.locale || 'en-GB', {
 			style: 'currency',
 			currency: column.currency || 'GBP',
-			maximumFractionDigits: amount >= 1000 ? 0 : 2,
+			maximumFractionDigits: Math.abs(amount) >= 1000 ? 0 : 2,
 		}).format(amount);
 	}
 
@@ -1139,6 +1424,8 @@ function refreshViewportMetrics() {
 function updateViewportMetrics(element) {
 	viewportState.scrollTop = element.scrollTop;
 	viewportState.clientHeight = element.clientHeight;
+	viewportState.clientWidth = element.clientWidth;
+	if (headerElement.value) headerHeight.value = headerElement.value.offsetHeight;
 }
 
 function onViewportScroll(event) {
@@ -1174,6 +1461,7 @@ function onCellComponentUpdate(row, column, rowIndex, value) {
 		...cellContext(row, column, rowIndex),
 		value,
 		previousValue: cellValue(row, column),
+		source: 'component',
 	});
 }
 
@@ -1183,6 +1471,1041 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 		action: payload?.action ?? payload?.type ?? payload,
 		payload,
 	});
+}
+
+/**
+ * Normalises a column pin value.
+ *
+ * @param {unknown} value Pin value from a column or pin map.
+ * @returns {'left'|'right'|''} Pinned side, or empty when unpinned.
+ */
+function normalizePin(value) {
+	if (value === true || value === 'left') return 'left';
+	if (value === 'right') return 'right';
+	return '';
+}
+
+function normalizePinMap(map) {
+	return Object.fromEntries(Object.entries(map).map(([key, value]) => [key, normalizePin(value)]));
+}
+
+function columnPin(column) {
+	if (props.pinnedColumns && typeof props.pinnedColumns === 'object') return internalPins.value[column.key] || '';
+	if (Object.hasOwn(internalPins.value, column.key)) return internalPins.value[column.key];
+	return column.pinned || '';
+}
+
+/**
+ * Pins a column from the column menu and emits the full pin map.
+ *
+ * @param {DataGridColumn} column Column to pin.
+ * @param {'left'|'right'|''} side Side to pin to, or empty to unpin.
+ */
+function setColumnPin(column, side) {
+	const pin = normalizePin(side);
+	const next = {};
+	for (const item of normalizedColumns.value) {
+		const value = item.key === column.key ? pin : columnPin(item);
+		if (value) next[item.key] = value;
+	}
+	internalPins.value = props.pinnedColumns ? next : { ...internalPins.value, [column.key]: pin };
+	emit('update:pinnedColumns', next);
+}
+
+function pinInfo(column) {
+	return pinLayout.value.columns[column.key] || null;
+}
+
+function pinStyle(column) {
+	const pin = pinInfo(column);
+	return pin ? { [pin.side]: `${pin.offset}px` } : null;
+}
+
+function utilityPinStyle(kind) {
+	if (!pinLayout.value.hasLeft) return null;
+	return { left: kind === 'number' && props.selectable ? '44px' : '0px' };
+}
+
+function pinAttrs(column) {
+	const pin = pinInfo(column);
+	if (!pin) return {};
+	return pin.edge ? { 'data-pin': pin.side, 'data-pin-edge': pin.side } : { 'data-pin': pin.side };
+}
+
+function utilityPinAttrs() {
+	return pinLayout.value.hasLeft ? { 'data-pin': 'left' } : {};
+}
+
+function bodyCellPositionClass(column) {
+	return pinInfo(column) ? 'sticky z-10' : 'relative';
+}
+
+function utilityCellPositionClass() {
+	return pinLayout.value.hasLeft ? 'sticky z-10' : '';
+}
+
+/**
+ * Classes for header cells, which may stick to the top, a side, or both.
+ *
+ * @param {boolean} pinned Whether the cell is pinned to a side.
+ * @param {string} background Background classes used while sticky.
+ * @returns {string|Array<string>} Header cell classes.
+ */
+function headerCellClass(pinned, background) {
+	if (!props.stickyHeader && !pinned) return '';
+	return ['sticky', pinned ? 'z-30' : 'z-20', background];
+}
+
+function headerCellStyle(top, sideStyle) {
+	if (!props.stickyHeader) return sideStyle;
+	return { top, ...(sideStyle || {}) };
+}
+
+function normalizeGroupBy(value) {
+	const keys = Array.isArray(value) ? value : typeof value === 'string' && value ? [value] : [];
+	return [...new Set(keys.map(String).filter(Boolean))];
+}
+
+/**
+ * Sets the grouped columns and emits them in the shape the parent supplied.
+ *
+ * @param {Array<string>} keys Ordered column keys.
+ */
+function setGroupBy(keys) {
+	internalGroupBy.value = normalizeGroupBy(keys);
+	const next = typeof props.groupBy === 'string' && internalGroupBy.value.length <= 1
+		? internalGroupBy.value[0] || ''
+		: [...internalGroupBy.value];
+	emit('update:groupBy', next);
+}
+
+function toggleGroupColumn(column) {
+	const keys = internalGroupBy.value;
+	setGroupBy(keys.includes(column.key) ? keys.filter((key) => key !== column.key) : [...keys, column.key]);
+}
+
+function isGroupedColumn(column) {
+	return internalGroupBy.value.includes(column.key);
+}
+
+function rowItem(entry) {
+	return { type: 'row', row: entry.row, index: entry.index, key: `row:${rowKey(entry.row, entry.index)}` };
+}
+
+function groupValueKey(value, column) {
+	if (value === null || value === undefined || value === '') return blankGroupKey;
+	if (column.type === 'date') return dateKey(value) || String(value);
+	if (column.type === 'boolean') return value ? 'true' : 'false';
+	return String(value);
+}
+
+function groupExpanded(id) {
+	return id in groupOpenState ? groupOpenState[id] : groupDefaultOpen.value;
+}
+
+/**
+ * Builds group header items and their rows, in the order rows first appear.
+ *
+ * @param {Array<{ row: object, index: number }>} entries Sorted rows with their display index.
+ * @param {number} level Group depth.
+ * @param {string} parentId Parent group id.
+ * @param {Array<object>} items Output list.
+ * @param {boolean} respectCollapse Skip rows inside collapsed groups.
+ */
+function appendGroupItems(entries, level, parentId, items, respectCollapse) {
+	const column = groupColumns.value[level];
+	if (!column) {
+		for (const entry of entries) items.push(rowItem(entry));
+		return;
+	}
+
+	const buckets = new Map();
+	for (const entry of entries) {
+		const value = cellValue(entry.row, column);
+		const key = groupValueKey(value, column);
+		let bucket = buckets.get(key);
+		if (!bucket) {
+			bucket = { value, entries: [] };
+			buckets.set(key, bucket);
+		}
+		bucket.entries.push(entry);
+	}
+
+	for (const [key, bucket] of orderedGroupBuckets(buckets, column)) {
+		const id = `${parentId}/${column.key}:${key}`;
+		const expanded = groupExpanded(id);
+		const rows = bucket.entries.map((entry) => entry.row);
+		items.push({
+			type: 'group',
+			id,
+			key: `group:${id}`,
+			level,
+			column,
+			value: bucket.value,
+			label: key === blankGroupKey ? '(Blank)' : formatValue(bucket.value, rows[0], column) || String(bucket.value),
+			count: rows.length,
+			entries: bucket.entries,
+			aggregates: respectCollapse ? computeAggregates(rows) : {},
+			expanded,
+		});
+		if (expanded || !respectCollapse) appendGroupItems(bucket.entries, level + 1, id, items, respectCollapse);
+	}
+}
+
+/**
+ * Orders groups by their value, ascending, with blanks last. When the primary
+ * sort is on the grouped column its direction applies, so edits to other
+ * columns never reshuffle the groups.
+ *
+ * @param {Map<string, { value: unknown }>} buckets Groups keyed by value key.
+ * @param {DataGridColumn} column Grouped column.
+ * @returns {Array<[string, object]>} Ordered group entries.
+ */
+function orderedGroupBuckets(buckets, column) {
+	const rule = activeSortRules.value[0];
+	const direction = rule && rule.key === column.key && rule.direction === 'desc' ? -1 : 1;
+	return [...buckets.entries()].sort(([leftKey, left], [rightKey, right]) => {
+		if (leftKey === blankGroupKey || rightKey === blankGroupKey) return leftKey === rightKey ? 0 : leftKey === blankGroupKey ? 1 : -1;
+		const a = sortableValue(left.value, column);
+		const b = sortableValue(right.value, column);
+		return (a > b ? 1 : a < b ? -1 : 0) * direction;
+	});
+}
+
+function toggleGroup(item) {
+	groupOpenState[item.id] = !item.expanded;
+}
+
+function setAllGroups(open) {
+	for (const key of Object.keys(groupOpenState)) delete groupOpenState[key];
+	groupDefaultOpen.value = open;
+}
+
+function groupRowKeys(item) {
+	return item.entries.map((entry) => rowKey(entry.row, entry.index));
+}
+
+function groupSelectionState(item) {
+	const keys = groupRowKeys(item);
+	const selected = keys.filter((key) => selectedKeySet.value.has(key)).length;
+	return { all: selected > 0 && selected === keys.length, some: selected > 0 && selected < keys.length };
+}
+
+function toggleGroupSelection(item) {
+	const keys = groupRowKeys(item);
+	if (groupSelectionState(item).all) {
+		const remove = new Set(keys);
+		setSelectedKeys(internalSelectedKeys.value.filter((key) => !remove.has(key)));
+		return;
+	}
+	setSelectedKeys([...new Set([...internalSelectedKeys.value, ...keys])]);
+}
+
+function rowIndent(column, columnIndex) {
+	if (columnIndex !== 0 || !groupColumns.value.length) return null;
+	return { paddingLeft: `${12 + groupColumns.value.length * 16}px` };
+}
+
+/**
+ * Aggregates every aggregate column over a set of rows.
+ *
+ * @param {Array<object>} rows Rows to aggregate.
+ * @returns {Record<string, unknown>} Aggregate values keyed by column key.
+ */
+function computeAggregates(rows) {
+	const result = {};
+	for (const column of aggregateColumns.value) result[column.key] = aggregateValue(rows, column);
+	return result;
+}
+
+function aggregateValue(rows, column) {
+	if (typeof column.aggregate === 'function') return column.aggregate(rows.map((row) => cellValue(row, column)), rows, column);
+	if (column.aggregate === 'count') return rows.length;
+
+	const isDate = column.type === 'date';
+	let total = 0;
+	let count = 0;
+	let min = null;
+	let max = null;
+	for (const row of rows) {
+		const raw = cellValue(row, column);
+		if (raw === null || raw === undefined || raw === '') continue;
+		const value = isDate ? dateKey(raw) : Number(raw);
+		if (isDate ? !value : !Number.isFinite(value)) continue;
+		count += 1;
+		if (!isDate) total += value;
+		if (min === null || value < min) min = value;
+		if (max === null || value > max) max = value;
+	}
+
+	if (!count) return null;
+	if (column.aggregate === 'min') return min;
+	if (column.aggregate === 'max') return max;
+	if (isDate) return null;
+	if (column.aggregate === 'avg') return total / count;
+	return total;
+}
+
+function formatAggregate(value, column) {
+	if (value === null || value === undefined || value === '') return '';
+	const kind = typeof column.aggregate === 'function' ? 'custom' : column.aggregate;
+	if (typeof column.formatAggregate === 'function') return column.formatAggregate(value, column, kind);
+	if (kind === 'count') return new Intl.NumberFormat(column.locale || 'en-GB').format(value);
+	return formatValue(value, null, { ...column, format: undefined });
+}
+
+function aggregateLabel(column) {
+	return { sum: 'Sum', avg: 'Average', count: 'Count', min: 'Minimum', max: 'Maximum' }[column.aggregate] || 'Total';
+}
+
+function cellInRange(line, col) {
+	const rect = rangeRect.value;
+	return Boolean(rect) && line >= rect.top && line <= rect.bottom && col >= rect.left && col <= rect.right;
+}
+
+function focusCell() {
+	return rangeAnchor.value || activeCell.value;
+}
+
+/**
+ * Attributes for a data cell: column index, pin side, and range state.
+ *
+ * @param {{ line: number }} item Row item.
+ * @param {DataGridColumn} column Column definition.
+ * @param {number} col Visible column index.
+ * @returns {Record<string, string|number|undefined>} Cell attributes.
+ */
+function cellAttrs(item, column, col) {
+	const attrs = { 'aria-colindex': col + 1 + utilityColumnCount.value, ...pinAttrs(column) };
+	if (!props.cellSelection) return attrs;
+
+	const focus = focusCell();
+	const inRange = cellInRange(item.line, col);
+	attrs['data-cell'] = `${item.line}:${col}`;
+	attrs['aria-selected'] = inRange ? 'true' : 'false';
+	if (inRange && !singleCellRange.value) attrs['data-in-range'] = '';
+	if (focus && focus.row === item.line && focus.col === col) attrs['data-active'] = '';
+	return attrs;
+}
+
+function isInteractiveTarget(target, boundary) {
+	const element = target instanceof Element ? target.closest(interactiveSelector) : null;
+	return Boolean(element) && element !== boundary && Boolean(boundary?.contains(element));
+}
+
+function focusGrid() {
+	scrollViewport.value?.focus({ preventScroll: true });
+}
+
+function gridHasFocus() {
+	const viewport = scrollViewport.value;
+	if (!viewport || typeof document === 'undefined') return false;
+	const active = document.activeElement;
+	return viewport.contains(active) && (active === viewport || !isInteractiveTarget(active, viewport));
+}
+
+function onCellPointerDown(item, col, event) {
+	if (!props.cellSelection || event.button !== 0) return;
+	if (isInteractiveTarget(event.target, event.currentTarget)) return;
+	if (editingCell.value && !(editingCell.value.line === item.line && editingCell.value.col === col)) commitEdit(null, { refocus: false });
+	if (editingCell.value) return;
+
+	const cell = { row: item.line, col };
+	if (event.shiftKey && activeCell.value) {
+		if (!rangeAnchor.value) rangeAnchor.value = { ...activeCell.value };
+		activeCell.value = cell;
+	} else {
+		activeCell.value = cell;
+		rangeAnchor.value = { ...cell };
+	}
+	rangeDragging = true;
+	focusGrid();
+}
+
+function onCellPointerEnter(item, col) {
+	if (!rangeDragging || !props.cellSelection) return;
+	if (activeCell.value?.row === item.line && activeCell.value?.col === col) return;
+	activeCell.value = { row: item.line, col };
+}
+
+function stopRangeDrag() {
+	rangeDragging = false;
+}
+
+function onCellDoubleClick(item, column, col, event) {
+	if (!props.cellSelection && !props.editable) return;
+	if (isInteractiveTarget(event.target, event.currentTarget)) return;
+	startEdit(item, column, col);
+}
+
+/**
+ * Moves the range head to a cell, collapsing the range unless extending.
+ *
+ * @param {number} row Visible row position.
+ * @param {number} col Visible column index.
+ * @param {boolean} [extend] Keep the anchor and extend the range.
+ */
+function moveTo(row, col, extend = false) {
+	const lastRow = navRows.value.length - 1;
+	const lastCol = visibleColumns.value.length - 1;
+	if (lastRow < 0 || lastCol < 0) return;
+
+	const cell = {
+		row: Math.max(0, Math.min(lastRow, row)),
+		col: Math.max(0, Math.min(lastCol, col)),
+	};
+	if (extend) {
+		if (!rangeAnchor.value) rangeAnchor.value = { ...activeCell.value };
+	} else {
+		rangeAnchor.value = { ...cell };
+	}
+	activeCell.value = cell;
+	scrollCellIntoView(cell.row, cell.col);
+}
+
+function moveActive(rowDelta, colDelta, { extend = false, jump = false, wrap = false } = {}) {
+	const origin = extend ? activeCell.value : focusCell();
+	if (!origin) {
+		moveTo(0, 0);
+		return;
+	}
+
+	const lastRow = navRows.value.length - 1;
+	const lastCol = visibleColumns.value.length - 1;
+	let row = jump ? (rowDelta < 0 ? 0 : rowDelta > 0 ? lastRow : origin.row) : origin.row + rowDelta;
+	let col = jump ? (colDelta < 0 ? 0 : colDelta > 0 ? lastCol : origin.col) : origin.col + colDelta;
+	if (wrap && col > lastCol && row < lastRow) {
+		col = 0;
+		row += 1;
+	} else if (wrap && col < 0 && row > 0) {
+		col = lastCol;
+		row -= 1;
+	}
+	moveTo(row, col, extend);
+}
+
+function scrollCellIntoView(row, col) {
+	nextTick(() => {
+		const viewport = scrollViewport.value;
+		if (!viewport) return;
+		const selector = `[data-cell="${row}:${col}"]`;
+		const cell = viewport.querySelector(selector);
+		if (cell || !props.virtualRows) {
+			cell?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+			return;
+		}
+
+		const item = navRows.value[row];
+		if (!item) return;
+		viewport.scrollTop = Math.max(0, item.position * virtualRowHeightPx.value - viewport.clientHeight / 2);
+		updateViewportMetrics(viewport);
+		nextTick(() => viewport.querySelector(selector)?.scrollIntoView({ block: 'nearest', inline: 'nearest' }));
+	});
+}
+
+function pageRowCount() {
+	const height = scrollViewport.value?.clientHeight || 0;
+	return Math.max(1, Math.floor((height - headerHeight.value) / virtualRowHeightPx.value) - 1);
+}
+
+function onGridKeydown(event) {
+	if (!props.cellSelection || editingCell.value || event.defaultPrevented) return;
+	if (event.target !== scrollViewport.value && isInteractiveTarget(event.target, scrollViewport.value)) return;
+
+	const mod = event.metaKey || event.ctrlKey;
+	const key = event.key;
+	const lower = key.length === 1 ? key.toLowerCase() : key;
+
+	if (mod && lower === 'z') {
+		event.preventDefault();
+		if (event.shiftKey) redo();
+		else undo();
+		return;
+	}
+	if (mod && lower === 'y') {
+		event.preventDefault();
+		redo();
+		return;
+	}
+	if (!navRows.value.length || !visibleColumns.value.length) return;
+	if (mod && lower === 'a') {
+		event.preventDefault();
+		selectAll();
+		return;
+	}
+
+	const moves = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+	if (moves[key]) {
+		event.preventDefault();
+		if (!activeCell.value) moveTo(0, 0);
+		else moveActive(moves[key][0], moves[key][1], { extend: event.shiftKey, jump: mod });
+		return;
+	}
+
+	const focus = focusCell();
+	if (!focus) return;
+
+	if (key === 'Tab') {
+		event.preventDefault();
+		moveActive(0, event.shiftKey ? -1 : 1, { wrap: true });
+	} else if (key === 'Home' || key === 'End') {
+		event.preventDefault();
+		const row = mod ? (key === 'Home' ? 0 : navRows.value.length - 1) : activeCell.value.row;
+		moveTo(row, key === 'Home' ? 0 : visibleColumns.value.length - 1, event.shiftKey);
+	} else if (key === 'PageDown' || key === 'PageUp') {
+		event.preventDefault();
+		moveActive((key === 'PageDown' ? 1 : -1) * pageRowCount(), 0, { extend: event.shiftKey });
+	} else if (key === 'Enter' || key === 'F2') {
+		event.preventDefault();
+		if (!startEditAt(focus) && key === 'Enter') moveActive(event.shiftKey ? -1 : 1, 0);
+	} else if (key === 'Delete' || key === 'Backspace') {
+		event.preventDefault();
+		clearRangeValues('delete');
+	} else if (key === 'Escape') {
+		if (!singleCellRange.value) {
+			event.preventDefault();
+			activeCell.value = { ...focus };
+			rangeAnchor.value = { ...focus };
+		}
+	} else if (!mod && !event.altKey && key.length === 1) {
+		if (startEditAt(focus, key)) event.preventDefault();
+	}
+}
+
+function selectAll() {
+	rangeAnchor.value = { row: 0, col: 0 };
+	activeCell.value = { row: navRows.value.length - 1, col: visibleColumns.value.length - 1 };
+}
+
+/**
+ * Selects a cell range. Columns may be visible indexes or column keys.
+ *
+ * @param {{ startRow: number, endRow?: number, startColumn: number|string, endColumn?: number|string }} range Range to select.
+ */
+function selectRange(range) {
+	if (!range || !navRows.value.length) return;
+	const columnIndex = (value) => typeof value === 'string'
+		? visibleColumns.value.findIndex((column) => column.key === value)
+		: Number(value);
+	const startCol = columnIndex(range.startColumn ?? 0);
+	const endCol = columnIndex(range.endColumn ?? range.startColumn ?? 0);
+	if (startCol < 0 || endCol < 0) return;
+	rangeAnchor.value = { row: Math.max(0, Number(range.startRow) || 0), col: startCol };
+	moveTo(Number(range.endRow ?? range.startRow) || 0, endCol, true);
+}
+
+function clearRange() {
+	activeCell.value = null;
+	rangeAnchor.value = null;
+	editingCell.value = null;
+}
+
+function rangePayload(rect) {
+	return {
+		startRow: rect.top,
+		endRow: rect.bottom,
+		startColumn: rect.left,
+		endColumn: rect.right,
+		rows: navRows.value.slice(rect.top, rect.bottom + 1).map((item) => item.row),
+		columns: visibleColumns.value.slice(rect.left, rect.right + 1).map((column) => column.key),
+	};
+}
+
+function getRange() {
+	return rangeRect.value ? rangePayload(rangeRect.value) : null;
+}
+
+function showNotice(message) {
+	gridNotice.value = message;
+	if (noticeTimer) clearTimeout(noticeTimer);
+	noticeTimer = setTimeout(() => {
+		gridNotice.value = '';
+	}, 4000);
+}
+
+/**
+ * Plain value used for clipboard copy and CSV: raw numbers, ISO dates,
+ * TRUE/FALSE booleans and option labels, so spreadsheets keep the types.
+ *
+ * @param {Record<string, unknown>} row Row record.
+ * @param {DataGridColumn} column Column definition.
+ * @returns {string|number} Plain cell value.
+ */
+function plainValue(row, column) {
+	const value = cellValue(row, column);
+	if (typeof column.exportValue === 'function') return column.exportValue(value, row, column);
+	if (value === null || value === undefined || value === '') return '';
+	if (column.type === 'number' || column.type === 'currency') {
+		const number = Number(value);
+		return Number.isFinite(number) ? number : String(value);
+	}
+	if (column.type === 'date') return dateKey(value) || String(value);
+	if (column.type === 'boolean') return value ? 'TRUE' : 'FALSE';
+	if (column.type === 'select') return optionLabel(column, value);
+	if (typeof value === 'object') return formattedCell(row, column);
+	return String(value);
+}
+
+function rangeText() {
+	const rect = rangeRect.value;
+	const rows = [];
+	for (let line = rect.top; line <= rect.bottom; line += 1) {
+		const item = navRows.value[line];
+		if (!item) break;
+		const cells = [];
+		for (let col = rect.left; col <= rect.right; col += 1) {
+			const column = visibleColumns.value[col];
+			cells.push(column ? plainValue(item.row, column) : '');
+		}
+		rows.push(cells);
+	}
+	return toTsv(rows);
+}
+
+function canUseClipboard() {
+	return props.cellSelection && !editingCell.value && Boolean(rangeRect.value) && gridHasFocus();
+}
+
+function onDocumentCopy(event) {
+	if (!canUseClipboard() || !event.clipboardData) return;
+	event.clipboardData.setData('text/plain', rangeText());
+	event.preventDefault();
+	const summary = rangeSummary.value;
+	showNotice(`Copied ${summary ? summary.cells : 1} ${summary && summary.cells !== 1 ? 'cells' : 'cell'}`);
+}
+
+function onDocumentCut(event) {
+	if (!canUseClipboard() || !event.clipboardData) return;
+	event.clipboardData.setData('text/plain', rangeText());
+	event.preventDefault();
+	clearRangeValues('cut');
+}
+
+function onDocumentPaste(event) {
+	if (!canUseClipboard() || !event.clipboardData) return;
+	const text = event.clipboardData.getData('text/plain');
+	if (!text) return;
+	event.preventDefault();
+	pasteText(text);
+}
+
+/**
+ * Pastes tab-separated text at the range. A copied block repeats to fill a
+ * larger range when it divides evenly, as spreadsheets do.
+ *
+ * @param {string} text Clipboard text.
+ */
+function pasteText(text) {
+	const rect = rangeRect.value;
+	const matrix = parseTsv(text);
+	if (!rect || !matrix.length) return;
+
+	const sourceHeight = matrix.length;
+	const sourceWidth = Math.max(...matrix.map((row) => row.length));
+	const rectHeight = rect.bottom - rect.top + 1;
+	const rectWidth = rect.right - rect.left + 1;
+	const fill = rectHeight * rectWidth > 1 && rectHeight % sourceHeight === 0 && rectWidth % sourceWidth === 0;
+	const height = fill ? rectHeight : sourceHeight;
+	const width = fill ? rectWidth : sourceWidth;
+	const changes = [];
+	let skipped = 0;
+
+	for (let rowOffset = 0; rowOffset < height; rowOffset += 1) {
+		const item = navRows.value[rect.top + rowOffset];
+		if (!item) break;
+		for (let colOffset = 0; colOffset < width; colOffset += 1) {
+			const column = visibleColumns.value[rect.left + colOffset];
+			if (!column) break;
+			if (!isCellEditable(item.row, column)) {
+				skipped += 1;
+				continue;
+			}
+			const raw = matrix[rowOffset % sourceHeight][colOffset % sourceWidth] ?? '';
+			const parsed = parseInput(raw, column, item.row);
+			if (parsed.error || validationMessage(parsed.value, item.row, column)) {
+				skipped += 1;
+				continue;
+			}
+			changes.push(buildChange(item, column, parsed.value));
+		}
+	}
+
+	const applied = applyChanges(changes, 'paste');
+	const lastRow = Math.min(navRows.value.length - 1, rect.top + height - 1);
+	const lastCol = Math.min(visibleColumns.value.length - 1, rect.left + width - 1);
+	rangeAnchor.value = { row: rect.top, col: rect.left };
+	activeCell.value = { row: lastRow, col: lastCol };
+	showNotice(`Pasted ${applied} ${applied === 1 ? 'cell' : 'cells'}${skipped ? `, skipped ${skipped} read-only or invalid` : ''}`);
+}
+
+function clearRangeValues(source) {
+	const rect = rangeRect.value;
+	if (!rect) return;
+	const changes = [];
+	for (let line = rect.top; line <= rect.bottom; line += 1) {
+		const item = navRows.value[line];
+		if (!item) break;
+		for (let col = rect.left; col <= rect.right; col += 1) {
+			const column = visibleColumns.value[col];
+			if (column && isCellEditable(item.row, column)) changes.push(buildChange(item, column, column.type === 'boolean' ? false : null));
+		}
+	}
+	applyChanges(changes, source);
+}
+
+function isCellEditable(row, column) {
+	if (typeof column.editable === 'function') return Boolean(column.editable(row, column));
+	if (column.editable !== undefined) return Boolean(column.editable);
+	return props.editable && !column.component && typeof column.accessor !== 'function';
+}
+
+function buildChange(item, column, value) {
+	return {
+		row: item.row,
+		column,
+		rowIndex: item.index,
+		rowKey: rowKey(item.row, item.index),
+		value,
+		previousValue: cellValue(item.row, column),
+	};
+}
+
+function emptyValue(value) {
+	return value === null || value === undefined || value === '';
+}
+
+function sameValue(left, right) {
+	if (emptyValue(left) || emptyValue(right)) return emptyValue(left) && emptyValue(right);
+	return left === right || String(left) === String(right);
+}
+
+/**
+ * Emits cell changes and records them for undo. The grid never mutates rows;
+ * parents apply `value` to their data.
+ *
+ * @param {Array<object>} changes Changes from buildChange.
+ * @param {string} source editor, paste, delete, cut, undo or redo.
+ * @param {{ record?: boolean }} [options] Whether to add the batch to undo history.
+ * @returns {number} Number of changes emitted.
+ */
+function applyChanges(changes, source, { record = true } = {}) {
+	const effective = changes.filter((change) => !sameValue(change.value, change.previousValue));
+	if (!effective.length) return 0;
+
+	for (const change of effective) {
+		emit('cell-update', {
+			...change,
+			formatted: formatValue(change.value, change.row, change.column),
+			source,
+		});
+	}
+	emit('cells-update', { source, changes: effective.map((change) => ({ ...change })) });
+
+	if (record) {
+		editHistory.past.push(effective.map((change) => ({
+			rowKey: change.rowKey,
+			columnKey: change.column.key,
+			value: change.value,
+			previousValue: change.previousValue,
+		})));
+		if (editHistory.past.length > 100) editHistory.past.shift();
+		editHistory.future = [];
+	}
+	return effective.length;
+}
+
+function findRowByKey(key) {
+	const lists = [displayRows.value, sourceRows.value];
+	for (const rows of lists) {
+		for (let index = 0; index < rows.length; index += 1) {
+			if (rowKey(rows[index], index) === key) return { row: rows[index], index };
+		}
+	}
+	return null;
+}
+
+function historyChanges(entry, direction) {
+	return entry.map((record) => {
+		const found = findRowByKey(record.rowKey);
+		const column = normalizedColumns.value.find((item) => item.key === record.columnKey);
+		if (!found || !column) return null;
+		return {
+			row: found.row,
+			column,
+			rowIndex: found.index,
+			rowKey: record.rowKey,
+			value: direction === 'undo' ? record.previousValue : record.value,
+			previousValue: cellValue(found.row, column),
+		};
+	}).filter(Boolean);
+}
+
+function undo() {
+	const entry = editHistory.past.pop();
+	if (!entry) return false;
+	const count = applyChanges(historyChanges(entry, 'undo'), 'undo', { record: false });
+	editHistory.future.push(entry);
+	showNotice(`Undid ${count} ${count === 1 ? 'change' : 'changes'}`);
+	return true;
+}
+
+function redo() {
+	const entry = editHistory.future.pop();
+	if (!entry) return false;
+	const count = applyChanges(historyChanges(entry, 'redo'), 'redo', { record: false });
+	editHistory.past.push(entry);
+	showNotice(`Redid ${count} ${count === 1 ? 'change' : 'changes'}`);
+	return true;
+}
+
+/**
+ * Parses typed or pasted text into a column value.
+ *
+ * @param {unknown} input Text from the editor or clipboard.
+ * @param {DataGridColumn} column Column definition.
+ * @param {Record<string, unknown>} row Row being edited.
+ * @returns {{ value?: unknown, error?: string }} Parsed value or an error.
+ */
+function parseInput(input, column, row) {
+	if (typeof column.parse === 'function') {
+		try {
+			return { value: column.parse(input, column, row) };
+		} catch (error) {
+			return { error: error?.message || `Invalid ${column.label}` };
+		}
+	}
+
+	const text = String(input ?? '');
+	const trimmed = text.trim();
+	if (!trimmed) return { value: null };
+
+	if (column.type === 'number' || column.type === 'currency') {
+		const cleaned = trimmed.replace(/[^\d.eE+-]/g, '');
+		const number = Number(cleaned);
+		return cleaned && Number.isFinite(number) ? { value: number } : { error: `${column.label} must be a number` };
+	}
+	if (column.type === 'date') {
+		const key = dateKey(trimmed);
+		return key ? { value: key } : { error: `${column.label} must be a date` };
+	}
+	if (column.type === 'boolean') {
+		const value = trimmed.toLowerCase();
+		if (['true', 'yes', 'y', '1', 'x'].includes(value)) return { value: true };
+		if (['false', 'no', 'n', '0'].includes(value)) return { value: false };
+		return { error: `${column.label} must be yes or no` };
+	}
+	if (column.type === 'select') {
+		const options = optionRecords(column);
+		const value = trimmed.toLowerCase();
+		const match = options.find((option) => String(option.value).toLowerCase() === value)
+			|| options.find((option) => String(option.label).toLowerCase() === value);
+		if (match) return { value: match.value };
+		if (Array.isArray(column.options) && column.options.length) {
+			return { error: `${column.label} must be one of ${options.slice(0, 6).map((option) => option.label).join(', ')}` };
+		}
+		return { value: trimmed };
+	}
+	return { value: text };
+}
+
+function validationMessage(value, row, column) {
+	if (typeof column.validate !== 'function') return '';
+	const result = column.validate(value, row, column);
+	if (result === true || result === undefined || result === null) return '';
+	if (result === false) return `Invalid ${column.label}`;
+	return String(result);
+}
+
+function startEditAt(cell, initial) {
+	const item = navRows.value[cell.row];
+	const column = visibleColumns.value[cell.col];
+	if (!item || !column) return false;
+	return startEdit(item, column, cell.col, initial);
+}
+
+/**
+ * Opens the inline editor for a cell. Booleans toggle instead of opening one.
+ *
+ * @param {object} item Row item.
+ * @param {DataGridColumn} column Column definition.
+ * @param {number} col Visible column index.
+ * @param {string} [initial] Character that started the edit; replaces the value.
+ * @returns {boolean} Whether editing started.
+ */
+function startEdit(item, column, col, initial) {
+	if (!isCellEditable(item.row, column)) return false;
+
+	if (column.type === 'boolean') {
+		if (initial !== undefined && initial !== ' ') return false;
+		activeCell.value = { row: item.line, col };
+		rangeAnchor.value = { row: item.line, col };
+		applyChanges([buildChange(item, column, !cellValue(item.row, column))], 'editor');
+		return true;
+	}
+
+	const replace = initial !== undefined && column.type !== 'select' && column.type !== 'date';
+	activeCell.value = { row: item.line, col };
+	rangeAnchor.value = { row: item.line, col };
+	editingCell.value = {
+		line: item.line,
+		col,
+		columnKey: column.key,
+		draft: replace ? initial : editorDraft(item.row, column),
+		error: '',
+	};
+	nextTick(() => {
+		if (!editorElement) return;
+		editorElement.focus({ preventScroll: true });
+		if (!replace && typeof editorElement.select === 'function') editorElement.select();
+	});
+	return true;
+}
+
+function editorDraft(row, column) {
+	const value = cellValue(row, column);
+	if (value === null || value === undefined) return '';
+	if (column.type === 'date') return dateKey(value);
+	return String(value);
+}
+
+function isEditingCell(item, col) {
+	return Boolean(editingCell.value) && editingCell.value.line === item.line && editingCell.value.col === col;
+}
+
+function setEditorElement(element) {
+	editorElement = element;
+}
+
+/**
+ * Commits the open editor. Invalid values keep the editor open with a message.
+ *
+ * @param {{ row: number, col: number }|null} move Where to move after committing.
+ * @param {{ refocus?: boolean }} [options] Whether to return focus to the grid.
+ * @returns {boolean} Whether the edit closed.
+ */
+function commitEdit(move = null, { refocus = true } = {}) {
+	const edit = editingCell.value;
+	if (!edit) return true;
+
+	const item = navRows.value[edit.line];
+	const column = visibleColumns.value[edit.col];
+	if (!item || !column || column.key !== edit.columnKey) {
+		editingCell.value = null;
+		return true;
+	}
+
+	const parsed = parseInput(edit.draft, column, item.row);
+	const error = parsed.error || validationMessage(parsed.value, item.row, column);
+	if (error) {
+		edit.error = error;
+		if (refocus) nextTick(() => editorElement?.focus({ preventScroll: true }));
+		return false;
+	}
+
+	editingCell.value = null;
+	applyChanges([buildChange(item, column, parsed.value)], 'editor');
+	if (move) moveActive(move.row, move.col, { wrap: move.col !== 0 });
+	if (refocus) focusGrid();
+	return true;
+}
+
+function cancelEdit() {
+	editingCell.value = null;
+	focusGrid();
+}
+
+function onEditorKeydown(event) {
+	event.stopPropagation();
+	if (event.key === 'Enter') {
+		event.preventDefault();
+		commitEdit({ row: event.shiftKey ? -1 : 1, col: 0 });
+	} else if (event.key === 'Tab') {
+		event.preventDefault();
+		commitEdit({ row: 0, col: event.shiftKey ? -1 : 1 });
+	} else if (event.key === 'Escape') {
+		event.preventDefault();
+		cancelEdit();
+	} else if (editingCell.value?.error) {
+		editingCell.value.error = '';
+	}
+}
+
+function onEditorBlur() {
+	if (editingCell.value) commitEdit(null, { refocus: false });
+}
+
+function exportColumns() {
+	return visibleColumns.value.filter((column) => column.exportable !== false);
+}
+
+function exportRows(onlySelected) {
+	const entries = displayRows.value.map((row, index) => ({ row, index }));
+	let ordered = entries;
+	if (groupColumns.value.length) {
+		const items = [];
+		appendGroupItems(entries, 0, '', items, false);
+		ordered = items.filter((item) => item.type === 'row');
+	}
+	if (onlySelected) ordered = ordered.filter((entry) => selectedKeySet.value.has(rowKey(entry.row, entry.index)));
+	return ordered.map((entry) => entry.row);
+}
+
+function exportCellValue(row, column) {
+	if (typeof column.exportValue === 'function') return column.exportValue(cellValue(row, column), row, column);
+	if (column.type === 'boolean') {
+		const value = cellValue(row, column);
+		return emptyValue(value) ? '' : Boolean(value);
+	}
+	return plainValue(row, column);
+}
+
+/**
+ * Exports the filtered, sorted (and grouped) rows as CSV.
+ *
+ * @param {{ onlySelected?: boolean, fileName?: string, download?: boolean }} [options] Export options.
+ * @returns {string} CSV text.
+ */
+function exportCsv(options = {}) {
+	const columns = exportColumns();
+	const rows = exportRows(options.onlySelected);
+	const csv = toCsv(columns.map((column) => column.label), rows.map((row) => columns.map((column) => plainValue(row, column))));
+	const fileName = options.fileName || `${exportBaseName.value}.csv`;
+	if (options.download !== false) downloadBlob(csvBlob(csv), fileName);
+	emit('export', { format: 'csv', rows: rows.length, columns: columns.length, fileName });
+	showNotice(`Exported ${rows.length} ${rows.length === 1 ? 'row' : 'rows'} to CSV`);
+	return csv;
+}
+
+/**
+ * Exports the filtered, sorted (and grouped) rows as an Excel workbook with
+ * typed number, currency, date and boolean cells.
+ *
+ * @param {{ onlySelected?: boolean, fileName?: string, download?: boolean }} [options] Export options.
+ * @returns {Blob} XLSX file.
+ */
+function exportExcel(options = {}) {
+	const columns = exportColumns();
+	const rows = exportRows(options.onlySelected);
+	const blob = xlsxBlob({
+		name: props.title,
+		columns: columns.map((column) => ({
+			label: column.label,
+			type: column.type,
+			width: columnPixelWidth(column),
+			currency: column.currency,
+			locale: column.locale,
+		})),
+		rows: rows.map((row) => columns.map((column) => exportCellValue(row, column))),
+	});
+	const fileName = options.fileName || `${exportBaseName.value}.xlsx`;
+	if (options.download !== false) downloadBlob(blob, fileName);
+	emit('export', { format: 'xlsx', rows: rows.length, columns: columns.length, fileName });
+	showNotice(`Exported ${rows.length} ${rows.length === 1 ? 'row' : 'rows'} to Excel`);
+	return blob;
+}
+
+function hasColumnMenu(column) {
+	return column.filterable || props.columnMenu;
 }
 </script>
 
@@ -1217,7 +2540,56 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 					/>
 				</label>
 
-				<slot name="toolbar-actions" :query="query" :clear-filters="clearFilters" />
+				<slot name="toolbar-actions" :query="query" :clear-filters="clearFilters" :export-csv="exportCsv" :export-excel="exportExcel" />
+
+				<DomPopover
+					v-if="exportable"
+					position="bottom-end"
+					width="w-64"
+					padding="p-1"
+					:arrow="false"
+				>
+					<template #trigger>
+						<button
+							type="button"
+							class="skin-control inline-flex h-9 items-center gap-2 rounded-md px-3 text-xs font-semibold transition hover:brightness-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+						>
+							<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+								<path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+							</svg>
+							Export
+						</button>
+					</template>
+					<template #default="{ close }">
+						<div class="grid gap-0.5 text-sm">
+							<button
+								type="button"
+								class="grid gap-0.5 rounded-md px-3 py-2 text-left transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+								@click="exportExcel(); close();"
+							>
+								<span class="font-semibold text-canvas-fg">Excel workbook</span>
+								<span class="text-xs text-muted-fg">.xlsx with typed numbers, dates and currency</span>
+							</button>
+							<button
+								type="button"
+								class="grid gap-0.5 rounded-md px-3 py-2 text-left transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+								@click="exportCsv(); close();"
+							>
+								<span class="font-semibold text-canvas-fg">CSV</span>
+								<span class="text-xs text-muted-fg">Comma-separated, UTF-8</span>
+							</button>
+							<button
+								v-if="internalSelectedKeys.length"
+								type="button"
+								class="grid gap-0.5 rounded-md border-t border-border px-3 py-2 text-left transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+								@click="exportExcel({ onlySelected: true }); close();"
+							>
+								<span class="font-semibold text-canvas-fg">Selected rows to Excel</span>
+								<span class="text-xs text-muted-fg">{{ internalSelectedKeys.length }} selected</span>
+							</button>
+						</div>
+					</template>
+				</DomPopover>
 
 				<button
 					v-if="hasActiveFilters"
@@ -1232,7 +2604,31 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 				</button>
 			</div>
 
-			<div v-if="activeFilterEntries.length" class="mt-3 flex flex-wrap gap-2">
+			<div v-if="activeFilterEntries.length || groupColumns.length" class="mt-3 flex flex-wrap items-center gap-2">
+				<span
+					v-for="column in groupColumns"
+					:key="`group-${column.key}`"
+					class="inline-flex max-w-full items-center gap-1.5 rounded-md border border-primary/25 bg-primary/10 px-2 py-1 text-xs font-medium text-canvas-fg"
+				>
+					<svg class="size-3.5 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path d="M4 6h16M8 12h12M12 18h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+					</svg>
+					<span class="truncate">Grouped by {{ column.label }}</span>
+					<button
+						type="button"
+						class="grid size-4 shrink-0 place-items-center rounded text-current/70 transition hover:bg-primary/15 hover:text-current focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+						:aria-label="`Stop grouping by ${column.label}`"
+						@click="toggleGroupColumn(column)"
+					>
+						<svg class="size-3" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+						</svg>
+					</button>
+				</span>
+				<span v-if="groupColumns.length" class="inline-flex gap-1">
+					<button type="button" class="rounded-md px-2 py-1 text-xs font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" @click="setAllGroups(true)">Expand all</button>
+					<button type="button" class="rounded-md px-2 py-1 text-xs font-medium text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50" @click="setAllGroups(false)">Collapse all</button>
+				</span>
 				<span
 					v-for="entry in activeFilterEntries"
 					:key="entry.column.key"
@@ -1253,8 +2649,26 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 			</div>
 		</header>
 
-		<div ref="scrollViewport" class="overflow-auto pb-3" data-grid-viewport :style="gridHeightStyle" @scroll="onViewportScroll">
-			<table class="w-full table-fixed border-separate border-spacing-0 text-sm" :style="tableStyle">
+		<div
+			ref="scrollViewport"
+			class="overflow-auto focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/50"
+			data-grid-viewport
+			:class="!showTotals && 'pb-3'"
+			:style="viewportStyle"
+			:tabindex="cellSelection ? 0 : undefined"
+			@scroll="onViewportScroll"
+			@keydown="onGridKeydown"
+		>
+			<table
+				class="w-full table-fixed border-separate border-spacing-0 text-sm"
+				:class="cellSelection && 'select-none'"
+				:style="tableStyle"
+				:role="cellSelection ? 'grid' : undefined"
+				:aria-labelledby="titleId"
+				:aria-multiselectable="cellSelection || undefined"
+				:aria-rowcount="navRows.length + headerRowCount"
+				:aria-colcount="visibleColumns.length + utilityColumnCount"
+			>
 				<colgroup>
 					<col v-if="selectable" class="w-11" />
 					<col v-if="showRowNumbers" class="w-[3.375rem]" />
@@ -1265,34 +2679,38 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 					/>
 				</colgroup>
 
-				<thead class="text-xs">
-					<tr v-if="showColumnLetters" class="bg-secondary/60 text-muted-fg" :class="layout === 'flush' && gutterClass">
+				<thead ref="headerElement" class="text-xs">
+					<tr v-if="showColumnLetters" class="bg-secondary/60 text-muted-fg" :class="layout === 'flush' && gutterClass" aria-rowindex="1">
 						<th
 							v-if="selectable"
 							class="border-b border-r border-border px-2 py-1.5 font-semibold"
-							:class="stickyHeader && 'sticky top-0 z-20 bg-secondary/95 backdrop-blur'"
+							:class="headerCellClass(pinLayout.hasLeft, 'bg-secondary/95 backdrop-blur')"
+							:style="headerCellStyle('0px', utilityPinStyle('select'))"
 						></th>
 						<th
 							v-if="showRowNumbers"
 							class="border-b border-r border-border px-2 py-1.5 text-center font-semibold"
-							:class="stickyHeader && 'sticky top-0 z-20 bg-secondary/95 backdrop-blur'"
+							:class="headerCellClass(pinLayout.hasLeft, 'bg-secondary/95 backdrop-blur')"
+							:style="headerCellStyle('0px', utilityPinStyle('number'))"
 						></th>
 						<th
 							v-for="(column, columnIndex) in visibleColumns"
 							:key="`${column.key}-letter`"
 							class="border-b border-r border-border px-2 py-1.5 text-center font-semibold last:border-r-0"
-							:class="stickyHeader && 'sticky top-0 z-20 bg-secondary/95 backdrop-blur'"
+							:class="headerCellClass(Boolean(pinInfo(column)), 'bg-secondary/95 backdrop-blur')"
+							:style="headerCellStyle('0px', pinStyle(column))"
+							:data-pin-edge="pinInfo(column)?.edge ? pinInfo(column).side : undefined"
 						>
 							{{ columnLetter(columnIndex) }}
 						</th>
 					</tr>
 
-					<tr class="bg-canvas text-muted-fg" :class="layout === 'flush' && gutterClass">
+					<tr class="bg-canvas text-muted-fg" :class="layout === 'flush' && gutterClass" :aria-rowindex="headerRowCount">
 						<th
 							v-if="selectable"
 							class="border-b border-r border-border px-2 text-center"
-							:class="stickyHeader && 'sticky z-20 bg-canvas/95 backdrop-blur'"
-							:style="stickyHeader ? { top: headerOffset } : null"
+							:class="headerCellClass(pinLayout.hasLeft, 'bg-canvas/95 backdrop-blur')"
+							:style="headerCellStyle(headerOffset, utilityPinStyle('select'))"
 						>
 							<input
 								type="checkbox"
@@ -1306,8 +2724,8 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 						<th
 							v-if="showRowNumbers"
 							class="border-b border-r border-border px-2 text-center font-semibold"
-							:class="stickyHeader && 'sticky z-20 bg-canvas/95 backdrop-blur'"
-							:style="stickyHeader ? { top: headerOffset } : null"
+							:class="headerCellClass(pinLayout.hasLeft, 'bg-canvas/95 backdrop-blur')"
+							:style="headerCellStyle(headerOffset, utilityPinStyle('number'))"
 						>
 							#
 						</th>
@@ -1317,12 +2735,13 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 							scope="col"
 							class="relative overflow-hidden border-b border-r border-border px-0 text-left align-middle last:border-r-0"
 							:aria-sort="ariaSort(column)"
-							:class="stickyHeader && 'sticky z-20 bg-canvas/95 backdrop-blur'"
-							:style="stickyHeader ? { top: headerOffset } : null"
+							:class="headerCellClass(Boolean(pinInfo(column)), 'bg-canvas/95 backdrop-blur')"
+							:style="headerCellStyle(headerOffset, pinStyle(column))"
+							:data-pin-edge="pinInfo(column)?.edge ? pinInfo(column).side : undefined"
 						>
 							<div
 								class="relative flex min-w-0 items-center overflow-hidden px-1 py-1.5"
-								:class="column.filterable ? 'pr-9' : 'pr-1'"
+								:class="hasColumnMenu(column) ? 'pr-9' : 'pr-1'"
 							>
 								<button
 									type="button"
@@ -1333,6 +2752,15 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 									:title="sortButtonLabel(column)"
 									@click="toggleSort(column)"
 								>
+									<svg
+										v-if="column.pinned"
+										class="size-3 shrink-0 text-primary"
+										viewBox="0 0 24 24"
+										fill="none"
+										aria-hidden="true"
+									>
+										<path d="M9 4h6l-1 6 3 3H7l3-3-1-6Zm3 9v7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+									</svg>
 									<span class="truncate">{{ column.label }}</span>
 									<span
 										v-if="multiSort && sortRankForColumn(column)"
@@ -1375,7 +2803,7 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 									</svg>
 								</button>
 
-								<div v-if="column.filterable" class="absolute right-1 top-1/2 -translate-y-1/2">
+								<div v-if="hasColumnMenu(column)" class="absolute right-1 top-1/2 -translate-y-1/2">
 									<DomPopover
 										position="bottom-end"
 										width="w-[20rem]"
@@ -1389,10 +2817,15 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 												:class="activeFilters[column.key]
 													? 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300'
 													: 'border-transparent text-muted-fg hover:border-border hover:bg-secondary hover:text-canvas-fg'"
-												:aria-label="`Filter ${column.label}`"
+												:aria-label="column.filterable ? `Filter ${column.label}` : `${column.label} column menu`"
 											>
-												<svg class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+												<svg v-if="column.filterable" class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 													<path d="M4 5h16l-6.2 7.1V18l-3.6 1.8v-7.7L4 5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+												</svg>
+												<svg v-else class="size-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+													<circle cx="12" cy="6" r="1.6" />
+													<circle cx="12" cy="12" r="1.6" />
+													<circle cx="12" cy="18" r="1.6" />
 												</svg>
 												<span
 													v-if="activeFilters[column.key]"
@@ -1402,7 +2835,37 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 										</template>
 
 										<template #default="{ close }">
-											<div v-if="filterDrafts[column.key]" class="grid gap-4 p-4 text-sm">
+											<div v-if="columnMenu" class="grid gap-3 border-b border-border p-4 text-sm">
+												<p class="font-semibold text-canvas-fg">{{ column.label }}</p>
+												<div class="grid gap-1.5">
+													<span class="text-xs font-medium text-muted-fg">Pin column</span>
+													<div class="grid grid-cols-3 gap-1 rounded-md border border-border bg-secondary/40 p-1">
+														<button
+															v-for="option in [{ label: 'Left', value: 'left' }, { label: 'None', value: '' }, { label: 'Right', value: 'right' }]"
+															:key="option.label"
+															type="button"
+															class="h-8 rounded px-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+															:class="(column.pinned || '') === option.value ? 'bg-canvas text-canvas-fg shadow-xs' : 'text-muted-fg hover:text-canvas-fg'"
+															:aria-pressed="(column.pinned || '') === option.value"
+															@click="setColumnPin(column, option.value)"
+														>
+															{{ option.label }}
+														</button>
+													</div>
+												</div>
+												<button
+													type="button"
+													class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-border px-3 text-xs font-semibold transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+													@click="toggleGroupColumn(column); close();"
+												>
+													<svg class="size-4 text-muted-fg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+														<path d="M4 6h16M8 12h12M12 18h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+													</svg>
+													{{ isGroupedColumn(column) ? `Stop grouping by ${column.label}` : `Group by ${column.label}` }}
+												</button>
+											</div>
+
+											<div v-if="column.filterable && filterDrafts[column.key]" class="grid gap-4 p-4 text-sm">
 												<div>
 													<p class="font-semibold text-canvas-fg">Filter {{ column.label }}</p>
 												</div>
@@ -1511,145 +2974,254 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 					</tr>
 				</thead>
 
-				<DataGridVirtualRows
-					v-if="virtualRows && !loading && displayRows.length"
-					:rows="displayRows"
-					:columns="visibleColumns"
-					:row-key="rowKey"
-					:cell-value="cellValue"
-					:formatted-cell="formattedCell"
-					:gutter-class="layout === 'flush' ? gutterClass : ''"
-					:cell-align-class="cellAlignClass"
-					:row-density-class="rowDensityClass"
-					:selected-keys="internalSelectedKeys"
-					:selectable="selectable"
-					:show-row-numbers="showRowNumbers"
-					:scroll-top="viewportState.scrollTop"
-					:viewport-height="viewportState.clientHeight"
-					:row-height="virtualRowHeightPx"
-					:buffer-rows="virtualRowBuffer"
-					@toggle-row-selection="toggleRowSelection($event.row, $event.index)"
-					@row-click="emit('row-click', { row: $event.row, index: $event.index })"
-					@render-window-change="emit('render-window-change', $event)"
-				>
-					<template #cell="{ row, column, value, formatted, rowIndex, rowKey: currentRowKey }">
-						<slot
-							name="cell"
-							:row="row"
-							:column="column"
-							:value="value"
-							:formatted="formatted"
-							:row-index="rowIndex"
-							:row-key="currentRowKey"
-						>
-							<component
-								:is="column.component"
-								v-if="column.component"
-								:row="row"
-								:column="column"
-								:value="value"
-								:formatted="formatted"
-								:row-index="rowIndex"
-								:row-key="currentRowKey"
-								@update:value="onCellComponentUpdate(row, column, rowIndex, $event)"
-								@action="onCellComponentAction(row, column, rowIndex, $event)"
-							/>
-							<span v-else-if="column.type === 'boolean'" class="inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="value ? toneClass('green') : toneClass('neutral')">
-								{{ formatted }}
-							</span>
-							<span v-else-if="column.type === 'select'" class="inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="toneClass(optionTone(column, value))">
-								<span class="size-1.5 rounded-full bg-current opacity-70"></span>
-								<span class="truncate">{{ formatted }}</span>
-							</span>
-							<span v-else-if="formatted" class="block max-w-full truncate">{{ formatted }}</span>
-							<span v-else class="text-muted-fg/60">-</span>
-						</slot>
-					</template>
-				</DataGridVirtualRows>
-
-				<tbody v-else>
+				<tbody v-if="loading || !displayRows.length">
 					<tr v-if="loading" :class="layout === 'flush' && gutterClass">
 						<td :colspan="emptyColspan" class="border-b border-border px-4 py-10 text-center text-sm text-muted-fg">
 							Loading {{ resourceLabel }}...
 						</td>
 					</tr>
-					<tr v-else-if="!displayRows.length" :class="layout === 'flush' && gutterClass">
+					<tr v-else :class="layout === 'flush' && gutterClass">
 						<td :colspan="emptyColspan" class="px-4 py-12 text-center text-sm text-muted-fg">
 							<slot name="empty">{{ emptyText }}</slot>
 						</td>
 					</tr>
-					<template v-else>
+				</tbody>
+
+				<DataGridVirtualRows
+					v-else
+					:items="displayItems"
+					:item-key="(item) => item.key"
+					:enabled="virtualRows"
+					:column-span="emptyColspan"
+					:scroll-top="viewportState.scrollTop"
+					:viewport-height="viewportState.clientHeight"
+					:row-height="virtualRowHeightPx"
+					:buffer-rows="virtualRowBuffer"
+					@render-window-change="emit('render-window-change', $event)"
+				>
+					<template #row="{ item, rowHeight }">
 						<tr
-							v-for="(row, rowIndex) in displayRows"
-							:key="rowKey(row, rowIndex)"
-							class="group bg-canvas transition hover:bg-secondary/45"
-							:class="[rowSelected(row, rowIndex) && 'bg-sky-500/5', layout === 'flush' && gutterClass]"
-							:aria-selected="rowSelected(row, rowIndex) || undefined"
-							@click="emit('row-click', { row, index: rowIndex })"
+							v-if="item.type === 'group'"
+							class="bg-secondary/40 font-medium text-canvas-fg"
+							:class="layout === 'flush' && gutterClass"
+							data-grid-group
+							:aria-expanded="item.expanded"
+							:aria-level="item.level + 1"
+							:style="rowHeight ? { height: `${rowHeight}px` } : null"
 						>
-							<td v-if="selectable" class="border-b border-r border-border px-2 text-center" :class="rowDensityClass()" @click.stop>
+							<td
+								v-if="selectable"
+								class="border-b border-r border-border px-2 text-center"
+								:class="[rowDensityClass(), utilityCellPositionClass()]"
+								:style="utilityPinStyle('select')"
+								v-bind="utilityPinAttrs()"
+							>
 								<input
 									type="checkbox"
 									class="size-4 rounded border-border accent-primary"
-									:checked="rowSelected(row, rowIndex)"
-									:aria-label="`Select row ${rowIndex + 1}`"
-									@change="toggleRowSelection(row, rowIndex)"
+									:checked="groupSelectionState(item).all"
+									:indeterminate="groupSelectionState(item).some"
+									:aria-label="`Select ${item.count} rows in ${item.label}`"
+									@change="toggleGroupSelection(item)"
+								/>
+							</td>
+							<td
+								v-if="showRowNumbers"
+								class="border-b border-r border-border px-2"
+								:class="[rowDensityClass(), utilityCellPositionClass()]"
+								:style="utilityPinStyle('number')"
+								v-bind="utilityPinAttrs()"
+							></td>
+							<td
+								v-for="(column, columnIndex) in visibleColumns"
+								:key="column.key"
+								class="border-b border-r border-border px-3 align-middle last:border-r-0"
+								:class="[cellAlignClass(column), rowDensityClass(), bodyCellPositionClass(column), columnIndex === 0 ? 'overflow-visible' : 'overflow-hidden']"
+								:style="pinStyle(column)"
+								v-bind="pinAttrs(column)"
+							>
+								<button
+									v-if="columnIndex === 0"
+									type="button"
+									class="flex w-max min-w-0 items-center gap-1.5 whitespace-nowrap rounded text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+									:style="{ paddingLeft: `${item.level * 16}px` }"
+									:aria-label="`${item.expanded ? 'Collapse' : 'Expand'} ${item.column.label} ${item.label}`"
+									:title="`${item.column.label}: ${item.label}`"
+									@click="toggleGroup(item)"
+								>
+									<svg class="size-3.5 shrink-0 text-muted-fg transition-transform" :class="item.expanded && 'rotate-90'" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+										<path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+									</svg>
+									<span class="font-semibold">{{ item.label }}</span>
+									<span class="shrink-0 rounded bg-canvas px-1.5 text-[11px] font-semibold tabular-nums text-muted-fg ring-1 ring-border">{{ item.count }}</span>
+								</button>
+								<span
+									v-else-if="column.aggregate"
+									class="block truncate font-semibold"
+									:title="`${aggregateLabel(column)} of ${column.label}`"
+								>{{ formatAggregate(item.aggregates[column.key], column) }}</span>
+							</td>
+						</tr>
+
+						<tr
+							v-else
+							class="group bg-canvas transition hover:bg-secondary/45"
+							:class="[rowSelected(item.row, item.index) && 'bg-primary/5', layout === 'flush' && gutterClass]"
+							data-grid-row
+							:aria-rowindex="item.line + headerRowCount + 1"
+							:aria-selected="rowSelected(item.row, item.index) || undefined"
+							:style="rowHeight ? { height: `${rowHeight}px` } : null"
+							@click="emit('row-click', { row: item.row, index: item.index })"
+						>
+							<td
+								v-if="selectable"
+								class="border-b border-r border-border px-2 text-center"
+								:class="[rowDensityClass(), utilityCellPositionClass()]"
+								:style="utilityPinStyle('select')"
+								v-bind="utilityPinAttrs()"
+								@click.stop
+							>
+								<input
+									type="checkbox"
+									class="size-4 rounded border-border accent-primary"
+									:checked="rowSelected(item.row, item.index)"
+									:aria-label="`Select row ${item.line + 1}`"
+									@change="toggleRowSelection(item.row, item.index)"
 								/>
 							</td>
 							<td
 								v-if="showRowNumbers"
 								class="border-b border-r border-border bg-secondary/25 px-2 text-center text-xs font-medium text-muted-fg"
-								:class="rowDensityClass()"
+								:class="[rowDensityClass(), utilityCellPositionClass()]"
+								:style="utilityPinStyle('number')"
+								v-bind="utilityPinAttrs()"
 							>
-								{{ rowIndex + 1 }}
+								{{ item.line + 1 }}
 							</td>
 							<td
-								v-for="column in visibleColumns"
+								v-for="(column, columnIndex) in visibleColumns"
 								:key="column.key"
 								class="overflow-hidden border-b border-r border-border px-3 align-middle last:border-r-0"
-								:class="[cellAlignClass(column), rowDensityClass()]"
+								:class="[cellAlignClass(column), rowDensityClass(), bodyCellPositionClass(column)]"
+								:style="[pinStyle(column), rowIndent(column, columnIndex)]"
+								v-bind="cellAttrs(item, column, columnIndex)"
+								@pointerdown="onCellPointerDown(item, columnIndex, $event)"
+								@pointerenter="onCellPointerEnter(item, columnIndex)"
+								@dblclick="onCellDoubleClick(item, column, columnIndex, $event)"
 							>
+								<template v-if="isEditingCell(item, columnIndex)">
+									<select
+										v-if="column.type === 'select'"
+										:ref="setEditorElement"
+										v-model="editingCell.draft"
+										class="absolute inset-0 z-10 h-full w-full border-0 bg-canvas px-2 text-sm text-canvas-fg outline-2 -outline-offset-2"
+										:class="editingCell.error ? 'outline-destructive' : 'outline-primary'"
+										:aria-label="`Edit ${column.label}`"
+										:aria-invalid="Boolean(editingCell.error) || undefined"
+										:title="editingCell.error || undefined"
+										@keydown="onEditorKeydown"
+										@blur="onEditorBlur"
+										@click.stop
+									>
+										<option value="">-</option>
+										<option v-for="option in optionRecords(column)" :key="String(option.value)" :value="String(option.value)">{{ option.label }}</option>
+									</select>
+									<input
+										v-else
+										:ref="setEditorElement"
+										v-model="editingCell.draft"
+										:type="column.type === 'date' ? 'date' : 'text'"
+										:inputmode="column.type === 'number' || column.type === 'currency' ? 'decimal' : undefined"
+										class="absolute inset-0 z-10 h-full w-full border-0 bg-canvas px-3 text-sm text-canvas-fg outline-2 -outline-offset-2"
+										:class="[editingCell.error ? 'outline-destructive' : 'outline-primary', cellAlignClass(column)]"
+										:aria-label="`Edit ${column.label}`"
+										:aria-invalid="Boolean(editingCell.error) || undefined"
+										:title="editingCell.error || undefined"
+										@keydown="onEditorKeydown"
+										@blur="onEditorBlur"
+										@click.stop
+									/>
+								</template>
 								<slot
+									v-else
 									name="cell"
-									:row="row"
+									:row="item.row"
 									:column="column"
-									:value="cellValue(row, column)"
-									:formatted="formattedCell(row, column)"
-									:row-index="rowIndex"
-									:row-key="rowKey(row, rowIndex)"
+									:value="cellValue(item.row, column)"
+									:formatted="formattedCell(item.row, column)"
+									:row-index="item.index"
+									:row-key="rowKey(item.row, item.index)"
 								>
 									<component
 										:is="column.component"
 										v-if="column.component"
-										:row="row"
+										:row="item.row"
 										:column="column"
-										:value="cellValue(row, column)"
-										:formatted="formattedCell(row, column)"
-										:row-index="rowIndex"
-										:row-key="rowKey(row, rowIndex)"
-										@update:value="onCellComponentUpdate(row, column, rowIndex, $event)"
-										@action="onCellComponentAction(row, column, rowIndex, $event)"
+										:value="cellValue(item.row, column)"
+										:formatted="formattedCell(item.row, column)"
+										:row-index="item.index"
+										:row-key="rowKey(item.row, item.index)"
+										@update:value="onCellComponentUpdate(item.row, column, item.index, $event)"
+										@action="onCellComponentAction(item.row, column, item.index, $event)"
 									/>
-									<span v-else-if="column.type === 'boolean'" class="inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="cellValue(row, column) ? toneClass('green') : toneClass('neutral')">
-										{{ formattedCell(row, column) }}
+									<span v-else-if="column.type === 'boolean'" class="inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="cellValue(item.row, column) ? toneClass('green') : toneClass('neutral')">
+										{{ formattedCell(item.row, column) }}
 									</span>
-									<span v-else-if="column.type === 'select'" class="inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="toneClass(optionTone(column, cellValue(row, column)))">
+									<span v-else-if="column.type === 'select'" class="inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="toneClass(optionTone(column, cellValue(item.row, column)))">
 										<span class="size-1.5 rounded-full bg-current opacity-70"></span>
-										<span class="truncate">{{ formattedCell(row, column) }}</span>
+										<span class="truncate">{{ formattedCell(item.row, column) }}</span>
 									</span>
-									<span v-else-if="formattedCell(row, column)" class="block max-w-full truncate">{{ formattedCell(row, column) }}</span>
+									<span v-else-if="formattedCell(item.row, column)" class="block max-w-full truncate">{{ formattedCell(item.row, column) }}</span>
 									<span v-else class="text-muted-fg/60">-</span>
 								</slot>
 							</td>
 						</tr>
 					</template>
-				</tbody>
+				</DataGridVirtualRows>
+
+				<tfoot v-if="showTotals && !loading && displayRows.length" class="text-xs">
+					<tr :class="layout === 'flush' && gutterClass" data-grid-totals>
+						<td
+							v-if="selectable"
+							class="sticky bottom-0 border-r border-t border-border bg-secondary px-2"
+							:class="pinLayout.hasLeft ? 'z-30' : 'z-20'"
+							:style="utilityPinStyle('select')"
+						></td>
+						<td
+							v-if="showRowNumbers"
+							class="sticky bottom-0 border-r border-t border-border bg-secondary px-2 text-center font-semibold text-muted-fg"
+							:class="pinLayout.hasLeft ? 'z-30' : 'z-20'"
+							:style="utilityPinStyle('number')"
+						>
+							&Sigma;
+						</td>
+						<td
+							v-for="(column, columnIndex) in visibleColumns"
+							:key="column.key"
+							class="sticky bottom-0 h-9 overflow-hidden border-r border-t border-border bg-secondary px-3 font-semibold text-canvas-fg last:border-r-0"
+							:class="[cellAlignClass(column), pinInfo(column) ? 'z-30' : 'z-20']"
+							:style="pinStyle(column)"
+							:data-pin-edge="pinInfo(column)?.edge ? pinInfo(column).side : undefined"
+							:title="column.aggregate ? `${aggregateLabel(column)} of ${column.label}` : undefined"
+						>
+							<span v-if="column.aggregate" class="block truncate">{{ formatAggregate(totalAggregates[column.key], column) }}</span>
+							<span v-else-if="columnIndex === 0" class="block truncate text-muted-fg">Total</span>
+						</td>
+					</tr>
+				</tfoot>
 			</table>
 		</div>
 
 		<footer class="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-secondary/25 py-2 text-xs text-muted-fg" :class="layout === 'flush' ? gutterClass : 'px-3'">
-			<span>{{ visibleColumns.length }} columns</span>
-			<span v-if="internalSelectedKeys.length">{{ internalSelectedKeys.length }} selected</span>
+			<span>{{ visibleColumns.length }} columns<template v-if="groupColumns.length"> · {{ displayItems.length - navRows.length }} groups</template></span>
+			<span v-if="editingError" class="font-medium text-destructive" role="alert">{{ editingError }}</span>
+			<span v-else-if="gridNotice" aria-live="polite">{{ gridNotice }}</span>
+			<span v-else-if="rangeSummary" class="flex flex-wrap gap-x-3 tabular-nums" aria-live="polite">
+				<span>Count {{ rangeSummary.count }}</span>
+				<span v-if="rangeSummary.sum">Sum {{ rangeSummary.sum }}</span>
+				<span v-if="rangeSummary.average">Average {{ rangeSummary.average }}</span>
+			</span>
+			<span v-else-if="internalSelectedKeys.length">{{ internalSelectedKeys.length }} selected</span>
 			<span v-else>Ready</span>
 		</footer>
 	</section>
@@ -1659,11 +3231,11 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 /* Row padding does not affect table layout. Only the two outer cell edges
  * inherit it, so responsive/custom utility classes remain application-owned.
  * Direct table ancestry prevents these rules leaking into nested cell content. */
-[data-layout="flush"] > [data-grid-viewport] > table > :deep(:is(thead, tbody) > tr:not([aria-hidden="true"]) > :is(th, td):first-child) {
+[data-layout="flush"] > [data-grid-viewport] > table > :deep(:is(thead, tbody, tfoot) > tr:not([aria-hidden="true"]) > :is(th, td):first-child) {
 	padding-left: inherit;
 }
 
-[data-layout="flush"] > [data-grid-viewport] > table > :deep(:is(thead, tbody) > tr:not([aria-hidden="true"]) > :is(th, td):last-child) {
+[data-layout="flush"] > [data-grid-viewport] > table > :deep(:is(thead, tbody, tfoot) > tr:not([aria-hidden="true"]) > :is(th, td):last-child) {
 	padding-right: inherit;
 }
 
@@ -1677,5 +3249,51 @@ function onCellComponentAction(row, column, rowIndex, payload) {
 [data-layout="flush"] > [data-grid-viewport] > table > thead > tr > th:last-child > div:not(.pr-9),
 [data-layout="flush"] > [data-grid-viewport] > table > thead > tr > th:last-child > div > button {
 	padding-right: 0;
+}
+
+/* Pinned body cells sit above scrolling cells, so they need an opaque base.
+ * The row's hover, selection and group tints are layered on top as a
+ * gradient so pinned and scrolling cells read as one row. */
+td[data-pin] {
+	background-color: var(--canvas);
+}
+
+tr[data-grid-row]:hover > td[data-pin] {
+	background-image: linear-gradient(color-mix(in oklab, var(--secondary) 45%, transparent), color-mix(in oklab, var(--secondary) 45%, transparent));
+}
+
+tr[data-grid-row][aria-selected="true"] > td[data-pin] {
+	background-image: linear-gradient(color-mix(in oklab, var(--primary) 5%, transparent), color-mix(in oklab, var(--primary) 5%, transparent));
+}
+
+tr[data-grid-group] > td[data-pin] {
+	background-image: linear-gradient(color-mix(in oklab, var(--secondary) 40%, transparent), color-mix(in oklab, var(--secondary) 40%, transparent));
+}
+
+tr[data-grid-row] > td[data-pin].bg-secondary\/25 {
+	background-image: linear-gradient(color-mix(in oklab, var(--secondary) 25%, transparent), color-mix(in oklab, var(--secondary) 25%, transparent));
+}
+
+/* A soft edge where pinned columns meet the scrolling area. */
+[data-pin-edge="left"] {
+	box-shadow: 6px 0 8px -6px color-mix(in oklab, var(--canvas-fg) 22%, transparent);
+}
+
+[data-pin-edge="right"] {
+	box-shadow: -6px 0 8px -6px color-mix(in oklab, var(--canvas-fg) 22%, transparent);
+}
+
+/* Range selection is drawn over any cell background, pinned or not. */
+td[data-in-range] {
+	background-image: linear-gradient(color-mix(in oklab, var(--primary) 12%, transparent), color-mix(in oklab, var(--primary) 12%, transparent)) !important;
+}
+
+td[data-active] {
+	outline: 2px solid var(--primary);
+	outline-offset: -2px;
+}
+
+[data-grid-viewport]:not(:focus-within) td[data-active] {
+	outline-color: color-mix(in oklab, var(--primary) 45%, transparent);
 }
 </style>

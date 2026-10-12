@@ -1866,8 +1866,33 @@ export const componentCatalog = [
 				},
 				{
 					"name": "cell-update",
-					"payload": "({ row, column, rowIndex, rowKey, value, previousValue })",
-					"description": "Re-emitted when a column component emits update:value."
+					"payload": "({ row, column, rowIndex, rowKey, value, previousValue, source })",
+					"description": "Fired when a cell value changes: an inline edit, paste, delete, undo or redo (source), or a column component emitting update:value. The grid does not mutate rows; write value back to your data."
+				},
+				{
+					"name": "cells-update",
+					"payload": "({ source, changes })",
+					"description": "Fired once per edit, paste, delete, undo or redo with every change, after the individual cell-update events. Use it instead of cell-update to apply a batch in one step."
+				},
+				{
+					"name": "range-change",
+					"payload": "({ startRow, endRow, startColumn, endColumn, rows, columns }) | null",
+					"description": "Fired when the selected cell range changes. Indexes are visible positions."
+				},
+				{
+					"name": "update:pinnedColumns",
+					"payload": "Record<string, 'left' | 'right'>",
+					"description": "Fired when a column is pinned or unpinned from the column menu."
+				},
+				{
+					"name": "update:groupBy",
+					"payload": "string | Array<string>",
+					"description": "Fired when grouping changes from the column menu or toolbar."
+				},
+				{
+					"name": "export",
+					"payload": "({ format, rows, columns, fileName })",
+					"description": "Fired after a CSV or Excel export is built."
 				},
 				{
 					"name": "cell-action",
@@ -1903,7 +1928,7 @@ export const componentCatalog = [
 				},
 				{
 					"name": "toolbar-actions",
-					"payload": "{ query, clearFilters }",
+					"payload": "{ query, clearFilters, exportCsv, exportExcel }",
 					"description": "Extra controls rendered next to search and Clear filters."
 				},
 				{
@@ -1922,7 +1947,31 @@ export const componentCatalog = [
 				},
 				{
 					"keys": "Esc",
-					"action": "Close an open filter popover."
+					"action": "Close an open filter popover, cancel an edit, or collapse a range to the active cell."
+				},
+				{
+					"keys": "Arrow keys / Tab",
+					"action": "Move the active cell when cellSelection is on. Shift extends the range; Cmd or Ctrl jumps to the edge."
+				},
+				{
+					"keys": "Enter / F2 / typing",
+					"action": "Edit the active cell when it is editable. Enter commits and moves down; Tab commits and moves right."
+				},
+				{
+					"keys": "Cmd/Ctrl + C, X, V",
+					"action": "Copy, cut and paste the range as tab-separated text, compatible with Excel and Google Sheets."
+				},
+				{
+					"keys": "Delete / Backspace",
+					"action": "Clear editable cells in the range."
+				},
+				{
+					"keys": "Cmd/Ctrl + A",
+					"action": "Select every visible cell."
+				},
+				{
+					"keys": "Cmd/Ctrl + Z, Shift + Cmd/Ctrl + Z",
+					"action": "Undo and redo edits made in the grid."
 				}
 			]
 		},
