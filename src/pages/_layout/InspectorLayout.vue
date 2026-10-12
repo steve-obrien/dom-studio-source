@@ -15,7 +15,8 @@ const navigationOpen = ref(false);
 
 const topLinks = [
 	{ to: '/', label: 'Overview', exact: true },
-	{ to: '/components', label: 'Components', match: '/components' },
+	{ to: '/designer', label: 'Designer', match: '/designer' },
+	{ to: '/components', label: 'Library', match: '/components' },
 	{ to: '/pricing', label: 'Pricing' },
 ];
 

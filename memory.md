@@ -22,6 +22,8 @@ Inventory from this review:
 
 The core promise is inspectable, editable application UI that teams can own and ship. DOM Studio should feel useful to a developer building SaaS/product interfaces, not like a marketing theme kit. The repo leans toward dense, practical app surfaces: dashboards, settings, operations consoles, billing, communication, data capture, AI tooling, mobile shells, and product-management workflows.
 
+Navigation leads with the advanced, hard-to-generate surfaces: Designer, AI, Data, Charts and Blocks. Simple primitives (components, forms, visual, mobile, headless) sit under the header's Library menu. `src/pages/_layout/siteNavigation.js` owns the header; `sideNavLinks.js` orders the sidebar to match. The DOM designer roadmap (Canvas at `/designer/canvas`, Vue SFC round-trip, live components) is in `docs/dom-designer.md`.
+
 When adding UI, prefer real product workflows, concrete data, accessible controls, and copyable source examples. Avoid generic hero pages or decorative-only composition unless the task explicitly asks for a landing/marketing page.
 
 ## Architecture

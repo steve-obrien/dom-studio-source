@@ -122,7 +122,7 @@ export function getDevRedirectRecords() {
 export function labelFromSection(section) {
 	return {
 		ai: 'AI',
-		designer: 'UI designer',
+		designer: 'Designer',
 		components: 'Components',
 		data: 'Data',
 		charts: 'Data Visualisation',

@@ -9,7 +9,15 @@ import {
 import { inspectComponentRecord } from './componentInspector.js';
 import { getBlockNavItems } from '../blocks/blockRegistry.js';
 
-const sidebarComponentSectionOrder = componentNavigationSections;
+/**
+ * Sidebar order follows the header: advanced tools first, simple primitives later.
+ * Any section added to the component manager but missing here is appended so it stays discoverable.
+ */
+const advancedSections = ['designer', 'ai', 'data', 'charts'];
+const sidebarComponentSectionOrder = [
+	...advancedSections,
+	...componentNavigationSections.filter((section) => !advancedSections.includes(section)),
+];
 
 export const staticIconPaths = {
 	Documentation: 'M6 4h9l3 3v13H6V4Zm9 0v4h4M9 11h6M9 15h6',
@@ -27,6 +35,8 @@ export const staticIconPaths = {
 	'Form schema': 'M6 4h8l4 4v12H6V4Zm8 0v5h5M9 12h6M9 16h8',
 	Icons: 'M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z',
 	Studio: 'M4 5h16v14H4V5Zm4 4h8M8 13h5',
+	Canvas: 'M4 4h7v7H4V4Zm9 0h7v5h-7V4Zm0 7h7v9h-7v-9ZM4 13h7v7H4v-7Z',
+	'Nested frames': 'M4 4h16v16H4V4Zm4 4h8v8H8V8Z',
 	Playground: 'M8 4l8 8-8 8',
 	Mobile: 'M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm3 15h4',
 	Data: 'M5 7c0-2 14-2 14 0v10c0 2-14 2-14 0V7Zm0 0c0 2 14 2 14 0M5 12c0 2 14 2 14 0',
@@ -131,6 +141,9 @@ const blockNavItems = [
 ];
 const componentNavGroups = groupsFromDiscoveredComponents();
 
+const sectionGroup = (label) => componentNavGroups.filter((group) => group.label === label);
+const advancedGroupLabels = advancedSections.map(labelFromSection);
+
 export const sideNavLinks = [
 	{
 		label: 'Documentation',
@@ -140,7 +153,11 @@ export const sideNavLinks = [
 			{ to: '/component-spec', label: 'Component metadata' },
 		],
 	},
-	...componentNavGroups.filter((group) => group.label === 'AI'),
+	...advancedGroupLabels.flatMap(sectionGroup),
+	{
+		label: 'Blocks',
+		items: blockNavItems,
+	},
 	{
 		label: 'Tools',
 		items: [
@@ -148,18 +165,7 @@ export const sideNavLinks = [
 			{ to: '/components/playground', label: 'Playground' },
 		],
 	},
-	{
-		label: 'Experiments',
-		items: [
-			{ to: '/experiments/css-button-creator', label: 'CSS button builder' },
-			{ to: '/experiments/liquid-glass', label: 'Liquid glass', tag: 'New' },
-		],
-	},
-	...componentNavGroups.filter((group) => group.label !== 'AI'),
-	{
-		label: 'Blocks',
-		items: blockNavItems,
-	},
+	...componentNavGroups.filter((group) => !advancedGroupLabels.includes(group.label)),
 	{
 		label: 'Headless',
 		items: [
@@ -175,6 +181,13 @@ export const sideNavLinks = [
 			{ to: '/headless/accordion', label: 'Accordion' },
 			{ to: '/headless/combobox', label: 'Combobox' },
 			{ to: '/headless/autocomplete', label: 'Autocomplete' },
+		],
+	},
+	{
+		label: 'Experiments',
+		items: [
+			{ to: '/experiments/css-button-creator', label: 'CSS button builder' },
+			{ to: '/experiments/liquid-glass', label: 'Liquid glass', tag: 'New' },
 		],
 	},
 ].map((group) => ({
@@ -209,6 +222,8 @@ function groupsFromDiscoveredComponents() {
 			items: [
 				...(section === 'designer' ? [
 					{ to: '/designer', label: 'Overview' },
+					{ to: '/designer/canvas', label: 'Canvas', tag: 'New' },
+					{ to: '/designer/frames', label: 'Nested frames' },
 					{ to: '/designer/assembly', label: 'Assembly guide' },
 					{ to: '/designer/flowchart', label: 'Flowchart designer', tag: 'Beta' },
 					{ to: '/designer/social-card', label: 'Social card' },

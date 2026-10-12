@@ -6,6 +6,7 @@ import ThemeToggle from './ThemeToggle.vue';
 import BrandLockup from './BrandLockup.vue';
 import SideNav from './SideNav.vue';
 import { sideNavLinks } from './sideNavLinks.js';
+import { isLibraryActive, isNavigationItemActive, libraryNavigation, pricingLink, primaryNavigation } from './siteNavigation.js';
 import DomPopover from '../components/popover/DomPopover.vue';
 import DomMenuStack from '../components/menu-stack/DomMenuStack.vue';
 import DomStudioFooter from './DomStudioFooter.vue';
@@ -86,17 +87,9 @@ const contentMaxWidthClass = computed(() => (
 		: 'max-w-4xl'
 ));
 
-const topLinks = [
-	{ to: '/ai', label: 'AI', match: '/ai' },
-	{ to: '/components', label: 'Components', match: '/components' },
-	{ to: '/forms', label: 'Forms', match: '/forms' },
-	{ to: '/data', label: 'Data', match: '/data' },
-	{ to: '/charts', label: 'Charts', match: '/charts' },
-	{ to: '/visual/card', label: 'Visual', match: '/visual' },
-	{ to: '/mobile', label: 'Mobile', match: '/mobile' },
-	{ to: '/blocks', label: 'Blocks', match: '/blocks' },
-	{ to: '/headless', label: 'Headless', match: '/headless' },
-];
+const libraryMenu = ref(null);
+const libraryMenuOpen = ref(false);
+const libraryActive = computed(() => isLibraryActive(route.path));
 
 /** Converts sidebar groups into stable nested pages, retaining branch overview links. */
 function menuItems(items, prefix) {
@@ -155,6 +148,7 @@ function toggleSidebar() {
 /** Closes the mobile popover when desktop navigation replaces its trigger. */
 function closeMenuAtDesktopWidth() {
 	if (window.innerWidth >= 1024) mobileMenu.value?.close();
+	else libraryMenu.value?.close();
 }
 
 /**
@@ -185,17 +179,15 @@ function connectDetailsPanelScroll(nextPanel, previousPanel) {
 }
 
 /**
- * Checks whether a top-level navigation item matches the current route.
+ * Checks whether a header navigation item matches the current route.
  *
- * @param {{ exact?: boolean, match?: string, to: string }} link Navigation item.
+ * @param {{ match?: string[], to: string }} link Navigation item.
  * @returns {boolean} Whether the item is active.
  */
 function isTopLinkActive(link) {
 	const component = getComponentRecordByRoute(route.path);
 	if (component && getComponentNavigationSection(component) === 'ai') return link.to === '/ai';
-	return link.exact
-		? route.path === link.to
-		: route.path.startsWith(link.match || link.to);
+	return isNavigationItemActive(link, route.path);
 }
 
 /**
@@ -231,6 +223,7 @@ function runGlobalSearch(event) {
 
 watch(() => route.path, async () => {
 	mobileMenu.value?.close();
+	libraryMenu.value?.close();
 	await nextTick();
 	scrollDetailsToTop();
 	updateStickyHeaderState();
@@ -287,14 +280,39 @@ onBeforeUnmount(() => {
 				</RouterLink>
 				<nav class="hidden min-w-0 items-center gap-1 text-sm lg:flex">
 					<RouterLink
-						v-for="l in topLinks"
+						v-for="l in primaryNavigation"
 						:key="l.to"
 						:to="l.to"
+						:title="l.description"
 						class="rounded-full px-2.5 py-1.5 font-medium transition xl:px-3"
 						:class="isTopLinkActive(l)
 							? 'bg-primary text-primary-fg'
 							: 'text-muted-fg hover:text-canvas-fg'"
 					>{{ l.label }}</RouterLink>
+					<span class="mx-1 h-4 w-px bg-border" aria-hidden="true"></span>
+					<button
+						id="library-menu-trigger"
+						type="button"
+						class="flex items-center gap-1 rounded-full px-2.5 py-1.5 font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 xl:px-3"
+						:class="libraryActive
+							? 'bg-secondary text-canvas-fg'
+							: 'text-muted-fg hover:text-canvas-fg'"
+						:aria-expanded="libraryMenuOpen"
+						aria-controls="library-menu"
+						aria-haspopup="true"
+					>
+						Library
+						<svg viewBox="0 0 24 24" class="size-3.5 transition" :class="libraryMenuOpen && 'rotate-180'" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="m7 10 5 5 5-5" />
+						</svg>
+					</button>
+					<RouterLink
+						:to="pricingLink.to"
+						class="rounded-full px-2.5 py-1.5 font-medium transition xl:px-3"
+						:class="isTopLinkActive(pricingLink)
+							? 'bg-primary text-primary-fg'
+							: 'text-muted-fg hover:text-canvas-fg'"
+					>{{ pricingLink.label }}</RouterLink>
 					<button
 						type="button"
 						class="ml-1 grid size-9 shrink-0 place-items-center rounded-full border border-border bg-secondary text-sm font-medium text-muted-fg transition hover:bg-accent hover:text-accent-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 xl:ml-2 xl:flex xl:w-auto xl:gap-2 xl:px-3"
@@ -369,6 +387,43 @@ onBeforeUnmount(() => {
 				</div>
 			</div>
 		</header>
+
+		<DomPopover
+			ref="libraryMenu"
+			trigger-id="library-menu-trigger"
+			position="bottom-start"
+			:arrow="false"
+			width="w-[min(34rem,calc(100vw-2rem))]"
+			padding="p-0"
+			@open="libraryMenuOpen = true"
+			@close="libraryMenuOpen = false"
+		>
+			<template #default="{ close }">
+				<div id="library-menu" class="grid gap-0 sm:grid-cols-[1.4fr_1fr]">
+					<section
+						v-for="(group, index) in libraryNavigation"
+						:key="group.label"
+						class="p-3"
+						:class="index && 'border-t border-border bg-secondary/40 sm:border-t-0 sm:border-l'"
+					>
+						<h2 class="px-2 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-fg">{{ group.label }}</h2>
+						<ul class="grid gap-0.5">
+							<li v-for="item in group.items" :key="item.to">
+								<RouterLink
+									:to="item.to"
+									class="block rounded-md px-2 py-1.5 transition hover:bg-accent hover:text-accent-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+									:class="isNavigationItemActive(item, route.path) && 'bg-accent text-accent-fg'"
+									@click="close"
+								>
+									<span class="block text-sm font-medium">{{ item.label }}</span>
+									<span class="block text-xs leading-5 text-muted-fg">{{ item.description }}</span>
+								</RouterLink>
+							</li>
+						</ul>
+					</section>
+				</div>
+			</template>
+		</DomPopover>
 
 		<DomPopover
 			ref="mobileMenu"
