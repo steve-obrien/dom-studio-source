@@ -17,6 +17,12 @@ import {
 } from '../../lib/vue';
 import DomPropDefinitionInput from './editors/DomPropDefinitionInput.vue';
 import DomValidatorInput from './editors/DomValidatorInput.vue';
+// Imported from source rather than the package index, which can still be loading when the inspector first imports this file.
+import DomBackgroundEditor from '../../designer/background-editor/DomBackgroundEditor.vue';
+import DomBorderEditor from '../../designer/border-editor/DomBorderEditor.vue';
+import DomShadowEditor from '../../designer/shadow-editor/DomShadowEditor.vue';
+import DomBackdropEditor from '../../designer/backdrop-editor/DomBackdropEditor.vue';
+import DomColorSwatch from '../../designer/color-swatch/DomColorSwatch.vue';
 
 // Editor components are referenced by their actual component name in spec
 // schemas (e.g. `_edit: { component: 'DomSelectInput' }`). The indirection keeps
@@ -42,6 +48,17 @@ const editors = {
 	DomIconSelector: markRaw(DomIconSelector),
 	DomPropDefinitionInput: markRaw(DomPropDefinitionInput),
 	DomValidatorInput: markRaw(DomValidatorInput),
+	// Designer material editors, so `_edit: { component: 'background' }` works on any prop.
+	DomBackgroundEditor: markRaw(DomBackgroundEditor),
+	DomBorderEditor: markRaw(DomBorderEditor),
+	DomShadowEditor: markRaw(DomShadowEditor),
+	DomBackdropEditor: markRaw(DomBackdropEditor),
+	DomColorSwatch: markRaw(DomColorSwatch),
+	background: markRaw(DomBackgroundEditor),
+	border: markRaw(DomBorderEditor),
+	shadow: markRaw(DomShadowEditor),
+	backdrop: markRaw(DomBackdropEditor),
+	color: markRaw(DomColorSwatch),
 };
 
 /**

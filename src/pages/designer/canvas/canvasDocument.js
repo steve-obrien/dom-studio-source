@@ -3,18 +3,18 @@ import { parse as parseSfc } from '@vue/compiler-sfc';
 import { createFrameNode, flattenFrames, frameNodeStyle, isFrameNode } from '../frames/frameDocument.js';
 
 /**
- * Canvas document model.
+ * Vue template parsing and serialisation.
  *
- * A canvas holds Vue files, and artboards that render those files at a given
- * width. Several artboards can point at the same file, so a desktop and a
- * mobile artboard are two live views of one component rather than two copies.
+ * The canvas edits editor documents (`../core/editorDocument.js`); the Vue
+ * adapter (`../core/vueAdapter.js`) converts between them and the nested
+ * nodes this file parses and prints. It also reads the first saved canvas
+ * format, which stored these nested nodes directly.
  *
  * Nodes extend the frame designer's node shape (`tag`, `attrs`, `style`,
  * `layout`, `placements`, `children`) with what a Vue template needs:
  *
  * - `component: true` marks a Vue component tag such as `DomDataGrid`.
- * - `bindings` holds `:prop="expression"` pairs. Literal expressions render in
- *   the preview; anything else is kept for export and shown in the inspector.
+ * - `bindings` holds `:prop="expression"` pairs, kept as written.
  * - `directives` holds the remaining attributes verbatim (`v-if`, `v-for`,
  *   `@click`, `v-model`, `#slot`), so a file round-trips without the designer
  *   needing to understand every directive.
@@ -189,96 +189,6 @@ export function toTemplateLiteral(value) {
 	return String(value);
 }
 
-/**
- * Evaluates a binding only when it is a plain literal. Identifiers, calls and
- * operators return `matched: false` and are omitted from the preview.
- *
- * @param {string} expression Vue binding expression.
- * @returns {{ matched: boolean, value?: unknown }} Literal value when safe.
- */
-const literalCache = new Map();
-
-export function literalBindingValue(expression) {
-	const source = String(expression || '').trim();
-	// Cached so re-renders pass the same array/object to components instead of a fresh copy.
-	if (literalCache.has(source)) return literalCache.get(source);
-	const result = evaluateLiteral(source);
-	if (literalCache.size > 500) literalCache.clear();
-	literalCache.set(source, result);
-	return result;
-}
-
-/** Uncached literal evaluation behind literalBindingValue. */
-function evaluateLiteral(source) {
-	if (source === 'true' || source === 'false') return { matched: true, value: source === 'true' };
-	if (source === 'null') return { matched: true, value: null };
-	if (/^-?\d+(?:\.\d+)?$/.test(source)) return { matched: true, value: Number(source) };
-	if (!/^[[{'"]/.test(source)) return { matched: false };
-	try {
-		return { matched: true, value: parseLiteral(source) };
-	} catch {
-		return { matched: false };
-	}
-}
-
-/**
- * A small recursive-descent parser for JS object/array/string/number literals.
- * It replaces `new Function` so imported files never execute.
- */
-function parseLiteral(source) {
-	let index = 0;
-	const fail = () => { throw new Error('Not a literal'); };
-	const space = () => { while (/\s/.test(source[index] || '')) index++; };
-	function string() {
-		const quote = source[index++];
-		let out = '';
-		while (index < source.length && source[index] !== quote) {
-			if (source[index] === '\\') { index++; out += { n: '\n', t: '\t' }[source[index]] ?? source[index]; index++; continue; }
-			out += source[index++];
-		}
-		if (source[index++] !== quote) fail();
-		return out;
-	}
-	function value() {
-		space();
-		const char = source[index];
-		if (char === '"' || char === "'") return string();
-		if (char === '[') {
-			index++;
-			const list = [];
-			space();
-			while (source[index] !== ']') { list.push(value()); space(); if (source[index] === ',') { index++; space(); } else if (source[index] !== ']') fail(); }
-			index++;
-			return list;
-		}
-		if (char === '{') {
-			index++;
-			const object = {};
-			space();
-			while (source[index] !== '}') {
-				let key;
-				if (source[index] === '"' || source[index] === "'") key = string();
-				else { const match = /^[A-Za-z_$][\w$]*/.exec(source.slice(index)); if (!match) fail(); key = match[0]; index += key.length; }
-				if (['__proto__', 'constructor', 'prototype'].includes(key)) fail();
-				space(); if (source[index++] !== ':') fail();
-				object[key] = value();
-				space();
-				if (source[index] === ',') { index++; space(); } else if (source[index] !== '}') fail();
-			}
-			index++;
-			return object;
-		}
-		const match = /^(?:-?\d+(?:\.\d+)?|true|false|null)/.exec(source.slice(index));
-		if (!match) fail();
-		index += match[0].length;
-		return JSON.parse(match[0]);
-	}
-	const result = value();
-	space();
-	if (index !== source.length) fail();
-	return result;
-}
-
 /** Escapes text for a Vue template; interpolation braces are escaped so text stays text. */
 function encodeText(value) {
 	return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\{\{/g, '{<!-- -->{');
@@ -356,18 +266,6 @@ export function buildVueFile(file, isStudioComponent = () => true) {
 	return [script, `<template>\n${template}\n</template>`, file.style].filter(Boolean).join('\n\n') + '\n';
 }
 
-/** Deep-clones a subtree with fresh ids, so duplicates stay independently selectable. */
-export function cloneWithNewIds(node) {
-	const copy = JSON.parse(JSON.stringify(node));
-	for (const { node: item } of flattenFrames(copy)) item.id = canvasId();
-	return copy;
-}
-
-/** Finds a node and its parent within a file. */
-export function findNode(root, id) {
-	return flattenFrames(root).find(({ node }) => node.id === id) || null;
-}
-
 /** Literal class tokens for the on-demand Tailwind compiler. */
 export function canvasTailwindContent(files) {
 	const tokens = new Set();
@@ -418,17 +316,3 @@ const metrics = [
 </template>
 `;
 
-/** Creates the starter canvas: one Vue file viewed at desktop and mobile widths. */
-export function createCanvasDemo() {
-	const { file } = importVueFile(sampleVueFile, 'ProjectOverview.vue');
-	// Stable ids keep server render and hydration aligned for the starter document.
-	flattenFrames(file.root).forEach(({ node }, index) => { node.id = `canvas-demo-${index}`; });
-	file.id = 'canvas-demo-file';
-	return {
-		files: [file],
-		artboards: [
-			{ id: 'canvas-demo-desktop', fileId: file.id, name: 'Desktop', x: 0, y: 0, width: 1200, height: 760 },
-			{ id: 'canvas-demo-mobile', fileId: file.id, name: 'Mobile', x: 1280, y: 0, width: 390, height: 760 },
-		],
-	};
-}
