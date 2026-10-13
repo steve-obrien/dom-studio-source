@@ -5815,7 +5815,7 @@ export const componentCatalog = [
 		"route": "/designer/frame",
 		"doc": {
 			"name": "Frame layout editor",
-			"description": "Controlled layout settings for flow, flex, grid and absolute frames."
+			"description": "Compact, Figma-style layout settings for flow, flex, grid and absolute frames: mode, direction, a 3×3 alignment pad, gap and per-side padding."
 		},
 		"studio": {}
 	},

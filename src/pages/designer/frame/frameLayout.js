@@ -1,13 +1,27 @@
 export const frameModes = ['flow', 'flex', 'grid', 'absolute'];
+export const paddingSides = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft'];
 
-/** Creates independent layout settings; positioning in a parent is deliberately separate. */
+function length(value, fallback = 0) {
+	return Number.isFinite(Number(value)) && value !== '' && value !== null ? Math.max(0, Number(value)) : fallback;
+}
+
+/**
+ * Creates independent layout settings; positioning in a parent is deliberately separate.
+ *
+ * `padding` sets every side; `paddingTop`, `paddingRight`, `paddingBottom` and
+ * `paddingLeft` override one side each. `padding` stays equal to the top side so
+ * older readers keep a sensible single value.
+ */
 export function createFrameLayout(value = {}) {
+	const padding = length(value.padding);
+	const sides = Object.fromEntries(paddingSides.map((side) => [side, length(value[side], padding)]));
 	return {
 		mode: frameModes.includes(value.mode) ? value.mode : 'flow',
 		direction: ['row', 'column', 'row-reverse', 'column-reverse'].includes(value.direction) ? value.direction : 'row',
 		wrap: value.wrap === 'wrap' ? 'wrap' : 'nowrap',
 		gap: Number.isFinite(Number(value.gap)) ? Math.max(0, Number(value.gap)) : 0,
-		padding: Number.isFinite(Number(value.padding)) ? Math.max(0, Number(value.padding)) : 0,
+		padding: sides.paddingTop,
+		...sides,
 		justify: ['start', 'center', 'end', 'space-between', 'space-around', 'space-evenly'].includes(value.justify) ? value.justify : 'start',
 		align: ['start', 'center', 'end', 'stretch', 'baseline'].includes(value.align) ? value.align : 'stretch',
 		justifyItems: ['start', 'center', 'end', 'stretch'].includes(value.justifyItems) ? value.justifyItems : 'stretch',
@@ -24,7 +38,7 @@ export function frameLayoutStyle(value = {}) {
 		position: 'relative',
 		boxSizing: 'border-box',
 		display: layout.mode === 'flex' || layout.mode === 'grid' ? layout.mode : 'block',
-		padding: `${layout.padding}px`,
+		padding: paddingSides.map((side) => `${layout[side]}px`).join(' '),
 		gap: `${layout.gap}px`,
 		flexDirection: layout.direction,
 		flexWrap: layout.wrap,
@@ -45,7 +59,8 @@ export function readFrameLayout(element) {
 	return createFrameLayout({
 		mode: css.display.includes('flex') ? 'flex' : css.display.includes('grid') ? 'grid' : absolute ? 'absolute' : 'flow',
 		direction: css.flexDirection, wrap: css.flexWrap,
-		gap: parseFloat(css.gap), padding: parseFloat(css.paddingTop),
+		gap: parseFloat(css.gap),
+		paddingTop: parseFloat(css.paddingTop), paddingRight: parseFloat(css.paddingRight), paddingBottom: parseFloat(css.paddingBottom), paddingLeft: parseFloat(css.paddingLeft),
 		justify: css.justifyContent.replace('flex-', ''), align: css.alignItems.replace('flex-', ''),
 		justifyItems: css.justifyItems, autoFlow: css.gridAutoFlow,
 		columns: css.gridTemplateColumns === 'none' ? undefined : css.gridTemplateColumns,
@@ -66,15 +81,19 @@ export function measureFrameChild(element, frame) {
 	};
 }
 
-/** Aligns a child against its frame's padded inner bounds. */
+/**
+ * Aligns a child against its frame's padded inner bounds. `padding` is one
+ * number for every side, or a frame layout with per-side padding.
+ */
 export function alignFrameChild(rect, bounds, alignment, padding = 0) {
 	const next = { ...rect };
-	if (alignment === 'left') next.left = padding;
+	const inset = typeof padding === 'object' && padding ? createFrameLayout(padding) : createFrameLayout({ padding });
+	if (alignment === 'left') next.left = inset.paddingLeft;
 	if (alignment === 'center') next.left = (bounds.width - rect.width) / 2;
-	if (alignment === 'right') next.left = bounds.width - padding - rect.width;
-	if (alignment === 'top') next.top = padding;
+	if (alignment === 'right') next.left = bounds.width - inset.paddingRight - rect.width;
+	if (alignment === 'top') next.top = inset.paddingTop;
 	if (alignment === 'middle') next.top = (bounds.height - rect.height) / 2;
-	if (alignment === 'bottom') next.top = bounds.height - padding - rect.height;
+	if (alignment === 'bottom') next.top = bounds.height - inset.paddingBottom - rect.height;
 	return next;
 }
 

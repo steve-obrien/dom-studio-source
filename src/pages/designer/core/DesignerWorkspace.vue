@@ -5,6 +5,9 @@ import { alignFrameChild, createFrameLayout, measureFrameChild, readFrameLayout 
 import { isFrameNode } from '../frames/frameDocument.js';
 import { componentType, createEditorTypes, studioComponentEntries } from './componentTypes.js';
 import NodeInspector from './NodeInspector.vue';
+import InspectorIcon from '../_shared/InspectorIcon.vue';
+import ScrubField from '../_shared/ScrubField.vue';
+import AlignTools from '../stage/AlignTools.vue';
 import { copySubtree, fromTree, subtreeIds } from './editorDocument.js';
 import { EditorRender } from './EditorRender.js';
 import { createHistory } from './history.js';
@@ -145,6 +148,8 @@ const textChild = computed(() => {
 });
 const layout = computed(() => active.value?.layout || detected.value[selected.value] || createFrameLayout());
 const parentMode = computed(() => parent.value?.layout?.mode || detected.value[parent.value?.id]?.mode || 'flow');
+const parentLayout = computed(() => (parent.value ? parent.value.layout || detected.value[parent.value.id] || createFrameLayout() : null));
+const sizingModes = [{ value: 'auto', label: 'Auto' }, { value: 'fixed', label: 'Fixed' }, { value: 'hug', label: 'Hug' }, { value: 'fill', label: 'Fill' }];
 const layers = computed(() => (doc.value ? [layer(doc.value.rootId)] : []));
 const mappedSource = computed(() => (activeFile.value ? exportMappedVue(activeFile.value, isStudioComponent) : { source: '', ranges: {} }));
 const fileSource = computed(() => mappedSource.value.source);
@@ -159,10 +164,17 @@ const insertableComponents = computed(() => {
 });
 const geometry = computed(() => {
 	if (active.value?.placements?.absolute) return active.value.placements.absolute;
+	// Detection reruns after every render, so measured sizes follow edits.
+	detected.value;
+	return measureSelection();
+});
+
+/** Measures the selection in its parent frame's coordinates. */
+function measureSelection() {
 	const element = activeViewport()?.element(selected.value);
 	const host = activeViewport()?.element(parent.value?.id);
 	return element && host ? measureFrameChild(element, host) : {};
-});
+}
 
 function fileById(id) { return workspace.value.files.find((file) => file.id === id) || null; }
 function tagOf(node) { return types.get(node.type)?.tag || node.type.split(':').pop(); }
@@ -394,18 +406,91 @@ function align(alignment) {
 	const element = view?.element(host?.id);
 	const child = view?.element(selected.value);
 	if (!element || !child) return;
-	const rect = alignFrameChild(measureFrameChild(child, element), { width: element.clientWidth, height: element.clientHeight }, alignment, (host.layout || detected.value[host.id])?.padding);
+	const rect = alignFrameChild(measureFrameChild(child, element), { width: element.clientWidth, height: element.clientHeight }, alignment, host.layout || detected.value[host.id]);
 	run([...adoptOperations(host.id), onFile({ op: 'setField', id: active.value.id, key: 'placements', value: { ...(active.value.placements || {}), absolute: rect } })]);
 }
 
-/** Sets a CSS length on the selection, rejecting values that are not valid CSS. */
+/** Replaces the selection's inline style; an empty style is removed. */
+function writeStyle(style, merge) {
+	run(onFile({ op: 'setField', id: active.value.id, key: 'style', value: Object.keys(style).length ? style : undefined }), { merge });
+}
+
+/** Whether a CSS length is safe to write inline. */
+function validLength(key, value) {
+	return CSS.supports(key, value) && !/url|expression|[;{}]/i.test(value);
+}
+
+/** Sets a CSS length on the selection, rejecting values that are not valid CSS. Numbers are pixels. */
 function setSize(key, value) {
-	const clean = String(value).trim();
-	if (clean && (!CSS.supports(key, clean) || /url|expression|[;{}]/i.test(clean))) return;
+	const clean = typeof value === 'number' ? `${value}px` : String(value).trim();
+	if (clean && !validLength(key, clean)) return;
 	const style = { ...(active.value.style || {}) };
 	if (clean) style[key] = clean;
 	else delete style[key];
-	run(onFile({ op: 'setField', id: active.value.id, key: 'style', value: Object.keys(style).length ? style : undefined }), { merge: `size:${active.value.id}:${key}` });
+	writeStyle(style, `size:${active.value.id}:${key}`);
+}
+
+/** Whether `width` or `height` runs along the parent's flex direction. */
+function mainAxis(key) {
+	return parentMode.value === 'flex' && (key === 'width') === !parentLayout.value.direction.startsWith('column');
+}
+
+/** Figma-style sizing of the selection along one axis: fixed, hug contents, fill the parent, or left to classes. */
+function sizing(key) {
+	const style = active.value?.style || {};
+	const value = style[key] || '';
+	if (mainAxis(key) && /^1(\s|$)/.test(style.flex || '')) return 'fill';
+	if (parentMode.value === 'flex' && !mainAxis(key) && style['align-self'] === 'stretch') return 'fill';
+	if (value === '100%') return 'fill';
+	if (value === 'fit-content' || (!value && mainAxis(key) && style.flex === 'none')) return 'hug';
+	if (/^-?[\d.]+px$/.test(value)) return 'fixed';
+	return 'auto';
+}
+
+/** Clears the inline rules that size one axis, including flex grow and cross-axis stretch. */
+function clearAxis(style, key) {
+	delete style[key];
+	if (mainAxis(key)) {
+		delete style.flex;
+		delete style[key === 'width' ? 'min-width' : 'min-height'];
+	} else if (parentMode.value === 'flex') delete style['align-self'];
+	return style;
+}
+
+/** Switches one axis between auto, fixed, hug and fill, keeping the current size when fixing it. */
+function setSizing(key, mode) {
+	const style = clearAxis({ ...(active.value.style || {}) }, key);
+	const main = mainAxis(key);
+	if (mode === 'fixed') {
+		style[key] = `${Math.round(measureSelection()[key] || 0)}px`;
+		if (main) style.flex = 'none';
+	} else if (mode === 'hug') {
+		if (main) style.flex = 'none';
+		else style[key] = 'fit-content';
+	} else if (mode === 'fill') {
+		if (main) Object.assign(style, { flex: '1 1 0%', [key === 'width' ? 'min-width' : 'min-height']: '0px' });
+		else if (parentMode.value === 'flex') style['align-self'] = 'stretch';
+		else style[key] = '100%';
+	}
+	writeStyle(style, `sizing:${active.value.id}:${key}`);
+}
+
+/** Typing a width or height fixes that axis at the value. */
+function setDimension(key, value) {
+	const clean = typeof value === 'number' ? `${Math.max(0, value)}px` : String(value).trim();
+	if (clean && !validLength(key, clean)) return;
+	const style = clearAxis({ ...(active.value.style || {}) }, key);
+	if (clean) {
+		style[key] = clean;
+		if (mainAxis(key)) style.flex = 'none';
+	}
+	writeStyle(style, `size:${active.value.id}:${key}`);
+}
+
+/** Inline CSS lengths shown as plain numbers when they are pixels. */
+function lengthValue(value) {
+	const text = String(value || '');
+	return /^-?[\d.]+px$/.test(text) ? parseFloat(text) : text;
 }
 
 /* Structure ---------------------------------------------------------------------- */
@@ -437,6 +522,10 @@ function remove() {
 	const host = parent.value.id;
 	run(onFile({ op: 'remove', id: selected.value }));
 	selected.value = host;
+}
+
+function selectParent() {
+	if (parent.value) selected.value = parent.value.id;
 }
 
 /** Duplicates the selection next to itself with fresh ids. */
@@ -997,47 +1086,58 @@ onBeforeUnmount(() => {
 				</aside>
 			</section>
 
-			<aside class="order-3 min-h-0 space-y-5 border-t border-border p-4 lg:order-none lg:overflow-auto lg:border-t-0 lg:border-l">
+			<aside class="order-3 min-h-0 border-t border-border text-xs lg:order-none lg:overflow-auto lg:border-t-0 lg:border-l">
 				<template v-if="active && activeType">
-					<div>
-						<p class="text-xs text-muted-fg">{{ activeType.adapter === 'vue' ? (activeType.placeholder ? 'Local Vue component' : `Vue component · ${activeType.label}`) : isFrame(active) ? 'Frame' : activeType.label }}</p>
-						<h2 class="mt-0.5 font-mono text-sm font-semibold">&lt;{{ activeType.tag }}&gt;</h2>
-						<p class="mt-1 text-xs text-muted-fg">{{ parent ? `Inside ${parent.label || tagOf(parent)} · ${parentMode}` : 'File root' }}</p>
-					</div>
-					<div v-if="active.directives?.length" class="space-y-1">
-						<p class="text-xs font-medium">Template logic</p>
+					<header class="flex items-start justify-between gap-2 border-b border-border px-4 py-3">
+						<div class="min-w-0">
+							<p class="truncate text-[11px] text-muted-fg">{{ activeType.adapter === 'vue' ? (activeType.placeholder ? 'Local Vue component' : `Vue component · ${activeType.label}`) : isFrame(active) ? 'Frame' : activeType.label }}</p>
+							<h2 class="mt-0.5 truncate font-mono text-sm font-semibold">&lt;{{ activeType.tag }}&gt;</h2>
+							<p class="mt-0.5 truncate text-[11px] text-muted-fg">{{ parent ? `Inside ${parent.label || tagOf(parent)} · ${parentMode}` : 'File root' }}</p>
+						</div>
+						<div v-if="parent" class="-mr-1.5 flex shrink-0 items-center" role="toolbar" aria-label="Layer actions">
+							<button v-for="action in [{ icon: 'parent', label: 'Select parent', run: selectParent }, { icon: 'up', label: 'Move earlier', run: () => reorder(-1) }, { icon: 'down', label: 'Move later', run: () => reorder(1) }, { icon: 'duplicate', label: 'Duplicate (⌘D)', run: duplicate }, { icon: 'trash', label: 'Delete', run: remove }]" :key="action.icon" type="button" class="grid size-7 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg" :class="action.icon === 'trash' && 'hover:text-destructive'" :aria-label="action.label" :title="action.label" @click="action.run()"><InspectorIcon :name="action.icon" /></button>
+						</div>
+					</header>
+
+					<section v-if="parent && parentMode === 'absolute'" class="space-y-2 border-b border-border px-4 py-3">
+						<div class="flex items-center justify-between gap-2">
+							<h3 class="text-[11px] font-semibold">Position</h3>
+							<AlignTools target="frame" class="-mr-1.5" @align="align" />
+						</div>
+						<div class="grid grid-cols-2 gap-1.5">
+							<ScrubField v-for="item in [{ key: 'left', prefix: 'X' }, { key: 'top', prefix: 'Y' }, { key: 'width', prefix: 'W' }, { key: 'height', prefix: 'H' }]" :key="item.key" :prefix="item.prefix" :label="{ left: 'X position', top: 'Y position', width: 'Width', height: 'Height' }[item.key]" :min="['width', 'height'].includes(item.key) ? 16 : null" :model-value="Math.round(geometry[item.key] ?? 0)" @update:model-value="setGeometry(item.key, $event)" />
+						</div>
+					</section>
+					<section v-else-if="parent" class="space-y-2 border-b border-border px-4 py-3">
+						<h3 class="text-[11px] font-semibold">Size</h3>
+						<div v-for="key in ['width', 'height']" :key="key" class="grid grid-cols-[minmax(0,1fr)_5.5rem] gap-1.5">
+							<ScrubField :prefix="key === 'width' ? 'W' : 'H'" :label="key === 'width' ? 'Width' : 'Height'" css :min="0" :model-value="lengthValue(active.style?.[key])" :placeholder="geometry[key] ? String(Math.round(geometry[key])) : 'Auto'" @update:model-value="setDimension(key, $event)" />
+							<select class="h-7 w-full min-w-0 rounded-md border-0 bg-secondary/60 px-2 text-xs text-canvas-fg outline-none ring-inset hover:ring-1 hover:ring-border focus:ring-1 focus:ring-primary" :value="sizing(key)" :aria-label="`${key === 'width' ? 'Width' : 'Height'} sizing`" :title="{ auto: 'Auto: classes and content decide', fixed: 'Fixed: an exact size', hug: 'Hug: shrink to the content', fill: 'Fill: take the space the parent gives' }[sizing(key)]" @change="setSizing(key, $event.target.value)">
+								<option v-for="mode in sizingModes" :key="mode.value" :value="mode.value">{{ mode.label }}</option>
+							</select>
+						</div>
+						<div class="grid grid-cols-2 gap-1.5 pt-1">
+							<ScrubField v-for="key in ['margin-top', 'margin-bottom']" :key="key" :prefix="key === 'margin-top' ? '↑' : '↓'" :label="key === 'margin-top' ? 'Top margin' : 'Bottom margin'" css :model-value="lengthValue(active.style?.[key])" placeholder="Margin" @update:model-value="setSize(key, $event)" />
+						</div>
+					</section>
+
+					<section v-if="isFrame(active)" class="space-y-2 border-b border-border px-4 py-3">
+						<DomFrameLayoutEditor :key="active.id" title="Layout" :model-value="layout" @update:model-value="setLayout" />
+						<p v-if="!active.layout" class="text-[11px] leading-4 text-muted-fg">Read from the HTML at {{ activeArtboard?.width }}px. Changing a control adds an explicit override.</p>
+					</section>
+
+					<section v-if="active.directives?.length" class="space-y-1.5 border-b border-border px-4 py-3">
+						<h3 class="text-[11px] font-semibold">Template logic</h3>
 						<ul class="flex flex-wrap gap-1"><li v-for="source in active.directives" :key="source" class="rounded bg-secondary px-1.5 py-0.5 font-mono text-[11px]">{{ source }}</li></ul>
 						<p class="text-[11px] leading-4 text-muted-fg">Kept on export. Data view runs lists and conditions on preview data; Variables view shows every branch and one item of each list.</p>
-					</div>
-					<NodeInspector v-if="textChild" :key="`text-${textChild.id}`" :node="textChild" :type="types.get('text')" :data="previews[activeFile.id]" @set-prop="setProp(textChild.id, $event)" />
-					<NodeInspector :key="active.id" :node="active" :type="activeType" :data="previews[activeFile.id]" @set-prop="setProp(active.id, $event)" />
-
-					<section v-if="isFrame(active)" class="space-y-3 border-t border-border pt-4">
-						<h3 class="text-sm font-semibold">Layout</h3>
-						<p v-if="!active.layout" class="text-xs leading-5 text-muted-fg">Read from the HTML at {{ activeArtboard?.width }}px. Changing a control adds an explicit override.</p>
-						<DomFrameLayoutEditor :model-value="layout" @update:model-value="setLayout" />
 					</section>
-
-					<section v-if="parent && parentMode === 'absolute'" class="space-y-3 border-t border-border pt-4">
-						<h3 class="text-sm font-semibold">Position in frame</h3>
-						<div class="grid grid-cols-2 gap-2"><DomNumberInput v-for="key in ['left', 'top', 'width', 'height']" :key="key" :label="key" :model-value="Math.round(geometry[key] ?? 0)" @update:model-value="setGeometry(key, $event)" /></div>
-						<div class="grid grid-cols-3 gap-1"><DomButton v-for="edge in ['left', 'center', 'right', 'top', 'middle', 'bottom']" :key="edge" size="sm" variant="secondary" :aria-label="`Align ${edge}`" @click="align(edge)">{{ edge }}</DomButton></div>
-					</section>
-					<section v-else-if="parent" class="space-y-3 border-t border-border pt-4">
-						<h3 class="text-sm font-semibold">Size and spacing</h3>
-						<div class="grid grid-cols-2 gap-2"><DomTextInput v-for="key in ['width', 'height', 'margin-top', 'margin-bottom']" :key="key" :label="key" :model-value="active.style?.[key] || ''" placeholder="From classes" @update:model-value="setSize(key, $event)" /></div>
-					</section>
-
-					<div v-if="parent" class="flex flex-wrap gap-1.5 border-t border-border pt-4">
-						<DomButton size="sm" variant="secondary" @click="selected = parent.id">Select parent</DomButton>
-						<DomButton size="sm" variant="secondary" @click="reorder(-1)">Earlier</DomButton>
-						<DomButton size="sm" variant="secondary" @click="reorder(1)">Later</DomButton>
-						<DomButton size="sm" variant="secondary" title="⌘D" @click="duplicate">Duplicate</DomButton>
-						<DomButton size="sm" variant="danger" @click="remove">Delete</DomButton>
+					<div class="space-y-5 px-4 py-3">
+						<NodeInspector v-if="textChild" :key="`text-${textChild.id}`" :node="textChild" :type="types.get('text')" :data="previews[activeFile.id]" @set-prop="setProp(textChild.id, $event)" />
+						<NodeInspector :key="active.id" :node="active" :type="activeType" :data="previews[activeFile.id]" @set-prop="setProp(active.id, $event)" />
 					</div>
 				</template>
 
-				<template v-else-if="activeArtboard">
+				<div v-else-if="activeArtboard" class="space-y-5 p-4">
 					<div>
 						<p class="text-xs text-muted-fg">Artboard</p>
 						<h2 class="mt-0.5 font-semibold">{{ activeArtboard.name }}</h2>
@@ -1056,7 +1156,7 @@ onBeforeUnmount(() => {
 						<DomButton size="sm" variant="secondary" :disabled="artboards.length < 2" @click="removeArtboard(activeArtboard)">Remove artboard</DomButton>
 						<DomButton size="sm" variant="ghost" @click="resetDemo">Reset canvas</DomButton>
 					</div>
-				</template>
+				</div>
 			</aside>
 		</div>
 	</div>

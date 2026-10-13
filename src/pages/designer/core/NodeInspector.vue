@@ -89,7 +89,7 @@ function addProp() {
 <template>
 	<fieldset :disabled="disabled" class="min-w-0 space-y-5 disabled:opacity-50">
 		<section v-for="[group, fields] in groups" :key="group" class="grid grid-cols-2 gap-3">
-			<h3 class="col-span-2 text-xs font-semibold uppercase tracking-wide text-muted-fg">{{ group }}</h3>
+			<h3 class="col-span-2 text-[11px] font-semibold">{{ group }}</h3>
 			<div v-for="field in fields" :key="field.key" class="group/field relative min-w-0" :class="field.half ? 'col-span-1' : 'col-span-2'">
 				<div v-if="isExpr(node.props[field.key])" class="flex items-end gap-1.5">
 					<DomTextInput
@@ -114,7 +114,7 @@ function addProp() {
 		</section>
 
 		<section v-if="extraProps && node.type !== 'text'" class="space-y-2">
-			<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-fg">{{ otherProps.length ? 'Other props' : 'Add a prop' }}</h3>
+			<h3 class="text-[11px] font-semibold">{{ otherProps.length ? 'Other props' : 'Add a prop' }}</h3>
 			<div v-for="[key, value] in otherProps" :key="key" class="flex items-end gap-1.5">
 				<DomTextInput
 					class="min-w-0 flex-1"

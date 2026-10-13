@@ -141,7 +141,7 @@ function align(alignment) {
 	if (!element || !child) return;
 	commitHistory();
 	if (!host.layout) { captureChildren(host); host.layout = detected.value[host.id]; }
-	active.value.placements.absolute = alignFrameChild(measureFrameChild(child, element), { width: element.clientWidth, height: element.clientHeight }, alignment, host.layout.padding);
+	active.value.placements.absolute = alignFrameChild(measureFrameChild(child, element), { width: element.clientWidth, height: element.clientHeight }, alignment, host.layout);
 	commitHistory();
 }
 /** Applies a chosen gap to immediate children of the selected absolute frame. */
