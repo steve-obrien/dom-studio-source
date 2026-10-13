@@ -289,6 +289,61 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "components/desktop-layout",
+		"path": "../components/desktop-layout/DomDesktopLayout.vue",
+		"section": "components",
+		"slug": "desktop-layout",
+		"exportName": "DomDesktopLayout",
+		"route": "/components/desktop-layout",
+		"doc": {
+			"name": "Desktop layout",
+			"tag": "<DomDesktopLayout>",
+			"description": "A minimal desktop workspace with a controlled pinned app rail, hover shortcuts, an optional sidebar, and an independent stage.",
+			"slots": [
+				{
+					"name": "titlebar",
+					"description": "Optional native host title bar. The host owns window controls and drag regions."
+				},
+				{
+					"name": "sidebar",
+					"payload": "{ app, close }",
+					"description": "App-specific navigation; placed left or right and shown as an overlay on mobile."
+				},
+				{
+					"name": "(default)",
+					"payload": "{ app }",
+					"description": "The active app workspace. The application owns state retention and routing."
+				},
+				{
+					"name": "rail-footer",
+					"description": "Account or settings actions at the bottom of the rail."
+				}
+			],
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "string",
+					"description": "Selected app ID."
+				},
+				{
+					"name": "shortcut",
+					"payload": "{ appId, item }",
+					"description": "An app submenu entry was selected."
+				},
+				{
+					"name": "update:sidebarSize",
+					"payload": "number",
+					"description": "Sidebar width in pixels after pointer or keyboard resizing."
+				},
+				{
+					"name": "manage-apps",
+					"description": "Open application-owned installation and pinning controls."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "components/dialog",
 		"path": "../components/dialog/DomDialog.vue",
 		"section": "components",

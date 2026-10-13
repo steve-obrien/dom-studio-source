@@ -1874,6 +1874,10 @@ export interface DomSplitterPanelProps {
 	 */
 	orientation?: "horizontal" | "vertical";
 	/**
+	 * Place the leading pane on the right in horizontal layouts; pointer and keyboard resizing follow its physical edge.
+	 */
+	reverse?: boolean;
+	/**
 	 * Initial width or height of the leading pane in pixels.
 	 */
 	startSize?: number;
@@ -2583,6 +2587,18 @@ export declare const DomKanban: DomComponent<DomKanbanProps>;
 
 /** MonthCalendarCell, MonthCalendarMonth, MonthCalendarDragState, MonthCalendarDayDragPayload payload types are exported from this module. */
 export interface DomMonthCalendarProps {
+	/**
+	 * Flush removes the grid side borders and rounding so a parent frame supplies the outer edges.
+	 */
+	layout?: "card" | "flush";
+	/**
+	 * Horizontal padding for flush headings and outer cell edges, such as px-4 sm:px-6. Match the parent padding; ignored in card layout.
+	 */
+	gutterClass?: string;
+	/**
+	 * Keep the bottom border in flush layout. Disable when the parent frame supplies it. Card layout always keeps its border.
+	 */
+	bottomBorder?: boolean;
 	/**
 	 * First date in the rendered range as YYYY-MM-DD. The first month starts on the week containing this date.
 	 */
@@ -7997,6 +8013,34 @@ export interface DomBackdropEditorProps {
 	title?: string;
 }
 export declare const DomBackdropEditor: DomComponent<DomBackdropEditorProps>;
+
+export interface DomDesktopLayoutProps {
+	modelValue?: string;
+	/**
+	 * Ordered pinned apps: unique id, label, SVG path icon, optional items with id and label.
+	 */
+	apps?: Array<unknown>;
+	/**
+	 * Use 100% only inside a parent with an explicit height.
+	 */
+	height?: string;
+	/**
+	 * Which side of the workspace contains app navigation.
+	 */
+	sidebarPosition?: "left" | "right";
+	/**
+	 * Compact overlay width as a CSS length.
+	 */
+	sidebarWidth?: string;
+	/**
+	 * Desktop sidebar width in pixels. Bind v-model:sidebarSize to save user resizing.
+	 */
+	sidebarSize?: number;
+	minSidebarSize?: number;
+	minWorkspaceSize?: number;
+	showSidebar?: boolean;
+}
+export declare const DomDesktopLayout: DomComponent<DomDesktopLayoutProps>;
 
 export declare const popoverProps: DomRuntimeProps;
 export declare const calendarProps: DomRuntimeProps;

@@ -104,6 +104,21 @@
  */
 
 export const monthCalendarProps = {
+	layout: {
+		type: String,
+		default: 'card',
+		_edit: { options: ['card', 'flush'], description: 'Flush removes the grid side borders and rounding so a parent frame supplies the outer edges.' },
+	},
+	gutterClass: {
+		type: String,
+		default: 'px-3',
+		_edit: { description: 'Horizontal padding for flush headings and outer cell edges, such as px-4 sm:px-6. Match the parent padding; ignored in card layout.' },
+	},
+	bottomBorder: {
+		type: Boolean,
+		default: true,
+		_edit: { description: 'Keep the bottom border in flush layout. Disable when the parent frame supplies it. Card layout always keeps its border.' },
+	},
 	startDate: {
 		type: String,
 		default: '',
@@ -1541,6 +1556,7 @@ function onDayClick(cell, event) {
 	<div
 		ref="calendarRoot"
 		class="dom-month-calendar @container w-full min-w-0 space-y-10"
+		:data-layout="layout"
 	>
 		<section
 			v-for="section in calendarSections"
@@ -1550,6 +1566,7 @@ function onDayClick(cell, event) {
 			<div
 				v-if="section.continuous && stickyMonthHeaders"
 				data-month-heading
+				:class="layout === 'flush' && gutterClass"
 				class="dom-month-calendar__continuous-mobile-header sticky top-0 z-30 mb-3 items-center justify-between gap-3 border-b border-border bg-canvas/95 py-3 shadow-sm backdrop-blur"
 			>
 				<span class="text-[11px] font-semibold uppercase tracking-wide text-muted-fg">Month</span>
@@ -1559,7 +1576,7 @@ function onDayClick(cell, event) {
 				v-if="!section.continuous"
 				data-month-heading
 				class="mb-4 flex flex-wrap items-end justify-between gap-3"
-				:class="stickyMonthHeaders && 'sticky top-0 z-30 border-b border-border bg-canvas/95 py-3 shadow-sm backdrop-blur'"
+				:class="[layout === 'flush' && gutterClass, stickyMonthHeaders && 'sticky top-0 z-30 border-b border-border bg-canvas/95 py-3 shadow-sm backdrop-blur']"
 			>
 				<h2 :id="section.id" class="text-3xl font-bold tracking-tight text-canvas-fg">{{ section.label }}</h2>
 				<div class="text-sm font-medium text-muted-fg">
@@ -1569,6 +1586,7 @@ function onDayClick(cell, event) {
 			<header
 				v-else-if="$slots['month-header']"
 				class="mb-3 flex justify-end text-sm font-medium text-muted-fg"
+				:class="layout === 'flush' && gutterClass"
 			>
 				<h2 :id="section.id" class="sr-only">{{ section.label }}</h2>
 				<slot name="month-header" :month="section.month" />
@@ -1577,9 +1595,11 @@ function onDayClick(cell, event) {
 
 			<!-- Parent-scrolled grids use clip to round resting corners without trapping sticky headers. -->
 			<div
-				class="rounded-2xl border border-border bg-canvas"
+				class="border-border bg-canvas"
+				data-calendar-frame
 				:data-continuous-section="section.continuous ? '' : undefined"
 				:class="[
+					layout === 'flush' ? (bottomBorder ? 'border-y' : 'border-t') : 'rounded-2xl border',
 					section.continuous && containedContinuousScroll && 'max-h-[70vh] overflow-auto overscroll-contain',
 					section.continuous && !containedContinuousScroll && (resolvedStickyDayHeaders ? 'overflow-clip' : 'overflow-x-auto md:overflow-clip'),
 					!section.continuous && (resolvedStickyDayHeaders ? 'overflow-clip' : 'overflow-x-auto'),
@@ -1605,7 +1625,8 @@ function onDayClick(cell, event) {
 						<div
 							v-if="hasRowRail"
 							role="columnheader"
-							class="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-fg"
+							:class="layout === 'flush' ? gutterClass : 'px-3'"
+							class="py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-fg"
 						>
 							{{ rowRailHeaderLabel }}
 						</div>
@@ -1613,8 +1634,8 @@ function onDayClick(cell, event) {
 							v-for="(weekday, index) in weekdayLabels"
 							:key="weekday"
 							role="columnheader"
-							class="px-3 py-2 text-right text-[11px] font-semibold uppercase tracking-wide text-muted-fg"
-							:class="(index > 0 || hasRowRail) && 'border-l border-border'"
+							class="py-2 text-right text-[11px] font-semibold uppercase tracking-wide text-muted-fg"
+							:class="[layout === 'flush' ? gutterClass : 'px-3', (index > 0 || hasRowRail) && 'border-l border-border']"
 						>
 							{{ weekday }}
 						</div>
@@ -1632,8 +1653,9 @@ function onDayClick(cell, event) {
 							v-if="hasRowRail"
 							role="rowheader"
 							:aria-label="rowHeaderLabelFor(week)"
-							class="dom-month-calendar__row-rail flex gap-3 px-3 py-[var(--dom-month-calendar-row-rail-padding)] text-xs font-semibold uppercase tracking-wide text-muted-fg"
+							class="dom-month-calendar__row-rail flex gap-3 py-[var(--dom-month-calendar-row-rail-padding)] text-xs font-semibold uppercase tracking-wide text-muted-fg"
 							:class="[
+								layout === 'flush' ? gutterClass : 'px-3',
 								week.index > 0 && 'border-t border-border',
 								section.continuous ? 'bg-canvas' : 'bg-secondary/35',
 								section.continuous && week.monthLabels?.length && 'bg-secondary/20',
@@ -1671,8 +1693,9 @@ function onDayClick(cell, event) {
 							:data-today="cell.today ? '' : undefined"
 							:data-drag-source="isDragSource(cell) ? '' : undefined"
 							:data-drop-target="isDropTarget(cell) ? '' : undefined"
-							class="dom-month-calendar__day flex w-full min-w-0 flex-col items-stretch justify-start p-3 text-left outline-none transition"
+							class="dom-month-calendar__day flex w-full min-w-0 flex-col items-stretch justify-start py-3 text-left outline-none transition"
 							:class="[
+								layout === 'flush' ? gutterClass : 'px-3',
 								(hasRowRail || cell.row > 0 || cell.column > 0) && 'border-t border-border',
 								cell.row === 0 && (hasRowRail || cell.column > 0) && 'dom-month-calendar__day--wide-no-border-top',
 								(cell.column > 0 || hasRowRail) && 'dom-month-calendar__day--wide-border-left',
