@@ -24,6 +24,18 @@
 }
 
 @container (min-width: theme(--breakpoint-lg)) {
+	/* Flush gutters belong only to the outside edges in the seven-column grid.
+	 * In the compact day list every cell keeps both consumer-supplied gutters. */
+	.dom-month-calendar[data-layout="flush"] .dom-month-calendar__week > :not(:first-child),
+	.dom-month-calendar[data-layout="flush"] .dom-month-calendar__day-headers > :not(:first-child) {
+		padding-left: 0.75rem;
+	}
+
+	.dom-month-calendar[data-layout="flush"] .dom-month-calendar__week > :not(:last-child),
+	.dom-month-calendar[data-layout="flush"] .dom-month-calendar__day-headers > :not(:last-child) {
+		padding-right: 0.75rem;
+	}
+
 	.dom-month-calendar__continuous-mobile-header {
 		display: none;
 	}
@@ -47,6 +59,10 @@
 }
 
 @theme inline {
+	--color-desktop-rail: var(--desktop-rail, var(--secondary));
+	--color-desktop-sidebar: var(--desktop-sidebar, var(--secondary));
+	--color-desktop-selection: var(--desktop-selection, var(--accent));
+	--color-desktop-divider: var(--desktop-divider, var(--border));
 	--color-canvas: var(--canvas);
 	--color-canvas-fg: var(--canvas-fg);
 	--color-primary: var(--primary);

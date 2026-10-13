@@ -260,3 +260,6 @@ export { default as DomBackgroundEditor } from '../../designer/background-editor
 export { createBackgroundState, createFill, backgroundImageToCss } from '../../designer/background-editor/backgroundModel.js';
 export { default as DomBackdropEditor } from '../../designer/backdrop-editor/DomBackdropEditor.vue';
 export { createBackdrop, backdropToCss } from '../../designer/backdrop-editor/backdropModel.js';
+
+// Desktop application workspaces.
+export { default as DomDesktopLayout } from '../../components/desktop-layout/DomDesktopLayout.vue';
