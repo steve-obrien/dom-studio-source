@@ -57,6 +57,22 @@ Register the framework-neutral custom elements when required:
 import '@getdom/studio/headless';
 ```
 
+Embed the DOM designer (beta) from its own entry point, which includes the Vue
+template compiler. Pass the components people can insert and where to keep
+their work:
+
+```js
+import * as studio from '@getdom/studio/vue';
+import { DomDesigner, catalogFromExports, createHttpStorage } from '@getdom/studio/designer';
+
+const catalog = catalogFromExports(studio);
+const storage = createHttpStorage({ endpoint: '/api/designs' });
+// <DomDesigner :catalog="catalog" :storage="storage" storage-key="home-page" />
+```
+
+The same entry exports the editor core: documents, operations, history,
+storage adapters, and Vue import and export with source maps.
+
 ## Examples and walkthroughs
 
 Every component page includes live examples, copyable Vue source, its public
@@ -70,6 +86,7 @@ props and events, and implementation notes:
 - [Week planner and drag-to-create scheduling](https://getdom.studio/data/week-planner)
 - [Application blocks](https://getdom.studio/blocks)
 - [Theming guide](https://getdom.studio/theming)
+- [Designer and embedding `DomDesigner`](https://getdom.studio/designer)
 
 ## Peer dependencies
 

@@ -1,22 +1,22 @@
 import { markRaw } from 'vue';
-import { componentRegistry, lookupByName } from '../../_layout/inspector/componentRegistry.js';
-import { inferSchema } from '../../_layout/inspector/useInspector.js';
+import { schemaForComponent } from './componentSchema.js';
 import { classField, createHtmlTypeRegistry } from './typeRegistry.js';
 
 /**
  * Browser-side types for DOM Studio components.
  *
- * Each `vue:<Component>` type is built from the component registry: its
- * schema comes from `inferSchema`, which reads the component's prop
- * definitions and their `_edit` metadata, so the inspector for any DOM Studio
- * component is generated rather than written by hand. Components the registry
- * does not know (local components in an imported project) get a placeholder
- * type that still edits classes and keeps every prop for export.
+ * Each `vue:<Component>` type is built from a component catalog
+ * (`componentCatalog.js`): its schema comes from `schemaForComponent`, which
+ * reads the component's prop definitions and their `_edit` metadata, so the
+ * inspector for any component is generated rather than written by hand.
+ * Components the catalog does not know (local components in an imported
+ * project) get a placeholder type that still edits classes and keeps every
+ * prop for export.
  */
 
-/** Registry entries that are real Vue components with an export name. */
-export function studioComponentEntries() {
-	return componentRegistry.filter((entry) => entry.component && typeof entry.component === 'object' && entry.componentName);
+/** Catalog entries that are real Vue components with an export name. */
+export function studioComponentEntries(catalog) {
+	return catalog.entries.filter((entry) => entry.component && typeof entry.component === 'object' && entry.componentName);
 }
 
 /** Converts registry starter children (inspector spec shape) into tree descriptions. */
@@ -37,7 +37,7 @@ function starterProps(entry) {
  * @returns {object} Type entry.
  */
 export function componentType(entry) {
-	const schema = inferSchema({ component: entry.component }).filter((field) => field.key !== 'class' && field.key !== 'modelValue');
+	const schema = schemaForComponent(entry.component, entry.hints).filter((field) => field.key !== 'modelValue');
 	return {
 		type: `vue:${entry.componentName}`,
 		label: entry.label,
@@ -52,17 +52,18 @@ export function componentType(entry) {
 }
 
 /**
- * Creates the registry the canvas uses: HTML elements, text, every DOM Studio
+ * Creates the registry the canvas uses: HTML elements, text, every catalog
  * component (built on first use), and placeholders for anything else.
  *
+ * @param {{ lookupByName: (name: string) => object|null }} catalog Component catalog.
  * @returns {ReturnType<typeof createHtmlTypeRegistry>}
  */
-export function createEditorTypes() {
+export function createEditorTypes(catalog) {
 	return createHtmlTypeRegistry({
 		fallback(type) {
 			const [adapter, name] = type.split(':');
 			if (adapter === 'vue' && name) {
-				const entry = lookupByName(name);
+				const entry = catalog.lookupByName(name);
 				if (entry && typeof entry.component === 'object' && entry.componentName === name) return componentType(entry);
 				return { type, label: name, adapter, tag: name, container: true, schema: [classField], placeholder: true };
 			}

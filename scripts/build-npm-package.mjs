@@ -8,6 +8,7 @@ const templateDir = path.join(root, 'packages/studio');
 const entryFiles = [
 	'src/pages/lib/vue/index.js',
 	'src/pages/lib/headless/index.js',
+	'src/pages/lib/designer/index.js',
 ];
 const staticFiles = [
 	'CHANGELOG.md',
@@ -16,6 +17,7 @@ const staticFiles = [
 	'public/llms.txt',
 	'public/skills.sh',
 	'src/pages/lib/vue/index.d.ts',
+	'src/pages/lib/designer/index.d.ts',
 	'src/style.css',
 	'src/tailwind.css',
 	'src/theme.css',
@@ -27,6 +29,8 @@ const allowedExternalPackages = new Set([
 	'@getdom/studio',
 	'@unovis/vue',
 	'@unovis/ts',
+	'@vue/compiler-dom',
+	'@vue/compiler-sfc',
 	'@tiptap/extension-code-block',
 	'@tiptap/extension-collaboration',
 	'@tiptap/extension-collaboration-caret',

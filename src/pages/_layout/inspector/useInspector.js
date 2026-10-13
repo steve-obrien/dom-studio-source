@@ -1,5 +1,6 @@
 import { provide, inject, reactive } from 'vue';
 import { lookupEntry, lookupById, isTextNode } from './componentRegistry.js';
+import { schemaForComponent } from '../../designer/core/componentSchema.js';
 
 const KEY = Symbol('domStudio.inspector');
 
@@ -10,93 +11,16 @@ export function uid(prefix = 'n') {
 }
 
 // ---------------------------------------------------------------------------
-// Schema inference
-//
-// Inline hints live on the component's prop definition under the `_edit` key:
-//
-//   const props = defineProps({
-//     items: {
-//       type: Array,
-//       required: true,
-//       _edit: { component: 'DomJsonListInput', props: { label: 'Items', compact: true } },
-//     },
-//   });
-//
-// The `component` is a component name (string) so production output (e.g.
-// DomRenderer) never pulls form components into the bundle. `props` are passed
-// to that editor component, mirroring Vue's { component, props } shape.
-
-function componentProps(component) {
-	if (!component || typeof component === 'string') return {};
-	const p = component.props;
-	if (!p) return {};
-	if (Array.isArray(p)) return Object.fromEntries(p.map((k) => [k, {}]));
-	return p;
-}
-
-// Default editor for a Vue prop type when no `_edit` hint is given.
-function defaultEditorForProp(def) {
-	if (!def) return 'DomTextInput';
-	const t = def?.type ?? def;
-	const types = Array.isArray(t) ? t : [t];
-	if (types.includes(Boolean)) return 'DomToggle';
-	if (types.includes(String)) return 'DomTextInput';
-	if (types.includes(Number)) return 'DomNumberInput';
-	if (types.includes(Array) || types.includes(Object) || types.includes(Function)) return null;
-	return 'DomTextInput';
-}
-
-function resolveComponent(hint, props, def) {
-	if (hint.component) return hint.component;
-	if (hint.options || hint.enum || props.options || props.enum) return 'DomSelectInput';
-	return defaultEditorForProp(def);
-}
-
-function normaliseEdit(hint = {}, def) {
-	const props = { ...(hint.props || {}) };
-	for (const [key, value] of Object.entries(hint)) {
-		if (['component', 'props', 'label', 'description', 'group'].includes(key)) continue;
-		if (!(key in props)) props[key] = value;
-	}
-	return {
-		component: resolveComponent(hint, props, def),
-		label: hint.label ?? props.label,
-		description: hint.description ?? props.description,
-		group: hint.group ?? props.group,
-		props,
-	};
-}
+// Schema inference: fields come from each prop's `_edit` hint or type (see
+// designer/core/componentSchema.js), plus a Tailwind classes field.
 
 export function inferSchema(node) {
 	if (isTextNode(node)) {
 		return [{ key: 'text', target: 'text', component: 'DomTextareaInput', label: 'Text', props: { rows: 3 } }];
 	}
 
-	const fields = [];
 	const entry = lookupEntry(node.component);
-	const hints = entry?.hints || {};
-
-	const propDefs = componentProps(node.component);
-	for (const [key, def] of Object.entries(propDefs)) {
-		if (key === 'class' || key === 'modelModifiers' || key.startsWith('_')) continue;
-
-		// Per-prop hints — `_edit` on the prop definition is the canonical
-		// place (lives with the component, shows up in source). Registry
-		// hints stack on top so the studio can override per-component.
-		const inlineEdit = def && typeof def === 'object' && def._edit;
-		const merged = { ...(inlineEdit || {}), ...(hints[key] || {}) };
-		const edit = normaliseEdit(merged, def);
-		if (!edit.component) continue;
-
-		fields.push({
-			key,
-			label: edit.label || prettify(key),
-			description: edit.description,
-			group: edit.group,
-			component: edit.component,
-			props: edit.props,
-		});
-	}
+	const fields = schemaForComponent(node.component, entry?.hints || {});
 
 	if (!fields.some((f) => f.key === 'class')) {
 		fields.push({
@@ -109,13 +33,6 @@ export function inferSchema(node) {
 	}
 
 	return fields;
-}
-
-function prettify(s) {
-	return s
-		.replace(/([A-Z])/g, ' $1')
-		.replace(/^./, (c) => c.toUpperCase())
-		.replace(/Model Value/, 'Value');
 }
 
 // ---------------------------------------------------------------------------

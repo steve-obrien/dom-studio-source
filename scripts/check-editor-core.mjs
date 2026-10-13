@@ -11,6 +11,10 @@ import { applyWorkspaceOperation, createCanvasDemo, exportFile, restoreWorkspace
 import { importVueFile, sampleVueFile } from '../src/pages/designer/canvas/canvasDocument.js';
 import { alignRects, boundsOf, distributeRects } from '../src/pages/designer/stage/alignGeometry.js';
 import { applySource, matchNodes, nodeAtLine } from '../src/pages/designer/core/sourceSync.js';
+import { catalogFromExports, createComponentCatalog } from '../src/pages/designer/core/componentCatalog.js';
+import { schemaForComponent } from '../src/pages/designer/core/componentSchema.js';
+import { createEditorTypes } from '../src/pages/designer/core/componentTypes.js';
+import { createWorkspace } from '../src/pages/designer/canvas/canvasWorkspace.js';
 import { exportMappedVue } from '../src/pages/designer/core/vueAdapter.js';
 import { createBrowserStorage, createHttpStorage, createMemoryStorage, createSaver } from '../src/pages/designer/core/storage.js';
 import { handleFileRequest, safeFilePath } from '../src/pages/designer/core/fileStorageServer.js';
@@ -386,4 +390,40 @@ test('file storage endpoint stays inside its folder', async () => {
 	assert.equal(JSON.parse((await call('GET', '/?path=pages%2FHome.vue')).body).source, '<template><p>Hi</p></template>\n');
 	assert.equal((await call('GET', '/?path=missing.vue')).statusCode, 404);
 	assert.equal((await call('PUT', '/', { path: '../x.vue', source: '' })).statusCode, 400);
+});
+
+test('component catalogs come from exports, not the docs site', () => {
+	const DomBadge = { name: 'DomBadge', render() {}, props: { tone: { type: String, default: 'neutral', _edit: { component: 'DomSelectInput', options: ['neutral', 'success'] } }, count: Number, items: Array }, __doc: { slots: [{ name: 'default' }] } };
+	const DomSecret = { render() {}, __doc: { hidden: true } };
+	const catalog = catalogFromExports({ DomBadge, DomSecret, helper: () => {}, version: '1' });
+	const badge = catalog.lookupByName('DomBadge');
+	assert.equal(badge.label, 'Badge');
+	assert.equal(badge.accepts, 'children');
+	assert.equal(badge.defaults.props.tone, 'neutral');
+	assert.equal(catalog.lookupByName('DomSecret'), null);
+	assert.ok(catalog.lookupById('html-img'));
+	assert.equal(createComponentCatalog([], { html: false }).entries.length, 0);
+	assert.deepEqual(schemaForComponent(DomBadge).map((field) => [field.key, field.component]), [['tone', 'DomSelectInput'], ['count', 'DomNumberInput']]);
+	assert.deepEqual(schemaForComponent(DomBadge).find((field) => field.key === 'tone').props, { options: ['neutral', 'success'] });
+	const types = createEditorTypes(catalog);
+	assert.equal(types.get('vue:DomBadge').schema.some((field) => field.key === 'tone'), true);
+	assert.equal(types.get('vue:LocalWidget').placeholder, true);
+});
+
+test('workspaces open from source files', () => {
+	const workspace = createWorkspace([
+		{ name: 'Home.vue', path: 'pages/Home.vue', source: '<template><main><h1>Home</h1></main></template>' },
+		{ name: 'About.vue', source: '<template><main><h1>About</h1></main></template>' },
+	], { widths: [1200, 390], height: 600 });
+	assert.equal(workspace.files.length, 2);
+	assert.equal(workspace.files[0].path, 'pages/Home.vue');
+	assert.deepEqual(workspace.artboards.map((board) => [board.name, board.x, board.y]), [['Home 1200', 0, 0], ['Home 390', 1280, 0], ['About 1200', 0, 680], ['About 390', 1280, 680]]);
+	assert.ok(workspace.artboards.every((board) => workspace.files.some((file) => file.id === board.fileId)));
+});
+
+test('memory storage copies reactive-style values', async () => {
+	const memory = createMemoryStorage();
+	const proxy = new Proxy({ files: [{ name: 'A.vue' }] }, {});
+	await memory.save('w', proxy);
+	assert.deepEqual(await memory.load('w'), { files: [{ name: 'A.vue' }] });
 });

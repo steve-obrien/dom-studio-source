@@ -70,15 +70,17 @@ export function createBrowserStorage({ prefix = 'dom-studio:', storage = globalT
  */
 export function createMemoryStorage() {
 	const values = new Map();
+	// JSON, not structuredClone: editor values are often reactive proxies, which structuredClone refuses.
+	const copy = (value) => (value === undefined ? undefined : JSON.parse(JSON.stringify(value)));
 	const listeners = new Map();
 	return {
 		kind: 'memory',
 		async load(id) {
-			return values.has(id) ? structuredClone(values.get(id)) : null;
+			return values.has(id) ? copy(values.get(id)) : null;
 		},
 		async save(id, value, { operations = [], origin = null } = {}) {
-			values.set(id, structuredClone(value));
-			for (const listener of listeners.get(id) || []) if (listener.origin !== origin || origin === null) listener.onChange({ value: structuredClone(value), operations });
+			values.set(id, copy(value));
+			for (const listener of listeners.get(id) || []) if (listener.origin !== origin || origin === null) listener.onChange({ value: copy(value), operations });
 		},
 		subscribe(id, onChange, { origin = null } = {}) {
 			const listener = { onChange, origin };

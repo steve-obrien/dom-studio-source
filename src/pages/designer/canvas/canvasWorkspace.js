@@ -120,6 +120,32 @@ export function exportFile(file, isStudioComponent) {
 	return exportVue(file, isStudioComponent);
 }
 
+/**
+ * Creates a workspace from source files: each file gets an artboard per width,
+ * laid out in rows.
+ *
+ * @param {Array<{ source: string, name: string, path?: string }>} sources Vue or HTML files.
+ * @param {{ widths?: Array<number>, height?: number }} [options] Artboard widths and height.
+ * @returns {object} Workspace.
+ */
+export function createWorkspace(sources, { widths = [1200, 390], height = 760 } = {}) {
+	const files = sources.map(({ source, name, path }) => {
+		const { file } = importFile(source, name);
+		if (path) file.path = path;
+		return file;
+	});
+	const gap = 80;
+	const artboards = files.flatMap((file, row) => {
+		let x = 0;
+		return widths.map((width) => {
+			const board = { id: workspaceId('board'), fileId: file.id, name: `${file.name.replace(/\.(vue|html)$/, '')} ${width}`, x, y: row * (height + gap), width, height };
+			x += width + gap;
+			return board;
+		});
+	});
+	return { version: WORKSPACE_VERSION, files, artboards };
+}
+
 /** The starter canvas: one Vue file viewed at desktop and mobile widths, with stable ids for hydration. */
 export function createCanvasDemo() {
 	let index = 0;

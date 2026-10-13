@@ -31,6 +31,10 @@
 			"types": "./src/pages/lib/vue/index.d.ts",
 			"import": "./src/pages/lib/vue/index.js"
 		},
+		"./designer": {
+			"types": "./src/pages/lib/designer/index.d.ts",
+			"import": "./src/pages/lib/designer/index.js"
+		},
 		"./headless": {
 			"types": "./src/pages/lib/headless/index.d.ts",
 			"import": "./src/pages/lib/headless/index.js"
@@ -70,7 +74,9 @@
 		"@tiptap/starter-kit": "^3.27.3",
 		"@tiptap/vue-3": "^3.27.3",
 		"@unovis/vue": "1.7.0",
-		"@unovis/ts": "1.7.0"
+		"@unovis/ts": "1.7.0",
+		"@vue/compiler-dom": "^3.5.34",
+		"@vue/compiler-sfc": "^3.5.34"
 	},
 	"publishConfig": {
 		"access": "public"
