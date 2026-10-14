@@ -117,12 +117,21 @@ export interface DomDesignerProps {
 	title?: string;
 	badge?: string;
 	/** Called after each save, with the id and the workspace saved. */
+	/** Replaces the built-in code view with a component that meets the code view contract, such as DomMonacoCodeView. */
+	codeEditor?: object | null;
+	/** Extra props for `codeEditor`, such as `{ load }` for Monaco. */
+	codeEditorProps?: Record<string, unknown>;
 	onSave?: (event: { id: string; value: DesignerWorkspace }) => void;
 }
 /** The DOM designer: artboards, layers, a generated inspector and a two-way code view. */
 export declare const DomDesigner: DefineComponent<DomDesignerProps>;
 /** Editable source with line numbers and highlighted lines. */
 export declare const DomCodeView: DefineComponent<{ modelValue?: string; highlight?: SourceRange | null; label?: string; readonly?: boolean }>;
+/**
+ * Optional Monaco code view with the same contract as DomCodeView. Monaco is not
+ * a DOM Studio dependency: `load` resolves to the Monaco API from your own install.
+ */
+export declare const DomMonacoCodeView: DefineComponent<{ modelValue?: string; highlight?: SourceRange | null; label?: string; readonly?: boolean; load: () => Promise<unknown>; options?: Record<string, unknown> }>;
 
 export declare function createComponentCatalog(records: Array<{ component: object; exportName: string; section?: string; label?: string }>, options?: { html?: boolean }): Required<ComponentCatalog>;
 /** A catalog of every `Dom*` component in a module's exports, such as `import * as studio from '@getdom/studio/vue'`. */

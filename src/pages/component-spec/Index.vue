@@ -191,7 +191,7 @@ const emit = defineEmits(['update:modelValue']);`;
 				</p>
 				<p class="max-w-3xl text-sm leading-6 text-muted-fg">
 					For composing and saving UI layouts, explore
-					<RouterLink to="/components/studio" class="font-medium text-canvas-fg underline decoration-border underline-offset-4 hover:text-primary">Studio</RouterLink>.
+					<RouterLink to="/designer/canvas" class="font-medium text-canvas-fg underline decoration-border underline-offset-4 hover:text-primary">the canvas</RouterLink>.
 					Saved layout data has a separate renderer format from the component metadata described here.
 				</p>
 			</DocSection>

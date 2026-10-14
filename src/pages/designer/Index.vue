@@ -19,20 +19,19 @@ const storage = createHttpStorage({ endpoint: '/api/designs' });
 	</div>
 </template>`;
 const links = [
-	{ to: '/designer/canvas', title: 'Canvas', tag: 'New', description: 'A Figma-style workspace made of real HTML. Pan and zoom across artboards, design one Vue file at several widths with live components and preview data, and export the same .vue file back.' },
+	{ to: '/designer/canvas', title: 'Canvas', tag: 'New', description: 'A Figma-style workspace made of real HTML. Pan and zoom across artboards, design one Vue file at several widths with live components and preview data, edit its code side by side (optionally in Monaco), and export the same .vue file back.' },
 	{ to: '/designer/frames', title: 'Nested frames & HTML import', description: 'Nest flow, flex, grid and absolute frames. Switch layouts, snap within a frame, and import Tailwind HTML into an editable canvas.' },
 	{ to: '/designer/assembly', title: 'Build your own designer', description: 'Working Vue examples and assembly documentation for HTML editors, appearance controls and flowcharts.' },
 	{ to: '/designer/flowchart', title: 'Flowchart designer', description: 'An infinite workspace powered by Vue Flow. Connect editable steps, pan, zoom, navigate with a minimap and export your graph.' },
 	{ to: '/designer/poster', title: 'Poster studio', description: 'Create a portrait flyer with image, text and shape layers on the shared editor model. Multi-select, align, distribute, rulers, undo and HTML export.' },
 	{ to: '/designer/social-card', title: 'Social card designer', description: 'The poster studio at link-preview sizes, with the linked HTML open. Select a source line to inspect its layer.' },
-	{ to: '/designer/studio', title: 'Studio', description: 'The existing Vue editor: code, layers and a live stage, with component insertion and source editing.' },
 	{ to: '/designer/color-swatch', title: 'Colour swatch', description: 'The theme editor’s colour control, available independently with a CSS expression and native picker.' },
 	{ to: '/designer/background-editor', title: 'Background layers', description: 'Stack solid fills, linear gradients and radial gradients with independent opacity.' },
 	{ to: '/designer/backdrop-editor', title: 'Backdrop effects', description: 'Blur and saturate the content behind translucent HTML elements.' },
 	{ to: '/designer/border-editor', title: 'CSS border editor', description: 'Edit border width, style and colour with the shared CSS border control.' },
 	{ to: '/designer/shadow-editor', title: 'CSS shadow editor', description: 'Compose drop shadows, inner shadows and rings. Reuses the theme editor’s layer controls.' },
 	{ to: '/designer/stage', title: 'HTML stage', description: 'Add selection and optional movement to your own HTML. Your application owns the content and applies style changes.' },
-	{ to: '/designer/layers', title: 'Layer tree', description: 'The same tree used by Studio, with selection, keyboard navigation and optional drag-and-drop.' },
+	{ to: '/designer/layers', title: 'Layer tree', description: 'The same tree used by the canvas, with selection, keyboard navigation and optional drag-and-drop.' },
 ];
 </script>
 <template>

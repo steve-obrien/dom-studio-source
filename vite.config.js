@@ -3,7 +3,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
-import templateEditorTailwindServer from './src/pages/experiments/template-editor/tailwindServer.js';
 import designerFileStorageServer from './src/pages/designer/core/fileStorageServer.js';
 import {
 	componentCatalogOutputPath,
@@ -27,7 +26,6 @@ function createViteConfig({ command }) {
 		plugins: [
 			domStudioComponentCatalogPlugin(projectRoot),
 			domStudioStylesFirstPlugin(),
-			templateEditorTailwindServer(),
 			designerFileStorageServer({ root: projectRoot }),
 			vue({
 				template: {

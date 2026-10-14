@@ -168,17 +168,17 @@ const spec = {
 				</p>
 			</DocSection>
 
-			<DocSection eyebrow="Studio" title="Build full layouts with the Studio">
+			<DocSection eyebrow="Canvas" title="Build full layouts in the canvas">
 				<div class="rounded-2xl border border-border bg-gradient-to-br from-secondary to-transparent p-6">
 					<p class="text-sm leading-relaxed text-muted-fg">
-						The dedicated <strong class="text-canvas-fg">Studio</strong> page gives you a full-width canvas with a palette of every component,
-						drag-and-drop with drop indicators, a Data / HTML / Renderer tab bar, and lossless round-trip through
-						<code class="rounded bg-secondary px-1 py-0.5 text-[12px] font-mono ring-1 ring-border">&lt;DomRenderer&gt;</code>.
+						The <strong class="text-canvas-fg">canvas</strong> gives you a full-width designer with every component to insert,
+						layers, an inspector generated from these same specs, and a two-way Vue code view that keeps the stage and
+						source selected together.
 					</p>
 					<RouterLink
-						to="/components/studio"
+						to="/designer/canvas"
 						class="mt-4 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-fg hover:opacity-90"
-					>Open the Studio →</RouterLink>
+					>Open the canvas →</RouterLink>
 				</div>
 			</DocSection>
 

@@ -16,7 +16,7 @@ The package root and `@getdom/studio/vue` export the same Vue surface. Import `@
 - [AI builders](https://getdom.studio/ai/builders): Rules for reliable LLM-generated interfaces and when to return Studio specs.
 - [Theming](https://getdom.studio/theming): Semantic colour tokens, light and dark themes, material skins, radii, and shadows.
 - [Component metadata](https://getdom.studio/component-spec): Vue props, `defineOptions({ __doc })`, and `_edit` hints for generated documentation and editing controls, with a working component example.
-- [Studio](https://getdom.studio/components/studio): Visual editing and saved UI trees made from components, props, children, stable ids, and human labels.
+- [Canvas](https://getdom.studio/designer/canvas): Visual editing of Vue files with live components, an inspector generated from props, and a two-way code view (optionally Monaco). Embed it with `DomDesigner` from `@getdom/studio/designer`.
 
 ## UI Library
 

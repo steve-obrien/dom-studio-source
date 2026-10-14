@@ -4,7 +4,6 @@ import DocPage from '../../_layout/DocPage.vue';
 import DocSection from '../../_layout/DocSection.vue';
 import Example from '../../_layout/docs/Example.vue';
 import CodeBlock from '../../_layout/CodeBlock.vue';
-import { sourceHrefForPath } from '../../_layout/docs/sourceLinks.js';
 import HtmlDesigner from './examples/HtmlDesigner.vue';
 import htmlSource from './examples/HtmlDesigner.vue?raw';
 import LayerAppearance from './examples/LayerAppearance.vue';
@@ -30,6 +29,15 @@ const pieces = [
 	['DomBackdropEditor', '/designer/backdrop-editor', 'Edits blur/saturation; backdropToCss produces backdrop-filter.'],
 ];
 const setup = "import '@getdom/studio/style.css';";
+const monacoExample = `import { DomMonacoCodeView } from '@getdom/studio/designer';
+
+// Your app installs monaco-editor and decides how it is bundled.
+async function load() {
+	await import('monaco-editor/min/vs/editor/editor.main.css');
+	return import('monaco-editor/esm/vs/editor/editor.api');
+}
+
+// <DomDesigner :catalog="catalog" :code-editor="DomMonacoCodeView" :code-editor-props="{ load }" />`;
 const designerExample = `import * as studio from '@getdom/studio/vue';
 import { DomDesigner, catalogFromExports, createHttpStorage } from '@getdom/studio/designer';
 
@@ -40,18 +48,6 @@ const storage = createHttpStorage({ endpoint: '/api/designs' });
 
 // <DomDesigner :catalog="catalog" :storage="storage" storage-key="home-page" />`;
 const flowSetup = 'npm install @vue-flow/core @vue-flow/background @vue-flow/controls @vue-flow/minimap';
-const studioExample = `// Repository-local example, beside the template-editor Index.vue.
-import { parseSource, buildSource } from './lib/editorModel.js';
-
-const parsed = parseSource('<template><h2>Hello</h2></template>');
-// Keep parsed.tree as the editable model. Its nodes have editor IDs.
-const { rows, lineMap } = buildSource(parsed.tree, {
-	props: parsed.props,
-	scriptData: parsed.scriptData,
-});
-const source = rows.map((row) => row.text).join('\\n');
-// row.id links a source row to a tree node; lineMap[id] finds its line.
-// Rebuild after visual edits. Reparse after a committed source edit.`;
 const zoomExample = `<!-- Keep document coordinates separate from viewport scale. -->
 <div class="overflow-auto">
 	<div :style="{ width: width * zoom + 'px', height: height * zoom + 'px' }">
@@ -78,7 +74,7 @@ const sources = [
 		<DocPage name="Build your own designer" eyebrow="UI designer · Assembly guide" tag="Beta" tagline="Working examples, component contracts and the application code that turns them into an editor.">
 			<DocSection title="Start here">
 				<p class="mb-4 text-sm leading-7 text-muted-fg">The demos are reference applications. Start with the smaller examples below, then add the behaviour your product needs. Each preview and its copyable source come from the same Vue file.</p>
-				<nav class="flex flex-wrap gap-4 text-sm text-primary" aria-label="Assembly recipes"><a href="#canvas">Whole designer</a><a href="#html">HTML editor</a><a href="#appearance">Appearance</a><a href="#poster">Poster</a><a href="#social-card">Social card</a><a href="#flowchart">Flowchart</a><a href="#studio">Studio</a><a href="#sources">Full source</a></nav>
+				<nav class="flex flex-wrap gap-4 text-sm text-primary" aria-label="Assembly recipes"><a href="#canvas">Whole designer</a><a href="#html">HTML editor</a><a href="#appearance">Appearance</a><a href="#poster">Poster</a><a href="#social-card">Social card</a><a href="#flowchart">Flowchart</a><a href="#sources">Full source</a></nav>
 				<p class="my-4 text-sm leading-7 text-muted-fg">Use the package in an existing Vue 3 application, or copy the components through the example’s Source option. The examples use Tailwind CSS v4 utilities; keep your app’s Tailwind setup scanning the files you copy. <RouterLink to="/install" class="text-primary underline">Installation guide</RouterLink>.</p>
 				<CodeBlock code="npm install @getdom/studio" lang="bash" />
 				<CodeBlock :code="setup" lang="javascript" filename="Application entry point" />
@@ -86,7 +82,10 @@ const sources = [
 			<DocSection id="canvas" title="Embed the whole designer">
 				<p class="mb-4 text-sm leading-7 text-muted-fg">If you want the complete canvas rather than your own editor, use DomDesigner from <code>@getdom/studio/designer</code>. It is the editor behind <RouterLink to="/designer/canvas" class="text-primary underline">the canvas demo</RouterLink>: artboards at several widths, layers, an inspector generated from component props, a Figma-style layout panel, undo, and a two-way Vue code view. The entry is separate from <code>@getdom/studio/vue</code> because it brings the Vue template compiler, so load it only where people design, ideally with defineAsyncComponent.</p>
 				<CodeBlock :code="designerExample" lang="javascript" filename="Embedding DomDesigner" />
-				<p class="mt-4 text-sm leading-7 text-muted-fg">Storage adapters decide where work is kept: createBrowserStorage (the default), createHttpStorage for your API or CMS, createMemoryStorage for tests, and createFileStorage with the file-storage prop to open and save project files. Pass compileCss to compile Tailwind classes that your app’s stylesheet lacks. The same entry exports the editor core (documents, operations, history, Vue import and export) for building your own editor on the same model. The rest of this guide assembles editors from the individual components.</p>
+				<p class="mt-4 text-sm leading-7 text-muted-fg">Storage adapters decide where work is kept: createBrowserStorage (the default), createHttpStorage for your API or CMS, createMemoryStorage for tests, and createFileStorage with the file-storage prop to open and save project files. Pass compileCss to compile Tailwind classes that your app’s stylesheet lacks.</p>
+				<p class="mt-4 text-sm leading-7 text-muted-fg">The code view is a lightweight editor by default. For a richer one, pass DomMonacoCodeView as code-editor, with a load function that imports Monaco from your own install; DOM Studio does not depend on Monaco. Both editors keep the code and stage in sync: put the caret on a line and its layer is selected on the stage; select a layer and its lines are highlighted and scrolled into view.</p>
+				<CodeBlock :code="monacoExample" lang="javascript" filename="Optional Monaco code view" />
+				<p class="mt-4 text-sm leading-7 text-muted-fg"> The same entry exports the editor core (documents, operations, history, Vue import and export) for building your own editor on the same model. The rest of this guide assembles editors from the individual components.</p>
 			</DocSection>
 			<DocSection title="Choose the pieces">
 				<div class="overflow-auto"><table class="w-full text-left text-sm"><thead><tr class="border-b border-border"><th class="p-3">Component</th><th class="p-3">Responsibility</th></tr></thead><tbody><tr v-for="[name, path, role] in pieces" :key="name" class="border-b border-border"><td class="p-3 align-top"><RouterLink :to="path" class="text-primary underline">{{ name }}</RouterLink></td><td class="p-3 leading-6 text-muted-fg">{{ role }}</td></tr></tbody></table></div>
@@ -126,19 +125,8 @@ const sources = [
 				<Example :source="flowSource" filename="FlowDesigner.vue" title="A minimal graph editor" description="Drag from the bottom dot of one node to the top dot of the other. Move nodes, pan empty space and use the zoom buttons."><FlowDesigner /></Example>
 				<p class="text-sm leading-7 text-muted-fg">Give the graph a sized parent and an instance ID. Bind nodes and edges to application state; handle connect by adding an edge. Mount the interactive viewport after hydration. The full demo adds a node-step slot with Handle ports, an inspector, Controls and MiniMap. screenToFlowCoordinate converts a pointer or viewport centre into graph coordinates. toObject exports nodes, edges and viewport; fromObject restores a saved graph. Validate imported data in your app before restoring it.</p>
 			</DocSection>
-			<DocSection id="studio" title="6. Understand the source-linked Studio">
-				<RouterLink to="/designer/studio" class="text-primary underline">Open Studio demo →</RouterLink>
-				<p class="my-4 text-sm leading-7 text-muted-fg">Studio shares DomDesignerLayers and DomSplitterPanel, but its parser, source editor and stage renderer are still repository-local experiment modules. It is not an exported, drop-in Studio component. Use the HTML starter for a model-driven creation tool, and DomDesigner when you need exported Vue source editing; Studio’s source remains a reference for its Monaco-based workflow.</p>
-				<ul class="list-disc space-y-3 pl-5 text-sm leading-7 text-muted-fg">
-					<li><code>src/pages/experiments/template-editor/lib/editorModel.js</code> parses Vue template source into an editor tree and builds source back from that tree.</li>
-					<li><code>components/TemplateMonacoEditor.vue</code> provides the code editor; <code>components/StageViewport.vue</code> provides its viewport shell. The experiment’s Index.vue coordinates preview rendering, source locations, tree selection and inspector edits.</li>
-					<li><code>lib/componentStorageClient.js</code> connects the demo to repository-specific file APIs. Replace storage and component discovery for your host application; they are not part of the designer component API.</li>
-				</ul>
-				<CodeBlock :code="studioExample" lang="javascript" filename="Studio parser / source projection" />
-				<div class="flex flex-wrap gap-4 text-sm text-primary"><a :href="sourceHrefForPath('src/pages/experiments/template-editor/Index.vue')">Open Studio orchestration source →</a><a :href="sourceHrefForPath('src/pages/experiments/template-editor/lib/editorModel.js')">Open parser and source builder →</a></div>
-			</DocSection>
 			<DocSection title="What your application owns">
-				<p class="text-sm leading-7 text-muted-fg">Own the document schema, IDs, history, persistence, asset uploads, import validation and export. The poster, social-card and flowchart demos keep edits in memory until exported; they do not provide a storage service or run workflows. Studio uses the repository-specific storage adapter described above. DomDesigner saves through the storage adapter you pass; your server still owns authentication, validation and the stored schema. For production, save the model rather than the live editor DOM, restore stable IDs, and keep selection and viewport preferences separate from document changes. The beta APIs may change.</p>
+				<p class="text-sm leading-7 text-muted-fg">Own the document schema, IDs, history, persistence, asset uploads, import validation and export. The poster, social-card and flowchart demos keep edits in memory until exported; they do not provide a storage service or run workflows. DomDesigner saves through the storage adapter you pass; your server still owns authentication, validation and the stored schema. For production, save the model rather than the live editor DOM, restore stable IDs, and keep selection and viewport preferences separate from document changes. The beta APIs may change.</p>
 			</DocSection>
 			<DocSection id="sources" title="Full demo source">
 				<p class="mb-4 text-sm leading-7 text-muted-fg">These are the actual repository files, including local imports and route links. Use the starter examples above for a standalone component; use these files to inspect the complete application wiring. Poster needs its three files plus the shared editor core, designer components and serializers.</p>

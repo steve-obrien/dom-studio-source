@@ -59,6 +59,14 @@ const props = defineProps({
 	title: { type: String, default: 'Canvas' },
 	/** Small badge beside the title, such as "Beta". */
 	badge: { type: String, default: '' },
+	/**
+	 * Replaces the built-in code view, such as `DomMonacoCodeView`. It receives
+	 * `modelValue`, `highlight` ({ start, end } lines), `label` and `readonly`, and
+	 * emits `update:modelValue`, `cursor` (a one-based line), `focus` and `blur`.
+	 */
+	codeEditor: { type: [Object, Function], default: null },
+	/** Extra props for `codeEditor`, such as Monaco's `load`. */
+	codeEditorProps: { type: Object, default: () => ({}) },
 });
 const emit = defineEmits(['save']);
 const MIN_ZOOM = 0.1;
@@ -921,6 +929,7 @@ onBeforeUnmount(() => {
 				<DomButton size="sm" variant="ghost" aria-label="Zoom in" title="Zoom in (⌘+)" @click="zoomBy(1.25)">+</DomButton>
 				<DomButton size="sm" variant="ghost" title="Zoom to fit (⇧1)" @click="fitAll">Fit</DomButton>
 				<span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
+				<slot name="end" />
 				<DomButton size="sm" :variant="showCode ? 'primary' : 'secondary'" @click="showCode = !showCode">{{ showCode ? 'Hide code' : 'Code' }}</DomButton>
 			</div>
 		</header>
@@ -1088,7 +1097,7 @@ onBeforeUnmount(() => {
 						</div>
 					</div>
 					<p class="border-b border-border px-4 py-2 text-[11px] leading-4 text-muted-fg">Edit the code and the design follows. Click a line to select its element; select an element to find its code.</p>
-					<CodeView class="flex-1" :model-value="codeText" :highlight="codeHighlight" :label="`${activeFile?.name} source`" @update:model-value="editCode" @cursor="selectFromCode" @blur="leaveCode" />
+					<component :is="codeEditor || CodeView" v-bind="codeEditor ? codeEditorProps : {}" class="flex-1" :model-value="codeText" :highlight="codeHighlight" :label="`${activeFile?.name} source`" @update:model-value="editCode" @cursor="selectFromCode" @blur="leaveCode" />
 					<p v-if="codeError || codeWarning" role="status" class="border-t border-border bg-secondary px-4 py-2 text-xs" :class="codeError ? 'text-destructive' : 'text-muted-fg'">{{ codeError || codeWarning }}</p>
 				</aside>
 			</section>

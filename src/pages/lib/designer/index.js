@@ -8,6 +8,8 @@
 
 export { default as DomDesigner } from '../../designer/core/DesignerWorkspace.vue';
 export { default as DomCodeView } from '../../designer/core/CodeView.vue';
+// Optional Monaco code view; pass `load` to import Monaco from your own install.
+export { default as DomMonacoCodeView } from '../../designer/core/MonacoCodeView.vue';
 
 // Components people can insert.
 export { createComponentCatalog, catalogFromExports } from '../../designer/core/componentCatalog.js';
