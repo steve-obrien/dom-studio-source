@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { vDomTooltip } from '../../components/tooltip/vDomTooltip.js';
 
 /**
  * Figma-style 3×3 alignment pad for a flex or grid frame.
@@ -65,7 +66,7 @@ function bars(x, y) {
 				type="button"
 				class="group/cell grid place-items-center rounded text-primary"
 				:aria-label="`Align ${words[y][1]} ${words[x][0]}`"
-				:title="`Align ${words[y][1]} ${words[x][0]}`"
+				v-dom-tooltip="`Align ${words[y][1]} ${words[x][0]}`"
 				:aria-pressed="active(x, y)"
 				@click="pick(x, y)"
 			>

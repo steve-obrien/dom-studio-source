@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { vDomTooltip } from '../../components/tooltip/vDomTooltip.js';
 import InspectorIcon from './InspectorIcon.vue';
 
 /**
@@ -89,9 +90,10 @@ function onScrubStart(event) {
 </script>
 
 <template>
-	<label class="group/scrub flex h-7 min-w-0 items-center rounded-md bg-secondary/60 text-xs ring-inset transition hover:ring-1 hover:ring-border focus-within:bg-canvas focus-within:ring-1 focus-within:ring-primary" :class="disabled && 'pointer-events-none opacity-50'" :title="label">
+	<label class="group/scrub flex h-7 min-w-0 items-center rounded-md bg-secondary/60 text-xs ring-inset transition hover:ring-1 hover:ring-border focus-within:bg-canvas focus-within:ring-1 focus-within:ring-primary" :class="disabled && 'pointer-events-none opacity-50'">
 		<span
 			class="flex h-full w-7 shrink-0 cursor-ew-resize select-none items-center justify-center text-[11px] font-medium text-muted-fg group-hover/scrub:text-canvas-fg"
+			v-dom-tooltip="`${label} · drag to change`"
 			aria-hidden="true"
 			@pointerdown="onScrubStart"
 		>

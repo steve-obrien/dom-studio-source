@@ -1,4 +1,6 @@
 <script setup>
+import { vDomTooltip } from '../../components/tooltip/vDomTooltip.js';
+
 /**
  * Align and distribute buttons. The editor applies the result with
  * alignRects and distributeRects from alignGeometry.js.
@@ -26,12 +28,12 @@ const distributions = [
 
 <template>
 	<div class="flex flex-wrap items-center gap-0.5" role="toolbar" :aria-label="`Align to ${target}`">
-		<button v-for="item in alignments" :key="item.id" type="button" class="grid size-7 place-items-center rounded text-muted-fg hover:bg-secondary hover:text-canvas-fg disabled:pointer-events-none disabled:opacity-40" :disabled="disabled" :title="`${item.label} (to ${target})`" :aria-label="`${item.label} to ${target}`" @click="emit('align', item.id)">
+		<button v-for="item in alignments" :key="item.id" type="button" class="grid size-7 place-items-center rounded text-muted-fg hover:bg-secondary hover:text-canvas-fg disabled:pointer-events-none disabled:opacity-40" :disabled="disabled" v-dom-tooltip="`${item.label} (to ${target})`" :aria-label="`${item.label} to ${target}`" @click="emit('align', item.id)">
 			<svg viewBox="0 0 16 16" class="size-4" fill="currentColor" aria-hidden="true"><line :x1="item.line[0]" :y1="item.line[1]" :x2="item.line[2]" :y2="item.line[3]" stroke="currentColor" stroke-width="1.5" /><rect v-for="(bar, index) in item.bars" :key="index" :x="bar[0]" :y="bar[1]" :width="bar[2]" :height="bar[3]" rx="0.5" /></svg>
 		</button>
 		<template v-if="distribute">
 			<span class="mx-1 h-5 border-l border-border" />
-			<button v-for="item in distributions" :key="item.id" type="button" class="grid size-7 place-items-center rounded text-muted-fg hover:bg-secondary hover:text-canvas-fg disabled:pointer-events-none disabled:opacity-40" :disabled="disabled" :title="item.label" :aria-label="item.label" @click="emit('distribute', item.id)">
+			<button v-for="item in distributions" :key="item.id" type="button" class="grid size-7 place-items-center rounded text-muted-fg hover:bg-secondary hover:text-canvas-fg disabled:pointer-events-none disabled:opacity-40" :disabled="disabled" v-dom-tooltip="item.label" :aria-label="item.label" @click="emit('distribute', item.id)">
 				<svg viewBox="0 0 16 16" class="size-4" fill="currentColor" aria-hidden="true"><rect v-for="(bar, index) in item.bars" :key="index" :x="bar[0]" :y="bar[1]" :width="bar[2]" :height="bar[3]" rx="0.5" /></svg>
 			</button>
 		</template>

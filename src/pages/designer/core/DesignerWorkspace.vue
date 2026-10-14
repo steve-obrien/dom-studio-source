@@ -6,6 +6,7 @@ import { isFrameNode } from '../frames/frameDocument.js';
 import { componentType, createEditorTypes, studioComponentEntries } from './componentTypes.js';
 import NodeInspector from './NodeInspector.vue';
 import InspectorIcon from '../_shared/InspectorIcon.vue';
+import { vDomTooltip } from '../../components/tooltip/vDomTooltip.js';
 import ScrubField from '../_shared/ScrubField.vue';
 import AlignTools from '../stage/AlignTools.vue';
 import { copySubtree, fromTree, subtreeIds } from './editorDocument.js';
@@ -149,6 +150,12 @@ const textChild = computed(() => {
 const layout = computed(() => active.value?.layout || detected.value[selected.value] || createFrameLayout());
 const parentMode = computed(() => parent.value?.layout?.mode || detected.value[parent.value?.id]?.mode || 'flow');
 const parentLayout = computed(() => (parent.value ? parent.value.layout || detected.value[parent.value.id] || createFrameLayout() : null));
+const parentModes = {
+	flow: { label: 'Flow', icon: 'mode-flow', tooltip: 'Parent is flow: this stacks in normal document flow' },
+	flex: { label: 'Flex', icon: 'mode-flex', tooltip: 'Parent is flex (auto layout): this sits in a row or column' },
+	grid: { label: 'Grid', icon: 'mode-grid', tooltip: 'Parent is grid: this sits in a cell' },
+	absolute: { label: 'Absolute', icon: 'mode-absolute', tooltip: 'Parent is absolute: this is placed by X and Y' },
+};
 const sizingModes = [{ value: 'auto', label: 'Auto' }, { value: 'fixed', label: 'Fixed' }, { value: 'hug', label: 'Hug' }, { value: 'fill', label: 'Fill' }];
 const layers = computed(() => (doc.value ? [layer(doc.value.rootId)] : []));
 const mappedSource = computed(() => (activeFile.value ? exportMappedVue(activeFile.value, isStudioComponent) : { source: '', ranges: {} }));
@@ -1095,13 +1102,13 @@ onBeforeUnmount(() => {
 							<p class="mt-0.5 truncate text-[11px] text-muted-fg">{{ parent ? `Inside ${parent.label || tagOf(parent)} · ${parentMode}` : 'File root' }}</p>
 						</div>
 						<div v-if="parent" class="-mr-1.5 flex shrink-0 items-center" role="toolbar" aria-label="Layer actions">
-							<button v-for="action in [{ icon: 'parent', label: 'Select parent', run: selectParent }, { icon: 'up', label: 'Move earlier', run: () => reorder(-1) }, { icon: 'down', label: 'Move later', run: () => reorder(1) }, { icon: 'duplicate', label: 'Duplicate (⌘D)', run: duplicate }, { icon: 'trash', label: 'Delete', run: remove }]" :key="action.icon" type="button" class="grid size-7 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg" :class="action.icon === 'trash' && 'hover:text-destructive'" :aria-label="action.label" :title="action.label" @click="action.run()"><InspectorIcon :name="action.icon" /></button>
+							<button v-for="action in [{ icon: 'parent', label: 'Select parent', run: selectParent }, { icon: 'up', label: 'Move earlier', run: () => reorder(-1) }, { icon: 'down', label: 'Move later', run: () => reorder(1) }, { icon: 'duplicate', label: 'Duplicate (⌘D)', run: duplicate }, { icon: 'trash', label: 'Delete', run: remove }]" :key="action.icon" type="button" class="grid size-7 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg" :class="action.icon === 'trash' && 'hover:text-destructive'" :aria-label="action.label" v-dom-tooltip="action.label" @click="action.run()"><InspectorIcon :name="action.icon" /></button>
 						</div>
 					</header>
 
 					<section v-if="parent && parentMode === 'absolute'" class="space-y-2 border-b border-border px-4 py-3">
 						<div class="flex items-center justify-between gap-2">
-							<h3 class="text-[11px] font-semibold">Position</h3>
+							<h3 class="flex items-center gap-1.5 text-[11px] font-semibold">Position<span v-dom-tooltip="parentModes.absolute.tooltip" class="inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 font-normal text-muted-fg"><InspectorIcon name="mode-absolute" class="!size-3" />Absolute</span></h3>
 							<AlignTools target="frame" class="-mr-1.5" @align="align" />
 						</div>
 						<div class="grid grid-cols-2 gap-1.5">
@@ -1109,10 +1116,10 @@ onBeforeUnmount(() => {
 						</div>
 					</section>
 					<section v-else-if="parent" class="space-y-2 border-b border-border px-4 py-3">
-						<h3 class="text-[11px] font-semibold">Size</h3>
+						<h3 class="flex items-center gap-1.5 text-[11px] font-semibold">Size<span v-if="parentModes[parentMode]" v-dom-tooltip="parentModes[parentMode].tooltip" class="inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 font-normal text-muted-fg"><InspectorIcon :name="parentModes[parentMode].icon" class="!size-3" />{{ parentModes[parentMode].label }}</span></h3>
 						<div v-for="key in ['width', 'height']" :key="key" class="grid grid-cols-[minmax(0,1fr)_5.5rem] gap-1.5">
 							<ScrubField :prefix="key === 'width' ? 'W' : 'H'" :label="key === 'width' ? 'Width' : 'Height'" css :min="0" :model-value="lengthValue(active.style?.[key])" :placeholder="geometry[key] ? String(Math.round(geometry[key])) : 'Auto'" @update:model-value="setDimension(key, $event)" />
-							<select class="h-7 w-full min-w-0 rounded-md border-0 bg-secondary/60 px-2 text-xs text-canvas-fg outline-none ring-inset hover:ring-1 hover:ring-border focus:ring-1 focus:ring-primary" :value="sizing(key)" :aria-label="`${key === 'width' ? 'Width' : 'Height'} sizing`" :title="{ auto: 'Auto: classes and content decide', fixed: 'Fixed: an exact size', hug: 'Hug: shrink to the content', fill: 'Fill: take the space the parent gives' }[sizing(key)]" @change="setSizing(key, $event.target.value)">
+							<select class="h-7 w-full min-w-0 rounded-md border-0 bg-secondary/60 px-2 text-xs text-canvas-fg outline-none ring-inset hover:ring-1 hover:ring-border focus:ring-1 focus:ring-primary" :value="sizing(key)" :aria-label="`${key === 'width' ? 'Width' : 'Height'} sizing`" v-dom-tooltip="{ auto: 'Auto: classes and content decide', fixed: 'Fixed: an exact size', hug: 'Hug: shrink to the content', fill: 'Fill: take the space the parent gives' }[sizing(key)]" @change="setSizing(key, $event.target.value)">
 								<option v-for="mode in sizingModes" :key="mode.value" :value="mode.value">{{ mode.label }}</option>
 							</select>
 						</div>

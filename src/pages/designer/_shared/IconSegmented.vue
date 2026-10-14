@@ -1,7 +1,8 @@
 <script setup>
+import { vDomTooltip } from '../../components/tooltip/vDomTooltip.js';
 import InspectorIcon from './InspectorIcon.vue';
 
-/** A row of icon buttons where one option is pressed, as in Figma's layout controls. */
+/** A row of icon buttons where one option is pressed, as in Figma's layout controls. Each shows `tooltip` (or `label`) on hover. */
 defineProps({
 	modelValue: { type: String, default: '' },
 	options: { type: Array, required: true },
@@ -20,7 +21,7 @@ const emit = defineEmits(['update:modelValue']);
 			:class="modelValue === option.value && 'bg-canvas text-canvas-fg shadow-sm ring-1 ring-border'"
 			:aria-pressed="modelValue === option.value"
 			:aria-label="option.label"
-			:title="option.label"
+			v-dom-tooltip="option.tooltip || option.label"
 			@click="emit('update:modelValue', option.value)"
 		>
 			<InspectorIcon :name="option.icon" />

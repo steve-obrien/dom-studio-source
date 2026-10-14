@@ -1,5 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { vDomTooltip } from '../../components/tooltip/vDomTooltip.js';
 import IconSegmented from '../_shared/IconSegmented.vue';
 import InspectorIcon from '../_shared/InspectorIcon.vue';
 import ScrubField from '../_shared/ScrubField.vue';
@@ -14,14 +15,14 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const modes = [
-	{ value: 'flow', label: 'Flow: normal document flow', icon: 'mode-flow' },
-	{ value: 'flex', label: 'Flex: auto layout in a row or column', icon: 'mode-flex' },
-	{ value: 'grid', label: 'Grid: rows and columns', icon: 'mode-grid' },
-	{ value: 'absolute', label: 'Absolute: place children freely', icon: 'mode-absolute' },
+	{ value: 'flow', label: 'Flow', tooltip: 'Flow: children stack in normal document flow', icon: 'mode-flow' },
+	{ value: 'flex', label: 'Flex', tooltip: 'Flex (auto layout): children in a row or column', icon: 'mode-flex' },
+	{ value: 'grid', label: 'Grid', tooltip: 'Grid: children in rows and columns', icon: 'mode-grid' },
+	{ value: 'absolute', label: 'Absolute', tooltip: 'Absolute: children placed freely by X and Y', icon: 'mode-absolute' },
 ];
 const directions = [
-	{ value: 'row', label: 'Horizontal', icon: 'dir-row' },
-	{ value: 'column', label: 'Vertical', icon: 'dir-column' },
+	{ value: 'row', label: 'Horizontal', tooltip: 'Horizontal: children in a row', icon: 'dir-row' },
+	{ value: 'column', label: 'Vertical', tooltip: 'Vertical: children in a column', icon: 'dir-column' },
 ];
 const spacing = [
 	{ label: 'Packed', value: 'packed' },
@@ -114,17 +115,17 @@ function setTracks(key, value) {
 			<div class="flex items-center gap-1">
 				<IconSegmented :model-value="axis" :options="directions" label="Direction" @update:model-value="setDirection($event)" />
 				<span class="flex-1"></span>
-				<button type="button" :class="[toggleClass, reversed && 'bg-secondary text-canvas-fg']" :aria-pressed="reversed" aria-label="Reverse order" title="Reverse order" @click="setDirection(axis, !reversed)"><InspectorIcon name="reverse" /></button>
-				<button type="button" :class="[toggleClass, layout.wrap === 'wrap' && 'bg-secondary text-canvas-fg']" :aria-pressed="layout.wrap === 'wrap'" aria-label="Wrap children" title="Wrap children" @click="update({ wrap: layout.wrap === 'wrap' ? 'nowrap' : 'wrap' })"><InspectorIcon name="wrap" /></button>
+				<button type="button" :class="[toggleClass, reversed && 'bg-secondary text-canvas-fg']" :aria-pressed="reversed" aria-label="Reverse order" v-dom-tooltip="'Reverse order: last child first'" @click="setDirection(axis, !reversed)"><InspectorIcon name="reverse" /></button>
+				<button type="button" :class="[toggleClass, layout.wrap === 'wrap' && 'bg-secondary text-canvas-fg']" :aria-pressed="layout.wrap === 'wrap'" aria-label="Wrap children" v-dom-tooltip="'Wrap: children flow onto new lines'" @click="update({ wrap: layout.wrap === 'wrap' ? 'nowrap' : 'wrap' })"><InspectorIcon name="wrap" /></button>
 			</div>
 			<div class="flex gap-2">
 				<AlignmentPad :justify="layout.justify" :align="layout.align" :direction="layout.direction" @change="update($event)" />
 				<div class="flex min-w-0 flex-1 flex-col gap-1.5">
 					<ScrubField :model-value="layout.gap" :icon="axis === 'row' ? 'gap-x' : 'gap-y'" label="Gap between children" :min="0" @update:model-value="update({ gap: $event })" />
-					<select :class="selectClass" :value="distribution" aria-label="Distribution along the main axis" title="Distribution along the main axis" @change="setDistribution($event.target.value)">
+					<select :class="selectClass" :value="distribution" aria-label="Distribution along the main axis" v-dom-tooltip="'Spacing along the direction'" @change="setDistribution($event.target.value)">
 						<option v-for="option in spacing" :key="option.value" :value="option.value">{{ option.label }}</option>
 					</select>
-					<select :class="selectClass" :value="crossMode" aria-label="Cross-axis alignment" title="Cross-axis alignment" @change="setCross($event.target.value)">
+					<select :class="selectClass" :value="crossMode" aria-label="Cross-axis alignment" v-dom-tooltip="'Alignment across the direction'" @change="setCross($event.target.value)">
 						<option v-for="option in crossModes" :key="option.value" :value="option.value">{{ option.label }}</option>
 					</select>
 				</div>
@@ -140,10 +141,10 @@ function setTracks(key, value) {
 				<AlignmentPad axis="grid" :justify="layout.justifyItems" :align="layout.align" @change="update({ justifyItems: $event.justify, align: $event.align })" />
 				<div class="flex min-w-0 flex-1 flex-col gap-1.5">
 					<ScrubField :model-value="layout.gap" icon="gap-x" label="Gap between cells" :min="0" @update:model-value="update({ gap: $event })" />
-					<select :class="selectClass" :value="layout.autoFlow" aria-label="Auto flow" title="Auto flow" @change="update({ autoFlow: $event.target.value })">
+					<select :class="selectClass" :value="layout.autoFlow" aria-label="Auto flow" v-dom-tooltip="'Order cells fill in'" @change="update({ autoFlow: $event.target.value })">
 						<option v-for="value in ['row', 'column', 'row dense', 'column dense']" :key="value" :value="value">Flow {{ value }}</option>
 					</select>
-					<select :class="selectClass" :value="['stretch', 'baseline'].includes(layout.align) || layout.justifyItems === 'stretch' ? 'stretch' : 'aligned'" aria-label="Cell alignment" title="Cell alignment" @change="$event.target.value === 'stretch' ? update({ justifyItems: 'stretch', align: 'stretch' }) : update({ justifyItems: 'start', align: 'start' })">
+					<select :class="selectClass" :value="['stretch', 'baseline'].includes(layout.align) || layout.justifyItems === 'stretch' ? 'stretch' : 'aligned'" aria-label="Cell alignment" v-dom-tooltip="'Align items in their cells, or fill them'" @change="$event.target.value === 'stretch' ? update({ justifyItems: 'stretch', align: 'stretch' }) : update({ justifyItems: 'start', align: 'start' })">
 						<option value="aligned">Align to pad</option>
 						<option value="stretch">Fill cells</option>
 					</select>
@@ -166,7 +167,7 @@ function setTracks(key, value) {
 		<div class="space-y-1.5">
 			<div class="flex items-center justify-between">
 				<span class="text-[11px] text-muted-fg">Padding</span>
-				<button type="button" :class="[toggleClass, 'size-6', individual && 'bg-secondary text-canvas-fg']" :aria-pressed="individual" aria-label="Padding per side" title="Padding per side" @click="togglePaddingSides"><InspectorIcon name="padding-sides" /></button>
+				<button type="button" :class="[toggleClass, 'size-6', individual && 'bg-secondary text-canvas-fg']" :aria-pressed="individual" aria-label="Padding per side" v-dom-tooltip="individual ? 'Horizontal and vertical padding' : 'Padding per side'" @click="togglePaddingSides"><InspectorIcon name="padding-sides" /></button>
 			</div>
 			<div v-if="individual" class="grid grid-cols-2 gap-1.5">
 				<ScrubField :model-value="layout.paddingTop" prefix="T" label="Top padding" :min="0" @update:model-value="setPadding('paddingTop', $event)" />
