@@ -1,6 +1,7 @@
 import { createDocument } from '../core/editorDocument.js';
 import { createTypeRegistry } from '../core/typeRegistry.js';
 import { createPosterLayer, fontOptions } from './posterModel.js';
+import { pinXOptions, pinYOptions } from './posterResize.js';
 
 /**
  * The poster on the editor core.
@@ -25,6 +26,8 @@ const positionFields = [
 	number('y', 'Y', { group: 'Position', props: { min: -10000, max: 10000 } }),
 	number('width', 'Width', { group: 'Position', props: { min: 16, max: 20000 } }),
 	number('height', 'Height', { group: 'Position', props: { min: 16, max: 20000 } }),
+	select('pinX', 'Pin across', pinXOptions, { group: 'Position', half: true }),
+	select('pinY', 'Pin down', pinYOptions, { group: 'Position', half: true }),
 ];
 const textFields = [
 	{ key: 'value', label: 'Text', component: 'DomTextareaInput', group: 'Typography', props: { rows: 3 } },

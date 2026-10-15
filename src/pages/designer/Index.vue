@@ -23,6 +23,7 @@ const links = [
 	{ to: '/designer/frames', title: 'Nested frames & HTML import', description: 'Nest flow, flex, grid and absolute frames. Switch layouts, snap within a frame, and import Tailwind HTML into an editable canvas.' },
 	{ to: '/designer/assembly', title: 'Build your own designer', description: 'Working Vue examples and assembly documentation for HTML editors, appearance controls and flowcharts.' },
 	{ to: '/designer/flowchart', title: 'Flowchart designer', description: 'An infinite workspace powered by Vue Flow. Connect editable steps, pan, zoom, navigate with a minimap and export your graph.' },
+	{ to: '/designer/social', title: 'Social post studio', tag: 'New', description: 'Design one post and see it live at every platform size: Instagram post and story, LinkedIn, X, YouTube and link previews. Each layer pins to an edge, the centre or both sides, so a resize reflows instead of squashing.' },
 	{ to: '/designer/poster', title: 'Poster studio', description: 'Create a portrait flyer with image, text and shape layers on the shared editor model. Multi-select, align, distribute, rulers, undo and HTML export.' },
 	{ to: '/designer/social-card', title: 'Social card designer', description: 'The poster studio at link-preview sizes, with the linked HTML open. Select a source line to inspect its layer.' },
 	{ to: '/designer/color-swatch', title: 'Colour swatch', description: 'The theme editor’s colour control, available independently with a CSS expression and native picker.' },

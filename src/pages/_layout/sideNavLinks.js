@@ -226,6 +226,7 @@ function groupsFromDiscoveredComponents() {
 					{ to: '/designer/frames', label: 'Nested frames' },
 					{ to: '/designer/assembly', label: 'Assembly guide' },
 					{ to: '/designer/flowchart', label: 'Flowchart designer', tag: 'Beta' },
+					{ to: '/designer/social', label: 'Social posts', tag: 'New' },
 					{ to: '/designer/social-card', label: 'Social card' },
 					{ to: '/designer/poster', label: 'Poster studio', tag: 'Beta' },
 				] : []),

@@ -11,6 +11,8 @@ import AlignTools from '../stage/AlignTools.vue';
 import DesignerRulers from '../stage/DesignerRulers.vue';
 import { alignRects, boundsOf, distributeRects } from '../stage/alignGeometry.js';
 import { exportPosterHtml, posterHtmlLines, posterLayerStyle, safePosterImage } from './posterModel.js';
+import PosterThumbnail from './PosterThumbnail.vue';
+import { resizeOperations, resizePoster } from './posterResize.js';
 import { createPosterTypes, documentToPoster, posterToDocument } from './posterTypes.js';
 
 /**
@@ -31,6 +33,7 @@ const props = defineProps({
 	codeOpen: { type: Boolean, default: false },
 	initialSelection: { type: String, default: '' },
 	frameLabel: { type: String, default: 'Poster' },
+	formatsOpen: { type: Boolean, default: false },
 });
 
 const types = createPosterTypes();
@@ -51,6 +54,7 @@ const rightPanelWidth = ref(300);
 const fitScale = ref(0.3);
 const mobilePanel = ref('poster');
 const showCode = ref(props.codeOpen);
+const showFormats = ref(props.formatsOpen);
 const notice = ref('');
 const imageErrors = ref({});
 const imageUrlDraft = ref('');
@@ -75,6 +79,11 @@ const scale = computed(() => (zoomChoice.value === 'fit' ? fitScale.value : Numb
 const layers = computed(() => poster.value.layers.toReversed().map((layer) => ({ id: layer.id, label: `${layer.name}${layer.locked ? ' · locked' : ''}${layer.hidden ? ' · hidden' : ''}` })));
 const source = computed(() => posterHtmlLines(poster.value));
 const selectionBox = computed(() => (selectedNodes.value.length ? boundsOf(selectedNodes.value.map(rectOf)) : null));
+/** The design at every preset size, resized with each layer's pins. */
+const previews = computed(() => props.presets.map((preset) => {
+	const [width, height] = preset.value.split('x').map(Number);
+	return { ...preset, current: preset.value === `${poster.value.width}x${poster.value.height}`, poster: resizePoster(poster.value, { width, height }) };
+}));
 const formatOptions = computed(() => {
 	const current = `${poster.value.width}x${poster.value.height}`;
 	return props.presets.some((preset) => preset.value === current) ? props.presets : [{ label: `Custom · ${poster.value.width} × ${poster.value.height}`, value: current }, ...props.presets];
@@ -215,18 +224,11 @@ function moveTo(rects) {
 		return [['x', rect.left], ['y', rect.top]].filter(([key, value]) => node.props[key] !== value).map(([key, value]) => ({ op: 'setProp', id: rect.id, key, value }));
 	}));
 }
-/** Resizes the frame and scales layer geometry so the composition holds. */
+/** Resizes the frame; each layer follows its pins so the composition holds. */
 function setPreset(value) {
 	const [width, height] = value.split('x').map(Number);
-	if (!props.presets.some((preset) => preset.value === value)) return;
-	const sx = width / poster.value.width;
-	const sy = height / poster.value.height;
-	const operations = frame.value.children.flatMap((id) => {
-		const node = doc.value.nodes[id];
-		const next = { x: Math.round(node.props.x * sx), y: Math.round(node.props.y * sy), width: Math.round(node.props.width * sx), height: Math.round(node.props.height * sy), fontSize: Math.round((node.props.fontSize ?? 100) * Math.min(sx, sy)) };
-		return Object.entries(next).map(([key, nextValue]) => ({ op: 'setProp', id, key, value: nextValue }));
-	});
-	run([...operations, { op: 'setProp', id: frame.value.id, key: 'width', value: width }, { op: 'setProp', id: frame.value.id, key: 'height', value: height }]);
+	if (!props.presets.some((preset) => preset.value === value) || value === `${poster.value.width}x${poster.value.height}`) return;
+	run(resizeOperations(doc.value, { width, height }));
 	nextTick(fit);
 }
 
@@ -271,10 +273,10 @@ watch(() => [selected.value, activeLayer.value?.value], () => {
 /* Export ------------------------------------------------------------------------- */
 
 /** Downloads a standalone HTML document containing local images and the current CSS. */
-function download() {
-	const url = URL.createObjectURL(new Blob([exportPosterHtml(poster.value)], { type: 'text/html' }));
+function download(design = poster.value, fileName = props.fileName) {
+	const url = URL.createObjectURL(new Blob([exportPosterHtml(design)], { type: 'text/html' }));
 	const link = document.createElement('a');
-	link.href = url; link.download = props.fileName; link.click();
+	link.href = url; link.download = fileName; link.click();
 	setTimeout(() => URL.revokeObjectURL(url), 1000);
 	notice.value = 'HTML exported. Linked photos still need an internet connection.';
 }
@@ -346,7 +348,7 @@ onBeforeUnmount(cleanup);
 	<main class="flex h-dvh min-h-0 flex-col bg-canvas text-canvas-fg">
 		<header class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
 			<div class="flex flex-wrap items-center gap-3"><RouterLink to="/designer" class="text-sm text-muted-fg hover:text-canvas-fg">← UI designer</RouterLink><RouterLink :to="guide" class="text-sm text-primary underline underline-offset-4">Assembly guide</RouterLink><span class="h-4 border-l border-border"></span><h1 class="text-sm font-semibold">{{ name }}</h1><span class="rounded bg-secondary px-2 py-1 text-[10px] font-semibold uppercase tracking-wide">Beta</span></div>
-			<div class="flex items-center gap-2"><DomButton size="sm" variant="ghost" :disabled="!counts.undo" title="Undo (⌘Z)" @click="undo">Undo</DomButton><DomButton size="sm" variant="ghost" :disabled="!counts.redo" title="Redo (⇧⌘Z)" @click="redo">Redo</DomButton><DomButton size="sm" variant="ghost" :aria-pressed="showCode" @click="showCode = !showCode">HTML</DomButton><DomButton size="sm" @click="download">Export HTML</DomButton></div>
+			<div class="flex items-center gap-2"><DomButton size="sm" variant="ghost" :disabled="!counts.undo" title="Undo (⌘Z)" @click="undo">Undo</DomButton><DomButton size="sm" variant="ghost" :disabled="!counts.redo" title="Redo (⇧⌘Z)" @click="redo">Redo</DomButton><DomButton size="sm" variant="ghost" :aria-pressed="showCode" @click="showCode = !showCode">HTML</DomButton><DomButton v-if="presets.length > 1" size="sm" variant="ghost" :aria-pressed="showFormats" @click="showFormats = !showFormats">Formats</DomButton><DomButton size="sm" @click="download()">Export HTML</DomButton></div>
 		</header>
 		<nav class="flex shrink-0 border-b border-border p-1 md:hidden" aria-label="Editor panels"><button v-for="panel in ['layers', 'poster', 'inspect']" :key="panel" type="button" class="flex-1 rounded px-3 py-2 text-sm capitalize" :class="mobilePanel === panel ? 'bg-secondary font-semibold' : 'text-muted-fg'" :aria-pressed="mobilePanel === panel" @click="mobilePanel = panel">{{ panel }}</button></nav>
 		<DomSplitterPanel v-model:start-size="leftPanelWidth" v-model:end-size="rightPanelWidth" :min-start="180" :min-main="280" :min-end="240" class="poster-panels min-h-0 flex-1" :data-panel="mobilePanel">
@@ -375,6 +377,7 @@ onBeforeUnmount(cleanup);
 					</div>
 				</div>
 				<div class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border bg-canvas px-4 py-2"><span class="truncate text-xs text-muted-fg">{{ multiple ? `${selectedNodes.length} layers` : activeLayer?.name || poster.title }}{{ !multiple && active?.locked ? ' · locked' : '' }}</span><label class="flex shrink-0 items-center gap-1 text-xs" title="Snap to the poster and visible layers. Hold Control while moving or resizing to bypass."><input v-model="snapping" type="checkbox" class="accent-primary" />Snap</label><label class="flex shrink-0 items-center gap-1 text-xs" title="Repeat horizontal and vertical gaps while dragging. Independent of alignment snapping; hold Control to bypass."><input v-model="spacingSnapping" type="checkbox" class="accent-primary" />Spacing</label><label class="flex shrink-0 items-center gap-1 text-xs"><input v-model="rulers" type="checkbox" class="accent-primary" />Rulers</label><label class="flex items-center gap-2 text-xs"><span>Zoom</span><select v-model="zoomChoice" aria-label="Stage zoom" class="rounded border border-border bg-canvas px-2 py-1"><option value="fit">Fit · {{ Math.round(fitScale * 100) }}%</option><option v-if="zoomChoice !== 'fit' && !['0.25', '0.5', '0.75', '1'].includes(zoomChoice)" :value="zoomChoice">{{ Math.round(scale * 100) }}%</option><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1">100%</option></select></label></div>
+				<div v-if="showFormats && presets.length > 1" class="shrink-0 border-t border-border bg-canvas p-3"><div class="mb-2 flex items-center justify-between gap-3"><h2 class="text-xs font-semibold">Every format <span class="font-normal text-muted-fg">· live previews that follow each layer's pins</span></h2></div><div class="flex gap-4 overflow-x-auto pb-1"><div v-for="preview in previews" :key="preview.value" class="flex shrink-0 flex-col items-start gap-1.5"><button type="button" class="rounded-md p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" :class="preview.current ? 'ring-2 ring-primary' : 'hover:bg-secondary'" :aria-label="`Edit as ${preview.label}`" :aria-pressed="preview.current" @click="setPreset(preview.value)"><PosterThumbnail :poster="preview.poster" :height="120" /></button><div class="flex w-full items-center justify-between gap-2 px-1"><span class="truncate text-[11px]" :class="preview.current ? 'font-semibold' : 'text-muted-fg'">{{ preview.label }}</span><button type="button" class="shrink-0 text-[11px] text-primary underline underline-offset-2" :aria-label="`Export ${preview.label} as HTML`" @click="download(preview.poster, `${fileName.replace(/\.html$/, '')}-${preview.value}.html`)">HTML</button></div></div></div></div>
 				<div v-if="showCode" class="max-h-52 shrink-0 overflow-auto border-t border-border bg-canvas p-3"><div class="mb-2 flex items-center justify-between"><h2 class="text-xs font-semibold">Linked HTML <span class="font-normal text-muted-fg">· select a line to inspect its layer</span></h2><DomButton size="sm" variant="ghost" @click="copy">Copy HTML</DomButton></div><button v-for="(line, index) in source" :key="index" type="button" class="block max-w-full truncate text-left font-mono text-[11px] leading-6" :class="(line.id === 'frame' ? selected === 'frame' : selection.includes(line.id)) && 'bg-primary/10 text-primary'" :title="line.text" @click="pickLayer(line.id)">{{ line.text }}</button></div>
 			</section>
 			</template>

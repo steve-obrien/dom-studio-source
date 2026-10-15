@@ -16,7 +16,7 @@ export function createPosterLayer(type, id, overrides = {}) {
 	return {
 		id, type, name: type === 'text' ? 'Text' : type === 'image' ? 'Image' : 'Shape',
 		value: type === 'text' ? 'Your next adventure' : type === 'image' ? posterImage : '',
-		x: 80, y: 480, width: 920, height: type === 'text' ? 260 : 600,
+		x: 80, y: 480, width: 920, height: type === 'text' ? 260 : 600, pinX: 'auto', pinY: 'auto',
 		background: createBackgroundState({}, { allowEmpty: true }), backdrop: createBackdrop(), border: createDesignerBorder({ enabled: false }), locked: false, hidden: false, opacity: 100, radius: 0, shadows: [],
 		color: '#171717', fill: type === 'shape' ? '#f4d35e' : 'transparent',
 		fontFamily: fontOptions[0].value, fontSize: 100, fontWeight: '400', lineHeight: 1.1, letterSpacing: -2,
@@ -48,6 +48,28 @@ export function createSocialCard() {
 			createPosterLayer('text', 'brand', { name: 'Brand', value: 'DOM STUDIO / FIELD NOTES', x: 80, y: 72, width: 640, height: 40, ...text, fontSize: 24, fontWeight: '700', letterSpacing: 4, lineHeight: 1.2, color: '#e4572e' }),
 			createPosterLayer('text', 'headline', { name: 'Headline', value: 'Small ideas.\nWorth sharing.', x: 80, y: 160, width: 1000, height: 260, ...text, fontSize: 104, fontWeight: '900', letterSpacing: -3, lineHeight: 1.02 }),
 			createPosterLayer('text', 'caption', { name: 'Caption', value: 'Made with real HTML. Ready for your next idea.', x: 80, y: 470, width: 900, height: 60, ...text, fontSize: 32, lineHeight: 1.3, color: '#525252' }),
+		],
+	};
+}
+
+/**
+ * Returns an Instagram post built to be resized: the photo fills the frame,
+ * the brand and badge hold the top corners, and the copy sits on a scrim
+ * pinned to the bottom edge and stretched between the sides.
+ */
+export function createSocialPost() {
+	const sans = fontOptions[1].value;
+	const text = { fontFamily: sans, textAlign: 'left', textTransform: 'none', letterSpacing: 0, lineHeight: 1.2, color: '#ffffff' };
+	return {
+		version: 1, title: 'Five days in the Highlands', width: 1080, height: 1350, background: '#0f172a',
+		layers: [
+			createPosterLayer('image', 'photo', { name: 'Glencoe, Scottish Highlands', x: 0, y: 0, width: 1080, height: 1350, objectY: 40, locked: true }),
+			createPosterLayer('shape', 'scrim', { name: 'Scrim', x: 0, y: 760, width: 1080, height: 590, fill: '#0f172a', opacity: 72 }),
+			createPosterLayer('text', 'brand', { name: 'Brand', value: 'NORTHBOUND TRAVEL', x: 64, y: 64, width: 600, height: 40, ...text, fontSize: 28, fontWeight: '700', letterSpacing: 4 }),
+			createPosterLayer('shape', 'badge', { name: 'Badge', x: 856, y: 48, width: 176, height: 176, radius: 88, fill: '#f4d35e' }),
+			createPosterLayer('text', 'badge-label', { name: 'Badge label', value: 'NEW\nROUTE', x: 856, y: 96, width: 176, height: 80, ...text, fontSize: 30, fontWeight: '900', lineHeight: 1.1, textAlign: 'center', color: '#171717' }),
+			createPosterLayer('text', 'headline', { name: 'Headline', value: 'Five days in\nthe Highlands', x: 64, y: 840, width: 952, height: 250, ...text, fontSize: 104, fontWeight: '900', letterSpacing: -2, lineHeight: 1.02, pinX: 'stretch' }),
+			createPosterLayer('text', 'details', { name: 'Details', value: 'Departs 14 March · From £890 · Small groups', x: 64, y: 1150, width: 952, height: 60, ...text, fontSize: 34, color: '#e2e8f0', pinX: 'stretch' }),
 		],
 	};
 }
