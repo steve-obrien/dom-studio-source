@@ -12,7 +12,7 @@ import DesignerRulers from '../stage/DesignerRulers.vue';
 import { alignRects, boundsOf, distributeRects } from '../stage/alignGeometry.js';
 import { exportPosterHtml, posterHtmlLines, posterLayerStyle, safePosterImage } from './posterModel.js';
 import PosterThumbnail from './PosterThumbnail.vue';
-import { resizeOperations, resizePoster } from './posterResize.js';
+import { formatOperations, formatSource, resizePoster } from './posterResize.js';
 import { createTemplateLibrary, posterToTemplate, templateIndustries, templateKinds, templateOperations, templateToPoster } from './socialTemplates.js';
 import { createPosterTypes, documentToPoster, posterToDocument } from './posterTypes.js';
 
@@ -88,10 +88,13 @@ const scale = computed(() => (zoomChoice.value === 'fit' ? fitScale.value : Numb
 const layers = computed(() => poster.value.layers.toReversed().map((layer) => ({ id: layer.id, label: `${layer.name}${layer.locked ? ' · locked' : ''}${layer.hidden ? ' · hidden' : ''}` })));
 const source = computed(() => posterHtmlLines(poster.value));
 const selectionBox = computed(() => (selectedNodes.value.length ? boundsOf(selectedNodes.value.map(rectOf)) : null));
+/** Formats derive from the design as last edited, never from the previous format, so switching never drifts. */
+const formatBase = ref(null);
+const formatDesign = computed(() => formatSource(formatBase.value, poster.value));
 /** The design at every preset size, resized with each layer's pins. */
 const previews = computed(() => props.presets.map((preset) => {
 	const [width, height] = preset.value.split('x').map(Number);
-	return { ...preset, current: preset.value === `${poster.value.width}x${poster.value.height}`, poster: resizePoster(poster.value, { width, height }) };
+	return { ...preset, current: preset.value === `${poster.value.width}x${poster.value.height}`, poster: resizePoster(formatDesign.value, { width, height }) };
 }));
 /** Template filters list only the industries and kinds that have templates. */
 const galleryTemplates = computed(() => [...savedTemplates.value.map((template) => ({ ...template, saved: true })), ...props.templates]);
@@ -243,7 +246,8 @@ function moveTo(rects) {
 function setPreset(value) {
 	const [width, height] = value.split('x').map(Number);
 	if (!props.presets.some((preset) => preset.value === value) || value === `${poster.value.width}x${poster.value.height}`) return;
-	run(resizeOperations(doc.value, { width, height }));
+	formatBase.value = formatDesign.value;
+	run(formatOperations(doc.value, resizePoster(formatBase.value, { width, height })));
 	nextTick(fit);
 }
 
