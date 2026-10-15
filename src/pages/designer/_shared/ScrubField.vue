@@ -9,12 +9,14 @@ import InspectorIcon from './InspectorIcon.vue';
  * Drag the prefix sideways to scrub the value (Shift for steps of ten), use
  * the arrow keys, or type and press Enter. With `css`, a typed CSS length
  * such as `50%` or `auto` is emitted as a string; plain numbers are numbers.
+ * A `suffix` such as `%` or `px` shows after the value.
  */
 const props = defineProps({
 	modelValue: { type: [Number, String], default: '' },
 	label: { type: String, required: true },
 	icon: { type: String, default: '' },
 	prefix: { type: String, default: '' },
+	suffix: { type: String, default: '' },
 	placeholder: { type: String, default: '' },
 	min: { type: Number, default: null },
 	max: { type: Number, default: null },
@@ -109,10 +111,12 @@ function onScrubStart(event) {
 			:aria-label="label"
 			:placeholder="placeholder"
 			:disabled="disabled"
-			class="h-full w-full min-w-0 bg-transparent pr-2 tabular-nums text-canvas-fg outline-none placeholder:text-muted-fg/70"
+			class="h-full w-full min-w-0 bg-transparent tabular-nums text-canvas-fg outline-none placeholder:text-muted-fg/70"
+			:class="suffix ? 'pr-0.5' : 'pr-2'"
 			@input="draft = $event.target.value"
 			@keydown="onKeydown"
 			@blur="commit"
 		>
+		<span v-if="suffix" class="shrink-0 select-none pr-2 text-[11px] text-muted-fg" aria-hidden="true">{{ suffix }}</span>
 	</label>
 </template>

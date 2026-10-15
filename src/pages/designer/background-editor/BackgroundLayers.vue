@@ -1,20 +1,24 @@
 <script setup>
 import CssColorInput from '../color-swatch/DomColorSwatch.vue';
-import {
-	DomNativeSelect,
-	DomPopover,
-	DomRangeInput,
-} from '../../lib/vue';
+import { DomPopover } from '../../lib/vue';
 import ControlIconButton from '../_shared/ControlIconButton.vue';
+import IconSegmented from '../_shared/IconSegmented.vue';
+import ScrubField from '../_shared/ScrubField.vue';
 import StyleControlSection from '../_shared/StyleControlSection.vue';
 import {
 	addFillLayer,
-	duplicateFillLayer,
 	enabledFills,
 	fillToCss,
-	fillTypeOptions,
 	removeFillLayer,
 } from './backgroundModel.js';
+
+const kindOptions = [
+	{ value: 'solid', icon: 'fill-solid', label: 'Solid' },
+	{ value: 'linear', icon: 'fill-linear', label: 'Linear gradient' },
+	{ value: 'radial', icon: 'fill-radial', label: 'Radial gradient' },
+];
+const kindLabels = { solid: 'Solid', linear: 'Linear', radial: 'Radial' };
+const checker = 'repeating-conic-gradient(var(--border) 0 25%, var(--canvas) 0 50%) 0 0 / 8px 8px';
 
 const props = defineProps({
 	background: {
@@ -29,6 +33,7 @@ const props = defineProps({
 		type: String,
 		default: 'Fill',
 	},
+
 	variables: {
 		type: Object,
 		default: () => ({}),
@@ -41,11 +46,6 @@ const emit = defineEmits(['update:modelValue']);
 function addFill() {
 	emit('update:modelValue', true);
 	addFillLayer(props.background);
-}
-
-/** Handles background layer interaction: duplicateFill. */
-function duplicateFill(index) {
-	duplicateFillLayer(props.background, index);
 }
 
 /** Handles background layer interaction: removeFill. */
@@ -81,130 +81,96 @@ function closeLayerPopoverElement(popover) {
 
 <template>
 	<StyleControlSection
-		:model-value="modelValue"
+		:model-value="modelValue && background.fills.length > 0"
 		:title="title"
-		:meta="`${enabledFills(background.fills).length} of ${background.fills.length} visible`"
+		:meta="background.fills.length ? `${enabledFills(background.fills).length} of ${background.fills.length}` : ''"
 		:muted="!background.enabled"
 		@update:model-value="emit('update:modelValue', $event)"
 	>
 		<template #actions>
-			<ControlIconButton icon="plus" label="Add background layer" @click.stop="addFill" />
 			<ControlIconButton
+				v-if="background.fills.length"
 				:icon="background.enabled ? 'eye' : 'eye-off'"
-				:label="background.enabled ? 'Hide background' : 'Show background'"
+				:label="background.enabled ? 'Hide all fills' : 'Show all fills'"
 				@click="background.enabled = !background.enabled"
 			/>
+			<ControlIconButton icon="plus" label="Add fill" @click.stop="addFill" />
 		</template>
 
-		<div class="divide-y divide-border">
-			<p v-if="variables.bgImage" class="px-3 py-2 font-mono text-[11px] text-muted-fg">
+		<div class="space-y-1.5">
+			<p v-if="variables.bgImage" class="truncate font-mono text-[11px] text-muted-fg">
 				{{ variables.bgImage }}
 			</p>
-			<article
+			<div
 				v-for="(fill, index) in background.fills"
 				:key="fill.id"
-				class="px-3 py-2"
-				:class="!fill.enabled && 'opacity-60'"
+				class="flex items-center gap-1"
 			>
-				<div class="grid grid-cols-[1fr_auto] items-center gap-2">
-					<DomPopover
-						:data-layer-popover-id="fill.id"
-						position="start-bottom"
-						width="w-[22rem] max-w-[calc(100vw-2rem)]"
-						padding="p-0"
-						:collision-padding="12"
-						@open="closeOtherLayerPopovers(fill.id)"
+				<div class="min-w-0 flex-1" :class="!fill.enabled && 'opacity-50'">
+					<CssColorInput
+						v-if="fill.kind === 'solid'"
+						v-model="fill.color"
+						v-model:alpha="fill.alpha"
+						hide-label
+						:label="`Fill ${index + 1}`"
 					>
-						<template #trigger>
-							<button
-								type="button"
-								class="grid w-full min-w-0 grid-cols-[auto_1fr] items-center gap-2 rounded-md text-left transition hover:bg-secondary/60"
-								@pointerdown.capture="closeAllLayerPopovers"
+						<template #swatch="{ style }">
+							<DomPopover
+								:data-layer-popover-id="fill.id"
+								position="start-bottom"
+								width="w-64 max-w-[calc(100vw-2rem)]"
+								padding="p-0"
+								:collision-padding="12"
+								class="ml-1.5 flex"
+								@open="closeOtherLayerPopovers(fill.id)"
 							>
-								<span
-									class="h-5 w-5 rounded border border-border"
-									:style="{ background: fillToCss(fill) }"
-								/>
-								<span class="min-w-0">
-									<span class="block truncate text-sm font-medium">{{
-										fill.kind === 'solid'
-											? 'Solid'
-											: fill.kind === 'linear'
-												? 'Linear gradient'
-												: 'Radial gradient'
-									}}</span>
-								</span>
-							</button>
+								<template #trigger>
+									<button type="button" class="block size-4 rounded-[3px] ring-1 ring-inset ring-canvas-fg/15" :style="style" :aria-label="`Edit fill ${index + 1}`" @pointerdown.capture="closeAllLayerPopovers"></button>
+								</template>
+								<div class="space-y-3 p-3">
+									<IconSegmented v-model="fill.kind" :options="kindOptions" label="Fill type" />
+									<CssColorInput v-model="fill.color" v-model:alpha="fill.alpha" label="Colour" />
+								</div>
+							</DomPopover>
 						</template>
-						<div>
-							<div class="border-b border-border px-3 py-2">
-								<p class="truncate text-sm font-semibold">Fill {{ index + 1 }}</p>
+					</CssColorInput>
+					<div v-else class="flex h-7 min-w-0 items-center rounded-md bg-secondary/60 text-xs">
+						<DomPopover
+							:data-layer-popover-id="fill.id"
+							position="start-bottom"
+							width="w-64 max-w-[calc(100vw-2rem)]"
+							padding="p-0"
+							:collision-padding="12"
+							class="!block min-w-0 flex-1 [&>[data-trigger]]:!block"
+							@open="closeOtherLayerPopovers(fill.id)"
+						>
+							<template #trigger>
+								<button type="button" class="flex h-7 w-full min-w-0 items-center gap-2 rounded-md pl-1.5 pr-2 text-left hover:ring-1 hover:ring-inset hover:ring-border" :aria-label="`Edit fill ${index + 1}`" @pointerdown.capture="closeAllLayerPopovers">
+									<span class="size-4 shrink-0 rounded-[3px] ring-1 ring-inset ring-canvas-fg/15" :style="{ background: `${fillToCss(fill)}, ${checker}` }"></span>
+									<span class="truncate text-[11px]">{{ kindLabels[fill.kind] }}<span v-if="fill.kind === 'linear'" class="text-muted-fg"> · {{ fill.gradientAngle }}°</span></span>
+								</button>
+							</template>
+							<div class="space-y-3 p-3">
+								<IconSegmented v-model="fill.kind" :options="kindOptions" label="Fill type" />
+								<div class="h-6 rounded ring-1 ring-inset ring-canvas-fg/15" :style="{ background: `${fillToCss({ ...fill, kind: 'linear', gradientAngle: 90 })}, ${checker}` }" aria-hidden="true"></div>
+								<ScrubField v-if="fill.kind === 'linear'" v-model="fill.gradientAngle" icon="angle" label="Angle" suffix="°" :min="0" :max="360" />
+								<div class="grid grid-cols-[minmax(0,1fr)_4.5rem] items-end gap-1.5">
+									<CssColorInput v-model="fill.gradientFrom" v-model:alpha="fill.gradientFromAlpha" label="Start" />
+									<ScrubField v-model="fill.gradientFromStop" prefix="@" label="Start position" suffix="%" :min="0" :max="100" />
+									<CssColorInput v-model="fill.gradientTo" v-model:alpha="fill.gradientToAlpha" label="End" />
+									<ScrubField v-model="fill.gradientToStop" prefix="@" label="End position" suffix="%" :min="0" :max="100" />
+								</div>
 							</div>
-							<div class="grid gap-3 p-3 sm:grid-cols-2">
-								<DomNativeSelect
-									v-model="fill.kind"
-									label="Type"
-									:options="fillTypeOptions"
-									placeholder=""
-								/>
-								<template v-if="fill.kind === 'solid'">
-									<CssColorInput v-model="fill.color" label="Colour" />
-									<DomRangeInput v-model="fill.alpha" label="Alpha" :min="0" :max="100" suffix="%" />
-								</template>
-								<template v-else>
-									<CssColorInput v-model="fill.gradientFrom" label="From" />
-									<DomRangeInput
-										v-model="fill.gradientFromAlpha"
-										label="From alpha"
-										:min="0"
-										:max="100"
-										suffix="%"
-									/>
-									<CssColorInput v-model="fill.gradientTo" label="To" />
-									<DomRangeInput
-										v-model="fill.gradientToAlpha"
-										label="To alpha"
-										:min="0"
-										:max="100"
-										suffix="%"
-									/>
-									<DomRangeInput
-										v-if="fill.kind === 'linear'"
-										v-model="fill.gradientAngle"
-										label="Angle"
-										:min="0"
-										:max="360"
-										suffix="deg"
-									/>
-									<DomRangeInput
-										v-model="fill.gradientFromStop"
-										label="From stop"
-										:min="0"
-										:max="100"
-										suffix="%"
-									/>
-									<DomRangeInput
-										v-model="fill.gradientToStop"
-										label="To stop"
-										:min="0"
-										:max="100"
-										suffix="%"
-									/>
-								</template>
-							</div>
-						</div>
-					</DomPopover>
-					<div class="flex items-center gap-1">
-						<ControlIconButton icon="duplicate" label="Duplicate fill" @click="duplicateFill(index)" />
-						<ControlIconButton
-							:icon="fill.enabled ? 'eye' : 'eye-off'"
-							:label="fill.enabled ? 'Hide fill' : 'Show fill'"
-							@click="fill.enabled = !fill.enabled"
-						/>
-						<ControlIconButton icon="remove" label="Remove fill" @click="removeFill(index)" />
+						</DomPopover>
 					</div>
 				</div>
-			</article>
+				<ControlIconButton
+					:icon="fill.enabled ? 'eye' : 'eye-off'"
+					:label="fill.enabled ? 'Hide fill' : 'Show fill'"
+					@click="fill.enabled = !fill.enabled"
+				/>
+				<ControlIconButton icon="remove" label="Remove fill" @click="removeFill(index)" />
+			</div>
 		</div>
 	</StyleControlSection>
 </template>

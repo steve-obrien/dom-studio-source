@@ -1,4 +1,4 @@
-import { cssColorWithAlpha } from '../../lib/css/color.js';
+import { colorWithAlpha, pxValue, splitColorAlpha, splitCssList } from '../_shared/cssValue.js';
 
 export const shadowKindOptions = [
 	{ label: 'Drop shadow', value: 'drop' },
@@ -30,7 +30,7 @@ export function enabledShadows(shadowList) {
 
 /** Serializes a drop shadow, inner shadow or ring to CSS. */
 export function shadowToCss(shadow) {
-	const color = cssColorWithAlpha(shadow.color, shadow.alpha);
+	const color = colorWithAlpha(shadow.color, shadow.alpha);
 	if (shadow.kind === 'ring') return `0 0 0 ${shadow.spread}px ${color}`;
 	return `${shadow.kind === 'inset' ? 'inset ' : ''}${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px ${color}`;
 }
@@ -40,6 +40,38 @@ export function shadowListToCss(shadowList) {
 	const visibleShadows = enabledShadows(shadowList);
 	if (!visibleShadows.length) return 'none';
 	return visibleShadows.map((shadow) => shadowToCss(shadow)).join(', ');
+}
+
+/**
+ * Reads a CSS `box-shadow` back into shadow layers. A shadow with no offset
+ * or blur is a ring. Returns `null` for values the editor cannot represent,
+ * such as lengths in units other than pixels.
+ *
+ * @param {string} css `box-shadow` value.
+ * @returns {Array<object>|null} Shadow layers.
+ */
+export function shadowsFromCss(css) {
+	const value = String(css ?? '').trim();
+	if (!value || value === 'none') return [];
+	const layers = [];
+	for (const layer of splitCssList(value)) {
+		const tokens = splitCssList(layer, ' ');
+		const inset = tokens.includes('inset');
+		const rest = tokens.filter((token) => token !== 'inset');
+		const lengths = [];
+		const colors = [];
+		for (const token of rest) {
+			const px = pxValue(token);
+			if (px !== null && !colors.length) lengths.push(px);
+			else colors.push(token);
+		}
+		if (lengths.length < 2 || lengths.length > 4 || colors.length > 1) return null;
+		const [x, y, blur = 0, spread = 0] = lengths;
+		const { color, alpha } = splitColorAlpha(colors[0] || 'currentColor');
+		const ring = !inset && x === 0 && y === 0 && blur === 0 && spread > 0;
+		layers.push(createShadow({ kind: ring ? 'ring' : inset ? 'inset' : 'drop', color, alpha, x, y, blur, spread }));
+	}
+	return layers;
 }
 
 /** Appends a new shadow and closes existing layer disclosures. */

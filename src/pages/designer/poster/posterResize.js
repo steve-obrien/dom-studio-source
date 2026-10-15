@@ -98,8 +98,8 @@ export function resizeLayer(layer, from, to) {
 	const [x, width] = resizeAxis(layer.pinX, layer.x, layer.width, from.width, to.width, k);
 	const [y, height] = resizeAxis(layer.pinY, layer.y, layer.height, from.height, to.height, k);
 	const next = { x: Math.round(x), y: Math.round(y), width: Math.round(width), height: Math.round(height) };
-	if (layer.fontSize != null) next.fontSize = Math.max(8, Math.round(layer.fontSize * k));
-	if (layer.letterSpacing) next.letterSpacing = Math.round(layer.letterSpacing * k * 10) / 10;
+	if (typeof layer.fontSize === 'number') next.fontSize = Math.max(8, Math.round(layer.fontSize * k));
+	if (typeof layer.letterSpacing === 'number' && layer.letterSpacing) next.letterSpacing = Math.round(layer.letterSpacing * k * 10) / 10;
 	if (layer.radius) next.radius = Math.round(layer.radius * k);
 	return next;
 }

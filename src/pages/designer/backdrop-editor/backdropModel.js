@@ -33,6 +33,20 @@ export function parseBackdropValue(value) {
 	});
 }
 
+/**
+ * Strictly reads a `backdrop-filter` value: only `blur()` in pixels and
+ * `saturate()` are editable, so anything else returns `null`.
+ *
+ * @param {string} css `backdrop-filter` value.
+ * @returns {object|null} Backdrop record.
+ */
+export function backdropFromCss(css) {
+	const raw = String(css ?? '').trim();
+	if (!raw || raw === 'none') return createBackdrop();
+	const rest = raw.replace(/blur\(\s*-?\d*\.?\d+px\s*\)|saturate\(\s*-?\d*\.?\d+\s*\)/gi, '').trim();
+	return rest ? null : parseBackdropValue(raw);
+}
+
 /** Formats a CSS number. */
 function formatCssNumber(value) {
 	return Number(Number.parseFloat(value || 0).toFixed(3)).toString();

@@ -1,6 +1,7 @@
 import { createDocument } from '../core/editorDocument.js';
 import { createTypeRegistry } from '../core/typeRegistry.js';
 import { createPosterLayer, fontOptions } from './posterModel.js';
+import { fontFamilyOptions, typographyKeys } from '../typography-editor/typographyModel.js';
 import { pinXOptions, pinYOptions } from './posterResize.js';
 
 /**
@@ -17,28 +18,22 @@ import { pinXOptions, pinYOptions } from './posterResize.js';
  * are unchanged.
  */
 
-const number = (key, label, extra = {}) => ({ key, label, component: 'DomNumberInput', half: true, ...extra });
+const scrub = (key, label, props, extra = {}) => ({ key, label, component: 'ScrubField', half: true, props, ...extra });
 const select = (key, label, options, extra = {}) => ({ key, label, component: 'DomNativeSelect', props: { options }, ...extra });
 const range = (key, label, max, suffix) => ({ key, label, component: 'DomRangeInput', group: 'Image', props: { min: 0, max, suffix } });
 
 const positionFields = [
-	number('x', 'X', { group: 'Position', props: { min: -10000, max: 10000 } }),
-	number('y', 'Y', { group: 'Position', props: { min: -10000, max: 10000 } }),
-	number('width', 'Width', { group: 'Position', props: { min: 16, max: 20000 } }),
-	number('height', 'Height', { group: 'Position', props: { min: 16, max: 20000 } }),
-	select('pinX', 'Pin across', pinXOptions, { group: 'Position', half: true }),
-	select('pinY', 'Pin down', pinYOptions, { group: 'Position', half: true }),
+	scrub('x', 'X position', { prefix: 'X', min: -10000, max: 10000 }, { group: 'Position' }),
+	scrub('y', 'Y position', { prefix: 'Y', min: -10000, max: 10000 }, { group: 'Position' }),
+	scrub('width', 'Width', { prefix: 'W', min: 16, max: 20000 }, { group: 'Position' }),
+	scrub('height', 'Height', { prefix: 'H', min: 16, max: 20000 }, { group: 'Position' }),
+	{ key: 'pinX', label: 'Pin across: how the layer follows a format change', component: 'InspectorSelect', half: true, group: 'Position', props: { options: pinXOptions, icon: 'dir-row' } },
+	{ key: 'pinY', label: 'Pin down: how the layer follows a format change', component: 'InspectorSelect', half: true, group: 'Position', props: { options: pinYOptions, icon: 'dir-column' } },
 ];
+const posterFonts = [...fontOptions, ...fontFamilyOptions.filter((font) => !fontOptions.some((option) => option.value === font.value))];
 const textFields = [
 	{ key: 'value', label: 'Text', component: 'DomTextareaInput', group: 'Typography', props: { rows: 3 } },
-	select('fontFamily', 'Font', fontOptions, { group: 'Typography' }),
-	number('fontSize', 'Font size', { group: 'Typography', props: { min: 8, max: 500 } }),
-	select('fontWeight', 'Weight', [{ label: 'Regular', value: '400' }, { label: 'Bold', value: '700' }, { label: 'Black', value: '900' }], { group: 'Typography', half: true }),
-	number('lineHeight', 'Line height', { group: 'Typography', props: { min: 0.5, max: 3, step: 0.05 } }),
-	number('letterSpacing', 'Letter spacing', { group: 'Typography', props: { min: -20, max: 100, step: 0.5 } }),
-	{ key: 'color', label: 'Text colour', component: 'DomColorSwatch', group: 'Typography' },
-	select('textAlign', 'Align', ['left', 'center', 'right'], { group: 'Typography', half: true }),
-	select('textTransform', 'Case', ['none', 'uppercase', 'lowercase', 'capitalize'], { group: 'Typography', half: true }),
+	{ key: 'typography', keys: typographyKeys, label: 'Text style', component: 'DomTypographyEditor', group: 'Typography', props: { title: 'Text style', fonts: posterFonts } },
 ];
 const imageFields = [
 	select('objectFit', 'Image fit', ['cover', 'contain', 'fill'], { group: 'Image' }),
@@ -50,8 +45,8 @@ const imageFields = [
 ];
 const fill = { key: 'fill', label: 'Fill', component: 'DomColorSwatch', group: 'Appearance' };
 const common = [
-	number('opacity', 'Opacity %', { group: 'Appearance', props: { min: 0, max: 100 } }),
-	number('radius', 'Radius', { group: 'Appearance', props: { min: 0, max: 1000 } }),
+	scrub('opacity', 'Opacity', { icon: 'opacity', suffix: '%', min: 0, max: 100 }, { group: 'Appearance' }),
+	scrub('radius', 'Corner radius', { icon: 'radius', min: 0, max: 1000 }, { group: 'Appearance' }),
 ];
 const surface = [
 	{ key: 'background', label: 'Background', component: 'DomBackgroundEditor', group: 'Appearance' },

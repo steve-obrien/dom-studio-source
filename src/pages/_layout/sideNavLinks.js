@@ -37,6 +37,11 @@ export const staticIconPaths = {
 	Studio: 'M4 5h16v14H4V5Zm4 4h8M8 13h5',
 	Canvas: 'M4 4h7v7H4V4Zm9 0h7v5h-7V4Zm0 7h7v9h-7v-9ZM4 13h7v7H4v-7Z',
 	'Nested frames': 'M4 4h16v16H4V4Zm4 4h8v8H8V8Z',
+	'Social posts': 'M5 5h14v14H5V5Zm0 10 4-4 3 3 2-2 5 5M15 9h.01',
+	'Poster studio': 'M7 3h10v18H7V3Zm3 4h4M10 15h4M10 18h2',
+	'Social card': 'M3 6h18v12H3V6Zm3 9 3-3 2 2 2-2 3 3M15 9h3',
+	'Flowchart designer': 'M4 4h6v5H4V4Zm10 11h6v5h-6v-5ZM7 9v4h10v2',
+	'Building blocks': 'M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 3.5h7M16.5 13v7',
 	Playground: 'M8 4l8 8-8 8',
 	Mobile: 'M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm3 15h4',
 	Data: 'M5 7c0-2 14-2 14 0v10c0 2-14 2-14 0V7Zm0 0c0 2 14 2 14 0M5 12c0 2 14 2 14 0',
@@ -135,6 +140,22 @@ export const staticIconPaths = {
 	'Safe area': 'M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 6V7h2M15 7h2v2M9 15v2h2M15 17h2v-2',
 };
 
+/**
+ * Full designer apps sit at the top level; their component building blocks nest below them.
+ */
+const designerToolNavItems = [
+	{ to: '/designer', label: 'Overview' },
+	{ to: '/designer/canvas', label: 'Canvas', tag: 'New' },
+	{ to: '/designer/social', label: 'Social posts', tag: 'New' },
+	{ to: '/designer/poster', label: 'Poster studio', tag: 'Beta' },
+	{ to: '/designer/social-card', label: 'Social card' },
+	{ to: '/designer/flowchart', label: 'Flowchart designer', tag: 'Beta' },
+	{ to: '/designer/frames', label: 'Nested frames' },
+];
+
+/** Editor-surface blocks lead; style controls and newly discovered blocks follow alphabetically. */
+const designerBlockOrder = ['stage', 'layers', 'frame'];
+
 const blockNavItems = [
 	{ to: '/blocks', label: 'Overview', icon: staticIconPaths.Overview },
 	...getBlockNavItems(),
@@ -220,16 +241,7 @@ function groupsFromDiscoveredComponents() {
 			label: labelFromSection(section),
 			badge: ['mobile', 'designer'].includes(section) ? 'Beta' : undefined,
 			items: [
-				...(section === 'designer' ? [
-					{ to: '/designer', label: 'Overview' },
-					{ to: '/designer/canvas', label: 'Canvas', tag: 'New' },
-					{ to: '/designer/frames', label: 'Nested frames' },
-					{ to: '/designer/assembly', label: 'Assembly guide' },
-					{ to: '/designer/flowchart', label: 'Flowchart designer', tag: 'Beta' },
-					{ to: '/designer/social', label: 'Social posts', tag: 'New' },
-					{ to: '/designer/social-card', label: 'Social card' },
-					{ to: '/designer/poster', label: 'Poster studio', tag: 'Beta' },
-				] : []),
+				...(section === 'designer' ? designerToolNavItems : []),
 				...(section === 'ai' ? [
 					{ to: '/ai', label: 'Overview', icon: staticIconPaths.AI },
 					{ to: '/ai/ui', label: 'AI UI guide' },
@@ -242,12 +254,47 @@ function groupsFromDiscoveredComponents() {
 				...(section === 'dev' ? [{ to: '/dev', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...(section === 'mobile' ? [{ to: '/mobile', label: 'Overview', icon: staticIconPaths.Overview }] : []),
 				...(section === 'visual' ? [{ to: '/icons', label: 'Icons', icon: staticIconPaths.Icons }] : []),
-				...Array.from(families.values())
-					.filter((family) => getComponentNavigationSection(primaryRecord(family)) === section)
-					.map(navItemFromFamily),
+				...sectionFamilyNavItems(section, Array.from(families.values())
+					.filter((family) => getComponentNavigationSection(primaryRecord(family)) === section)),
 			],
 		}))
 		.filter((group) => group.items.length);
+}
+
+/**
+ * Converts a section's component families into sidebar items.
+ * Designer families are grouped under one "Building blocks" branch so they do not compete with the full tools.
+ *
+ * @param {string} section Component navigation section.
+ * @param {Array<Array<object>>} sectionFamilies Component families in that section.
+ * @returns {Array<object>} Sidebar items.
+ */
+function sectionFamilyNavItems(section, sectionFamilies) {
+	if (section !== 'designer') return sectionFamilies.map(navItemFromFamily);
+	const blocks = sectionFamilies
+		.slice()
+		.sort((a, b) => designerBlockRank(a) - designerBlockRank(b))
+		.map(navItemFromFamily);
+	return [{
+		to: '/designer#building-blocks',
+		label: 'Building blocks',
+		count: blocks.length || undefined,
+		children: [
+			{ to: '/designer/assembly', label: 'Assembly guide' },
+			...blocks,
+		],
+	}];
+}
+
+/**
+ * Ranks a designer family for the building-blocks list, keeping the discovered order for unranked families.
+ *
+ * @param {Array<object>} family Component records that share a slug.
+ * @returns {number} Sort rank.
+ */
+function designerBlockRank(family) {
+	const index = designerBlockOrder.indexOf(primaryRecord(family).slug);
+	return index === -1 ? designerBlockOrder.length : index;
 }
 
 function navItemFromFamily(family) {

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import { DomSplitterPanel, DomButton, DomDialog, DomTextInput, DomNativeSelect, DomDesignerLayers, DomDesignerStage } from '../../lib/vue';
 import NodeInspector from '../core/NodeInspector.vue';
@@ -15,6 +15,10 @@ import PosterThumbnail from './PosterThumbnail.vue';
 import { formatOperations, formatSource, resizePoster } from './posterResize.js';
 import { createTemplateLibrary, posterToTemplate, templateIndustries, templateKinds, templateOperations, templateToPoster } from './socialTemplates.js';
 import { createPosterTypes, documentToPoster, posterToDocument } from './posterTypes.js';
+import { cssEditorContextKey } from '../_shared/cssEditorContext.js';
+
+// Material editors draw as inspector sections here, not cards.
+provide(cssEditorContextKey, { framed: computed(() => false), colorVariables: computed(() => ({})) });
 
 /**
  * Poster studio on the editor core. The poster and social-card pages are this

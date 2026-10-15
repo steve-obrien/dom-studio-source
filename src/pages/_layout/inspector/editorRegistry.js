@@ -24,6 +24,9 @@ import DomBorderEditor from '../../designer/border-editor/DomBorderEditor.vue';
 import DomShadowEditor from '../../designer/shadow-editor/DomShadowEditor.vue';
 import DomBackdropEditor from '../../designer/backdrop-editor/DomBackdropEditor.vue';
 import DomColorSwatch from '../../designer/color-swatch/DomColorSwatch.vue';
+import DomTypographyEditor from '../../designer/typography-editor/DomTypographyEditor.vue';
+import ScrubField from '../../designer/_shared/ScrubField.vue';
+import InspectorSelect from '../../designer/_shared/InspectorSelect.vue';
 
 // Editor components are referenced by their actual component name in spec
 // schemas (e.g. `_edit: { component: 'DomSelectInput' }`). The indirection keeps
@@ -56,11 +59,16 @@ const editors = {
 	DomShadowEditor: markRaw(DomShadowEditor),
 	DomBackdropEditor: markRaw(DomBackdropEditor),
 	DomColorSwatch: markRaw(DomColorSwatch),
+	DomTypographyEditor: markRaw(DomTypographyEditor),
 	background: markRaw(DomBackgroundEditor),
 	border: markRaw(DomBorderEditor),
 	shadow: markRaw(DomShadowEditor),
 	backdrop: markRaw(DomBackdropEditor),
 	color: markRaw(DomColorSwatch),
+	typography: markRaw(DomTypographyEditor),
+	// Compact Figma-style fields for designer inspectors: a label becomes the tooltip.
+	ScrubField: markRaw(ScrubField),
+	InspectorSelect: markRaw(InspectorSelect),
 };
 
 /**

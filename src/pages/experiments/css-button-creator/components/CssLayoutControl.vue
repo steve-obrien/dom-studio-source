@@ -32,7 +32,7 @@ const emit = defineEmits(['update:modelValue']);
 			/>
 		</template>
 
-		<div class="p-3">
+		<div>
 			<div class="grid gap-3 sm:grid-cols-2">
 				<DomRangeInput v-model="layout.paddingX" label="Padding X" :min="8" :max="56" suffix="px" />
 				<DomRangeInput v-model="layout.paddingY" label="Padding Y" :min="6" :max="28" suffix="px" />

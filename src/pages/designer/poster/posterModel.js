@@ -2,6 +2,7 @@ import { createBackgroundState, backgroundImageToCss } from '../background-edito
 import { createBackdrop, backdropToCss } from '../backdrop-editor/backdropModel.js';
 import { createDesignerBorder, borderToCss } from '../border-editor/borderModel.js';
 import { shadowListToCss } from '../shadow-editor/shadowModel.js';
+import { typographyToStyle } from '../typography-editor/typographyModel.js';
 
 export const posterImage = 'https://images.unsplash.com/photo-1609674750700-33895b9b7ce1?auto=format&fit=crop&w=1080&q=85';
 export const fontOptions = [
@@ -20,7 +21,7 @@ export function createPosterLayer(type, id, overrides = {}) {
 		background: createBackgroundState({}, { allowEmpty: true }), backdrop: createBackdrop(), border: createDesignerBorder({ enabled: false }), locked: false, hidden: false, opacity: 100, radius: 0, shadows: [],
 		color: '#171717', fill: type === 'shape' ? '#f4d35e' : 'transparent',
 		fontFamily: fontOptions[0].value, fontSize: 100, fontWeight: '400', lineHeight: 1.1, letterSpacing: -2,
-		textAlign: 'center', textTransform: 'uppercase',
+		textAlign: 'center', textTransform: 'uppercase', fontStyle: 'normal', textDecoration: 'none',
 		objectFit: 'cover', objectY: 50, blur: 0, saturation: 100, brightness: 100, sepia: 0,
 		...overrides,
 	};
@@ -86,9 +87,7 @@ export function posterLayerStyle(layer, index) {
 			filter: `blur(${layer.blur}px) saturate(${layer.saturation}%) brightness(${layer.brightness}%) sepia(${layer.sepia}%)`,
 		} : { backgroundColor: layer.fill, backgroundImage: backgroundImageToCss(layer.background), backdropFilter: backdropToCss(layer.backdrop), WebkitBackdropFilter: backdropToCss(layer.backdrop) }),
 		...(layer.type === 'text' ? {
-			color: layer.color, fontFamily: layer.fontFamily, fontSize: `${layer.fontSize}px`, fontWeight: layer.fontWeight,
-			lineHeight: layer.lineHeight, letterSpacing: `${layer.letterSpacing}px`, textAlign: layer.textAlign,
-			textTransform: layer.textTransform, whiteSpace: 'pre-wrap', overflowWrap: 'break-word',
+			...typographyToStyle(layer), whiteSpace: 'pre-wrap', overflowWrap: 'break-word',
 		} : {}),
 	};
 }

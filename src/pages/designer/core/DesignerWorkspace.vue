@@ -1,6 +1,6 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { DomButton, DomDesignerLayers, DomDesignerStage, DomFrameLayoutEditor, DomJsonInput, DomNativeSelect, DomNumberInput, DomTextInput, DomTextareaInput } from '../../lib/vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
+import { DomBackdropEditor, DomBackgroundEditor, DomBorderEditor, DomButton, DomDesignerLayers, DomDesignerStage, DomFrameLayoutEditor, DomJsonInput, DomNativeSelect, DomNumberInput, DomShadowEditor, DomTextInput, DomTextareaInput, DomTypographyEditor } from '../../lib/vue';
 import { alignFrameChild, createFrameLayout, measureFrameChild, readFrameLayout } from '../frame/frameLayout.js';
 import { isFrameNode } from '../frames/frameDocument.js';
 import { componentType, createEditorTypes, studioComponentEntries } from './componentTypes.js';
@@ -8,6 +8,10 @@ import NodeInspector from './NodeInspector.vue';
 import InspectorIcon from '../_shared/InspectorIcon.vue';
 import { vDomTooltip } from '../../components/tooltip/vDomTooltip.js';
 import ScrubField from '../_shared/ScrubField.vue';
+import ControlIconButton from '../_shared/ControlIconButton.vue';
+import StyleControlSection from '../_shared/StyleControlSection.vue';
+import { cssEditorContextKey } from '../_shared/cssEditorContext.js';
+import { useNodeStyle } from './nodeStyle.js';
 import AlignTools from '../stage/AlignTools.vue';
 import { copySubtree, fromTree, subtreeIds } from './editorDocument.js';
 import { EditorRender } from './EditorRender.js';
@@ -156,6 +160,12 @@ const textChild = computed(() => {
 	return child?.type === 'text' ? child : null;
 });
 const layout = computed(() => active.value?.layout || detected.value[selected.value] || createFrameLayout());
+const textTags = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'button', 'label', 'li', 'blockquote', 'strong', 'em', 'small', 'code', 'figcaption', 'td', 'th']);
+const showText = computed(() => Boolean(textChild.value || textTags.has(activeType.value?.tag)));
+const { fill: fillStyle, stroke: strokeStyle, shadow: shadowStyle, blur: blurStyle, text: textStyle, custom: customStyle, set: setStyle, setRaw: setStyleRaw } = useNodeStyle(active, writeStyle);
+const styleTitles = { fill: 'Fill', stroke: 'Stroke', shadow: 'Shadow', blur: 'Background blur' };
+// Material editors draw as inspector sections here, not cards.
+provide(cssEditorContextKey, { framed: computed(() => false), colorVariables: computed(() => ({})) });
 const parentMode = computed(() => parent.value?.layout?.mode || detected.value[parent.value?.id]?.mode || 'flow');
 const parentLayout = computed(() => (parent.value ? parent.value.layout || detected.value[parent.value.id] || createFrameLayout() : null));
 const parentModes = {
@@ -1147,6 +1157,20 @@ onBeforeUnmount(() => {
 						<ul class="flex flex-wrap gap-1"><li v-for="source in active.directives" :key="source" class="rounded bg-secondary px-1.5 py-0.5 font-mono text-[11px]">{{ source }}</li></ul>
 						<p class="text-[11px] leading-4 text-muted-fg">Kept on export. Data view runs lists and conditions on preview data; Variables view shows every branch and one item of each list.</p>
 					</section>
+					<div class="border-b border-border px-4">
+						<DomTypographyEditor v-if="showText && textStyle" title="Text" :model-value="textStyle" @update:model-value="setStyle('text', $event)" />
+						<template v-for="kind in ['fill', 'stroke', 'shadow', 'blur']" :key="kind">
+							<StyleControlSection v-if="customStyle[kind]" :model-value="true" :title="styleTitles[kind]" meta="Custom CSS">
+								<template #actions><ControlIconButton icon="remove" :label="`Remove ${styleTitles[kind].toLowerCase()}`" @click="setStyleRaw(kind, '')" /></template>
+								<input class="h-7 w-full min-w-0 rounded-md bg-secondary/60 px-2 font-mono text-[11px] text-canvas-fg outline-none focus:bg-canvas focus:ring-1 focus:ring-primary" :value="customStyle[kind]" :aria-label="`${styleTitles[kind]} CSS`" spellcheck="false" @change="setStyleRaw(kind, $event.target.value)">
+								<p class="mt-1.5 text-[11px] leading-4 text-muted-fg">Edited as CSS, since the {{ styleTitles[kind].toLowerCase() }} controls cannot show this value.</p>
+							</StyleControlSection>
+							<DomBackgroundEditor v-else-if="kind === 'fill' && fillStyle" title="Fill" :model-value="fillStyle" @update:model-value="setStyle('fill', $event)" />
+							<DomBorderEditor v-else-if="kind === 'stroke' && strokeStyle" title="Stroke" :model-value="strokeStyle" @update:model-value="setStyle('stroke', $event)" />
+							<DomShadowEditor v-else-if="kind === 'shadow' && shadowStyle" title="Shadow" :model-value="shadowStyle" @update:model-value="setStyle('shadow', $event)" />
+							<DomBackdropEditor v-else-if="kind === 'blur' && blurStyle" title="Background blur" :model-value="blurStyle" @update:model-value="setStyle('blur', $event)" />
+						</template>
+					</div>
 					<div class="space-y-5 px-4 py-3">
 						<NodeInspector v-if="textChild" :key="`text-${textChild.id}`" :node="textChild" :type="types.get('text')" :data="previews[activeFile.id]" @set-prop="setProp(textChild.id, $event)" />
 						<NodeInspector :key="active.id" :node="active" :type="activeType" :data="previews[activeFile.id]" @set-prop="setProp(active.id, $event)" />

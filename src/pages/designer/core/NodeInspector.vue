@@ -16,7 +16,8 @@ import { UNKNOWN, createScope, evaluate } from './expression.js';
  * code) are listed too, so nothing in the source is hidden.
  *
  * A type can order its groups with `groups`, and a field with `half: true`
- * shares a row. Number fields are clamped to their `min` and `max`. Editors
+ * shares a row. A field with `keys` edits several props as one object, such
+ * as a typography editor over `fontFamily`, `fontSize` and the rest. Number fields are clamped to their `min` and `max`. Editors
  * without data bindings (the poster) turn off `bindable` and `extraProps`.
  */
 defineOptions({ name: 'NodeInspector' });
@@ -31,10 +32,10 @@ const props = defineProps({
 });
 const emit = defineEmits(['set-prop']);
 const defaultGroupOrder = ['Style', 'Props', 'Content', 'Attributes'];
-const numericEditors = new Set(['DomNumberInput', 'DomRangeInput']);
+const numericEditors = new Set(['DomNumberInput', 'DomRangeInput', 'ScrubField']);
 const draft = ref({ name: '', value: '' });
 
-const schemaKeys = computed(() => new Set(props.type.schema.map((field) => field.key)));
+const schemaKeys = computed(() => new Set(props.type.schema.flatMap((field) => field.keys || [field.key])));
 const groups = computed(() => {
 	const map = new Map();
 	for (const field of props.type.schema) {
@@ -56,8 +57,18 @@ function set(key, value, merge = true) {
 	emit('set-prop', { key, value, merge });
 }
 
+/** A field's value; a field over several props gets them as one object. */
+function fieldValue(field) {
+	if (!field.keys) return props.node.props[field.key];
+	return Object.fromEntries(field.keys.map((key) => [key, props.node.props[key] ?? '']));
+}
+
 /** Sets a field's literal value; numbers are finite and within the field's range. */
 function setField(field, value) {
+	if (field.keys) {
+		for (const key of field.keys) if (value?.[key] !== undefined && value[key] !== fieldValue(field)[key]) set(key, value[key]);
+		return;
+	}
 	if (numericEditors.has(field.component)) {
 		if (value === '' || value === null || !Number.isFinite(Number(value))) return;
 		const { min = -Infinity, max = Infinity } = { ...field, ...field.props };
@@ -88,7 +99,7 @@ function addProp() {
 
 <template>
 	<fieldset :disabled="disabled" class="min-w-0 space-y-5 disabled:opacity-50">
-		<section v-for="[group, fields] in groups" :key="group" class="grid grid-cols-2 gap-3">
+		<section v-for="[group, fields] in groups" :key="group" class="grid grid-cols-2 gap-x-1.5 gap-y-2.5">
 			<h3 class="col-span-2 text-[11px] font-semibold">{{ group }}</h3>
 			<div v-for="field in fields" :key="field.key" class="group/field relative min-w-0" :class="field.half ? 'col-span-1' : 'col-span-2'">
 				<div v-if="isExpr(node.props[field.key])" class="flex items-end gap-1.5">
@@ -101,9 +112,9 @@ function addProp() {
 					<DomButton size="sm" variant="ghost" title="Use the preview value instead of a binding" @click="unbind(field.key)">Unbind</DomButton>
 				</div>
 				<template v-else>
-					<InspectorField :field="field" :model-value="node.props[field.key]" @update:model-value="setField(field, $event)" />
+					<InspectorField :field="field" :model-value="fieldValue(field)" @update:model-value="setField(field, $event)" />
 					<button
-						v-if="bindable && (node.type !== 'text' || field.key === 'value')"
+						v-if="bindable && !field.keys && (node.type !== 'text' || field.key === 'value')"
 						type="button"
 						class="absolute right-0 top-0 rounded px-1 font-mono text-[11px] text-muted-fg opacity-0 transition hover:bg-secondary hover:text-primary focus:opacity-100 group-hover/field:opacity-100"
 						:title="`Bind ${field.label || field.key} to data`"

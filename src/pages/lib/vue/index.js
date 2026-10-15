@@ -251,15 +251,17 @@ export { default as DomColorSwatch } from '../../designer/color-swatch/DomColorS
 export { default as DomShadowEditor } from '../../designer/shadow-editor/DomShadowEditor.vue';
 export { default as DomDesignerLayers } from '../../designer/layers/DomDesignerLayers.vue';
 export { default as DomDesignerStage } from '../../designer/stage/DomDesignerStage.vue';
-export { createShadow, shadowListToCss } from '../../designer/shadow-editor/shadowModel.js';
+export { createShadow, shadowListToCss, shadowsFromCss } from '../../designer/shadow-editor/shadowModel.js';
 
 export { default as DomBorderEditor } from '../../designer/border-editor/DomBorderEditor.vue';
-export { createDesignerBorder, borderToCss } from '../../designer/border-editor/borderModel.js';
+export { createDesignerBorder, borderToCss, borderFromCss } from '../../designer/border-editor/borderModel.js';
 
 export { default as DomBackgroundEditor } from '../../designer/background-editor/DomBackgroundEditor.vue';
-export { createBackgroundState, createFill, backgroundImageToCss } from '../../designer/background-editor/backgroundModel.js';
+export { createBackgroundState, createFill, backgroundImageToCss, backgroundToCssProperties, backgroundFromCss } from '../../designer/background-editor/backgroundModel.js';
 export { default as DomBackdropEditor } from '../../designer/backdrop-editor/DomBackdropEditor.vue';
-export { createBackdrop, backdropToCss } from '../../designer/backdrop-editor/backdropModel.js';
+export { createBackdrop, backdropToCss, backdropFromCss } from '../../designer/backdrop-editor/backdropModel.js';
+export { default as DomTypographyEditor } from '../../designer/typography-editor/DomTypographyEditor.vue';
+export { createTypography, typographyToStyle, typographyToCssProperties, typographyFromCss, fontFamilyOptions, fontWeightOptions } from '../../designer/typography-editor/typographyModel.js';
 
 // Desktop application workspaces.
 export { default as DomDesktopLayout } from '../../components/desktop-layout/DomDesktopLayout.vue';

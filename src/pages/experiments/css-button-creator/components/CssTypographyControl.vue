@@ -35,7 +35,7 @@ const emit = defineEmits(['update:modelValue']);
 			/>
 		</template>
 
-		<div class="p-3">
+		<div>
 			<div class="grid gap-3 sm:grid-cols-2">
 				<DomColorInput v-model="typography.textColor" label="Text colour" />
 				<DomRangeInput v-model="typography.fontSize" label="Font size" :min="11" :max="26" suffix="px" />

@@ -24,6 +24,12 @@ import path from 'node:path';
 import { PassThrough } from 'node:stream';
 import { createPoster, createSocialCard, exportPosterHtml } from '../src/pages/designer/poster/posterModel.js';
 import { createPosterTypes, documentToPoster, posterToDocument } from '../src/pages/designer/poster/posterTypes.js';
+import { backgroundFromCss, backgroundToCssProperties, createBackgroundState, createFill } from '../src/pages/designer/background-editor/backgroundModel.js';
+import { createShadow, shadowListToCss, shadowsFromCss } from '../src/pages/designer/shadow-editor/shadowModel.js';
+import { borderFromCss, borderToCss } from '../src/pages/designer/border-editor/borderModel.js';
+import { backdropFromCss } from '../src/pages/designer/backdrop-editor/backdropModel.js';
+import { toggleDecoration, typographyFromCss, typographyToCssProperties, typographyToStyle } from '../src/pages/designer/typography-editor/typographyModel.js';
+import { splitColorAlpha, splitCssList } from '../src/pages/designer/_shared/cssValue.js';
 
 function counter() {
 	let index = 0;
@@ -270,8 +276,9 @@ test('poster documents round-trip and export the same HTML', () => {
 	assert.equal(doc.nodes.photo.locked, true);
 	assert.equal(doc.nodes.photo.label, 'Glencoe, Scottish Highlands');
 	const types = createPosterTypes();
-	assert.ok(types.get('poster:text').schema.some((field) => field.key === 'fontSize'));
-	assert.ok(!types.get('poster:image').schema.some((field) => field.key === 'fontSize'));
+	const fieldKeys = (type) => types.get(type).schema.flatMap((field) => field.keys || [field.key]);
+	assert.ok(fieldKeys('poster:text').includes('fontSize'));
+	assert.ok(!fieldKeys('poster:image').includes('fontSize'));
 	assert.equal(types.get('vue:DomButton'), null);
 });
 
@@ -426,4 +433,50 @@ test('memory storage copies reactive-style values', async () => {
 	const proxy = new Proxy({ files: [{ name: 'A.vue' }] }, {});
 	await memory.save('w', proxy);
 	assert.deepEqual(await memory.load('w'), { files: [{ name: 'A.vue' }] });
+});
+
+test('material editors read back the CSS they write', () => {
+	assert.deepEqual(splitCssList('0 1px rgb(0 0 0 / 5%), inset 0 0 0 1px red'), ['0 1px rgb(0 0 0 / 5%)', 'inset 0 0 0 1px red']);
+	assert.deepEqual(splitColorAlpha('rgba(255, 0, 0, 0.40)'), { color: '#ff0000', alpha: 40 });
+	assert.deepEqual(splitColorAlpha('color-mix(in oklch, var(--primary) 20%, transparent)'), { color: 'var(--primary)', alpha: 20 });
+
+	const background = createBackgroundState({ fills: [createFill({ kind: 'linear', gradientFromAlpha: 50 }), createFill({ kind: 'radial' }), createFill({ color: '#ff0000', alpha: 40 })] });
+	const css = backgroundToCssProperties(background);
+	assert.equal(css['background-color'], 'rgba(255, 0, 0, 0.40)');
+	const read = backgroundFromCss({ color: css['background-color'], image: css['background-image'] });
+	assert.deepEqual(read.fills.map((fill) => fill.kind), ['linear', 'radial', 'solid']);
+	assert.deepEqual(backgroundToCssProperties(read), css);
+	assert.equal(backgroundFromCss({ image: 'url(a.png)' }), null);
+	assert.equal(backgroundToCssProperties(createBackgroundState({ fills: [createFill({ color: '#171717' })] }))['background-color'], '#171717');
+
+	const shadows = [createShadow(), createShadow({ kind: 'inset', alpha: 30 }), createShadow({ kind: 'ring', spread: 2, color: 'var(--primary)' })];
+	const shadowCss = shadowListToCss(shadows);
+	assert.equal(shadowListToCss(shadowsFromCss(shadowCss)), shadowCss);
+	assert.deepEqual(shadowsFromCss(shadowCss).map((shadow) => shadow.kind), ['drop', 'inset', 'ring']);
+	assert.equal(shadowsFromCss('0 1rem 2px red'), null);
+	assert.deepEqual(shadowsFromCss('none'), []);
+
+	assert.equal(borderToCss(borderFromCss('2px dashed var(--border)')), '2px dashed var(--border)');
+	assert.equal(borderFromCss('').enabled, false);
+	assert.equal(borderFromCss('1em solid red'), null);
+
+	assert.deepEqual({ ...backdropFromCss('blur(8px) saturate(1.2)') }, { enabled: true, open: true, blur: 8, saturate: 1.2 });
+	assert.equal(backdropFromCss('blur(8px) grayscale(1)'), null);
+});
+
+test('typography records map to inline CSS and back', () => {
+	const css = typographyToCssProperties({ fontFamily: 'Georgia, serif', fontSize: 24, lineHeight: 1.4, letterSpacing: '0.02em', fontWeight: '700', textDecoration: 'underline', color: '' });
+	assert.equal(css['font-size'], '24px');
+	assert.equal(css['line-height'], '1.4');
+	assert.equal(css['letter-spacing'], '0.02em');
+	assert.equal(css['text-decoration-line'], 'underline');
+	assert.equal(css.color, '');
+	const read = typographyFromCss(css);
+	assert.equal(read.fontSize, 24);
+	assert.equal(read.lineHeight, 1.4);
+	assert.equal(read.letterSpacing, '0.02em');
+	assert.deepEqual(typographyToStyle({ fontSize: 12, color: '' }), { fontSize: '12px' });
+	assert.equal(typographyToCssProperties({ fontFamily: 'x; color: red' })['font-family'], '');
+	assert.equal(toggleDecoration('underline', 'line-through'), 'underline line-through');
+	assert.equal(toggleDecoration('underline', 'underline'), 'none');
 });

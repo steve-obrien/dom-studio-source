@@ -1,21 +1,20 @@
 <script setup>
 import { ref } from 'vue';
 import CssColorInput from '../color-swatch/DomColorSwatch.vue';
-import {
-	DomNativeSelect,
-	DomPopover,
-	DomRangeInput,
-} from '../../lib/vue';
+import { DomPopover } from '../../lib/vue';
 import ControlIconButton from '../_shared/ControlIconButton.vue';
+import InspectorIcon from '../_shared/InspectorIcon.vue';
+import InspectorSelect from '../_shared/InspectorSelect.vue';
+import ScrubField from '../_shared/ScrubField.vue';
 import StyleControlSection from '../_shared/StyleControlSection.vue';
 import {
 	addShadowLayer,
-	duplicateShadowLayer,
 	enabledShadows,
 	removeShadowLayer,
 	shadowKindOptions,
-	shadowTitle,
 } from '../shadow-editor/shadowModel.js';
+
+const kindIcons = { drop: 'shadow-drop', inset: 'shadow-inset', ring: 'shadow-ring' };
 
 const props = defineProps({
 	shadows: {
@@ -43,11 +42,6 @@ const emit = defineEmits(['update:modelValue']);
 function addShadow() {
 	emit('update:modelValue', true);
 	addShadowLayer(props.shadows);
-}
-
-/** Duplicates a draft layer with a fresh identity. */
-function duplicateShadow(index) {
-	duplicateShadowLayer(props.shadows, index);
 }
 
 /** Removes a layer from the editor-owned draft. */
@@ -84,102 +78,61 @@ function closeLayerPopoverElement(popover) {
 <template>
 	<StyleControlSection
 		ref="section"
-		:model-value="modelValue"
+		:model-value="modelValue && shadows.length > 0"
 		:title="title"
-		:meta="`${enabledShadows(shadows).length} of ${shadows.length} visible`"
+		:meta="shadows.length ? `${enabledShadows(shadows).length} of ${shadows.length}` : ''"
 		@update:model-value="emit('update:modelValue', $event)"
 	>
 		<template #actions>
-			<ControlIconButton icon="plus" label="Add shadow layer" @click.stop="addShadow" />
+			<ControlIconButton icon="plus" label="Add shadow" @click.stop="addShadow" />
 		</template>
 
-		<div class="divide-y divide-border">
-			<p v-if="variables.shadow" class="px-3 py-2 font-mono text-[11px] text-muted-fg">{{ variables.shadow }}</p>
-			<article
+		<div class="space-y-1.5">
+			<p v-if="variables.shadow" class="truncate font-mono text-[11px] text-muted-fg">{{ variables.shadow }}</p>
+			<div
 				v-for="(shadow, index) in shadows"
 				:key="shadow.id"
-				class="px-3 py-2"
-				:class="!shadow.enabled && 'opacity-60'"
+				class="flex items-center gap-1"
 			>
-				<div class="grid grid-cols-[1fr_auto] items-center gap-2">
+				<div class="flex min-w-0 flex-1 items-center gap-1" :class="!shadow.enabled && 'opacity-50'">
 					<DomPopover
 						:data-layer-popover-id="shadow.id"
 						position="start-bottom"
-						width="w-[22rem] max-w-[calc(100vw-2rem)]"
+						width="w-64 max-w-[calc(100vw-2rem)]"
 						padding="p-0"
 						:collision-padding="12"
+						class="flex"
 						@open="closeOtherLayerPopovers(shadow.id)"
 					>
 						<template #trigger>
 							<button
 								type="button"
-								class="w-full min-w-0 rounded-md text-left transition hover:bg-secondary/60"
+								class="grid size-7 shrink-0 place-items-center rounded-md bg-secondary/60 text-muted-fg transition hover:text-canvas-fg hover:ring-1 hover:ring-inset hover:ring-border"
+								:aria-label="`Edit shadow ${index + 1}`"
 								@pointerdown.capture="closeAllLayerPopovers"
 							>
-								<span class="flex min-w-0 items-center gap-2">
-									<span class="font-mono text-[11px] text-muted-fg">{{ index + 1 }}</span>
-									<span class="truncate text-sm font-medium">{{ shadowTitle(shadow) }}</span>
-								</span>
+								<InspectorIcon :name="kindIcons[shadow.kind] || 'shadow-drop'" />
 							</button>
 						</template>
-						<div>
-							<div class="border-b border-border px-3 py-2">
-								<p class="truncate text-sm font-semibold">{{ shadowTitle(shadow) }}</p>
+						<div class="space-y-3 p-3">
+							<div class="grid grid-cols-2 gap-1.5">
+								<ScrubField v-model="shadow.x" prefix="X" label="Horizontal offset" :min="-200" :max="200" :disabled="shadow.kind === 'ring'" />
+								<ScrubField v-model="shadow.y" prefix="Y" label="Vertical offset" :min="-200" :max="200" :disabled="shadow.kind === 'ring'" />
+								<ScrubField v-model="shadow.blur" icon="blur" label="Blur" :min="0" :max="300" :disabled="shadow.kind === 'ring'" />
+								<ScrubField v-model="shadow.spread" icon="spread" label="Spread" :min="-200" :max="200" />
 							</div>
-							<div class="grid gap-3 p-3 sm:grid-cols-2">
-								<DomNativeSelect
-									v-model="shadow.kind"
-									label="Type"
-									:options="shadowKindOptions"
-									placeholder=""
-								/>
-								<CssColorInput v-model="shadow.color" label="Colour" />
-								<DomRangeInput v-model="shadow.alpha" label="Alpha" :min="0" :max="100" suffix="%" />
-								<DomRangeInput
-									v-model="shadow.x"
-									label="Horizontal"
-									:min="-80"
-									:max="80"
-									suffix="px"
-									:disabled="shadow.kind === 'ring'"
-								/>
-								<DomRangeInput
-									v-model="shadow.y"
-									label="Vertical"
-									:min="-80"
-									:max="80"
-									suffix="px"
-									:disabled="shadow.kind === 'ring'"
-								/>
-								<DomRangeInput
-									v-model="shadow.blur"
-									label="Blur"
-									:min="0"
-									:max="120"
-									suffix="px"
-									:disabled="shadow.kind === 'ring'"
-								/>
-								<DomRangeInput
-									v-model="shadow.spread"
-									label="Spread"
-									:min="-80"
-									:max="80"
-									suffix="px"
-								/>
-							</div>
+							<CssColorInput v-model="shadow.color" v-model:alpha="shadow.alpha" label="Colour" />
 						</div>
 					</DomPopover>
-					<div class="flex items-center gap-1">
-						<ControlIconButton icon="duplicate" label="Duplicate shadow" @click="duplicateShadow(index)" />
-						<ControlIconButton
-							:icon="shadow.enabled ? 'eye' : 'eye-off'"
-							:label="shadow.enabled ? 'Hide shadow' : 'Show shadow'"
-							@click="shadow.enabled = !shadow.enabled"
-						/>
-						<ControlIconButton icon="remove" label="Remove shadow" @click="removeShadow(index)" />
-					</div>
+					<InspectorSelect v-model="shadow.kind" :options="shadowKindOptions" :label="`Shadow ${index + 1} type`" class="flex-1" />
 				</div>
-			</article>
+				<ControlIconButton
+					:icon="shadow.enabled ? 'eye' : 'eye-off'"
+					:label="shadow.enabled ? 'Hide shadow' : 'Show shadow'"
+					@click="shadow.enabled = !shadow.enabled"
+				/>
+				<ControlIconButton icon="remove" label="Remove shadow" @click="removeShadow(index)" />
+			</div>
 		</div>
 	</StyleControlSection>
 </template>

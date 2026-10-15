@@ -30,7 +30,7 @@ const emit = defineEmits(['update:modelValue']);
 		:title="title"
 		@update:model-value="emit('update:modelValue', $event)"
 	>
-		<div class="p-3">
+		<div>
 			<div class="grid gap-3 sm:grid-cols-2">
 				<div class="space-y-1.5">
 					<CssColorInput v-model="surface.bg" label="Background" />

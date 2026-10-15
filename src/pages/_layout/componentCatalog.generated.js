@@ -5783,7 +5783,19 @@ export const componentCatalog = [
 		"route": "/designer/color-swatch",
 		"doc": {
 			"name": "Color swatch",
-			"description": "Beta CSS colour swatch with an editable expression and native picker."
+			"description": "Beta Figma-style colour field: a swatch that opens the picker, an editable CSS colour and an optional opacity.",
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "string",
+					"description": "A valid CSS colour, from the picker or typed."
+				},
+				{
+					"name": "update:alpha",
+					"payload": "number",
+					"description": "Opacity from 0 to 100, when `alpha` is bound."
+				}
+			]
 		},
 		"studio": {}
 	},
@@ -5855,6 +5867,31 @@ export const componentCatalog = [
 		"doc": {
 			"name": "Designer stage",
 			"description": "Beta HTML stage with controlled selection and opt-in absolute movement and resizing."
+		},
+		"studio": {}
+	},
+	{
+		"id": "designer/typography-editor",
+		"path": "../designer/typography-editor/DomTypographyEditor.vue",
+		"section": "designer",
+		"slug": "typography-editor",
+		"exportName": "DomTypographyEditor",
+		"route": "/designer/typography-editor",
+		"doc": {
+			"name": "Typography editor",
+			"description": "Beta Figma-style text controls: font family, weight, size, line height, letter spacing, bold, italic, underline, strikethrough, alignment, case and colour.",
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "object",
+					"description": "A new typography record."
+				},
+				{
+					"name": "change",
+					"payload": "{ typography, style }",
+					"description": "The record and a ready-to-bind Vue style object."
+				}
+			]
 		},
 		"studio": {}
 	}

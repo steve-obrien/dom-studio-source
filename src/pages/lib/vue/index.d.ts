@@ -7966,8 +7966,17 @@ export interface DomFrameLayoutEditorProps {
 export declare const DomFrameLayoutEditor: DomComponent<DomFrameLayoutEditorProps>;
 
 export interface DomColorSwatchProps {
+	/**
+	 * CSS colour. Expressions such as var(--primary) are kept as typed.
+	 */
 	modelValue?: string;
 	label?: string;
+	/**
+	 * Opacity from 0 to 100. Bind with v-model:alpha to show the opacity field.
+	 */
+	alpha?: number;
+	hideLabel?: boolean;
+	disabled?: boolean;
 }
 export declare const DomColorSwatch: DomComponent<DomColorSwatchProps>;
 
@@ -8022,6 +8031,22 @@ export interface DomBackdropEditorProps {
 	title?: string;
 }
 export declare const DomBackdropEditor: DomComponent<DomBackdropEditorProps>;
+
+export interface DomTypographyEditorProps {
+	/**
+	 * Typography record. Empty values inherit.
+	 */
+	modelValue?: Record<string, unknown>;
+	title?: string;
+	/**
+	 * Font family choices as { label, value }. A value not listed still shows.
+	 */
+	fonts?: Array<unknown>;
+	weights?: Array<unknown>;
+	showColor?: boolean;
+	disabled?: boolean;
+}
+export declare const DomTypographyEditor: DomComponent<DomTypographyEditorProps>;
 
 export interface DomDesktopLayoutProps {
 	modelValue?: string;
