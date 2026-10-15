@@ -22,7 +22,7 @@ const height = ref(props.minHeight);
 let styleObserver;
 let sizeObserver;
 let timer;
-const source = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'self\' \'unsafe-inline\'; img-src https: http: data: blob:; font-src \'self\' data:"></head><body style="margin:0;min-height:100%"><div id="artboard-mount"></div></body></html>';
+const source = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com; img-src https: http: data: blob:; font-src \'self\' data: https://fonts.gstatic.com"></head><body style="margin:0;min-height:100%"><div id="artboard-mount"></div></body></html>';
 
 /** Copies the app's styles into the artboard and appends utilities compiled for imported classes. */
 function syncStyles() {

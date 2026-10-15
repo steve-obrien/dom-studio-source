@@ -50,7 +50,7 @@ const props = defineProps({
 		_edit: {
 			group: 'Control props',
 			component: 'DomJsonListInput',
-			description: 'Lightweight family metadata. Font files are never bundled in this array.',
+			description: 'Lightweight family metadata. Font files are never bundled in this array. Set source: system for installed fonts, whose value is a CSS stack that is never fetched.',
 			props: {
 				compact: true,
 				addLabel: '+ Add font',
@@ -58,6 +58,7 @@ const props = defineProps({
 					{ key: 'family', label: 'Family', placeholder: 'Lato' },
 					{ key: 'value', label: 'Value', placeholder: 'Lato' },
 					{ key: 'category', label: 'Fallback', placeholder: 'sans-serif' },
+					{ key: 'source', label: 'Source', placeholder: 'google or system' },
 				],
 			},
 		},
@@ -330,7 +331,8 @@ function getPreviewFontRecords() {
 	const visibleFamilies = new Set(visibleFonts.value.map((font) => font.family));
 	const records = activated.value ? [...intersectingFonts.value.values()].filter((font) => visibleFamilies.has(font.family)) : [];
 	if (selectedFont.value) records.push(selectedFont.value);
-	return [...new Map(records.map((font) => [font.family, font])).values()];
+	// Installed fonts (`source: 'system'`) are never requested from Google Fonts.
+	return [...new Map(records.filter((font) => font.source !== 'system').map((font) => [font.family, font])).values()];
 }
 
 /**

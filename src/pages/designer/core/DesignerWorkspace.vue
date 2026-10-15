@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
-import { DomBackdropEditor, DomBackgroundEditor, DomBorderEditor, DomButton, DomDesignerLayers, DomDesignerStage, DomFrameLayoutEditor, DomJsonInput, DomNativeSelect, DomNumberInput, DomShadowEditor, DomTextInput, DomTextareaInput, DomTypographyEditor } from '../../lib/vue';
+import { DomBackdropEditor, DomBackgroundEditor, DomBorderEditor, DomButton, DomDesignerLayers, DomDesignerStage, DomFrameLayoutEditor, DomJsonInput, DomNativeSelect, DomNumberInput, DomShadowEditor, DomTextInput, DomTypographyEditor } from '../../lib/vue';
 import { alignFrameChild, createFrameLayout, measureFrameChild, readFrameLayout } from '../frame/frameLayout.js';
 import { isFrameNode } from '../frames/frameDocument.js';
 import { componentType, createEditorTypes, studioComponentEntries } from './componentTypes.js';
@@ -12,6 +12,7 @@ import ControlIconButton from '../_shared/ControlIconButton.vue';
 import StyleControlSection from '../_shared/StyleControlSection.vue';
 import { cssEditorContextKey } from '../_shared/cssEditorContext.js';
 import { useNodeStyle } from './nodeStyle.js';
+import { useGoogleFonts } from '../typography-editor/googleFonts.js';
 import AlignTools from '../stage/AlignTools.vue';
 import { copySubtree, fromTree, subtreeIds } from './editorDocument.js';
 import { EditorRender } from './EditorRender.js';
@@ -23,7 +24,6 @@ import CodeView from './CodeView.vue';
 import { applySource, nodeAtLine } from './sourceSync.js';
 import { createBrowserStorage, createSaver } from './storage.js';
 import ArtboardViewport from '../canvas/ArtboardViewport.vue';
-import { sampleVueFile } from '../canvas/canvasDocument.js';
 import { applyWorkspaceOperation, createCanvasDemo, importFile, restoreWorkspace, workspaceId } from '../canvas/canvasWorkspace.js';
 import { createComponentCatalog } from './componentCatalog.js';
 
@@ -71,6 +71,8 @@ const props = defineProps({
 	codeEditor: { type: [Object, Function], default: null },
 	/** Extra props for `codeEditor`, such as Monaco's `load`. */
 	codeEditorProps: { type: Object, default: () => ({}) },
+	/** Offer Google Fonts in the text controls and load the ones in use. Turn off for email, which can only use installed fonts. */
+	googleFonts: { type: Boolean, default: true },
 });
 const emit = defineEmits(['save']);
 const MIN_ZOOM = 0.1;
@@ -114,15 +116,12 @@ const panning = ref(false);
 const spaceHeld = ref(false);
 const leftTab = ref('layers');
 const insertQuery = ref('');
-const showImport = ref(false);
 const showCode = ref(false);
 const codeDraft = ref(null);
 const codeRanges = ref(null);
 const codeError = ref('');
 const codeWarning = ref('');
 const projectFiles = ref(null);
-const importDraft = ref(sampleVueFile);
-const importName = ref('Component.vue');
 const snapping = ref(true);
 const detected = ref({});
 const historySize = ref({ undo: 0, redo: 0 });
@@ -164,6 +163,8 @@ const textTags = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 
 const showText = computed(() => Boolean(textChild.value || textTags.has(activeType.value?.tag)));
 const { fill: fillStyle, stroke: strokeStyle, shadow: shadowStyle, blur: blurStyle, text: textStyle, custom: customStyle, set: setStyle, setRaw: setStyleRaw } = useNodeStyle(active, writeStyle);
 const styleTitles = { fill: 'Fill', stroke: 'Stroke', shadow: 'Shadow', blur: 'Background blur' };
+// Google fonts set on any layer load while the designer is open; artboards copy them from the page head.
+useGoogleFonts(() => (props.googleFonts ? workspace.value.files.flatMap((file) => Object.values(file.doc.nodes)).filter((node) => node.style?.['font-family']).map((node) => ({ fontFamily: node.style['font-family'], fontWeight: node.style['font-weight'] })) : []));
 // Material editors draw as inspector sections here, not cards.
 provide(cssEditorContextKey, { framed: computed(() => false), colorVariables: computed(() => ({})) });
 const parentMode = computed(() => parent.value?.layout?.mode || detected.value[parent.value?.id]?.mode || 'flow');
@@ -305,7 +306,6 @@ async function openProjectFile(path) {
 		const { file, unsupported } = importFile(source, path.split('/').pop());
 		file.path = path;
 		addFile(file);
-		showImport.value = false;
 		notice.value = `${path} opened from the project.${unsupported ? ` ${unsupported} unsupported nodes were left out.` : ''} Save writes it back.`;
 	} catch (error) {
 		notice.value = error.message;
@@ -650,35 +650,6 @@ function addFile(file) {
 	nextTick(() => focusArtboard(board));
 }
 
-/** Imports pasted or uploaded Vue/HTML as a new file, or into the active file. */
-function importSource(replace = false) {
-	try {
-		const name = importName.value.trim().replace(/[^\w.-]/g, '') || 'Component.vue';
-		const { file, unsupported, seeded } = importFile(importDraft.value, /\.vue$/.test(name) ? name : `${name}.vue`);
-		if (replace && activeFile.value) {
-			const id = activeFile.value.id;
-			run(['doc', 'script', 'style', 'name'].map((key) => ({ op: 'setFile', id, key, value: file[key] })));
-			selected.value = file.doc.rootId;
-		} else addFile(file);
-		showImport.value = false;
-		const dropped = unsupported ? ` ${unsupported} unsupported nodes or event attributes were left out.` : '';
-		const data = seeded.length ? ` Preview data from the script: ${seeded.join(', ')}.` : '';
-		notice.value = `${file.name} opened.${dropped}${data} Script and style blocks are kept for export.`;
-	} catch (error) {
-		notice.value = error.message;
-	}
-}
-
-/** Reads a .vue or .html file from disk into the import box. */
-function readUpload(event) {
-	const file = event.target.files?.[0];
-	if (!file) return;
-	if (file.size > 200000) { notice.value = 'Use a file under 200 KB.'; return; }
-	const reader = new FileReader();
-	reader.onload = () => { importDraft.value = String(reader.result || ''); importName.value = file.name.replace(/\.html?$/, '.vue'); };
-	reader.readAsText(file);
-}
-
 /** Copies the generated SFC. */
 async function copySource() {
 	try { await navigator.clipboard.writeText(fileSource.value); notice.value = `${activeFile.value.name} copied.`; }
@@ -922,8 +893,11 @@ onBeforeUnmount(() => {
 				<span v-if="activeFile" class="hidden truncate font-mono text-xs text-muted-fg sm:inline">{{ activeFile.name }}</span>
 			</div>
 			<div class="flex flex-wrap items-center gap-1.5">
-				<DomButton size="sm" variant="secondary" @click="showImport = !showImport">Open Vue file</DomButton>
 				<DomButton size="sm" variant="ghost" @click="newFile">New file</DomButton>
+				<select v-if="projectFiles?.length" class="h-7 max-w-40 rounded-md border-0 bg-secondary/60 pl-2 pr-6 text-xs text-canvas-fg outline-none hover:ring-1 hover:ring-border focus:ring-1 focus:ring-primary" aria-label="Open a project file" value="" @change="openProjectFile($event.target.value); $event.target.value = ''">
+					<option value="">Project files…</option>
+					<option v-for="item in projectFiles" :key="item.id" :value="item.id">{{ item.name }}</option>
+				</select>
 				<span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
 				<DomButton size="sm" variant="ghost" :disabled="!historySize.undo" title="Undo (⌘Z)" @click="undo">Undo</DomButton>
 				<DomButton size="sm" variant="ghost" :disabled="!historySize.redo" title="Redo (⇧⌘Z)" @click="redo">Redo</DomButton>
@@ -948,22 +922,6 @@ onBeforeUnmount(() => {
 			<span>{{ notice }}</span>
 			<button type="button" class="text-xs text-muted-fg hover:text-canvas-fg" @click="notice = ''">Dismiss</button>
 		</p>
-
-		<section v-if="showImport" class="shrink-0 space-y-3 border-b border-border p-4">
-			<div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_16rem]">
-				<DomTextareaInput v-model="importDraft" label="Vue SFC or HTML" :rows="8" description="Paste output from an app generator or your codebase. The template becomes editable layers; script and style blocks are kept as they are and returned on export. Nothing runs." />
-				<div class="space-y-3">
-					<DomTextInput v-model="importName" label="File name" />
-					<label class="block text-sm"><span class="mb-1 block font-medium">Or choose a file</span><input type="file" accept=".vue,.html,.htm,text/html" class="block w-full text-xs" @change="readUpload"></label>
-					<DomNativeSelect v-if="projectFiles" :model-value="''" label="Or open a project file" :placeholder="projectFiles.length ? 'Choose a file…' : 'No files yet'" :options="projectFiles.map((item) => ({ label: item.name, value: item.id }))" @update:model-value="openProjectFile" />
-					<div class="flex flex-wrap gap-2">
-						<DomButton size="sm" @click="importSource(false)">Open as new file</DomButton>
-						<DomButton size="sm" variant="secondary" @click="importSource(true)">Replace current</DomButton>
-						<DomButton size="sm" variant="ghost" @click="importDraft = sampleVueFile">Sample</DomButton>
-					</div>
-				</div>
-			</div>
-		</section>
 
 		<div class="grid grid-cols-1 lg:min-h-0 lg:flex-1 lg:grid-cols-[16rem_minmax(0,1fr)_19rem]">
 			<aside class="order-2 flex max-h-[28rem] min-h-0 flex-col border-t border-border lg:order-none lg:max-h-none lg:border-t-0 lg:border-r">
@@ -1158,7 +1116,7 @@ onBeforeUnmount(() => {
 						<p class="text-[11px] leading-4 text-muted-fg">Kept on export. Data view runs lists and conditions on preview data; Variables view shows every branch and one item of each list.</p>
 					</section>
 					<div class="border-b border-border px-4">
-						<DomTypographyEditor v-if="showText && textStyle" title="Text" :model-value="textStyle" @update:model-value="setStyle('text', $event)" />
+						<DomTypographyEditor v-if="showText && textStyle" title="Text" :google-fonts="googleFonts" :model-value="textStyle" @update:model-value="setStyle('text', $event)" />
 						<template v-for="kind in ['fill', 'stroke', 'shadow', 'blur']" :key="kind">
 							<StyleControlSection v-if="customStyle[kind]" :model-value="true" :title="styleTitles[kind]" meta="Custom CSS">
 								<template #actions><ControlIconButton icon="remove" :label="`Remove ${styleTitles[kind].toLowerCase()}`" @click="setStyleRaw(kind, '')" /></template>

@@ -76,6 +76,11 @@ const props = defineProps({
 		default: 'bottom',
 		_edit: { group: 'Control props', options: ['bottom', 'top', 'right', 'left'], description: 'Preferred side before collision handling.' },
 	},
+	size: {
+		type: String,
+		default: 'md',
+		_edit: { group: 'Control props', options: ['md', 'sm'], description: 'sm is a compact 28px trigger for inspectors and toolbars; the label is kept for screen readers only.' },
+	},
 	align: {
 		type: String,
 		default: 'left',
@@ -147,9 +152,12 @@ const selectedOption = computed(() => selectedItems.value[0] && (selectedItems.v
 const selectedLabel = computed(() => selectedItems.value.map((option) => option.label).join(', '));
 const selectedValue = computed(() => isMultiple.value ? JSON.stringify(selectedValues.value.map(String)) : String(field.value.value ?? ''));
 const paging = useOptionPaging(props, emit, { list: listbox, options: filteredOptions, query: searchQuery, open: isOpen });
+const compact = computed(() => props.size === 'sm');
 const triggerClasses = computed(() => [
-	'skin-input relative flex h-auto min-h-10 cursor-pointer items-center py-2 text-left',
-	booleanProp(props.clearable) && selectedLabel.value ? 'pr-18' : 'pr-10',
+	compact.value
+		? 'relative flex h-7 w-full cursor-pointer items-center rounded-md bg-secondary/60 pl-2 text-left text-xs text-canvas-fg outline-none ring-inset transition hover:ring-1 hover:ring-border focus:bg-canvas focus:ring-1 focus:ring-primary'
+		: 'skin-input relative flex h-auto min-h-10 cursor-pointer items-center py-2 text-left',
+	compact.value ? (booleanProp(props.clearable) && selectedLabel.value ? 'pr-11' : 'pr-6') : (booleanProp(props.clearable) && selectedLabel.value ? 'pr-18' : 'pr-10'),
 	(field.disabled.value || field.readOnly.value) && 'cursor-not-allowed opacity-60',
 	field.invalid.value && 'border-destructive focus:border-destructive focus:ring-destructive/25',
 ]);
@@ -391,7 +399,7 @@ function onSearchKeydown(event) {
 </script>
 
 <template>
-	<DomField v-bind="field.fieldAttrs.value" :chrome="chrome" class="min-w-0">
+	<DomField v-bind="compact ? { ...field.fieldAttrs.value, label: '' } : field.fieldAttrs.value" :chrome="chrome" class="min-w-0">
 		<input
 			v-for="(value, index) in (isMultiple ? selectedValues : [field.value.value ?? ''])"
 			:key="index"
@@ -438,7 +446,7 @@ function onSearchKeydown(event) {
 						</span>
 					</slot>
 				</span>
-				<svg viewBox="0 0 20 20" class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-fg" fill="none" aria-hidden="true">
+				<svg viewBox="0 0 20 20" class="pointer-events-none absolute top-1/2 -translate-y-1/2 text-muted-fg" :class="compact ? 'right-1.5 size-3.5' : 'right-3 size-4'" fill="none" aria-hidden="true">
 					<path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
 				</svg>
 			</button>
@@ -446,7 +454,8 @@ function onSearchKeydown(event) {
 				v-if="booleanProp(clearable) && selectedLabel"
 				type="button"
 				aria-label="Clear selection"
-				class="absolute right-9 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-muted-fg hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
+				class="absolute top-1/2 inline-flex -translate-y-1/2 items-center justify-center rounded-full text-muted-fg hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-60"
+				:class="compact ? 'right-6 size-5' : 'right-9 size-8'"
 				:disabled="field.disabled.value || field.readOnly.value"
 				@click.stop="clearSelection"
 				@mousedown.prevent

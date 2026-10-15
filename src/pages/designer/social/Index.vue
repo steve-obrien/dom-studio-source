@@ -1,5 +1,7 @@
 <script setup>
 import PosterStudio from '../poster/PosterStudio.vue';
+import DomMonacoCodeView from '../core/MonacoCodeView.vue';
+import { loadMonaco } from '../core/loadMonaco.js';
 import { createSocialPost } from '../poster/posterModel.js';
 import { socialFormats } from '../poster/posterResize.js';
 import { createBrowserStorage } from '../core/storage.js';
@@ -15,5 +17,5 @@ const credit = { label: 'Photo: Zhi Xuan Hew / Unsplash', href: 'https://unsplas
 </script>
 
 <template>
-	<PosterStudio :create="createSocialPost" :presets="presets" :credit="credit" name="Social post studio" guide="/designer/assembly#poster" file-name="dom-studio-social-post.html" frame-label="Post" initial-selection="headline" :templates="templates" :template-storage="templateStorage" formats-open />
+	<PosterStudio :code-editor="DomMonacoCodeView" :code-editor-props="{ load: loadMonaco }" :create="createSocialPost" :presets="presets" :credit="credit" name="Social post studio" guide="/designer/assembly#poster" file-name="dom-studio-social-post.html" frame-label="Post" initial-selection="headline" :templates="templates" :template-storage="templateStorage" formats-open />
 </template>

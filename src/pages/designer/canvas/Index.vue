@@ -5,6 +5,7 @@ import { componentRegistry, lookupByName } from '../../_layout/inspector/compone
 import DomDesigner from '../core/DesignerWorkspace.vue';
 import DomMonacoCodeView from '../core/MonacoCodeView.vue';
 import { createFileStorage } from '../core/storage.js';
+import { loadMonaco } from '../core/loadMonaco.js';
 
 /**
  * Canvas: the site's full-screen DOM designer.
@@ -12,17 +13,18 @@ import { createFileStorage } from '../core/storage.js';
  * The designer itself is `DomDesigner`, the same component the package
  * exports. This page gives it every DOM Studio component, the dev server's
  * project files, on-demand Tailwind from the template editor endpoint, and
- * Monaco as an optional code editor.
+ * Monaco as the code editor (on by default; the toggle falls back to the
+ * plain code view).
  */
 
 const catalog = { entries: componentRegistry, lookupByName };
 // The dev server answers on this endpoint; on the published site listing fails and the file controls stay hidden.
 const fileStorage = createFileStorage();
 const monacoKey = 'dom-studio-canvas-monaco';
-const monaco = ref(false);
+const monaco = ref(true);
 
 onMounted(() => {
-	try { monaco.value = localStorage.getItem(monacoKey) === '1'; } catch { /* storage unavailable */ }
+	try { monaco.value = localStorage.getItem(monacoKey) !== '0'; } catch { /* storage unavailable */ }
 });
 watch(monaco, (value) => {
 	try { localStorage.setItem(monacoKey, value ? '1' : '0'); } catch { /* storage unavailable */ }
@@ -33,17 +35,6 @@ async function compileCss(content) {
 	const response = await fetch('/api/experiments/template-editor/tailwind.css', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ content }) });
 	if (!response.ok) throw new Error('On-demand Tailwind is unavailable.');
 	return response.text();
-}
-
-/** Loads Monaco from the site's own install, with its CSS and editor worker. */
-async function loadMonaco() {
-	const [, api, worker] = await Promise.all([
-		import('monaco-editor/min/vs/editor/editor.main.css'),
-		import('monaco-editor/esm/vs/editor/editor.api'),
-		import('monaco-editor/esm/vs/editor/editor.worker?worker'),
-	]);
-	if (!window.MonacoEnvironment) window.MonacoEnvironment = { getWorker: () => new worker.default() };
-	return api;
 }
 </script>
 
