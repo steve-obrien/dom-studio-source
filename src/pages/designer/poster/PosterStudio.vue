@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterLink } from 'vue-router';
-import { DomSplitterPanel, DomButton, DomTextInput, DomNativeSelect, DomDesignerLayers, DomDesignerStage } from '../../lib/vue';
+import { DomSplitterPanel, DomButton, DomDialog, DomTextInput, DomNativeSelect, DomDesignerLayers, DomDesignerStage } from '../../lib/vue';
 import NodeInspector from '../core/NodeInspector.vue';
 import { copySubtree, fromTree } from '../core/editorDocument.js';
 import { createHistory } from '../core/history.js';
@@ -13,6 +13,7 @@ import { alignRects, boundsOf, distributeRects } from '../stage/alignGeometry.js
 import { exportPosterHtml, posterHtmlLines, posterLayerStyle, safePosterImage } from './posterModel.js';
 import PosterThumbnail from './PosterThumbnail.vue';
 import { resizeOperations, resizePoster } from './posterResize.js';
+import { createTemplateLibrary, posterToTemplate, templateIndustries, templateKinds, templateOperations, templateToPoster } from './socialTemplates.js';
 import { createPosterTypes, documentToPoster, posterToDocument } from './posterTypes.js';
 
 /**
@@ -34,6 +35,8 @@ const props = defineProps({
 	initialSelection: { type: String, default: '' },
 	frameLabel: { type: String, default: 'Poster' },
 	formatsOpen: { type: Boolean, default: false },
+	templates: { type: Array, default: () => [] },
+	templateStorage: { type: Object, default: null },
 });
 
 const types = createPosterTypes();
@@ -44,6 +47,7 @@ const selected = ref(props.initialSelection || 'frame');
 const selection = ref(props.initialSelection ? [props.initialSelection] : []);
 const workspace = ref(null);
 const upload = ref(null);
+const templateUpload = ref(null);
 const artwork = ref(null);
 const zoomChoice = ref('fit');
 const snapping = ref(true);
@@ -55,6 +59,11 @@ const fitScale = ref(0.3);
 const mobilePanel = ref('poster');
 const showCode = ref(props.codeOpen);
 const showFormats = ref(props.formatsOpen);
+const showTemplates = ref(false);
+const templateIndustry = ref('all');
+const templateKind = ref('all');
+const library = props.templateStorage ? createTemplateLibrary(props.templateStorage) : null;
+const savedTemplates = ref([]);
 const notice = ref('');
 const imageErrors = ref({});
 const imageUrlDraft = ref('');
@@ -84,6 +93,12 @@ const previews = computed(() => props.presets.map((preset) => {
 	const [width, height] = preset.value.split('x').map(Number);
 	return { ...preset, current: preset.value === `${poster.value.width}x${poster.value.height}`, poster: resizePoster(poster.value, { width, height }) };
 }));
+/** Template filters list only the industries and kinds that have templates. */
+const galleryTemplates = computed(() => [...savedTemplates.value.map((template) => ({ ...template, saved: true })), ...props.templates]);
+const industryOptions = computed(() => [{ label: `All industries (${galleryTemplates.value.length})`, value: 'all' }, ...templateIndustries.filter((item) => galleryTemplates.value.some((template) => template.industry === item.value)).map((item) => ({ label: `${item.label} (${galleryTemplates.value.filter((template) => template.industry === item.value).length})`, value: item.value }))]);
+const kindOptions = computed(() => [{ label: 'All post types', value: 'all' }, ...templateKinds.filter((item) => galleryTemplates.value.some((template) => template.kind === item.value && (templateIndustry.value === 'all' || template.industry === templateIndustry.value))).map((item) => ({ label: item.label, value: item.value }))]);
+const visibleTemplates = computed(() => galleryTemplates.value.filter((template) => (templateIndustry.value === 'all' || template.industry === templateIndustry.value) && (templateKind.value === 'all' || template.kind === templateKind.value)).map((template) => ({ ...template, preview: resizePoster(template.poster, { width: poster.value.width, height: poster.value.height }), industryLabel: [template.saved && 'Yours', templateIndustries.find((item) => item.value === template.industry)?.label].filter(Boolean).join(' · ') })));
+watch(templateIndustry, () => { if (!kindOptions.value.some((item) => item.value === templateKind.value)) templateKind.value = 'all'; });
 const formatOptions = computed(() => {
 	const current = `${poster.value.width}x${poster.value.height}`;
 	return props.presets.some((preset) => preset.value === current) ? props.presets : [{ label: `Custom · ${poster.value.width} × ${poster.value.height}`, value: current }, ...props.presets];
@@ -232,6 +247,57 @@ function setPreset(value) {
 	nextTick(fit);
 }
 
+/* Templates ---------------------------------------------------------------------- */
+
+/** Replaces the design with a template at the current format; undo brings it back. */
+function applyTemplate(template) {
+	const { operations, firstId } = templateOperations(doc.value, template.poster);
+	run(operations);
+	selection.value = firstId ? [firstId] : [];
+	selected.value = firstId || frame.value.id;
+	showTemplates.value = false;
+	notice.value = `${template.title} applied. Undo to go back to your design.`;
+}
+
+/** Loads saved templates each time the gallery opens, so other tabs' saves appear. */
+watch(showTemplates, async (open) => {
+	if (!open || !library) return;
+	try { savedTemplates.value = await library.list(); }
+	catch (error) { notice.value = `Saved templates could not load: ${error.message}`; }
+});
+/** Saves the design as a new template; existing templates are never overwritten. */
+async function saveAsTemplate() {
+	try {
+		const id = await library.saveAs(poster.value, { industry: templateIndustry.value === 'all' ? undefined : templateIndustry.value, kind: templateKind.value === 'all' ? undefined : templateKind.value }, props.templates.map((template) => template.id));
+		savedTemplates.value = await library.list();
+		notice.value = `Saved as a new template (${id}).`;
+	} catch (error) {
+		notice.value = `The template could not be saved: ${error.message}`;
+	}
+}
+/** Downloads the design as a template file, tagged with the gallery's current filters. */
+function saveTemplate() {
+	const template = posterToTemplate(poster.value, { industry: templateIndustry.value === 'all' ? undefined : templateIndustry.value, kind: templateKind.value === 'all' ? undefined : templateKind.value });
+	const url = URL.createObjectURL(new Blob([`${JSON.stringify(template, null, '\t')}\n`], { type: 'application/json' }));
+	const link = document.createElement('a');
+	link.href = url; link.download = `${template.id}.json`; link.click();
+	setTimeout(() => URL.revokeObjectURL(url), 1000);
+	notice.value = `Saved ${template.id}.json. Add it to the templates folder to list it in the gallery.`;
+}
+/** Opens a template file from disk; it is checked like every other template. */
+function openTemplateFile(event) {
+	const file = event.target.files?.[0];
+	event.target.value = '';
+	if (!file) return;
+	if (file.size > 2 * 1024 * 1024) { notice.value = 'Choose a template file under 2 MB.'; return; }
+	file.text().then((value) => {
+		if (disposed) return;
+		const poster = templateToPoster(JSON.parse(value));
+		if (!poster.layers.length) throw new Error('empty');
+		applyTemplate({ title: poster.title, poster });
+	}).catch(() => { if (!disposed) notice.value = 'That file is not a template this studio can open.'; });
+}
+
 /* Images ------------------------------------------------------------------------- */
 
 /** Commits a supported image URL and clears any previous loading error. */
@@ -348,7 +414,7 @@ onBeforeUnmount(cleanup);
 	<main class="flex h-dvh min-h-0 flex-col bg-canvas text-canvas-fg">
 		<header class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
 			<div class="flex flex-wrap items-center gap-3"><RouterLink to="/designer" class="text-sm text-muted-fg hover:text-canvas-fg">← UI designer</RouterLink><RouterLink :to="guide" class="text-sm text-primary underline underline-offset-4">Assembly guide</RouterLink><span class="h-4 border-l border-border"></span><h1 class="text-sm font-semibold">{{ name }}</h1><span class="rounded bg-secondary px-2 py-1 text-[10px] font-semibold uppercase tracking-wide">Beta</span></div>
-			<div class="flex items-center gap-2"><DomButton size="sm" variant="ghost" :disabled="!counts.undo" title="Undo (⌘Z)" @click="undo">Undo</DomButton><DomButton size="sm" variant="ghost" :disabled="!counts.redo" title="Redo (⇧⌘Z)" @click="redo">Redo</DomButton><DomButton size="sm" variant="ghost" :aria-pressed="showCode" @click="showCode = !showCode">HTML</DomButton><DomButton v-if="presets.length > 1" size="sm" variant="ghost" :aria-pressed="showFormats" @click="showFormats = !showFormats">Formats</DomButton><DomButton size="sm" @click="download()">Export HTML</DomButton></div>
+			<div class="flex items-center gap-2"><DomButton size="sm" variant="ghost" :disabled="!counts.undo" title="Undo (⌘Z)" @click="undo">Undo</DomButton><DomButton size="sm" variant="ghost" :disabled="!counts.redo" title="Redo (⇧⌘Z)" @click="redo">Redo</DomButton><DomButton size="sm" variant="ghost" :aria-pressed="showCode" @click="showCode = !showCode">HTML</DomButton><DomButton v-if="templates.length" size="sm" variant="ghost" @click="showTemplates = true">Templates</DomButton><DomButton v-if="presets.length > 1" size="sm" variant="ghost" :aria-pressed="showFormats" @click="showFormats = !showFormats">Formats</DomButton><DomButton size="sm" @click="download()">Export HTML</DomButton></div>
 		</header>
 		<nav class="flex shrink-0 border-b border-border p-1 md:hidden" aria-label="Editor panels"><button v-for="panel in ['layers', 'poster', 'inspect']" :key="panel" type="button" class="flex-1 rounded px-3 py-2 text-sm capitalize" :class="mobilePanel === panel ? 'bg-secondary font-semibold' : 'text-muted-fg'" :aria-pressed="mobilePanel === panel" @click="mobilePanel = panel">{{ panel }}</button></nav>
 		<DomSplitterPanel v-model:start-size="leftPanelWidth" v-model:end-size="rightPanelWidth" :min-start="180" :min-main="280" :min-end="240" class="poster-panels min-h-0 flex-1" :data-panel="mobilePanel">
@@ -417,6 +483,13 @@ onBeforeUnmount(cleanup);
 			</template>
 		</DomSplitterPanel>
 		<footer class="flex min-h-8 shrink-0 items-center justify-between gap-3 border-t border-border px-4 py-2 text-[10px] text-muted-fg"><span role="status">{{ notice || 'HTML elements · no canvas · export to keep your work' }}</span><a v-if="credit" class="shrink-0 underline underline-offset-2" :href="credit.href" target="_blank" rel="noopener noreferrer">{{ credit.label }}</a></footer>
+		<DomDialog v-if="templates.length" v-model="showTemplates" title="Templates" :description="`Every template opens at ${poster.width} × ${poster.height} and stays editable. Your current design is replaced; undo brings it back. Saving always adds a new template.`" width="min(1100px, 95vw)">
+			<div class="flex flex-wrap items-end gap-3 pb-4"><div class="w-60 max-w-full"><DomNativeSelect v-model="templateIndustry" :options="industryOptions" label="Industry" /></div><div class="w-48 max-w-full"><DomNativeSelect v-model="templateKind" :options="kindOptions" label="Post type" /></div><div class="ml-auto flex flex-wrap gap-2"><DomButton v-if="library" size="sm" variant="secondary" title="Save this design as a new template, tagged with the selected industry and post type. Existing templates are never overwritten." @click="saveAsTemplate">Save as new template</DomButton><DomButton size="sm" variant="ghost" title="Download this design as a template file" @click="saveTemplate">Download template file</DomButton><DomButton size="sm" variant="ghost" @click="templateUpload.click()">Open template file</DomButton></div></div>
+			<ul class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4" aria-label="Templates">
+				<li v-for="template in visibleTemplates" :key="template.id"><button type="button" class="flex w-full flex-col items-center gap-2 rounded-lg p-2 text-left hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" @click="applyTemplate(template)"><PosterThumbnail :poster="template.preview" :height="Math.min(220, Math.round(170 * template.preview.height / template.preview.width))" /><span class="w-full"><span class="block truncate text-sm font-medium">{{ template.title }}</span><span class="block truncate text-xs text-muted-fg">{{ template.industryLabel }}</span></span></button></li>
+			</ul>
+		</DomDialog>
+		<input v-if="templates.length" ref="templateUpload" type="file" accept="application/json,.json" class="hidden" aria-label="Open template file" @change="openTemplateFile" />
 		<input ref="upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden" aria-label="Upload image" @change="uploadImage" />
 	</main>
 </template>

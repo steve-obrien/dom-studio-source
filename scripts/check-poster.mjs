@@ -89,3 +89,103 @@ test('resizing a poster document is one undoable step', async () => {
 	history.undo();
 	assert.equal(JSON.stringify(documentToPoster(doc)), before);
 });
+
+test('templates load as posters, and untrusted fields are dropped or clamped', async () => {
+	const { readdirSync, readFileSync } = await import('node:fs');
+	const { loadTemplates, templateToPoster } = await import('../src/pages/designer/poster/socialTemplates.js');
+	const dir = new URL('../src/pages/designer/social/templates/', import.meta.url);
+	const files = readdirSync(dir).filter((name) => name.endsWith('.json')).map((name) => JSON.parse(readFileSync(new URL(name, dir), 'utf8')));
+	const templates = loadTemplates(files);
+	assert.equal(templates.length, files.length, 'every committed template loads');
+	for (const { id, poster } of templates) {
+		assert.ok(poster.layers.length >= 3, `${id} has layers`);
+		for (const layer of poster.layers.filter((item) => item.type === 'text')) {
+			const lines = layer.value.split('\n').length;
+			assert.ok(layer.height >= layer.fontSize * layer.lineHeight * lines * 0.95, `${id}: ${layer.name} is tall enough for its text`);
+		}
+	}
+
+	const poster = templateToPoster({
+		width: 99999, background: 'red; background:url(x)', title: 'T',
+		layers: [
+			{ type: 'text', value: '<b>Hi</b>', color: 'javascript:alert(1)', font: 'Comic Sans', fontSize: 9000, onclick: 'x' },
+			{ type: 'image', value: 'javascript:alert(1)' },
+			{ type: 'script', value: 'alert(1)' },
+		],
+	});
+	assert.equal(poster.width, 4000);
+	assert.equal(poster.background, '#ffffff');
+	assert.equal(poster.layers.length, 1, 'unsafe images and unknown types are dropped');
+	const [layer] = poster.layers;
+	assert.equal(layer.color, '#171717');
+	assert.equal(layer.fontSize, 500);
+	assert.equal(layer.onclick, undefined);
+	assert.match(exportPosterHtml(poster), /&lt;b&gt;Hi/);
+});
+
+test('applying a template keeps the current format and undoes in one step', async () => {
+	const { templateOperations, templateToPoster } = await import('../src/pages/designer/poster/socialTemplates.js');
+	const { posterToDocument, documentToPoster } = await import('../src/pages/designer/poster/posterTypes.js');
+	const { createHistory } = await import('../src/pages/designer/core/history.js');
+	const { applyOperation } = await import('../src/pages/designer/core/operations.js');
+	const { readFileSync } = await import('node:fs');
+	const raw = JSON.parse(readFileSync(new URL('../src/pages/designer/social/templates/retail-summer-sale.json', import.meta.url), 'utf8'));
+	const doc = posterToDocument(createPoster());
+	const before = JSON.stringify(documentToPoster(doc));
+	const history = createHistory({ apply: (operation) => applyOperation(doc, operation) });
+	const { operations, firstId } = templateOperations(doc, templateToPoster(raw));
+	history.run(operations);
+	const after = documentToPoster(doc);
+	assert.deepEqual([after.width, after.height], [1080, 1920], 'the story format is kept');
+	assert.equal(after.background, '#e63946');
+	assert.equal(after.layers.length, raw.layers.length);
+	assert.equal(doc.nodes[firstId].type, 'poster:text');
+	history.undo();
+	assert.equal(JSON.stringify(documentToPoster(doc)), before);
+});
+
+test('a design saved from the studio opens again unchanged, effects included', async () => {
+	const { readdirSync, readFileSync } = await import('node:fs');
+	const { posterToTemplate, templateToPoster } = await import('../src/pages/designer/poster/socialTemplates.js');
+	const { createShadow } = await import('../src/pages/designer/shadow-editor/shadowModel.js');
+	const { createBackgroundState, createFill } = await import('../src/pages/designer/background-editor/backgroundModel.js');
+	const { createSocialPost } = await import('../src/pages/designer/poster/posterModel.js');
+	const roundTrip = (poster) => exportPosterHtml(templateToPoster(JSON.parse(JSON.stringify(posterToTemplate(poster)))));
+
+	const post = createSocialPost();
+	const [photo, scrim, , badge, , headline] = post.layers;
+	Object.assign(photo, { saturation: 80, sepia: 20, objectFit: 'contain' });
+	scrim.background = createBackgroundState({ fills: [createFill({ kind: 'linear', gradientFrom: '#0f172a', gradientFromAlpha: 0, gradientTo: '#0f172a', gradientAngle: 180 })] });
+	scrim.backdrop = { enabled: true, blur: 12, saturate: 1.4 };
+	badge.border = { enabled: true, width: 6, style: 'dashed', color: 'rgb(255 255 255 / 80%)' };
+	badge.shadows = [createShadow({ kind: 'drop', y: 12, blur: 30 }), createShadow({ kind: 'ring', spread: 4, color: '#ffffff', enabled: false })];
+	Object.assign(headline, { fill: '#e4572e', textTransform: 'uppercase', lineHeight: 0.6, locked: true });
+	assert.equal(roundTrip(post), exportPosterHtml(post));
+
+	const dir = new URL('../src/pages/designer/social/templates/', import.meta.url);
+	for (const name of readdirSync(dir).filter((file) => file.endsWith('.json'))) {
+		const poster = templateToPoster(JSON.parse(readFileSync(new URL(name, dir), 'utf8')));
+		assert.equal(roundTrip(poster), exportPosterHtml(poster), `${name} round-trips`);
+	}
+
+	const hidden = createSocialPost();
+	hidden.layers[2].hidden = true;
+	assert.equal(posterToTemplate(hidden).layers.length, hidden.layers.length - 1, 'hidden layers are not saved');
+	assert.equal(templateToPoster({ layers: [{ type: 'shape', fill: 'url(javascript:alert(1))', border: { color: 'red;x:y' } }] }).layers[0].fill, '#e5e5e5');
+});
+
+test('saving to the template library always makes a new template', async () => {
+	const { createMemoryStorage } = await import('../src/pages/designer/core/storage.js');
+	const { createTemplateLibrary } = await import('../src/pages/designer/poster/socialTemplates.js');
+	const library = createTemplateLibrary(createMemoryStorage());
+	const poster = createPoster();
+	const first = await library.saveAs(poster, { industry: 'travel' }, ['a-weekend-in-the-highlands']);
+	assert.equal(first, 'a-weekend-in-the-highlands-2', 'a built-in id is never reused');
+	poster.layers[1].value = 'CHANGED';
+	const second = await library.saveAs(poster, { industry: 'travel' }, ['a-weekend-in-the-highlands']);
+	assert.equal(second, 'a-weekend-in-the-highlands-3');
+	const saved = await library.list();
+	assert.deepEqual(saved.map((template) => template.id).sort(), [first, second]);
+	assert.equal(saved.find((template) => template.id === first).poster.layers[1].value, 'A WEEKEND IN\nTHE HIGHLANDS', 'the first save is untouched');
+	assert.equal(saved[0].industry, 'travel');
+});
