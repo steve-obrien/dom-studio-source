@@ -75,14 +75,14 @@ test('resize pins each layer to the frame instead of squashing it', async () => 
 });
 
 test('resizing a poster document is one undoable step', async () => {
-	const { resizeOperations } = await import('../src/pages/designer/poster/posterResize.js');
+	const { formatOperations, resizePoster } = await import('../src/pages/designer/poster/posterResize.js');
 	const { posterToDocument, documentToPoster } = await import('../src/pages/designer/poster/posterTypes.js');
 	const { createHistory } = await import('../src/pages/designer/core/history.js');
 	const { applyOperation } = await import('../src/pages/designer/core/operations.js');
 	const doc = posterToDocument(createPoster());
 	const before = JSON.stringify(documentToPoster(doc));
 	const history = createHistory({ apply: (operation) => applyOperation(doc, operation) });
-	history.run(resizeOperations(doc, { width: 1080, height: 1080 }));
+	history.run(formatOperations(doc, resizePoster(documentToPoster(doc), { width: 1080, height: 1080 })));
 	const square = documentToPoster(doc);
 	assert.deepEqual([square.width, square.height], [1080, 1080]);
 	assert.equal(square.layers[0].height, 1080);
@@ -188,4 +188,32 @@ test('saving to the template library always makes a new template', async () => {
 	assert.deepEqual(saved.map((template) => template.id).sort(), [first, second]);
 	assert.equal(saved.find((template) => template.id === first).poster.layers[1].value, 'A WEEKEND IN\nTHE HIGHLANDS', 'the first save is untouched');
 	assert.equal(saved[0].industry, 'travel');
+});
+
+test('switching formats back and forth returns the original design exactly', async () => {
+	const { readFileSync } = await import('node:fs');
+	const { formatSource, formatOperations, resizePoster, socialFormats } = await import('../src/pages/designer/poster/posterResize.js');
+	const { templateToPoster } = await import('../src/pages/designer/poster/socialTemplates.js');
+	const { posterToDocument, documentToPoster } = await import('../src/pages/designer/poster/posterTypes.js');
+	const { applyOperation } = await import('../src/pages/designer/core/operations.js');
+	const raw = JSON.parse(readFileSync(new URL('../src/pages/designer/social/templates/restaurant-taco-tuesday.json', import.meta.url), 'utf8'));
+	const doc = posterToDocument(templateToPoster(raw));
+	const original = JSON.stringify(documentToPoster(doc));
+	let base = null;
+	const switchTo = (format) => {
+		const current = documentToPoster(doc);
+		base = formatSource(base, current);
+		for (const operation of formatOperations(doc, resizePoster(base, format))) applyOperation(doc, operation);
+	};
+	for (let round = 0; round < 5; round += 1) for (const format of socialFormats) switchTo(format);
+	switchTo({ width: 1080, height: 1350 });
+	assert.equal(JSON.stringify(documentToPoster(doc)), original, 'no drift after 35 switches');
+
+	switchTo({ width: 1280, height: 720 });
+	const headline = doc.nodes[doc.nodes[doc.rootId].children.find((id) => doc.nodes[id].label === 'Headline')];
+	applyOperation(doc, { op: 'setProp', id: headline.id, key: 'fontSize', value: 140 });
+	switchTo({ width: 1080, height: 1350 });
+	switchTo({ width: 1280, height: 720 });
+	assert.equal(headline.props.fontSize, 140, 'an edit made in one format becomes the new source');
+	assert.equal(JSON.stringify(resizePoster(base, { width: base.width, height: base.height })), JSON.stringify(base), 'resizing to the same size changes nothing');
 });

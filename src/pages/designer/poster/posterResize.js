@@ -113,24 +113,44 @@ export function resizeLayer(layer, from, to) {
  */
 export function resizePoster(poster, size) {
 	const from = { width: poster.width, height: poster.height };
+	if (from.width === size.width && from.height === size.height) return { ...poster, layers: poster.layers.map((layer) => ({ ...layer })) };
 	return { ...poster, width: size.width, height: size.height, layers: poster.layers.map((layer) => ({ ...layer, ...resizeLayer(layer, from, size) })) };
 }
 
 /**
- * Core operations that resize a poster document, as one undoable step.
+ * The design every format is derived from.
+ *
+ * Resizing loses detail (type shrinks by the smaller ratio, then grows by a
+ * different one), so switching formats must never resize the last format.
+ * The source is the design as it was last edited. While the current design
+ * is still exactly the source resized to the current size, the source stays;
+ * once anything was edited, the current design becomes the new source.
+ *
+ * @param {object|null} source Previous source poster, or null.
+ * @param {object} current Current poster.
+ * @returns {object} Source poster (a copy when it changes).
+ */
+export function formatSource(source, current) {
+	const unchanged = source && JSON.stringify(resizePoster(source, { width: current.width, height: current.height })) === JSON.stringify(current);
+	return unchanged ? source : JSON.parse(JSON.stringify(current));
+}
+
+const sizedKeys = ['x', 'y', 'width', 'height', 'fontSize', 'letterSpacing', 'radius'];
+
+/**
+ * Core operations that move a poster document onto a resized poster with the
+ * same layers, as one undoable step.
  *
  * @param {object} doc Poster document (root is a `poster:frame`).
- * @param {{ width: number, height: number }} size New frame size.
+ * @param {object} target Poster from `resizePoster`, whose layer ids are node ids.
  * @returns {Array<object>} `setProp` operations.
  */
-export function resizeOperations(doc, size) {
+export function formatOperations(doc, target) {
 	const root = doc.nodes[doc.rootId];
-	const from = { width: root.props.width, height: root.props.height };
-	const operations = root.children.flatMap((id) => {
-		const node = doc.nodes[id];
-		return Object.entries(resizeLayer(node.props, from, size))
-			.filter(([key, value]) => node.props[key] !== value)
-			.map(([key, value]) => ({ op: 'setProp', id, key, value }));
+	const operations = target.layers.flatMap((layer) => {
+		const node = doc.nodes[layer.id];
+		if (!node) return [];
+		return sizedKeys.filter((key) => layer[key] != null && node.props[key] !== layer[key]).map((key) => ({ op: 'setProp', id: layer.id, key, value: layer[key] }));
 	});
-	return [...operations, { op: 'setProp', id: root.id, key: 'width', value: size.width }, { op: 'setProp', id: root.id, key: 'height', value: size.height }];
+	return [...operations, { op: 'setProp', id: root.id, key: 'width', value: target.width }, { op: 'setProp', id: root.id, key: 'height', value: target.height }];
 }
