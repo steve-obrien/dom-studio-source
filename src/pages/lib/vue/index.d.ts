@@ -900,6 +900,8 @@ export interface TreeItem {
 	label?: string;
 	name?: string;
 	icon?: string;
+	/** Short text shown in place of the icon, such as `h2`. */
+	iconText?: string;
 	rightIcon?: string;
 	rightIconAction?: string;
 	rightIconLabel?: string;
