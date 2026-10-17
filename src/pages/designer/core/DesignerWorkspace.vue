@@ -14,7 +14,7 @@ import { cssEditorContextKey } from '../_shared/cssEditorContext.js';
 import { useNodeStyle } from './nodeStyle.js';
 import { useGoogleFonts } from '../typography-editor/googleFonts.js';
 import AlignTools from '../stage/AlignTools.vue';
-import { copySubtree, fromTree, subtreeIds } from './editorDocument.js';
+import { copySubtree, fromTree, isExpr, subtreeIds } from './editorDocument.js';
 import { EditorRender } from './EditorRender.js';
 import { createHistory } from './history.js';
 import { previewData, scriptData } from './previewData.js';
@@ -158,6 +158,20 @@ const textChild = computed(() => {
 	const child = children.length === 1 ? doc.value.nodes[children[0]] : null;
 	return child?.type === 'text' ? child : null;
 });
+/**
+ * Mixed content, such as `Turn what… <span>people can find.</span>`: the text
+ * runs and inline elements in order, so text beside elements stays editable.
+ * An element with a single text child shows that text too.
+ */
+const inlineContent = computed(() => {
+	if (!active.value || textChild.value) return [];
+	const children = active.value.children.map((id) => doc.value.nodes[id]).filter(Boolean);
+	if (!children.some((child) => child.type === 'text' && textOf(child).trim())) return [];
+	return children.filter((child) => child.type !== 'text' || textOf(child).trim()).map((child) => {
+		const inner = child.type !== 'text' && child.children.length === 1 ? doc.value.nodes[child.children[0]] : null;
+		return { node: child, text: child.type === 'text' ? child : inner?.type === 'text' ? inner : null };
+	});
+});
 const layout = computed(() => active.value?.layout || detected.value[selected.value] || createFrameLayout());
 const textTags = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'button', 'label', 'li', 'blockquote', 'strong', 'em', 'small', 'code', 'figcaption', 'td', 'th']);
 const showText = computed(() => Boolean(textChild.value || textTags.has(activeType.value?.tag)));
@@ -267,6 +281,24 @@ function afterChange() {
 }
 
 /** Sets a prop on a node; called by the generated inspector. */
+/** A text node's value as the designer edits it; bindings read as `{{ expr }}`. */
+function textOf(node) {
+	const value = node.props.value;
+	return isExpr(value) ? `{{ ${value.expr} }}` : String(value ?? '');
+}
+
+/** Edits one text run (on change), keeping the spaces that separate it from neighbouring elements. */
+function setText(node, input) {
+	if (isExpr(node.props.value)) {
+		setProp(node.id, { key: 'value', value: { expr: input.replace(/^\s*\{\{\s*|\s*\}\}\s*$/g, '') } });
+		return;
+	}
+	const original = String(node.props.value ?? '');
+	const lead = /^\s/.test(original) ? ' ' : '';
+	const trail = /\s$/.test(original) ? ' ' : '';
+	setProp(node.id, { key: 'value', value: `${lead}${input.trim()}${trail}` });
+}
+
 function setProp(id, { key, value, merge }) {
 	run(onFile({ op: 'setProp', id, key, value }), { merge: merge ? `prop:${id}:${key}` : '' });
 }
@@ -1082,6 +1114,14 @@ onBeforeUnmount(() => {
 							<button v-for="action in [{ icon: 'parent', label: 'Select parent', run: selectParent }, { icon: 'up', label: 'Move earlier', run: () => reorder(-1) }, { icon: 'down', label: 'Move later', run: () => reorder(1) }, { icon: 'duplicate', label: 'Duplicate (⌘D)', run: duplicate }, { icon: 'trash', label: 'Delete', run: remove }]" :key="action.icon" type="button" class="grid size-7 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg" :class="action.icon === 'trash' && 'hover:text-destructive'" :aria-label="action.label" v-dom-tooltip="action.label" @click="action.run()"><InspectorIcon :name="action.icon" /></button>
 						</div>
 					</header>
+
+					<section v-if="inlineContent.length" class="space-y-2 border-b border-border px-4 py-3">
+						<h3 class="text-[11px] font-semibold">Content</h3>
+						<div v-for="item in inlineContent" :key="item.node.id" class="space-y-1">
+							<button v-if="item.node.type !== 'text'" v-dom-tooltip="'Select this element'" type="button" class="font-mono text-[11px] text-muted-fg hover:text-primary" @click="selected = item.node.id">&lt;{{ tagOf(item.node) }}&gt;</button>
+							<textarea v-if="item.text" :value="textOf(item.text).trim()" rows="2" spellcheck="true" class="block w-full resize-y rounded-md bg-secondary/60 px-2 py-1.5 text-xs leading-5 text-canvas-fg outline-none ring-inset hover:ring-1 hover:ring-border focus:bg-canvas focus:ring-1 focus:ring-primary" :class="[isExpr(item.text.props.value) && 'font-mono', item.node.type !== 'text' && 'ml-3 w-[calc(100%-0.75rem)]']" :aria-label="item.node.type === 'text' ? 'Text' : `Text in ${tagOf(item.node)}`" @change="setText(item.text, $event.target.value)" @keydown.enter.exact.prevent="$event.target.blur()"></textarea>
+						</div>
+					</section>
 
 					<section v-if="parent && parentMode === 'absolute'" class="space-y-2 border-b border-border px-4 py-3">
 						<div class="flex items-center justify-between gap-2">
