@@ -30,6 +30,7 @@ import { borderFromCss, borderToCss } from '../src/pages/designer/border-editor/
 import { backdropFromCss } from '../src/pages/designer/backdrop-editor/backdropModel.js';
 import { toggleDecoration, typographyFromCss, typographyToCssProperties, typographyToStyle } from '../src/pages/designer/typography-editor/typographyModel.js';
 import { splitColorAlpha, splitCssList } from '../src/pages/designer/_shared/cssValue.js';
+import { artboardViewportCss } from '../src/pages/designer/canvas/artboardCss.js';
 
 function counter() {
 	let index = 0;
@@ -495,4 +496,15 @@ test('Google fonts are recognised from CSS stacks and linked once per weight', a
 	const poster = createSocialCard();
 	poster.layers.find((layer) => layer.type === 'text').fontFamily = "'Lato', sans-serif";
 	assert.match(exportPosterHtml(poster), /<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com\/css2\?family=Lato/);
+});
+
+test('artboards resolve viewport-height units against the device height, not the grown frame', () => {
+	const css = '.min-h-\\[78svh\\]{min-height:78svh}@media (min-height:50vh){.a{height:calc(100dvh - 2rem);margin:-2vh;width:10vw}}';
+	const out = artboardViewportCss(css);
+	assert.match(out, /^\.min-h-\\\[78svh\\\]\{min-height:calc\(78 \* var\(--artboard-vh, 1vh\)\)\}/);
+	assert.match(out, /@media \(min-height:50vh\)/);
+	assert.match(out, /height:calc\(calc\(100 \* var\(--artboard-vh, 1vh\)\) - 2rem\)/);
+	assert.match(out, /margin:calc\(-2 \* var\(--artboard-vh, 1vh\)\)/);
+	assert.match(out, /width:10vw/);
+	assert.equal(artboardViewportCss('.a{color:red}'), '.a{color:red}');
 });

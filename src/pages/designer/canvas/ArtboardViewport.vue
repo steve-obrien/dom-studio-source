@@ -1,5 +1,6 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
+import { artboardViewportCss } from './artboardCss.js';
 
 /**
  * One artboard: an isolated, script-disabled iframe at a fixed CSS width, so
@@ -8,6 +9,10 @@ import { nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vu
  *
  * Wheel and keyboard events inside the iframe do not reach the parent page, so
  * they are forwarded for canvas panning, zooming and shortcuts.
+ *
+ * The iframe grows to show the whole page, so viewport-height units (`vh`,
+ * `svh`, `dvh`, `lvh`) would grow with it. Copied stylesheets resolve them
+ * against `minHeight` instead, the artboard's device height.
  */
 const props = defineProps({
 	css: { type: String, default: '' },
@@ -20,25 +25,47 @@ const iframe = ref(null);
 const mount = shallowRef(null);
 const height = ref(props.minHeight);
 let styleObserver;
+let syncId = 0;
+const sheetCache = new Map();
 let sizeObserver;
 let timer;
 const source = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com; img-src https: http: data: blob:; font-src \'self\' data: https://fonts.gstatic.com"></head><body style="margin:0;min-height:100%"><div id="artboard-mount"></div></body></html>';
 
+/** Reads a same-origin stylesheet's text so its viewport units can be rewritten; other links are kept as links. */
+async function sheetText(link) {
+	if (new URL(link.href, location.href).origin !== location.origin) return null;
+	if (!sheetCache.has(link.href)) sheetCache.set(link.href, fetch(link.href).then((response) => (response.ok ? response.text() : null)).catch(() => null));
+	return sheetCache.get(link.href);
+}
+
 /** Copies the app's styles into the artboard and appends utilities compiled for imported classes. */
-function syncStyles() {
+async function syncStyles() {
 	const doc = iframe.value?.contentDocument;
 	if (!doc || !mount.value) return;
-	doc.querySelectorAll('[data-artboard-style]').forEach((node) => node.remove());
+	const id = ++syncId;
+	const nodes = [];
 	for (const node of document.head.querySelectorAll('style, link[rel="stylesheet"]')) {
-		const clone = node.cloneNode(true);
-		clone.setAttribute('data-artboard-style', '');
-		if (node.tagName === 'LINK') clone.href = node.href;
-		doc.head.appendChild(clone);
+		const text = node.tagName === 'STYLE' ? node.textContent : await sheetText(node);
+		if (id !== syncId) return;
+		if (text === null) {
+			const clone = node.cloneNode(true);
+			clone.href = node.href;
+			nodes.push(clone);
+		} else {
+			const style = doc.createElement('style');
+			style.textContent = artboardViewportCss(text);
+			nodes.push(style);
+		}
 	}
 	const runtime = doc.createElement('style');
-	runtime.setAttribute('data-artboard-style', '');
-	runtime.textContent = props.css;
-	doc.head.appendChild(runtime);
+	runtime.textContent = artboardViewportCss(props.css);
+	nodes.push(runtime);
+	doc.querySelectorAll('[data-artboard-style]').forEach((node) => node.remove());
+	for (const node of nodes) {
+		node.setAttribute('data-artboard-style', '');
+		doc.head.appendChild(node);
+	}
+	doc.documentElement.style.setProperty('--artboard-vh', `${props.minHeight / 100}px`);
 	doc.documentElement.dataset.theme = document.documentElement.dataset.theme || 'light';
 	doc.documentElement.className = document.documentElement.className;
 }
@@ -46,8 +73,8 @@ function syncStyles() {
 /** Grows the artboard to fit its content, never shrinking below the requested height. */
 function fit() {
 	const content = mount.value?.firstElementChild;
-	// Capped: content sized in vh units would otherwise grow with the artboard indefinitely.
-	height.value = Math.min(8000, Math.max(props.minHeight, Math.round(content?.offsetHeight || 0)));
+	// Viewport units are resolved against minHeight (see syncStyles); the cap is a safety net for anything else that grows with the frame.
+	height.value = Math.min(40000, Math.max(props.minHeight, Math.round(content?.offsetHeight || 0)));
 }
 
 /** Forwards wheel input in the parent page's coordinates; the canvas decides pan or zoom. */
@@ -105,7 +132,7 @@ function element(id) {
 }
 
 watch(() => props.css, syncStyles);
-watch(() => props.minHeight, fit);
+watch(() => props.minHeight, () => { syncStyles(); fit(); });
 onMounted(() => { if (iframe.value?.contentDocument?.readyState === 'complete') connect(); });
 onBeforeUnmount(cleanup);
 defineExpose({ element, fit });
