@@ -107,6 +107,10 @@ const workspace = ref(props.createWorkspace());
 const activeArtboardId = ref(workspace.value.artboards[0].id);
 const selected = ref('');
 const viewMode = ref('data');
+// Canvas: Figma-style artboards to pan and zoom. Page: the active artboard as one full-size, scrolling viewport.
+const canvasModeKey = 'dom-designer-canvas-mode';
+const canvasMode = ref('canvas');
+const pageSize = ref(null);
 const css = ref('');
 const compilerNotice = ref('');
 const notice = ref('');
@@ -147,6 +151,7 @@ const history = createHistory({
 });
 
 const artboards = computed(() => workspace.value.artboards);
+const shownArtboards = computed(() => (canvasMode.value === 'page' ? artboards.value.filter((board) => board.id === activeArtboard.value?.id) : artboards.value));
 const activeArtboard = computed(() => artboards.value.find((board) => board.id === activeArtboardId.value) || artboards.value[0]);
 const activeFile = computed(() => fileById(activeArtboard.value?.fileId) || workspace.value.files[0]);
 const doc = computed(() => activeFile.value?.doc || null);
@@ -195,6 +200,16 @@ const mappedSource = computed(() => (activeFile.value ? exportMappedVue(activeFi
 const fileSource = computed(() => mappedSource.value.source);
 const codeText = computed(() => codeDraft.value ?? fileSource.value);
 const codeHighlight = computed(() => (codeDraft.value === null ? mappedSource.value.ranges : codeRanges.value || {})[selected.value] || null);
+// In Page mode the artboard scrolls itself, so a selection made from the layers or the code is scrolled into view.
+watch(selected, async (id) => {
+	if (canvasMode.value !== 'page' || !id) return;
+	await nextTick();
+	activeViewport()?.element(id)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+});
+watch(canvasMode, (mode) => {
+	try { localStorage.setItem(canvasModeKey, mode); } catch { /* storage unavailable */ }
+	if (mode === 'canvas') nextTick(refresh);
+});
 const zoomLabel = computed(() => `${Math.round(zoom.value * 100)}%`);
 const previews = computed(() => Object.fromEntries(workspace.value.files.map((file) => [file.id, previewData(file.doc, file)])));
 const scriptKeys = computed(() => Object.keys(scriptData(activeFile.value?.script || '')));
@@ -223,15 +238,71 @@ function isFrame(node) { return !!node && node.type.startsWith('html:') && isFra
 function canNest(node) { return !!node && (isFrame(node) || (node.type.startsWith('vue:') && types.get(node.type)?.container !== false)); }
 function typeTree(type, overrides) { return treeFromType(types.get(type), overrides); }
 
+/** 24px layer icons: loops and conditions first, then what the element is. */
+const layerIcons = {
+	repeat: 'M17 2l3 3-3 3M4 11V9a4 4 0 0 1 4-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 0 1-4 4H4',
+	condition: 'M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM18 9a9 9 0 0 1-9 9',
+	component: 'M5.5 8.5 9 12l-3.5 3.5L2 12l3.5-3.5ZM12 2l3.5 3.5L12 9 8.5 5.5 12 2Zm6.5 6.5L22 12l-3.5 3.5L15 12l3.5-3.5ZM12 15l3.5 3.5L12 22l-3.5-3.5L12 15Z',
+	text: 'M4 7V5h16v2M9 19h6M12 5v14',
+	link: 'M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7',
+	image: 'M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M15.5 9.5h.01',
+	button: 'M3 8h18v8H3zM8 12h8',
+	list: 'M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01',
+	form: 'M4 7h16v4H4zM4 15h10v4H4z',
+	flow: 'M4 4h16v16H4zM8 9h8M8 13h8M8 17h5',
+	row: 'M4 5h16v14H4zM9.3 5v14M14.7 5v14',
+	column: 'M4 5h16v14H4zM4 9.7h16M4 14.3h16',
+	grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+	absolute: 'M4 4h10v8H4zM10 12h10v8H10z',
+	box: 'M4 4h16v16H4z',
+};
+const textLayerTags = new Set(['p', 'span', 'strong', 'em', 'b', 'i', 'small', 'label', 'blockquote', 'code', 'pre', 'mark', 'time', 'abbr', 'cite', 'q', 'sub', 'sup', 'dt', 'dd', 'figcaption', 'legend']);
+
+/** Icon or short tag for a layer: v-for and v-if, h1–h6 as text, links, media, lists, components and frame layouts. */
+function layerIcon(node, tag) {
+	const directives = node.directives || [];
+	if (directives.some((source) => source.startsWith('v-for'))) return { icon: layerIcons.repeat };
+	if (directives.some((source) => /^v-(if|else-if|else|show)\b/.test(source))) return { icon: layerIcons.condition };
+	if (node.type.startsWith('vue:')) return { icon: layerIcons.component };
+	if (/^h[1-6]$/.test(tag)) return { iconText: tag };
+	if (textLayerTags.has(tag)) return { icon: layerIcons.text };
+	if (tag === 'a') return { icon: layerIcons.link };
+	if (['img', 'picture', 'video', 'svg', 'canvas', 'iframe'].includes(tag)) return { icon: layerIcons.image };
+	if (tag === 'button') return { icon: layerIcons.button };
+	if (['ul', 'ol', 'li', 'dl'].includes(tag)) return { icon: layerIcons.list };
+	if (['form', 'input', 'select', 'textarea', 'fieldset'].includes(tag)) return { icon: layerIcons.form };
+	if (isFrame(node)) {
+		const layout = node.layout || detected.value[node.id];
+		if (layout?.mode === 'flex') return { icon: layout.direction?.startsWith('column') ? layerIcons.column : layerIcons.row };
+		if (layout?.mode === 'grid' || layout?.mode === 'absolute') return { icon: layerIcons[layout.mode] };
+		return { icon: layerIcons.flow };
+	}
+	return { icon: layerIcons.box };
+}
+
+/** The words in a heading, including inline elements, shortened for the layer tree. */
+function headingText(node) {
+	const words = (id) => {
+		const child = doc.value.nodes[id];
+		if (!child) return '';
+		return child.type === 'text' ? textOf(child) : child.children.map(words).join(' ');
+	};
+	const text = node.children.map(words).join(' ').replace(/\s+/g, ' ').trim();
+	return text.length > 40 ? `${text.slice(0, 39)}…` : text;
+}
+
 /** Builds layer tree items, hiding text so the tree mirrors what designers see. */
 function layer(id) {
 	const node = doc.value.nodes[id];
 	const tag = tagOf(node);
-	const label = node.label || (node.type.startsWith('vue:') ? tag : `${tag}${typeof node.props.id === 'string' ? ` #${node.props.id}` : ''}`);
+	// Headings already show h1–h6 as their icon, so their label is their text.
+	const heading = /^h[1-6]$/.test(tag) && !node.label ? headingText(node) : '';
+	const label = node.label || heading || (node.type.startsWith('vue:') ? tag : `${tag}${typeof node.props.id === 'string' ? ` #${node.props.id}` : ''}`);
 	const flags = (node.directives || []).filter((source) => /^v-(if|else|for)/.test(source)).map((source) => source.split('=')[0]);
 	return {
 		id,
 		label: flags.length ? `${label} · ${flags.join(' ')}` : label,
+		...layerIcon(node, tag),
 		open: true,
 		acceptsChildren: canNest(node),
 		children: node.children.filter((child) => doc.value.nodes[child]?.type !== 'text').map(layer),
@@ -891,6 +962,7 @@ watch(() => [activeFile.value?.id, showCode.value], () => { clearTimeout(codeTim
 watch(viewMode, refresh);
 
 onMounted(async () => {
+	try { if (localStorage.getItem(canvasModeKey) === 'page') canvasMode.value = 'page'; } catch { /* storage unavailable */ }
 	loadProjectFiles();
 	const saved = await loadSaved();
 	if (saved && !disposed) {
@@ -939,11 +1011,16 @@ onBeforeUnmount(() => {
 				</div>
 			</div>
 			<div class="ml-auto flex flex-wrap items-center gap-1.5">
-				<label class="mr-2 hidden items-center gap-2 text-xs text-muted-fg md:flex"><input v-model="snapping" type="checkbox">Snap</label>
-				<DomButton size="sm" variant="ghost" aria-label="Zoom out" title="Zoom out (⌘−)" @click="zoomBy(0.8)">−</DomButton>
-				<button type="button" class="w-14 rounded-md py-1 text-center text-xs tabular-nums text-muted-fg hover:bg-secondary" title="Reset to 100% (⇧0)" @click="zoomBy(1 / zoom)">{{ zoomLabel }}</button>
-				<DomButton size="sm" variant="ghost" aria-label="Zoom in" title="Zoom in (⌘+)" @click="zoomBy(1.25)">+</DomButton>
-				<DomButton size="sm" variant="ghost" title="Zoom to fit (⇧1)" @click="fitAll">Fit</DomButton>
+				<div class="flex rounded-lg bg-secondary p-0.5" role="group" aria-label="Canvas mode">
+					<button v-for="mode in [{ id: 'canvas', label: 'Canvas', tip: 'Canvas: artboards side by side to pan and zoom' }, { id: 'page', label: 'Page', tip: 'Page: the selected artboard fills the space as a real, scrolling browser window' }]" :key="mode.id" v-dom-tooltip="mode.tip" type="button" :aria-pressed="canvasMode === mode.id" class="rounded-md px-2.5 py-1 text-xs font-medium transition" :class="canvasMode === mode.id ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'" @click="canvasMode = mode.id">{{ mode.label }}</button>
+				</div>
+				<template v-if="canvasMode === 'canvas'">
+					<label class="mr-2 hidden items-center gap-2 text-xs text-muted-fg md:flex"><input v-model="snapping" type="checkbox">Snap</label>
+					<DomButton size="sm" variant="ghost" aria-label="Zoom out" title="Zoom out (⌘−)" @click="zoomBy(0.8)">−</DomButton>
+					<button type="button" class="w-14 rounded-md py-1 text-center text-xs tabular-nums text-muted-fg hover:bg-secondary" title="Reset to 100% (⇧0)" @click="zoomBy(1 / zoom)">{{ zoomLabel }}</button>
+					<DomButton size="sm" variant="ghost" aria-label="Zoom in" title="Zoom in (⌘+)" @click="zoomBy(1.25)">+</DomButton>
+					<DomButton size="sm" variant="ghost" title="Zoom to fit (⇧1)" @click="fitAll">Fit</DomButton>
+				</template>
 				<span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
 				<slot name="end" />
 				<DomButton size="sm" :variant="showCode ? 'primary' : 'secondary'" @click="showCode = !showCode">{{ showCode ? 'Hide code' : 'Code' }}</DomButton>
@@ -1032,24 +1109,27 @@ onBeforeUnmount(() => {
 					@pointerup="onCanvasPointerup"
 					@pointercancel="onCanvasPointerup"
 				>
-					<div data-canvas-world class="absolute left-0 top-0 origin-top-left" :style="{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }">
-						<div v-for="board in artboards" :key="board.id" class="absolute" :style="{ left: `${board.x}px`, top: `${board.y}px` }">
+					<div data-canvas-world :class="canvasMode === 'page' ? 'absolute inset-0' : 'absolute left-0 top-0 origin-top-left'" :style="canvasMode === 'page' ? {} : { transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }">
+						<div v-for="board in shownArtboards" :key="board.id" class="absolute" :class="canvasMode === 'page' && 'inset-0'" :style="canvasMode === 'page' ? {} : { left: `${board.x}px`, top: `${board.y}px` }">
 							<div
+								v-if="canvasMode === 'canvas'"
 								class="absolute bottom-full left-0 flex cursor-move select-none items-center gap-2 whitespace-nowrap pb-2 text-muted-fg"
 								:class="board.id === activeArtboard?.id && 'text-primary'"
 								:style="{ fontSize: `${12 / zoom}px` }"
 								@pointerdown="onArtboardTitlePointerdown($event, board)"
 							>
 								<span class="font-medium">{{ board.name }}</span>
-								<span class="tabular-nums opacity-70">{{ board.width }}</span>
+								<span class="tabular-nums opacity-70">{{ board.width }} × {{ board.height }}</span>
 							</div>
-							<div class="shadow-lg ring-1" :class="board.id === activeArtboard?.id ? 'ring-primary' : 'ring-border'">
+							<div :class="canvasMode === 'page' ? 'size-full' : ['shadow-lg ring-1', board.id === activeArtboard?.id ? 'ring-primary' : 'ring-border']">
 								<ArtboardViewport
 									:ref="(instance) => setArtboardRef(board.id, instance)"
 									:width="board.width"
 									:min-height="board.height"
 									:css="css"
 									:title="`${board.name} artboard`"
+									:fill="canvasMode === 'page'"
+									@resize="canvasMode === 'page' && (pageSize = $event)"
 									@ready="board.id === activeArtboard?.id && refresh()"
 									@wheel="onWheel"
 									@keydown="onKeydown"
@@ -1063,7 +1143,7 @@ onBeforeUnmount(() => {
 										:snapping="snapping"
 										:spacing-snapping="snapping"
 										class="bg-canvas text-canvas-fg"
-										:style="{ minHeight: `${board.height}px` }"
+										:style="{ minHeight: canvasMode === 'page' ? '100vh' : `${board.height}px` }"
 										@update:model-value="selectFromArtboard(board, $event)"
 										@style-change="patch"
 										@reorder="reorderFromStage"
@@ -1079,12 +1159,16 @@ onBeforeUnmount(() => {
 									</DomDesignerStage>
 								</ArtboardViewport>
 							</div>
+							<div v-if="canvasMode === 'canvas'" class="pointer-events-none absolute inset-x-0 border-t border-dashed border-primary/60" :style="{ top: `${board.height}px`, borderTopWidth: `${1 / zoom}px` }" aria-hidden="true">
+								<span class="absolute bottom-full right-0 whitespace-nowrap rounded-sm bg-canvas/90 px-1 text-primary" :style="{ fontSize: `${11 / zoom}px`, marginBottom: `${2 / zoom}px` }">Screen height {{ board.height }}</span>
+							</div>
 						</div>
 					</div>
 					<div v-if="spaceHeld || panning" class="absolute inset-0" aria-hidden="true"></div>
 				</div>
 				<p v-if="compilerNotice" class="pointer-events-none absolute bottom-3 left-3 max-w-md rounded-md bg-canvas/90 px-3 py-2 text-xs text-muted-fg shadow">{{ compilerNotice }}</p>
-				<p class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] text-muted-fg shadow md:block">Scroll to pan · ⌘/Ctrl + scroll to zoom · Space + drag · ⇧1 fit</p>
+				<p v-if="canvasMode === 'canvas'" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] text-muted-fg shadow md:block">Scroll to pan · ⌘/Ctrl + scroll to zoom · Space + drag · ⇧1 fit</p>
+				<p v-else-if="pageSize" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] tabular-nums text-muted-fg shadow md:block">Viewport {{ pageSize.width }} × {{ pageSize.height }}</p>
 
 				<aside v-if="showCode" class="absolute inset-y-0 right-0 flex w-full max-w-xl flex-col border-l border-border bg-canvas shadow-xl">
 					<div class="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
@@ -1183,6 +1267,7 @@ onBeforeUnmount(() => {
 					</div>
 					<DomTextInput :model-value="activeArtboard.name" label="Name" @update:model-value="setArtboard(activeArtboard, 'name', $event)" />
 					<DomNumberInput :model-value="activeArtboard.width" label="Width" :min="240" :max="2560" @update:model-value="Number.isFinite(Number($event)) && setArtboard(activeArtboard, 'width', Math.min(2560, Math.max(240, Number($event))))" />
+					<DomNumberInput :model-value="activeArtboard.height" label="Screen height" description="The device's visible height: what 100vh means on this artboard, shown as the dashed line." :min="320" :max="2160" @update:model-value="Number.isFinite(Number($event)) && setArtboard(activeArtboard, 'height', Math.min(2160, Math.max(320, Number($event))))" />
 					<DomNativeSelect label="Preset" :model-value="String(activeArtboard.width)" :options="artboardPresets.map((preset) => ({ label: `${preset.label} · ${preset.width}`, value: String(preset.width) }))" @update:model-value="setArtboard(activeArtboard, 'width', Number($event))" />
 					<DomTextInput v-if="activeFile" :model-value="activeFile.name" label="File name" @update:model-value="run({ op: 'setFile', id: activeFile.id, key: 'name', value: $event }, { merge: `file:${activeFile.id}:name` })" />
 					<section class="space-y-2 border-t border-border pt-4">

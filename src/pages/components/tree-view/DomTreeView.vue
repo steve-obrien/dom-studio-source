@@ -25,7 +25,8 @@ import { treeItemsFormSchema } from './treeSchemas.js';
  * @property {string|number} [value]
  * @property {string} [label]
  * @property {string} [name]
- * @property {string} [icon]
+ * @property {string} [icon] SVG path in a 24px box.
+ * @property {string} [iconText] Short text shown in place of the icon, such as `h2`.
  * @property {string} [rightIcon]
  * @property {string} [rightIconAction]
  * @property {string} [rightIconLabel]
@@ -898,7 +899,8 @@ onBeforeUnmount(cancelDragExpand);
 					</button>
 					<span v-else class="size-7 shrink-0" aria-hidden="true"></span>
 					<span class="grid size-6 shrink-0 place-items-center group-aria-selected:text-primary-fg/80">
-						<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
+						<span v-if="node.item?.iconText" class="font-mono text-[10px] font-semibold leading-none">{{ node.item.iconText }}</span>
+						<svg v-else viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
 							<path :d="iconPath(node.item)" />
 						</svg>
 					</span>
