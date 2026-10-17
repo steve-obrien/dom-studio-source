@@ -121,6 +121,8 @@ export interface DomDesignerProps {
 	codeEditor?: object | null;
 	/** Extra props for `codeEditor`, such as `{ load }` for Monaco. */
 	codeEditorProps?: Record<string, unknown>;
+	/** Offer Google Fonts in the text controls and load the ones in use (default true). Turn off for email, which can only use installed fonts. */
+	googleFonts?: boolean;
 	onSave?: (event: { id: string; value: DesignerWorkspace }) => void;
 }
 /** The DOM designer: artboards, layers, a generated inspector and a two-way code view. */

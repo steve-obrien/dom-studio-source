@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } f
 import { RouterLink } from 'vue-router';
 import { DomSplitterPanel, DomButton, DomDialog, DomTextInput, DomNativeSelect, DomDesignerLayers, DomDesignerStage } from '../../lib/vue';
 import NodeInspector from '../core/NodeInspector.vue';
+import CodeView from '../core/CodeView.vue';
 import { copySubtree, fromTree } from '../core/editorDocument.js';
 import { createHistory } from '../core/history.js';
 import { applyOperation } from '../core/operations.js';
@@ -16,6 +17,7 @@ import { formatOperations, formatSource, resizePoster } from './posterResize.js'
 import { createTemplateLibrary, posterToTemplate, templateIndustries, templateKinds, templateOperations, templateToPoster } from './socialTemplates.js';
 import { createPosterTypes, documentToPoster, posterToDocument } from './posterTypes.js';
 import { cssEditorContextKey } from '../_shared/cssEditorContext.js';
+import { useGoogleFonts } from '../typography-editor/googleFonts.js';
 
 // Material editors draw as inspector sections here, not cards.
 provide(cssEditorContextKey, { framed: computed(() => false), colorVariables: computed(() => ({})) });
@@ -41,6 +43,9 @@ const props = defineProps({
 	formatsOpen: { type: Boolean, default: false },
 	templates: { type: Array, default: () => [] },
 	templateStorage: { type: Object, default: null },
+	/** Replaces the plain HTML view, e.g. DomMonacoCodeView; gets `codeEditorProps`. */
+	codeEditor: { type: [Object, Function], default: null },
+	codeEditorProps: { type: Object, default: () => ({}) },
 });
 
 const types = createPosterTypes();
@@ -91,6 +96,31 @@ const multiple = computed(() => selectedNodes.value.length > 1);
 const scale = computed(() => (zoomChoice.value === 'fit' ? fitScale.value : Number(zoomChoice.value)));
 const layers = computed(() => poster.value.layers.toReversed().map((layer) => ({ id: layer.id, label: `${layer.name}${layer.locked ? ' · locked' : ''}${layer.hidden ? ' · hidden' : ''}` })));
 const source = computed(() => posterHtmlLines(poster.value));
+// Google fonts used by text layers load while the studio is open.
+useGoogleFonts(() => poster.value.layers.filter((layer) => layer.type === 'text'));
+const sourceText = computed(() => source.value.map((line) => line.text).join('\n'));
+// Editor line ranges per source entry; text layers can span several lines.
+const sourceRanges = computed(() => {
+	let start = 1;
+	return source.value.map((line) => {
+		const end = start + (line.text.match(/\n/g)?.length || 0);
+		const range = { id: line.id, start, end };
+		start = end + 1;
+		return range;
+	});
+});
+// The selected layer's lines in the HTML view; the frame is its opening tag.
+const sourceHighlight = computed(() => {
+	const id = selected.value === frame.value?.id ? 'frame' : selected.value;
+	const range = sourceRanges.value.find((item) => item.id === id);
+	return range ? { start: range.start, end: range.end } : null;
+});
+
+/** Selecting a line in the HTML view selects its layer. */
+function pickLine(line) {
+	const id = sourceRanges.value.find((item) => line >= item.start && line <= item.end)?.id;
+	if (id) pickLayer(id);
+}
 const selectionBox = computed(() => (selectedNodes.value.length ? boundsOf(selectedNodes.value.map(rectOf)) : null));
 /** Formats derive from the design as last edited, never from the previous format, so switching never drifts. */
 const formatBase = ref(null);
@@ -452,7 +482,7 @@ onBeforeUnmount(cleanup);
 				</div>
 				<div class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border bg-canvas px-4 py-2"><span class="truncate text-xs text-muted-fg">{{ multiple ? `${selectedNodes.length} layers` : activeLayer?.name || poster.title }}{{ !multiple && active?.locked ? ' · locked' : '' }}</span><label class="flex shrink-0 items-center gap-1 text-xs" title="Snap to the poster and visible layers. Hold Control while moving or resizing to bypass."><input v-model="snapping" type="checkbox" class="accent-primary" />Snap</label><label class="flex shrink-0 items-center gap-1 text-xs" title="Repeat horizontal and vertical gaps while dragging. Independent of alignment snapping; hold Control to bypass."><input v-model="spacingSnapping" type="checkbox" class="accent-primary" />Spacing</label><label class="flex shrink-0 items-center gap-1 text-xs"><input v-model="rulers" type="checkbox" class="accent-primary" />Rulers</label><label class="flex items-center gap-2 text-xs"><span>Zoom</span><select v-model="zoomChoice" aria-label="Stage zoom" class="rounded border border-border bg-canvas px-2 py-1"><option value="fit">Fit · {{ Math.round(fitScale * 100) }}%</option><option v-if="zoomChoice !== 'fit' && !['0.25', '0.5', '0.75', '1'].includes(zoomChoice)" :value="zoomChoice">{{ Math.round(scale * 100) }}%</option><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1">100%</option></select></label></div>
 				<div v-if="showFormats && presets.length > 1" class="shrink-0 border-t border-border bg-canvas p-3"><div class="mb-2 flex items-center justify-between gap-3"><h2 class="text-xs font-semibold">Every format <span class="font-normal text-muted-fg">· live previews that follow each layer's pins</span></h2></div><div class="flex gap-4 overflow-x-auto pb-1"><div v-for="preview in previews" :key="preview.value" class="flex shrink-0 flex-col items-start gap-1.5"><button type="button" class="rounded-md p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" :class="preview.current ? 'ring-2 ring-primary' : 'hover:bg-secondary'" :aria-label="`Edit as ${preview.label}`" :aria-pressed="preview.current" @click="setPreset(preview.value)"><PosterThumbnail :poster="preview.poster" :height="120" /></button><div class="flex w-full items-center justify-between gap-2 px-1"><span class="truncate text-[11px]" :class="preview.current ? 'font-semibold' : 'text-muted-fg'">{{ preview.label }}</span><button type="button" class="shrink-0 text-[11px] text-primary underline underline-offset-2" :aria-label="`Export ${preview.label} as HTML`" @click="download(preview.poster, `${fileName.replace(/\.html$/, '')}-${preview.value}.html`)">HTML</button></div></div></div></div>
-				<div v-if="showCode" class="max-h-52 shrink-0 overflow-auto border-t border-border bg-canvas p-3"><div class="mb-2 flex items-center justify-between"><h2 class="text-xs font-semibold">Linked HTML <span class="font-normal text-muted-fg">· select a line to inspect its layer</span></h2><DomButton size="sm" variant="ghost" @click="copy">Copy HTML</DomButton></div><button v-for="(line, index) in source" :key="index" type="button" class="block max-w-full truncate text-left font-mono text-[11px] leading-6" :class="(line.id === 'frame' ? selected === 'frame' : selection.includes(line.id)) && 'bg-primary/10 text-primary'" :title="line.text" @click="pickLayer(line.id)">{{ line.text }}</button></div>
+				<div v-if="showCode" class="flex h-64 shrink-0 flex-col border-t border-border bg-canvas"><div class="flex items-center justify-between px-3 py-2"><h2 class="text-xs font-semibold">Linked HTML <span class="font-normal text-muted-fg">· select a line to inspect its layer</span></h2><DomButton size="sm" variant="ghost" @click="copy">Copy HTML</DomButton></div><component :is="codeEditor || CodeView" v-bind="codeEditor ? { ...codeEditorProps, options: { wordWrap: 'on', ...codeEditorProps.options } } : {}" class="min-h-0 flex-1 border-t border-border" readonly :model-value="sourceText" :highlight="sourceHighlight" :label="`${frameLabel} HTML`" @cursor="pickLine" /></div>
 			</section>
 			</template>
 			<template #end>

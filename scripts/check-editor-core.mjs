@@ -480,3 +480,19 @@ test('typography records map to inline CSS and back', () => {
 	assert.equal(toggleDecoration('underline', 'line-through'), 'underline line-through');
 	assert.equal(toggleDecoration('underline', 'underline'), 'none');
 });
+
+test('Google fonts are recognised from CSS stacks and linked once per weight', async () => {
+	const { fontPickerRecords, googleFontFamily, googleFontLinks } = await import('../src/pages/designer/typography-editor/googleFonts.js');
+	assert.equal(googleFontFamily("'Lato', sans-serif"), 'Lato');
+	assert.equal(googleFontFamily('"open sans", sans-serif'), 'Open Sans');
+	assert.equal(googleFontFamily('Georgia, serif'), '');
+	assert.deepEqual(googleFontLinks([{ fontFamily: "'Open Sans', sans-serif", fontWeight: '700' }, { fontFamily: "'Open Sans', sans-serif" }, { fontFamily: 'Arial' }]), [
+		'https://fonts.googleapis.com/css2?family=Open+Sans&display=swap',
+		'https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap',
+	]);
+	assert.ok(fontPickerRecords(undefined, false).every((font) => font.source === 'system'));
+	assert.ok(fontPickerRecords().some((font) => font.value === "'Lato', sans-serif"));
+	const poster = createSocialCard();
+	poster.layers.find((layer) => layer.type === 'text').fontFamily = "'Lato', sans-serif";
+	assert.match(exportPosterHtml(poster), /<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com\/css2\?family=Lato/);
+});

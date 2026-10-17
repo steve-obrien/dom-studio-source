@@ -74,13 +74,16 @@ export function buildGoogleFontsStylesheetUrl(families, text, baseUrl = DEFAULT_
 }
 
 /**
- * Create a safe inline font stack for a preview row.
+ * Create a safe inline font stack for a preview row. A record with
+ * `source: 'system'` is an installed font whose `value` is already a stack.
  *
  * @param {Record<string, string>|null|undefined} font Normalized font record.
  * @returns {string} CSS font-family value.
  */
 export function fontStack(font) {
 	if (!font?.family) return DEFAULT_FALLBACK;
+	// Installed fonts (`source: 'system'`) carry their own stack and are never fetched.
+	if (font.source === 'system') return String(font.value || font.family);
 	const family = font.family.replace(/[\\']/g, '\\$&');
 	const fallback = { serif: 'serif', monospace: 'monospace', handwriting: 'cursive', display: 'sans-serif', 'sans-serif': 'sans-serif' }[font.category] || DEFAULT_FALLBACK;
 	return `'${family}', ${fallback}`;

@@ -6,12 +6,14 @@ import IconSegmented from '../_shared/IconSegmented.vue';
 import InspectorSelect from '../_shared/InspectorSelect.vue';
 import ScrubField from '../_shared/ScrubField.vue';
 import StyleControlSection from '../_shared/StyleControlSection.vue';
+import DomFontPicker from '../../forms/font-picker/DomFontPicker.vue';
+import { fontPickerRecords } from './googleFonts.js';
 import { createTypography, fontFamilyOptions, fontWeightOptions, isBold, toggleDecoration, typographyToStyle } from './typographyModel.js';
 
 defineOptions({
 	__doc: {
 		name: 'Typography editor',
-		description: 'Beta Figma-style text controls: font family, weight, size, line height, letter spacing, bold, italic, underline, strikethrough, alignment, case and colour.',
+		description: 'Beta Figma-style text controls: font family (installed fonts and Google Fonts), weight, size, line height, letter spacing, bold, italic, underline, strikethrough, alignment, case and colour.',
 		events: [
 			{ name: 'update:modelValue', payload: 'object', description: 'A new typography record.' },
 			{ name: 'change', payload: '{ typography, style }', description: 'The record and a ready-to-bind Vue style object.' },
@@ -22,7 +24,8 @@ defineOptions({
 const props = defineProps({
 	modelValue: { type: Object, default: () => createTypography(), _edit: { description: 'Typography record. Empty values inherit.' } },
 	title: { type: String, default: 'Text' },
-	fonts: { type: Array, default: () => fontFamilyOptions, _edit: { description: 'Font family choices as { label, value }. A value not listed still shows.' } },
+	fonts: { type: Array, default: () => fontFamilyOptions, _edit: { description: 'Installed font choices as { label, value } CSS stacks. A value not listed still shows.' } },
+	googleFonts: { type: Boolean, default: true, _edit: { description: 'Offer Google Fonts in a searchable picker after the installed fonts. Turn off for email and other places that can only use installed fonts.' } },
 	weights: { type: Array, default: () => fontWeightOptions },
 	showColor: { type: Boolean, default: true },
 	disabled: { type: Boolean, default: false },
@@ -46,6 +49,7 @@ const caseOptions = [
 ];
 const decoration = computed(() => String(draft.value.textDecoration || ''));
 const fontChoices = computed(() => [...props.fonts, { label: 'Custom font…', value: '__custom' }]);
+const pickerFonts = computed(() => fontPickerRecords(props.fonts, true));
 const meta = computed(() => [draft.value.fontSize && `${draft.value.fontSize}${typeof draft.value.fontSize === 'number' ? 'px' : ''}`, props.weights.find((weight) => String(weight.value) === String(draft.value.fontWeight))?.label].filter(Boolean).join(' · '));
 
 /** Copies the record so editing never mutates caller-owned state. */
@@ -95,6 +99,7 @@ watch(draft, publish);
 				@keydown.escape="customFont = false"
 				@blur="commitCustomFont"
 			>
+			<DomFontPicker v-else-if="googleFonts" size="sm" label="Font family" placeholder="Inherited font" :model-value="draft.fontFamily || ''" :fonts="pickerFonts" :clearable="false" @update:model-value="set('fontFamily', $event || '')" />
 			<InspectorSelect v-else :model-value="draft.fontFamily" :options="fontChoices" label="Font family" placeholder="Inherited font" :style="{ fontFamily: draft.fontFamily || undefined }" @update:model-value="setFont" />
 			<div class="grid grid-cols-[minmax(0,1fr)_5.5rem] gap-1.5">
 				<InspectorSelect :model-value="draft.fontWeight" :options="weights" label="Font weight" placeholder="Inherited weight" @update:model-value="set('fontWeight', $event)" />

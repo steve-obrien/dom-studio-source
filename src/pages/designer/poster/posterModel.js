@@ -3,6 +3,7 @@ import { createBackdrop, backdropToCss } from '../backdrop-editor/backdropModel.
 import { createDesignerBorder, borderToCss } from '../border-editor/borderModel.js';
 import { shadowListToCss } from '../shadow-editor/shadowModel.js';
 import { typographyToStyle } from '../typography-editor/typographyModel.js';
+import { googleFontLinks } from '../typography-editor/googleFonts.js';
 
 export const posterImage = 'https://images.unsplash.com/photo-1609674750700-33895b9b7ce1?auto=format&fit=crop&w=1080&q=85';
 export const fontOptions = [
@@ -129,7 +130,7 @@ export function posterHtmlLines(poster) {
 
 /** Generates a standalone HTML document with the original poster dimensions. */
 export function exportPosterHtml(poster) {
-	return `<!doctype html>\n<html lang="en">\n<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(poster.title)}</title><style>body{margin:0}*{box-sizing:border-box}@media print{@page{margin:0}body{print-color-adjust:exact}}</style></head>\n<body>\n${posterHtmlLines(poster).map((line) => line.text).join('\n')}\n</body>\n</html>`;
+	return `<!doctype html>\n<html lang="en">\n<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(poster.title)}</title>${googleFontLinks(poster.layers.filter((layer) => layer.type === 'text')).map((href) => `<link rel="stylesheet" href="${escapeHtml(href)}">`).join('')}<style>body{margin:0}*{box-sizing:border-box}@media print{@page{margin:0}body{print-color-adjust:exact}}</style></head>\n<body>\n${posterHtmlLines(poster).map((line) => line.text).join('\n')}\n</body>\n</html>`;
 }
 
 /** Applies finite CSS geometry emitted by the shared stage; locked layers cannot be moved. */

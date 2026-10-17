@@ -5879,7 +5879,7 @@ export const componentCatalog = [
 		"route": "/designer/typography-editor",
 		"doc": {
 			"name": "Typography editor",
-			"description": "Beta Figma-style text controls: font family, weight, size, line height, letter spacing, bold, italic, underline, strikethrough, alignment, case and colour.",
+			"description": "Beta Figma-style text controls: font family (installed fonts and Google Fonts), weight, size, line height, letter spacing, bold, italic, underline, strikethrough, alignment, case and colour.",
 			"events": [
 				{
 					"name": "update:modelValue",

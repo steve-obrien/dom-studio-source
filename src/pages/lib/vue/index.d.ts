@@ -4419,6 +4419,10 @@ export interface DomSelectProps {
 	 */
 	placement?: "bottom" | "top" | "right" | "left";
 	/**
+	 * sm is a compact 28px trigger for inspectors and toolbars; the label is kept for screen readers only.
+	 */
+	size?: "md" | "sm";
+	/**
 	 * Horizontal panel alignment.
 	 */
 	align?: "left" | "right";
@@ -4885,7 +4889,7 @@ export interface DomFontPickerProps {
 	 */
 	chrome?: "field" | "none" | false;
 	/**
-	 * Lightweight family metadata. Font files are never bundled in this array.
+	 * Lightweight family metadata. Font files are never bundled in this array. Set source: system for installed fonts, whose value is a CSS stack that is never fetched.
 	 */
 	fonts?: Array<FontPickerItem | string>;
 	/**
@@ -7976,6 +7980,7 @@ export interface DomColorSwatchProps {
 	 */
 	alpha?: number;
 	hideLabel?: boolean;
+	placeholder?: string;
 	disabled?: boolean;
 }
 export declare const DomColorSwatch: DomComponent<DomColorSwatchProps>;
@@ -8039,9 +8044,13 @@ export interface DomTypographyEditorProps {
 	modelValue?: Record<string, unknown>;
 	title?: string;
 	/**
-	 * Font family choices as { label, value }. A value not listed still shows.
+	 * Installed font choices as { label, value } CSS stacks. A value not listed still shows.
 	 */
 	fonts?: Array<unknown>;
+	/**
+	 * Offer Google Fonts in a searchable picker after the installed fonts. Turn off for email and other places that can only use installed fonts.
+	 */
+	googleFonts?: boolean;
 	weights?: Array<unknown>;
 	showColor?: boolean;
 	disabled?: boolean;
