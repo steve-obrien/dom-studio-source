@@ -1,5 +1,6 @@
 import { cloneValue } from './editorDocument.js';
 import { exportVue, importVue } from './vueAdapter.js';
+import { renameSourceMap } from './sourcePatch.js';
 
 /**
  * Two-way sync between a document and its Vue source.
@@ -104,14 +105,17 @@ function unchangedNodes(previous, exported) {
  * @param {object} file Editor file.
  * @param {string} source Edited Vue source.
  * @param {{ isStudioComponent?: (tag: string) => boolean, exported?: object }} [options] Component test, and a cached `roundTrip` of the file.
- * @returns {{ doc: object, script: string, style: string, ranges: Record<string, { start: number, end: number }>, unsupported: number, changed: boolean }}
+ * `source` is the source map of the edited text under the reconciled ids:
+ * typed code becomes the text that later visual edits patch.
+ *
+ * @returns {{ doc: object, script: string, style: string, ranges: Record<string, { start: number, end: number }>, unsupported: number, changed: boolean, source: object }}
  */
 export function applySource(file, source, { isStudioComponent, exported } = {}) {
 	const parsed = importVue(source);
 	const { doc, ids } = reconcileDocument(file.doc, parsed.doc, exported || roundTrip(file, isStudioComponent));
 	const ranges = Object.fromEntries(Object.entries(parsed.ranges).map(([id, range]) => [ids.get(id), range]));
 	const changed = JSON.stringify(doc) !== JSON.stringify(file.doc) || parsed.script !== (file.script || '') || parsed.style !== (file.style || '');
-	return { doc, script: parsed.script, style: parsed.style, ranges, unsupported: parsed.unsupported, changed };
+	return { doc, script: parsed.script, style: parsed.style, ranges, unsupported: parsed.unsupported, changed, source: renameSourceMap(parsed.sourceMap, ids) };
 }
 
 /**

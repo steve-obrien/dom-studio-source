@@ -73,12 +73,12 @@ export function parseStyleAttribute(value = '') {
  * Plain HTML (no `<template>` block) is treated as the template itself.
  *
  * @param {string} source Vue SFC or HTML fragment.
- * @returns {{ template: string, script: string, style: string, isSfc: boolean, templateLine: number }} Parts of the file; `templateLine` is the file line where the template content starts.
+ * @returns {{ template: string, script: string, style: string, isSfc: boolean, templateLine: number, templateOffset: number }} Parts of the file; `templateLine` and `templateOffset` locate the template content in the file.
  */
 export function splitVueSource(source) {
 	const value = String(source || '');
 	if (value.length > maxSourceBytes) throw new Error('Use a file under 200 KB.');
-	if (!/^\s*(?:<!--[\s\S]*?-->\s*)*<(?:template|script|style)[\s>]/.test(value)) return { template: value, script: '', style: '', isSfc: false, templateLine: 1 };
+	if (!/^\s*(?:<!--[\s\S]*?-->\s*)*<(?:template|script|style)[\s>]/.test(value)) return { template: value, script: '', style: '', isSfc: false, templateLine: 1, templateOffset: 0 };
 	const { descriptor, errors } = parseSfc(value, { filename: 'Canvas.vue' });
 	if (errors.length) throw new Error(`This Vue file did not parse: ${errors[0].message || errors[0]}`);
 	if (!descriptor.template) throw new Error('This Vue file has no <template> block to design.');
@@ -95,6 +95,7 @@ export function splitVueSource(source) {
 		style: descriptor.styles.map((block) => fullBlock(block, 'style')).join('\n\n'),
 		isSfc: true,
 		templateLine: descriptor.template.loc.start.line,
+		templateOffset: descriptor.template.loc.start.offset,
 	};
 }
 
@@ -127,10 +128,11 @@ export function parseTemplate(template) {
 	function visit(node) {
 		if (++count > maxNodes) throw new Error('Use a template with fewer than 3,000 nodes.');
 		const loc = { start: node.loc.start.line, end: node.loc.end.line };
-		if (node.type === NodeTypes.TEXT) return node.content.trim() ? { ...createTextNode(node.content.replace(/\s+/g, ' ')), loc } : null;
+		const span = { start: node.loc.start.offset, end: node.loc.end.offset };
+		if (node.type === NodeTypes.TEXT) return node.content.trim() ? { ...createTextNode(node.content.replace(/\s+/g, ' ')), loc, span } : null;
 		if (node.type === NodeTypes.INTERPOLATION) {
 			const expression = node.content.content.trim();
-			return { ...createTextNode(`{{ ${expression} }}`, expression), loc };
+			return { ...createTextNode(`{{ ${expression} }}`, expression), loc, span };
 		}
 		if (node.type !== NodeTypes.ELEMENT) { unsupported++; return null; }
 		if (['script', 'style', 'iframe', 'object', 'embed'].includes(node.tag)) { unsupported++; return null; }
@@ -138,21 +140,31 @@ export function parseTemplate(template) {
 		const bindings = {};
 		const directives = [];
 		let style = {};
+		// Where each attribute sits, so an export can rewrite one attribute and keep the rest as written. Dropped attributes are kept verbatim.
+		const spanAttrs = [];
+		const at = (prop, key, kept = false) => spanAttrs.push({ key, start: prop.loc.start.offset, end: prop.loc.end.offset, ...(kept ? { kept: true } : {}) });
 		for (const prop of node.props) {
 			if (prop.type === NodeTypes.ATTRIBUTE) {
-				if (prop.name === 'style') style = parseStyleAttribute(prop.value?.content);
-				else if (/^on/i.test(prop.name)) unsupported++;
-				else attrs[prop.name] = prop.value?.content ?? '';
+				if (prop.name === 'style') { style = parseStyleAttribute(prop.value?.content); at(prop, 'style'); }
+				else if (/^on/i.test(prop.name)) { unsupported++; at(prop, prop.name, true); }
+				else { attrs[prop.name] = prop.value?.content ?? ''; at(prop, prop.name); }
 				continue;
 			}
 			if (prop.name === 'bind' && prop.arg?.isStatic && prop.exp && !prop.modifiers?.length) {
 				bindings[prop.arg.content] = prop.exp.content.trim();
+				at(prop, `:${prop.arg.content}`);
 				continue;
 			}
 			directives.push(prop.loc.source);
+			at(prop, directiveKey(prop.loc.source));
 		}
+		const source = node.loc.source;
+		const last = node.props.length ? node.props[node.props.length - 1].loc.end.offset - node.loc.start.offset : node.tag.length + 1;
+		const tagEnd = source.indexOf('>', last) + 1;
+		const closed = !node.isSelfClosing && !voidTags.has(node.tag) && source.endsWith(`</${node.tag}>`);
+		Object.assign(span, { tagEnd: span.start + tagEnd, closeStart: closed ? span.end - node.tag.length - 3 : span.end, closed, attrs: spanAttrs });
 		const children = node.children.map(visit).filter(Boolean);
-		return createCanvasNode({ tag: node.tag, component: isComponentTag(node.tag), attrs, bindings, directives, style, children, loc });
+		return { ...createCanvasNode({ tag: node.tag, component: isComponentTag(node.tag), attrs, bindings, directives, style, children, loc }), span };
 	}
 
 	const children = ast.children.map(visit).filter(Boolean);
@@ -191,6 +203,11 @@ export function toTemplateLiteral(value) {
 	return String(value);
 }
 
+/** The name part of a directive, such as `v-for`, `@click` or `#default`, used to pair it across edits. */
+export function directiveKey(source) {
+	return String(source).split('=')[0].trim();
+}
+
 /** Escapes text for a Vue template; interpolation braces are escaped so text stays text. */
 function encodeText(value) {
 	return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\{\{/g, '{<!-- -->{');
@@ -207,6 +224,27 @@ function cssName(key) {
 }
 
 /**
+ * An element's attributes as they print, each with the key that pairs it with
+ * the same attribute in the source: the attribute name, `:name` for a
+ * binding, `style`, or a directive's name part.
+ *
+ * @param {object} node Canvas element node.
+ * @param {object|null} parent Parent node, whose layout can add style.
+ * @returns {Array<{ key: string, text: string }>} Attributes in print order.
+ */
+export function attributeEntries(node, parent) {
+	const style = Object.entries(frameNodeStyle(node, parent)).map(([key, value]) => `${cssName(key)}: ${value}`).join('; ');
+	const structural = (source) => /^(v-(if|else-if|else|for)\b)/.test(source);
+	return [
+		...node.directives.filter(structural).map((source) => ({ key: directiveKey(source), text: source })),
+		...Object.entries(node.attrs).map(([key, value]) => ({ key, text: value === '' ? key : `${key}="${encodeAttribute(value)}"` })),
+		...(style ? [{ key: 'style', text: `style="${encodeAttribute(style)}"` }] : []),
+		...Object.entries(node.bindings || {}).map(([key, value]) => ({ key: `:${key}`, text: `:${key}="${encodeAttribute(value)}"` })),
+		...node.directives.filter((source) => !structural(source)).map((source) => ({ key: directiveKey(source), text: source })),
+	];
+}
+
+/**
  * Serialises a canvas node tree back to an indented Vue template, using tabs.
  *
  * Pass `ranges` to receive a source map: each node id gets the zero-based
@@ -217,7 +255,7 @@ function cssName(key) {
  * @param {Record<string, { start: number, end: number }>} [ranges] Filled with line ranges by node id.
  * @returns {string} Template markup without the surrounding `<template>` tag.
  */
-export function buildTemplate(root, ranges = null) {
+export function buildTemplate(root, ranges = null, rootParent = null) {
 	const lines = [];
 	const mark = (node, start) => { if (ranges && node.id) ranges[node.id] = { start, end: lines.length - 1 }; };
 	/** Emits one node; elements whose only children are text stay on one line. */
@@ -229,14 +267,7 @@ export function buildTemplate(root, ranges = null) {
 			if (text) { lines.push(`${indent}${text}`); mark(node, start); }
 			return;
 		}
-		const style = Object.entries(frameNodeStyle(node, parent)).map(([key, value]) => `${cssName(key)}: ${value}`).join('; ');
-		const attributes = [
-			...node.directives.filter((source) => /^(v-(if|else-if|else|for)\b)/.test(source)),
-			...Object.entries(node.attrs).map(([key, value]) => (value === '' ? key : `${key}="${encodeAttribute(value)}"`)),
-			...(style ? [`style="${encodeAttribute(style)}"`] : []),
-			...Object.entries(node.bindings || {}).map(([key, value]) => `:${key}="${encodeAttribute(value)}"`),
-			...node.directives.filter((source) => !/^(v-(if|else-if|else|for)\b)/.test(source)),
-		];
+		const attributes = attributeEntries(node, parent).map((entry) => entry.text);
 		const open = `${indent}<${node.tag}${attributes.length ? ` ${attributes.join(' ')}` : ''}`;
 		if (voidTags.has(node.tag)) { lines.push(`${open} />`); mark(node, start); return; }
 		if (!node.children.length) { lines.push(node.component ? `${open} />` : `${open}></${node.tag}>`); mark(node, start); return; }
@@ -254,7 +285,7 @@ export function buildTemplate(root, ranges = null) {
 		lines.push(`${indent}</${node.tag}>`);
 		mark(node, start);
 	}
-	emit(root, null, 0);
+	emit(root, rootParent, 0);
 	return lines.join('\n');
 }
 

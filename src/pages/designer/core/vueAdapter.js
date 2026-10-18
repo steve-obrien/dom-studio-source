@@ -1,6 +1,7 @@
 import { buildMappedVueFile, canvasTailwindContent, createCanvasNode, createTextNode, isComponentTag, parseTemplate, splitVueSource, toTemplateLiteral } from '../canvas/canvasDocument.js';
 import { createDocument, isExpr, nodeId, toTree } from './editorDocument.js';
 import { scriptData } from './previewData.js';
+import { createSourceMap, offsetsToLines, patchSource } from './sourcePatch.js';
 
 /**
  * Vue adapter: Vue SFC and HTML in, editor documents out, and back.
@@ -102,7 +103,10 @@ export function splitType(type) {
  *
  * @param {string} source File source.
  * @param {{ makeId?: () => string }} [options] Id factory.
- * @returns {{ doc: object, script: string, style: string, unsupported: number, seeded: Array<string>, ranges: Record<string, { start: number, end: number }> }} Document, kept blocks, dropped node count, data keys read from the script and line ranges.
+ * `sourceMap` records where every node sits in `source`, so export can
+ * rewrite only what changed (see `sourcePatch.js`).
+ *
+ * @returns {{ doc: object, script: string, style: string, unsupported: number, seeded: Array<string>, ranges: Record<string, { start: number, end: number }>, sourceMap: object }} Document, kept blocks, dropped node count, data keys read from the script, line ranges and source map.
  */
 export function importVue(source, { makeId = nodeId } = {}) {
 	const parts = splitVueSource(source);
@@ -117,7 +121,8 @@ export function importVue(source, { makeId = nodeId } = {}) {
 	})(root, tree);
 	const doc = createDocument(tree, { makeId });
 	const seeded = Object.keys(scriptData(parts.script));
-	return { doc, script: parts.script, style: parts.style, unsupported, seeded, ranges };
+	const sourceMap = createSourceMap(String(source), parts.templateOffset, root, toCanvasNode(doc));
+	return { doc, script: parts.script, style: parts.style, unsupported, seeded, ranges, sourceMap };
 }
 
 /**
@@ -136,11 +141,18 @@ export function exportVue(file, isStudioComponent) {
  * Exports a file as a Vue SFC with its source map: the one-based
  * `{ start, end }` lines of every node, keyed by node id.
  *
+ * A file imported from source (`file.source`) exports as that source with
+ * only the changed nodes rewritten; other files are printed in full.
+ *
  * @param {{ doc: object, script?: string, style?: string }} file Editor file.
  * @param {(tag: string) => boolean} [isStudioComponent] Whether a tag comes from `@getdom/studio/vue`.
  * @returns {{ source: string, ranges: Record<string, { start: number, end: number }> }} Source and line ranges.
  */
 export function exportMappedVue(file, isStudioComponent) {
+	if (file.source) {
+		const patched = patchSource(toCanvasNode(file.doc), file.source);
+		if (patched) return { source: patched.source, ranges: offsetsToLines(patched.source, patched.offsets) };
+	}
 	return buildMappedVueFile({ root: toCanvasNode(file.doc), script: file.script || '', style: file.style || '' }, isStudioComponent);
 }
 

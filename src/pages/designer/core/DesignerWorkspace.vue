@@ -783,8 +783,11 @@ function applyCode() {
 	codeError.value = '';
 	codeWarning.value = result.unsupported ? `${result.unsupported} unsupported ${result.unsupported === 1 ? 'node was' : 'nodes were'} left out: scripts, iframes or inline event handlers.` : '';
 	codeRanges.value = result.ranges;
-	if (!result.changed) return;
-	const operations = [{ op: 'setFile', id: file.id, key: 'doc', value: result.doc }];
+	// The typed text becomes the source that later visual edits patch, even when only its formatting changed; undo restores the previous one.
+	const sourceChanged = result.source.text !== file.source?.text;
+	if (!result.changed && !sourceChanged) return;
+	const operations = [{ op: 'setFile', id: file.id, key: 'source', value: result.source }];
+	if (result.changed) operations.unshift({ op: 'setFile', id: file.id, key: 'doc', value: result.doc });
 	if (result.script !== (file.script || '')) operations.push({ op: 'setFile', id: file.id, key: 'script', value: result.script });
 	if (result.style !== (file.style || '')) operations.push({ op: 'setFile', id: file.id, key: 'style', value: result.style });
 	run(operations, { merge: `code:${file.id}` });

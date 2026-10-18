@@ -246,7 +246,8 @@ test('canvases saved in the first format are upgraded', () => {
 	const restored = restoreWorkspace({ files: [file], artboards: [{ id: 'b', fileId: file.id, name: 'Desktop', x: 0, y: 0, width: 1200, height: 760 }] });
 	assert.equal(restored.version, 2);
 	assert.deepEqual(validateDocument(restored.files[0].doc), []);
-	assert.equal(exportFile(restored.files[0]), exportFile({ ...createCanvasDemo().files[0] }));
+	// The demo keeps its source text; compare against its full print, which an upgraded old canvas gets.
+	assert.equal(exportFile(restored.files[0]), exportFile({ ...createCanvasDemo().files[0], source: undefined }));
 	assert.equal(restoreWorkspace({ files: [], artboards: [] }), null);
 	assert.equal(restoreWorkspace('nonsense'), null);
 });
@@ -507,4 +508,65 @@ test('artboards resolve viewport-height units against the device height, not the
 	assert.match(out, /margin:calc\(-2 \* var\(--artboard-vh, 1vh\)\)/);
 	assert.match(out, /width:10vw/);
 	assert.equal(artboardViewportCss('.a{color:red}'), '.a{color:red}');
+});
+
+test('a file imported from source exports as that source, with only changed nodes rewritten', async () => {
+	const { fromTree } = await import('../src/pages/designer/core/editorDocument.js');
+	const { applySource } = await import('../src/pages/designer/core/sourceSync.js');
+	const source = `<template>
+	<div data-page class="p-4">
+		<!-- hero -->
+		<Reveal v-bind="opts" :appear="true" class="mx-auto">
+			<h1 id="title" class="text-5xl">
+				Grow <span class="text-primary">traffic</span> today
+			</h1>
+			<img :src="logo" alt="">
+			<MyCard v-for="item in items" :key="item.id" @click="open(item)" />
+		</Reveal>
+		<p class="mt-2">Fine print</p>
+	</div>
+</template>
+
+<script setup lang="ts">
+const opts = { appear: false };
+</script>
+`;
+	const parsed = importVue(source);
+	const file = { doc: parsed.doc, script: parsed.script, style: parsed.style, source: parsed.sourceMap };
+	assert.equal(exportVue(file), source);
+	const nodes = Object.values(file.doc.nodes);
+	const reveal = nodes.find((node) => node.type === 'vue:Reveal');
+	const heading = nodes.find((node) => node.props.id === 'title');
+	const paragraph = nodes.find((node) => node.type === 'html:p');
+	const undo = [];
+	const apply = (operation) => undo.unshift(applyOperation(file.doc, operation));
+	apply({ op: 'setProp', id: reveal.id, key: 'class', value: 'mx-auto max-w-4xl' });
+	apply({ op: 'setProp', id: heading.children[0] && file.doc.nodes[heading.children[0]].id, key: 'value', value: ' Grow your ' });
+	apply({ op: 'setProp', id: paragraph.id, key: 'title', value: 'Note' });
+	let out = exportVue(file);
+	assert.match(out, /<Reveal v-bind="opts" :appear="true" class="mx-auto max-w-4xl">/);
+	assert.match(out, /\n\t\t\t\tGrow your <span class="text-primary">traffic<\/span> today\n/);
+	assert.match(out, /<p class="mt-2" title="Note">Fine print<\/p>/);
+	assert.match(out, /<!-- hero -->/);
+	assert.match(out, /<MyCard v-for="item in items" :key="item\.id" @click="open\(item\)" \/>/);
+	// Structure: remove the image, add a paragraph after the heading, move the card first.
+	const image = nodes.find((node) => node.type === 'html:img');
+	const card = nodes.find((node) => node.type === 'vue:MyCard');
+	apply({ op: 'remove', id: image.id });
+	apply({ op: 'insert', parent: reveal.id, index: 1, fragment: fromTree({ type: 'html:p', props: { class: 'lead' }, children: [{ type: 'text', props: { value: 'New' } }] }) });
+	apply({ op: 'move', id: card.id, parent: reveal.id, index: 0 });
+	out = exportVue(file);
+	assert.doesNotMatch(out, /<img/);
+	assert.match(out, /\n\t\t\t<MyCard [^\n]*\/>\n\t\t\t<h1 id="title"/);
+	assert.match(out, /<\/h1>\n\t\t\t<p class="lead">New<\/p>\n\t\t<\/Reveal>/);
+	assert.ok(out.endsWith(source.slice(source.indexOf('\n\t\t<p class="mt-2"') + 1).replace('<p class="mt-2">', '<p class="mt-2" title="Note">')));
+	for (const operation of undo) applyOperation(file.doc, operation);
+	assert.equal(exportVue(file), source);
+	// Typed code becomes the new source; unchanged formatting survives a later visual edit.
+	const typed = source.replace('class="p-4"', 'class="p-6"').replace('\t\t<p class="mt-2">', '\t\t<p   class="mt-2" >');
+	const result = applySource(file, typed);
+	const edited = { ...file, doc: result.doc, source: result.source };
+	assert.equal(exportVue(edited), typed);
+	applyOperation(edited.doc, { op: 'setProp', id: heading.id, key: 'class', value: 'text-6xl' });
+	assert.equal(exportVue(edited), typed.replace('class="text-5xl"', 'class="text-6xl"'));
 });
