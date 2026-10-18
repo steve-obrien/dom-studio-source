@@ -23,7 +23,7 @@ import { sampleVueFile } from './canvasDocument.js';
  */
 
 export const WORKSPACE_VERSION = 2;
-const fileKeys = ['name', 'path', 'script', 'style', 'doc'];
+const fileKeys = ['name', 'path', 'script', 'style', 'doc', 'source'];
 const artboardKeys = ['name', 'x', 'y', 'width', 'height'];
 
 /** Allocates a file or artboard id. */
@@ -105,8 +105,8 @@ export function applyWorkspaceOperation(workspace, operation) {
  * @returns {{ file: object, unsupported: number, seeded: Array<string> }} File, dropped node count and data keys read from the script.
  */
 export function importFile(source, name, options) {
-	const { doc, script, style, unsupported, seeded } = importVue(source, options);
-	return { file: { id: workspaceId('file'), name, script, style, doc }, unsupported, seeded };
+	const { doc, script, style, unsupported, seeded, sourceMap } = importVue(source, options);
+	return { file: { id: workspaceId('file'), name, script, style, doc, source: sourceMap }, unsupported, seeded };
 }
 
 /**
