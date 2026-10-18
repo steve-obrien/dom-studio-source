@@ -307,10 +307,25 @@ const props = defineProps({
 		default: true,
 		_edit: { description: 'Scroll the selected node into view when modelValue changes programmatically.' },
 	},
+	indent: {
+		type: Number,
+		default: 20,
+		_edit: { description: 'Horizontal indentation per nesting level, in pixels. Use 8 to 12 for deeply nested trees.' },
+	},
+	guides: {
+		type: String,
+		default: 'none',
+		_edit: { options: ['none', 'always', 'hover'], description: 'Draw vertical indent guide lines for each nesting level, like the VS Code explorer. The guide for the selected branch is emphasised.' },
+	},
+	selection: {
+		type: String,
+		default: 'solid',
+		_edit: { options: ['solid', 'subtle'], description: 'Selected row treatment. Subtle uses a soft tint and keeps the normal text colour.' },
+	},
 	density: {
 		type: String,
 		default: 'compact',
-		_edit: { options: ['compact', 'comfortable'], description: 'Vertical spacing for tree rows.' },
+		_edit: { options: ['dense', 'compact', 'comfortable'], description: 'Row height. Dense is 24px with 13px text for large explorers and layers panels, compact is 32px, comfortable is 40px.' },
 	},
 	toggleTransition: {
 		type: Boolean,
@@ -349,6 +364,20 @@ let dragExpandValue = '';
 const treeItems = computed(() => props.items || []);
 const visibleNodes = computed(() => flattenTreeItems(treeItems.value, openSet.value));
 const selectedValue = computed(() => props.modelValue);
+const indentSize = computed(() => Math.max(0, Number(props.indent) || 0));
+// Narrow indents use a slimmer toggle column so guides stay clear of child chevrons.
+const toggleWidth = computed(() => (indentSize.value < 16 ? 20 : 28));
+const subtleSelection = computed(() => props.selection === 'subtle');
+const rowSize = computed(() => ({
+	dense: { toggle: 'h-6', label: 'py-0.5', row: 'text-[13px]' },
+	comfortable: { toggle: 'h-9', label: 'py-2.5', row: '' },
+}[props.density] || { toggle: 'h-7', label: 'py-1.5', row: '' }));
+const activeGuideValue = computed(() => {
+	const selected = visibleNodes.value.find((node) => String(node.value) === String(selectedValue.value));
+	if (!selected) return null;
+	if (selected.expandable && selected.open) return String(selected.value);
+	return selected.parent ? String(selected.parent.value) : null;
+});
 
 // Local open state lets the tree work without a store, while update:openValues
 // still gives larger apps a clean controlled-state path.
@@ -378,6 +407,41 @@ function iconPath(item) {
 function defaultIconFor(item) {
 	if (treeItemHasChildren(item)) return 'M4 6h6l2 2h8v10H4V6Z';
 	return 'M6 4h8l4 4v12H6V4Zm8 0v5h5';
+}
+
+function rowIndentStyle(node) {
+	return { paddingLeft: `${(node.depth - 1) * indentSize.value}px` };
+}
+
+/**
+ * One guide per ancestor, centred under that ancestor's toggle column.
+ *
+ * @param {TreeNode} node
+ */
+function guidesForNode(node) {
+	if (props.guides === 'none') return [];
+	const guides = [];
+	for (let ancestor = node.parent; ancestor; ancestor = ancestor.parent) {
+		guides.push({
+			value: String(ancestor.value),
+			left: (ancestor.depth - 1) * indentSize.value + toggleWidth.value / 2,
+			active: String(ancestor.value) === activeGuideValue.value,
+		});
+	}
+	return guides;
+}
+
+function selectionClass() {
+	if (subtleSelection.value) return 'aria-selected:bg-primary/10 aria-selected:text-canvas-fg';
+	if (props.variant === 'finder') return 'aria-selected:bg-accent aria-selected:text-accent-fg';
+	return 'aria-selected:bg-primary aria-selected:text-primary-fg';
+}
+
+// Icon and toggle colour on the selected row, matched to the selection fill.
+function selectedIconClass() {
+	if (subtleSelection.value) return '';
+	if (props.variant === 'finder') return 'group-aria-selected:text-accent-fg/80';
+	return 'group-aria-selected:text-primary-fg/80';
 }
 
 function slotNameOf(item) {
@@ -819,7 +883,7 @@ onBeforeUnmount(cancelDragExpand);
 	<div
 		role="tree"
 		:id="treeId"
-		class="w-full text-sm text-canvas-fg"
+		class="group/tree w-full text-sm text-canvas-fg"
 		:class="[
 			chrome ? 'skin-card rounded-2xl p-1' : '',
 		]"
@@ -847,17 +911,18 @@ onBeforeUnmount(cancelDragExpand);
 				:tabindex="String(activeValue) === String(node.value) || (!activeValue && visibleNodes[0]?.value === node.value) ? 0 : -1"
 				:aria-keyshortcuts="draggable ? 'Alt+ArrowUp Alt+ArrowDown' : null"
 				:draggable="dragAllowed(node)"
-				class="group relative flex min-w-0 cursor-pointer items-center rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50 aria-selected:bg-primary aria-selected:text-primary-fg"
+				class="group relative flex min-w-0 cursor-pointer items-center rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50"
 				:class="[
-					density === 'comfortable' ? 'min-h-4' : 'min-h-6',
-					variant === 'finder' ? 'hover:bg-canvas-fg/80 hover:text-canvas aria-selected:bg-accent aria-selected:text-accent-fg' : 'hover:bg-secondary',
+					rowSize.row,
+					selectionClass(),
+					variant === 'finder' ? 'hover:bg-canvas-fg/5' : 'hover:bg-secondary',
 					dropClass(node, 'inside'),
 					isDropPosition(node, 'before') ? 'before:opacity-100' : '',
 					isDropPosition(node, 'after') ? 'after:opacity-100' : '',
 					String(hoveredValue) === String(node.value) && String(selectedValue) !== String(node.value) ? 'bg-secondary text-canvas-fg' : '',
 					'before:pointer-events-none before:absolute before:inset-x-2 before:top-0 before:h-0.5 before:rounded-full before:bg-ring before:opacity-0 after:pointer-events-none after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-ring after:opacity-0',
 				]"
-				:style="{ paddingLeft: `${(node.depth - 1) * 1.25}rem` }"
+				:style="rowIndentStyle(node)"
 				@click="selectNode(node)"
 				@pointerenter="onRowPointerEnter(node)"
 				@pointerleave="onRowPointerLeave(node)"
@@ -870,6 +935,18 @@ onBeforeUnmount(cancelDragExpand);
 				@focus="activeValue = node.value"
 				@contextmenu.stop="onRowContextMenu($event, node)"
 			>
+				<span
+					v-for="guide in guidesForNode(node)"
+					:key="guide.value"
+					class="pointer-events-none absolute inset-y-0 w-px transition-opacity"
+					:class="[
+						guide.active ? 'bg-muted-fg/70' : 'bg-border',
+						guides === 'hover' ? 'opacity-0 group-hover/tree:opacity-100 group-focus-within/tree:opacity-100' : '',
+						subtleSelection ? '' : variant === 'finder' ? 'group-aria-selected:bg-accent-fg/30' : 'group-aria-selected:bg-primary-fg/30',
+					]"
+					:style="{ left: `${guide.left}px` }"
+					aria-hidden="true"
+				></span>
 				<slot
 					name="row"
 					:item="node.item"
@@ -884,7 +961,8 @@ onBeforeUnmount(cancelDragExpand);
 					<button
 						v-if="node.expandable"
 						type="button"
-						class="grid size-7 shrink-0 cursor-pointer place-items-center rounded-lg transition  group-aria-selected:text-primary-fg/80"
+						class="grid shrink-0 cursor-pointer place-items-center rounded-lg transition"
+						:class="[rowSize.toggle, toggleWidth < 28 ? 'w-5' : 'w-7', selectedIconClass()]"
 						:tabindex="-1"
 						:aria-label="node.open ? 'Collapse item' : 'Expand item'"
 						@click.stop="toggleNode(node)"
@@ -897,14 +975,14 @@ onBeforeUnmount(cancelDragExpand);
 							<path d="M8 5l5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
 						</svg>
 					</button>
-					<span v-else class="size-7 shrink-0" aria-hidden="true"></span>
-					<span class="grid size-6 shrink-0 place-items-center group-aria-selected:text-primary-fg/80">
+					<span v-else class="shrink-0" :class="[rowSize.toggle, toggleWidth < 28 ? 'w-5' : 'w-7']" aria-hidden="true"></span>
+					<span class="grid h-6 shrink-0 place-items-center" :class="[toggleWidth < 28 ? 'w-5' : 'w-6', subtleSelection ? 'group-aria-selected:text-primary' : selectedIconClass()]">
 						<span v-if="node.item?.iconText" class="font-mono text-[10px] font-semibold leading-none">{{ node.item.iconText }}</span>
 						<svg v-else viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
 							<path :d="iconPath(node.item)" />
 						</svg>
 					</span>
-					<span class="min-w-0 flex-1 truncate px-1 py-1.5">
+					<span class="min-w-0 flex-1 truncate pr-1" :class="[rowSize.label, toggleWidth < 28 ? 'pl-0.5' : 'pl-1']">
 						<slot :name="slotNameOf(node.item)" :item="node.item" :node="node" :depth="node.depth" :open="node.open" :selected="String(selectedValue) === String(node.value)" :loading="node.loading">
 							{{ node.label }}
 						</slot>
@@ -914,7 +992,8 @@ onBeforeUnmount(cancelDragExpand);
 							v-for="action in rowActions(node.item)"
 							:key="action.value || action.label"
 							type="button"
-							class="grid size-6 cursor-pointer place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 group-aria-selected:text-primary-fg/80 group-aria-selected:hover:bg-primary-fg/15"
+							class="grid size-6 cursor-pointer place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+							:class="[selectedIconClass(), subtleSelection || variant === 'finder' ? '' : 'group-aria-selected:hover:bg-primary-fg/15']"
 							:aria-label="action.label || action.value || 'Tree item action'"
 							:title="action.label || action.value || 'Tree item action'"
 							:disabled="action.disabled || undefined"

@@ -20,6 +20,10 @@ import FinderMenu from './examples/FinderMenu.vue';
 import FinderMenuSrc from './examples/FinderMenu.vue?raw';
 import AsyncLoading from './examples/AsyncLoading.vue';
 import AsyncLoadingSrc from './examples/AsyncLoading.vue?raw';
+import ExplorerGuides from './examples/ExplorerGuides.vue';
+import CompactExplorer from './examples/CompactExplorer.vue';
+import CompactExplorerSrc from './examples/CompactExplorer.vue?raw';
+import ExplorerGuidesSrc from './examples/ExplorerGuides.vue?raw';
 
 const folderIcon = 'M4 6h6l2 2h8v10H4V6Z';
 const fileIcon = 'M6 4h8l4 4v12H6V4Zm8 0v5h5';
@@ -128,6 +132,24 @@ function applyDropToRows(rows, { item, target, position }) {
 				filename="Layers.vue"
 				description="Use v-model to programmatically highlight a layer from the stage, custom slots for metadata, and drag/drop to reorder the tree.">
 					<Layers />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Deep trees with indent guides">
+				<Example
+				:source="ExplorerGuidesSrc"
+				filename="ExplorerGuides.vue"
+				description="Set indent to tighten deeply nested trees, guides to draw VS Code-style vertical lines (always or on hover), and selection=&quot;subtle&quot; for a soft tint instead of a solid fill.">
+					<ExplorerGuides />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Compact explorer">
+				<Example
+				:source="CompactExplorerSrc"
+				filename="CompactExplorer.vue"
+				description="For large file explorers and layers panels, combine density=&quot;dense&quot; (24px rows, 13px text), an 8px indent, hover-only guides, and subtle selection. Hover the tree to reveal the guides.">
+					<CompactExplorer />
 				</Example>
 			</DocSection>
 

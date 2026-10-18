@@ -1848,9 +1848,21 @@ export interface DomTreeViewProps {
 	 */
 	scrollIntoView?: boolean;
 	/**
-	 * Vertical spacing for tree rows.
+	 * Horizontal indentation per nesting level, in pixels. Use 8 to 12 for deeply nested trees.
 	 */
-	density?: "compact" | "comfortable";
+	indent?: number;
+	/**
+	 * Draw vertical indent guide lines for each nesting level, like the VS Code explorer. The guide for the selected branch is emphasised.
+	 */
+	guides?: "none" | "always" | "hover";
+	/**
+	 * Selected row treatment. Subtle uses a soft tint and keeps the normal text colour.
+	 */
+	selection?: "solid" | "subtle";
+	/**
+	 * Row height. Dense is 24px with 13px text for large explorers and layers panels, compact is 32px, comfortable is 40px.
+	 */
+	density?: "dense" | "compact" | "comfortable";
 	/**
 	 * Animate rows in and out when branches open and close.
 	 */
