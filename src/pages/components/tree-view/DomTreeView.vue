@@ -25,7 +25,8 @@ import { treeItemsFormSchema } from './treeSchemas.js';
  * @property {string|number} [value]
  * @property {string} [label]
  * @property {string} [name]
- * @property {string} [icon]
+ * @property {string} [icon] SVG path in a 24px box.
+ * @property {string} [iconText] Short text shown in place of the icon, such as `h2`.
  * @property {string} [rightIcon]
  * @property {string} [rightIconAction]
  * @property {string} [rightIconLabel]
@@ -324,7 +325,7 @@ const props = defineProps({
 	density: {
 		type: String,
 		default: 'compact',
-		_edit: { options: ['dense', 'compact', 'comfortable'], description: 'Vertical spacing for tree rows. Dense uses short 24px rows and 13px text for large explorer and layers panels.' },
+		_edit: { options: ['dense', 'compact', 'comfortable'], description: 'Row height. Dense is 24px with 13px text for large explorers and layers panels, compact is 32px, comfortable is 40px.' },
 	},
 	toggleTransition: {
 		type: Boolean,
@@ -367,7 +368,10 @@ const indentSize = computed(() => Math.max(0, Number(props.indent) || 0));
 // Narrow indents use a slimmer toggle column so guides stay clear of child chevrons.
 const toggleWidth = computed(() => (indentSize.value < 16 ? 20 : 28));
 const subtleSelection = computed(() => props.selection === 'subtle');
-const dense = computed(() => props.density === 'dense');
+const rowSize = computed(() => ({
+	dense: { toggle: 'h-6', label: 'py-0.5', row: 'text-[13px]' },
+	comfortable: { toggle: 'h-9', label: 'py-2.5', row: '' },
+}[props.density] || { toggle: 'h-7', label: 'py-1.5', row: '' }));
 const activeGuideValue = computed(() => {
 	const selected = visibleNodes.value.find((node) => String(node.value) === String(selectedValue.value));
 	if (!selected) return null;
@@ -431,6 +435,13 @@ function selectionClass() {
 	if (subtleSelection.value) return 'aria-selected:bg-primary/10 aria-selected:text-canvas-fg';
 	if (props.variant === 'finder') return 'aria-selected:bg-accent aria-selected:text-accent-fg';
 	return 'aria-selected:bg-primary aria-selected:text-primary-fg';
+}
+
+// Icon and toggle colour on the selected row, matched to the selection fill.
+function selectedIconClass() {
+	if (subtleSelection.value) return '';
+	if (props.variant === 'finder') return 'group-aria-selected:text-accent-fg/80';
+	return 'group-aria-selected:text-primary-fg/80';
 }
 
 function slotNameOf(item) {
@@ -902,10 +913,9 @@ onBeforeUnmount(cancelDragExpand);
 				:draggable="dragAllowed(node)"
 				class="group relative flex min-w-0 cursor-pointer items-center rounded-lg outline-none transition focus-visible:ring-2 focus-visible:ring-ring/50"
 				:class="[
-					density === 'comfortable' ? 'min-h-4' : 'min-h-6',
-					dense ? 'text-[13px]' : '',
+					rowSize.row,
 					selectionClass(),
-					variant === 'finder' && !subtleSelection ? 'hover:bg-canvas-fg/80 hover:text-canvas' : 'hover:bg-secondary',
+					variant === 'finder' ? 'hover:bg-canvas-fg/5' : 'hover:bg-secondary',
 					dropClass(node, 'inside'),
 					isDropPosition(node, 'before') ? 'before:opacity-100' : '',
 					isDropPosition(node, 'after') ? 'after:opacity-100' : '',
@@ -932,7 +942,7 @@ onBeforeUnmount(cancelDragExpand);
 					:class="[
 						guide.active ? 'bg-muted-fg/70' : 'bg-border',
 						guides === 'hover' ? 'opacity-0 group-hover/tree:opacity-100 group-focus-within/tree:opacity-100' : '',
-						subtleSelection ? '' : 'group-aria-selected:bg-primary-fg/30',
+						subtleSelection ? '' : variant === 'finder' ? 'group-aria-selected:bg-accent-fg/30' : 'group-aria-selected:bg-primary-fg/30',
 					]"
 					:style="{ left: `${guide.left}px` }"
 					aria-hidden="true"
@@ -952,7 +962,7 @@ onBeforeUnmount(cancelDragExpand);
 						v-if="node.expandable"
 						type="button"
 						class="grid shrink-0 cursor-pointer place-items-center rounded-lg transition"
-						:class="[dense ? 'h-6' : 'h-7', toggleWidth < 28 ? 'w-5' : 'w-7', subtleSelection ? '' : 'group-aria-selected:text-primary-fg/80']"
+						:class="[rowSize.toggle, toggleWidth < 28 ? 'w-5' : 'w-7', selectedIconClass()]"
 						:tabindex="-1"
 						:aria-label="node.open ? 'Collapse item' : 'Expand item'"
 						@click.stop="toggleNode(node)"
@@ -965,13 +975,14 @@ onBeforeUnmount(cancelDragExpand);
 							<path d="M8 5l5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
 						</svg>
 					</button>
-					<span v-else class="shrink-0" :class="[dense ? 'h-6' : 'h-7', toggleWidth < 28 ? 'w-5' : 'w-7']" aria-hidden="true"></span>
-					<span class="grid h-6 shrink-0 place-items-center" :class="[toggleWidth < 28 ? 'w-5' : 'w-6', subtleSelection ? 'group-aria-selected:text-primary' : 'group-aria-selected:text-primary-fg/80']">
-						<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
+					<span v-else class="shrink-0" :class="[rowSize.toggle, toggleWidth < 28 ? 'w-5' : 'w-7']" aria-hidden="true"></span>
+					<span class="grid h-6 shrink-0 place-items-center" :class="[toggleWidth < 28 ? 'w-5' : 'w-6', subtleSelection ? 'group-aria-selected:text-primary' : selectedIconClass()]">
+						<span v-if="node.item?.iconText" class="font-mono text-[10px] font-semibold leading-none">{{ node.item.iconText }}</span>
+						<svg v-else viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
 							<path :d="iconPath(node.item)" />
 						</svg>
 					</span>
-					<span class="min-w-0 flex-1 truncate pr-1" :class="[dense ? 'py-0.5' : 'py-1.5', toggleWidth < 28 ? 'pl-0.5' : 'pl-1']">
+					<span class="min-w-0 flex-1 truncate pr-1" :class="[rowSize.label, toggleWidth < 28 ? 'pl-0.5' : 'pl-1']">
 						<slot :name="slotNameOf(node.item)" :item="node.item" :node="node" :depth="node.depth" :open="node.open" :selected="String(selectedValue) === String(node.value)" :loading="node.loading">
 							{{ node.label }}
 						</slot>
@@ -982,7 +993,7 @@ onBeforeUnmount(cancelDragExpand);
 							:key="action.value || action.label"
 							type="button"
 							class="grid size-6 cursor-pointer place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-							:class="subtleSelection ? '' : 'group-aria-selected:text-primary-fg/80 group-aria-selected:hover:bg-primary-fg/15'"
+							:class="[selectedIconClass(), subtleSelection || variant === 'finder' ? '' : 'group-aria-selected:hover:bg-primary-fg/15']"
 							:aria-label="action.label || action.value || 'Tree item action'"
 							:title="action.label || action.value || 'Tree item action'"
 							:disabled="action.disabled || undefined"

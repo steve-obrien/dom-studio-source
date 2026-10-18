@@ -144,7 +144,7 @@ function findItem(items, value) {
 				v-model="selected"
 				v-model:items="files"
 				class="min-h-72"
-				density="comfortable"
+				density="compact"
 				@context-menu="openContextMenu"
 			/>
 		</DomContextMenu>

@@ -900,6 +900,8 @@ export interface TreeItem {
 	label?: string;
 	name?: string;
 	icon?: string;
+	/** Short text shown in place of the icon, such as `h2`. */
+	iconText?: string;
 	rightIcon?: string;
 	rightIconAction?: string;
 	rightIconLabel?: string;
@@ -1858,7 +1860,7 @@ export interface DomTreeViewProps {
 	 */
 	selection?: "solid" | "subtle";
 	/**
-	 * Vertical spacing for tree rows. Dense uses short 24px rows and 13px text for large explorer and layers panels.
+	 * Row height. Dense is 24px with 13px text for large explorers and layers panels, compact is 32px, comfortable is 40px.
 	 */
 	density?: "dense" | "compact" | "comfortable";
 	/**

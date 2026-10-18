@@ -1761,6 +1761,8 @@ function treeTypes() {
 		'\tlabel?: string;',
 		'\tname?: string;',
 		'\ticon?: string;',
+		'\t/** Short text shown in place of the icon, such as `h2`. */',
+		'\ticonText?: string;',
 		'\trightIcon?: string;',
 		'\trightIconAction?: string;',
 		'\trightIconLabel?: string;',

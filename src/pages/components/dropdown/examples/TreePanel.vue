@@ -96,7 +96,7 @@ function chooseSection({ value }) {
 						:items="sections"
 						:draggable="false"
 						:chrome="false"
-						density="comfortable"
+						density="compact"
 						variant="finder"
 						label="Project sections"
 						@select="chooseSection"
