@@ -105,7 +105,10 @@ const selectedKeys = ref([]);
 const live = ref(true);
 const lastUpdatedAt = ref(formatLogTime(new Date()));
 const insertedCount = ref(sourceRows.value.length);
+const root = ref(null);
+const inView = ref(false);
 let feedTimer = null;
+let viewObserver = null;
 
 const slowQueryCount = computed(() => sourceRows.value.filter((row) => row.durationMs >= slowThresholdMs).length);
 const timeoutCount = computed(() => sourceRows.value.filter((row) => row.status === 'timeout' || row.status === 'error').length);
@@ -135,12 +138,46 @@ watch(selectedPreset, (value) => {
 
 onMounted(() => {
 	applyLiveQuery();
-	startFeed();
+	observeVisibility();
 });
 
 onBeforeUnmount(() => {
 	stopFeed();
+	viewObserver?.disconnect();
+	document.removeEventListener('visibilitychange', syncFeedToVisibility);
 });
+
+/**
+* Watches whether the demo is on screen so the feed only runs while someone can see it.
+* Re-rendering the log off screen made scrolling the rest of the page janky on mobile.
+*
+* @returns {void}
+*/
+function observeVisibility() {
+	document.addEventListener('visibilitychange', syncFeedToVisibility);
+
+	if (typeof IntersectionObserver === 'undefined') {
+		inView.value = true;
+		syncFeedToVisibility();
+		return;
+	}
+
+	viewObserver = new IntersectionObserver((entries) => {
+		inView.value = entries.some((entry) => entry.isIntersecting);
+		syncFeedToVisibility();
+	});
+	viewObserver.observe(root.value);
+}
+
+/**
+* Starts or stops the feed to match the demo's on-screen and tab visibility.
+*
+* @returns {void}
+*/
+function syncFeedToVisibility() {
+	if (inView.value && document.visibilityState === 'visible') startFeed();
+	else stopFeed();
+}
 
 /**
 * Returns the grid query object from the controlled search, filters, and sort state.
@@ -794,7 +831,7 @@ function formatLogTime(date) {
 </script>
 
 <template>
-	<div class="w-full min-w-0 space-y-4">
+	<div ref="root" class="w-full min-w-0 space-y-4">
 		<div class="grid gap-3 rounded-lg border border-border bg-canvas p-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
 			<div class="min-w-0">
 				<div class="flex flex-wrap items-center gap-2">

@@ -2684,20 +2684,20 @@ function hasColumnMenu(column) {
 						<th
 							v-if="selectable"
 							class="border-b border-r border-border px-2 py-1.5 font-semibold"
-							:class="headerCellClass(pinLayout.hasLeft, 'bg-secondary/95 backdrop-blur')"
+							:class="headerCellClass(pinLayout.hasLeft, 'bg-secondary')"
 							:style="headerCellStyle('0px', utilityPinStyle('select'))"
 						></th>
 						<th
 							v-if="showRowNumbers"
 							class="border-b border-r border-border px-2 py-1.5 text-center font-semibold"
-							:class="headerCellClass(pinLayout.hasLeft, 'bg-secondary/95 backdrop-blur')"
+							:class="headerCellClass(pinLayout.hasLeft, 'bg-secondary')"
 							:style="headerCellStyle('0px', utilityPinStyle('number'))"
 						></th>
 						<th
 							v-for="(column, columnIndex) in visibleColumns"
 							:key="`${column.key}-letter`"
 							class="border-b border-r border-border px-2 py-1.5 text-center font-semibold last:border-r-0"
-							:class="headerCellClass(Boolean(pinInfo(column)), 'bg-secondary/95 backdrop-blur')"
+							:class="headerCellClass(Boolean(pinInfo(column)), 'bg-secondary')"
 							:style="headerCellStyle('0px', pinStyle(column))"
 							:data-pin-edge="pinInfo(column)?.edge ? pinInfo(column).side : undefined"
 						>
@@ -2709,7 +2709,7 @@ function hasColumnMenu(column) {
 						<th
 							v-if="selectable"
 							class="border-b border-r border-border px-2 text-center"
-							:class="headerCellClass(pinLayout.hasLeft, 'bg-canvas/95 backdrop-blur')"
+							:class="headerCellClass(pinLayout.hasLeft, 'bg-canvas')"
 							:style="headerCellStyle(headerOffset, utilityPinStyle('select'))"
 						>
 							<input
@@ -2724,7 +2724,7 @@ function hasColumnMenu(column) {
 						<th
 							v-if="showRowNumbers"
 							class="border-b border-r border-border px-2 text-center font-semibold"
-							:class="headerCellClass(pinLayout.hasLeft, 'bg-canvas/95 backdrop-blur')"
+							:class="headerCellClass(pinLayout.hasLeft, 'bg-canvas')"
 							:style="headerCellStyle(headerOffset, utilityPinStyle('number'))"
 						>
 							#
@@ -2735,7 +2735,7 @@ function hasColumnMenu(column) {
 							scope="col"
 							class="relative overflow-hidden border-b border-r border-border px-0 text-left align-middle last:border-r-0"
 							:aria-sort="ariaSort(column)"
-							:class="headerCellClass(Boolean(pinInfo(column)), 'bg-canvas/95 backdrop-blur')"
+							:class="headerCellClass(Boolean(pinInfo(column)), 'bg-canvas')"
 							:style="headerCellStyle(headerOffset, pinStyle(column))"
 							:data-pin-edge="pinInfo(column)?.edge ? pinInfo(column).side : undefined"
 						>
