@@ -139,6 +139,8 @@ let codeTimer;
 let compileTimer;
 let compiledContent = '';
 let gesture = null;
+// Touch points on the canvas, from the viewport and forwarded from artboards, in page coordinates.
+const touches = new Map();
 let disposed = false;
 
 const history = createHistory({
@@ -882,8 +884,9 @@ function frame(boards) {
 function fitAll() { frame(artboards.value); }
 function focusArtboard(board) { activeArtboardId.value = board.id; frame([board]); }
 
-/** Pans with middle button, space+drag, or a drag on empty canvas. */
+/** Pans with middle button, space+drag, or a drag on empty canvas; touch pans and pinches anywhere. */
 function onCanvasPointerdown(event) {
+	if (event.pointerType === 'touch') { onTouch(event); return; }
 	const empty = event.target === viewport.value || event.target.dataset?.canvasWorld !== undefined;
 	if (!(event.button === 1 || spaceHeld.value || (event.button === 0 && empty))) return;
 	event.preventDefault();
@@ -904,6 +907,7 @@ function onArtboardTitlePointerdown(event, board) {
 }
 
 function onCanvasPointermove(event) {
+	if (touches.has(event.pointerId)) { onTouch(event); return; }
 	if (!gesture || gesture.pointer !== event.pointerId) return;
 	const dx = event.clientX - gesture.x;
 	const dy = event.clientY - gesture.y;
@@ -918,11 +922,61 @@ function onCanvasPointermove(event) {
 }
 
 function onCanvasPointerup(event) {
+	if (touches.has(event.pointerId)) { onTouch(event); return; }
 	if (!gesture || gesture.pointer !== event.pointerId) return;
 	if (gesture.kind === 'artboard') history.seal();
 	gesture = null;
 	panning.value = false;
 	if (viewport.value?.hasPointerCapture(event.pointerId)) viewport.value.releasePointerCapture(event.pointerId);
+}
+
+/** Starts a one-finger pan, or a two-finger pinch from the current touches. */
+function startTouchGesture() {
+	const points = [...touches.values()];
+	if (points.length >= 2) {
+		const [a, b] = points;
+		const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+		const rect = viewport.value.getBoundingClientRect();
+		gesture = { kind: 'pinch', distance: Math.hypot(a.x - b.x, a.y - b.y) || 1, zoom: zoom.value, world: { x: (mid.x - rect.left - pan.value.x) / zoom.value, y: (mid.y - rect.top - pan.value.y) / zoom.value } };
+	} else if (points.length === 1 && !points[0].overlay) {
+		gesture = { kind: 'pan', pointer: points[0].id, x: points[0].x, y: points[0].y, origin: { ...pan.value } };
+	} else gesture = null;
+}
+
+/**
+ * Touch on the canvas: one finger pans, two fingers pinch to zoom and pan
+ * together. A finger that starts on the selected layer's handles leaves the
+ * drag to the stage, until a second finger turns it into a pinch.
+ */
+function onTouch({ type, pointerId, clientX, clientY, overlay = false }) {
+	if (canvasMode.value !== 'canvas' || !viewport.value) return;
+	if (type === 'pointerdown') {
+		touches.set(pointerId, { id: pointerId, x: clientX, y: clientY, overlay });
+		if (gesture?.kind === 'artboard') return;
+		startTouchGesture();
+		return;
+	}
+	const point = touches.get(pointerId);
+	if (!point) return;
+	if (type === 'pointermove') {
+		point.x = clientX;
+		point.y = clientY;
+		if (gesture?.kind === 'pinch') {
+			const [a, b] = [...touches.values()];
+			const rect = viewport.value.getBoundingClientRect();
+			const value = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, gesture.zoom * Math.hypot(a.x - b.x, a.y - b.y) / gesture.distance));
+			zoom.value = value;
+			pan.value = { x: (a.x + b.x) / 2 - rect.left - gesture.world.x * value, y: (a.y + b.y) / 2 - rect.top - gesture.world.y * value };
+		} else if (gesture?.kind === 'pan' && gesture.pointer === pointerId) {
+			pan.value = { x: gesture.origin.x + clientX - gesture.x, y: gesture.origin.y + clientY - gesture.y };
+		}
+		return;
+	}
+	touches.delete(pointerId);
+	if (gesture?.kind === 'artboard') return;
+	// Lifting one finger of a pinch carries on as a pan with the other.
+	if (gesture?.kind === 'pinch' && touches.size === 1) [...touches.values()][0].overlay = false;
+	startTouchGesture();
 }
 
 /** Selection from any artboard also makes that artboard active. */
@@ -999,7 +1053,9 @@ onBeforeUnmount(() => {
 				<h1 class="text-sm font-semibold tracking-tight">{{ title }} <span v-if="badge" class="ml-1 rounded bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary">{{ badge }}</span></h1>
 				<span v-if="activeFile" class="hidden truncate font-mono text-xs text-muted-fg sm:inline">{{ activeFile.name }}</span>
 			</div>
-			<div class="flex flex-wrap items-center gap-1.5">
+			<!-- Phones: one row of tools that scrolls sideways instead of wrapping into three. -->
+			<div class="-mx-4 flex w-[calc(100%+2rem)] items-center gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] sm:contents">
+			<div class="flex shrink-0 items-center gap-1.5 sm:flex-wrap">
 				<DomButton size="sm" variant="ghost" @click="newFile">New file</DomButton>
 				<select v-if="projectFiles?.length" class="h-7 max-w-40 rounded-md border-0 bg-secondary/60 pl-2 pr-6 text-xs text-canvas-fg outline-none hover:ring-1 hover:ring-border focus:ring-1 focus:ring-primary" aria-label="Open a project file" value="" @change="openProjectFile($event.target.value); $event.target.value = ''">
 					<option value="">Project files…</option>
@@ -1013,7 +1069,7 @@ onBeforeUnmount(() => {
 					<button v-for="mode in [{ id: 'data', label: 'Data', title: 'Render bindings with preview data' }, { id: 'variables', label: 'Variables', title: 'Show each binding as a variable, every v-if branch and one item per list' }]" :key="mode.id" type="button" :aria-pressed="viewMode === mode.id" :title="mode.title" class="rounded-md px-2.5 py-1 text-xs font-medium transition" :class="viewMode === mode.id ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'" @click="viewMode = mode.id">{{ mode.label }}</button>
 				</div>
 			</div>
-			<div class="ml-auto flex flex-wrap items-center gap-1.5">
+			<div class="ml-auto flex shrink-0 items-center gap-1.5 sm:flex-wrap">
 				<div class="flex rounded-lg bg-secondary p-0.5" role="group" aria-label="Canvas mode">
 					<button v-for="mode in [{ id: 'canvas', label: 'Canvas', tip: 'Canvas: artboards side by side to pan and zoom' }, { id: 'page', label: 'Page', tip: 'Page: the selected artboard fills the space as a real, scrolling browser window' }]" :key="mode.id" v-dom-tooltip="mode.tip" type="button" :aria-pressed="canvasMode === mode.id" class="rounded-md px-2.5 py-1 text-xs font-medium transition" :class="canvasMode === mode.id ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'" @click="canvasMode = mode.id">{{ mode.label }}</button>
 				</div>
@@ -1027,6 +1083,7 @@ onBeforeUnmount(() => {
 				<span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
 				<slot name="end" />
 				<DomButton size="sm" :variant="showCode ? 'primary' : 'secondary'" @click="showCode = !showCode">{{ showCode ? 'Hide code' : 'Code' }}</DomButton>
+			</div>
 			</div>
 		</header>
 
@@ -1137,11 +1194,13 @@ onBeforeUnmount(() => {
 									@wheel="onWheel"
 									@keydown="onKeydown"
 									@pointerdown="activeArtboardId = board.id"
+									@touch="onTouch"
 								>
 									<DomDesignerStage
 										:model-value="board.fileId === activeFile?.id ? selected : ''"
 										positioning
 										frame-scoped
+										:zoom="canvasMode === 'canvas' ? zoom : 1"
 										reorder
 										:snapping="snapping"
 										:spacing-snapping="snapping"
@@ -1163,7 +1222,7 @@ onBeforeUnmount(() => {
 								</ArtboardViewport>
 							</div>
 							<div v-if="canvasMode === 'canvas'" class="pointer-events-none absolute inset-x-0 border-t border-dashed border-primary/60" :style="{ top: `${board.height}px`, borderTopWidth: `${1 / zoom}px` }" aria-hidden="true">
-								<span class="absolute bottom-full right-0 whitespace-nowrap rounded-sm bg-canvas/90 px-1 text-primary" :style="{ fontSize: `${11 / zoom}px`, marginBottom: `${2 / zoom}px` }">Screen height {{ board.height }}</span>
+								<span v-if="board.width * zoom >= 140" class="absolute bottom-full right-0 whitespace-nowrap rounded-sm bg-canvas/90 px-1 text-primary" :style="{ fontSize: `${11 / zoom}px`, marginBottom: `${2 / zoom}px` }">Screen height {{ board.height }}</span>
 							</div>
 						</div>
 					</div>

@@ -7,8 +7,9 @@ import { artboardViewportCss } from './artboardCss.js';
  * responsive utilities (`md:`, `lg:`) respond to the artboard rather than the
  * browser window. Vue content is teleported in; no source HTML enters srcdoc.
  *
- * Wheel and keyboard events inside the iframe do not reach the parent page, so
- * they are forwarded for canvas panning, zooming and shortcuts.
+ * Wheel, keyboard and touch events inside the iframe do not reach the parent
+ * page, so they are forwarded for canvas panning, zooming and shortcuts. A tap
+ * still selects; a touch that pans or pinches does not.
  *
  * The iframe grows to show the whole page, so viewport-height units (`vh`,
  * `svh`, `dvh`, `lvh`) would grow with it. Copied stylesheets resolve them
@@ -25,7 +26,7 @@ const props = defineProps({
 	title: { type: String, default: 'Artboard' },
 	fill: { type: Boolean, default: false },
 });
-const emit = defineEmits(['ready', 'wheel', 'keydown', 'pointerdown', 'resize']);
+const emit = defineEmits(['ready', 'wheel', 'keydown', 'pointerdown', 'resize', 'touch']);
 const iframe = ref(null);
 const mount = shallowRef(null);
 const height = ref(props.minHeight);
@@ -35,6 +36,10 @@ const sheetCache = new Map();
 let sizeObserver;
 let frameObserver;
 let timer;
+const touchEvents = ['pointerdown', 'pointermove', 'pointerup', 'pointercancel'];
+// Touch pointers down in this artboard, and whether the current touch sequence panned or pinched instead of tapping.
+const touches = new Map();
+let touchMoved = false;
 const source = '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'self\' \'unsafe-inline\' https://fonts.googleapis.com; img-src https: http: data: blob:; font-src \'self\' data: https://fonts.gstatic.com"></head><body style="margin:0;min-height:100%"><div id="artboard-mount"></div></body></html>';
 
 /** Reads a same-origin stylesheet's text so its viewport units can be rewritten; other links are kept as links. */
@@ -71,6 +76,8 @@ async function syncStyles() {
 		node.setAttribute('data-artboard-style', '');
 		doc.head.appendChild(node);
 	}
+	// On the canvas, touch drags pan and pinch the canvas; a filled artboard scrolls like a page.
+	doc.documentElement.style.touchAction = props.fill ? '' : 'none';
 	doc.documentElement.style.setProperty('--artboard-vh', props.fill ? '1vh' : `${props.minHeight / 100}px`);
 	doc.documentElement.dataset.theme = document.documentElement.dataset.theme || 'light';
 	doc.documentElement.className = document.documentElement.className;
@@ -100,6 +107,37 @@ function forwardKeydown(event) { emit('keydown', event); }
 /** Tells the canvas which artboard is active when the user presses inside it. */
 function forwardPointerdown(event) { emit('pointerdown', event); }
 
+/** Forwards touch pointers in the parent page's coordinates, for one-finger pan and two-finger pinch. */
+function forwardTouch(event) {
+	if (event.pointerType !== 'touch' || props.fill) return;
+	const rect = iframe.value.getBoundingClientRect();
+	const scale = rect.width / iframe.value.offsetWidth || 1;
+	const point = { x: event.clientX, y: event.clientY };
+	if (event.type === 'pointerdown') {
+		if (!touches.size) touchMoved = false;
+		touches.set(event.pointerId, point);
+		if (touches.size > 1) {
+			touchMoved = true;
+			// A second finger turns any layer drag into a pinch.
+			for (const handle of event.target.ownerDocument.querySelectorAll('[data-designer-overlay] button')) {
+				for (const id of touches.keys()) if (handle.hasPointerCapture(id)) handle.releasePointerCapture(id);
+			}
+		}
+	} else if (event.type === 'pointermove') {
+		const start = touches.get(event.pointerId);
+		if (start && Math.hypot(point.x - start.x, point.y - start.y) > 8) touchMoved = true;
+	} else touches.delete(event.pointerId);
+	emit('touch', { type: event.type, pointerId: event.pointerId, clientX: rect.left + point.x * scale, clientY: rect.top + point.y * scale, overlay: Boolean(event.target.closest?.('[data-designer-overlay]')) });
+}
+
+/** Swallows the click that ends a touch pan or pinch, so it does not also select a layer. */
+function suppressPanClick(event) {
+	if (!touchMoved) return;
+	touchMoved = false;
+	event.preventDefault();
+	event.stopPropagation();
+}
+
 /** Mounts once the iframe document exists, then keeps styles and size in sync. */
 async function connect() {
 	const doc = iframe.value?.contentDocument;
@@ -113,6 +151,8 @@ async function connect() {
 	doc.addEventListener('wheel', forwardWheel, { passive: false });
 	doc.addEventListener('keydown', forwardKeydown);
 	doc.addEventListener('pointerdown', forwardPointerdown, true);
+	for (const type of touchEvents) doc.addEventListener(type, forwardTouch, true);
+	doc.addEventListener('click', suppressPanClick, true);
 	sizeObserver?.disconnect();
 	sizeObserver = new ResizeObserver(fit);
 	sizeObserver.observe(mount.value);
@@ -137,6 +177,9 @@ function cleanup() {
 	doc?.removeEventListener('wheel', forwardWheel);
 	doc?.removeEventListener('keydown', forwardKeydown);
 	doc?.removeEventListener('pointerdown', forwardPointerdown, true);
+	for (const type of touchEvents) doc?.removeEventListener(type, forwardTouch, true);
+	doc?.removeEventListener('click', suppressPanClick, true);
+	touches.clear();
 }
 
 /** Finds a rendered layer by designer id without using it as a selector. */

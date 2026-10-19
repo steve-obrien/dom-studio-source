@@ -5,7 +5,7 @@ import { createSnapIndex, snapResize } from './snapGeometry.js';
 import { createSpacingIndex } from './spacingGeometry.js';
 import { snapTranslation } from './snapPipeline.js';
 import SpacingGuides from './SpacingGuides.vue';
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 defineOptions({ __doc: { name: 'Designer stage', description: 'Beta HTML stage with controlled selection and opt-in absolute movement and resizing.' } });
 const props = defineProps({
@@ -16,12 +16,15 @@ const props = defineProps({
 	spacingSnapping: { type: Boolean, default: false, _edit: { description: 'Repeat horizontal and vertical layer gaps while dragging. Independent of alignment snapping; disabled by default.' } },
 	frameScoped: { type: Boolean, default: false, _edit: { description: 'Only move children of an absolute data-designer-frame. Snap to that frame and its direct children.' } },
 	selection: { type: Array, default: undefined, _edit: { description: 'Selected IDs for multi-select. Shift-click adds or removes a layer; dragging moves every selected layer that can be positioned.' } },
+	zoom: { type: Number, default: 1, _edit: { description: 'Scale applied outside the stage\'s own document, such as a zoomed canvas around an artboard iframe, so outlines and handles keep their screen size.' } },
 	reorder: { type: Boolean, default: false, _edit: { description: 'Drag layers inside flow, flex and grid frames to reorder them. Emits reorder with the new parent and the sibling it goes before.' } },
 });
 const emit = defineEmits(['update:modelValue', 'update:selection', 'style-change', 'reorder']);
 const root = ref(null);
 const box = ref(null);
 const viewScale = ref(1);
+// Outlines and handles are sized in screen pixels: the stage's own scale times any zoom outside its document.
+const screenScale = computed(() => viewScale.value * (props.zoom || 1));
 const guides = ref({});
 const canPosition = ref(false);
 const guideClip = ref(null);
@@ -234,7 +237,7 @@ function moveReorder(event) {
 	});
 	const frame = stageBox(host);
 	const edge = before ? stageBox(before) : children.length ? stageBox(children[children.length - 1]) : null;
-	const thickness = 3 / viewScale.value;
+	const thickness = 3 / screenScale.value;
 	let line;
 	if (!edge) line = vertical ? { left: frame.left, top: frame.top + frame.height / 2, width: frame.width, height: thickness } : { left: frame.left + frame.width / 2, top: frame.top, width: thickness, height: frame.height };
 	else if (vertical) line = { left: edge.left, top: before ? edge.top - thickness : edge.top + edge.height, width: edge.width, height: thickness };
@@ -329,18 +332,18 @@ onBeforeUnmount(cleanup);
 	<div ref="root" class="relative isolate" @click.capture="select" @mousedown.capture="keepTextSelection" @scroll.capture="measure">
 		<slot />
 		<div data-designer-overlay aria-hidden="true" class="pointer-events-none absolute inset-0 z-[2147483647]" :style="{ clipPath: guideClip }">
-			<div v-if="guides.x && guides.x.kind !== 'spacing'" class="absolute inset-y-0 bg-primary" :style="{ left: `${guides.x.target}px`, width: `${1 / viewScale}px` }" />
-			<div v-if="guides.y && guides.y.kind !== 'spacing'" class="absolute inset-x-0 bg-primary" :style="{ top: `${guides.y.target}px`, height: `${1 / viewScale}px` }" />
-			<SpacingGuides :matches="guides" :scale="viewScale" />
+			<div v-if="guides.x && guides.x.kind !== 'spacing'" class="absolute inset-y-0 bg-primary" :style="{ left: `${guides.x.target}px`, width: `${1 / screenScale}px` }" />
+			<div v-if="guides.y && guides.y.kind !== 'spacing'" class="absolute inset-x-0 bg-primary" :style="{ top: `${guides.y.target}px`, height: `${1 / screenScale}px` }" />
+			<SpacingGuides :matches="guides" :scale="screenScale" />
 			<template v-if="!interactive">
-				<div v-for="(item, index) in others" :key="index" class="absolute border-primary" :style="{ borderWidth: `${1 / viewScale}px`, left: `${item.left}px`, top: `${item.top}px`, width: `${item.width}px`, height: `${item.height}px` }" />
+				<div v-for="(item, index) in others" :key="index" class="absolute border-primary" :style="{ borderWidth: `${1 / screenScale}px`, left: `${item.left}px`, top: `${item.top}px`, width: `${item.width}px`, height: `${item.height}px` }" />
 			</template>
 			<template v-if="drop">
-				<div v-if="drop.frame" class="absolute border-dashed border-primary" :style="{ borderWidth: `${1 / viewScale}px`, left: `${drop.frame.left}px`, top: `${drop.frame.top}px`, width: `${drop.frame.width}px`, height: `${drop.frame.height}px` }" />
-				<div class="absolute border-dashed border-primary/60 bg-primary/5" :style="{ borderWidth: `${1 / viewScale}px`, left: `${drop.ghost.left}px`, top: `${drop.ghost.top}px`, width: `${drop.ghost.width}px`, height: `${drop.ghost.height}px` }" />
+				<div v-if="drop.frame" class="absolute border-dashed border-primary" :style="{ borderWidth: `${1 / screenScale}px`, left: `${drop.frame.left}px`, top: `${drop.frame.top}px`, width: `${drop.frame.width}px`, height: `${drop.frame.height}px` }" />
+				<div class="absolute border-dashed border-primary/60 bg-primary/5" :style="{ borderWidth: `${1 / screenScale}px`, left: `${drop.ghost.left}px`, top: `${drop.ghost.top}px`, width: `${drop.ghost.width}px`, height: `${drop.ghost.height}px` }" />
 				<div v-if="drop.line" class="absolute bg-primary" :style="{ left: `${drop.line.left}px`, top: `${drop.line.top}px`, width: `${drop.line.width}px`, height: `${drop.line.height}px` }" />
 			</template>
 		</div>
-		<DesignerBounds v-if="box && !interactive" :box="box" :scale="viewScale" :positioning="canPosition" :reorderable="canReorder" @begin="begin($event.event, $event.handle)" @move="move" @finish="finish" @cancel="end" @nudge="nudge($event.event, $event.handle)" />
+		<DesignerBounds v-if="box && !interactive" :box="box" :scale="screenScale" :positioning="canPosition" :reorderable="canReorder" @begin="begin($event.event, $event.handle)" @move="move" @finish="finish" @cancel="end" @nudge="nudge($event.event, $event.handle)" />
 	</div>
 </template>
