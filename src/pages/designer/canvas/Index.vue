@@ -39,7 +39,7 @@ async function compileCss(content) {
 </script>
 
 <template>
-	<main class="min-h-dvh lg:h-dvh">
+	<main class="h-dvh">
 		<DomDesigner :catalog="catalog" :file-storage="fileStorage" :compile-css="compileCss" :legacy-storage-keys="['dom-studio-canvas-v1']" :code-editor="monaco ? DomMonacoCodeView : null" :code-editor-props="{ load: loadMonaco }" badge="Beta">
 			<template #start>
 				<RouterLink to="/designer" class="text-xs text-muted-fg hover:text-primary">← Designer</RouterLink>

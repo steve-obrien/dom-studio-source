@@ -119,6 +119,12 @@ const pan = ref({ x: 48, y: 72 });
 const panning = ref(false);
 const spaceHeld = ref(false);
 const leftTab = ref('layers');
+// Phones: one bottom sheet holds the panels. It rests at a snap point (tab bar only, half, or nearly full) or follows a drag.
+const sheetTabs = [{ id: 'layers', label: 'Layers' }, { id: 'insert', label: 'Insert' }, { id: 'data', label: 'Data' }, { id: 'inspect', label: 'Inspect' }];
+const sheetSnaps = ['peek', 'half', 'full'];
+const sheetTab = ref('layers');
+const sheetSnap = ref('peek');
+const sheetDrag = ref(null);
 const insertQuery = ref('');
 const showCode = ref(false);
 const codeDraft = ref(null);
@@ -211,6 +217,10 @@ watch(selected, async (id) => {
 watch(canvasMode, (mode) => {
 	try { localStorage.setItem(canvasModeKey, mode); } catch { /* storage unavailable */ }
 	if (mode === 'canvas') nextTick(refresh);
+});
+const sheetHeight = computed(() => {
+	if (sheetDrag.value) return `${sheetDrag.value.height}px`;
+	return { peek: 'calc(3.75rem + env(safe-area-inset-bottom))', half: '45%', full: 'calc(100% - 2.5rem)' }[sheetSnap.value];
 });
 const zoomLabel = computed(() => `${Math.round(zoom.value * 100)}%`);
 const previews = computed(() => Object.fromEntries(workspace.value.files.map((file) => [file.id, previewData(file.doc, file)])));
@@ -979,10 +989,49 @@ function onTouch({ type, pointerId, clientX, clientY, overlay = false }) {
 	startTouchGesture();
 }
 
-/** Selection from any artboard also makes that artboard active. */
+/** Selection from any artboard also makes that artboard active, and shows the sheet's Inspect tab on phones. */
 function selectFromArtboard(board, id) {
 	activeArtboardId.value = board.id;
 	selected.value = id;
+	if (id) sheetTab.value = 'inspect';
+}
+
+/* Bottom sheet (phones) ---------------------------------------------------------------- */
+
+/** Shows a panel; a tap on the resting sheet opens it, and a tap on the open tab folds it away. */
+function openSheetTab(tab) {
+	if (tab === sheetTab.value && sheetSnap.value !== 'peek') sheetSnap.value = 'peek';
+	else if (sheetSnap.value === 'peek') sheetSnap.value = 'half';
+	sheetTab.value = tab;
+	if (tab !== 'inspect') leftTab.value = tab;
+}
+
+/** Moves the sheet one snap point up or down, for the keyboard. */
+function stepSheet(step) {
+	sheetSnap.value = sheetSnaps[Math.min(sheetSnaps.length - 1, Math.max(0, sheetSnaps.indexOf(sheetSnap.value) + step))];
+}
+
+function onSheetPointerdown(event) {
+	const sheet = event.currentTarget.closest('[style*="--sheet-height"]');
+	event.currentTarget.setPointerCapture(event.pointerId);
+	sheetDrag.value = { pointer: event.pointerId, y: event.clientY, start: sheet.offsetHeight, height: sheet.offsetHeight, max: sheet.parentElement.clientHeight, moved: false };
+}
+
+function onSheetPointermove(event) {
+	const drag = sheetDrag.value;
+	if (!drag || drag.pointer !== event.pointerId) return;
+	if (Math.abs(event.clientY - drag.y) > 4) drag.moved = true;
+	drag.height = Math.min(drag.max, Math.max(48, drag.start - (event.clientY - drag.y)));
+}
+
+/** Settles on the nearest snap point; a tap on the handle toggles between resting and half. */
+function onSheetPointerup(event) {
+	const drag = sheetDrag.value;
+	if (!drag || drag.pointer !== event.pointerId) return;
+	sheetDrag.value = null;
+	if (!drag.moved) { sheetSnap.value = sheetSnap.value === 'peek' ? 'half' : 'peek'; return; }
+	const ratio = drag.height / drag.max;
+	sheetSnap.value = ratio < 0.25 ? 'peek' : ratio < 0.7 ? 'half' : 'full';
 }
 
 /* Keyboard -------------------------------------------------------------------------- */
@@ -1046,7 +1095,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<div class="flex min-h-full flex-col bg-canvas text-canvas-fg lg:h-full lg:min-h-[640px] lg:overflow-hidden">
+	<div class="flex h-full min-h-[480px] flex-col overflow-hidden bg-canvas text-canvas-fg lg:min-h-[640px]">
 		<header class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-4 py-2">
 			<div class="flex min-w-0 items-center gap-3">
 				<slot name="start" />
@@ -1092,73 +1141,8 @@ onBeforeUnmount(() => {
 			<button type="button" class="text-xs text-muted-fg hover:text-canvas-fg" @click="notice = ''">Dismiss</button>
 		</p>
 
-		<div class="grid grid-cols-1 lg:min-h-0 lg:flex-1 lg:grid-cols-[16rem_minmax(0,1fr)_19rem]">
-			<aside class="order-2 flex max-h-[28rem] min-h-0 flex-col border-t border-border lg:order-none lg:max-h-none lg:border-t-0 lg:border-r">
-				<div class="flex shrink-0 gap-1 border-b border-border p-2" role="tablist" aria-label="Left panel">
-					<button v-for="tab in ['layers', 'insert', 'data']" :key="tab" type="button" role="tab" :aria-selected="leftTab === tab" class="flex-1 rounded-md px-2 py-1 text-xs font-medium capitalize transition" :class="leftTab === tab ? 'bg-secondary text-canvas-fg' : 'text-muted-fg hover:text-canvas-fg'" @click="leftTab = tab">{{ tab }}</button>
-				</div>
-				<div v-if="leftTab === 'layers'" class="min-h-0 flex-1 space-y-4 overflow-auto p-3">
-					<section>
-						<h2 class="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">Artboards</h2>
-						<ul class="space-y-0.5">
-							<li v-for="board in artboards" :key="board.id">
-								<button type="button" class="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-sm transition hover:bg-secondary" :class="board.id === activeArtboard?.id && 'bg-secondary font-medium'" @click="focusArtboard(board)">
-									<span class="truncate">{{ board.name }}</span>
-									<span class="shrink-0 text-xs tabular-nums text-muted-fg">{{ board.width }}</span>
-								</button>
-							</li>
-						</ul>
-					</section>
-					<section>
-						<h2 class="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">Layers · {{ activeFile?.name }}</h2>
-						<DomDesignerLayers v-model="selected" :items="layers" @reorder="moveLayer" />
-					</section>
-				</div>
-				<div v-else-if="leftTab === 'insert'" class="min-h-0 flex-1 space-y-4 overflow-auto p-3">
-					<section>
-						<h2 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">HTML</h2>
-						<div class="grid grid-cols-2 gap-1.5">
-							<button v-for="item in primitives" :key="item.id" type="button" class="rounded-lg border border-border p-2 text-left transition hover:border-primary" @click="insert(item.tree())">
-								<span class="block text-sm font-medium">{{ item.label }}</span>
-								<span class="block text-[11px] text-muted-fg">{{ item.description }}</span>
-							</button>
-						</div>
-						<details class="mt-2 rounded-lg border border-border">
-							<summary class="cursor-pointer px-2 py-1.5 text-xs font-medium text-muted-fg hover:text-canvas-fg">All HTML elements</summary>
-							<div class="space-y-2 border-t border-border p-2">
-								<div v-for="[group, entries] in htmlTypeGroups" :key="group">
-									<p class="mb-1 text-[11px] font-medium text-muted-fg">{{ group }}</p>
-									<div class="flex flex-wrap gap-1">
-										<button v-for="entry in entries" :key="entry.type" type="button" class="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] transition hover:bg-primary/10 hover:text-primary" :title="`<${entry.tag}>`" @click="insertType(entry)">{{ entry.label }}</button>
-									</div>
-								</div>
-							</div>
-						</details>
-					</section>
-					<section>
-						<h2 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">DOM Studio components</h2>
-						<DomTextInput v-model="insertQuery" label="Search components" placeholder="Grid, chart, tabs…" />
-						<ul class="mt-2 space-y-0.5">
-							<li v-for="entry in insertableComponents" :key="entry.id">
-								<button type="button" class="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-sm transition hover:bg-secondary" @click="insertComponent(entry)">
-									<span class="truncate">{{ entry.label }}</span>
-									<span class="shrink-0 text-[11px] text-muted-fg">{{ entry.group }}</span>
-								</button>
-							</li>
-						</ul>
-					</section>
-				</div>
-				<div v-else class="min-h-0 flex-1 space-y-3 overflow-auto p-3">
-					<div>
-						<h2 class="px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">Preview data · {{ activeFile?.name }}</h2>
-						<p class="mt-1 px-1 text-xs leading-5 text-muted-fg">Bindings such as <code v-pre class="font-mono">{{ project.name }}</code> render with these values. Samples are generated from what the template reads<template v-if="scriptKeys.length">, and <span class="font-mono">{{ scriptKeys.join(', ') }}</span> come from the script</template>. Edits stay in the canvas and are never exported.</p>
-					</div>
-					<DomJsonInput v-if="activeFile" :model-value="previews[activeFile.id]" label="Data" :rows="18" @update:model-value="setData" />
-					<DomButton size="sm" variant="secondary" :disabled="!Object.keys(doc?.data || {}).length" @click="run(onFile({ op: 'setData', path: [], value: {} }))">Reset to samples</DomButton>
-				</div>
-			</aside>
-
-			<section class="relative order-1 h-[60vh] min-w-0 overflow-hidden lg:order-none lg:h-auto">
+		<div class="relative min-h-0 flex-1 lg:grid lg:grid-cols-[16rem_minmax(0,1fr)_19rem]">
+			<section class="absolute inset-0 min-w-0 overflow-hidden lg:relative lg:inset-auto lg:order-2">
 				<div
 					ref="viewport"
 					class="absolute inset-0 touch-none overflow-hidden bg-secondary/60 [background-image:radial-gradient(var(--border)_1px,transparent_1px)]"
@@ -1228,11 +1212,11 @@ onBeforeUnmount(() => {
 					</div>
 					<div v-if="spaceHeld || panning" class="absolute inset-0" aria-hidden="true"></div>
 				</div>
-				<p v-if="compilerNotice" class="pointer-events-none absolute bottom-3 left-3 max-w-md rounded-md bg-canvas/90 px-3 py-2 text-xs text-muted-fg shadow">{{ compilerNotice }}</p>
+				<p v-if="compilerNotice" class="pointer-events-none absolute bottom-3 left-3 max-lg:bottom-20 max-w-md rounded-md bg-canvas/90 px-3 py-2 text-xs text-muted-fg shadow">{{ compilerNotice }}</p>
 				<p v-if="canvasMode === 'canvas'" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] text-muted-fg shadow md:block">Scroll to pan · ⌘/Ctrl + scroll to zoom · Space + drag · ⇧1 fit</p>
 				<p v-else-if="pageSize" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] tabular-nums text-muted-fg shadow md:block">Viewport {{ pageSize.width }} × {{ pageSize.height }}</p>
 
-				<aside v-if="showCode" class="absolute inset-y-0 right-0 flex w-full max-w-xl flex-col border-l border-border bg-canvas shadow-xl">
+				<aside v-if="showCode" class="absolute inset-y-0 right-0 z-20 flex w-full max-w-xl flex-col border-l border-border bg-canvas shadow-xl">
 					<div class="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
 						<p class="truncate font-mono text-xs">{{ activeFile?.name }}</p>
 						<div class="flex gap-1.5">
@@ -1247,102 +1231,178 @@ onBeforeUnmount(() => {
 					<p v-if="codeError || codeWarning" role="status" class="border-t border-border bg-secondary px-4 py-2 text-xs" :class="codeError ? 'text-destructive' : 'text-muted-fg'">{{ codeError || codeWarning }}</p>
 				</aside>
 			</section>
-
-			<aside class="order-3 min-h-0 border-t border-border text-xs lg:order-none lg:overflow-auto lg:border-t-0 lg:border-l">
-				<template v-if="active && activeType">
-					<header class="flex items-start justify-between gap-2 border-b border-border px-4 py-3">
-						<div class="min-w-0">
-							<p class="truncate text-[11px] text-muted-fg">{{ activeType.adapter === 'vue' ? (activeType.placeholder ? 'Local Vue component' : `Vue component · ${activeType.label}`) : isFrame(active) ? 'Frame' : activeType.label }}</p>
-							<h2 class="mt-0.5 truncate font-mono text-sm font-semibold">&lt;{{ activeType.tag }}&gt;</h2>
-							<p class="mt-0.5 truncate text-[11px] text-muted-fg">{{ parent ? `Inside ${parent.label || tagOf(parent)} · ${parentMode}` : 'File root' }}</p>
-						</div>
-						<div v-if="parent" class="-mr-1.5 flex shrink-0 items-center" role="toolbar" aria-label="Layer actions">
-							<button v-for="action in [{ icon: 'parent', label: 'Select parent', run: selectParent }, { icon: 'up', label: 'Move earlier', run: () => reorder(-1) }, { icon: 'down', label: 'Move later', run: () => reorder(1) }, { icon: 'duplicate', label: 'Duplicate (⌘D)', run: duplicate }, { icon: 'trash', label: 'Delete', run: remove }]" :key="action.icon" type="button" class="grid size-7 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg" :class="action.icon === 'trash' && 'hover:text-destructive'" :aria-label="action.label" v-dom-tooltip="action.label" @click="action.run()"><InspectorIcon :name="action.icon" /></button>
-						</div>
-					</header>
-
-					<section v-if="inlineContent.length" class="space-y-2 border-b border-border px-4 py-3">
-						<h3 class="text-[11px] font-semibold">Content</h3>
-						<div v-for="item in inlineContent" :key="item.node.id" class="space-y-1">
-							<button v-if="item.node.type !== 'text'" v-dom-tooltip="'Select this element'" type="button" class="font-mono text-[11px] text-muted-fg hover:text-primary" @click="selected = item.node.id">&lt;{{ tagOf(item.node) }}&gt;</button>
-							<textarea v-if="item.text" :value="textOf(item.text).trim()" rows="2" spellcheck="true" class="block w-full resize-y rounded-md bg-secondary/60 px-2 py-1.5 text-xs leading-5 text-canvas-fg outline-none ring-inset hover:ring-1 hover:ring-border focus:bg-canvas focus:ring-1 focus:ring-primary" :class="[isExpr(item.text.props.value) && 'font-mono', item.node.type !== 'text' && 'ml-3 w-[calc(100%-0.75rem)]']" :aria-label="item.node.type === 'text' ? 'Text' : `Text in ${tagOf(item.node)}`" @change="setText(item.text, $event.target.value)" @keydown.enter.exact.prevent="$event.target.blur()"></textarea>
-						</div>
-					</section>
-
-					<section v-if="parent && parentMode === 'absolute'" class="space-y-2 border-b border-border px-4 py-3">
-						<div class="flex items-center justify-between gap-2">
-							<h3 class="flex items-center gap-1.5 text-[11px] font-semibold">Position<span v-dom-tooltip="parentModes.absolute.tooltip" class="inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 font-normal text-muted-fg"><InspectorIcon name="mode-absolute" class="!size-3" />Absolute</span></h3>
-							<AlignTools target="frame" class="-mr-1.5" @align="align" />
-						</div>
-						<div class="grid grid-cols-2 gap-1.5">
-							<ScrubField v-for="item in [{ key: 'left', prefix: 'X' }, { key: 'top', prefix: 'Y' }, { key: 'width', prefix: 'W' }, { key: 'height', prefix: 'H' }]" :key="item.key" :prefix="item.prefix" :label="{ left: 'X position', top: 'Y position', width: 'Width', height: 'Height' }[item.key]" :min="['width', 'height'].includes(item.key) ? 16 : null" :model-value="Math.round(geometry[item.key] ?? 0)" @update:model-value="setGeometry(item.key, $event)" />
-						</div>
-					</section>
-					<section v-else-if="parent" class="space-y-2 border-b border-border px-4 py-3">
-						<h3 class="flex items-center gap-1.5 text-[11px] font-semibold">Size<span v-if="parentModes[parentMode]" v-dom-tooltip="parentModes[parentMode].tooltip" class="inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 font-normal text-muted-fg"><InspectorIcon :name="parentModes[parentMode].icon" class="!size-3" />{{ parentModes[parentMode].label }}</span></h3>
-						<div v-for="key in ['width', 'height']" :key="key" class="grid grid-cols-[minmax(0,1fr)_5.5rem] gap-1.5">
-							<ScrubField :prefix="key === 'width' ? 'W' : 'H'" :label="key === 'width' ? 'Width' : 'Height'" css :min="0" :model-value="lengthValue(active.style?.[key])" :placeholder="geometry[key] ? String(Math.round(geometry[key])) : 'Auto'" @update:model-value="setDimension(key, $event)" />
-							<select class="h-7 w-full min-w-0 rounded-md border-0 bg-secondary/60 px-2 text-xs text-canvas-fg outline-none ring-inset hover:ring-1 hover:ring-border focus:ring-1 focus:ring-primary" :value="sizing(key)" :aria-label="`${key === 'width' ? 'Width' : 'Height'} sizing`" v-dom-tooltip="{ auto: 'Auto: classes and content decide', fixed: 'Fixed: an exact size', hug: 'Hug: shrink to the content', fill: 'Fill: take the space the parent gives' }[sizing(key)]" @change="setSizing(key, $event.target.value)">
-								<option v-for="mode in sizingModes" :key="mode.value" :value="mode.value">{{ mode.label }}</option>
-							</select>
-						</div>
-						<div class="grid grid-cols-2 gap-1.5 pt-1">
-							<ScrubField v-for="key in ['margin-top', 'margin-bottom']" :key="key" :prefix="key === 'margin-top' ? '↑' : '↓'" :label="key === 'margin-top' ? 'Top margin' : 'Bottom margin'" css :model-value="lengthValue(active.style?.[key])" placeholder="Margin" @update:model-value="setSize(key, $event)" />
-						</div>
-					</section>
-
-					<section v-if="isFrame(active)" class="space-y-2 border-b border-border px-4 py-3">
-						<DomFrameLayoutEditor :key="active.id" title="Layout" :model-value="layout" @update:model-value="setLayout" />
-						<p v-if="!active.layout" class="text-[11px] leading-4 text-muted-fg">Read from the HTML at {{ activeArtboard?.width }}px. Changing a control adds an explicit override.</p>
-					</section>
-
-					<section v-if="active.directives?.length" class="space-y-1.5 border-b border-border px-4 py-3">
-						<h3 class="text-[11px] font-semibold">Template logic</h3>
-						<ul class="flex flex-wrap gap-1"><li v-for="source in active.directives" :key="source" class="rounded bg-secondary px-1.5 py-0.5 font-mono text-[11px]">{{ source }}</li></ul>
-						<p class="text-[11px] leading-4 text-muted-fg">Kept on export. Data view runs lists and conditions on preview data; Variables view shows every branch and one item of each list.</p>
-					</section>
-					<div class="border-b border-border px-4">
-						<DomTypographyEditor v-if="showText && textStyle" title="Text" :google-fonts="googleFonts" :model-value="textStyle" @update:model-value="setStyle('text', $event)" />
-						<template v-for="kind in ['fill', 'stroke', 'shadow', 'blur']" :key="kind">
-							<StyleControlSection v-if="customStyle[kind]" :model-value="true" :title="styleTitles[kind]" meta="Custom CSS">
-								<template #actions><ControlIconButton icon="remove" :label="`Remove ${styleTitles[kind].toLowerCase()}`" @click="setStyleRaw(kind, '')" /></template>
-								<input class="h-7 w-full min-w-0 rounded-md bg-secondary/60 px-2 font-mono text-[11px] text-canvas-fg outline-none focus:bg-canvas focus:ring-1 focus:ring-primary" :value="customStyle[kind]" :aria-label="`${styleTitles[kind]} CSS`" spellcheck="false" @change="setStyleRaw(kind, $event.target.value)">
-								<p class="mt-1.5 text-[11px] leading-4 text-muted-fg">Edited as CSS, since the {{ styleTitles[kind].toLowerCase() }} controls cannot show this value.</p>
-							</StyleControlSection>
-							<DomBackgroundEditor v-else-if="kind === 'fill' && fillStyle" title="Fill" :model-value="fillStyle" @update:model-value="setStyle('fill', $event)" />
-							<DomBorderEditor v-else-if="kind === 'stroke' && strokeStyle" title="Stroke" :model-value="strokeStyle" @update:model-value="setStyle('stroke', $event)" />
-							<DomShadowEditor v-else-if="kind === 'shadow' && shadowStyle" title="Shadow" :model-value="shadowStyle" @update:model-value="setStyle('shadow', $event)" />
-							<DomBackdropEditor v-else-if="kind === 'blur' && blurStyle" title="Background blur" :model-value="blurStyle" @update:model-value="setStyle('blur', $event)" />
-						</template>
-					</div>
-					<div class="space-y-5 px-4 py-3">
-						<NodeInspector v-if="textChild" :key="`text-${textChild.id}`" :node="textChild" :type="types.get('text')" :data="previews[activeFile.id]" @set-prop="setProp(textChild.id, $event)" />
-						<NodeInspector :key="active.id" :node="active" :type="activeType" :data="previews[activeFile.id]" @set-prop="setProp(active.id, $event)" />
-					</div>
-				</template>
-
-				<div v-else-if="activeArtboard" class="space-y-5 p-4">
-					<div>
-						<p class="text-xs text-muted-fg">Artboard</p>
-						<h2 class="mt-0.5 font-semibold">{{ activeArtboard.name }}</h2>
-						<p class="mt-1 text-xs text-muted-fg">Select a layer on the canvas or in the layer list.</p>
-					</div>
-					<DomTextInput :model-value="activeArtboard.name" label="Name" @update:model-value="setArtboard(activeArtboard, 'name', $event)" />
-					<DomNumberInput :model-value="activeArtboard.width" label="Width" :min="240" :max="2560" @update:model-value="Number.isFinite(Number($event)) && setArtboard(activeArtboard, 'width', Math.min(2560, Math.max(240, Number($event))))" />
-					<DomNumberInput :model-value="activeArtboard.height" label="Screen height" description="The device's visible height: what 100vh means on this artboard, shown as the dashed line." :min="320" :max="2160" @update:model-value="Number.isFinite(Number($event)) && setArtboard(activeArtboard, 'height', Math.min(2160, Math.max(320, Number($event))))" />
-					<DomNativeSelect label="Preset" :model-value="String(activeArtboard.width)" :options="artboardPresets.map((preset) => ({ label: `${preset.label} · ${preset.width}`, value: String(preset.width) }))" @update:model-value="setArtboard(activeArtboard, 'width', Number($event))" />
-					<DomTextInput v-if="activeFile" :model-value="activeFile.name" label="File name" @update:model-value="run({ op: 'setFile', id: activeFile.id, key: 'name', value: $event }, { merge: `file:${activeFile.id}:name` })" />
-					<section class="space-y-2 border-t border-border pt-4">
-						<h3 class="text-sm font-semibold">Add a breakpoint</h3>
-						<p class="text-xs leading-5 text-muted-fg">A new artboard for {{ activeFile?.name }}. Edits show in every artboard of the same file.</p>
-						<div class="flex flex-wrap gap-1.5"><DomButton v-for="preset in artboardPresets" :key="preset.width" size="sm" variant="secondary" @click="addArtboard(preset)">{{ preset.label }}</DomButton></div>
-					</section>
-					<div class="flex flex-wrap gap-1.5 border-t border-border pt-4">
-						<DomButton size="sm" variant="secondary" :disabled="artboards.length < 2" @click="removeArtboard(activeArtboard)">Remove artboard</DomButton>
-						<DomButton size="sm" variant="ghost" @click="resetDemo">Reset canvas</DomButton>
+			<!-- Phones: the panels live in one bottom sheet over the canvas. From lg up the wrapper disappears and the panels are grid columns. -->
+			<div
+				class="absolute inset-x-0 bottom-0 z-10 flex h-(--sheet-height) flex-col overflow-hidden rounded-t-xl border-t border-border bg-canvas pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgb(0_0_0/0.08)] lg:contents"
+				:class="!sheetDrag && 'transition-[height] duration-200'"
+				:style="{ '--sheet-height': sheetHeight }"
+			>
+				<div class="shrink-0 lg:hidden">
+					<div class="flex h-5 cursor-grab touch-none items-center justify-center" role="separator" aria-orientation="horizontal" aria-label="Resize panel" tabindex="0" @pointerdown="onSheetPointerdown" @pointermove="onSheetPointermove" @pointerup="onSheetPointerup" @pointercancel="onSheetPointerup" @keydown.up.prevent="stepSheet(1)" @keydown.down.prevent="stepSheet(-1)"><span class="h-1 w-9 rounded-full bg-border" aria-hidden="true"></span></div>
+					<div class="flex gap-1 px-2 pb-2" role="tablist" aria-label="Panels">
+						<button v-for="tab in sheetTabs" :key="tab.id" type="button" role="tab" :aria-selected="sheetTab === tab.id" class="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition" :class="sheetTab === tab.id ? 'bg-secondary text-canvas-fg' : 'text-muted-fg'" @click="openSheetTab(tab.id)"><span>{{ tab.label }}</span><span v-if="tab.id === 'inspect' && activeType" class="truncate font-mono text-[10px] text-muted-fg">&lt;{{ activeType.tag }}&gt;</span></button>
 					</div>
 				</div>
-			</aside>
+				<aside class="flex min-h-0 flex-1 flex-col lg:order-1 lg:border-r" :class="sheetTab === 'inspect' && 'max-lg:hidden'">
+					<div class="flex shrink-0 gap-1 border-b border-border p-2 max-lg:hidden" role="tablist" aria-label="Left panel">
+						<button v-for="tab in ['layers', 'insert', 'data']" :key="tab" type="button" role="tab" :aria-selected="leftTab === tab" class="flex-1 rounded-md px-2 py-1 text-xs font-medium capitalize transition" :class="leftTab === tab ? 'bg-secondary text-canvas-fg' : 'text-muted-fg hover:text-canvas-fg'" @click="leftTab = tab">{{ tab }}</button>
+					</div>
+					<div v-if="leftTab === 'layers'" class="min-h-0 flex-1 space-y-4 overflow-auto p-3">
+						<section>
+							<h2 class="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">Artboards</h2>
+							<ul class="space-y-0.5">
+								<li v-for="board in artboards" :key="board.id">
+									<button type="button" class="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-sm transition hover:bg-secondary" :class="board.id === activeArtboard?.id && 'bg-secondary font-medium'" @click="focusArtboard(board)">
+										<span class="truncate">{{ board.name }}</span>
+										<span class="shrink-0 text-xs tabular-nums text-muted-fg">{{ board.width }}</span>
+									</button>
+								</li>
+							</ul>
+						</section>
+						<section>
+							<h2 class="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">Layers · {{ activeFile?.name }}</h2>
+							<DomDesignerLayers v-model="selected" :items="layers" @reorder="moveLayer" />
+						</section>
+					</div>
+					<div v-else-if="leftTab === 'insert'" class="min-h-0 flex-1 space-y-4 overflow-auto p-3">
+						<section>
+							<h2 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">HTML</h2>
+							<div class="grid grid-cols-2 gap-1.5">
+								<button v-for="item in primitives" :key="item.id" type="button" class="rounded-lg border border-border p-2 text-left transition hover:border-primary" @click="insert(item.tree())">
+									<span class="block text-sm font-medium">{{ item.label }}</span>
+									<span class="block text-[11px] text-muted-fg">{{ item.description }}</span>
+								</button>
+							</div>
+							<details class="mt-2 rounded-lg border border-border">
+								<summary class="cursor-pointer px-2 py-1.5 text-xs font-medium text-muted-fg hover:text-canvas-fg">All HTML elements</summary>
+								<div class="space-y-2 border-t border-border p-2">
+									<div v-for="[group, entries] in htmlTypeGroups" :key="group">
+										<p class="mb-1 text-[11px] font-medium text-muted-fg">{{ group }}</p>
+										<div class="flex flex-wrap gap-1">
+											<button v-for="entry in entries" :key="entry.type" type="button" class="rounded-md bg-secondary px-1.5 py-0.5 text-[11px] transition hover:bg-primary/10 hover:text-primary" :title="`<${entry.tag}>`" @click="insertType(entry)">{{ entry.label }}</button>
+										</div>
+									</div>
+								</div>
+							</details>
+						</section>
+						<section>
+							<h2 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">DOM Studio components</h2>
+							<DomTextInput v-model="insertQuery" label="Search components" placeholder="Grid, chart, tabs…" />
+							<ul class="mt-2 space-y-0.5">
+								<li v-for="entry in insertableComponents" :key="entry.id">
+									<button type="button" class="flex w-full items-center justify-between gap-2 rounded-md px-2 py-1 text-left text-sm transition hover:bg-secondary" @click="insertComponent(entry)">
+										<span class="truncate">{{ entry.label }}</span>
+										<span class="shrink-0 text-[11px] text-muted-fg">{{ entry.group }}</span>
+									</button>
+								</li>
+							</ul>
+						</section>
+					</div>
+					<div v-else class="min-h-0 flex-1 space-y-3 overflow-auto p-3">
+						<div>
+							<h2 class="px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">Preview data · {{ activeFile?.name }}</h2>
+							<p class="mt-1 px-1 text-xs leading-5 text-muted-fg">Bindings such as <code v-pre class="font-mono">{{ project.name }}</code> render with these values. Samples are generated from what the template reads<template v-if="scriptKeys.length">, and <span class="font-mono">{{ scriptKeys.join(', ') }}</span> come from the script</template>. Edits stay in the canvas and are never exported.</p>
+						</div>
+						<DomJsonInput v-if="activeFile" :model-value="previews[activeFile.id]" label="Data" :rows="18" @update:model-value="setData" />
+						<DomButton size="sm" variant="secondary" :disabled="!Object.keys(doc?.data || {}).length" @click="run(onFile({ op: 'setData', path: [], value: {} }))">Reset to samples</DomButton>
+					</div>
+				</aside>
+				<aside class="min-h-0 flex-1 overflow-auto text-xs lg:order-3 lg:border-l" :class="sheetTab !== 'inspect' && 'max-lg:hidden'">
+					<template v-if="active && activeType">
+						<header class="flex items-start justify-between gap-2 border-b border-border px-4 py-3">
+							<div class="min-w-0">
+								<p class="truncate text-[11px] text-muted-fg">{{ activeType.adapter === 'vue' ? (activeType.placeholder ? 'Local Vue component' : `Vue component · ${activeType.label}`) : isFrame(active) ? 'Frame' : activeType.label }}</p>
+								<h2 class="mt-0.5 truncate font-mono text-sm font-semibold">&lt;{{ activeType.tag }}&gt;</h2>
+								<p class="mt-0.5 truncate text-[11px] text-muted-fg">{{ parent ? `Inside ${parent.label || tagOf(parent)} · ${parentMode}` : 'File root' }}</p>
+							</div>
+							<div v-if="parent" class="-mr-1.5 flex shrink-0 items-center" role="toolbar" aria-label="Layer actions">
+								<button v-for="action in [{ icon: 'parent', label: 'Select parent', run: selectParent }, { icon: 'up', label: 'Move earlier', run: () => reorder(-1) }, { icon: 'down', label: 'Move later', run: () => reorder(1) }, { icon: 'duplicate', label: 'Duplicate (⌘D)', run: duplicate }, { icon: 'trash', label: 'Delete', run: remove }]" :key="action.icon" type="button" class="grid size-7 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg" :class="action.icon === 'trash' && 'hover:text-destructive'" :aria-label="action.label" v-dom-tooltip="action.label" @click="action.run()"><InspectorIcon :name="action.icon" /></button>
+							</div>
+						</header>
+
+						<section v-if="inlineContent.length" class="space-y-2 border-b border-border px-4 py-3">
+							<h3 class="text-[11px] font-semibold">Content</h3>
+							<div v-for="item in inlineContent" :key="item.node.id" class="space-y-1">
+								<button v-if="item.node.type !== 'text'" v-dom-tooltip="'Select this element'" type="button" class="font-mono text-[11px] text-muted-fg hover:text-primary" @click="selected = item.node.id">&lt;{{ tagOf(item.node) }}&gt;</button>
+								<textarea v-if="item.text" :value="textOf(item.text).trim()" rows="2" spellcheck="true" class="block w-full resize-y rounded-md bg-secondary/60 px-2 py-1.5 text-xs leading-5 text-canvas-fg outline-none ring-inset hover:ring-1 hover:ring-border focus:bg-canvas focus:ring-1 focus:ring-primary" :class="[isExpr(item.text.props.value) && 'font-mono', item.node.type !== 'text' && 'ml-3 w-[calc(100%-0.75rem)]']" :aria-label="item.node.type === 'text' ? 'Text' : `Text in ${tagOf(item.node)}`" @change="setText(item.text, $event.target.value)" @keydown.enter.exact.prevent="$event.target.blur()"></textarea>
+							</div>
+						</section>
+
+						<section v-if="parent && parentMode === 'absolute'" class="space-y-2 border-b border-border px-4 py-3">
+							<div class="flex items-center justify-between gap-2">
+								<h3 class="flex items-center gap-1.5 text-[11px] font-semibold">Position<span v-dom-tooltip="parentModes.absolute.tooltip" class="inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 font-normal text-muted-fg"><InspectorIcon name="mode-absolute" class="!size-3" />Absolute</span></h3>
+								<AlignTools target="frame" class="-mr-1.5" @align="align" />
+							</div>
+							<div class="grid grid-cols-2 gap-1.5">
+								<ScrubField v-for="item in [{ key: 'left', prefix: 'X' }, { key: 'top', prefix: 'Y' }, { key: 'width', prefix: 'W' }, { key: 'height', prefix: 'H' }]" :key="item.key" :prefix="item.prefix" :label="{ left: 'X position', top: 'Y position', width: 'Width', height: 'Height' }[item.key]" :min="['width', 'height'].includes(item.key) ? 16 : null" :model-value="Math.round(geometry[item.key] ?? 0)" @update:model-value="setGeometry(item.key, $event)" />
+							</div>
+						</section>
+						<section v-else-if="parent" class="space-y-2 border-b border-border px-4 py-3">
+							<h3 class="flex items-center gap-1.5 text-[11px] font-semibold">Size<span v-if="parentModes[parentMode]" v-dom-tooltip="parentModes[parentMode].tooltip" class="inline-flex items-center gap-1 rounded bg-secondary px-1.5 py-0.5 font-normal text-muted-fg"><InspectorIcon :name="parentModes[parentMode].icon" class="!size-3" />{{ parentModes[parentMode].label }}</span></h3>
+							<div v-for="key in ['width', 'height']" :key="key" class="grid grid-cols-[minmax(0,1fr)_5.5rem] gap-1.5">
+								<ScrubField :prefix="key === 'width' ? 'W' : 'H'" :label="key === 'width' ? 'Width' : 'Height'" css :min="0" :model-value="lengthValue(active.style?.[key])" :placeholder="geometry[key] ? String(Math.round(geometry[key])) : 'Auto'" @update:model-value="setDimension(key, $event)" />
+								<select class="h-7 w-full min-w-0 rounded-md border-0 bg-secondary/60 px-2 text-xs text-canvas-fg outline-none ring-inset hover:ring-1 hover:ring-border focus:ring-1 focus:ring-primary" :value="sizing(key)" :aria-label="`${key === 'width' ? 'Width' : 'Height'} sizing`" v-dom-tooltip="{ auto: 'Auto: classes and content decide', fixed: 'Fixed: an exact size', hug: 'Hug: shrink to the content', fill: 'Fill: take the space the parent gives' }[sizing(key)]" @change="setSizing(key, $event.target.value)">
+									<option v-for="mode in sizingModes" :key="mode.value" :value="mode.value">{{ mode.label }}</option>
+								</select>
+							</div>
+							<div class="grid grid-cols-2 gap-1.5 pt-1">
+								<ScrubField v-for="key in ['margin-top', 'margin-bottom']" :key="key" :prefix="key === 'margin-top' ? '↑' : '↓'" :label="key === 'margin-top' ? 'Top margin' : 'Bottom margin'" css :model-value="lengthValue(active.style?.[key])" placeholder="Margin" @update:model-value="setSize(key, $event)" />
+							</div>
+						</section>
+
+						<section v-if="isFrame(active)" class="space-y-2 border-b border-border px-4 py-3">
+							<DomFrameLayoutEditor :key="active.id" title="Layout" :model-value="layout" @update:model-value="setLayout" />
+							<p v-if="!active.layout" class="text-[11px] leading-4 text-muted-fg">Read from the HTML at {{ activeArtboard?.width }}px. Changing a control adds an explicit override.</p>
+						</section>
+
+						<section v-if="active.directives?.length" class="space-y-1.5 border-b border-border px-4 py-3">
+							<h3 class="text-[11px] font-semibold">Template logic</h3>
+							<ul class="flex flex-wrap gap-1"><li v-for="source in active.directives" :key="source" class="rounded bg-secondary px-1.5 py-0.5 font-mono text-[11px]">{{ source }}</li></ul>
+							<p class="text-[11px] leading-4 text-muted-fg">Kept on export. Data view runs lists and conditions on preview data; Variables view shows every branch and one item of each list.</p>
+						</section>
+						<div class="border-b border-border px-4">
+							<DomTypographyEditor v-if="showText && textStyle" title="Text" :google-fonts="googleFonts" :model-value="textStyle" @update:model-value="setStyle('text', $event)" />
+							<template v-for="kind in ['fill', 'stroke', 'shadow', 'blur']" :key="kind">
+								<StyleControlSection v-if="customStyle[kind]" :model-value="true" :title="styleTitles[kind]" meta="Custom CSS">
+									<template #actions><ControlIconButton icon="remove" :label="`Remove ${styleTitles[kind].toLowerCase()}`" @click="setStyleRaw(kind, '')" /></template>
+									<input class="h-7 w-full min-w-0 rounded-md bg-secondary/60 px-2 font-mono text-[11px] text-canvas-fg outline-none focus:bg-canvas focus:ring-1 focus:ring-primary" :value="customStyle[kind]" :aria-label="`${styleTitles[kind]} CSS`" spellcheck="false" @change="setStyleRaw(kind, $event.target.value)">
+									<p class="mt-1.5 text-[11px] leading-4 text-muted-fg">Edited as CSS, since the {{ styleTitles[kind].toLowerCase() }} controls cannot show this value.</p>
+								</StyleControlSection>
+								<DomBackgroundEditor v-else-if="kind === 'fill' && fillStyle" title="Fill" :model-value="fillStyle" @update:model-value="setStyle('fill', $event)" />
+								<DomBorderEditor v-else-if="kind === 'stroke' && strokeStyle" title="Stroke" :model-value="strokeStyle" @update:model-value="setStyle('stroke', $event)" />
+								<DomShadowEditor v-else-if="kind === 'shadow' && shadowStyle" title="Shadow" :model-value="shadowStyle" @update:model-value="setStyle('shadow', $event)" />
+								<DomBackdropEditor v-else-if="kind === 'blur' && blurStyle" title="Background blur" :model-value="blurStyle" @update:model-value="setStyle('blur', $event)" />
+							</template>
+						</div>
+						<div class="space-y-5 px-4 py-3">
+							<NodeInspector v-if="textChild" :key="`text-${textChild.id}`" :node="textChild" :type="types.get('text')" :data="previews[activeFile.id]" @set-prop="setProp(textChild.id, $event)" />
+							<NodeInspector :key="active.id" :node="active" :type="activeType" :data="previews[activeFile.id]" @set-prop="setProp(active.id, $event)" />
+						</div>
+					</template>
+
+					<div v-else-if="activeArtboard" class="space-y-5 p-4">
+						<div>
+							<p class="text-xs text-muted-fg">Artboard</p>
+							<h2 class="mt-0.5 font-semibold">{{ activeArtboard.name }}</h2>
+							<p class="mt-1 text-xs text-muted-fg">Select a layer on the canvas or in the layer list.</p>
+						</div>
+						<DomTextInput :model-value="activeArtboard.name" label="Name" @update:model-value="setArtboard(activeArtboard, 'name', $event)" />
+						<DomNumberInput :model-value="activeArtboard.width" label="Width" :min="240" :max="2560" @update:model-value="Number.isFinite(Number($event)) && setArtboard(activeArtboard, 'width', Math.min(2560, Math.max(240, Number($event))))" />
+						<DomNumberInput :model-value="activeArtboard.height" label="Screen height" description="The device's visible height: what 100vh means on this artboard, shown as the dashed line." :min="320" :max="2160" @update:model-value="Number.isFinite(Number($event)) && setArtboard(activeArtboard, 'height', Math.min(2160, Math.max(320, Number($event))))" />
+						<DomNativeSelect label="Preset" :model-value="String(activeArtboard.width)" :options="artboardPresets.map((preset) => ({ label: `${preset.label} · ${preset.width}`, value: String(preset.width) }))" @update:model-value="setArtboard(activeArtboard, 'width', Number($event))" />
+						<DomTextInput v-if="activeFile" :model-value="activeFile.name" label="File name" @update:model-value="run({ op: 'setFile', id: activeFile.id, key: 'name', value: $event }, { merge: `file:${activeFile.id}:name` })" />
+						<section class="space-y-2 border-t border-border pt-4">
+							<h3 class="text-sm font-semibold">Add a breakpoint</h3>
+							<p class="text-xs leading-5 text-muted-fg">A new artboard for {{ activeFile?.name }}. Edits show in every artboard of the same file.</p>
+							<div class="flex flex-wrap gap-1.5"><DomButton v-for="preset in artboardPresets" :key="preset.width" size="sm" variant="secondary" @click="addArtboard(preset)">{{ preset.label }}</DomButton></div>
+						</section>
+						<div class="flex flex-wrap gap-1.5 border-t border-border pt-4">
+							<DomButton size="sm" variant="secondary" :disabled="artboards.length < 2" @click="removeArtboard(activeArtboard)">Remove artboard</DomButton>
+							<DomButton size="sm" variant="ghost" @click="resetDemo">Reset canvas</DomButton>
+						</div>
+					</div>
+				</aside>
+			</div>
 		</div>
 	</div>
 </template>
