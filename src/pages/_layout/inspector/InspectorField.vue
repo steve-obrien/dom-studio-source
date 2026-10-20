@@ -15,19 +15,30 @@ const update = (v) => emit('update:modelValue', v);
 
 const editor = computed(() => getEditor(props.field.component) || getDefaultEditor());
 
+// Editors that can show an unset prop's default as greyed placeholder text.
+// Other editors (toggles, selects, swatches) show the default as their value,
+// which stays unset in the source until it is edited.
+const placeholderEditors = new Set(['DomTextInput', 'DomTextareaInput', 'DomNumberInput', 'ScrubField']);
+const unset = computed(() => props.modelValue === undefined && props.field.defaultValue !== undefined);
+const shownValue = computed(() => (unset.value && !placeholderEditors.has(props.field.component) ? props.field.defaultValue : props.modelValue));
+const defaultPlaceholder = computed(() => {
+	if (!unset.value || !placeholderEditors.has(props.field.component) || props.field.defaultValue === '') return {};
+	return { placeholder: String(props.field.defaultValue) };
+});
+
 // Pass through every schema entry except the bookkeeping fields so editors
 // pick up their own props (options, rows, min/max/step, placeholder, …).
 const editorProps = computed(() => {
 	// eslint-disable-next-line no-unused-vars
-	const { key, keys, component, target, label, description, group, half, props: fieldProps = {}, ...rest } = props.field;
-	return { ...rest, ...fieldProps };
+	const { key, keys, component, target, label, description, group, half, defaultValue, props: fieldProps = {}, ...rest } = props.field;
+	return { ...rest, ...fieldProps, ...defaultPlaceholder.value };
 });
 </script>
 
 <template>
 	<component
 		:is="editor"
-		:model-value="modelValue"
+		:model-value="shownValue"
 		:label="field.label"
 		:description="field.description"
 		v-bind="editorProps"

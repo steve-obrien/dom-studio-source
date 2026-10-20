@@ -17,7 +17,9 @@ import { UNKNOWN, createScope, evaluate } from './expression.js';
  *
  * A type can order its groups with `groups`, and a field with `half: true`
  * shares a row. A field with `keys` edits several props as one object, such
- * as a typography editor over `fontFamily`, `fontSize` and the rest. Number fields are clamped to their `min` and `max`. Editors
+ * as a typography editor over `fontFamily`, `fontSize` and the rest. Number fields are clamped to their `min` and `max`. An
+ * unset field with a `defaultValue` shows that default (see `InspectorField`),
+ * and a set one can be reset, which removes the prop from the source. Editors
  * without data bindings (the poster) turn off `bindable` and `extraProps`.
  */
 defineOptions({ name: 'NodeInspector' });
@@ -51,6 +53,15 @@ function rank(group) {
 	const order = props.type.groups || defaultGroupOrder;
 	const index = order.indexOf(group);
 	return index < 0 ? order.length : index;
+}
+
+/** Whether an unset field falls back to a default the inspector shows. */
+function hasDefault(field) {
+	return !field.keys && field.defaultValue !== undefined;
+}
+
+function formatDefault(value) {
+	return typeof value === 'string' ? `'${value}'` : String(value);
 }
 
 function set(key, value, merge = true) {
@@ -113,13 +124,22 @@ function addProp() {
 				</div>
 				<template v-else>
 					<InspectorField :field="field" :model-value="fieldValue(field)" @update:model-value="setField(field, $event)" />
-					<button
-						v-if="bindable && !field.keys && (node.type !== 'text' || field.key === 'value')"
-						type="button"
-						class="absolute right-0 top-0 rounded px-1 font-mono text-[11px] text-muted-fg opacity-0 transition hover:bg-secondary hover:text-primary focus:opacity-100 group-hover/field:opacity-100"
-						:title="`Bind ${field.label || field.key} to data`"
-						@click="bind(field.key)"
-					>{ }</button>
+					<div class="absolute right-0 top-0 flex gap-0.5 opacity-0 transition focus-within:opacity-100 group-hover/field:opacity-100">
+						<button
+							v-if="hasDefault(field) && node.props[field.key] !== undefined"
+							type="button"
+							class="rounded px-1 text-[11px] text-muted-fg hover:bg-secondary hover:text-primary"
+							:title="`Reset ${field.label || field.key} to its default (${formatDefault(field.defaultValue)})`"
+							@click="set(field.key, undefined, false)"
+						>Reset</button>
+						<button
+							v-if="bindable && !field.keys && (node.type !== 'text' || field.key === 'value')"
+							type="button"
+							class="rounded px-1 font-mono text-[11px] text-muted-fg hover:bg-secondary hover:text-primary"
+							:title="`Bind ${field.label || field.key} to data`"
+							@click="bind(field.key)"
+						>{ }</button>
+					</div>
 				</template>
 			</div>
 		</section>
