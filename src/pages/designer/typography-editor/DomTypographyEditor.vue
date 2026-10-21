@@ -17,6 +17,7 @@ defineOptions({
 		events: [
 			{ name: 'update:modelValue', payload: 'object', description: 'A new typography record.' },
 			{ name: 'change', payload: '{ typography, style }', description: 'The record and a ready-to-bind Vue style object.' },
+			{ name: 'mark', payload: "'bold' | 'italic' | 'underline' | 'strike'", description: 'A style toggle pressed while `marks` is set, to apply to selected text instead of the whole record.' },
 		],
 	},
 });
@@ -29,8 +30,9 @@ const props = defineProps({
 	weights: { type: Array, default: () => fontWeightOptions },
 	showColor: { type: Boolean, default: true },
 	disabled: { type: Boolean, default: false },
+	marks: { type: Object, default: null, _edit: { description: 'While text is being edited, which of bold, italic, underline and strike the selected words have. The four style toggles then show these and emit mark instead of changing the record.' } },
 });
-const emit = defineEmits(['update:modelValue', 'change']);
+const emit = defineEmits(['update:modelValue', 'change', 'mark']);
 const draft = ref({});
 const open = ref(true);
 const customFont = ref(false);
@@ -46,6 +48,12 @@ const caseOptions = [
 	{ value: 'uppercase', text: 'AA', label: 'Uppercase' },
 	{ value: 'lowercase', text: 'aa', label: 'Lowercase' },
 	{ value: 'capitalize', text: 'Aa', label: 'Title case' },
+];
+const markButtons = [
+	{ name: 'bold', icon: 'bold', label: 'Bold' },
+	{ name: 'italic', icon: 'italic', label: 'Italic' },
+	{ name: 'underline', icon: 'underline', label: 'Underline' },
+	{ name: 'strike', icon: 'strike', label: 'Strikethrough' },
 ];
 const decoration = computed(() => String(draft.value.textDecoration || ''));
 const fontChoices = computed(() => [...props.fonts, { label: 'Custom font…', value: '__custom' }]);
@@ -111,10 +119,16 @@ watch(draft, publish);
 			</div>
 			<div class="flex items-center justify-between gap-1.5">
 				<div class="flex h-7 items-center rounded-md bg-secondary/60 px-0.5" role="group" aria-label="Text style">
-					<ControlIconButton icon="bold" label="Bold" :pressed="isBold(draft.fontWeight)" @click="set('fontWeight', isBold(draft.fontWeight) ? '400' : '700')" />
-					<ControlIconButton icon="italic" label="Italic" :pressed="draft.fontStyle === 'italic'" @click="set('fontStyle', draft.fontStyle === 'italic' ? 'normal' : 'italic')" />
-					<ControlIconButton icon="underline" label="Underline" :pressed="decoration.includes('underline')" @click="set('textDecoration', toggleDecoration(decoration, 'underline'))" />
-					<ControlIconButton icon="strike" label="Strikethrough" :pressed="decoration.includes('line-through')" @click="set('textDecoration', toggleDecoration(decoration, 'line-through'))" />
+					<template v-if="marks">
+						<!-- mousedown is kept from taking focus, so the words selected on the canvas stay selected. -->
+						<ControlIconButton v-for="mark in markButtons" :key="mark.name" :icon="mark.icon" :label="`${mark.label} selected text`" :pressed="Boolean(marks[mark.name])" @mousedown.prevent @click="emit('mark', mark.name)" />
+					</template>
+					<template v-else>
+						<ControlIconButton icon="bold" label="Bold" :pressed="isBold(draft.fontWeight)" @click="set('fontWeight', isBold(draft.fontWeight) ? '400' : '700')" />
+						<ControlIconButton icon="italic" label="Italic" :pressed="draft.fontStyle === 'italic'" @click="set('fontStyle', draft.fontStyle === 'italic' ? 'normal' : 'italic')" />
+						<ControlIconButton icon="underline" label="Underline" :pressed="decoration.includes('underline')" @click="set('textDecoration', toggleDecoration(decoration, 'underline'))" />
+						<ControlIconButton icon="strike" label="Strikethrough" :pressed="decoration.includes('line-through')" @click="set('textDecoration', toggleDecoration(decoration, 'line-through'))" />
+					</template>
 				</div>
 				<IconSegmented :model-value="draft.textAlign" :options="alignOptions" label="Text alignment" @update:model-value="set('textAlign', $event)" />
 			</div>

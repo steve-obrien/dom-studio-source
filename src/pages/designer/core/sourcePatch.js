@@ -12,6 +12,10 @@ import { attributeEntries, buildTemplate } from '../canvas/canvasDocument.js';
  * only the attributes, text or children that differ. New nodes are printed and
  * indented to match their siblings.
  *
+ * Text and inline elements side by side (`Hello <strong>world</strong>`) are
+ * joined without new line breaks, since whitespace there is visible: a run
+ * prints its own leading and trailing spaces and nothing else.
+ *
  * Export is a pure function of the document and the map, so undo and redo
  * return the text to exactly what it was. Script and style blocks, comments and
  * anything else outside the template's nodes are never touched.
@@ -60,6 +64,17 @@ export function renameSourceMap(map, ids) {
 	const rename = (id) => ids.get(id) || id;
 	const nodes = Object.fromEntries(Object.entries(map.nodes).map(([id, entry]) => [rename(id), { ...entry, children: entry.children.map(rename) }]));
 	return { ...map, root: rename(map.root), nodes };
+}
+
+const inlineTags = new Set(['a', 'abbr', 'b', 'br', 'code', 'em', 'i', 'kbd', 'mark', 's', 'small', 'span', 'strong', 'sub', 'sup', 'time', 'u']);
+
+function encodeText(value) {
+	return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\{\{/g, '{<!-- -->{');
+}
+
+/** Whether an element's children are running text, where whitespace between them shows. */
+function hasInlineContent(node) {
+	return (node.children || []).some((child) => child.tag === '#text');
 }
 
 /** The whitespace that indents the line `offset` is on. */
@@ -112,6 +127,41 @@ export function patchSource(root, map) {
 		for (const [id, range] of Object.entries(local)) offsets[id] = [starts[range.start] + (range.start ? indent.length : 0), starts[range.end] + lines[range.end].length + (range.end ? indent.length : 0)];
 	}
 
+	/** Whether the output so far ends in whitespace, so a run's leading space would double it. */
+	function endsInSpace() {
+		for (let index = parts.length - 1; index >= 0; index--) if (parts[index]) return /\s$/.test(parts[index]);
+		return false;
+	}
+
+	/**
+	 * A text run's whitespace in running text. At the edges of a block's
+	 * content, where spaces never show, the file's own line breaks are kept
+	 * (`place.open`, `place.close`); elsewhere the run's spaces decide.
+	 */
+	function runText(value, place) {
+		const lead = place.first && !place.edge ? place.open : /^\s/.test(value) && !endsInSpace() ? ' ' : '';
+		const trail = place.last && !place.edge ? place.close : value.trim() && /\s$/.test(value) ? ' ' : '';
+		return `${lead}${encodeText(value.trim())}${trail}`;
+	}
+
+	/** Prints new running text on one line, so no whitespace appears that the text does not have. */
+	function freshInline(node, parent, place) {
+		const start = length;
+		if (node.tag === '#text') push(node.expression ? `{{ ${node.expression} }}` : runText(node.text, place));
+		else {
+			const attributes = attributeEntries(node, parent).map((attribute) => attribute.text);
+			const open = `<${node.tag}${attributes.length ? ` ${attributes.join(' ')}` : ''}`;
+			if (node.tag === 'br') push(`${open} />`);
+			else {
+				push(`${open}>`);
+				const children = node.children || [];
+				children.forEach((child, index) => freshInline(child, node, { first: index === 0, last: index === children.length - 1, edge: true, inline: true }));
+				push(`</${node.tag}>`);
+			}
+		}
+		offsets[node.id] = [start, length];
+	}
+
 	/** The opening tag with only changed attributes rewritten; kept attributes stay in place and in order. */
 	function openTag(node, parent, entry) {
 		const wanted = new Map(attributeEntries(node, parent).map((attribute) => [attribute.key, attribute.text]));
@@ -138,7 +188,11 @@ export function patchSource(root, map) {
 		return `${out}${tail.slice(0, close.index)} ${added.join(' ')}${tail.slice(close.index)}`;
 	}
 
-	function emit(node, parent, indent) {
+	/**
+	 * Emits one node. `place` says whether it starts or ends its parent's
+	 * content and whether that content is running text.
+	 */
+	function emit(node, parent, indent, place = {}) {
 		const entry = map.nodes[node.id];
 		const start = length;
 		if (entry && clean(node, parent)) {
@@ -146,12 +200,18 @@ export function patchSource(root, map) {
 			markCopied(node, start, entry.start);
 			return;
 		}
-		if (!entry) { fresh(node, parent, indent); return; }
+		if (!entry) {
+			if (place.inline) freshInline(node, parent, place);
+			else fresh(node, parent, indent);
+			return;
+		}
 		if (node.tag === '#text') {
 			const raw = text.slice(entry.start, entry.end);
 			const value = JSON.parse(canonicalNode(node, parent))[1];
-			const printed = node.expression ? value : value.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\{\{/g, '{<!-- -->{');
-			push(`${/^\s*/.exec(raw)[0]}${printed}${/\s*$/.exec(raw)[0]}`);
+			const rawLead = /^\s*/.exec(raw)[0];
+			const rawTrail = /\s*$/.exec(raw)[0];
+			if (node.expression) push(`${rawLead}${value}${rawTrail}`);
+			else push(runText(value, place));
 			offsets[node.id] = [start, length];
 			return;
 		}
@@ -164,16 +224,24 @@ export function patchSource(root, map) {
 		push(entry.synthetic ? '' : entry.canon === canonicalNode(node, parent) ? text.slice(entry.start, entry.tagEnd) : openTag(node, parent, entry));
 		if (entry.closed) {
 			const childIndent = entry.children.length ? lineIndent(text, map.nodes[entry.children[0]].start) : `${lineIndent(text, entry.start)}\t`;
+			const inline = hasInlineContent(node);
+			// Inside an inline element even a line break shows as a space, so its edges stay tight.
+			const edge = inline && inlineTags.has(node.tag);
+			const firstBase = map.nodes[entry.children[0]];
+			const lastBase = entry.children.at(-1);
+			// The whitespace that opened and closed the content in the file, wherever it sat.
+			const open = firstBase ? (/^\s*/.exec(text.slice(firstBase.start, firstBase.end))[0] || text.slice(entry.tagEnd, firstBase.start)) : '';
+			const close = lastBase ? (/\s*$/.exec(text.slice(map.nodes[lastBase].start, map.nodes[lastBase].end))[0] || text.slice(map.nodes[lastBase].end, entry.closeStart)) : '';
 			children.forEach((child, index) => {
 				const previous = index ? children[index - 1].id : null;
 				const at = entry.children.indexOf(child.id);
-				if (index === 0) push(at === 0 ? text.slice(entry.tagEnd, map.nodes[child.id].start) : entry.children.length ? text.slice(entry.tagEnd, map.nodes[entry.children[0]].start) : `\n${childIndent}`);
+				if (index === 0) push(at === 0 ? text.slice(entry.tagEnd, map.nodes[child.id].start) : inline ? (edge || child.tag === '#text' ? '' : open) : entry.children.length ? text.slice(entry.tagEnd, firstBase.start) : `\n${childIndent}`);
 				else if (at > 0 && entry.children[at - 1] === previous) push(text.slice(map.nodes[previous].end, map.nodes[child.id].start));
-				else push(`\n${childIndent}`);
-				emit(child, node, childIndent);
+				else push(inline ? '' : `\n${childIndent}`);
+				emit(child, node, childIndent, { first: index === 0, last: index === children.length - 1, inline, edge, open, close });
 			});
-			const lastBase = entry.children.at(-1);
-			if (children.length) push(children.at(-1).id === lastBase ? text.slice(map.nodes[lastBase].end, entry.closeStart) : `\n${lineIndent(text, entry.start)}`);
+			const last = children.at(-1);
+			if (children.length) push(last.id === lastBase ? text.slice(map.nodes[lastBase].end, entry.closeStart) : inline ? (edge || last.tag === '#text' ? '' : close) : `\n${lineIndent(text, entry.start)}`);
 			push(entry.synthetic ? '' : text.slice(entry.closeStart, entry.end));
 		}
 		offsets[node.id] = [start, length];

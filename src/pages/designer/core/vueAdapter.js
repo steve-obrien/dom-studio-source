@@ -146,12 +146,12 @@ export function exportVue(file, isStudioComponent) {
  *
  * @param {{ doc: object, script?: string, style?: string }} file Editor file.
  * @param {(tag: string) => boolean} [isStudioComponent] Whether a tag comes from `@getdom/studio/vue`.
- * @returns {{ source: string, ranges: Record<string, { start: number, end: number }> }} Source and line ranges.
+ * @returns {{ source: string, ranges: Record<string, { start: number, end: number }>, offsets?: Record<string, [number, number]> }} Source, line ranges and, for a patched file, character offsets.
  */
 export function exportMappedVue(file, isStudioComponent) {
 	if (file.source) {
 		const patched = patchSource(toCanvasNode(file.doc), file.source);
-		if (patched) return { source: patched.source, ranges: offsetsToLines(patched.source, patched.offsets) };
+		if (patched) return { source: patched.source, ranges: offsetsToLines(patched.source, patched.offsets), offsets: patched.offsets };
 	}
 	return buildMappedVueFile({ root: toCanvasNode(file.doc), script: file.script || '', style: file.style || '' }, isStudioComponent);
 }
