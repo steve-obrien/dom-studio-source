@@ -1003,7 +1003,8 @@ function selectFromArtboard(board, id) {
 /** True while the user is typing, so shortcuts never steal keystrokes. */
 function isTyping(event) {
 	const target = event.target;
-	return target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName);
+	// Monaco types through an EditContext div (role="textbox"), which is neither a field nor contenteditable.
+	return target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName) || Boolean(target?.closest?.('[role="textbox"], .monaco-editor'));
 }
 
 function onKeydown(event) {
