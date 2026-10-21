@@ -357,6 +357,6 @@ onBeforeUnmount(cleanup);
 				<div v-if="drop.line" class="absolute bg-primary" :style="{ left: `${drop.line.left}px`, top: `${drop.line.top}px`, width: `${drop.line.width}px`, height: `${drop.line.height}px` }" />
 			</template>
 		</div>
-		<DesignerBounds v-if="box && !interactive" :box="box" :scale="viewScale" :positioning="canPosition && !editing" :reorderable="canReorder && !editing" @begin="begin($event.event, $event.handle)" @move="move" @finish="finish" @cancel="end" @nudge="nudge($event.event, $event.handle)" />
+		<DesignerBounds v-if="box && !interactive" :box="box" :scale="viewScale" :positioning="canPosition" :reorderable="canReorder" :editing="Boolean(editing) && editing === modelValue" @begin="begin($event.event, $event.handle)" @move="move" @finish="finish" @cancel="end" @nudge="nudge($event.event, $event.handle)" />
 	</div>
 </template>
