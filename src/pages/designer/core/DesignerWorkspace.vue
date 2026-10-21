@@ -426,6 +426,9 @@ async function openProjectFile(path) {
 
 /** Writes the active file's source to the project, at its own path or under its name. */
 async function saveProjectFile() {
+	// Text being edited and code still being typed are part of what the user means to save.
+	finishTextEdit();
+	if (codeDraft.value !== null) applyCode();
 	const file = activeFile.value;
 	if (!file) return;
 	const path = file.path || file.name;
@@ -1008,8 +1011,10 @@ function isTyping(event) {
 }
 
 function onKeydown(event) {
-	if (isTyping(event)) return;
 	const mod = event.metaKey || event.ctrlKey;
+	// ⌘S saves from anywhere, even mid-edit, rather than opening the browser's save dialog.
+	if (mod && event.key.toLowerCase() === 's' && projectFiles.value) { event.preventDefault(); saveProjectFile(); return; }
+	if (isTyping(event)) return;
 	if (event.code === 'Space' && !event.repeat) { spaceHeld.value = true; event.preventDefault(); return; }
 	if (mod && event.key.toLowerCase() === 'z') { event.preventDefault(); if (event.shiftKey) redo(); else undo(); return; }
 	if (mod && event.key.toLowerCase() === 'y') { event.preventDefault(); redo(); return; }
@@ -1078,6 +1083,7 @@ onBeforeUnmount(() => {
 					<option v-for="item in projectFiles" :key="item.id" :value="item.id">{{ item.name }}</option>
 				</select>
 				<span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
+				<DomButton v-if="projectFiles" size="sm" variant="ghost" :title="`Write ${activeFile?.path || activeFile?.name} to the project folder (⌘S)`" @click="saveProjectFile">Save</DomButton>
 				<DomButton size="sm" variant="ghost" :disabled="!historySize.undo" title="Undo (⌘Z)" @click="undo">Undo</DomButton>
 				<DomButton size="sm" variant="ghost" :disabled="!historySize.redo" title="Redo (⇧⌘Z)" @click="redo">Redo</DomButton>
 				<span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
