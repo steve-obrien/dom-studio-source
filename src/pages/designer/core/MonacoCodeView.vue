@@ -12,7 +12,7 @@ import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
  * as the caret while text is edited on the canvas, and keeps it in view;
  * `highlight.selection` (`{ start, end }`, each a line and column) marks the
  * words selected there. `select` reports the selection as `{ start, end }`
- * character offsets.
+ * character offsets, and the exposed `select()` sets it.
  *
  * Monaco is not a dependency of DOM Studio. Pass `load`, a function that
  * resolves to the Monaco API (monaco-editor's `esm/vs/editor/editor.api`
@@ -187,7 +187,14 @@ onBeforeUnmount(() => {
 	editor.value?.dispose();
 });
 
-defineExpose({ focus: () => editor.value?.focus() });
+/** Selects `{ start, end }` character offsets, as after the designer rewrites the selected text. */
+function select({ start, end }) {
+	const model = editor.value?.getModel();
+	if (!model) return;
+	editor.value.setSelection(monaco.Range.fromPositions(model.getPositionAt(start), model.getPositionAt(end)));
+}
+
+defineExpose({ focus: () => editor.value?.focus(), select });
 </script>
 
 <template>
