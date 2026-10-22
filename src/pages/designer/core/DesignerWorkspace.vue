@@ -74,6 +74,16 @@ const props = defineProps({
 	codeEditorProps: { type: Object, default: () => ({}) },
 	/** Offer Google Fonts in the text controls and load the ones in use. Turn off for email, which can only use installed fonts. */
 	googleFonts: { type: Boolean, default: true },
+	/** Where the code view opens: over the right of the canvas, or below it. */
+	codeLayout: { type: String, default: 'overlay', validator: (value) => ['overlay', 'below'].includes(value) },
+	/** Open the code view when the designer mounts. */
+	codeOpen: { type: Boolean, default: false },
+	/**
+	 * For a designer inside a longer page: keyboard shortcuts apply only while
+	 * the pointer is over it or focus is inside it, and a plain scroll wheel
+	 * scrolls the page (pinch or ⌘/Ctrl + scroll still zooms).
+	 */
+	embedded: { type: Boolean, default: false },
 });
 const emit = defineEmits(['save']);
 const MIN_ZOOM = 0.1;
@@ -121,7 +131,13 @@ const panning = ref(false);
 const spaceHeld = ref(false);
 const leftTab = ref('layers');
 const insertQuery = ref('');
-const showCode = ref(false);
+const showCode = ref(props.codeOpen);
+const root = ref(null);
+const pointerInside = ref(false);
+/** In the below layout, the share of the stage the open code view takes. */
+const codeShare = '45%';
+const stageInset = computed(() => (props.codeLayout === 'below' && showCode.value ? { bottom: codeShare } : {}));
+const hintInset = computed(() => (props.codeLayout === 'below' && showCode.value ? { bottom: `calc(${codeShare} + 0.75rem)` } : {}));
 const codeDraft = ref(null);
 const codeRanges = ref(null);
 const codeError = ref('');
@@ -475,27 +491,27 @@ async function refresh() {
 	detected.value = next;
 }
 
-/** Operations that record each child's box, so switching a frame to absolute keeps things where they are. */
-function captureOperations(hostId) {
+/** Operations that record each child's box, so switching a frame to absolute keeps things where they are. `extra` is merged into each box. */
+function captureOperations(hostId, extra = {}) {
 	const view = activeViewport();
 	const element = view?.element(hostId);
 	if (!element) return [];
 	return doc.value.nodes[hostId].children.flatMap((childId) => {
 		const child = doc.value.nodes[childId];
 		const target = child.type === 'text' ? null : view.element(childId);
-		return target ? [onFile({ op: 'setField', id: childId, key: 'placements', value: { ...(child.placements || {}), absolute: measureFrameChild(target, element) } })] : [];
+		return target ? [onFile({ op: 'setField', id: childId, key: 'placements', value: { ...(child.placements || {}), absolute: { ...measureFrameChild(target, element), ...extra } } })] : [];
 	});
 }
 
-/** Operations that make a frame's detected absolute layout explicit before its children move. */
+/** Operations that make a frame's detected absolute layout explicit before its children move. The source already lays it out, so the export leaves its style alone (`fromSource`). */
 function adoptOperations(hostId) {
 	const host = doc.value.nodes[hostId];
 	if (!host || host.layout) return [];
-	return [...captureOperations(hostId), onFile({ op: 'setField', id: hostId, key: 'layout', value: detected.value[hostId] || createFrameLayout({ mode: 'absolute' }) })];
+	return [...captureOperations(hostId, { sized: false }), onFile({ op: 'setField', id: hostId, key: 'layout', value: { ...(detected.value[hostId] || createFrameLayout({ mode: 'absolute' })), fromSource: true } })];
 }
 
 /** Changes a frame's child layout, preserving geometry when entering absolute mode. */
-async function setLayout(value) {
+async function setLayout({ fromSource, ...value }) {
 	const node = active.value;
 	if (!isFrame(node)) return;
 	const merge = `layout:${node.id}:${Date.now()}`;
@@ -527,7 +543,16 @@ function patch({ id, style }) {
 	const node = doc.value?.nodes[id];
 	if (!node?.parent) return;
 	const absolute = Object.fromEntries(['left', 'top', 'width', 'height'].map((key) => [key, parseFloat(style[key])]));
+	const before = node.placements?.absolute || measureNatural(id);
+	// A resize, unlike a move, fixes the size, so the code export writes it too.
+	absolute.sized = Boolean(before?.sized || (before && (Math.round(before.width) !== Math.round(absolute.width) || Math.round(before.height) !== Math.round(absolute.height))));
 	run([...adoptOperations(node.parent), onFile({ op: 'setField', id, key: 'placements', value: { ...(node.placements || {}), absolute } })], { merge: `move:${id}` });
+}
+
+/** A layer's rendered size before it is placed by the designer. */
+function measureNatural(id) {
+	const element = activeViewport()?.element(id);
+	return element ? { width: element.offsetWidth, height: element.offsetHeight } : null;
 }
 
 /** Numeric geometry edits for absolute children. */
@@ -535,7 +560,8 @@ function setGeometry(key, value) {
 	if (value === '' || !Number.isFinite(Number(value)) || !active.value || !parent.value) return;
 	const adopt = adoptOperations(parent.value.id);
 	const current = active.value.placements?.absolute || geometry.value;
-	const next = { ...current, [key]: ['width', 'height'].includes(key) ? Math.max(16, Number(value)) : Number(value) };
+	const sized = ['width', 'height'].includes(key);
+	const next = { ...current, [key]: sized ? Math.max(16, Number(value)) : Number(value), sized: Boolean(current.sized || sized) };
 	run([...adopt, onFile({ op: 'setField', id: active.value.id, key: 'placements', value: { ...(active.value.placements || {}), absolute: next } })], { merge: `geometry:${active.value.id}:${key}` });
 }
 
@@ -547,7 +573,7 @@ function align(alignment) {
 	const child = view?.element(selected.value);
 	if (!element || !child) return;
 	const rect = alignFrameChild(measureFrameChild(child, element), { width: element.clientWidth, height: element.clientHeight }, alignment, host.layout || detected.value[host.id]);
-	run([...adoptOperations(host.id), onFile({ op: 'setField', id: active.value.id, key: 'placements', value: { ...(active.value.placements || {}), absolute: rect } })]);
+	run([...adoptOperations(host.id), onFile({ op: 'setField', id: active.value.id, key: 'placements', value: { ...(active.value.placements || {}), absolute: { ...rect, sized: Boolean(active.value.placements?.absolute?.sized) } } })]);
 }
 
 /** Replaces the selection's inline style; an empty style is removed. */
@@ -861,6 +887,7 @@ function zoomBy(factor) {
 
 /** Trackpad pinch and ctrl/cmd+wheel zoom; plain wheel pans. */
 function onWheel(event) {
+	if (props.embedded && !event.ctrlKey && !event.metaKey) return;
 	event.preventDefault();
 	if (event.ctrlKey || event.metaKey) {
 		zoomAt(event.clientX, event.clientY, zoom.value * Math.exp(-event.deltaY * (event.deltaMode ? 0.05 : 0.01)));
@@ -1011,6 +1038,7 @@ function isTyping(event) {
 }
 
 function onKeydown(event) {
+	if (props.embedded && !pointerInside.value && !root.value?.contains(document.activeElement)) return;
 	const mod = event.metaKey || event.ctrlKey;
 	// ⌘S saves from anywhere, even mid-edit, rather than opening the browser's save dialog.
 	if (mod && event.key.toLowerCase() === 's' && projectFiles.value) { event.preventDefault(); saveProjectFile(); return; }
@@ -1069,7 +1097,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<div class="flex min-h-full flex-col bg-canvas text-canvas-fg lg:h-full lg:min-h-[640px] lg:overflow-hidden">
+	<div ref="root" class="flex min-h-full flex-col bg-canvas text-canvas-fg lg:h-full lg:min-h-[640px] lg:overflow-hidden" @pointerenter="pointerInside = true" @pointerleave="pointerInside = false">
 		<header class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-4 py-2">
 			<div class="flex min-w-0 items-center gap-3">
 				<slot name="start" />
@@ -1184,7 +1212,7 @@ onBeforeUnmount(() => {
 					ref="viewport"
 					class="absolute inset-0 touch-none overflow-hidden bg-secondary/60 [background-image:radial-gradient(var(--border)_1px,transparent_1px)]"
 					:class="panning ? 'cursor-grabbing' : spaceHeld ? 'cursor-grab' : ''"
-					:style="{ backgroundSize: `${24 * zoom}px ${24 * zoom}px`, backgroundPosition: `${pan.x}px ${pan.y}px` }"
+					:style="[stageInset, { backgroundSize: `${24 * zoom}px ${24 * zoom}px`, backgroundPosition: `${pan.x}px ${pan.y}px` }]"
 					@pointerdown="onCanvasPointerdown"
 					@pointermove="onCanvasPointermove"
 					@pointerup="onCanvasPointerup"
@@ -1212,6 +1240,7 @@ onBeforeUnmount(() => {
 									:fill="canvasMode === 'page'"
 									@resize="canvasMode === 'page' && (pageSize = $event)"
 									@ready="board.id === activeArtboard?.id && refresh()"
+									@styles="board.id === activeArtboard?.id && refresh()"
 									@wheel="onWheel"
 									@keydown="onKeydown"
 									@pointerdown="activeArtboardId = board.id"
@@ -1250,11 +1279,11 @@ onBeforeUnmount(() => {
 					</div>
 					<div v-if="spaceHeld || panning" class="absolute inset-0" aria-hidden="true"></div>
 				</div>
-				<p v-if="compilerNotice" class="pointer-events-none absolute bottom-3 left-3 max-w-md rounded-md bg-canvas/90 px-3 py-2 text-xs text-muted-fg shadow">{{ compilerNotice }}</p>
-				<p v-if="canvasMode === 'canvas'" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] text-muted-fg shadow md:block">Double-click text to edit · Scroll to pan · ⌘/Ctrl + scroll to zoom · Space + drag · ⇧1 fit</p>
-				<p v-else-if="pageSize" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] tabular-nums text-muted-fg shadow md:block">Viewport {{ pageSize.width }} × {{ pageSize.height }}</p>
+				<p v-if="compilerNotice" :style="hintInset" class="pointer-events-none absolute bottom-3 left-3 max-w-md rounded-md bg-canvas/90 px-3 py-2 text-xs text-muted-fg shadow">{{ compilerNotice }}</p>
+				<p v-if="canvasMode === 'canvas'" :style="hintInset" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] text-muted-fg shadow md:block">Double-click text to edit · {{ embedded ? 'Drag the canvas to pan' : 'Scroll to pan' }} · ⌘/Ctrl + scroll to zoom · Space + drag · ⇧1 fit</p>
+				<p v-else-if="pageSize" :style="hintInset" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] tabular-nums text-muted-fg shadow md:block">Viewport {{ pageSize.width }} × {{ pageSize.height }}</p>
 
-				<aside v-if="showCode" class="absolute inset-y-0 right-0 flex w-full max-w-xl flex-col border-l border-border bg-canvas shadow-xl">
+				<aside v-if="showCode" class="absolute flex flex-col bg-canvas" :class="codeLayout === 'below' ? 'inset-x-0 bottom-0 border-t border-border' : 'inset-y-0 right-0 w-full max-w-xl border-l border-border shadow-xl'" :style="codeLayout === 'below' ? { height: codeShare } : {}">
 					<div class="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
 						<p class="truncate font-mono text-xs">{{ activeFile?.name }}</p>
 						<div class="flex gap-1.5">

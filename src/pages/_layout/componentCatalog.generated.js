@@ -5890,6 +5890,11 @@ export const componentCatalog = [
 					"name": "change",
 					"payload": "{ typography, style }",
 					"description": "The record and a ready-to-bind Vue style object."
+				},
+				{
+					"name": "mark",
+					"payload": "'bold' | 'italic' | 'underline' | 'strike'",
+					"description": "A style toggle pressed while `marks` is set, to apply to selected text instead of the whole record."
 				}
 			]
 		},
