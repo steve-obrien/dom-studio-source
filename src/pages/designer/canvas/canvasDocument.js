@@ -233,7 +233,11 @@ function cssName(key) {
  * @returns {Array<{ key: string, text: string }>} Attributes in print order.
  */
 export function attributeEntries(node, parent) {
-	const style = Object.entries(frameNodeStyle(node, parent)).map(([key, value]) => `${cssName(key)}: ${value}`).join('; ');
+	const placed = placeWithClasses(node, parent);
+	// A layout adopted from the source only makes the canvas explicit; the source still lays the frame out.
+	const own = node.layout?.fromSource ? { ...node, layout: null } : node;
+	const style = Object.entries(placed ? sourceStyle(node) : frameNodeStyle(own, parent)).map(([key, value]) => `${cssName(key)}: ${value}`).join('; ');
+	if (placed) node = { ...node, attrs: { ...node.attrs, class: placed } };
 	const structural = (source) => /^(v-(if|else-if|else|for)\b)/.test(source);
 	return [
 		...node.directives.filter(structural).map((source) => ({ key: directiveKey(source), text: source })),
@@ -242,6 +246,56 @@ export function attributeEntries(node, parent) {
 		...Object.entries(node.bindings || {}).map(([key, value]) => ({ key: `:${key}`, text: `:${key}="${encodeAttribute(value)}"` })),
 		...node.directives.filter((source) => !structural(source)).map((source) => ({ key: directiveKey(source), text: source })),
 	];
+}
+
+const sides = { left: 'left', top: 'top', width: 'w', height: 'h' };
+
+/**
+ * The class list for an absolute child whose source already positions it with
+ * Tailwind (`absolute left-10 top-16`): its box is written back as utilities,
+ * so a drag on the canvas reads `left-[417px]` in the code instead of an inline
+ * style. Utilities that already match are kept as written. Width and height
+ * are only written when the source sets them or the layer was resized.
+ *
+ * @param {object} node Canvas element node.
+ * @param {object|null} parent Parent node.
+ * @returns {string|null} The new class list, or null to place with inline style.
+ */
+function placeWithClasses(node, parent) {
+	const box = node.placements?.absolute;
+	const tokens = String(node.attrs?.class || '').split(/\s+/).filter(Boolean);
+	if (parent?.layout?.mode !== 'absolute' || !box || !tokens.includes('absolute')) return null;
+	let next = tokens;
+	for (const [key, prefix] of Object.entries(sides)) {
+		const pattern = new RegExp(`^-?${prefix}-`);
+		const current = tokens.find((token) => pattern.test(token));
+		if (!Number.isFinite(box[key]) || (!current && (key === 'width' || key === 'height') && !box.sized)) continue;
+		if (current && utilityPixels(current, prefix) === Math.round(box[key])) continue;
+		const value = `${prefix}-[${Math.round(box[key])}px]`;
+		next = current ? next.map((token) => (token === current ? value : token)) : [...next, value];
+	}
+	return next.join(' ');
+}
+
+/**
+ * Pixels for a Tailwind position or size utility: `left-10` is 40px on the
+ * default 4px spacing scale, `left-[12px]` is 12px. Other forms return NaN.
+ *
+ * @param {string} token Utility class.
+ * @param {string} prefix `left`, `top`, `w` or `h`.
+ * @returns {number} Pixels, or NaN.
+ */
+function utilityPixels(token, prefix) {
+	const sign = token.startsWith('-') ? -1 : 1;
+	const value = token.replace(/^-/, '').slice(prefix.length + 1);
+	if (/^\d+(\.\d+)?$/.test(value)) return sign * Number(value) * 4;
+	const arbitrary = value.match(/^\[(-?\d+(?:\.\d+)?)px\]$/);
+	return arbitrary ? sign * Number(arbitrary[1]) : NaN;
+}
+
+/** The node's own inline style, without the designer's placement overrides. */
+function sourceStyle(node) {
+	return { ...node.style };
 }
 
 /**

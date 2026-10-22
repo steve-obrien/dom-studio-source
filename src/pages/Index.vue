@@ -9,6 +9,7 @@ import HomeDesignerVisual from './_home/HomeDesignerVisual.vue';
 import HomeDocumentsVisual from './_home/HomeDocumentsVisual.vue';
 import HomeFilesVisual from './_home/HomeFilesVisual.vue';
 import HomeGridVisual from './_home/HomeGridVisual.vue';
+import HomeLiveDemo from './_home/HomeLiveDemo.vue';
 import HomeMobileVisual from './_home/HomeMobileVisual.vue';
 import HomePricingCompare from './_home/HomePricingCompare.vue';
 import HomeProductSection from './_home/HomeProductSection.vue';
@@ -22,6 +23,7 @@ const products = [
 	{
 		id: 'data-grid',
 		visual: HomeGridVisual,
+		live: () => import('./_home/live/HomeGridLive.vue'),
 		title: 'A data grid for the serious work.',
 		text: 'Trading desks, back offices and admin consoles. Spreadsheet-grade editing on your own Vue components, themed like the rest of your app.',
 		features: ['Pinned columns, column menu and resizing', 'Inline editing with validation and undo', 'Range selection with copy and paste to Excel', 'Row grouping with sums, averages and totals', 'CSV and typed .xlsx export', 'Typed filters, multi-sort, virtual rows and server queries'],
@@ -31,6 +33,7 @@ const products = [
 	{
 		id: 'scheduler',
 		visual: HomeSchedulerVisual,
+		live: () => import('./_home/live/HomeSchedulerLive.vue'),
 		title: 'Plan people, rooms and time.',
 		text: 'Resource planners, roadmaps, room bookings and calendars, built on one time model so every view behaves the same way.',
 		features: ['Gantt and resource rows with stacked overlaps', 'Draw to create, drag to move, stretch to resize', 'Zoom from hours to months without losing your place', 'Working hours, weekends and snapping', 'Week planner and month calendar views', 'Loads only the visible date range'],
@@ -40,6 +43,7 @@ const products = [
 	{
 		id: 'documents',
 		visual: HomeDocumentsVisual,
+		live: () => import('./_home/live/HomeDocumentsLive.vue'),
 		title: 'Write together, in real time.',
 		text: 'A rich document editor where everyone sees each other’s cursors and selections as they type, with AI rewrites you review before they land.',
 		features: ['Live multi-user editing with named cursors', 'Shared selections and presence', 'Headings, tables, code blocks, images and video', 'AI Expand, Simplify and Improve on any selection', 'Suggested changes shown as a diff to accept or reject', 'Drops into a form as a v-model field'],
@@ -48,6 +52,7 @@ const products = [
 	{
 		id: 'files',
 		visual: HomeFilesVisual,
+		live: () => import('./_home/live/HomeFilesLive.vue'),
 		title: 'A media library you don’t have to build.',
 		text: 'The Finder-style file manager every app ends up needing, wired to your own storage and API.',
 		features: ['Folders, breadcrumbs and folder paths in the URL', 'Drag to select, plus shift and command-click', 'Rename and move with instant, optimistic updates', 'Chunked uploads with progress', 'Inspector with image and PDF previews', 'A file picker field that drops into any form'],
@@ -56,6 +61,9 @@ const products = [
 	{
 		id: 'designer',
 		visual: HomeDesignerVisual,
+		live: () => import('./_home/live/HomeDesignerLive.vue'),
+		liveMinWidth: 1024,
+		wide: true,
 		title: 'Design the real website. Keep the real code.',
 		text: 'A Figma-style canvas that renders your actual Vue and HTML. Select something on the page and the source highlights; edit either side and the other follows.',
 		features: ['Artboards at several screen widths, with live components', 'Two-way code view: canvas and source stay in sync', 'Saves by patching your file, keeping its formatting', 'Inline text editing, layers, layout and style panels', 'Social post and poster studios on the same core', 'Embed it in your own product as DomDesigner'],
@@ -85,6 +93,7 @@ const products = [
 	{
 		id: 'ai',
 		visual: HomeAIVisual,
+		live: () => import('./_home/live/HomeAILive.vue'),
 		title: 'Give your agent a proper interface.',
 		text: 'Conversations, tool results and answers people can act on. Show a table, ask for a decision, then let the agent carry on.',
 		features: ['Agent chat with streamed responses', 'Tool calls and results as rich cards', 'Prompt composer with attachments and context', 'Side-by-side diff review of AI changes', 'Component contracts and llms.txt for coding agents', 'AI builders for prompts and themes'],
@@ -155,8 +164,11 @@ function withNavigation(product, index) {
 				</nav>
 			</section>
 
-			<HomeProductSection v-for="product in products" :id="product.id" :key="product.id" :number="product.number" :product="product.product" :title="product.title" :text="product.text" :features="product.features" :to="product.to" :link="product.link" :more="product.more" :tinted="product.tinted">
-				<component :is="product.visual" />
+			<HomeProductSection v-for="product in products" :id="product.id" :key="product.id" :number="product.number" :product="product.product" :title="product.title" :text="product.text" :features="product.features" :to="product.to" :link="product.link" :more="product.more" :tinted="product.tinted" :wide="product.wide">
+				<HomeLiveDemo v-if="product.live" :load="product.live" :min-width="product.liveMinWidth">
+					<component :is="product.visual" />
+				</HomeLiveDemo>
+				<component :is="product.visual" v-else />
 			</HomeProductSection>
 
 			<section class="border-y border-border bg-secondary/20">
