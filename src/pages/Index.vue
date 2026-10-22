@@ -7,9 +7,14 @@ import HomeAIVisual from './_home/HomeAIVisual.vue';
 import HomeAnalytics from './_home/HomeAnalytics.vue';
 import HomeDesignerVisual from './_home/HomeDesignerVisual.vue';
 import HomeDocumentsVisual from './_home/HomeDocumentsVisual.vue';
+import HomeFilesVisual from './_home/HomeFilesVisual.vue';
 import HomeGridVisual from './_home/HomeGridVisual.vue';
+import HomeMobileVisual from './_home/HomeMobileVisual.vue';
+import HomePricingCompare from './_home/HomePricingCompare.vue';
 import HomeProductSection from './_home/HomeProductSection.vue';
 import HomeSchedulerVisual from './_home/HomeSchedulerVisual.vue';
+import HomeSocialVisual from './_home/HomeSocialVisual.vue';
+import HomeWorkflowVisual from './_home/HomeWorkflowVisual.vue';
 import { DomButton, DomCodeBlock } from './lib/vue';
 
 /** One scrolling section per header product, in header order. Copy names only what ships today. */
@@ -41,6 +46,14 @@ const products = [
 		link: 'Try live editing',
 	},
 	{
+		id: 'files',
+		visual: HomeFilesVisual,
+		title: 'A media library you don’t have to build.',
+		text: 'The Finder-style file manager every app ends up needing, wired to your own storage and API.',
+		features: ['Folders, breadcrumbs and folder paths in the URL', 'Drag to select, plus shift and command-click', 'Rename and move with instant, optimistic updates', 'Chunked uploads with progress', 'Inspector with image and PDF previews', 'A file picker field that drops into any form'],
+		link: 'Explore the media browser',
+	},
+	{
 		id: 'designer',
 		visual: HomeDesignerVisual,
 		title: 'Design the real website. Keep the real code.',
@@ -49,6 +62,17 @@ const products = [
 		link: 'Open the canvas designer',
 		to: '/designer/canvas',
 		more: [{ to: '/designer/social', label: 'Social post studio' }, { to: '/designer', label: 'All designer tools' }],
+	},
+	{
+		id: 'social',
+		product: 'Social studio',
+		visual: HomeSocialVisual,
+		title: 'One design. Every platform.',
+		text: 'Canva-style post editing inside your own product. Design once and see it at every size; each layer pins to an edge or the centre so nothing breaks.',
+		features: ['Instagram post and story, LinkedIn, X, YouTube and link previews', 'Pin layers so designs adapt to each format', 'Industry templates for retail, food, fitness, property and more', 'Generate new templates with AI', 'Save designs as new templates, never overwriting', 'Built on the same editor core as the designer'],
+		link: 'Open the Social post studio',
+		to: '/designer/social',
+		more: [{ to: '/designer/poster', label: 'Poster studio' }],
 	},
 	{
 		id: 'charts',
@@ -67,21 +91,41 @@ const products = [
 		link: 'Explore AI interfaces',
 		more: [{ to: '/data/agent-chat', label: 'Agent chat' }, { to: '/ai/builders', label: 'AI builders' }],
 	},
+	{
+		id: 'workflows',
+		product: 'AI workflows',
+		visual: HomeWorkflowVisual,
+		title: 'Show the AI process, step by step.',
+		text: 'Put automations on a canvas people can follow, like n8n inside your own app. The flowchart designer draws and edits the flow; your app runs the steps.',
+		features: ['Editable steps and connections on an infinite canvas', 'Pan, zoom and a minimap for large flows', 'Branches, AI steps and human approval in one picture', 'HTML nodes you can style like the rest of your app', 'Export the graph as data'],
+		link: 'Open the flowchart designer',
+		to: '/designer/flowchart',
+	},
+	{
+		id: 'mobile',
+		product: 'Mobile',
+		visual: HomeMobileVisual,
+		title: 'Small screen. Complete experience.',
+		text: 'Touch-first app shells and navigation for phones. Both screens here are live: swipe a message, open one, or dig into the settings.',
+		features: ['App shell with top bar and bottom navigation', 'Navigation stack with native-feeling transitions', 'Swipe actions with undo', 'Bottom sheets with snap points and action sheets', 'Safe-area aware layouts'],
+		link: 'Explore mobile',
+		to: '/mobile',
+	},
 ].map(withNavigation);
 const blockCount = getBlockRecords().length;
 const blockCategoryCount = getBlockCategories().length;
-const libraryItems = libraryMenu.groups.filter((group) => group.label !== 'Get started').flatMap((group) => group.items).filter((item) => !['/data/kanban', '/icons'].includes(item.to));
+const libraryItems = libraryMenu.groups.filter((group) => group.label !== 'Get started').flatMap((group) => group.items).filter((item) => !['/data/kanban', '/icons', '/mobile'].includes(item.to));
 const installCode = "import { DomDataGrid, DomGantt } from '@getdom/studio/vue';\nimport { DomDesigner } from '@getdom/studio/designer';\nimport '@getdom/studio/style.css';";
 
 /**
- * Fills a product section's label, number and default link from the header navigation.
+ * Fills a product section's label, number and default link from the header navigation, unless the section sets its own.
  * @param {object} product Homepage copy for one product.
  * @param {number} index Position in header order.
  * @returns {object} Section props.
  */
 function withNavigation(product, index) {
 	const nav = primaryNavigation.find((item) => item.id === product.id);
-	return { ...product, product: nav.label, number: String(index + 1).padStart(2, '0'), to: product.to || nav.to, tinted: index % 2 === 0 };
+	return { product: nav?.label, to: nav?.to, ...product, number: String(index + 1).padStart(2, '0'), tinted: index % 2 === 0 };
 }
 </script>
 
@@ -95,7 +139,7 @@ function withNavigation(product, index) {
 					<h1 class="mt-5 text-[clamp(2.8rem,6vw,5rem)] font-semibold leading-[1.04] tracking-[-0.065em]">Ambitious apps.<br />
 						<span class="text-muted-fg">Beautifully built.</span>
 					</h1>
-					<p class="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-fg sm:text-lg">Data grid, scheduler, live documents, a visual designer, charts and AI interfaces. One licence, and source code you own.</p>
+					<p class="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-fg sm:text-lg">Data grid, scheduler, live documents, files, a visual designer, charts and AI interfaces. One licence, and source code you own.</p>
 					<div class="mt-5 flex flex-wrap justify-center gap-3">
 						<DomButton as="router-link" to="/install" size="lg">Start building <span aria-hidden="true">↗</span>
 						</DomButton>
@@ -103,7 +147,7 @@ function withNavigation(product, index) {
 						</DomButton>
 					</div>
 				</div>
-				<nav class="mx-auto mt-10 grid max-w-5xl grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6" aria-label="Products on this page">
+				<nav class="mx-auto mt-10 grid max-w-5xl grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" aria-label="Products on this page">
 					<a v-for="product in products" :key="product.id" :href="`#${product.id}`" class="group rounded-xl border border-border bg-secondary/20 px-4 py-3 text-left transition-colors hover:border-canvas-fg/30 hover:bg-secondary/50">
 						<span class="font-mono text-[0.65rem] text-muted-fg">{{ product.number }}</span>
 						<span class="mt-1 flex items-center justify-between text-sm font-semibold">{{ product.product }} <span class="text-muted-fg transition-transform group-hover:translate-y-0.5" aria-hidden="true">↓</span></span>
@@ -169,10 +213,11 @@ function withNavigation(product, index) {
 						</article>
 					</div>
 				</div>
-				<div class="mt-16 flex flex-wrap items-center justify-between gap-8 rounded-3xl bg-primary px-7 py-10 text-primary-fg sm:p-12">
+				<HomePricingCompare class="mt-16" />
+				<div class="mt-8 flex flex-wrap items-center justify-between gap-8 rounded-3xl bg-primary px-7 py-10 text-primary-fg sm:p-12">
 					<div>
-						<h2 class="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Six products. One licence.</h2>
-						<p class="mt-3 max-w-xl text-sm opacity-75">Grid, Scheduler, Documents, Designer, Charts and AI, with every block and component. Use forever, with source included.</p>
+						<h2 class="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">Every product. One licence.</h2>
+						<p class="mt-3 max-w-xl text-sm opacity-75">Grid, Scheduler, Documents, Files, Designer, Charts and AI, with every block and component. Use forever, with source included.</p>
 					</div>
 					<div class="flex flex-wrap gap-3">
 						<DomButton as="router-link" to="/pricing" variant="secondary" size="lg">See pricing ↗</DomButton>

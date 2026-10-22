@@ -2,7 +2,7 @@
  * Site-wide header navigation.
  *
  * The header leads with the products a licence pays for: the data grid,
- * scheduler, documents, DOM designer, charts and AI surfaces. Simple primitives (cards,
+ * scheduler, documents, files, DOM designer, charts and AI surfaces. Simple primitives (cards,
  * badges, inputs) remain fully documented but sit one level down in the
  * Library menu.
  */
@@ -35,6 +35,7 @@ export const primaryNavigation = [
 		],
 	},
 	{ id: 'documents', to: '/data/document-editor', label: 'Documents', match: ['/data/document-editor'], description: 'Rich text editing with comments, review and live collaboration.' },
+	{ id: 'files', to: '/data/media-browser', label: 'Files', match: ['/data/media-browser'], description: 'Media library with folders, uploads and a file picker.' },
 	{ id: 'designer', to: '/designer', label: 'Designer', match: ['/designer'], description: 'DOM-based visual editor for HTML and Vue output.' },
 	{ id: 'charts', to: '/charts', label: 'Charts', match: ['/charts'], description: 'Analytics and finance visualisation.' },
 	{ id: 'ai', to: '/ai', label: 'AI', match: ['/ai', '/data/agent-chat'], description: 'Agent chat, builders and review surfaces.' },
