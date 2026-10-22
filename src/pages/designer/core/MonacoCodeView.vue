@@ -5,11 +5,14 @@ import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
  * Optional Monaco upgrade for the designer's code view.
  *
  * Meets the same contract as CodeView (`modelValue`, `highlight`, `label`,
- * `readonly`; `update:modelValue`, `cursor`, `focus`, `blur`), so DomDesigner
- * keeps two-way selection sync: moving the caret selects that line's layer on
- * the stage, and selecting a layer highlights and reveals its lines. A
- * `highlight.caret` (`{ line, column }`) also marks one position, such as the
- * caret while text is edited on the canvas, and keeps it in view.
+ * `readonly`; `update:modelValue`, `cursor`, `select`, `focus`, `blur`), so
+ * DomDesigner keeps two-way selection sync: moving the caret selects that
+ * line's layer on the stage, and selecting a layer highlights and reveals its
+ * lines. A `highlight.caret` (`{ line, column }`) also marks one position, such
+ * as the caret while text is edited on the canvas, and keeps it in view;
+ * `highlight.selection` (`{ start, end }`, each a line and column) marks the
+ * words selected there. `select` reports the selection as `{ start, end }`
+ * character offsets.
  *
  * Monaco is not a dependency of DOM Studio. Pass `load`, a function that
  * resolves to the Monaco API (monaco-editor's `esm/vs/editor/editor.api`
@@ -31,7 +34,7 @@ const props = defineProps({
 	/** Extra Monaco editor options, merged over the defaults. */
 	options: { type: Object, default: () => ({}) },
 });
-const emit = defineEmits(['update:modelValue', 'cursor', 'focus', 'blur']);
+const emit = defineEmits(['update:modelValue', 'cursor', 'select', 'focus', 'blur']);
 
 const mount = ref(null);
 const status = ref('loading');
@@ -94,9 +97,10 @@ function showHighlight() {
 	if (!editor.value || !decorations) return;
 	const range = props.highlight;
 	if (!range) { decorations.clear(); return; }
-	const caret = range.caret;
+	const { caret, selection } = range;
 	decorations.set([
 		{ range: new monaco.Range(range.start, 1, range.end, 1), options: { isWholeLine: true, className: 'dom-code-highlight', linesDecorationsClassName: 'dom-code-highlight-gutter' } },
+		...(selection ? [{ range: new monaco.Range(selection.start.line, selection.start.column, selection.end.line, selection.end.column), options: { inlineClassName: 'dom-code-selection' } }] : []),
 		...(caret ? [{ range: new monaco.Range(caret.line, caret.column, caret.line, caret.column), options: { beforeContentClassName: 'dom-code-caret' } }] : []),
 	]);
 	if (editor.value.hasTextFocus()) return;
@@ -136,6 +140,11 @@ onMounted(async () => {
 		editor.value.onDidChangeCursorPosition((event) => {
 			if (!applying && editor.value.hasTextFocus()) emit('cursor', event.position.lineNumber);
 		});
+		editor.value.onDidChangeCursorSelection((event) => {
+			if (applying || !editor.value.hasTextFocus()) return;
+			const model = editor.value.getModel();
+			emit('select', { start: model.getOffsetAt(event.selection.getStartPosition()), end: model.getOffsetAt(event.selection.getEndPosition()) });
+		});
 		editor.value.onDidFocusEditorText(() => emit('focus'));
 		editor.value.onDidBlurEditorText(() => emit('blur'));
 		themeObserver = new MutationObserver(() => monaco.editor.setTheme(dark() ? 'vs-dark' : 'vs'));
@@ -148,17 +157,27 @@ onMounted(async () => {
 	}
 });
 
-/** Applies outside changes (stage edits, reformatting) and keeps the caret where it was. */
+/**
+ * Applies outside changes (stage edits, text typed on the canvas) as one edit
+ * of only the part that differs, so the view does not jump, and keeps the caret
+ * where it was.
+ */
 watch(() => props.modelValue, (value) => {
 	if (!editor.value || value === editor.value.getValue()) return;
+	const model = editor.value.getModel();
+	const current = model.getValue();
+	let head = 0;
+	while (head < current.length && head < value.length && current[head] === value[head]) head += 1;
+	let tail = 0;
+	while (tail < current.length - head && tail < value.length - head && current[current.length - 1 - tail] === value[value.length - 1 - tail]) tail += 1;
 	const position = editor.value.getPosition();
 	applying = true;
-	editor.value.executeEdits('designer', [{ range: editor.value.getModel().getFullModelRange(), text: value }]);
+	editor.value.executeEdits('designer', [{ range: monaco.Range.fromPositions(model.getPositionAt(head), model.getPositionAt(current.length - tail)), text: value.slice(head, value.length - tail) }]);
 	if (position) editor.value.setPosition(position);
 	applying = false;
 	showHighlight();
 });
-watch(() => props.highlight && `${props.highlight.start}:${props.highlight.end}:${props.highlight.caret?.line}:${props.highlight.caret?.column}`, showHighlight);
+watch(() => props.highlight && JSON.stringify(props.highlight), showHighlight);
 watch(() => props.readonly, (value) => editor.value?.updateOptions({ readOnly: value }));
 
 onBeforeUnmount(() => {
@@ -185,6 +204,10 @@ defineExpose({ focus: () => editor.value?.focus() });
 
 .dom-code-highlight-gutter {
 	border-left: 3px solid var(--primary);
+}
+
+.dom-code-selection {
+	background: color-mix(in oklab, var(--primary) 30%, transparent);
 }
 
 .dom-code-caret::before {
