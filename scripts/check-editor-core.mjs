@@ -570,3 +570,17 @@ const opts = { appear: false };
 	applyOperation(edited.doc, { op: 'setProp', id: heading.id, key: 'class', value: 'text-6xl' });
 	assert.equal(exportVue(edited), typed.replace('class="text-5xl"', 'class="text-6xl"'));
 });
+
+test('text run offsets map between a run and its source, through entities and folded whitespace', async () => {
+	const { runOffset, sourceOffset } = await import('../src/pages/designer/core/inlineText.js');
+	const file = importVue('<template>\n\t<p>\n\t\tTom &amp; Jerry   run</p>\n</template>\n');
+	const runId = Object.values(file.doc.nodes).find((node) => node.type === 'text').id;
+	const { source, offsets } = exportMappedVue({ doc: file.doc, script: '', style: '', source: file.sourceMap });
+	const value = file.doc.nodes[runId].props.value;
+	const shown = value.trim();
+	const at = (offset) => sourceOffset(source, offsets[runId], value, value.indexOf(shown) + offset);
+	assert.equal(source.slice(at(0), at(3)), 'Tom');
+	assert.equal(source.slice(at(4), at(5)), '&amp;');
+	assert.equal(source.slice(at(6), at(shown.length)), 'Jerry   run');
+	for (let offset = 0; offset <= value.length; offset += 1) assert.equal(runOffset(source, offsets[runId], value, sourceOffset(source, offsets[runId], value, offset)), offset);
+});
