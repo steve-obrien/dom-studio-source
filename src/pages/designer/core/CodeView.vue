@@ -7,7 +7,8 @@ import { computed, nextTick, ref, watch } from 'vue';
  * A plain textarea over a backdrop: the backdrop draws line numbers and the
  * highlight, the textarea keeps native editing, undo, selection and
  * accessibility. Lines never wrap, so a line in the text is a row on screen.
- * The parent owns parsing; this component reports text and the cursor line.
+ * The parent owns parsing; this component reports text, the cursor line and
+ * the selection.
  */
 defineOptions({ name: 'CodeView' });
 
@@ -17,7 +18,7 @@ const props = defineProps({
 	label: { type: String, default: 'Source' },
 	readonly: { type: Boolean, default: false },
 });
-const emit = defineEmits(['update:modelValue', 'cursor', 'focus', 'blur']);
+const emit = defineEmits(['update:modelValue', 'cursor', 'select', 'focus', 'blur']);
 const input = ref(null);
 const backdrop = ref(null);
 const focused = ref(false);
@@ -30,11 +31,12 @@ function syncScroll() {
 	if (!backdrop.value || !input.value) return;
 	backdrop.value.style.transform = `translate(${-input.value.scrollLeft}px, ${-input.value.scrollTop}px)`;
 }
-/** Reports the one-based line under the caret. */
+/** Reports the one-based line under the caret, and the selection as character offsets. */
 function reportCursor() {
 	const element = input.value;
 	if (!element) return;
 	emit('cursor', element.value.slice(0, element.selectionStart).split('\n').length);
+	emit('select', { start: element.selectionStart, end: element.selectionEnd });
 }
 /** Tab inserts a tab instead of leaving the editor; Escape releases focus. */
 function onKeydown(event) {
@@ -87,6 +89,7 @@ defineExpose({ focus: () => input.value?.focus() });
 			@scroll="syncScroll"
 			@click="reportCursor"
 			@keyup="reportCursor"
+			@select="reportCursor"
 			@keydown="onKeydown"
 			@focus="onFocus"
 			@blur="onBlur"

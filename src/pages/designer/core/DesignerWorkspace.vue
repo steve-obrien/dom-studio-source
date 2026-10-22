@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, shallowRef, watch } from 'vue';
+import { computed, markRaw, nextTick, onBeforeUnmount, onMounted, provide, ref, shallowRef, watch } from 'vue';
 import { DomBackdropEditor, DomBackgroundEditor, DomBorderEditor, DomButton, DomDesignerLayers, DomDesignerStage, DomFrameLayoutEditor, DomJsonInput, DomNativeSelect, DomNumberInput, DomShadowEditor, DomTextInput, DomTypographyEditor } from '../../lib/vue';
 import { alignFrameChild, createFrameLayout, measureFrameChild, readFrameLayout } from '../frame/frameLayout.js';
 import { isFrameNode } from '../frames/frameDocument.js';
@@ -14,15 +14,16 @@ import { cssEditorContextKey } from '../_shared/cssEditorContext.js';
 import { useNodeStyle } from './nodeStyle.js';
 import { useGoogleFonts } from '../typography-editor/googleFonts.js';
 import AlignTools from '../stage/AlignTools.vue';
-import { copySubtree, fromTree, isExpr, subtreeIds } from './editorDocument.js';
+import { cloneValue, copySubtree, fromTree, isExpr, subtreeIds } from './editorDocument.js';
+import { applyOperations } from './operations.js';
 import { EditorRender } from './EditorRender.js';
-import { beginInlineEdit, inlineEditTarget, sourceCaret } from './inlineText.js';
+import { beginInlineEdit, inlineEditTarget, runOffset, sourceOffset } from './inlineText.js';
 import { createHistory } from './history.js';
 import { previewData, scriptData } from './previewData.js';
 import { treeFromType } from './typeRegistry.js';
-import { exportMappedVue, tailwindContent } from './vueAdapter.js';
+import { exportMappedVue, importVue, tailwindContent } from './vueAdapter.js';
 import CodeView from './CodeView.vue';
-import { applySource, nodeAtLine } from './sourceSync.js';
+import { applySource, matchNodes, nodeAtLine } from './sourceSync.js';
 import { createBrowserStorage, createSaver } from './storage.js';
 import ArtboardViewport from '../canvas/ArtboardViewport.vue';
 import { applyWorkspaceOperation, createCanvasDemo, importFile, restoreWorkspace, workspaceId } from '../canvas/canvasWorkspace.js';
@@ -148,7 +149,12 @@ const detected = ref({});
 const historySize = ref({ undo: 0, redo: 0 });
 // Text being edited in place on the canvas: its artboard, file, layer and browser session.
 const editing = shallowRef(null);
-const editState = ref({ caret: null, marks: null });
+// Where the edit's selection falls in the text runs, and its marks for the Text panel.
+const editState = ref({ anchor: null, focus: null, marks: null });
+// The document as the edit would save it, so the code view shows the text while it is typed.
+const editDoc = shallowRef(null);
+// The code view's selection as source offsets, shown on the canvas.
+const codeSelection = ref(null);
 const revisions = ref({});
 const viewport = ref(null);
 const artboardRefs = new Map();
@@ -217,13 +223,36 @@ const parentModes = {
 };
 const sizingModes = [{ value: 'auto', label: 'Auto' }, { value: 'fixed', label: 'Fixed' }, { value: 'hug', label: 'Hug' }, { value: 'fill', label: 'Fill' }];
 const layers = computed(() => (doc.value ? [layer(doc.value.rootId)] : []));
-const mappedSource = computed(() => (activeFile.value ? exportMappedVue(activeFile.value, isStudioComponent) : { source: '', ranges: {} }));
+/** The active file's document, or the text edit's preview of it. */
+const shownDoc = computed(() => (editDoc.value && editDoc.value.file === activeFile.value?.id ? editDoc.value.doc : doc.value));
+const mappedSource = computed(() => (activeFile.value ? exportMappedVue(shownDoc.value === doc.value ? activeFile.value : { ...activeFile.value, doc: shownDoc.value }, isStudioComponent) : { source: '', ranges: {} }));
+/**
+ * Each node's character offsets in the exported source. Patched files have
+ * them already; a generated file is parsed again for them, only while text is
+ * being edited or selected in the code.
+ */
+const sourceOffsets = computed(() => {
+	const { source, offsets } = mappedSource.value;
+	if (offsets) return offsets;
+	if (!shownDoc.value || (!editing.value && !codeSelection.value)) return null;
+	try {
+		const parsed = importVue(source);
+		const result = {};
+		for (const [parsedId, id] of matchNodes(shownDoc.value, parsed.doc)) {
+			const entry = parsed.sourceMap.nodes[parsedId];
+			if (entry && !entry.synthetic) result[id] = [entry.start, entry.end];
+		}
+		return result;
+	} catch {
+		return null;
+	}
+});
 const fileSource = computed(() => mappedSource.value.source);
 const codeText = computed(() => codeDraft.value ?? fileSource.value);
 const codeHighlight = computed(() => {
 	const range = (codeDraft.value === null ? mappedSource.value.ranges : codeRanges.value || {})[selected.value] || null;
-	const caret = range && codeDraft.value === null ? caretInSource() : null;
-	return caret ? { ...range, caret } : range;
+	const points = range && codeDraft.value === null ? editInSource() : null;
+	return points ? { ...range, ...points } : range;
 });
 // In Page mode the artboard scrolls itself, so a selection made from the layers or the code is scrolled into view.
 watch(selected, async (id) => {
@@ -838,8 +867,19 @@ function selectFromCode(line) {
 	if (id) selected.value = id;
 }
 
+/** The code view's selection, as source offsets, to highlight the same letters on the canvas. */
+function selectTextFromCode(range) {
+	codeSelection.value = range;
+}
+
+/** Clicking into the code ends text editing on the canvas, so one side is typed in at a time. */
+function enterCode() {
+	finishTextEdit();
+}
+
 /** Leaving the code view shows the exported source again, unless the text does not parse. */
 function leaveCode() {
+	codeSelection.value = null;
 	applyCode();
 	if (codeError.value) return;
 	codeDraft.value = null;
@@ -978,15 +1018,39 @@ function startTextEdit(board, { id, element, x, y }) {
 	while (host && host.dataset?.designerId !== target.id) host = host.parentElement?.closest('[data-designer-id]');
 	if (!host) return;
 	selected.value = target.id;
-	const session = beginInlineEdit({ element: host, doc: file.doc, id: target.id, point: { x, y }, onChange: readTextEdit, onEnd: finishTextEdit });
-	editing.value = { board: board.id, file: file.id, id: target.id, session, view: `${board.id}:${viewMode.value}:${canvasMode.value}` };
+	codeSelection.value = null;
+	const session = beginInlineEdit({ element: host, doc: file.doc, id: target.id, point: { x, y }, onChange: queueTextRead, onEnd: finishTextEdit });
+	editing.value = { board: board.id, file: file.id, id: target.id, session, view: `${board.id}:${viewMode.value}:${canvasMode.value}`, operations: '[]' };
 	readTextEdit();
 }
 
-/** Copies the caret and the selected words' marks from the edit, for the code view and the Text panel. */
+let textReadFrame = 0;
+/** Typing and selecting fire many events a frame; the edit is read once per frame. */
+function queueTextRead() {
+	if (!textReadFrame) textReadFrame = requestAnimationFrame(() => { textReadFrame = 0; readTextEdit(); });
+}
+
+/**
+ * Reads the edit as it stands: the document it would save, for the code view,
+ * where its selection falls, and the selected words' marks for the Text panel.
+ */
 function readTextEdit() {
-	const session = editing.value?.session;
-	editState.value = session ? { caret: session.caret(), marks: session.marks() } : { caret: null, marks: null };
+	const current = editing.value;
+	const file = current && fileById(current.file);
+	if (!file) { editState.value = { anchor: null, focus: null, marks: null }; return; }
+	const preview = current.session.preview(file.doc);
+	// The source is exported again only when the text changed, not when the caret moved.
+	const operations = JSON.stringify(preview.operations);
+	if (operations !== current.operations) {
+		current.operations = operations;
+		let next = null;
+		if (preview.operations.length) {
+			try { next = cloneValue(file.doc); applyOperations(next, preview.operations); }
+			catch { next = null; }
+		}
+		editDoc.value = next ? { file: file.id, doc: markRaw(next) } : null;
+	}
+	editState.value = { anchor: preview.anchor, focus: preview.focus, marks: current.session.marks() };
 }
 
 /** Ends in-place editing, writing the edited text to the document as one undo step. */
@@ -994,12 +1058,15 @@ function finishTextEdit() {
 	const current = editing.value;
 	if (!current) return;
 	editing.value = null;
+	cancelAnimationFrame(textReadFrame);
+	textReadFrame = 0;
 	const file = fileById(current.file);
 	const operations = file ? current.session.operations(file.doc) : [];
 	current.session.stop();
 	// The browser changed the element's DOM itself, so it is rendered afresh from the document.
 	revisions.value = { ...revisions.value, [current.id]: (revisions.value[current.id] || 0) + 1 };
-	editState.value = { caret: null, marks: null };
+	editState.value = { anchor: null, focus: null, marks: null };
+	editDoc.value = null;
 	if (operations.length) run(operations.map((operation) => ({ file: current.file, ...operation })));
 }
 
@@ -1009,18 +1076,120 @@ function toggleMark(mark) {
 	readTextEdit();
 }
 
-/** The edit caret as a line and column in the exported file, so the code view follows typing. */
-function caretInSource() {
-	const at = editState.value.caret;
-	if (!at || editing.value?.file !== activeFile.value?.id) return null;
-	const { source, offsets } = mappedSource.value;
-	let offset;
-	if (at.id && offsets?.[at.id]) offset = sourceCaret(source, offsets[at.id], at.value, at.offset);
-	else if (at.element && offsets?.[at.element]) offset = offsets[at.element][0];
-	if (offset === undefined) return null;
+/** A point in a text run, or before an element, as an offset in the exported source. */
+function pointInSource(point) {
+	const offsets = sourceOffsets.value;
+	if (!point || !offsets) return undefined;
+	const run = point.id && shownDoc.value?.nodes[point.id];
+	if (run && offsets[point.id]) return sourceOffset(mappedSource.value.source, offsets[point.id], String(run.props.value ?? ''), point.offset);
+	if (point.element && offsets[point.element]) return offsets[point.element][0];
+	return undefined;
+}
+
+/** A source offset as a one-based line and column. */
+function lineColumn(source, offset) {
 	const lineStart = source.lastIndexOf('\n', offset - 1);
 	return { line: source.slice(0, offset).split('\n').length, column: offset - lineStart };
 }
+
+/** The edit's caret and selected words in the exported file, so the code view follows typing and selecting. */
+function editInSource() {
+	const { anchor, focus } = editState.value;
+	if (!focus || editing.value?.file !== activeFile.value?.id) return null;
+	const source = mappedSource.value.source;
+	const end = pointInSource(focus);
+	if (end === undefined) return null;
+	const start = pointInSource(anchor) ?? end;
+	const caret = lineColumn(source, end);
+	if (start === end) return { caret };
+	return { caret, selection: { start: lineColumn(source, Math.min(start, end)), end: lineColumn(source, Math.max(start, end)) } };
+}
+
+/* Code selection on the canvas ----------------------------------------------------- */
+
+let shownSelection = null;
+
+/** Removes the code selection drawn on the canvas. */
+function clearCodeSelection() {
+	if (!shownSelection) return;
+	shownSelection.view.CSS?.highlights?.delete('dom-code-selection');
+	shownSelection.caret?.remove();
+	shownSelection.view.removeEventListener('scroll', showCodeSelection, true);
+	shownSelection = null;
+}
+
+/** The rendered DOM text node that shows a text run, matched like the runs of an edit (see inlineText.js). */
+function renderedRun(runId) {
+	const node = shownDoc.value?.nodes[runId];
+	const host = node?.parent && activeViewport()?.element(node.parent);
+	if (!host) return null;
+	const rendered = [...host.childNodes].filter((child) => child.nodeType === 1 || (child.nodeType === 3 && child.data));
+	let cursor = 0;
+	for (const childId of shownDoc.value.nodes[node.parent].children) {
+		const child = shownDoc.value.nodes[childId];
+		const text = child?.type === 'text';
+		const found = rendered.slice(cursor).findIndex((item) => (text ? item.nodeType === 3 : item.nodeType === 1 && item.dataset.designerId === childId));
+		if (found === -1) continue;
+		cursor += found;
+		if (childId === runId) return rendered[cursor];
+		cursor += 1;
+	}
+	return null;
+}
+
+/**
+ * Highlights the letters selected in the code on the canvas, or draws a caret
+ * where the code's caret is. Uses the CSS Custom Highlight API, which marks
+ * text without touching the page's selection or the code view's focus.
+ */
+function showCodeSelection() {
+	clearCodeSelection();
+	const range = codeSelection.value;
+	const offsets = sourceOffsets.value;
+	// While typed code waits to be applied its offsets are not known yet; this runs again once it is.
+	if (!range || editing.value || !offsets || codeText.value !== mappedSource.value.source) return;
+	const source = mappedSource.value.source;
+	const nodes = shownDoc.value.nodes;
+	const runs = Object.entries(offsets)
+		.filter(([id, [start, end]]) => nodes[id]?.type === 'text' && !isExpr(nodes[id].props.value) && start <= range.end && end >= range.start)
+		.sort((a, b) => a[1][0] - b[1][0]);
+	if (!runs.length) return;
+	const point = ([id, span], offset) => {
+		const text = renderedRun(id);
+		return text && { text, offset: Math.min(text.data.length, runOffset(source, span, String(nodes[id].props.value ?? ''), offset)) };
+	};
+	const from = point(runs[0], Math.max(range.start, runs[0][1][0]));
+	const to = point(runs.at(-1), Math.min(range.end, runs.at(-1)[1][1]));
+	if (!from || !to) return;
+	const owner = from.text.ownerDocument;
+	const view = owner.defaultView;
+	const marked = owner.createRange();
+	marked.setStart(from.text, from.offset);
+	marked.setEnd(to.text, to.offset);
+	shownSelection = { view };
+	view.addEventListener('scroll', showCodeSelection, { capture: true, passive: true });
+	if (!marked.collapsed) {
+		if (!view.CSS?.highlights || !view.Highlight) return;
+		if (!owner.getElementById('dom-code-selection-style')) {
+			const style = owner.createElement('style');
+			style.id = 'dom-code-selection-style';
+			style.textContent = '::highlight(dom-code-selection) { background-color: Highlight; color: HighlightText; }';
+			owner.head.append(style);
+		}
+		view.CSS.highlights.set('dom-code-selection', new view.Highlight(marked));
+		return;
+	}
+	const rect = marked.getClientRects()[0] || marked.getBoundingClientRect();
+	if (!rect.height) return;
+	const caret = owner.createElement('div');
+	caret.dataset.designerOverlay = '';
+	caret.setAttribute('aria-hidden', 'true');
+	Object.assign(caret.style, { position: 'fixed', left: `${rect.left}px`, top: `${rect.top}px`, width: '2px', height: `${rect.height}px`, background: 'Highlight', pointerEvents: 'none', zIndex: '2147483647' });
+	caret.animate([{ opacity: 1 }, { opacity: 1, offset: 0.5 }, { opacity: 0, offset: 0.5 }, { opacity: 0 }], { duration: 1000, iterations: Infinity });
+	owner.body.append(caret);
+	shownSelection.caret = caret;
+}
+watch([codeSelection, mappedSource, codeText, editing], () => nextTick(showCodeSelection), { flush: 'post' });
 
 /** Selection from any artboard also makes that artboard active. */
 function selectFromArtboard(board, id) {
@@ -1086,6 +1255,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
 	finishTextEdit();
+	clearCodeSelection();
 	disposed = true;
 	clearTimeout(compileTimer);
 	saver.flush();
@@ -1294,7 +1464,7 @@ onBeforeUnmount(() => {
 						</div>
 					</div>
 					<p class="border-b border-border px-4 py-2 text-[11px] leading-4 text-muted-fg">Edit the code and the design follows. Click a line to select its element; select an element to find its code.</p>
-					<component :is="codeEditor || CodeView" v-bind="codeEditor ? codeEditorProps : {}" class="flex-1" :model-value="codeText" :highlight="codeHighlight" :label="`${activeFile?.name} source`" @update:model-value="editCode" @cursor="selectFromCode" @blur="leaveCode" />
+					<component :is="codeEditor || CodeView" v-bind="codeEditor ? codeEditorProps : {}" class="flex-1" :model-value="codeText" :highlight="codeHighlight" :label="`${activeFile?.name} source`" @update:model-value="editCode" @cursor="selectFromCode" @select="selectTextFromCode" @focus="enterCode" @blur="leaveCode" />
 					<p v-if="codeError || codeWarning" role="status" class="border-t border-border bg-secondary px-4 py-2 text-xs" :class="codeError ? 'text-destructive' : 'text-muted-fg'">{{ codeError || codeWarning }}</p>
 				</aside>
 			</section>
