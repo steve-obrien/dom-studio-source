@@ -443,7 +443,9 @@ const editorClasses = computed(() => [
 ]);
 const toolbarClasses = computed(() => [
 	'dom-document-editor__toolbar',
-	hasDocumentChrome.value && 'border-b border-border',
+	// Field text sits 1rem in, so the 0.5rem inset puts the first icon on it; the paper sits 1rem in, so buttons line up with its edge.
+	hasFieldChrome.value ? 'px-2 py-1' : 'px-4 pt-2',
+	hasDocumentChrome.value && 'border-b border-border pb-2',
 ]);
 const paperClasses = computed(() => [
 	'dom-document-editor__paper',
@@ -975,6 +977,16 @@ function imageNodeView(context) {
 			action.removeEventListener('click', requestImageNodeReplacement);
 		},
 	};
+}
+
+/**
+ * Keeps editor focus while a toolbar button is pressed, so the paper focus ring does not flash.
+ *
+ * @param {MouseEvent} event Toolbar pointer event.
+ * @returns {void}
+ */
+function preventToolbarBlur(event) {
+	if (event.target instanceof Element && event.target.closest('button')) event.preventDefault();
 }
 
 /**
@@ -2440,7 +2452,7 @@ function insertVideoCommand(nodeName) {
 				<DomBadge :label="hasCollaboration ? 'Yjs ready' : 'Client only'" tone="info" variant="soft" size="sm" />
 			</header>
 
-			<div v-if="showToolbar" data-document-editor-toolbar :class="toolbarClasses">
+			<div v-if="showToolbar" data-document-editor-toolbar :class="toolbarClasses" @mousedown="preventToolbarBlur">
 				<DomToolbar label="Document editor toolbar" skin="flat" control-size="sm" control-radius="md" class="w-full">
 					<slot name="toolbar-start" :editor="editor" :active="toolbarState" />
 					<div v-if="showTool('undo') || showTool('redo')" class="flex items-center gap-1 border-r border-border pr-1">
