@@ -75,7 +75,6 @@ export function inlineEditTarget(doc, id) {
  */
 export function beginInlineEdit({ element, doc, id, point, onChange = () => {}, onEnd = () => {} }) {
 	const owner = element.ownerDocument;
-	const view = owner.defaultView;
 	// Rendered text nodes, matched to the runs they show, so the selection and edits find their source.
 	const texts = new Map();
 	const original = new Set();
@@ -102,46 +101,7 @@ export function beginInlineEdit({ element, doc, id, point, onChange = () => {}, 
 		}
 	})(element, id);
 
-	let saved = null;
-	element.contentEditable = 'true';
-	element.spellcheck = true;
-	element.style.cursor = 'text';
-	element.style.outline = 'none';
-	element.focus({ preventScroll: true });
-	const selection = view.getSelection();
-	const placed = point && owner.caretRangeFromPoint?.(point.x, point.y);
-	if (placed && element.contains(placed.startContainer)) { selection.removeAllRanges(); selection.addRange(placed); }
-	else if (!element.contains(selection.anchorNode)) { const range = owner.createRange(); range.selectNodeContents(element); range.collapse(false); selection.removeAllRanges(); selection.addRange(range); }
-
-	function inside() { return selection.rangeCount && element.contains(selection.getRangeAt(0).commonAncestorContainer); }
-	function onSelection() {
-		if (!inside()) return;
-		saved = selection.getRangeAt(0).cloneRange();
-		onChange();
-	}
-	function onKeydown(event) {
-		if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); event.stopPropagation(); onEnd(); }
-		else if (event.key === 'Enter') { event.preventDefault(); owner.execCommand('insertLineBreak'); }
-		else if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); onEnd(); }
-	}
-	/** Pasted and dropped content arrives as plain text, so no foreign markup reaches the file. */
-	function onPaste(event) {
-		event.preventDefault();
-		owner.execCommand('insertText', false, (event.clipboardData?.getData('text/plain') || '').replace(/\s+/g, ' '));
-	}
-	function onDrop(event) { event.preventDefault(); }
-	owner.addEventListener('selectionchange', onSelection);
-	element.addEventListener('keydown', onKeydown);
-	element.addEventListener('paste', onPaste);
-	element.addEventListener('drop', onDrop);
-	element.addEventListener('input', onChange);
-	onSelection();
-
-	/** Restores the user's selection, which a click in the inspector can take away. */
-	function restore() {
-		element.focus({ preventScroll: true });
-		if (saved && !inside()) { selection.removeAllRanges(); selection.addRange(saved); }
-	}
+	const { selection, inside, restore, onSelection, stop } = makeEditable({ element, point, onChange, onEnd });
 
 	return {
 		id,
@@ -198,18 +158,107 @@ export function beginInlineEdit({ element, doc, id, point, onChange = () => {}, 
 			normalize(element);
 			return reconcile(current, id, element, texts, original, makeId);
 		},
-		stop() {
-			owner.removeEventListener('selectionchange', onSelection);
-			element.removeEventListener('keydown', onKeydown);
-			element.removeEventListener('paste', onPaste);
-			element.removeEventListener('drop', onDrop);
-			element.removeEventListener('input', onChange);
-			element.removeAttribute('contenteditable');
-			element.style.cursor = '';
-			element.style.outline = '';
-			selection.removeAllRanges();
-		},
+		stop,
 	};
+}
+
+/**
+ * Makes an element whose text is one plain string editable in place, such as
+ * a poster text layer. Typing, the caret and Enter or Escape to finish work as
+ * in `beginInlineEdit`; Shift+Enter starts a new line. There are no marks:
+ * the whole string is read back with `text()`.
+ *
+ * @param {{ element: HTMLElement, point?: { x: number, y: number }, onChange?: () => void, onEnd?: () => void }} options
+ * @returns {object} Session: `text()` and `stop()`.
+ */
+export function beginPlainTextEdit({ element, point, onChange = () => {}, onEnd = () => {} }) {
+	const { stop } = makeEditable({ element, point, onChange, onEnd, multiline: true });
+	return {
+		element,
+		/** The edited text, with line breaks as `\n`. */
+		text() { return plainText(element).replace(/\u00a0/g, ' ').replace(/\n$/, ''); },
+		stop,
+	};
+}
+
+/** Text with `<br>` and block elements the browser may add read as line breaks. */
+function plainText(el) {
+	let text = '';
+	for (const child of el.childNodes) {
+		if (child.nodeType === 3) text += child.data;
+		else if (child.nodeType !== 1) continue;
+		else if (child.tagName === 'BR') text += '\n';
+		else {
+			const block = /^(DIV|P)$/.test(child.tagName);
+			if (block && text && !text.endsWith('\n')) text += '\n';
+			text += plainText(child);
+		}
+	}
+	return text;
+}
+
+/**
+ * The editing session both kinds of edit share: the element becomes
+ * `contenteditable`, takes focus with the caret where the user double-clicked,
+ * and ends on Enter or Escape; Shift+Enter breaks the line. Pasted content
+ * arrives as plain text, on one line unless the text is `multiline`.
+ */
+function makeEditable({ element, point, onChange, onEnd, multiline = false }) {
+	const owner = element.ownerDocument;
+	const view = owner.defaultView;
+	let saved = null;
+	element.contentEditable = 'true';
+	element.spellcheck = true;
+	element.style.cursor = 'text';
+	element.style.outline = 'none';
+	element.focus({ preventScroll: true });
+	const selection = view.getSelection();
+	const placed = point && owner.caretRangeFromPoint?.(point.x, point.y);
+	if (placed && element.contains(placed.startContainer)) { selection.removeAllRanges(); selection.addRange(placed); }
+	else if (!element.contains(selection.anchorNode)) { const range = owner.createRange(); range.selectNodeContents(element); range.collapse(false); selection.removeAllRanges(); selection.addRange(range); }
+
+	function inside() { return selection.rangeCount && element.contains(selection.getRangeAt(0).commonAncestorContainer); }
+	function onSelection() {
+		if (!inside()) return;
+		saved = selection.getRangeAt(0).cloneRange();
+		onChange();
+	}
+	function onKeydown(event) {
+		if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); event.stopPropagation(); onEnd(); }
+		else if (event.key === 'Enter') { event.preventDefault(); owner.execCommand('insertLineBreak'); }
+		else if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); onEnd(); }
+	}
+	/** Pasted and dropped content arrives as plain text, so no foreign markup reaches the file. */
+	function onPaste(event) {
+		event.preventDefault();
+		const text = event.clipboardData?.getData('text/plain') || '';
+		owner.execCommand('insertText', false, multiline ? text.replace(/\r\n?/g, '\n') : text.replace(/\s+/g, ' '));
+	}
+	function onDrop(event) { event.preventDefault(); }
+	owner.addEventListener('selectionchange', onSelection);
+	element.addEventListener('keydown', onKeydown);
+	element.addEventListener('paste', onPaste);
+	element.addEventListener('drop', onDrop);
+	element.addEventListener('input', onChange);
+	onSelection();
+
+	/** Restores the user's selection, which a click in the inspector can take away. */
+	function restore() {
+		element.focus({ preventScroll: true });
+		if (saved && !inside()) { selection.removeAllRanges(); selection.addRange(saved); }
+	}
+	function stop() {
+		owner.removeEventListener('selectionchange', onSelection);
+		element.removeEventListener('keydown', onKeydown);
+		element.removeEventListener('paste', onPaste);
+		element.removeEventListener('drop', onDrop);
+		element.removeEventListener('input', onChange);
+		element.removeAttribute('contenteditable');
+		element.style.cursor = '';
+		element.style.outline = '';
+		selection.removeAllRanges();
+	}
+	return { selection, inside, restore, onSelection, stop };
 }
 
 /** A selection end as a point in a text node where there is one beside it. */

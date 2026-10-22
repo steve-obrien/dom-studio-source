@@ -1,11 +1,12 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, shallowRef, watch } from 'vue';
 import { RouterLink } from 'vue-router';
 import { DomSplitterPanel, DomButton, DomDialog, DomTextInput, DomNativeSelect, DomDesignerLayers, DomDesignerStage } from '../../lib/vue';
 import NodeInspector from '../core/NodeInspector.vue';
 import CodeView from '../core/CodeView.vue';
 import { copySubtree, fromTree } from '../core/editorDocument.js';
 import { createHistory } from '../core/history.js';
+import { beginPlainTextEdit } from '../core/inlineText.js';
 import { applyOperation } from '../core/operations.js';
 import { treeFromType } from '../core/typeRegistry.js';
 import AlignTools from '../stage/AlignTools.vue';
@@ -80,6 +81,10 @@ const savedTemplates = ref([]);
 const notice = ref('');
 const imageErrors = ref({});
 const imageUrlDraft = ref('');
+/** The text layer being edited on the stage, its text as typed so far, and a count per layer that re-renders it afterwards. */
+const editing = shallowRef(null);
+const editText = ref(null);
+const revisions = ref({});
 let observer;
 let disposed = false;
 let additiveLayerClick = false;
@@ -99,7 +104,9 @@ const movable = computed(() => selectedNodes.value.filter((node) => !node.locked
 const multiple = computed(() => selectedNodes.value.length > 1);
 const scale = computed(() => (zoomChoice.value === 'fit' ? fitScale.value : Number(zoomChoice.value)));
 const layers = computed(() => poster.value.layers.toReversed().map((layer) => ({ id: layer.id, label: `${layer.name}${layer.locked ? ' · locked' : ''}${layer.hidden ? ' · hidden' : ''}` })));
-const source = computed(() => posterHtmlLines(poster.value));
+// While text is edited on the stage, the HTML view shows it as it is typed.
+const shownPoster = computed(() => (editing.value && editText.value !== null ? { ...poster.value, layers: poster.value.layers.map((layer) => (layer.id === editing.value.id ? { ...layer, value: editText.value } : layer)) } : poster.value));
+const source = computed(() => posterHtmlLines(shownPoster.value));
 // Google fonts used by text layers load while the studio is open.
 useGoogleFonts(() => poster.value.layers.filter((layer) => layer.type === 'text'));
 const sourceText = computed(() => source.value.map((line) => line.text).join('\n'));
@@ -146,6 +153,7 @@ const formatOptions = computed(() => {
 });
 
 watch(selected, (id) => {
+	if (editing.value && id !== editing.value.id) finishTextEdit();
 	if (!selection.value.includes(id)) selection.value = doc.value.nodes[id]?.parent ? [id] : [];
 });
 
@@ -164,8 +172,36 @@ function settleSelection() {
 	selection.value = selection.value.filter((id) => doc.value.nodes[id]);
 	if (!doc.value.nodes[selected.value]) selected.value = selection.value[selection.value.length - 1] || 'frame';
 }
-function undo() { history.undo(); settleSelection(); }
-function redo() { history.redo(); settleSelection(); }
+function undo() { finishTextEdit(); history.undo(); settleSelection(); }
+function redo() { finishTextEdit(); history.redo(); settleSelection(); }
+
+/* Editing text in place ----------------------------------------------------------- */
+
+/** Double-click on a text layer: edit its text where it is, as on the designer canvas (see inlineText.js). */
+function startTextEdit({ id, element, x, y }) {
+	finishTextEdit();
+	const node = doc.value.nodes[id];
+	if (node?.type !== 'poster:text') return;
+	selection.value = [id];
+	selected.value = id;
+	if (node.locked) { notice.value = 'This layer is locked. Unlock it to edit its text.'; return; }
+	const session = beginPlainTextEdit({ element, point: { x, y }, onChange: () => { if (editing.value) editText.value = editing.value.session.text(); }, onEnd: finishTextEdit });
+	editing.value = { id, session };
+	editText.value = session.text();
+}
+/** Ends in-place editing, writing the text to the layer as one undo step. */
+function finishTextEdit() {
+	const current = editing.value;
+	if (!current) return;
+	editing.value = null;
+	editText.value = null;
+	const value = current.session.text();
+	current.session.stop();
+	// The browser changed the element's DOM itself, so it is rendered afresh from the document.
+	revisions.value = { ...revisions.value, [current.id]: (revisions.value[current.id] || 0) + 1 };
+	const node = doc.value.nodes[current.id];
+	if (node && value !== node.props.value) run({ op: 'setProp', id: current.id, key: 'value', value });
+}
 
 /* Layers ------------------------------------------------------------------------- */
 
@@ -178,6 +214,7 @@ function setProp(node, key, value, merge = '') {
 /** Inspector edits; typing and sliders merge into one undo step per field. */
 function onInspector(node, { key, value, merge }) {
 	if (node.locked) return;
+	if (key === 'value' && editing.value?.id === node.id) finishTextEdit();
 	setProp(node, key, value, merge ? `prop:${node.id}:${key}` : '');
 }
 function setLabel(value) {
@@ -284,6 +321,7 @@ function moveTo(rects) {
 function setPreset(value) {
 	const [width, height] = value.split('x').map(Number);
 	if (!props.presets.some((preset) => preset.value === value) || value === `${poster.value.width}x${poster.value.height}`) return;
+	finishTextEdit();
 	formatBase.value = formatDesign.value;
 	run(formatOperations(doc.value, resizePoster(formatBase.value, { width, height })));
 	nextTick(fit);
@@ -293,6 +331,7 @@ function setPreset(value) {
 
 /** Replaces the design with a template at the current format; undo brings it back. */
 function applyTemplate(template) {
+	finishTextEdit();
 	const { operations, firstId } = templateOperations(doc.value, template.poster);
 	run(operations);
 	selection.value = firstId ? [firstId] : [];
@@ -381,7 +420,9 @@ watch(() => [selected.value, activeLayer.value?.value], () => {
 /* Export ------------------------------------------------------------------------- */
 
 /** Downloads a standalone HTML document containing local images and the current CSS. */
-function download(design = poster.value, fileName = props.fileName) {
+function download(design, fileName = props.fileName) {
+	finishTextEdit();
+	design ??= poster.value;
 	const url = URL.createObjectURL(new Blob([exportPosterHtml(design)], { type: 'text/html' }));
 	const link = document.createElement('a');
 	link.href = url; link.download = fileName; link.click();
@@ -390,6 +431,7 @@ function download(design = poster.value, fileName = props.fileName) {
 }
 /** Copies the exact export document, reporting clipboard failures without losing edits. */
 async function copy() {
+	finishTextEdit();
 	try { await navigator.clipboard.writeText(exportPosterHtml(poster.value)); notice.value = 'HTML copied.'; }
 	catch { notice.value = 'Clipboard unavailable. Use Export HTML instead.'; }
 }
@@ -475,9 +517,9 @@ onBeforeUnmount(cleanup);
 				<div ref="workspace" class="poster-workspace min-h-0 flex-1 overflow-auto p-9">
 					<div ref="artwork" class="relative mx-auto shadow-xl" :style="{ width: `${poster.width * scale}px`, height: `${poster.height * scale}px` }">
 						<DesignerRulers v-if="rulers" :width="poster.width" :height="poster.height" :scale="scale" :selection="selectionBox" />
-						<DomDesignerStage v-model="selected" v-model:selection="selection" :snapping="snapping" :spacing-snapping="spacingSnapping" :positioning="Boolean(active && !active.locked && !active.hidden)" class="absolute left-0 top-0 origin-top-left [--primary:var(--chart-1)]" :style="{ width: `${poster.width}px`, height: `${poster.height}px`, transform: `scale(${scale})` }" @style-change="patch">
+						<DomDesignerStage v-model="selected" v-model:selection="selection" :snapping="snapping" :spacing-snapping="spacingSnapping" :positioning="Boolean(active && !active.locked && !active.hidden)" :editing="editing?.id || ''" class="absolute left-0 top-0 origin-top-left [--primary:var(--chart-1)]" :style="{ width: `${poster.width}px`, height: `${poster.height}px`, transform: `scale(${scale})` }" @style-change="patch" @edit-text="startTextEdit">
 							<article :aria-label="poster.title" :style="{ position: 'relative', width: `${poster.width}px`, height: `${poster.height}px`, overflow: 'hidden', background: poster.background }">
-								<template v-for="(layer, index) in poster.layers" :key="layer.id">
+								<template v-for="(layer, index) in poster.layers" :key="`${layer.id}:${revisions[layer.id] || 0}`">
 									<img v-if="layer.type === 'image'" :src="safePosterImage(layer.value)" :alt="layer.name" :data-designer-id="layer.hidden ? undefined : layer.id" :style="posterLayerStyle(layer, index)" draggable="false" @error="imageErrors[layer.id] = true" @load="delete imageErrors[layer.id]" />
 									<component :is="layer.type === 'text' ? 'p' : 'div'" v-else :data-designer-id="layer.hidden ? undefined : layer.id" :style="posterLayerStyle(layer, index)">{{ layer.type === 'text' ? layer.value : '' }}</component>
 								</template>
@@ -519,7 +561,7 @@ onBeforeUnmount(cleanup);
 					<div class="flex items-center justify-between border-b border-border px-4 py-3"><h2 class="text-sm font-semibold">{{ frameLabel }}</h2><span class="text-[10px] uppercase tracking-wider text-muted-fg">Frame</span></div>
 					<div class="space-y-4 p-4">
 						<NodeInspector :node="frame" :type="frameType" :bindable="false" :extra-props="false" @set-prop="onInspector(frame, $event)" />
-						<p class="text-xs leading-5 text-muted-fg">Cmd/Ctrl + mouse wheel zooms the stage. Drag a layer's outline to move it, or a corner or edge handle to resize. Shift-click to select several layers and align them. Arrow keys move by 1px; Shift moves by 10px; Alt resizes.</p>
+						<p class="text-xs leading-5 text-muted-fg">Cmd/Ctrl + mouse wheel zooms the stage. Double-click text to edit it on the poster; Enter or Escape finishes. Drag a layer's outline to move it, or a corner or edge handle to resize. Shift-click to select several layers and align them. Arrow keys move by 1px; Shift moves by 10px; Alt resizes.</p>
 					</div>
 				</template>
 			</aside>
