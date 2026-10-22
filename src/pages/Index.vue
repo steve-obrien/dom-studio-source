@@ -28,7 +28,6 @@ const products = [
 		text: 'Trading desks, back offices and admin consoles. Spreadsheet-grade editing on your own Vue components, themed like the rest of your app.',
 		features: ['Pinned columns, column menu and resizing', 'Inline editing with validation and undo', 'Range selection with copy and paste to Excel', 'Row grouping with sums, averages and totals', 'CSV and typed .xlsx export', 'Typed filters, multi-sort, virtual rows and server queries'],
 		link: 'Explore the Data Grid',
-		more: [{ to: '/data/filter-bar', label: 'Filter bar' }],
 	},
 	{
 		id: 'scheduler',
