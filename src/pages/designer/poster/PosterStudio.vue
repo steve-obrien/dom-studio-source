@@ -46,6 +46,8 @@ const props = defineProps({
 	/** Replaces the plain HTML view, e.g. DomMonacoCodeView; gets `codeEditorProps`. */
 	codeEditor: { type: [Object, Function], default: null },
 	codeEditorProps: { type: Object, default: () => ({}) },
+	/** Sits inside a page (such as the homepage): fills its container, drops the site links, and only takes shortcuts while the pointer or focus is inside. */
+	embedded: { type: Boolean, default: false },
 });
 
 const types = createPosterTypes();
@@ -55,6 +57,8 @@ const history = createHistory({ apply: (operation) => applyOperation(doc.value, 
 const selected = ref(props.initialSelection || 'frame');
 const selection = ref(props.initialSelection ? [props.initialSelection] : []);
 const workspace = ref(null);
+const root = ref(null);
+const pointerInside = ref(false);
 const upload = ref(null);
 const templateUpload = ref(null);
 const artwork = ref(null);
@@ -420,6 +424,7 @@ async function wheelZoom(event) {
 }
 /** Undo, redo, duplicate and delete from the keyboard, outside text fields. */
 function onKeydown(event) {
+	if (props.embedded && !pointerInside.value && !root.value?.contains(document.activeElement)) return;
 	const target = event.target;
 	if (target?.closest?.('input, textarea, select, [contenteditable="true"]')) return;
 	const command = event.metaKey || event.ctrlKey;
@@ -449,9 +454,9 @@ onBeforeUnmount(cleanup);
 </script>
 
 <template>
-	<main class="flex h-dvh min-h-0 flex-col bg-canvas text-canvas-fg">
+	<main ref="root" class="flex min-h-0 flex-col bg-canvas text-canvas-fg" :class="embedded ? 'h-full' : 'h-dvh'" @pointerenter="pointerInside = true" @pointerleave="pointerInside = false">
 		<header class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-			<div class="flex flex-wrap items-center gap-3"><RouterLink to="/designer" class="text-sm text-muted-fg hover:text-canvas-fg">← UI designer</RouterLink><RouterLink :to="guide" class="text-sm text-primary underline underline-offset-4">Assembly guide</RouterLink><span class="h-4 border-l border-border"></span><h1 class="text-sm font-semibold">{{ name }}</h1><span class="rounded bg-secondary px-2 py-1 text-[10px] font-semibold uppercase tracking-wide">Beta</span></div>
+			<div class="flex flex-wrap items-center gap-3"><template v-if="!embedded"><RouterLink to="/designer" class="text-sm text-muted-fg hover:text-canvas-fg">← UI designer</RouterLink><RouterLink :to="guide" class="text-sm text-primary underline underline-offset-4">Assembly guide</RouterLink><span class="h-4 border-l border-border"></span></template><h1 class="text-sm font-semibold">{{ name }}</h1><span class="rounded bg-secondary px-2 py-1 text-[10px] font-semibold uppercase tracking-wide">Beta</span></div>
 			<div class="flex items-center gap-2"><DomButton size="sm" variant="ghost" :disabled="!counts.undo" title="Undo (⌘Z)" @click="undo">Undo</DomButton><DomButton size="sm" variant="ghost" :disabled="!counts.redo" title="Redo (⇧⌘Z)" @click="redo">Redo</DomButton><DomButton size="sm" variant="ghost" :aria-pressed="showCode" @click="showCode = !showCode">HTML</DomButton><DomButton v-if="templates.length" size="sm" variant="ghost" @click="showTemplates = true">Templates</DomButton><DomButton v-if="presets.length > 1" size="sm" variant="ghost" :aria-pressed="showFormats" @click="showFormats = !showFormats">Formats</DomButton><DomButton size="sm" @click="download()">Export HTML</DomButton></div>
 		</header>
 		<nav class="flex shrink-0 border-b border-border p-1 md:hidden" aria-label="Editor panels"><button v-for="panel in ['layers', 'poster', 'inspect']" :key="panel" type="button" class="flex-1 rounded px-3 py-2 text-sm capitalize" :class="mobilePanel === panel ? 'bg-secondary font-semibold' : 'text-muted-fg'" :aria-pressed="mobilePanel === panel" @click="mobilePanel = panel">{{ panel }}</button></nav>
