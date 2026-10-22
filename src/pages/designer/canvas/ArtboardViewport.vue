@@ -25,7 +25,7 @@ const props = defineProps({
 	title: { type: String, default: 'Artboard' },
 	fill: { type: Boolean, default: false },
 });
-const emit = defineEmits(['ready', 'wheel', 'keydown', 'pointerdown', 'resize']);
+const emit = defineEmits(['ready', 'styles', 'wheel', 'keydown', 'pointerdown', 'resize']);
 const iframe = ref(null);
 const mount = shallowRef(null);
 const height = ref(props.minHeight);
@@ -44,7 +44,7 @@ async function sheetText(link) {
 	return sheetCache.get(link.href);
 }
 
-/** Copies the app's styles into the artboard and appends utilities compiled for imported classes. */
+/** Copies the app's styles into the artboard and appends utilities compiled for imported classes, then emits `styles` so layouts can be re-read. */
 async function syncStyles() {
 	const doc = iframe.value?.contentDocument;
 	if (!doc || !mount.value) return;
@@ -74,6 +74,7 @@ async function syncStyles() {
 	doc.documentElement.style.setProperty('--artboard-vh', props.fill ? '1vh' : `${props.minHeight / 100}px`);
 	doc.documentElement.dataset.theme = document.documentElement.dataset.theme || 'light';
 	doc.documentElement.className = document.documentElement.className;
+	emit('styles');
 }
 
 /** Grows the artboard to fit its content, never shrinking below the requested height. */

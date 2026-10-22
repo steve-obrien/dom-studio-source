@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, useSlots, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onBeforeUpdate, onMounted, ref, useSlots, watch } from 'vue';
 
 defineOptions({
 	__doc: {
@@ -92,7 +92,9 @@ const endPx = ref(props.endSize);
 const dragging = ref(null);
 let resizeObserver = null;
 
-const hasEnd = computed(() => Boolean(slots.end));
+// Slots are not reactive, so the end pane is re-checked before each render; a parent can drop it with v-if.
+const hasEnd = ref(Boolean(slots.end));
+onBeforeUpdate(() => { hasEnd.value = Boolean(slots.end); });
 const isVertical = computed(() => props.orientation === 'vertical');
 const isReversed = computed(() => props.reverse && !isVertical.value);
 const resizeCursor = computed(() => isVertical.value ? 'row-resize' : 'col-resize');

@@ -85,7 +85,9 @@ export function frameNodeStyle(node, parent) {
 	if (parent?.layout) {
 		if (parent.layout.mode === 'absolute') {
 			Object.assign(style, { position: 'absolute !important', margin: '0px !important', inset: 'auto !important', boxSizing: 'border-box', flex: 'none !important' });
-			for (const [key, value] of Object.entries(node.placements?.absolute || { left: 24, top: 24, width: 160, height: 100 })) style[key] = `${value}px !important`;
+			const box = node.placements?.absolute || { left: 24, top: 24, width: 160, height: 100 };
+			// A layer that was moved but never resized (`sized: false`) keeps its natural size, so its text never rewraps.
+			for (const key of box.sized === false ? ['left', 'top'] : ['left', 'top', 'width', 'height']) if (Number.isFinite(box[key])) style[key] = `${box[key]}px !important`;
 		} else {
 			Object.assign(style, { position: 'relative !important', inset: 'auto !important' });
 			if (node.sourceAbsolute) Object.assign(style, { width: 'auto !important', height: node.absoluteHeight ? `${node.absoluteHeight}px !important` : 'auto !important' });
