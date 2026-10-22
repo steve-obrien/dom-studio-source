@@ -54,7 +54,9 @@ function measure() {
 	const el = selectedElement();
 	canPosition.value = permitsPositioning(el);
 	canReorder.value = !canPosition.value && Boolean(reorderHost(el));
-	others.value = (props.selection || []).filter((id) => id !== props.modelValue).map((id) => markedElement(id)).filter(Boolean).map(stageBox);
+	// Every other rendered copy is outlined too: a v-for repeats its layers, and an edit changes all of them.
+	const ids = new Set([...(props.selection || []), props.modelValue].filter(Boolean));
+	others.value = [...(root.value?.querySelectorAll('[data-designer-id]') || [])].filter((item) => ids.has(item.dataset.designerId) && item !== el && !item.closest('[data-designer-overlay]')).map(stageBox);
 	if (!el || !root.value) { box.value = null; return; }
 	box.value = stageBox(el);
 }
