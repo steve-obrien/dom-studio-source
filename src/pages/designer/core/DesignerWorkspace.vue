@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, shallowRef, watch } from 'vue';
 import { DomBackdropEditor, DomBackgroundEditor, DomBorderEditor, DomButton, DomDesignerLayers, DomDesignerStage, DomFrameLayoutEditor, DomJsonInput, DomNativeSelect, DomNumberInput, DomShadowEditor, DomTextInput, DomTypographyEditor } from '../../lib/vue';
 import { alignFrameChild, createFrameLayout, measureFrameChild, readFrameLayout } from '../frame/frameLayout.js';
 import { isFrameNode } from '../frames/frameDocument.js';
@@ -16,6 +16,7 @@ import { useGoogleFonts } from '../typography-editor/googleFonts.js';
 import AlignTools from '../stage/AlignTools.vue';
 import { copySubtree, fromTree, isExpr, subtreeIds } from './editorDocument.js';
 import { EditorRender } from './EditorRender.js';
+import { beginInlineEdit, inlineEditTarget, sourceCaret } from './inlineText.js';
 import { createHistory } from './history.js';
 import { previewData, scriptData } from './previewData.js';
 import { treeFromType } from './typeRegistry.js';
@@ -129,6 +130,10 @@ const projectFiles = ref(null);
 const snapping = ref(true);
 const detected = ref({});
 const historySize = ref({ undo: 0, redo: 0 });
+// Text being edited in place on the canvas: its artboard, file, layer and browser session.
+const editing = shallowRef(null);
+const editState = ref({ caret: null, marks: null });
+const revisions = ref({});
 const viewport = ref(null);
 const artboardRefs = new Map();
 // The workspace saves through a storage adapter; project files go through the file adapter when one is given.
@@ -199,7 +204,11 @@ const layers = computed(() => (doc.value ? [layer(doc.value.rootId)] : []));
 const mappedSource = computed(() => (activeFile.value ? exportMappedVue(activeFile.value, isStudioComponent) : { source: '', ranges: {} }));
 const fileSource = computed(() => mappedSource.value.source);
 const codeText = computed(() => codeDraft.value ?? fileSource.value);
-const codeHighlight = computed(() => (codeDraft.value === null ? mappedSource.value.ranges : codeRanges.value || {})[selected.value] || null);
+const codeHighlight = computed(() => {
+	const range = (codeDraft.value === null ? mappedSource.value.ranges : codeRanges.value || {})[selected.value] || null;
+	const caret = range && codeDraft.value === null ? caretInSource() : null;
+	return caret ? { ...range, caret } : range;
+});
 // In Page mode the artboard scrolls itself, so a selection made from the layers or the code is scrolled into view.
 watch(selected, async (id) => {
 	if (canvasMode.value !== 'page' || !id) return;
@@ -417,6 +426,9 @@ async function openProjectFile(path) {
 
 /** Writes the active file's source to the project, at its own path or under its name. */
 async function saveProjectFile() {
+	// Text being edited and code still being typed are part of what the user means to save.
+	finishTextEdit();
+	if (codeDraft.value !== null) applyCode();
 	const file = activeFile.value;
 	if (!file) return;
 	const path = file.path || file.name;
@@ -925,6 +937,64 @@ function onCanvasPointerup(event) {
 	if (viewport.value?.hasPointerCapture(event.pointerId)) viewport.value.releasePointerCapture(event.pointerId);
 }
 
+/* Editing text in place ------------------------------------------------------------ */
+
+/** Double-click on the canvas: edit that text where it is, or say why it cannot be (see inlineText.js). */
+function startTextEdit(board, { id, element, x, y }) {
+	finishTextEdit();
+	const file = fileById(board.fileId);
+	if (!file) return;
+	activeArtboardId.value = board.id;
+	const target = inlineEditTarget(file.doc, id);
+	if (target.error) { selected.value = id; notice.value = target.error; return; }
+	let host = element;
+	while (host && host.dataset?.designerId !== target.id) host = host.parentElement?.closest('[data-designer-id]');
+	if (!host) return;
+	selected.value = target.id;
+	const session = beginInlineEdit({ element: host, doc: file.doc, id: target.id, point: { x, y }, onChange: readTextEdit, onEnd: finishTextEdit });
+	editing.value = { board: board.id, file: file.id, id: target.id, session, view: `${board.id}:${viewMode.value}:${canvasMode.value}` };
+	readTextEdit();
+}
+
+/** Copies the caret and the selected words' marks from the edit, for the code view and the Text panel. */
+function readTextEdit() {
+	const session = editing.value?.session;
+	editState.value = session ? { caret: session.caret(), marks: session.marks() } : { caret: null, marks: null };
+}
+
+/** Ends in-place editing, writing the edited text to the document as one undo step. */
+function finishTextEdit() {
+	const current = editing.value;
+	if (!current) return;
+	editing.value = null;
+	const file = fileById(current.file);
+	const operations = file ? current.session.operations(file.doc) : [];
+	current.session.stop();
+	// The browser changed the element's DOM itself, so it is rendered afresh from the document.
+	revisions.value = { ...revisions.value, [current.id]: (revisions.value[current.id] || 0) + 1 };
+	editState.value = { caret: null, marks: null };
+	if (operations.length) run(operations.map((operation) => ({ file: current.file, ...operation })));
+}
+
+/** A Text panel toggle while editing: bold, italic, underline or strike on the selected words. */
+function toggleMark(mark) {
+	editing.value?.session.toggle(mark);
+	readTextEdit();
+}
+
+/** The edit caret as a line and column in the exported file, so the code view follows typing. */
+function caretInSource() {
+	const at = editState.value.caret;
+	if (!at || editing.value?.file !== activeFile.value?.id) return null;
+	const { source, offsets } = mappedSource.value;
+	let offset;
+	if (at.id && offsets?.[at.id]) offset = sourceCaret(source, offsets[at.id], at.value, at.offset);
+	else if (at.element && offsets?.[at.element]) offset = offsets[at.element][0];
+	if (offset === undefined) return null;
+	const lineStart = source.lastIndexOf('\n', offset - 1);
+	return { line: source.slice(0, offset).split('\n').length, column: offset - lineStart };
+}
+
 /** Selection from any artboard also makes that artboard active. */
 function selectFromArtboard(board, id) {
 	activeArtboardId.value = board.id;
@@ -936,12 +1006,15 @@ function selectFromArtboard(board, id) {
 /** True while the user is typing, so shortcuts never steal keystrokes. */
 function isTyping(event) {
 	const target = event.target;
-	return target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName);
+	// Monaco types through an EditContext div (role="textbox"), which is neither a field nor contenteditable.
+	return target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName) || Boolean(target?.closest?.('[role="textbox"], .monaco-editor'));
 }
 
 function onKeydown(event) {
-	if (isTyping(event)) return;
 	const mod = event.metaKey || event.ctrlKey;
+	// ⌘S saves from anywhere, even mid-edit, rather than opening the browser's save dialog.
+	if (mod && event.key.toLowerCase() === 's' && projectFiles.value) { event.preventDefault(); saveProjectFile(); return; }
+	if (isTyping(event)) return;
 	if (event.code === 'Space' && !event.repeat) { spaceHeld.value = true; event.preventDefault(); return; }
 	if (mod && event.key.toLowerCase() === 'z') { event.preventDefault(); if (event.shiftKey) redo(); else undo(); return; }
 	if (mod && event.key.toLowerCase() === 'y') { event.preventDefault(); redo(); return; }
@@ -960,6 +1033,9 @@ function onKeyup(event) {
 function onWindowBlur() { spaceHeld.value = false; }
 
 watch(activeArtboardId, refresh);
+// Selecting another layer, switching artboard, file or view, or opening the code ends an in-place edit.
+watch(selected, (id) => { if (editing.value && id !== editing.value.id) finishTextEdit(); });
+watch(() => `${activeArtboardId.value}:${viewMode.value}:${canvasMode.value}`, (view) => { if (editing.value && editing.value.view !== view) finishTextEdit(); });
 // A draft belongs to one file; switching files or closing the panel shows the export again.
 watch(() => [activeFile.value?.id, showCode.value], () => { clearTimeout(codeTimer); codeDraft.value = null; codeRanges.value = null; codeError.value = ''; codeWarning.value = ''; });
 watch(viewMode, refresh);
@@ -981,6 +1057,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+	finishTextEdit();
 	disposed = true;
 	clearTimeout(compileTimer);
 	saver.flush();
@@ -1006,6 +1083,7 @@ onBeforeUnmount(() => {
 					<option v-for="item in projectFiles" :key="item.id" :value="item.id">{{ item.name }}</option>
 				</select>
 				<span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
+				<DomButton v-if="projectFiles" size="sm" variant="ghost" :title="`Write ${activeFile?.path || activeFile?.name} to the project folder (⌘S)`" @click="saveProjectFile">Save</DomButton>
 				<DomButton size="sm" variant="ghost" :disabled="!historySize.undo" title="Undo (⌘Z)" @click="undo">Undo</DomButton>
 				<DomButton size="sm" variant="ghost" :disabled="!historySize.redo" title="Redo (⇧⌘Z)" @click="redo">Redo</DomButton>
 				<span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
@@ -1143,6 +1221,7 @@ onBeforeUnmount(() => {
 										positioning
 										frame-scoped
 										reorder
+										:editing="editing?.board === board.id ? editing.id : ''"
 										:snapping="snapping"
 										:spacing-snapping="snapping"
 										class="bg-canvas text-canvas-fg"
@@ -1150,6 +1229,7 @@ onBeforeUnmount(() => {
 										@update:model-value="selectFromArtboard(board, $event)"
 										@style-change="patch"
 										@reorder="reorderFromStage"
+										@edit-text="startTextEdit(board, $event)"
 									>
 										<EditorRender
 											v-if="fileById(board.fileId)"
@@ -1158,6 +1238,7 @@ onBeforeUnmount(() => {
 											:data="previews[board.fileId]"
 											:mode="viewMode"
 											:detected="board.id === activeArtboard?.id ? detected : noDetectedLayouts"
+											:revisions="revisions"
 										/>
 									</DomDesignerStage>
 								</ArtboardViewport>
@@ -1170,7 +1251,7 @@ onBeforeUnmount(() => {
 					<div v-if="spaceHeld || panning" class="absolute inset-0" aria-hidden="true"></div>
 				</div>
 				<p v-if="compilerNotice" class="pointer-events-none absolute bottom-3 left-3 max-w-md rounded-md bg-canvas/90 px-3 py-2 text-xs text-muted-fg shadow">{{ compilerNotice }}</p>
-				<p v-if="canvasMode === 'canvas'" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] text-muted-fg shadow md:block">Scroll to pan · ⌘/Ctrl + scroll to zoom · Space + drag · ⇧1 fit</p>
+				<p v-if="canvasMode === 'canvas'" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] text-muted-fg shadow md:block">Double-click text to edit · Scroll to pan · ⌘/Ctrl + scroll to zoom · Space + drag · ⇧1 fit</p>
 				<p v-else-if="pageSize" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] tabular-nums text-muted-fg shadow md:block">Viewport {{ pageSize.width }} × {{ pageSize.height }}</p>
 
 				<aside v-if="showCode" class="absolute inset-y-0 right-0 flex w-full max-w-xl flex-col border-l border-border bg-canvas shadow-xl">
@@ -1243,7 +1324,7 @@ onBeforeUnmount(() => {
 						<p class="text-[11px] leading-4 text-muted-fg">Kept on export. Data view runs lists and conditions on preview data; Variables view shows every branch and one item of each list.</p>
 					</section>
 					<div class="border-b border-border px-4">
-						<DomTypographyEditor v-if="showText && textStyle" title="Text" :google-fonts="googleFonts" :model-value="textStyle" @update:model-value="setStyle('text', $event)" />
+						<DomTypographyEditor v-if="showText && textStyle" title="Text" :google-fonts="googleFonts" :model-value="textStyle" :marks="editing?.id === selected ? editState.marks || {} : null" @update:model-value="setStyle('text', $event)" @mark="toggleMark" />
 						<template v-for="kind in ['fill', 'stroke', 'shadow', 'blur']" :key="kind">
 							<StyleControlSection v-if="customStyle[kind]" :model-value="true" :title="styleTitles[kind]" meta="Custom CSS">
 								<template #actions><ControlIconButton icon="remove" :label="`Remove ${styleTitles[kind].toLowerCase()}`" @click="setStyleRaw(kind, '')" /></template>

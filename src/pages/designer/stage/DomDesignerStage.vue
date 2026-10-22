@@ -17,8 +17,9 @@ const props = defineProps({
 	frameScoped: { type: Boolean, default: false, _edit: { description: 'Only move children of an absolute data-designer-frame. Snap to that frame and its direct children.' } },
 	selection: { type: Array, default: undefined, _edit: { description: 'Selected IDs for multi-select. Shift-click adds or removes a layer; dragging moves every selected layer that can be positioned.' } },
 	reorder: { type: Boolean, default: false, _edit: { description: 'Drag layers inside flow, flex and grid frames to reorder them. Emits reorder with the new parent and the sibling it goes before.' } },
+	editing: { type: String, default: '', _edit: { description: 'ID of a layer whose text is being edited in place. Clicks inside it move the caret instead of selecting, and the selection box stops taking the pointer.' } },
 });
-const emit = defineEmits(['update:modelValue', 'update:selection', 'style-change', 'reorder']);
+const emit = defineEmits(['update:modelValue', 'update:selection', 'style-change', 'reorder', 'edit-text']);
 const root = ref(null);
 const box = ref(null);
 const viewScale = ref(1);
@@ -83,14 +84,29 @@ function reorderHost(el) {
 	const host = el.parentElement?.closest('[data-designer-id]');
 	return host && root.value?.contains(host) && host.dataset.designerFrame && host.dataset.designerFrame !== 'absolute' ? host : null;
 }
+/** The layer being edited in place, if this click landed in it. */
+function inEditing(target) {
+	const host = props.editing && target?.closest?.('[contenteditable="true"]');
+	return Boolean(host && host.dataset.designerId === props.editing);
+}
 /** Selects the innermost marked HTML layer and prevents preview controls from activating. */
 function select(event) {
-	if (props.interactive || event.target.closest('[data-designer-overlay]')) return;
+	if (props.interactive || inEditing(event.target)) return;
+	if (event.detail === 2) { requestEdit(event); return; }
+	if (event.target.closest('[data-designer-overlay]')) return;
 	const el = event.target.closest('[data-designer-id]');
 	if (!el || !root.value.contains(el)) return;
 	event.preventDefault();
 	event.stopPropagation();
 	choose(el.dataset.designerId, event.shiftKey || event.metaKey);
+}
+/** A double click asks to edit the text under the pointer, looking through the selection box to the layer beneath. */
+function requestEdit(event) {
+	const el = event.target.ownerDocument.elementsFromPoint(event.clientX, event.clientY).find((item) => item.hasAttribute('data-designer-id') && root.value.contains(item) && !item.closest('[data-designer-overlay]'));
+	if (!el) return;
+	event.preventDefault();
+	event.stopPropagation();
+	emit('edit-text', { id: el.dataset.designerId, element: el, x: event.clientX, y: event.clientY });
 }
 /** Shift-click adds to the selection, so it must not also extend the browser's text selection. */
 function keepTextSelection(event) {
@@ -341,6 +357,6 @@ onBeforeUnmount(cleanup);
 				<div v-if="drop.line" class="absolute bg-primary" :style="{ left: `${drop.line.left}px`, top: `${drop.line.top}px`, width: `${drop.line.width}px`, height: `${drop.line.height}px` }" />
 			</template>
 		</div>
-		<DesignerBounds v-if="box && !interactive" :box="box" :scale="viewScale" :positioning="canPosition" :reorderable="canReorder" @begin="begin($event.event, $event.handle)" @move="move" @finish="finish" @cancel="end" @nudge="nudge($event.event, $event.handle)" />
+		<DesignerBounds v-if="box && !interactive" :box="box" :scale="viewScale" :positioning="canPosition" :reorderable="canReorder" :editing="Boolean(editing) && editing === modelValue" @begin="begin($event.event, $event.handle)" @move="move" @finish="finish" @cancel="end" @nudge="nudge($event.event, $event.handle)" />
 	</div>
 </template>

@@ -73,6 +73,8 @@ export const EditorRender = defineComponent({
 		data: { type: Object, default: () => ({}) },
 		mode: { type: String, default: 'data' },
 		detected: { type: Object, default: () => ({}) },
+		// A changed count re-creates that element, after the browser has edited its DOM in place (see inlineText.js).
+		revisions: { type: Object, default: () => ({}) },
 	},
 	setup(props) {
 		const showData = () => props.mode === 'data';
@@ -166,7 +168,7 @@ export const EditorRender = defineComponent({
 			if (node.type === 'text') return textVNode(node, scope);
 			const type = props.types.get(node.type) || { tag: node.type.split(':').pop(), adapter: 'html' };
 			const tag = type.tag;
-			const marker = { 'data-designer-id': node.id, ...(repeat ? { 'data-designer-repeat': String(repeat) } : {}) };
+			const marker = { 'data-designer-id': node.id, ...(repeat ? { 'data-designer-repeat': String(repeat) } : {}), ...(props.revisions[node.id] ? { key: `${node.id}:${repeat}:${props.revisions[node.id]}` } : {}) };
 			const children = () => renderChildren(node.children, scope, node);
 
 			if (node.type === 'html:template') return h(Fragment, null, children());
