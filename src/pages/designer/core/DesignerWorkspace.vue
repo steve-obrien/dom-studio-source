@@ -17,7 +17,7 @@ import AlignTools from '../stage/AlignTools.vue';
 import { cloneValue, copySubtree, fromTree, isExpr, subtreeIds } from './editorDocument.js';
 import { applyOperations } from './operations.js';
 import { EditorRender } from './EditorRender.js';
-import { beginInlineEdit, inlineEditTarget, runOffset, sourceOffset } from './inlineText.js';
+import { beginInlineEdit, inlineEditTarget, inlineTags, runOffset, sourceOffset } from './inlineText.js';
 import { createHistory } from './history.js';
 import { previewData, scriptData } from './previewData.js';
 import { treeFromType } from './typeRegistry.js';
@@ -155,6 +155,9 @@ const editState = ref({ anchor: null, focus: null, marks: null });
 const editDoc = shallowRef(null);
 // The code view's selection as source offsets, shown on the canvas.
 const codeSelection = ref(null);
+// The last text selected in the code, with the source it was made in, for the Text panel's bold and other marks.
+const codeMarkRange = ref(null);
+const codeView = ref(null);
 const revisions = ref({});
 const viewport = ref(null);
 const artboardRefs = new Map();
@@ -838,11 +841,16 @@ function editCode(value) {
 /** Parses the edited source into the document; ids survive where the structure still matches. */
 function applyCode() {
 	clearTimeout(codeTimer);
+	if (codeDraft.value !== null) applySourceText(codeDraft.value, { merge: `code:${activeFile.value?.id}` });
+}
+
+/** Parses source into the active file's document, as one undo step or merged into `merge`. */
+function applySourceText(text, { merge } = {}) {
 	const file = activeFile.value;
-	if (codeDraft.value === null || !file) return;
+	if (!file) return;
 	let result;
 	try {
-		result = applySource(file, codeDraft.value, { isStudioComponent });
+		result = applySource(file, text, { isStudioComponent });
 	} catch (error) {
 		codeError.value = error.message;
 		return;
@@ -857,7 +865,7 @@ function applyCode() {
 	if (result.changed) operations.unshift({ op: 'setFile', id: file.id, key: 'doc', value: result.doc });
 	if (result.script !== (file.script || '')) operations.push({ op: 'setFile', id: file.id, key: 'script', value: result.script });
 	if (result.style !== (file.style || '')) operations.push({ op: 'setFile', id: file.id, key: 'style', value: result.style });
-	run(operations, { merge: `code:${file.id}` });
+	run(operations, merge ? { merge } : {});
 }
 
 /** Selects the element under the caret, so the layers, stage and inspector follow the code. */
@@ -870,6 +878,7 @@ function selectFromCode(line) {
 /** The code view's selection, as source offsets, to highlight the same letters on the canvas. */
 function selectTextFromCode(range) {
 	codeSelection.value = range;
+	codeMarkRange.value = range.start < range.end ? { ...range, source: codeText.value } : null;
 }
 
 /** Clicking into the code ends text editing on the canvas, so one side is typed in at a time. */
@@ -1019,6 +1028,7 @@ function startTextEdit(board, { id, element, x, y }) {
 	if (!host) return;
 	selected.value = target.id;
 	codeSelection.value = null;
+	codeMarkRange.value = null;
 	const session = beginInlineEdit({ element: host, doc: file.doc, id: target.id, point: { x, y }, onChange: queueTextRead, onEnd: finishTextEdit });
 	editing.value = { board: board.id, file: file.id, id: target.id, session, view: `${board.id}:${viewMode.value}:${canvasMode.value}`, operations: '[]' };
 	readTextEdit();
@@ -1072,8 +1082,105 @@ function finishTextEdit() {
 
 /** A Text panel toggle while editing: bold, italic, underline or strike on the selected words. */
 function toggleMark(mark) {
-	editing.value?.session.toggle(mark);
+	if (!editing.value) { markCodeSelection(mark); return; }
+	editing.value.session.toggle(mark);
 	readTextEdit();
+}
+
+/* Marks on text selected in the code ---------------------------------------------- */
+
+/** The elements each Text panel mark is written as; the first is used for new marks. */
+const markTags = { bold: ['strong', 'b'], italic: ['em', 'i'], underline: ['u'], strike: ['s', 'del', 'strike'] };
+
+/** Text runs under the code's selected text, in source order, while that selection still matches the source. */
+const codeMarkRuns = computed(() => {
+	const range = codeMarkRange.value;
+	const offsets = sourceOffsets.value;
+	if (editing.value || !range || !offsets || range.source !== codeText.value || codeText.value !== mappedSource.value.source) return null;
+	const nodes = shownDoc.value.nodes;
+	const runs = Object.entries(offsets)
+		.filter(([id, [start, end]]) => nodes[id]?.type === 'text' && !isExpr(nodes[id].props.value) && start < range.end && end > range.start)
+		.map(([id, [start, end]]) => ({ id, start, end }))
+		.sort((a, b) => a.start - b.start);
+	return runs.length ? runs : null;
+});
+
+/** The inline elements a run sits in, innermost first, up to its paragraph or other block. */
+function inlineAncestors(id) {
+	const nodes = shownDoc.value.nodes;
+	const list = [];
+	for (let node = nodes[nodes[id]?.parent]; node && inlineTags.has(tagOf(node)); node = nodes[node.parent]) list.push(node);
+	return list;
+}
+
+/** Which marks all of the code's selected text has, for the Text panel's toggles; null when no text is selected there. */
+const codeMarks = computed(() => {
+	const runs = codeMarkRuns.value;
+	if (!runs) return null;
+	return Object.fromEntries(Object.entries(markTags).map(([mark, tags]) => [mark, runs.every((run) => inlineAncestors(run.id).some((node) => tags.includes(tagOf(node))))]));
+});
+
+/** Whether a stretch of markup only opens and closes inline elements, and closes each one it opens. */
+function balancedInline(markup) {
+	const open = [];
+	for (const [, closing, tag, selfClosing] of markup.matchAll(/<(\/?)([a-zA-Z][\w-]*)[^>]*?(\/?)>/g)) {
+		const name = tag.toLowerCase();
+		if (!inlineTags.has(name)) return false;
+		if (selfClosing || name === 'br') continue;
+		if (!closing) open.push(name);
+		else if (open.pop() !== name) return false;
+	}
+	return !open.length;
+}
+
+/**
+ * Bold, italic, underline or strike on the text selected in the code, written
+ * into the code as the canvas would: the selection is wrapped in `<strong>`
+ * and the like, or taken out of the element that gives it the mark. The code
+ * stays the master: the edit is to its text, then parsed like typing.
+ */
+function markCodeSelection(mark) {
+	const runs = codeMarkRuns.value;
+	const tags = markTags[mark];
+	if (!runs || !tags) return;
+	const source = codeText.value;
+	const offsets = sourceOffsets.value;
+	const range = codeMarkRange.value;
+	// Only text is marked: the selection is trimmed to the runs it touches.
+	let start = Math.max(range.start, runs[0].start);
+	let end = Math.min(range.end, runs.at(-1).end);
+	let next;
+	if (!codeMarks.value[mark]) {
+		if (!balancedInline(source.slice(start, end))) { notice.value = 'Select text inside one paragraph or heading to mark it.'; return; }
+		const open = `<${tags[0]}>`;
+		next = `${source.slice(0, start)}${open}${source.slice(start, end)}</${tags[0]}>${source.slice(end)}`;
+		start += open.length;
+		end += open.length;
+	} else {
+		const element = inlineAncestors(runs[0].id).find((node) => tags.includes(tagOf(node)));
+		if (!element || !runs.every((run) => inlineAncestors(run.id).includes(element)) || !offsets[element.id]) { notice.value = 'Select text inside one marked element to take its mark off.'; return; }
+		const [elementStart, elementEnd] = offsets[element.id];
+		const contentStart = offsets[element.children[0]]?.[0] ?? source.indexOf('>', elementStart) + 1;
+		const contentEnd = offsets[element.children.at(-1)]?.[1] ?? source.lastIndexOf('<', elementEnd);
+		start = Math.max(start, contentStart);
+		end = Math.min(end, contentEnd);
+		const openTag = source.slice(elementStart, contentStart);
+		const closeTag = source.slice(contentEnd, elementEnd);
+		// Text either side of the selection keeps the mark in an element of its own.
+		const before = start > contentStart ? `${openTag}${source.slice(contentStart, start)}${closeTag}` : '';
+		const after = end < contentEnd ? `${openTag}${source.slice(end, contentEnd)}${closeTag}` : '';
+		next = `${source.slice(0, elementStart)}${before}${source.slice(start, end)}${after}${source.slice(elementEnd)}`;
+		const shift = elementStart + before.length - start;
+		start += shift;
+		end += shift;
+	}
+	if (codeDraft.value !== null) codeDraft.value = next;
+	history.seal();
+	applySourceText(next);
+	history.seal();
+	codeMarkRange.value = { start, end, source: codeText.value };
+	codeSelection.value = codeSelection.value && { start, end };
+	nextTick(() => codeView.value?.select?.({ start, end }));
 }
 
 /** A point in a text run, or before an element, as an offset in the exported source. */
@@ -1193,6 +1300,7 @@ watch([codeSelection, mappedSource, codeText, editing], () => nextTick(showCodeS
 
 /** Selection from any artboard also makes that artboard active. */
 function selectFromArtboard(board, id) {
+	codeMarkRange.value = null;
 	activeArtboardId.value = board.id;
 	selected.value = id;
 }
@@ -1464,7 +1572,7 @@ onBeforeUnmount(() => {
 						</div>
 					</div>
 					<p class="border-b border-border px-4 py-2 text-[11px] leading-4 text-muted-fg">Edit the code and the design follows. Click a line to select its element; select an element to find its code.</p>
-					<component :is="codeEditor || CodeView" v-bind="codeEditor ? codeEditorProps : {}" class="flex-1" :model-value="codeText" :highlight="codeHighlight" :label="`${activeFile?.name} source`" @update:model-value="editCode" @cursor="selectFromCode" @select="selectTextFromCode" @focus="enterCode" @blur="leaveCode" />
+					<component :is="codeEditor || CodeView" ref="codeView" v-bind="codeEditor ? codeEditorProps : {}" class="flex-1" :model-value="codeText" :highlight="codeHighlight" :label="`${activeFile?.name} source`" @update:model-value="editCode" @cursor="selectFromCode" @select="selectTextFromCode" @focus="enterCode" @blur="leaveCode" />
 					<p v-if="codeError || codeWarning" role="status" class="border-t border-border bg-secondary px-4 py-2 text-xs" :class="codeError ? 'text-destructive' : 'text-muted-fg'">{{ codeError || codeWarning }}</p>
 				</aside>
 			</section>
@@ -1523,7 +1631,7 @@ onBeforeUnmount(() => {
 						<p class="text-[11px] leading-4 text-muted-fg">Kept on export. Data view runs lists and conditions on preview data; Variables view shows every branch and one item of each list.</p>
 					</section>
 					<div class="border-b border-border px-4">
-						<DomTypographyEditor v-if="showText && textStyle" title="Text" :google-fonts="googleFonts" :model-value="textStyle" :marks="editing?.id === selected ? editState.marks || {} : null" @update:model-value="setStyle('text', $event)" @mark="toggleMark" />
+						<DomTypographyEditor v-if="showText && textStyle" title="Text" :google-fonts="googleFonts" :model-value="textStyle" :marks="editing?.id === selected ? editState.marks || {} : codeMarks" @update:model-value="setStyle('text', $event)" @mark="toggleMark" />
 						<template v-for="kind in ['fill', 'stroke', 'shadow', 'blur']" :key="kind">
 							<StyleControlSection v-if="customStyle[kind]" :model-value="true" :title="styleTitles[kind]" meta="Custom CSS">
 								<template #actions><ControlIconButton icon="remove" :label="`Remove ${styleTitles[kind].toLowerCase()}`" @click="setStyleRaw(kind, '')" /></template>

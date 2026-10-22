@@ -64,7 +64,11 @@ watch(() => props.highlight && `${props.highlight.start}:${props.highlight.end}`
 });
 watch(() => props.modelValue, () => nextTick(syncScroll));
 
-defineExpose({ focus: () => input.value?.focus() });
+defineExpose({
+	focus: () => input.value?.focus(),
+	/** Selects `{ start, end }` character offsets, as after the designer rewrites the selected text. */
+	select: ({ start, end }) => input.value?.setSelectionRange(start, end),
+});
 </script>
 
 <template>
