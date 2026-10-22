@@ -172,7 +172,10 @@ watch(() => props.modelValue, (value) => {
 	while (tail < current.length - head && tail < value.length - head && current[current.length - 1 - tail] === value[value.length - 1 - tail]) tail += 1;
 	const position = editor.value.getPosition();
 	applying = true;
-	editor.value.executeEdits('designer', [{ range: monaco.Range.fromPositions(model.getPositionAt(head), model.getPositionAt(current.length - tail)), text: value.slice(head, value.length - tail) }]);
+	const edit = { range: monaco.Range.fromPositions(model.getPositionAt(head), model.getPositionAt(current.length - tail)), text: value.slice(head, value.length - tail) };
+	// A read-only editor refuses executeEdits, so a read-only view (the poster's HTML) is changed on its model.
+	if (props.readonly) model.pushEditOperations([], [edit], () => null);
+	else editor.value.executeEdits('designer', [edit]);
 	if (position) editor.value.setPosition(position);
 	applying = false;
 	showHighlight();
