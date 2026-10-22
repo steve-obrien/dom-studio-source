@@ -444,8 +444,10 @@ const editorClasses = computed(() => [
 const toolbarClasses = computed(() => [
 	'dom-document-editor__toolbar',
 	// Field text sits 1rem in, so the 0.5rem inset puts the first icon on it; the paper sits 1rem in, so buttons line up with its edge.
-	hasFieldChrome.value ? 'px-2 py-1' : 'px-4 pt-2',
-	hasDocumentChrome.value && 'border-b border-border pb-2',
+	// Bottom padding keeps the active button's ring and shadow clear of the opaque body below.
+	hasFieldChrome.value && 'px-2 py-1',
+	hasDocumentChrome.value && 'border-b border-border px-4 py-2',
+	hasBareChrome.value && 'px-4 pt-2 pb-1',
 ]);
 const paperClasses = computed(() => [
 	'dom-document-editor__paper',
