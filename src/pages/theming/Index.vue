@@ -1853,14 +1853,16 @@ onMounted(initializeEditor);
 									Editing {{ activeMode }} styles. The other mode stays unchanged.
 								</p>
 							</div>
-							<CssComponentEditor
-								:key="`${selectedSkin}-${activeMode}`"
-								:framed="false"
-								:color-variables="previewStyle"
-								:style="skinStyleStates[selectedSkin]"
-								:variables="skinCssVariables(selectedSkin)"
-								:title="selectedSkinLevel.label"
-							/>
+							<div class="px-4">
+								<CssComponentEditor
+									:key="`${selectedSkin}-${activeMode}`"
+									:framed="false"
+									:color-variables="previewStyle"
+									:style="skinStyleStates[selectedSkin]"
+									:variables="skinCssVariables(selectedSkin)"
+									:title="selectedSkinLevel.label"
+								/>
+							</div>
 						</template>
 					</div>
 					<div
