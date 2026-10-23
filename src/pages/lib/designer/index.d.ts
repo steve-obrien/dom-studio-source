@@ -1,6 +1,6 @@
 /* eslint-disable */
 // Declarations for `@getdom/studio/designer`. Keep in step with ./index.js.
-import type { DefineComponent } from 'vue';
+import type { ComputedRef, DefineComponent, Ref, ShallowRef } from 'vue';
 
 /** A node in an editor document: identity, type, props and children by id. */
 export interface DesignerNode {
@@ -134,6 +134,74 @@ export declare const DomCodeView: DefineComponent<{ modelValue?: string; highlig
  * a DOM Studio dependency: `load` resolves to the Monaco API from your own install.
  */
 export declare const DomMonacoCodeView: DefineComponent<{ modelValue?: string; highlight?: SourceRange | null; label?: string; readonly?: boolean; load: () => Promise<unknown>; options?: Record<string, unknown> }>;
+
+/**
+ * One editor session: the workspace, the active artboard and file, the
+ * selection, and one history. Every part of an editor reads and writes through
+ * it, so the stage, layers, inspector and code view show one tree.
+ */
+export interface EditorSession {
+	workspace: Ref<DesignerWorkspace>;
+	activeArtboardId: Ref<string>;
+	selected: Ref<string>;
+	historySize: Ref<{ undo: number; redo: number }>;
+	history: EditorHistory;
+	artboards: ComputedRef<Array<DesignerArtboard>>;
+	activeArtboard: ComputedRef<DesignerArtboard | undefined>;
+	activeFile: ComputedRef<DesignerFile | undefined>;
+	doc: ComputedRef<DesignerDocument | null>;
+	active: ComputedRef<DesignerNode | null>;
+	parent: ComputedRef<DesignerNode | null>;
+	fileById(id: string): DesignerFile | null;
+	/** Tags a document operation with the active file. */
+	onFile(operation: DesignerOperation): DesignerOperation;
+	/** Applies operations as one undo step; `merge` folds continuous input into one step. */
+	run(operations: DesignerOperation | Array<DesignerOperation | null>, options?: { merge?: string; label?: string }): void;
+	undo(): void;
+	redo(): void;
+}
+export declare function useEditorSession(options: { workspace: DesignerWorkspace; onChange?: () => void; afterChange?: () => void; onError?: (message: string) => void }): EditorSession;
+
+/** Text marks for the Text panel's toggles. */
+export type TextMarks = { bold?: boolean; italic?: boolean; underline?: boolean; strike?: boolean };
+/** In-place text editing: double-click text on a rendered artboard, type, mark words, and write back as one undo step. */
+export interface InlineText {
+	editing: ShallowRef<{ board: string; file: string; id: string; view: string } | null>;
+	editState: Ref<{ anchor: unknown; focus: unknown; marks: TextMarks | null }>;
+	editDoc: ShallowRef<{ file: string; doc: DesignerDocument } | null>;
+	/** Finished edits per layer; pass to the renderer so edited elements are drawn afresh. */
+	revisions: Ref<Record<string, number>>;
+	/** Starts editing from a stage's `edit-text` event. */
+	start(board: DesignerArtboard, event: { id: string; element: Element; x: number; y: number }): void;
+	finish(): void;
+	toggle(mark: keyof TextMarks): void;
+}
+export declare function useInlineText(options: { session: EditorSession; view?: () => string; notify?: (message: string) => void }): InlineText;
+
+/** Two-way sync between the session's active file and its Vue source. Render it with DomCodePanel. */
+export interface CodeSync {
+	source: ComputedRef<string>;
+	text: ComputedRef<string>;
+	highlight: ComputedRef<unknown>;
+	error: Ref<string>;
+	warning: Ref<string>;
+	marks: ComputedRef<TextMarks | null>;
+	edit(value: string): void;
+	apply(): void;
+	applyText(value: string, options?: { merge?: string }): void;
+	selectLine(line: number): void;
+	selectText(range: { start: number; end: number }): void;
+	enter(): void;
+	leave(): void;
+	reset(): void;
+	forgetMarks(): void;
+	mark(mark: keyof TextMarks): void;
+	clearSelection(): void;
+	[key: string]: unknown;
+}
+export declare function useCodeSync(options: { session: EditorSession; inline?: InlineText | null; isStudioComponent?: (tag: string) => boolean; element: (id: string) => Element | null; open?: Ref<boolean> }): CodeSync;
+/** The code of the session's active file, in sync with the stage. */
+export declare const DomCodePanel: DefineComponent<{ sync: CodeSync; editor?: object | null; editorProps?: Record<string, unknown>; label?: string }>;
 
 export declare function createComponentCatalog(records: Array<{ component: object; exportName: string; section?: string; label?: string }>, options?: { html?: boolean }): Required<ComponentCatalog>;
 /** A catalog of every `Dom*` component in a module's exports, such as `import * as studio from '@getdom/studio/vue'`. */

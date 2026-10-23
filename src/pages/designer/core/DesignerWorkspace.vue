@@ -15,16 +15,18 @@ import { useNodeStyle } from './nodeStyle.js';
 import { useGoogleFonts } from '../typography-editor/googleFonts.js';
 import AlignTools from '../stage/AlignTools.vue';
 import { copySubtree, fromTree, isExpr, subtreeIds } from './editorDocument.js';
+import { useEditorSession } from './useEditorSession.js';
+import { useInlineText } from './useInlineText.js';
+import { useCodeSync } from './useCodeSync.js';
+import CodePanel from './CodePanel.vue';
 import { EditorRender } from './EditorRender.js';
-import { createHistory } from './history.js';
+import { inlineEditTarget } from './inlineText.js';
 import { previewData, scriptData } from './previewData.js';
 import { treeFromType } from './typeRegistry.js';
-import { exportMappedVue, tailwindContent } from './vueAdapter.js';
-import CodeView from './CodeView.vue';
-import { applySource, nodeAtLine } from './sourceSync.js';
+import { tailwindContent } from './vueAdapter.js';
 import { createBrowserStorage, createSaver } from './storage.js';
 import ArtboardViewport from '../canvas/ArtboardViewport.vue';
-import { applyWorkspaceOperation, createCanvasDemo, importFile, restoreWorkspace, workspaceId } from '../canvas/canvasWorkspace.js';
+import { createCanvasDemo, importFile, restoreWorkspace, workspaceId } from '../canvas/canvasWorkspace.js';
 import { createComponentCatalog } from './componentCatalog.js';
 
 /**
@@ -73,6 +75,16 @@ const props = defineProps({
 	codeEditorProps: { type: Object, default: () => ({}) },
 	/** Offer Google Fonts in the text controls and load the ones in use. Turn off for email, which can only use installed fonts. */
 	googleFonts: { type: Boolean, default: true },
+	/** Where the code view opens: over the right of the canvas, or below it. */
+	codeLayout: { type: String, default: 'overlay', validator: (value) => ['overlay', 'below'].includes(value) },
+	/** Open the code view when the designer mounts. */
+	codeOpen: { type: Boolean, default: false },
+	/**
+	 * For a designer inside a longer page: keyboard shortcuts apply only while
+	 * the pointer is over it or focus is inside it, and a plain scroll wheel
+	 * scrolls the page (pinch or ⌘/Ctrl + scroll still zooms).
+	 */
+	embedded: { type: Boolean, default: false },
 });
 const emit = defineEmits(['save']);
 const MIN_ZOOM = 0.1;
@@ -103,9 +115,16 @@ const htmlTypeGroups = Object.entries(types.list().filter((entry) => entry.adapt
 }, {}));
 const studioEntries = studioComponentEntries(catalog);
 
-const workspace = ref(props.createWorkspace());
-const activeArtboardId = ref(workspace.value.artboards[0].id);
-const selected = ref('');
+const session = useEditorSession({
+	workspace: props.createWorkspace(),
+	onChange() {
+		queueSave();
+		queueCompile();
+	},
+	afterChange: refresh,
+	onError: (message) => { notice.value = message; },
+});
+const { workspace, activeArtboardId, selected, historySize, history, artboards, activeArtboard, activeFile, doc, active, parent, fileById, onFile, run, undo, redo } = session;
 const viewMode = ref('data');
 // Canvas: Figma-style artboards to pan and zoom. Page: the active artboard as one full-size, scrolling viewport.
 const canvasModeKey = 'dom-designer-canvas-mode';
@@ -126,22 +145,26 @@ const sheetTab = ref('layers');
 const sheetSnap = ref('peek');
 const sheetDrag = ref(null);
 const insertQuery = ref('');
-const showCode = ref(false);
-const codeDraft = ref(null);
-const codeRanges = ref(null);
-const codeError = ref('');
-const codeWarning = ref('');
+const showCode = ref(props.codeOpen);
+const root = ref(null);
+const pointerInside = ref(false);
+/** In the below layout, the share of the stage the open code view takes. */
+const codeShare = '45%';
+const stageInset = computed(() => (props.codeLayout === 'below' && showCode.value ? { bottom: codeShare } : {}));
+const hintInset = computed(() => (props.codeLayout === 'below' && showCode.value ? { bottom: `calc(${codeShare} + 0.75rem)` } : {}));
 const projectFiles = ref(null);
 const snapping = ref(true);
 const detected = ref({});
-const historySize = ref({ undo: 0, redo: 0 });
+const inline = useInlineText({ session, view: () => `${activeArtboardId.value}:${viewMode.value}:${canvasMode.value}`, notify: (text) => { notice.value = text; } });
+const { editing, editState, revisions } = inline;
+const finishTextEdit = inline.finish;
+const codeSync = useCodeSync({ session, inline, isStudioComponent, element: (id) => activeViewport()?.element(id) || null, open: showCode });
 const viewport = ref(null);
 const artboardRefs = new Map();
 // The workspace saves through a storage adapter; project files go through the file adapter when one is given.
 const storage = props.storage || createBrowserStorage({ prefix: '' });
 const fileStorage = props.fileStorage;
 const saver = createSaver({ save: async (id, value, options) => { await storage.save(id, value, options); emit('save', { id, value }); } }, { delay: 500, onError: (error) => { notice.value = `Could not save: ${error.message}`; } });
-let codeTimer;
 let compileTimer;
 let compiledContent = '';
 let gesture = null;
@@ -149,22 +172,7 @@ let gesture = null;
 const touches = new Map();
 let disposed = false;
 
-const history = createHistory({
-	apply: (operation) => applyWorkspaceOperation(workspace.value, operation),
-	onChange() {
-		historySize.value = history.size();
-		queueSave();
-		queueCompile();
-	},
-});
-
-const artboards = computed(() => workspace.value.artboards);
 const shownArtboards = computed(() => (canvasMode.value === 'page' ? artboards.value.filter((board) => board.id === activeArtboard.value?.id) : artboards.value));
-const activeArtboard = computed(() => artboards.value.find((board) => board.id === activeArtboardId.value) || artboards.value[0]);
-const activeFile = computed(() => fileById(activeArtboard.value?.fileId) || workspace.value.files[0]);
-const doc = computed(() => activeFile.value?.doc || null);
-const active = computed(() => doc.value?.nodes[selected.value] || null);
-const parent = computed(() => (active.value?.parent ? doc.value.nodes[active.value.parent] : null));
 const activeType = computed(() => (active.value ? types.get(active.value.type) : null));
 const textChild = computed(() => {
 	const children = active.value?.children || [];
@@ -187,7 +195,8 @@ const inlineContent = computed(() => {
 });
 const layout = computed(() => active.value?.layout || detected.value[selected.value] || createFrameLayout());
 const textTags = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'button', 'label', 'li', 'blockquote', 'strong', 'em', 'small', 'code', 'figcaption', 'td', 'th']);
-const showText = computed(() => Boolean(textChild.value || textTags.has(activeType.value?.tag)));
+// Any element that can be edited as text, such as a div of text and bold words, gets the Text panel too.
+const showText = computed(() => Boolean(textChild.value || textTags.has(activeType.value?.tag) || (inlineContent.value.length && inlineEditTarget(doc.value, selected.value).id === selected.value)));
 const { fill: fillStyle, stroke: strokeStyle, shadow: shadowStyle, blur: blurStyle, text: textStyle, custom: customStyle, set: setStyle, setRaw: setStyleRaw } = useNodeStyle(active, writeStyle);
 const styleTitles = { fill: 'Fill', stroke: 'Stroke', shadow: 'Shadow', blur: 'Background blur' };
 // Google fonts set on any layer load while the designer is open; artboards copy them from the page head.
@@ -204,10 +213,6 @@ const parentModes = {
 };
 const sizingModes = [{ value: 'auto', label: 'Auto' }, { value: 'fixed', label: 'Fixed' }, { value: 'hug', label: 'Hug' }, { value: 'fill', label: 'Fill' }];
 const layers = computed(() => (doc.value ? [layer(doc.value.rootId)] : []));
-const mappedSource = computed(() => (activeFile.value ? exportMappedVue(activeFile.value, isStudioComponent) : { source: '', ranges: {} }));
-const fileSource = computed(() => mappedSource.value.source);
-const codeText = computed(() => codeDraft.value ?? fileSource.value);
-const codeHighlight = computed(() => (codeDraft.value === null ? mappedSource.value.ranges : codeRanges.value || {})[selected.value] || null);
 // In Page mode the artboard scrolls itself, so a selection made from the layers or the code is scrolled into view.
 watch(selected, async (id) => {
 	if (canvasMode.value !== 'page' || !id) return;
@@ -243,7 +248,6 @@ function measureSelection() {
 	return element && host ? measureFrameChild(element, host) : {};
 }
 
-function fileById(id) { return workspace.value.files.find((file) => file.id === id) || null; }
 function tagOf(node) { return types.get(node.type)?.tag || node.type.split(':').pop(); }
 function isFrame(node) { return !!node && node.type.startsWith('html:') && isFrameNode({ tag: tagOf(node) }); }
 /** Nodes that take inserted children: frames and components with a default slot. */
@@ -336,34 +340,8 @@ function setArtboardRef(id, instance) {
 	else artboardRefs.delete(id);
 }
 
-/* Operations and history ------------------------------------------------------- */
+/* Text and props ----------------------------------------------------------------- */
 
-/** Tags a document operation with the active file. */
-function onFile(operation) { return { file: activeFile.value.id, ...operation }; }
-
-/**
- * Applies operations as one undo step. `merge` folds continuous input (typing,
- * dragging) into the same step.
- */
-function run(operations, options = {}) {
-	try {
-		history.run(operations, options);
-	} catch (error) {
-		notice.value = error.message;
-	}
-	afterChange();
-}
-function undo() { history.undo(); afterChange(); }
-function redo() { history.redo(); afterChange(); }
-
-/** Keeps the selection and active artboard valid after any change. */
-function afterChange() {
-	if (!artboards.value.some((board) => board.id === activeArtboardId.value)) activeArtboardId.value = artboards.value[0]?.id;
-	if (selected.value && !doc.value?.nodes[selected.value]) selected.value = '';
-	refresh();
-}
-
-/** Sets a prop on a node; called by the generated inspector. */
 /** A text node's value as the designer edits it; bindings read as `{{ expr }}`. */
 function textOf(node) {
 	const value = node.props.value;
@@ -382,6 +360,7 @@ function setText(node, input) {
 	setProp(node.id, { key: 'value', value: `${lead}${input.trim()}${trail}` });
 }
 
+/** Sets a prop on a node; called by the generated inspector. */
 function setProp(id, { key, value, merge }) {
 	run(onFile({ op: 'setProp', id, key, value }), { merge: merge ? `prop:${id}:${key}` : '' });
 }
@@ -429,11 +408,14 @@ async function openProjectFile(path) {
 
 /** Writes the active file's source to the project, at its own path or under its name. */
 async function saveProjectFile() {
+	// Text being edited and code still being typed are part of what the user means to save.
+	finishTextEdit();
+	codeSync.apply();
 	const file = activeFile.value;
 	if (!file) return;
 	const path = file.path || file.name;
 	try {
-		await fileStorage.save(path, fileSource.value);
+		await fileStorage.save(path, codeSync.source.value);
 		if (file.path !== path) run({ op: 'setFile', id: file.id, key: 'path', value: path });
 		notice.value = `Saved ${path} to the project.`;
 		loadProjectFiles();
@@ -475,27 +457,27 @@ async function refresh() {
 	detected.value = next;
 }
 
-/** Operations that record each child's box, so switching a frame to absolute keeps things where they are. */
-function captureOperations(hostId) {
+/** Operations that record each child's box, so switching a frame to absolute keeps things where they are. `extra` is merged into each box. */
+function captureOperations(hostId, extra = {}) {
 	const view = activeViewport();
 	const element = view?.element(hostId);
 	if (!element) return [];
 	return doc.value.nodes[hostId].children.flatMap((childId) => {
 		const child = doc.value.nodes[childId];
 		const target = child.type === 'text' ? null : view.element(childId);
-		return target ? [onFile({ op: 'setField', id: childId, key: 'placements', value: { ...(child.placements || {}), absolute: measureFrameChild(target, element) } })] : [];
+		return target ? [onFile({ op: 'setField', id: childId, key: 'placements', value: { ...(child.placements || {}), absolute: { ...measureFrameChild(target, element), ...extra } } })] : [];
 	});
 }
 
-/** Operations that make a frame's detected absolute layout explicit before its children move. */
+/** Operations that make a frame's detected absolute layout explicit before its children move. The source already lays it out, so the export leaves its style alone (`fromSource`). */
 function adoptOperations(hostId) {
 	const host = doc.value.nodes[hostId];
 	if (!host || host.layout) return [];
-	return [...captureOperations(hostId), onFile({ op: 'setField', id: hostId, key: 'layout', value: detected.value[hostId] || createFrameLayout({ mode: 'absolute' }) })];
+	return [...captureOperations(hostId, { sized: false }), onFile({ op: 'setField', id: hostId, key: 'layout', value: { ...(detected.value[hostId] || createFrameLayout({ mode: 'absolute' })), fromSource: true } })];
 }
 
 /** Changes a frame's child layout, preserving geometry when entering absolute mode. */
-async function setLayout(value) {
+async function setLayout({ fromSource, ...value }) {
 	const node = active.value;
 	if (!isFrame(node)) return;
 	const merge = `layout:${node.id}:${Date.now()}`;
@@ -527,7 +509,16 @@ function patch({ id, style }) {
 	const node = doc.value?.nodes[id];
 	if (!node?.parent) return;
 	const absolute = Object.fromEntries(['left', 'top', 'width', 'height'].map((key) => [key, parseFloat(style[key])]));
+	const before = node.placements?.absolute || measureNatural(id);
+	// A resize, unlike a move, fixes the size, so the code export writes it too.
+	absolute.sized = Boolean(before?.sized || (before && (Math.round(before.width) !== Math.round(absolute.width) || Math.round(before.height) !== Math.round(absolute.height))));
 	run([...adoptOperations(node.parent), onFile({ op: 'setField', id, key: 'placements', value: { ...(node.placements || {}), absolute } })], { merge: `move:${id}` });
+}
+
+/** A layer's rendered size before it is placed by the designer. */
+function measureNatural(id) {
+	const element = activeViewport()?.element(id);
+	return element ? { width: element.offsetWidth, height: element.offsetHeight } : null;
 }
 
 /** Numeric geometry edits for absolute children. */
@@ -535,7 +526,8 @@ function setGeometry(key, value) {
 	if (value === '' || !Number.isFinite(Number(value)) || !active.value || !parent.value) return;
 	const adopt = adoptOperations(parent.value.id);
 	const current = active.value.placements?.absolute || geometry.value;
-	const next = { ...current, [key]: ['width', 'height'].includes(key) ? Math.max(16, Number(value)) : Number(value) };
+	const sized = ['width', 'height'].includes(key);
+	const next = { ...current, [key]: sized ? Math.max(16, Number(value)) : Number(value), sized: Boolean(current.sized || sized) };
 	run([...adopt, onFile({ op: 'setField', id: active.value.id, key: 'placements', value: { ...(active.value.placements || {}), absolute: next } })], { merge: `geometry:${active.value.id}:${key}` });
 }
 
@@ -547,7 +539,7 @@ function align(alignment) {
 	const child = view?.element(selected.value);
 	if (!element || !child) return;
 	const rect = alignFrameChild(measureFrameChild(child, element), { width: element.clientWidth, height: element.clientHeight }, alignment, host.layout || detected.value[host.id]);
-	run([...adoptOperations(host.id), onFile({ op: 'setField', id: active.value.id, key: 'placements', value: { ...(active.value.placements || {}), absolute: rect } })]);
+	run([...adoptOperations(host.id), onFile({ op: 'setField', id: active.value.id, key: 'placements', value: { ...(active.value.placements || {}), absolute: { ...rect, sized: Boolean(active.value.placements?.absolute?.sized) } } })]);
 }
 
 /** Replaces the selection's inline style; an empty style is removed. */
@@ -767,63 +759,13 @@ function addFile(file) {
 
 /** Copies the generated SFC. */
 async function copySource() {
-	try { await navigator.clipboard.writeText(fileSource.value); notice.value = `${activeFile.value.name} copied.`; }
+	try { await navigator.clipboard.writeText(codeSync.source.value); notice.value = `${activeFile.value.name} copied.`; }
 	catch { notice.value = 'Clipboard unavailable. Select the code to copy it.'; }
-}
-
-/* Code view ------------------------------------------------------------------------ */
-
-/** Typing in the code view: the text is kept as typed and applied after a pause. */
-function editCode(value) {
-	codeDraft.value = value;
-	clearTimeout(codeTimer);
-	codeTimer = setTimeout(applyCode, 300);
-}
-
-/** Parses the edited source into the document; ids survive where the structure still matches. */
-function applyCode() {
-	clearTimeout(codeTimer);
-	const file = activeFile.value;
-	if (codeDraft.value === null || !file) return;
-	let result;
-	try {
-		result = applySource(file, codeDraft.value, { isStudioComponent });
-	} catch (error) {
-		codeError.value = error.message;
-		return;
-	}
-	codeError.value = '';
-	codeWarning.value = result.unsupported ? `${result.unsupported} unsupported ${result.unsupported === 1 ? 'node was' : 'nodes were'} left out: scripts, iframes or inline event handlers.` : '';
-	codeRanges.value = result.ranges;
-	// The typed text becomes the source that later visual edits patch, even when only its formatting changed; undo restores the previous one.
-	const sourceChanged = result.source.text !== file.source?.text;
-	if (!result.changed && !sourceChanged) return;
-	const operations = [{ op: 'setFile', id: file.id, key: 'source', value: result.source }];
-	if (result.changed) operations.unshift({ op: 'setFile', id: file.id, key: 'doc', value: result.doc });
-	if (result.script !== (file.script || '')) operations.push({ op: 'setFile', id: file.id, key: 'script', value: result.script });
-	if (result.style !== (file.style || '')) operations.push({ op: 'setFile', id: file.id, key: 'style', value: result.style });
-	run(operations, { merge: `code:${file.id}` });
-}
-
-/** Selects the element under the caret, so the layers, stage and inspector follow the code. */
-function selectFromCode(line) {
-	const ranges = codeDraft.value === null ? mappedSource.value.ranges : codeRanges.value;
-	const id = ranges && nodeAtLine(ranges, line, (nodeId) => doc.value?.nodes[nodeId] && doc.value.nodes[nodeId].type !== 'text');
-	if (id) selected.value = id;
-}
-
-/** Leaving the code view shows the exported source again, unless the text does not parse. */
-function leaveCode() {
-	applyCode();
-	if (codeError.value) return;
-	codeDraft.value = null;
-	codeRanges.value = null;
-	history.seal();
 }
 
 /** Downloads the generated SFC under the file's name. */
 function downloadSource() {
-	const url = URL.createObjectURL(new Blob([fileSource.value], { type: 'text/plain' }));
+	const url = URL.createObjectURL(new Blob([codeSync.source.value], { type: 'text/plain' }));
 	const link = document.createElement('a');
 	link.href = url;
 	link.download = activeFile.value.name;
@@ -861,6 +803,7 @@ function zoomBy(factor) {
 
 /** Trackpad pinch and ctrl/cmd+wheel zoom; plain wheel pans. */
 function onWheel(event) {
+	if (props.embedded && !event.ctrlKey && !event.metaKey) return;
 	event.preventDefault();
 	if (event.ctrlKey || event.metaKey) {
 		zoomAt(event.clientX, event.clientY, zoom.value * Math.exp(-event.deltaY * (event.deltaMode ? 0.05 : 0.01)));
@@ -989,8 +932,15 @@ function onTouch({ type, pointerId, clientX, clientY, overlay = false }) {
 	startTouchGesture();
 }
 
+/** A Text panel toggle: bold, italic, underline or strike on the words selected on the canvas, or else in the code. */
+function toggleMark(mark) {
+	if (editing.value) inline.toggle(mark);
+	else codeSync.mark(mark);
+}
+
 /** Selection from any artboard also makes that artboard active, and shows the sheet's Inspect tab on phones. */
 function selectFromArtboard(board, id) {
+	codeSync.forgetMarks();
 	activeArtboardId.value = board.id;
 	selected.value = id;
 	if (id) sheetTab.value = 'inspect';
@@ -1039,12 +989,16 @@ function onSheetPointerup(event) {
 /** True while the user is typing, so shortcuts never steal keystrokes. */
 function isTyping(event) {
 	const target = event.target;
-	return target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName);
+	// Monaco types through an EditContext div (role="textbox"), which is neither a field nor contenteditable.
+	return target?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target?.tagName) || Boolean(target?.closest?.('[role="textbox"], .monaco-editor'));
 }
 
 function onKeydown(event) {
-	if (isTyping(event)) return;
+	if (props.embedded && !pointerInside.value && !root.value?.contains(document.activeElement)) return;
 	const mod = event.metaKey || event.ctrlKey;
+	// ⌘S saves from anywhere, even mid-edit, rather than opening the browser's save dialog.
+	if (mod && event.key.toLowerCase() === 's' && projectFiles.value) { event.preventDefault(); saveProjectFile(); return; }
+	if (isTyping(event)) return;
 	if (event.code === 'Space' && !event.repeat) { spaceHeld.value = true; event.preventDefault(); return; }
 	if (mod && event.key.toLowerCase() === 'z') { event.preventDefault(); if (event.shiftKey) redo(); else undo(); return; }
 	if (mod && event.key.toLowerCase() === 'y') { event.preventDefault(); redo(); return; }
@@ -1063,8 +1017,9 @@ function onKeyup(event) {
 function onWindowBlur() { spaceHeld.value = false; }
 
 watch(activeArtboardId, refresh);
-// A draft belongs to one file; switching files or closing the panel shows the export again.
-watch(() => [activeFile.value?.id, showCode.value], () => { clearTimeout(codeTimer); codeDraft.value = null; codeRanges.value = null; codeError.value = ''; codeWarning.value = ''; });
+// Selecting another layer, switching artboard, file or view, or opening the code ends an in-place edit.
+watch(selected, (id) => { if (editing.value && id !== editing.value.id) finishTextEdit(); });
+watch(() => `${activeArtboardId.value}:${viewMode.value}:${canvasMode.value}`, (view) => { if (editing.value && editing.value.view !== view) finishTextEdit(); });
 watch(viewMode, refresh);
 
 onMounted(async () => {
@@ -1084,6 +1039,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+	finishTextEdit();
 	disposed = true;
 	clearTimeout(compileTimer);
 	saver.flush();
@@ -1092,10 +1048,25 @@ onBeforeUnmount(() => {
 	window.removeEventListener('blur', onWindowBlur);
 	viewport.value?.removeEventListener('wheel', onWheel);
 });
+
+/**
+ * For apps that build on the designer (such as the Social post studio): read
+ * the workspace and active file, apply workspace operations as one undo step,
+ * select a layer, show a notice, and fit the artboards to the view.
+ */
+defineExpose({
+	workspace,
+	activeFile,
+	activeArtboard,
+	run(operations, options) { finishTextEdit(); run(operations, options); },
+	select(id) { selected.value = id; },
+	notify(text) { notice.value = text; },
+	fit: () => nextTick(fitAll),
+});
 </script>
 
 <template>
-	<div class="flex h-full min-h-[480px] flex-col overflow-hidden bg-canvas text-canvas-fg lg:min-h-[640px]">
+	<div ref="root" class="flex h-full min-h-[480px] flex-col overflow-hidden bg-canvas text-canvas-fg lg:min-h-[640px]" @pointerenter="pointerInside = true" @pointerleave="pointerInside = false">
 		<header class="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-4 py-2">
 			<div class="flex min-w-0 items-center gap-3">
 				<slot name="start" />
@@ -1111,6 +1082,7 @@ onBeforeUnmount(() => {
 					<option v-for="item in projectFiles" :key="item.id" :value="item.id">{{ item.name }}</option>
 				</select>
 				<span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
+				<DomButton v-if="projectFiles" size="sm" variant="ghost" :title="`Write ${activeFile?.path || activeFile?.name} to the project folder (⌘S)`" @click="saveProjectFile">Save</DomButton>
 				<DomButton size="sm" variant="ghost" :disabled="!historySize.undo" title="Undo (⌘Z)" @click="undo">Undo</DomButton>
 				<DomButton size="sm" variant="ghost" :disabled="!historySize.redo" title="Redo (⇧⌘Z)" @click="redo">Redo</DomButton>
 				<span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
@@ -1147,7 +1119,7 @@ onBeforeUnmount(() => {
 					ref="viewport"
 					class="absolute inset-0 touch-none overflow-hidden bg-secondary/60 [background-image:radial-gradient(var(--border)_1px,transparent_1px)]"
 					:class="panning ? 'cursor-grabbing' : spaceHeld ? 'cursor-grab' : ''"
-					:style="{ backgroundSize: `${24 * zoom}px ${24 * zoom}px`, backgroundPosition: `${pan.x}px ${pan.y}px` }"
+					:style="[stageInset, { backgroundSize: `${24 * zoom}px ${24 * zoom}px`, backgroundPosition: `${pan.x}px ${pan.y}px` }]"
 					@pointerdown="onCanvasPointerdown"
 					@pointermove="onCanvasPointermove"
 					@pointerup="onCanvasPointerup"
@@ -1175,6 +1147,7 @@ onBeforeUnmount(() => {
 									:fill="canvasMode === 'page'"
 									@resize="canvasMode === 'page' && (pageSize = $event)"
 									@ready="board.id === activeArtboard?.id && refresh()"
+									@styles="board.id === activeArtboard?.id && refresh()"
 									@wheel="onWheel"
 									@keydown="onKeydown"
 									@pointerdown="activeArtboardId = board.id"
@@ -1186,6 +1159,7 @@ onBeforeUnmount(() => {
 										frame-scoped
 										:zoom="canvasMode === 'canvas' ? zoom : 1"
 										reorder
+										:editing="editing?.board === board.id ? editing.id : ''"
 										:snapping="snapping"
 										:spacing-snapping="snapping"
 										class="bg-canvas text-canvas-fg"
@@ -1193,6 +1167,7 @@ onBeforeUnmount(() => {
 										@update:model-value="selectFromArtboard(board, $event)"
 										@style-change="patch"
 										@reorder="reorderFromStage"
+										@edit-text="inline.start(board, $event)"
 									>
 										<EditorRender
 											v-if="fileById(board.fileId)"
@@ -1201,6 +1176,7 @@ onBeforeUnmount(() => {
 											:data="previews[board.fileId]"
 											:mode="viewMode"
 											:detected="board.id === activeArtboard?.id ? detected : noDetectedLayouts"
+											:revisions="revisions"
 										/>
 									</DomDesignerStage>
 								</ArtboardViewport>
@@ -1212,11 +1188,11 @@ onBeforeUnmount(() => {
 					</div>
 					<div v-if="spaceHeld || panning" class="absolute inset-0" aria-hidden="true"></div>
 				</div>
-				<p v-if="compilerNotice" class="pointer-events-none absolute bottom-3 left-3 max-lg:bottom-20 max-w-md rounded-md bg-canvas/90 px-3 py-2 text-xs text-muted-fg shadow">{{ compilerNotice }}</p>
-				<p v-if="canvasMode === 'canvas'" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] text-muted-fg shadow md:block">Scroll to pan · ⌘/Ctrl + scroll to zoom · Space + drag · ⇧1 fit</p>
-				<p v-else-if="pageSize" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] tabular-nums text-muted-fg shadow md:block">Viewport {{ pageSize.width }} × {{ pageSize.height }}</p>
+				<p v-if="compilerNotice" :style="hintInset" class="pointer-events-none absolute bottom-3 left-3 max-lg:bottom-20 max-w-md rounded-md bg-canvas/90 px-3 py-2 text-xs text-muted-fg shadow">{{ compilerNotice }}</p>
+				<p v-if="canvasMode === 'canvas'" :style="hintInset" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] text-muted-fg shadow md:block">Double-click text to edit · {{ embedded ? 'Drag the canvas to pan' : 'Scroll to pan' }} · ⌘/Ctrl + scroll to zoom · Space + drag · ⇧1 fit</p>
+				<p v-else-if="pageSize" :style="hintInset" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] tabular-nums text-muted-fg shadow md:block">Viewport {{ pageSize.width }} × {{ pageSize.height }}</p>
 
-				<aside v-if="showCode" class="absolute inset-y-0 right-0 z-20 flex w-full max-w-xl flex-col border-l border-border bg-canvas shadow-xl">
+				<aside v-if="showCode" class="absolute z-20 flex flex-col bg-canvas" :class="codeLayout === 'below' ? 'inset-x-0 bottom-0 border-t border-border' : 'inset-y-0 right-0 w-full max-w-xl border-l border-border shadow-xl'" :style="codeLayout === 'below' ? { height: codeShare } : {}">
 					<div class="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
 						<p class="truncate font-mono text-xs">{{ activeFile?.name }}</p>
 						<div class="flex gap-1.5">
@@ -1227,8 +1203,7 @@ onBeforeUnmount(() => {
 						</div>
 					</div>
 					<p class="border-b border-border px-4 py-2 text-[11px] leading-4 text-muted-fg">Edit the code and the design follows. Click a line to select its element; select an element to find its code.</p>
-					<component :is="codeEditor || CodeView" v-bind="codeEditor ? codeEditorProps : {}" class="flex-1" :model-value="codeText" :highlight="codeHighlight" :label="`${activeFile?.name} source`" @update:model-value="editCode" @cursor="selectFromCode" @blur="leaveCode" />
-					<p v-if="codeError || codeWarning" role="status" class="border-t border-border bg-secondary px-4 py-2 text-xs" :class="codeError ? 'text-destructive' : 'text-muted-fg'">{{ codeError || codeWarning }}</p>
+					<CodePanel :sync="codeSync" :editor="codeEditor" :editor-props="codeEditorProps" :label="`${activeFile?.name} source`" class="flex-1" />
 				</aside>
 			</section>
 			<!-- Phones: the panels live in one bottom sheet over the canvas. From lg up the wrapper disappears and the panels are grid columns. -->
@@ -1361,7 +1336,7 @@ onBeforeUnmount(() => {
 							<p class="text-[11px] leading-4 text-muted-fg">Kept on export. Data view runs lists and conditions on preview data; Variables view shows every branch and one item of each list.</p>
 						</section>
 						<div class="border-b border-border px-4">
-							<DomTypographyEditor v-if="showText && textStyle" title="Text" :google-fonts="googleFonts" :model-value="textStyle" @update:model-value="setStyle('text', $event)" />
+							<DomTypographyEditor v-if="showText && textStyle" title="Text" :google-fonts="googleFonts" :model-value="textStyle" :marks="editing?.id === selected ? editState.marks || {} : codeSync.marks.value" @update:model-value="setStyle('text', $event)" @mark="toggleMark" />
 							<template v-for="kind in ['fill', 'stroke', 'shadow', 'blur']" :key="kind">
 								<StyleControlSection v-if="customStyle[kind]" :model-value="true" :title="styleTitles[kind]" meta="Custom CSS">
 									<template #actions><ControlIconButton icon="remove" :label="`Remove ${styleTitles[kind].toLowerCase()}`" @click="setStyleRaw(kind, '')" /></template>

@@ -8033,6 +8033,10 @@ export interface DomDesignerStageProps {
 	 * Drag layers inside flow, flex and grid frames to reorder them. Emits reorder with the new parent and the sibling it goes before.
 	 */
 	reorder?: boolean;
+	/**
+	 * ID of a layer whose text is being edited in place. Clicks inside it move the caret instead of selecting, and the selection box stops taking the pointer.
+	 */
+	editing?: string;
 }
 export declare const DomDesignerStage: DomComponent<DomDesignerStageProps>;
 
@@ -8072,6 +8076,10 @@ export interface DomTypographyEditorProps {
 	weights?: Array<unknown>;
 	showColor?: boolean;
 	disabled?: boolean;
+	/**
+	 * While text is being edited, which of bold, italic, underline and strike the selected words have. The four style toggles then show these and emit mark instead of changing the record.
+	 */
+	marks?: Record<string, unknown>;
 }
 export declare const DomTypographyEditor: DomComponent<DomTypographyEditorProps>;
 
