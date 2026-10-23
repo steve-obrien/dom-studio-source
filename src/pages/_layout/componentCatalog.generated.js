@@ -1390,6 +1390,11 @@ export const componentCatalog = [
 					"description": "Emitted when the selected node changes."
 				},
 				{
+					"name": "update:values",
+					"payload": "(values: Array<string | number>)",
+					"description": "Emitted with every selected value when `values` is bound and the selection changes."
+				},
+				{
 					"name": "select",
 					"payload": "({ item, value, node })",
 					"typeRef": "TreeSelectionPayload",

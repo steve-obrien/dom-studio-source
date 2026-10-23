@@ -88,7 +88,8 @@ export function useLayoutGeometry({ session, element, isFrame = htmlFrame }) {
 		if (!host) return [];
 		return doc.value.nodes[hostId].children.flatMap((childId) => {
 			const child = doc.value.nodes[childId];
-			const target = child.type === 'text' ? null : element(childId);
+			// A hidden layer has no box on the canvas; its own style still places it.
+			const target = child.type === 'text' || child.hidden ? null : element(childId);
 			return target ? [onFile({ op: 'setField', id: childId, key: 'placements', value: { ...(child.placements || {}), absolute: { ...measureFrameChild(target, host), ...extra } } })] : [];
 		});
 	}
@@ -109,7 +110,7 @@ export function useLayoutGeometry({ session, element, isFrame = htmlFrame }) {
 	/** Applies a stage drag or resize (`style-change` from DomDesignerStage). */
 	function patch({ id, style }) {
 		const node = doc.value?.nodes[id];
-		if (!node?.parent) return;
+		if (!node?.parent || node.locked) return;
 		const box = Object.fromEntries(['left', 'top', 'width', 'height'].map((key) => [key, parseFloat(style[key])]));
 		const target = element(id);
 		const before = node.placements?.absolute || (target ? { width: target.offsetWidth, height: target.offsetHeight } : null);
@@ -122,16 +123,17 @@ export function useLayoutGeometry({ session, element, isFrame = htmlFrame }) {
 
 	/** A numeric X, Y, W or H edit on the primary layer. */
 	function setGeometry(key, value) {
-		if (value === '' || !Number.isFinite(Number(value)) || !active.value || !parent.value) return;
+		if (value === '' || !Number.isFinite(Number(value)) || !active.value || !parent.value || active.value.locked) return;
 		const current = active.value.placements?.absolute || geometry.value;
 		const sized = ['width', 'height'].includes(key);
 		const next = { ...current, [key]: sized ? Math.max(16, Number(value)) : Number(value), sized: Boolean(current.sized || sized) };
 		run([...adoptOperations(parent.value.id), placeOperation(active.value.id, next)], { merge: `geometry:${active.value.id}:${key}` });
 	}
 
-	/** Moves layers to new boxes as one undo step, skipping any that did not move. */
+	/** Moves layers to new boxes as one undo step, skipping locked layers and any that did not move. */
 	function moveTo(host, rects) {
 		const moved = rects.filter((rect) => {
+			if (doc.value.nodes[rect.id].locked) return false;
 			const before = rect.before;
 			return Math.round(before.left) !== Math.round(rect.left) || Math.round(before.top) !== Math.round(rect.top) || !doc.value.nodes[rect.id].placements?.absolute;
 		});
