@@ -135,7 +135,7 @@ export function beginInlineEdit({ element, doc, id, point, onChange = () => {}, 
 					}
 				}
 			}
-			normalize(copy);
+			normalize(copy, current);
 			let count = 0;
 			// Ids for new runs count up, so the same text previews as the same operations.
 			const operations = reconcile(current, id, copy, copied, original, () => `preview-${count++}`, found);
@@ -155,7 +155,7 @@ export function beginInlineEdit({ element, doc, id, point, onChange = () => {}, 
 		},
 		/** Reads the edited element back into operations against the current document. */
 		operations(current, { makeId = nodeId } = {}) {
-			normalize(element);
+			normalize(element, current);
 			return reconcile(current, id, element, texts, original, makeId);
 		},
 		stop,
@@ -272,17 +272,28 @@ function textPoint(node, offset, mark) {
 	return { node, offset, mark };
 }
 
-/** Turns what the browser produced into elements the file can hold: `<b>` becomes `<strong>`, styled spans are unwrapped. */
-function normalize(el) {
+/**
+ * Turns what the browser produced into elements the file can hold: `<b>` becomes `<strong>`, styled spans are unwrapped.
+ *
+ * The browser also rewrites the file's own elements: taking bold off a
+ * `<strong>` turns it into `<span style="font-weight: normal">`, keeping its
+ * attributes. An element whose tag no longer matches its layer in `doc` is
+ * no longer that layer, so it is read like one the browser made.
+ */
+function normalize(el, doc) {
 	for (let child of [...el.childNodes]) {
 		if (child.nodeType === 8) { child.remove(); continue; }
 		if (child.nodeType !== 1) continue;
-		const known = child.dataset.designerId;
+		let known = child.dataset.designerId;
 		const tag = child.tagName.toLowerCase();
+		if (known && doc.nodes[known] && tagName(doc.nodes[known]) !== tag) {
+			delete child.dataset.designerId;
+			known = '';
+		}
 		if (!known) {
 			const wanted = createdTags[tag];
 			if (!wanted) {
-				normalize(child);
+				normalize(child, doc);
 				child.replaceWith(...child.childNodes);
 				continue;
 			}
@@ -294,7 +305,7 @@ function normalize(el) {
 			}
 			for (const name of child.getAttributeNames()) child.removeAttribute(name);
 		}
-		normalize(child);
+		normalize(child, doc);
 		if (!known && tag !== 'br' && !child.textContent) child.remove();
 	}
 	el.normalize();

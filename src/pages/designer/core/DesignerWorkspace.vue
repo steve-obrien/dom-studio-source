@@ -20,6 +20,7 @@ import { useInlineText } from './useInlineText.js';
 import { useCodeSync } from './useCodeSync.js';
 import CodePanel from './CodePanel.vue';
 import { EditorRender } from './EditorRender.js';
+import { inlineEditTarget } from './inlineText.js';
 import { previewData, scriptData } from './previewData.js';
 import { treeFromType } from './typeRegistry.js';
 import { tailwindContent } from './vueAdapter.js';
@@ -186,7 +187,8 @@ const inlineContent = computed(() => {
 });
 const layout = computed(() => active.value?.layout || detected.value[selected.value] || createFrameLayout());
 const textTags = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'button', 'label', 'li', 'blockquote', 'strong', 'em', 'small', 'code', 'figcaption', 'td', 'th']);
-const showText = computed(() => Boolean(textChild.value || textTags.has(activeType.value?.tag)));
+// Any element that can be edited as text, such as a div of text and bold words, gets the Text panel too.
+const showText = computed(() => Boolean(textChild.value || textTags.has(activeType.value?.tag) || (inlineContent.value.length && inlineEditTarget(doc.value, selected.value).id === selected.value)));
 const { fill: fillStyle, stroke: strokeStyle, shadow: shadowStyle, blur: blurStyle, text: textStyle, custom: customStyle, set: setStyle, setRaw: setStyleRaw } = useNodeStyle(active, writeStyle);
 const styleTitles = { fill: 'Fill', stroke: 'Stroke', shadow: 'Shadow', blur: 'Background blur' };
 // Google fonts set on any layer load while the designer is open; artboards copy them from the page head.
