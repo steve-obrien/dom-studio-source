@@ -1372,6 +1372,21 @@ onBeforeUnmount(() => {
 	window.removeEventListener('blur', onWindowBlur);
 	viewport.value?.removeEventListener('wheel', onWheel);
 });
+
+/**
+ * For apps that build on the designer (such as the Social post studio): read
+ * the workspace and active file, apply workspace operations as one undo step,
+ * select a layer, show a notice, and fit the artboards to the view.
+ */
+defineExpose({
+	workspace,
+	activeFile,
+	activeArtboard,
+	run(operations, options) { finishTextEdit(); run(operations, options); },
+	select(id) { selected.value = id; },
+	notify(text) { notice.value = text; },
+	fit: () => nextTick(fitAll),
+});
 </script>
 
 <template>
