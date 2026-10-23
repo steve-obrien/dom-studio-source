@@ -5,7 +5,8 @@ import DomDesigner from '../core/DesignerWorkspace.vue';
 import { cloneValue } from '../core/editorDocument.js';
 import { WORKSPACE_VERSION, exportFile, importFile, workspaceId } from '../canvas/canvasWorkspace.js';
 import PosterThumbnail from '../poster/PosterThumbnail.vue';
-import { resizePoster, socialFormats } from '../poster/posterResize.js';
+import { pinXOptions, pinYOptions, resizePoster, socialFormats } from '../poster/posterResize.js';
+import InspectorSelect from '../_shared/InspectorSelect.vue';
 import { loadTemplates, templateIndustries, templateKinds } from '../poster/socialTemplates.js';
 import PostThumbnail from './PostThumbnail.vue';
 import { exportPostHtml, formatOperations, postFontLinks, postMarkup, postSize, posterToFile, resizedDocument } from './socialDocument.js';
@@ -202,8 +203,19 @@ async function saveAsTemplate() {
 			:code-open="codeOpen"
 			code-layout="below"
 			:embedded="embedded"
+			:rulers="!embedded"
 		>
 			<template #start><slot name="start" /></template>
+			<template #inspector="{ node, parent, setProp }">
+				<section v-if="parent && !parent.parent" class="space-y-2 border-b border-border px-4 py-3">
+					<h3 class="text-[11px] font-semibold">Resize pins</h3>
+					<div class="grid grid-cols-2 gap-1.5">
+						<InspectorSelect label="Horizontal pin" :options="pinXOptions" :model-value="node.props['data-pin-x'] || 'auto'" @update:model-value="setProp('data-pin-x', $event === 'auto' ? undefined : $event)" />
+						<InspectorSelect label="Vertical pin" :options="pinYOptions" :model-value="node.props['data-pin-y'] || 'auto'" @update:model-value="setProp('data-pin-y', $event === 'auto' ? undefined : $event)" />
+					</div>
+					<p class="text-[11px] leading-4 text-muted-fg">How this layer moves when the post changes format. Auto reads it from where the layer sits.</p>
+				</section>
+			</template>
 			<template #end>
 				<select class="h-7 max-w-52 rounded-md border-0 bg-secondary/60 pl-2 pr-6 text-xs text-canvas-fg outline-none hover:ring-1 hover:ring-border focus:ring-1 focus:ring-primary" aria-label="Post format" :value="`${size.width}x${size.height}`" @change="setFormat($event.target.value)">
 					<option v-for="option in formatOptions" :key="option.value" :value="option.value">{{ option.label }}</option>

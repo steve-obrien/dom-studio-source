@@ -21,6 +21,9 @@ export { useInlineText } from '../../designer/core/useInlineText.js';
 // Placement: measuring, dragging, X/Y/W/H, align and distribute.
 export { useLayoutGeometry } from '../../designer/core/useLayoutGeometry.js';
 export { boundsOf, alignRects, distributeRects, measureFrameChild } from '../../designer/stage/layoutGeometry.js';
+// Image controls: source, alt text, fit and filters.
+export { default as DomImageEditor } from '../../designer/image-editor/DomImageEditor.vue';
+export { parseFilter, formatFilter, safeImageSource, readImageFile } from '../../designer/image-editor/imageStyle.js';
 // Rich text as a model: what the canvas and the code panel both edit text with.
 export { flatten as flattenText, marksAt, toggleMark, replaceRange, markOperations, markTags, inlineTags } from '../../designer/core/richText.js';
 // Renders an editor document as real DOM, with the types the inspector and renderer use.
