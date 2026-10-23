@@ -125,12 +125,14 @@ export function exportFile(file, isStudioComponent) {
  * laid out in rows.
  *
  * @param {Array<{ source: string, name: string, path?: string }>} sources Vue or HTML files.
- * @param {{ widths?: Array<number>, height?: number }} [options] Artboard widths and height.
+ * @param {{ widths?: Array<number>, height?: number, makeId?: () => string }} [options] Artboard widths and height, and ids that are the same each time (for a page rendered on the server and hydrated).
  * @returns {object} Workspace.
  */
-export function createWorkspace(sources, { widths = [1200, 390], height = 760 } = {}) {
+export function createWorkspace(sources, { widths = [1200, 390], height = 760, makeId = null } = {}) {
+	const id = (prefix) => (makeId ? `${prefix}_${makeId()}` : workspaceId(prefix));
 	const files = sources.map(({ source, name, path }) => {
-		const { file } = importFile(source, name);
+		const { file } = importFile(source, name, makeId ? { makeId } : undefined);
+		file.id = id('file');
 		if (path) file.path = path;
 		return file;
 	});
@@ -138,7 +140,7 @@ export function createWorkspace(sources, { widths = [1200, 390], height = 760 } 
 	const artboards = files.flatMap((file, row) => {
 		let x = 0;
 		return widths.map((width) => {
-			const board = { id: workspaceId('board'), fileId: file.id, name: `${file.name.replace(/\.(vue|html)$/, '')} ${width}`, x, y: row * (height + gap), width, height };
+			const board = { id: id('board'), fileId: file.id, name: `${file.name.replace(/\.(vue|html)$/, '')} ${width}`, x, y: row * (height + gap), width, height };
 			x += width + gap;
 			return board;
 		});

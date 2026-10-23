@@ -203,6 +203,27 @@ export declare function useCodeSync(options: { session: EditorSession; inline?: 
 /** The code of the session's active file, in sync with the stage. */
 export declare const DomCodePanel: DefineComponent<{ sync: CodeSync; editor?: object | null; editorProps?: Record<string, unknown>; label?: string }>;
 
+/** A stretch of text, or a line break (`text: '\n'`), with the inline elements around it, outermost first. */
+export interface TextPiece { text: string; run?: string | null; br?: string | null; stack: Array<{ id: string | null; tag: string }>; }
+/** A text element's content as pieces; offsets count across all of it, a line break as one character. */
+export declare function flattenText(doc: DesignerDocument, hostId: string): Array<TextPiece>;
+/** Which marks all the text between two offsets has; at a caret, the marks typing there would get. */
+export declare function marksAt(pieces: Array<TextPiece>, start: number, end?: number): Required<TextMarks>;
+/** Turns a mark on or off between two offsets; by default on unless all the text has it. */
+export declare function toggleMark(pieces: Array<TextPiece>, start: number, end: number, mark: keyof TextMarks, on?: boolean): Array<TextPiece>;
+/** Replaces a range with text (line breaks become `<br>`), taking the marks of the text before it, changed by `marks`. */
+export declare function replaceRange(pieces: Array<TextPiece>, start: number, end: number, text?: string, marks?: TextMarks | null): { pieces: Array<TextPiece>; caret: number };
+/** Document operations that mark or unmark text in one text element, as the canvas does; and where the text is afterwards. */
+export declare function markOperations(doc: DesignerDocument, hostId: string, start: number, end: number, mark: keyof TextMarks, options: { document: Document; on?: boolean; makeId?: () => string }): { operations: Array<DesignerOperation>; start: { id?: string; offset?: number; element?: string; at: number } | null; end: { id?: string; offset?: number; element?: string; at: number } | null };
+/** The elements each mark is written as; the first is used for new marks. */
+export declare const markTags: Record<keyof TextMarks, Array<string>>;
+/** Elements that may sit inside edited text. */
+export declare const inlineTags: Set<string>;
+/** The registry of types an editor renders and inspects: HTML elements, text, and the catalog's components. */
+export declare function createEditorTypes(catalog: ComponentCatalog): object;
+/** Renders an editor document as real DOM, with live components; each element carries `data-designer-id`. */
+export declare const DomEditorRender: DefineComponent<{ doc: DesignerDocument; types: object; data?: Record<string, unknown>; mode?: 'data' | 'variables'; revisions?: Record<string, number> }>;
+
 export declare function createComponentCatalog(records: Array<{ component: object; exportName: string; section?: string; label?: string }>, options?: { html?: boolean }): Required<ComponentCatalog>;
 /** A catalog of every `Dom*` component in a module's exports, such as `import * as studio from '@getdom/studio/vue'`. */
 export declare function catalogFromExports(exports: Record<string, unknown>, options?: { html?: boolean }): Required<ComponentCatalog>;
@@ -216,7 +237,7 @@ export declare function createHttpStorage<Value = unknown>(options: { endpoint: 
 export declare function createFileStorage(options?: { endpoint?: string; fetch?: typeof fetch }): StorageAdapter<string>;
 export declare function createSaver<Value = unknown>(adapter: Pick<StorageAdapter<Value>, 'save'>, options?: { delay?: number; onError?: (error: Error) => void }): { queue(id: string, value: Value, operations?: Array<DesignerOperation>): void; flush(): Promise<void> };
 
-export declare function createWorkspace(sources: Array<{ source: string; name: string; path?: string }>, options?: { widths?: Array<number>; height?: number }): DesignerWorkspace;
+export declare function createWorkspace(sources: Array<{ source: string; name: string; path?: string }>, options?: { widths?: Array<number>; height?: number; makeId?: () => string }): DesignerWorkspace;
 export declare function createDemoWorkspace(): DesignerWorkspace;
 export declare function restoreWorkspace(saved: unknown): DesignerWorkspace | null;
 export declare function importFile(source: string, name: string, options?: { makeId?: () => string }): { file: DesignerFile; unsupported: number; seeded: Array<string> };
