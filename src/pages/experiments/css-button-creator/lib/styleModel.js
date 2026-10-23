@@ -6,6 +6,45 @@ import { createShadow, enabledShadows, shadowToCss, shadowListToCss, addShadowLa
 export { createShadow, enabledShadows, shadowToCss, shadowListToCss, addShadowLayer, duplicateShadowLayer, removeShadowLayer, shadowTitle, shadowKindOptions } from '../../../designer/shadow-editor/shadowModel.js';
 
 export { borderStyleOptions } from '../../../designer/border-editor/borderModel.js';
+import { typographyToCssProperties, typographyToStyle } from '../../../designer/typography-editor/typographyModel.js';
+
+/**
+ * The button's text style for DomTypographyEditor. The button keeps its own
+ * `textColor`, `fontSize` and `fontWeight`; the other keys are unset ('') until
+ * chosen, so the button inherits them.
+ */
+export function buttonTypography(typography) {
+	return {
+		fontFamily: typography.fontFamily || '',
+		fontWeight: String(typography.fontWeight ?? ''),
+		fontSize: typography.fontSize ?? '',
+		lineHeight: typography.lineHeight ?? '',
+		letterSpacing: typography.letterSpacing ?? '',
+		color: typography.textColor || '',
+		textAlign: '',
+		fontStyle: typography.fontStyle || '',
+		textDecoration: typography.textDecoration || '',
+		textTransform: typography.textTransform || '',
+	};
+}
+
+/** Writes an edited typography record back onto the button's typography state. */
+export function setButtonTypography(typography, record) {
+	const { color, textAlign, ...rest } = record;
+	Object.assign(typography, rest, { textColor: color });
+}
+
+/** The text styles beyond size, weight and colour that are set, as a camel-case style object. */
+export function typographyExtraStyle(typography) {
+	const { fontFamily, lineHeight, letterSpacing, fontStyle, textDecoration, textTransform } = buttonTypography(typography);
+	return typographyToStyle({ fontFamily, lineHeight, letterSpacing, fontStyle, textDecoration, textTransform });
+}
+
+/** The same, as CSS declarations (kebab-case). */
+export function typographyExtraCss(typography) {
+	const { fontFamily, lineHeight, letterSpacing, fontStyle, textDecoration, textTransform } = buttonTypography(typography);
+	return Object.entries(typographyToCssProperties({ fontFamily, lineHeight, letterSpacing, fontStyle, textDecoration, textTransform })).filter(([, value]) => value);
+}
 
 export function createButtonState(overrides = {}) {
 	return {

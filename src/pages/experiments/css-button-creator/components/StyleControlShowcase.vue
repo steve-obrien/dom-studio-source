@@ -14,6 +14,7 @@ import {
 	cssStyleToVariables,
 	fillListToCss,
 	shadowListToCss,
+	typographyExtraStyle,
 } from '../lib/styleModel.js';
 
 const backgroundOpen = reactive({ control: true });
@@ -144,6 +145,7 @@ const fullButtonStyle = computed(() => ({
 	fontSize: `${fullButton.typography.fontSize}px`,
 	fontWeight: fullButton.typography.fontWeight,
 	lineHeight: 1,
+	...typographyExtraStyle(fullButton.typography),
 }));
 const componentButtonPreviewStyle = computed(() => ({
 	...cssStyleToProperties(componentButtonStyle),
