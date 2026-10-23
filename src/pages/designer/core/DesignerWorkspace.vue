@@ -1,7 +1,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import { DomBackdropEditor, DomBackgroundEditor, DomBorderEditor, DomButton, DomDesignerLayers, DomDesignerStage, DomFrameLayoutEditor, DomJsonInput, DomNativeSelect, DomNumberInput, DomShadowEditor, DomTextInput, DomTypographyEditor } from '../../lib/vue';
-import { alignFrameChild, createFrameLayout, measureFrameChild, readFrameLayout } from '../frame/frameLayout.js';
+import { createFrameLayout } from '../frame/frameLayout.js';
 import { isFrameNode } from '../frames/frameDocument.js';
 import { componentType, createEditorTypes, studioComponentEntries } from './componentTypes.js';
 import NodeInspector from './NodeInspector.vue';
@@ -18,6 +18,7 @@ import { copySubtree, fromTree, isExpr, subtreeIds } from './editorDocument.js';
 import { useEditorSession } from './useEditorSession.js';
 import { useInlineText } from './useInlineText.js';
 import { useCodeSync } from './useCodeSync.js';
+import { useLayoutGeometry } from './useLayoutGeometry.js';
 import CodePanel from './CodePanel.vue';
 import { EditorRender } from './EditorRender.js';
 import { inlineEditTarget } from './inlineText.js';
@@ -121,10 +122,10 @@ const session = useEditorSession({
 		queueSave();
 		queueCompile();
 	},
-	afterChange: refresh,
+	afterChange: () => refresh(),
 	onError: (message) => { notice.value = message; },
 });
-const { workspace, activeArtboardId, selected, historySize, history, artboards, activeArtboard, activeFile, doc, active, parent, fileById, onFile, run, undo, redo } = session;
+const { workspace, activeArtboardId, selected, selection, selectedIds, historySize, history, artboards, activeArtboard, activeFile, doc, active, parent, fileById, onFile, run, undo, redo } = session;
 const viewMode = ref('data');
 // Canvas: Figma-style artboards to pan and zoom. Page: the active artboard as one full-size, scrolling viewport.
 const canvasModeKey = 'dom-designer-canvas-mode';
@@ -154,11 +155,12 @@ const stageInset = computed(() => (props.codeLayout === 'below' && showCode.valu
 const hintInset = computed(() => (props.codeLayout === 'below' && showCode.value ? { bottom: `calc(${codeShare} + 0.75rem)` } : {}));
 const projectFiles = ref(null);
 const snapping = ref(true);
-const detected = ref({});
 const inline = useInlineText({ session, view: () => `${activeArtboardId.value}:${viewMode.value}:${canvasMode.value}`, notify: (text) => { notice.value = text; } });
 const { editing, editState, revisions } = inline;
 const finishTextEdit = inline.finish;
 const codeSync = useCodeSync({ session, inline, isStudioComponent, element: (id) => activeViewport()?.element(id) || null, open: showCode });
+const placement = useLayoutGeometry({ session, element: (id) => activeViewport()?.element(id) || null, isFrame });
+const { detected, refresh, parentMode, parentLayout, geometry, selectedNodes, canArrange, captureOperations, adoptOperations, patch, setGeometry, align, distribute } = placement;
 const viewport = ref(null);
 const artboardRefs = new Map();
 // The workspace saves through a storage adapter; project files go through the file adapter when one is given.
@@ -203,8 +205,6 @@ const styleTitles = { fill: 'Fill', stroke: 'Stroke', shadow: 'Shadow', blur: 'B
 useGoogleFonts(() => (props.googleFonts ? workspace.value.files.flatMap((file) => Object.values(file.doc.nodes)).filter((node) => node.style?.['font-family']).map((node) => ({ fontFamily: node.style['font-family'], fontWeight: node.style['font-weight'] })) : []));
 // Material editors draw as inspector sections here, not cards.
 provide(cssEditorContextKey, { framed: computed(() => false), colorVariables: computed(() => ({})) });
-const parentMode = computed(() => parent.value?.layout?.mode || detected.value[parent.value?.id]?.mode || 'flow');
-const parentLayout = computed(() => (parent.value ? parent.value.layout || detected.value[parent.value.id] || createFrameLayout() : null));
 const parentModes = {
 	flow: { label: 'Flow', icon: 'mode-flow', tooltip: 'Parent is flow: this stacks in normal document flow' },
 	flex: { label: 'Flex', icon: 'mode-flex', tooltip: 'Parent is flex (auto layout): this sits in a row or column' },
@@ -234,20 +234,6 @@ const insertableComponents = computed(() => {
 	const query = insertQuery.value.trim().toLowerCase();
 	return studioEntries.filter((entry) => !query || `${entry.label} ${entry.componentName} ${entry.group}`.toLowerCase().includes(query)).slice(0, 80);
 });
-const geometry = computed(() => {
-	if (active.value?.placements?.absolute) return active.value.placements.absolute;
-	// Detection reruns after every render, so measured sizes follow edits.
-	detected.value;
-	return measureSelection();
-});
-
-/** Measures the selection in its parent frame's coordinates. */
-function measureSelection() {
-	const element = activeViewport()?.element(selected.value);
-	const host = activeViewport()?.element(parent.value?.id);
-	return element && host ? measureFrameChild(element, host) : {};
-}
-
 function tagOf(node) { return types.get(node.type)?.tag || node.type.split(':').pop(); }
 function isFrame(node) { return !!node && node.type.startsWith('html:') && isFrameNode({ tag: tagOf(node) }); }
 /** Nodes that take inserted children: frames and components with a default slot. */
@@ -444,38 +430,6 @@ async function compileCss() {
 
 /* Layout detection and geometry ---------------------------------------------------- */
 
-/** Reads each frame's resolved layout in the active artboard after the DOM settles. */
-async function refresh() {
-	await nextTick();
-	if (disposed || !doc.value) return;
-	const view = activeViewport();
-	const next = {};
-	for (const node of Object.values(doc.value.nodes)) {
-		const element = isFrame(node) ? view?.element(node.id) : null;
-		if (element) next[node.id] = readFrameLayout(element);
-	}
-	detected.value = next;
-}
-
-/** Operations that record each child's box, so switching a frame to absolute keeps things where they are. `extra` is merged into each box. */
-function captureOperations(hostId, extra = {}) {
-	const view = activeViewport();
-	const element = view?.element(hostId);
-	if (!element) return [];
-	return doc.value.nodes[hostId].children.flatMap((childId) => {
-		const child = doc.value.nodes[childId];
-		const target = child.type === 'text' ? null : view.element(childId);
-		return target ? [onFile({ op: 'setField', id: childId, key: 'placements', value: { ...(child.placements || {}), absolute: { ...measureFrameChild(target, element), ...extra } } })] : [];
-	});
-}
-
-/** Operations that make a frame's detected absolute layout explicit before its children move. The source already lays it out, so the export leaves its style alone (`fromSource`). */
-function adoptOperations(hostId) {
-	const host = doc.value.nodes[hostId];
-	if (!host || host.layout) return [];
-	return [...captureOperations(hostId, { sized: false }), onFile({ op: 'setField', id: hostId, key: 'layout', value: { ...(detected.value[hostId] || createFrameLayout({ mode: 'absolute' })), fromSource: true } })];
-}
-
 /** Changes a frame's child layout, preserving geometry when entering absolute mode. */
 async function setLayout({ fromSource, ...value }) {
 	const node = active.value;
@@ -502,44 +456,6 @@ async function setLayout({ fromSource, ...value }) {
 		return;
 	}
 	run(onFile({ op: 'setField', id: node.id, key: 'layout', value }), { merge: `layout:${node.id}` });
-}
-
-/** Applies stage drags and resizes; a source-absolute parent is adopted first. */
-function patch({ id, style }) {
-	const node = doc.value?.nodes[id];
-	if (!node?.parent) return;
-	const absolute = Object.fromEntries(['left', 'top', 'width', 'height'].map((key) => [key, parseFloat(style[key])]));
-	const before = node.placements?.absolute || measureNatural(id);
-	// A resize, unlike a move, fixes the size, so the code export writes it too.
-	absolute.sized = Boolean(before?.sized || (before && (Math.round(before.width) !== Math.round(absolute.width) || Math.round(before.height) !== Math.round(absolute.height))));
-	run([...adoptOperations(node.parent), onFile({ op: 'setField', id, key: 'placements', value: { ...(node.placements || {}), absolute } })], { merge: `move:${id}` });
-}
-
-/** A layer's rendered size before it is placed by the designer. */
-function measureNatural(id) {
-	const element = activeViewport()?.element(id);
-	return element ? { width: element.offsetWidth, height: element.offsetHeight } : null;
-}
-
-/** Numeric geometry edits for absolute children. */
-function setGeometry(key, value) {
-	if (value === '' || !Number.isFinite(Number(value)) || !active.value || !parent.value) return;
-	const adopt = adoptOperations(parent.value.id);
-	const current = active.value.placements?.absolute || geometry.value;
-	const sized = ['width', 'height'].includes(key);
-	const next = { ...current, [key]: sized ? Math.max(16, Number(value)) : Number(value), sized: Boolean(current.sized || sized) };
-	run([...adopt, onFile({ op: 'setField', id: active.value.id, key: 'placements', value: { ...(active.value.placements || {}), absolute: next } })], { merge: `geometry:${active.value.id}:${key}` });
-}
-
-/** Aligns the selection inside its frame. */
-function align(alignment) {
-	const view = activeViewport();
-	const host = parent.value;
-	const element = view?.element(host?.id);
-	const child = view?.element(selected.value);
-	if (!element || !child) return;
-	const rect = alignFrameChild(measureFrameChild(child, element), { width: element.clientWidth, height: element.clientHeight }, alignment, host.layout || detected.value[host.id]);
-	run([...adoptOperations(host.id), onFile({ op: 'setField', id: active.value.id, key: 'placements', value: { ...(active.value.placements || {}), absolute: { ...rect, sized: Boolean(active.value.placements?.absolute?.sized) } } })]);
 }
 
 /** Replaces the selection's inline style; an empty style is removed. */
@@ -594,7 +510,7 @@ function setSizing(key, mode) {
 	const style = clearAxis({ ...(active.value.style || {}) }, key);
 	const main = mainAxis(key);
 	if (mode === 'fixed') {
-		style[key] = `${Math.round(measureSelection()[key] || 0)}px`;
+		style[key] = `${Math.round(placement.measure(selected.value)?.[key] || 0)}px`;
 		if (main) style.flex = 'none';
 	} else if (mode === 'hug') {
 		if (main) style.flex = 'none';
@@ -649,10 +565,12 @@ function insertComponent(entry) {
 }
 
 /** Removes the selection; the file root stays so every artboard has something to render. */
+/** Deletes the selected layers; the root stays. */
 function remove() {
-	if (!parent.value) return;
-	const host = parent.value.id;
-	run(onFile({ op: 'remove', id: selected.value }));
+	const nodes = selectedNodes.value.filter((node) => node.parent);
+	if (!nodes.length) return;
+	const host = placement.sharedParent.value?.id || nodes[nodes.length - 1].parent;
+	run(nodes.map((node) => onFile({ op: 'remove', id: node.id })));
 	selected.value = host;
 }
 
@@ -1008,6 +926,7 @@ function onKeydown(event) {
 	if (event.shiftKey && event.code === 'Digit1') { event.preventDefault(); fitAll(); return; }
 	if (event.shiftKey && event.code === 'Digit0') { event.preventDefault(); zoomBy(1 / zoom.value); return; }
 	if ((event.key === 'Delete' || event.key === 'Backspace') && selected.value) { event.preventDefault(); remove(); return; }
+	if (event.key === 'Escape' && selectedIds.value.length > 1) { event.preventDefault(); selection.value = [selected.value]; return; }
 	if (event.key === 'Escape' && parent.value) { event.preventDefault(); selected.value = parent.value.id; }
 }
 
@@ -1164,6 +1083,8 @@ defineExpose({
 										:spacing-snapping="snapping"
 										class="bg-canvas text-canvas-fg"
 										:style="{ minHeight: canvasMode === 'page' ? '100vh' : `${board.height}px` }"
+										:selection="board.fileId === activeFile?.id ? selectedIds : []"
+										@update:selection="selection = $event"
 										@update:model-value="selectFromArtboard(board, $event)"
 										@style-change="patch"
 										@reorder="reorderFromStage"
@@ -1236,7 +1157,7 @@ defineExpose({
 						</section>
 						<section>
 							<h2 class="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">Layers · {{ activeFile?.name }}</h2>
-							<DomDesignerLayers v-model="selected" :items="layers" @reorder="moveLayer" />
+							<DomDesignerLayers v-model="selected" v-model:values="selection" :items="layers" @reorder="moveLayer" />
 						</section>
 					</div>
 					<div v-else-if="leftTab === 'insert'" class="min-h-0 flex-1 space-y-4 overflow-auto p-3">
@@ -1283,7 +1204,26 @@ defineExpose({
 					</div>
 				</aside>
 				<aside class="min-h-0 flex-1 overflow-auto text-xs lg:order-3 lg:border-l" :class="sheetTab !== 'inspect' && 'max-lg:hidden'">
-					<template v-if="active && activeType">
+					<template v-if="selectedNodes.length > 1">
+						<header class="flex items-start justify-between gap-2 border-b border-border px-4 py-3">
+							<div class="min-w-0">
+								<p class="truncate text-[11px] text-muted-fg">Selection</p>
+								<h2 class="mt-0.5 truncate text-sm font-semibold">{{ selectedNodes.length }} layers</h2>
+								<p class="mt-0.5 truncate text-[11px] text-muted-fg">{{ placement.sharedParent.value ? `Inside ${placement.sharedParent.value.label || tagOf(placement.sharedParent.value)} · ${placement.modeOf(placement.sharedParent.value.id)}` : 'In different frames' }}</p>
+							</div>
+							<div class="-mr-1.5 flex shrink-0 items-center" role="toolbar" aria-label="Selection actions">
+								<button type="button" class="grid size-7 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-destructive" aria-label="Delete layers" v-dom-tooltip="'Delete layers'" @click="remove()"><InspectorIcon name="trash" /></button>
+							</div>
+						</header>
+						<section class="space-y-2 border-b border-border px-4 py-3">
+							<h3 class="text-[11px] font-semibold">Align</h3>
+							<AlignTools target="selection" :distribute="selectedNodes.length > 2" :disabled="!canArrange" class="-ml-1.5" @align="align" @distribute="distribute" />
+							<p v-if="!canArrange" class="text-[11px] leading-4 text-muted-fg">Align and distribute place layers by X and Y, so they work on layers that share an absolute frame.</p>
+							<p v-else class="text-[11px] leading-4 text-muted-fg">Aligns to the edges of the selection. Distribute keeps the outer two layers and spaces the rest evenly.</p>
+						</section>
+						<p class="px-4 py-3 text-[11px] leading-4 text-muted-fg">Shift-click a layer on the canvas or in Layers to add or remove it. Drag or use the arrow keys to move them together.</p>
+					</template>
+					<template v-else-if="active && activeType">
 						<header class="flex items-start justify-between gap-2 border-b border-border px-4 py-3">
 							<div class="min-w-0">
 								<p class="truncate text-[11px] text-muted-fg">{{ activeType.adapter === 'vue' ? (activeType.placeholder ? 'Local Vue component' : `Vue component · ${activeType.label}`) : isFrame(active) ? 'Frame' : activeType.label }}</p>

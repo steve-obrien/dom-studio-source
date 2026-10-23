@@ -108,7 +108,7 @@ const sources = [
 					<li>Put the layer tree in the splitter’s start slot, the scrollable stage in its default slot and the selected-layer controls in its end slot. Bind startSize and endSize independently.</li>
 					<li>Use a fixed document size and scale the viewport separately. ResizeObserver recalculates “Fit” when a splitter moves. Convert style-change CSS values into numeric document coordinates before saving.</li>
 					<li>Make every change an operation (setProp, insert, remove, move) and run it through the core history. Continuous edits pass a merge key so a drag or a typed value is one undo step. Viewport zoom is not a document edit.</li>
-					<li>Bind <code>v-model:selection</code> on the stage for shift-click multi-select. alignRects and distributeRects in alignGeometry.js return new positions for the selection; DesignerRulers draws rulers around the scaled artwork.</li>
+					<li>Bind <code>v-model:selection</code> on the stage for shift-click multi-select. alignRects and distributeRects in layoutGeometry.js return new positions for the selection; DesignerRulers draws rulers around the scaled artwork.</li>
 					<li>Export from the model, including the serialized appearance values. Keep selection outlines, guides and editor attributes out of the output. Local uploads are embedded; linked photos remain external.</li>
 				</ol>
 				<CodeBlock :code="zoomExample" lang="vue" filename="Viewport pattern (inside your editor)" />

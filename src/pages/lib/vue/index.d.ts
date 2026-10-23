@@ -1856,6 +1856,10 @@ export interface DomTreeViewProps {
 	 */
 	guides?: "none" | "always" | "hover";
 	/**
+	 * Selected values for multiple selection. When bound, Shift-, Cmd- or Ctrl-click adds or removes a row and a plain click selects only that row. `modelValue` stays the most recently chosen row.
+	 */
+	values?: Array<unknown>;
+	/**
 	 * Selected row treatment. Subtle uses a soft tint and keeps the normal text colour.
 	 */
 	selection?: "solid" | "subtle";

@@ -1,6 +1,7 @@
 /* eslint-disable */
 // Declarations for `@getdom/studio/designer`. Keep in step with ./index.js.
 import type { ComputedRef, DefineComponent, Ref, ShallowRef } from 'vue';
+import type { DesignerFrameLayout } from '../vue/index';
 
 /** A node in an editor document: identity, type, props and children by id. */
 export interface DesignerNode {
@@ -143,7 +144,12 @@ export declare const DomMonacoCodeView: DefineComponent<{ modelValue?: string; h
 export interface EditorSession {
 	workspace: Ref<DesignerWorkspace>;
 	activeArtboardId: Ref<string>;
+	/** The primary selected layer, the one the inspector edits. */
 	selected: Ref<string>;
+	/** Every selected id when several are chosen. Setting `selected` outside it starts a new selection. */
+	selection: Ref<Array<string>>;
+	/** Every selected id, the primary one included. */
+	selectedIds: ComputedRef<Array<string>>;
 	historySize: Ref<{ undo: number; redo: number }>;
 	history: EditorHistory;
 	artboards: ComputedRef<Array<DesignerArtboard>>;
@@ -161,6 +167,48 @@ export interface EditorSession {
 	redo(): void;
 }
 export declare function useEditorSession(options: { workspace: DesignerWorkspace; onChange?: () => void; afterChange?: () => void; onError?: (message: string) => void }): EditorSession;
+
+/** A box in a frame's CSS pixels. */
+export type LayoutRect = { id?: string; left: number; top: number; width: number; height: number };
+export type LayoutAlignment = 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom';
+/**
+ * Where layers sit and how they move: detected frame layouts, the selection's
+ * box, stage drags, X/Y/W/H edits, and align and distribute for the selection.
+ */
+export interface LayoutGeometry {
+	/** Each frame's layout as the browser resolves it, by node id. */
+	detected: Ref<Record<string, DesignerFrameLayout>>;
+	/** Re-reads every frame's layout after the DOM settles. Call it when an artboard renders. */
+	refresh(): Promise<void>;
+	layoutOf(id: string): DesignerFrameLayout | null;
+	modeOf(id: string): 'flow' | 'flex' | 'grid' | 'absolute';
+	parentMode: ComputedRef<'flow' | 'flex' | 'grid' | 'absolute'>;
+	parentLayout: ComputedRef<DesignerFrameLayout | null>;
+	/** Selected layers, without any inside another selected layer. */
+	selectedNodes: ComputedRef<Array<DesignerNode>>;
+	/** The frame every selected layer shares, when they share one. */
+	sharedParent: ComputedRef<DesignerNode | null>;
+	/** Whether align and distribute can move the selection (layers sharing an absolute frame). */
+	canArrange: ComputedRef<boolean>;
+	/** A layer's rendered box in its parent frame. */
+	measure(id: string): LayoutRect | null;
+	/** The primary layer's box. */
+	geometry: ComputedRef<Partial<LayoutRect>>;
+	captureOperations(hostId: string, extra?: Record<string, unknown>): Array<DesignerOperation>;
+	adoptOperations(hostId: string): Array<DesignerOperation>;
+	/** Applies a stage `style-change` (drag, resize or nudge). */
+	patch(event: { id: string; style: Record<string, string> }): void;
+	setGeometry(key: 'left' | 'top' | 'width' | 'height', value: number | string): void;
+	/** One layer aligns within its frame's padding; several align to their own bounds. */
+	align(alignment: LayoutAlignment): void;
+	/** Spaces three or more layers evenly between the outer two. */
+	distribute(axis: 'horizontal' | 'vertical'): void;
+}
+export declare function useLayoutGeometry(options: { session: EditorSession; element: (id: string) => HTMLElement | null; isFrame?: (node: DesignerNode) => boolean }): LayoutGeometry;
+export declare function boundsOf(rects: Array<LayoutRect>): LayoutRect;
+export declare function alignRects<T extends LayoutRect>(rects: Array<T>, alignment: LayoutAlignment, bounds?: LayoutRect): Array<T>;
+export declare function distributeRects<T extends LayoutRect>(rects: Array<T>, axis: 'horizontal' | 'vertical'): Array<T>;
+export declare function measureFrameChild(element: Element, frame: Element): LayoutRect;
 
 /** Text marks for the Text panel's toggles. */
 export type TextMarks = { bold?: boolean; italic?: boolean; underline?: boolean; strike?: boolean };

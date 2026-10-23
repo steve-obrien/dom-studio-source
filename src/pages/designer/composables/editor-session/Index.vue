@@ -28,7 +28,9 @@ const options = [
 const returns = [
 	{ name: 'workspace', type: 'Ref<DesignerWorkspace>', description: 'Files and artboards. Change them only through run.' },
 	{ name: 'activeArtboardId', type: 'Ref<string>', description: 'The artboard being worked on; its file is the active file.' },
-	{ name: 'selected', type: 'Ref<string>', description: 'Id of the selected node. Bind it to a stage, the layers and the inspector.' },
+	{ name: 'selected', type: 'Ref<string>', description: 'Id of the selected node, the one the inspector edits. Bind it to a stage, the layers and the inspector.' },
+	{ name: 'selection', type: 'Ref<string[]>', description: 'Every selected id when several are chosen. Bind it as v-model:selection on the stage and v-model:values on the layers for Shift-click. Setting selected to a node outside it starts a new selection.' },
+	{ name: 'selectedIds', type: 'ComputedRef<string[]>', description: 'Every selected id, the primary one included, without ids that no longer exist.' },
 	{ name: 'artboards, activeArtboard', type: 'ComputedRef', description: 'All artboards, and the active one.' },
 	{ name: 'activeFile, doc', type: 'ComputedRef', description: 'The active file and its document: a flat map of nodes by id.' },
 	{ name: 'active, parent', type: 'ComputedRef', description: 'The selected node and its parent.' },

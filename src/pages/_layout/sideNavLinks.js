@@ -159,6 +159,7 @@ const designerComposableNavItems = [
 	{ to: '/designer/composables/editor-session', label: 'useEditorSession' },
 	{ to: '/designer/composables/code-sync', label: 'useCodeSync' },
 	{ to: '/designer/composables/inline-text', label: 'useInlineText' },
+	{ to: '/designer/composables/layout-geometry', label: 'useLayoutGeometry' },
 	{ to: '/designer/composables/rich-text', label: 'Rich text model' },
 ];
 

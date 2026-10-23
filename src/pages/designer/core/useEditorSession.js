@@ -1,10 +1,14 @@
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { createHistory } from './history.js';
 import { applyWorkspaceOperation } from '../canvas/canvasWorkspace.js';
 
 /**
  * The document a designer edits: the workspace of files and artboards, the
  * active artboard and file, the selection, and one history of operations.
+ *
+ * `selected` is the primary layer, the one the inspector edits. `selection`
+ * holds every selected id when several are chosen (Shift-click on the stage or
+ * in the layers); setting `selected` to a layer outside it starts over.
  *
  * Every part of an editor reads from and writes through the same session, so
  * the stage, the layers, the inspector and the code view always show one tree.
@@ -21,6 +25,9 @@ export function useEditorSession({ workspace: initial, onChange = () => {}, afte
 	const workspace = ref(initial);
 	const activeArtboardId = ref(workspace.value.artboards[0].id);
 	const selected = ref('');
+	const selection = ref([]);
+	// Choosing a layer some other way (layers, code, insert) replaces a multiple selection.
+	watch(selected, (id) => { if (!selection.value.includes(id)) selection.value = id ? [id] : []; });
 	const historySize = ref({ undo: 0, redo: 0 });
 
 	const history = createHistory({
@@ -36,6 +43,11 @@ export function useEditorSession({ workspace: initial, onChange = () => {}, afte
 	const activeFile = computed(() => fileById(activeArtboard.value?.fileId) || workspace.value.files[0]);
 	const doc = computed(() => activeFile.value?.doc || null);
 	const active = computed(() => doc.value?.nodes[selected.value] || null);
+	/** Every selected id, the primary one included. */
+	const selectedIds = computed(() => {
+		const ids = selection.value.filter((id) => doc.value?.nodes[id]);
+		return selected.value && !ids.includes(selected.value) ? [...ids, selected.value] : ids;
+	});
 	const parent = computed(() => (active.value?.parent ? doc.value.nodes[active.value.parent] : null));
 
 	function fileById(id) { return workspace.value.files.find((file) => file.id === id) || null; }
@@ -47,6 +59,7 @@ export function useEditorSession({ workspace: initial, onChange = () => {}, afte
 	function settle() {
 		if (!artboards.value.some((board) => board.id === activeArtboardId.value)) activeArtboardId.value = artboards.value[0]?.id;
 		if (selected.value && !doc.value?.nodes[selected.value]) selected.value = '';
+		if (selection.value.some((id) => !doc.value?.nodes[id])) selection.value = selection.value.filter((id) => doc.value?.nodes[id]);
 		afterChange();
 	}
 
@@ -65,5 +78,5 @@ export function useEditorSession({ workspace: initial, onChange = () => {}, afte
 	function undo() { history.undo(); settle(); }
 	function redo() { history.redo(); settle(); }
 
-	return { workspace, activeArtboardId, selected, historySize, history, artboards, activeArtboard, activeFile, doc, active, parent, fileById, onFile, run, undo, redo };
+	return { workspace, activeArtboardId, selected, selection, selectedIds, historySize, history, artboards, activeArtboard, activeFile, doc, active, parent, fileById, onFile, run, undo, redo };
 }

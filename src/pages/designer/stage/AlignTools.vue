@@ -3,7 +3,7 @@ import { vDomTooltip } from '../../components/tooltip/vDomTooltip.js';
 
 /**
  * Align and distribute buttons. The editor applies the result with
- * alignRects and distributeRects from alignGeometry.js.
+ * alignRects and distributeRects from layoutGeometry.js.
  */
 defineProps({
 	disabled: { type: Boolean, default: false },

@@ -11,7 +11,7 @@ import { applyOperation } from '../core/operations.js';
 import { treeFromType } from '../core/typeRegistry.js';
 import AlignTools from '../stage/AlignTools.vue';
 import DesignerRulers from '../stage/DesignerRulers.vue';
-import { alignRects, boundsOf, distributeRects } from '../stage/alignGeometry.js';
+import { alignRects, boundsOf, distributeRects } from '../stage/layoutGeometry.js';
 import { exportPosterHtml, posterHtmlLines, posterLayerStyle, safePosterImage } from './posterModel.js';
 import PosterThumbnail from './PosterThumbnail.vue';
 import { formatOperations, formatSource, resizePoster } from './posterResize.js';

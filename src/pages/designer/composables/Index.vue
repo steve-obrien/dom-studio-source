@@ -10,6 +10,7 @@ const parts = [
 	{ to: '/designer/composables/editor-session', name: 'useEditorSession', description: 'The document: files and artboards, the selection, and one undo history. Every other part reads and writes through it.' },
 	{ to: '/designer/composables/code-sync', name: 'useCodeSync + DomCodePanel', description: 'The Vue source of the same tree, edited both ways: typing in the code updates the design, and selections follow each other.' },
 	{ to: '/designer/composables/inline-text', name: 'useInlineText', description: 'Double-click text on the stage to edit it in place, with bold, italic, underline and strike, and a live preview in the code.' },
+	{ to: '/designer/composables/layout-geometry', name: 'useLayoutGeometry', description: 'Where layers sit and how they move: drags, X/Y/W/H fields, and align and distribute for a multiple selection.' },
 	{ to: '/designer/composables/rich-text', name: 'Rich text model', description: 'The functions both of those edit text with: marks and edits on a flat model of a paragraph, turned into document operations.' },
 ];
 </script>
