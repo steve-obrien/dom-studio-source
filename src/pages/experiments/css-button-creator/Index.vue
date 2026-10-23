@@ -17,6 +17,8 @@ import {
 	enabledShadows,
 	fillListToCss,
 	shadowListToCss,
+	typographyExtraCss,
+	typographyExtraStyle,
 } from './lib/styleModel.js';
 
 const activeState = ref('base');
@@ -206,6 +208,7 @@ function buttonStyle(button, shadowList) {
 		style.fontSize = `${button.typography.fontSize}px`;
 		style.fontWeight = button.typography.fontWeight;
 		style.color = button.typography.textColor;
+		Object.assign(style, typographyExtraStyle(button.typography));
 	}
 	if (button.layout.enabled) {
 		style.padding = `${button.layout.paddingY}px ${button.layout.paddingX}px`;
@@ -325,6 +328,7 @@ function cssRulesFor(state) {
 		rules.push(`font-size: ${button.typography.fontSize}px;`);
 		rules.push(`font-weight: ${button.typography.fontWeight};`);
 		rules.push(`color: ${button.typography.textColor};`);
+		for (const [property, value] of typographyExtraCss(button.typography)) rules.push(`${property}: ${value};`);
 	}
 	rules.push(`box-shadow: ${shadowListToCss(shadows[state])};`);
 	return rules;
@@ -356,6 +360,7 @@ function tailwindRulesFor(state, prefix = '') {
 		rules.push(`${prefix}text-[${button.typography.fontSize}px]`);
 		rules.push(`${prefix}font-[${button.typography.fontWeight}]`);
 		rules.push(`${prefix}text-[${button.typography.textColor}]`);
+		for (const [property, value] of typographyExtraCss(button.typography)) rules.push(`${prefix}[${property}:${tailwindValue(value)}]`);
 	}
 	rules.push(`${prefix}shadow-[${tailwindValue(shadowListToCss(shadows[state]))}]`);
 	return rules;
