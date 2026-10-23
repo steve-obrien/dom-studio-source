@@ -10,9 +10,9 @@ import LayerAppearance from './examples/LayerAppearance.vue';
 import appearanceSource from './examples/LayerAppearance.vue?raw';
 import FlowDesigner from './examples/FlowDesigner.vue';
 import flowSource from './examples/FlowDesigner.vue?raw';
-import posterSource from '../poster/PosterStudio.vue?raw';
+import studioSource from '../social/SocialStudio.vue?raw';
+import socialDocumentSource from '../social/socialDocument.js?raw';
 import posterModel from '../poster/posterModel.js?raw';
-import posterTypes from '../poster/posterTypes.js?raw';
 import socialSource from '../social-card/Index.vue?raw';
 import fullFlowSource from '../flowchart/Index.vue?raw';
 
@@ -61,9 +61,9 @@ const zoomExample = `<!-- Keep document coordinates separate from viewport scale
 	</div>
 </div>`;
 const sources = [
-	{ name: 'Poster studio', filename: 'src/pages/designer/poster/PosterStudio.vue', code: posterSource },
-	{ name: 'Poster types and document conversion', filename: 'src/pages/designer/poster/posterTypes.js', code: posterTypes },
-	{ name: 'Poster model and HTML export', filename: 'src/pages/designer/poster/posterModel.js', code: posterModel },
+	{ name: 'Social post studio (poster and social card)', filename: 'src/pages/designer/social/SocialStudio.vue', code: studioSource },
+	{ name: 'Posts as designer files: formats, pins and export', filename: 'src/pages/designer/social/socialDocument.js', code: socialDocumentSource },
+	{ name: 'Starting designs', filename: 'src/pages/designer/poster/posterModel.js', code: posterModel },
 	{ name: 'Social card preset', filename: 'src/pages/designer/social-card/Index.vue', code: socialSource },
 	{ name: 'Flowchart editor', filename: 'src/pages/designer/flowchart/Index.vue', code: fullFlowSource },
 ];
@@ -101,22 +101,21 @@ const sources = [
 				<Example :source="appearanceSource" filename="LayerAppearance.vue" title="Compose the appearance controls" description="Border, shadows, backgrounds and backdrop effects applied to one HTML element."><LayerAppearance /></Example>
 				<p class="text-sm leading-7 text-muted-fg">Background fill order follows CSS: the first image is on top. Backdrop effects need translucent content to be visible. Box shadows and borders do not require a special layer class. Create fill records on the client, or assign deterministic fill IDs when server rendering.</p>
 			</DocSection>
-			<DocSection id="poster" title="3. Assemble the poster editor">
+			<DocSection id="poster" title="3. Build a poster or post editor on DomDesigner">
 				<RouterLink to="/designer/poster" class="text-primary underline">Open poster demo →</RouterLink>
 				<ol class="my-4 list-decimal space-y-3 pl-5 text-sm leading-7 text-muted-fg">
-					<li>Start with the HTML editor above. The poster is an editor document: a <code>poster:frame</code> root with text, image and shape layers whose x, y, width and height are document pixels. posterTypes.js declares each layer type’s inspector fields and converts the document to the poster model; posterModel.js supplies factories and style serialization.</li>
-					<li>Put the layer tree in the splitter’s start slot, the scrollable stage in its default slot and the selected-layer controls in its end slot. Bind startSize and endSize independently.</li>
-					<li>Use a fixed document size and scale the viewport separately. ResizeObserver recalculates “Fit” when a splitter moves. Convert style-change CSS values into numeric document coordinates before saving.</li>
-					<li>Make every change an operation (setProp, insert, remove, move) and run it through the core history. Continuous edits pass a merge key so a drag or a typed value is one undo step. Viewport zoom is not a document edit.</li>
-					<li>Bind <code>v-model:selection</code> on the stage for shift-click multi-select. alignRects and distributeRects in layoutGeometry.js return new positions for the selection; DesignerRulers draws rulers around the scaled artwork.</li>
-					<li>Export from the model, including the serialized appearance values. Keep selection outlines, guides and editor attributes out of the output. Local uploads are embedded; linked photos remain external.</li>
+					<li>Start from DomDesigner rather than a stage of your own. A poster is an ordinary HTML file: a root <code>&lt;article&gt;</code> with a fixed width and height, and layers placed absolutely by their inline style. The canvas, code view, text editing, multi-select with align and distribute, lock and hide, rulers and the image controls are the designer’s own.</li>
+					<li>Pass <code>createWorkspace</code> to open your starting design as a file with one artboard at the poster’s size. socialDocument.js turns a poster model into that file.</li>
+					<li>Add what is particular to your product around it. Use the <code>start</code> and <code>end</code> toolbar slots for formats and export. Use the <code>inspector</code> slot for controls on the selected layer, such as each layer’s resize pins.</li>
+					<li>Change the design only through the designer’s <code>run</code>, with document operations, so a format switch is one undo step and the code follows.</li>
+					<li>Export from the document, not the live canvas, so selection outlines and editor attributes stay out. Local uploads are embedded as data URLs unless you pass <code>uploadImage</code>; linked photos remain external.</li>
 				</ol>
+				<p class="mt-4 text-sm leading-7 text-muted-fg">To build your own stage instead, keep document coordinates separate from the viewport scale:</p>
 				<CodeBlock :code="zoomExample" lang="vue" filename="Viewport pattern (inside your editor)" />
-				<p class="mt-4 text-sm leading-7 text-muted-fg">Cmd/Ctrl + wheel uses a non-passive listener on the workspace, changes the zoom and compensates scroll position around the pointer. It leaves normal scrolling alone. See wheelZoom, mount and cleanup in the full source below for the complete implementation, including listener cleanup.</p>
 			</DocSection>
-			<DocSection id="social-card" title="4. Add a source view to a social card">
+			<DocSection id="social-card" title="4. Start from another design">
 				<RouterLink to="/designer/social-card" class="text-primary underline">Open social-card demo →</RouterLink>
-				<p class="mt-4 text-sm leading-7 text-muted-fg">The social card is the poster studio with a different starting document and link-preview formats, with its linked HTML open. posterHtmlLines derives one source line per layer and attaches the layer ID to it. Clicking a line selects the layer; selecting on the stage highlights the line. The source view is a projection of the document, not an editable HTML parser. For two-way editing, where changing the code updates the design, see the code view in DomDesigner above.</p>
+				<p class="mt-4 text-sm leading-7 text-muted-fg">The poster, the social card and the Social post studio are one component, SocialStudio, with a different starting design, title and storage key. Each layer’s pins (<code>data-pin-x</code>, <code>data-pin-y</code>) decide how it follows a change of format, and the Formats strip previews every size live. The code view is two-way: edit the HTML and the design follows.</p>
 			</DocSection>
 			<DocSection id="flowchart" title="5. Assemble a flowchart editor">
 				<RouterLink to="/designer/flowchart" class="text-primary underline">Open flowchart demo →</RouterLink>

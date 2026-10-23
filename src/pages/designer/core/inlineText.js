@@ -379,50 +379,12 @@ export function beginInlineEdit({ element, doc, id, point, getDoc = () => doc, o
 }
 
 /**
- * Makes an element whose text is one plain string editable in place, such as
- * a poster text layer. Typing, the caret and Enter or Escape to finish work as
- * in `beginInlineEdit`; Shift+Enter starts a new line. There are no marks:
- * the whole string is read back with `text()`.
- *
- * @param {{ element: HTMLElement, point?: { x: number, y: number }, onChange?: () => void, onEnd?: () => void }} options
- * @returns {object} Session: `text()` and `stop()`.
+ * The editing session: the element becomes `contenteditable`, takes focus with
+ * the caret where the user double-clicked, and ends on Enter or Escape;
+ * Shift+Enter breaks the line. The `rich` handlers take over keys, the
+ * browser's edits (`beforeinput`), cut, paste and line breaks.
  */
-export function beginPlainTextEdit({ element, point, onChange = () => {}, onEnd = () => {} }) {
-	const { stop } = makeEditable({ element, point, onChange, onEnd, multiline: true });
-	return {
-		element,
-		/** The edited text, with line breaks as `\n`. */
-		text() { return plainText(element).replace(/\u00a0/g, ' ').replace(/\n$/, ''); },
-		stop,
-	};
-}
-
-/** Text with `<br>` and block elements the browser may add read as line breaks. */
-function plainText(el) {
-	let text = '';
-	for (const child of el.childNodes) {
-		if (child.nodeType === 3) text += child.data;
-		else if (child.nodeType !== 1) continue;
-		else if (child.tagName === 'BR') text += '\n';
-		else {
-			const block = /^(DIV|P)$/.test(child.tagName);
-			if (block && text && !text.endsWith('\n')) text += '\n';
-			text += plainText(child);
-		}
-	}
-	return text;
-}
-
-/**
- * The editing session both kinds of edit share: the element becomes
- * `contenteditable`, takes focus with the caret where the user double-clicked,
- * and ends on Enter or Escape; Shift+Enter breaks the line. Pasted content
- * arrives as plain text, on one line unless the text is `multiline`.
- *
- * Rich text passes `rich` handlers, which take over keys, the browser's
- * edits (`beforeinput`), cut, paste and line breaks.
- */
-function makeEditable({ element, point, onChange, onEnd, multiline = false, rich = null }) {
+function makeEditable({ element, point, onChange, onEnd, rich }) {
 	const owner = element.ownerDocument;
 	const view = owner.defaultView;
 	let saved = null;
@@ -443,22 +405,17 @@ function makeEditable({ element, point, onChange, onEnd, multiline = false, rich
 		onChange();
 	}
 	function onKeydown(event) {
-		if (rich?.keydown(event)) return;
+		if (rich.keydown(event)) return;
 		if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); event.stopPropagation(); onEnd(); }
-		else if (event.key === 'Enter') { event.preventDefault(); if (rich) rich.lineBreak(); else owner.execCommand('insertLineBreak'); }
+		else if (event.key === 'Enter') { event.preventDefault(); rich.lineBreak(); }
 		else if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); onEnd(); }
 	}
-	/** Pasted and dropped content arrives as plain text, so no foreign markup reaches the file. */
-	function onPaste(event) {
-		if (rich) { rich.paste(event); return; }
-		event.preventDefault();
-		const text = event.clipboardData?.getData('text/plain') || '';
-		owner.execCommand('insertText', false, multiline ? text.replace(/\r\n?/g, '\n') : text.replace(/\s+/g, ' '));
-	}
+	/** Pasted content arrives as plain text, and drops are refused, so no foreign markup reaches the file. */
+	function onPaste(event) { rich.paste(event); }
 	function onDrop(event) { event.preventDefault(); }
-	function onDragstart(event) { if (rich) event.preventDefault(); }
-	function onBeforeInput(event) { rich?.beforeinput(event); }
-	function onCut(event) { rich?.cut(event); }
+	function onDragstart(event) { event.preventDefault(); }
+	function onBeforeInput(event) { rich.beforeinput(event); }
+	function onCut(event) { rich.cut(event); }
 	const listeners = [['keydown', onKeydown], ['paste', onPaste], ['drop', onDrop], ['dragstart', onDragstart], ['beforeinput', onBeforeInput], ['cut', onCut], ['input', onChange]];
 	owner.addEventListener('selectionchange', onSelection);
 	for (const [name, listener] of listeners) element.addEventListener(name, listener);
