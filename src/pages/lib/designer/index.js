@@ -11,6 +11,14 @@ export { default as DomCodeView } from '../../designer/core/CodeView.vue';
 // Optional Monaco code view; pass `load` to import Monaco from your own install.
 export { default as DomMonacoCodeView } from '../../designer/core/MonacoCodeView.vue';
 
+// Building blocks: one editor session (documents, operations, history,
+// selection), two-way code sync and its panel, and in-place text editing.
+// DomDesigner is built from these; build your own editors from them too.
+export { useEditorSession } from '../../designer/core/useEditorSession.js';
+export { useCodeSync } from '../../designer/core/useCodeSync.js';
+export { default as DomCodePanel } from '../../designer/core/CodePanel.vue';
+export { useInlineText } from '../../designer/core/useInlineText.js';
+
 // Components people can insert.
 export { createComponentCatalog, catalogFromExports } from '../../designer/core/componentCatalog.js';
 export { schemaForComponent } from '../../designer/core/componentSchema.js';
