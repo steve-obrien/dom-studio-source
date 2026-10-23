@@ -74,7 +74,6 @@ const products = [
 		visual: HomeDesignerVisual,
 		live: () => import('./_home/live/HomeDesignerLive.vue'),
 		liveMinWidth: 1024,
-		wide: true,
 		title: 'Design the real website. Keep the real code.',
 		text: 'A Figma-style canvas that renders your actual Vue and HTML. Select something on the page and the source highlights; edit either side and the other follows.',
 		features: ['Artboards at several screen widths, with live components', 'Two-way code view: canvas and source stay in sync', 'Saves by patching your file, keeping its formatting', 'Inline text editing, layers, layout and style panels', 'Social post and poster studios on the same core', 'Embed it in your own product as DomDesigner'],
@@ -88,7 +87,6 @@ const products = [
 		visual: HomeSocialVisual,
 		live: () => import('./_home/live/HomeSocialLive.vue'),
 		liveMinWidth: 1024,
-		wide: true,
 		title: 'One design. Every platform.',
 		text: 'Canva-style post editing inside your own product. Edit layers on a real HTML canvas and every platform size updates underneath, because each layer pins to an edge or the centre.',
 		features: ['Instagram post and story, LinkedIn, X, YouTube and link previews', 'Pin layers so designs adapt to each format', 'Industry templates for retail, food, fitness, property and more', 'Generate new templates with AI', 'Save designs as new templates, never overwriting', 'Built on the same editor core as the designer'],
@@ -178,7 +176,7 @@ function withNavigation(product, index) {
 				</nav>
 			</section>
 
-			<HomeProductSection v-for="product in products" :id="product.id" :key="product.id" :number="product.number" :product="product.product" :title="product.title" :text="product.text" :features="product.features" :to="product.to" :link="product.link" :more="product.more" :tinted="product.tinted" :wide="product.wide">
+			<HomeProductSection v-for="product in products" :id="product.id" :key="product.id" :number="product.number" :product="product.product" :title="product.title" :text="product.text" :features="product.features" :to="product.to" :link="product.link" :more="product.more" :tinted="product.tinted">
 				<HomeLiveDemo v-if="product.live" :load="product.live" :min-width="product.liveMinWidth">
 					<component :is="product.visual" />
 				</HomeLiveDemo>

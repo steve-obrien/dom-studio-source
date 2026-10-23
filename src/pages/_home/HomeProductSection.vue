@@ -12,22 +12,20 @@ defineProps({
 	link: { type: String, required: true },
 	more: { type: Array, default: () => [] },
 	tinted: { type: Boolean, default: false },
-	/** Puts the demo below the copy at full width, for demos that need the room. */
-	wide: { type: Boolean, default: false },
 });
 </script>
 
 <template>
 	<section :id="id" class="scroll-mt-20 border-t border-border" :class="tinted && 'bg-secondary/20'">
-		<div class="mx-auto grid max-w-[1320px] gap-10 px-5 py-16 sm:px-8 lg:gap-14 lg:py-24" :class="!wide && 'lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]'">
-			<div class="min-w-0" :class="wide ? 'grid gap-x-14 lg:grid-cols-2' : 'lg:sticky lg:top-24 lg:self-start'">
+		<div class="mx-auto grid max-w-[1320px] gap-10 px-5 py-16 sm:px-8 lg:gap-14 lg:py-24">
+			<div class="grid min-w-0 gap-x-14 lg:grid-cols-2">
 				<div>
 				<p class="font-mono text-xs uppercase tracking-[0.18em] text-muted-fg">{{ number }} / {{ product }}</p>
 				<h2 class="mt-4 text-3xl font-semibold leading-tight tracking-[-0.04em] sm:text-[2.6rem]">{{ title }}</h2>
 				<p class="mt-4 max-w-md text-base leading-7 text-muted-fg">{{ text }}</p>
 				</div>
-				<div :class="wide && 'lg:pt-8'">
-				<ul class="mt-6 space-y-2.5 text-sm" :class="wide && 'sm:columns-2 sm:gap-8 lg:mt-0 [&>li]:mb-2.5 [&>li]:break-inside-avoid'">
+				<div class="lg:pt-8">
+				<ul class="mt-6 space-y-2.5 text-sm sm:columns-2 sm:gap-8 lg:mt-0 [&>li]:mb-2.5 [&>li]:break-inside-avoid">
 					<li v-for="feature in features" :key="feature" class="flex gap-3">
 						<span class="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full bg-success/15 text-[0.6rem] text-success" aria-hidden="true">✓</span>
 						<span>{{ feature }}</span>
