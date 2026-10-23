@@ -1,11 +1,9 @@
 import { computed, nextTick, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 import { isExpr } from './editorDocument.js';
-import { inlineTags, runOffset, sourceOffset } from './inlineText.js';
+import { runOffset, sourceOffset } from './inlineText.js';
+import { flatten, markOperations, markTags, runMarks, runStart, textHost } from './richText.js';
 import { exportMappedVue, importVue } from './vueAdapter.js';
 import { applySource, matchNodes, nodeAtLine } from './sourceSync.js';
-
-/** The elements each Text panel mark is written as; the first is used for new marks. */
-const markTags = { bold: ['strong', 'b'], italic: ['em', 'i'], underline: ['u'], strike: ['s', 'del', 'strike'] };
 
 /**
  * Two-way sync between the editor's document and its Vue source.
@@ -28,12 +26,10 @@ const markTags = { bold: ['strong', 'b'], italic: ['em', 'i'], underline: ['u'],
  * @param {ReturnType<import('./useEditorSession.js').useEditorSession>} options.session Editor session.
  * @param {ReturnType<import('./useInlineText.js').useInlineText>} [options.inline] In-place text editing, previewed in the code while typed.
  * @param {(tag: string) => boolean} [options.isStudioComponent] Tags that get an import line in new files.
- * @param {(node: object) => string} options.tagOf A node's HTML tag or component name.
  * @param {(id: string) => Element|null} options.element The rendered element of a node in the active artboard.
  * @param {import('vue').Ref<boolean>} [options.open] Whether the code is shown; closing it drops a typed draft.
- * @param {(message: string) => void} [options.notify] Says why a mark cannot be applied.
  */
-export function useCodeSync({ session, inline = null, isStudioComponent = () => false, tagOf, element, open = ref(true), notify = () => {} }) {
+export function useCodeSync({ session, inline = null, isStudioComponent = () => false, element, open = ref(true) }) {
 	const { activeFile, doc, selected, history, run } = session;
 	const editing = inline?.editing || shallowRef(null);
 	const editState = inline?.editState || ref({ anchor: null, focus: null, marks: null });
@@ -180,79 +176,57 @@ export function useCodeSync({ session, inline = null, isStudioComponent = () => 
 		return runs.length ? runs : null;
 	});
 
-	/** The inline elements a run sits in, innermost first, up to its paragraph or other block. */
-	function inlineAncestors(id) {
-		const nodes = shownDoc.value.nodes;
-		const list = [];
-		for (let node = nodes[nodes[id]?.parent]; node && inlineTags.has(tagOf(node)); node = nodes[node.parent]) list.push(node);
-		return list;
-	}
-
 	/** Which marks all of the code's selected text has, for the Text panel's toggles; null when no text is selected there. */
 	const marks = computed(() => {
 		const runs = markRuns.value;
 		if (!runs) return null;
-		return Object.fromEntries(Object.entries(markTags).map(([mark, tags]) => [mark, runs.every((item) => inlineAncestors(item.id).some((node) => tags.includes(tagOf(node))))]));
+		const each = runs.map((item) => runMarks(shownDoc.value, item.id));
+		return Object.fromEntries(Object.keys(markTags).map((mark) => [mark, each.every((found) => found[mark])]));
 	});
 
-	/** Whether a stretch of markup only opens and closes inline elements, and closes each one it opens. */
-	function balancedInline(markup) {
-		const stack = [];
-		for (const [, closing, tag, selfClosing] of markup.matchAll(/<(\/?)([a-zA-Z][\w-]*)[^>]*?(\/?)>/g)) {
-			const name = tag.toLowerCase();
-			if (!inlineTags.has(name)) return false;
-			if (selfClosing || name === 'br') continue;
-			if (!closing) stack.push(name);
-			else if (stack.pop() !== name) return false;
-		}
-		return !stack.length;
-	}
-
 	/**
-	 * Bold, italic, underline or strike on the text selected in the code, written
-	 * into the code as the canvas would: the selection is wrapped in `<strong>`
-	 * and the like, or taken out of the element that gives it the mark. The code
-	 * stays the master: the edit is to its text, then parsed like typing.
+	 * Bold, italic, underline or strike on the text selected in the code, made
+	 * the same way as on the canvas (see richText.js): the marked text's
+	 * elements change in the document and the code is exported again, with
+	 * the selection kept on the same text.
 	 */
 	function mark(name) {
 		const runs = markRuns.value;
-		const tags = markTags[name];
-		if (!runs || !tags) return;
-		const value = text.value;
-		const known = offsets.value;
+		if (!runs || !markTags[name]) return;
+		const value = mapped.value.source;
 		const range = markRange.value;
-		// Only text is marked: the selection is trimmed to the runs it touches.
-		let start = Math.max(range.start, runs[0].start);
-		let end = Math.min(range.end, runs.at(-1).end);
-		let next;
-		if (!marks.value[name]) {
-			if (!balancedInline(value.slice(start, end))) { notify('Select text inside one paragraph or heading to mark it.'); return; }
-			const openTag = `<${tags[0]}>`;
-			next = `${value.slice(0, start)}${openTag}${value.slice(start, end)}</${tags[0]}>${value.slice(end)}`;
-			start += openTag.length;
-			end += openTag.length;
-		} else {
-			const marked = inlineAncestors(runs[0].id).find((node) => tags.includes(tagOf(node)));
-			if (!marked || !runs.every((item) => inlineAncestors(item.id).includes(marked)) || !known[marked.id]) { notify('Select text inside one marked element to take its mark off.'); return; }
-			const [elementStart, elementEnd] = known[marked.id];
-			const contentStart = known[marked.children[0]]?.[0] ?? value.indexOf('>', elementStart) + 1;
-			const contentEnd = known[marked.children.at(-1)]?.[1] ?? value.lastIndexOf('<', elementEnd);
-			start = Math.max(start, contentStart);
-			end = Math.min(end, contentEnd);
-			const openTag = value.slice(elementStart, contentStart);
-			const closeTag = value.slice(contentEnd, elementEnd);
-			// Text either side of the selection keeps the mark in an element of its own.
-			const before = start > contentStart ? `${openTag}${value.slice(contentStart, start)}${closeTag}` : '';
-			const after = end < contentEnd ? `${openTag}${value.slice(end, contentEnd)}${closeTag}` : '';
-			next = `${value.slice(0, elementStart)}${before}${value.slice(start, end)}${after}${value.slice(elementEnd)}`;
-			const shift = elementStart + before.length - start;
-			start += shift;
-			end += shift;
+		const current = doc.value;
+		const on = !marks.value[name];
+		// Each text element the selection touches is marked from its first selected letter to its last.
+		const hosts = new Map();
+		for (const item of runs) {
+			const host = textHost(current, item.id);
+			const entry = hosts.get(host) || { pieces: flatten(current, host), start: Infinity, end: -Infinity };
+			const at = runStart(entry.pieces, item.id);
+			if (!host || at < 0) continue;
+			const runText = String(current.nodes[item.id].props.value ?? '');
+			entry.start = Math.min(entry.start, at + runOffset(value, [item.start, item.end], runText, Math.max(range.start, item.start)));
+			entry.end = Math.max(entry.end, at + runOffset(value, [item.start, item.end], runText, Math.min(range.end, item.end)));
+			hosts.set(host, entry);
 		}
-		if (draft.value !== null) draft.value = next;
+		const operations = [];
+		let first = null;
+		let last = null;
+		for (const [host, { start, end }] of hosts) {
+			if (start >= end) continue;
+			const result = markOperations(current, host, start, end, name, { document, on });
+			operations.push(...result.operations);
+			first ||= result.start;
+			last = result.end || last;
+		}
+		if (!operations.length) return;
+		draft.value = null;
 		history.seal();
-		applyText(next);
+		run(operations.map((operation) => ({ file: activeFile.value.id, ...operation })));
 		history.seal();
+		const start = pointInSource(first);
+		const end = pointInSource(last);
+		if (start === undefined || end === undefined) { markRange.value = null; return; }
 		markRange.value = { start, end, source: text.value };
 		selection.value = selection.value && { start, end };
 		nextTick(() => view.value?.select?.({ start, end }));

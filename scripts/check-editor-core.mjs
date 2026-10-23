@@ -584,3 +584,30 @@ test('text run offsets map between a run and its source, through entities and fo
 	assert.equal(source.slice(at(6), at(shown.length)), 'Jerry   run');
 	for (let offset = 0; offset <= value.length; offset += 1) assert.equal(runOffset(source, offsets[runId], value, sourceOffset(source, offsets[runId], value, offset)), offset);
 });
+
+test('rich text: marks and edits on the flat model', async () => {
+	const { flatten, marksAt, replaceRange, toggleMark } = await import('../src/pages/designer/core/richText.js');
+	const { doc } = importVue('<template><p>Some text <strong>bold one</strong> more text <strong>bold two</strong> final.</p></template>');
+	const host = Object.values(doc.nodes).find((node) => node.type === 'html:p').id;
+	const pieces = flatten(doc, host);
+	const text = pieces.map((piece) => piece.text).join('');
+	const show = (list) => list.map((piece) => `${piece.stack.map((entry) => `${entry.tag}>`).join('')}${piece.text}`).join('|');
+	const two = text.indexOf('bold two');
+	assert.equal(marksAt(pieces, two, two + 8).bold, true);
+	// Taking bold off one bold run leaves the other alone.
+	assert.equal(show(toggleMark(pieces, two, two + 8, 'bold')), 'Some text |strong>bold one| more text |bold two| final.');
+	// Taking it off the middle of a run splits the run's element around it.
+	const middle = text.indexOf('ld t');
+	assert.equal(show(toggleMark(pieces, middle, middle + 4, 'bold')), 'Some text |strong>bold one| more text |strong>bo|ld t|strong>wo| final.');
+	// Bold across plain and bold text adds bold only where it is missing.
+	const across = text.indexOf('text bold');
+	assert.equal(show(toggleMark(pieces, across, across + 9, 'bold')), 'Some |strong>text |strong>bold|strong> one| more text |strong>bold two| final.');
+	// Italic inside bold nests inside it.
+	assert.equal(show(toggleMark(pieces, two + 5, two + 8, 'italic')), 'Some text |strong>bold one| more text |strong>bold |strong>em>two| final.');
+	// Typing over a selection across elements takes the marks of the text before it; a line break is a piece of its own.
+	const replaced = replaceRange(pieces, text.indexOf('one'), two + 4, 'X\nY');
+	assert.equal(show(replaced.pieces), 'Some text |strong>bold |strong>X|strong>\n|strong>Y|strong> two| final.');
+	assert.equal(replaced.caret, text.indexOf('one') + 3);
+	// Marks toggled at a caret apply to the text typed there.
+	assert.equal(show(replaceRange(pieces, 4, 4, 'Z', { bold: true }).pieces), 'Some|strong>Z| text |strong>bold one| more text |strong>bold two| final.');
+});

@@ -152,7 +152,7 @@ const detected = ref({});
 const inline = useInlineText({ session, view: () => `${activeArtboardId.value}:${viewMode.value}:${canvasMode.value}`, notify: (text) => { notice.value = text; } });
 const { editing, editState, revisions } = inline;
 const finishTextEdit = inline.finish;
-const codeSync = useCodeSync({ session, inline, isStudioComponent, tagOf, element: (id) => activeViewport()?.element(id) || null, open: showCode, notify: (text) => { notice.value = text; } });
+const codeSync = useCodeSync({ session, inline, isStudioComponent, element: (id) => activeViewport()?.element(id) || null, open: showCode });
 const viewport = ref(null);
 const artboardRefs = new Map();
 // The workspace saves through a storage adapter; project files go through the file adapter when one is given.
