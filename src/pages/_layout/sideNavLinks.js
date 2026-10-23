@@ -153,6 +153,15 @@ const designerToolNavItems = [
 	{ to: '/designer/frames', label: 'Nested frames' },
 ];
 
+/** The behaviour the designer tools share, documented as composables. */
+const designerComposableNavItems = [
+	{ to: '/designer/composables', label: 'Overview' },
+	{ to: '/designer/composables/editor-session', label: 'useEditorSession' },
+	{ to: '/designer/composables/code-sync', label: 'useCodeSync' },
+	{ to: '/designer/composables/inline-text', label: 'useInlineText' },
+	{ to: '/designer/composables/rich-text', label: 'Rich text model' },
+];
+
 /** Editor-surface blocks lead; style controls and newly discovered blocks follow alphabetically. */
 const designerBlockOrder = ['stage', 'layers', 'frame'];
 
@@ -283,6 +292,10 @@ function sectionFamilyNavItems(section, sectionFamilies) {
 			{ to: '/designer/assembly', label: 'Assembly guide' },
 			...blocks,
 		],
+	}, {
+		to: '/designer/composables',
+		label: 'Composables',
+		children: designerComposableNavItems,
 	}];
 }
 

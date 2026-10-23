@@ -53,6 +53,13 @@ const buildingBlocks = [
 	},
 ];
 
+const composables = [
+	{ to: '/designer/composables/editor-session', title: 'Editor session', component: 'useEditorSession', description: 'One document, selection and undo history that every part of an editor shares.' },
+	{ to: '/designer/composables/code-sync', title: 'Code sync', component: 'useCodeSync · DomCodePanel', description: 'The Vue source of the same tree, edited both ways, with selections that follow each other.' },
+	{ to: '/designer/composables/inline-text', title: 'In-place text', component: 'useInlineText', description: 'Double-click text to edit it where it is, with bold, italic, underline and strike.' },
+	{ to: '/designer/composables/rich-text', title: 'Rich text model', component: 'toggleMark · markOperations', description: 'Marks and edits on a paragraph as data, shared by the stage and the code panel.' },
+];
+
 const route = useRoute();
 
 /**
@@ -105,8 +112,19 @@ watch(() => route.hash, revealHashTarget);
 					</div>
 				</div>
 			</DocSection>
+			<DocSection id="composables" title="Composables" eyebrow="Behaviour the tools share" class="scroll-mt-24">
+				<p class="text-muted-fg">The advanced behaviour of the Canvas, as composables. DomDesigner and the Social post studio are built from them, so a fix or a feature reaches every editor built on them, yours included.</p>
+				<div class="grid gap-2 sm:grid-cols-2">
+					<RouterLink v-for="block in composables" :key="block.to" :to="block.to" class="min-w-0 rounded-lg border border-border px-3 py-2.5 transition hover:border-primary hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring">
+						<span class="block text-sm font-medium text-canvas-fg">{{ block.title }}</span>
+						<code class="mt-0.5 block truncate text-xs text-muted-fg">{{ block.component }}</code>
+						<span class="mt-1 block text-xs leading-5 text-muted-fg">{{ block.description }}</span>
+					</RouterLink>
+				</div>
+				<RouterLink to="/designer/composables" class="block text-sm text-primary">How they fit together, with a small working editor →</RouterLink>
+			</DocSection>
 			<DocSection title="Embed the designer" eyebrow="@getdom/studio/designer">
-				<p class="mb-4 text-muted-fg">The canvas is the <code>DomDesigner</code> component, so you can put it in your own product. Give it the components people may insert and a storage adapter: this browser by default, your API for a CMS (<code>createHttpStorage</code>), or project files (<code>createFileStorage</code>). The entry also exports the editor core: documents, operations, history, and Vue import and export with source maps. It includes the Vue template compiler, so load it only on pages where people design.</p>
+				<p class="mb-4 text-muted-fg">The canvas is the <code>DomDesigner</code> component, so you can put it in your own product. Give it the components people may insert and a storage adapter: this browser by default, your API for a CMS (<code>createHttpStorage</code>), or project files (<code>createFileStorage</code>). The entry also exports the editor core: documents, operations, history, Vue import and export with source maps, and the composables above. It includes the Vue template compiler, so load it only on pages where people design.</p>
 				<CodeBlock :code="embedExample" language="vue" />
 			</DocSection>
 			<DocSection title="A small, composable beta" eyebrow="Ownership">
