@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { alignFrameChild, createFrameLayout, frameLayoutStyle, measureFrameChild, spaceFrameChildren } from '../src/pages/designer/frame/frameLayout.js';
+import { createFrameLayout, frameLayoutStyle } from '../src/pages/designer/frame/frameLayout.js';
+import { alignFrameChild, measureFrameChild, spaceFrameChildren } from '../src/pages/designer/stage/layoutGeometry.js';
 import { createFrameDemo, createFrameNode, exportFrameHtml, frameNodeStyle, frameTailwindContent } from '../src/pages/designer/frames/frameDocument.js';
 
 test('absolute canvas → flex row → absolute composition separates placement and child layout', () => {

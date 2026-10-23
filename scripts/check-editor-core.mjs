@@ -9,7 +9,7 @@ import { createHtmlTypeRegistry, treeFromType } from '../src/pages/designer/core
 import { exportVue, importVue } from '../src/pages/designer/core/vueAdapter.js';
 import { applyWorkspaceOperation, createCanvasDemo, exportFile, restoreWorkspace } from '../src/pages/designer/canvas/canvasWorkspace.js';
 import { importVueFile, sampleVueFile } from '../src/pages/designer/canvas/canvasDocument.js';
-import { alignRects, boundsOf, distributeRects } from '../src/pages/designer/stage/alignGeometry.js';
+import { alignRects, boundsOf, distributeRects } from '../src/pages/designer/stage/layoutGeometry.js';
 import { applySource, matchNodes, nodeAtLine } from '../src/pages/designer/core/sourceSync.js';
 import { catalogFromExports, createComponentCatalog } from '../src/pages/designer/core/componentCatalog.js';
 import { schemaForComponent } from '../src/pages/designer/core/componentSchema.js';

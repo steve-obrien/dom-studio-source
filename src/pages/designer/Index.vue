@@ -57,6 +57,7 @@ const composables = [
 	{ to: '/designer/composables/editor-session', title: 'Editor session', component: 'useEditorSession', description: 'One document, selection and undo history that every part of an editor shares.' },
 	{ to: '/designer/composables/code-sync', title: 'Code sync', component: 'useCodeSync · DomCodePanel', description: 'The Vue source of the same tree, edited both ways, with selections that follow each other.' },
 	{ to: '/designer/composables/inline-text', title: 'In-place text', component: 'useInlineText', description: 'Double-click text to edit it where it is, with bold, italic, underline and strike.' },
+	{ to: '/designer/composables/layout-geometry', title: 'Placement', component: 'useLayoutGeometry', description: 'Drag, X/Y/W/H, and align and distribute for one layer or several.' },
 	{ to: '/designer/composables/rich-text', title: 'Rich text model', component: 'toggleMark · markOperations', description: 'Marks and edits on a paragraph as data, shared by the stage and the code panel.' },
 ];
 

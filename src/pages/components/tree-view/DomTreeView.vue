@@ -195,6 +195,7 @@ defineOptions({
 		],
 		events: [
 			{ name: 'update:modelValue', payload: '(value: string | number)', description: 'Emitted when the selected node changes.' },
+			{ name: 'update:values', payload: '(values: Array<string | number>)', description: 'Emitted with every selected value when `values` is bound and the selection changes.' },
 			{ name: 'select', payload: '({ item, value, node })', typeRef: 'TreeSelectionPayload', description: 'Fired when a tree item is selected.' },
 			{ name: 'hover', payload: '({ item, value, node })', typeRef: 'TreeSelectionPayload', description: 'Fired when a pointer enters a tree row.' },
 			{ name: 'hover-end', payload: '({ item, value, node })', typeRef: 'TreeSelectionPayload', description: 'Fired when a pointer leaves a tree row.' },
@@ -317,6 +318,11 @@ const props = defineProps({
 		default: 'none',
 		_edit: { options: ['none', 'always', 'hover'], description: 'Draw vertical indent guide lines for each nesting level, like the VS Code explorer. The guide for the selected branch is emphasised.' },
 	},
+	values: {
+		type: Array,
+		default: undefined,
+		_edit: { description: 'Selected values for multiple selection. When bound, Shift-, Cmd- or Ctrl-click adds or removes a row and a plain click selects only that row. `modelValue` stays the most recently chosen row.' },
+	},
 	selection: {
 		type: String,
 		default: 'solid',
@@ -349,7 +355,7 @@ const props = defineProps({
 	},
 });
 
-const emit = defineEmits(['update:modelValue', 'update:items', 'update:openValues', 'select', 'hover', 'hover-end', 'action', 'context-menu', 'toggle', 'load-children', 'drag-preview', 'drag-preview-end', 'reorder', 'external-drop']);
+const emit = defineEmits(['update:modelValue', 'update:values', 'update:items', 'update:openValues', 'select', 'hover', 'hover-end', 'action', 'context-menu', 'toggle', 'load-children', 'drag-preview', 'drag-preview-end', 'reorder', 'external-drop']);
 const activeValue = ref(props.modelValue);
 const openSet = ref(new Set(seedTreeOpenValues(props.items, props.openValues)));
 const dropTarget = ref(null);
@@ -364,6 +370,11 @@ let dragExpandValue = '';
 const treeItems = computed(() => props.items || []);
 const visibleNodes = computed(() => flattenTreeItems(treeItems.value, openSet.value));
 const selectedValue = computed(() => props.modelValue);
+const selectedValues = computed(() => new Set([...(props.values || []), props.modelValue].filter((value) => value !== '' && value != null).map(String)));
+/** Whether a row is the selected node or one of the selected values. */
+function isSelected(node) {
+	return selectedValues.value.has(String(node.value));
+}
 const indentSize = computed(() => Math.max(0, Number(props.indent) || 0));
 // Narrow indents use a slimmer toggle column so guides stay clear of child chevrons.
 const toggleWidth = computed(() => (indentSize.value < 16 ? 20 : 28));
@@ -512,9 +523,21 @@ function scrollWithinTree(row) {
 	else if (rowBox.bottom > frame.bottom) box.scrollTop += Math.min(rowBox.bottom - frame.bottom, rowBox.top - frame.top);
 }
 
-function selectNode(node) {
+function selectNode(node, event) {
 	if (node.item?.disabled) return;
 	activeValue.value = node.value;
+	if (props.values) {
+		const additive = event && (event.shiftKey || event.metaKey || event.ctrlKey);
+		const value = String(node.value);
+		const current = [...props.values];
+		if (props.modelValue !== '' && props.modelValue != null && !current.some((item) => String(item) === String(props.modelValue))) current.push(props.modelValue);
+		const next = !additive ? [node.value] : current.some((item) => String(item) === value) ? current.filter((item) => String(item) !== value) : [...current, node.value];
+		emit('update:values', next);
+		if (!next.some((item) => String(item) === value)) {
+			emit('update:modelValue', next.at(-1) ?? '');
+			return;
+		}
+	}
 	emit('update:modelValue', node.value);
 	emit('select', { item: node.item, value: node.value, node });
 }
@@ -600,7 +623,7 @@ function onRowKeydown(event, node) {
 		focusNode(visibleNodes.value.at(-1)?.value, true);
 	} else if (event.key === 'Enter' || event.key === ' ') {
 		event.preventDefault();
-		selectNode(node);
+		selectNode(node, event);
 	}
 }
 
@@ -903,6 +926,7 @@ onBeforeUnmount(cancelDragExpand);
 	<div
 		role="tree"
 		:id="treeId"
+		:aria-multiselectable="values ? 'true' : null"
 		class="group/tree w-full text-sm text-canvas-fg"
 		:class="[
 			chrome ? 'skin-card rounded-2xl p-1' : '',
@@ -925,9 +949,9 @@ onBeforeUnmount(cancelDragExpand);
 				role="treeitem"
 				:aria-level="node.depth"
 				:aria-expanded="node.expandable ? String(node.open) : null"
-				:aria-selected="String(String(selectedValue) === String(node.value))"
+				:aria-selected="String(isSelected(node))"
 				:aria-disabled="node.item?.disabled ? 'true' : null"
-				:data-hovered="String(hoveredValue) === String(node.value) && String(selectedValue) !== String(node.value) ? 'true' : null"
+				:data-hovered="String(hoveredValue) === String(node.value) && !isSelected(node) ? 'true' : null"
 				:tabindex="String(activeValue) === String(node.value) || (!activeValue && visibleNodes[0]?.value === node.value) ? 0 : -1"
 				:aria-keyshortcuts="draggable ? 'Alt+ArrowUp Alt+ArrowDown' : null"
 				:draggable="dragAllowed(node)"
@@ -939,11 +963,11 @@ onBeforeUnmount(cancelDragExpand);
 					dropClass(node, 'inside'),
 					isDropPosition(node, 'before') ? 'before:opacity-100' : '',
 					isDropPosition(node, 'after') ? 'after:opacity-100' : '',
-					String(hoveredValue) === String(node.value) && String(selectedValue) !== String(node.value) ? 'bg-secondary text-canvas-fg' : '',
+					String(hoveredValue) === String(node.value) && !isSelected(node) ? 'bg-secondary text-canvas-fg' : '',
 					'before:pointer-events-none before:absolute before:inset-x-2 before:top-0 before:h-0.5 before:rounded-full before:bg-ring before:opacity-0 after:pointer-events-none after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:rounded-full after:bg-ring after:opacity-0',
 				]"
 				:style="rowIndentStyle(node)"
-				@click="selectNode(node)"
+				@click="selectNode(node, $event)"
 				@pointerenter="onRowPointerEnter(node)"
 				@pointerleave="onRowPointerLeave(node)"
 				@keydown="onRowKeydown($event, node)"
@@ -973,7 +997,7 @@ onBeforeUnmount(cancelDragExpand);
 					:node="node"
 					:depth="node.depth"
 					:open="node.open"
-					:selected="String(selectedValue) === String(node.value)"
+					:selected="isSelected(node)"
 					:loading="node.loading"
 					:toggle="() => toggleNode(node)"
 					:select="() => selectNode(node)"
@@ -1003,7 +1027,7 @@ onBeforeUnmount(cancelDragExpand);
 						</svg>
 					</span>
 					<span class="min-w-0 flex-1 truncate pr-1" :class="[rowSize.label, toggleWidth < 28 ? 'pl-0.5' : 'pl-1']">
-						<slot :name="slotNameOf(node.item)" :item="node.item" :node="node" :depth="node.depth" :open="node.open" :selected="String(selectedValue) === String(node.value)" :loading="node.loading">
+						<slot :name="slotNameOf(node.item)" :item="node.item" :node="node" :depth="node.depth" :open="node.open" :selected="isSelected(node)" :loading="node.loading">
 							{{ node.label }}
 						</slot>
 					</span>

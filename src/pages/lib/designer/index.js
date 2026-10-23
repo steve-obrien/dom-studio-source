@@ -18,6 +18,9 @@ export { useEditorSession } from '../../designer/core/useEditorSession.js';
 export { useCodeSync } from '../../designer/core/useCodeSync.js';
 export { default as DomCodePanel } from '../../designer/core/CodePanel.vue';
 export { useInlineText } from '../../designer/core/useInlineText.js';
+// Placement: measuring, dragging, X/Y/W/H, align and distribute.
+export { useLayoutGeometry } from '../../designer/core/useLayoutGeometry.js';
+export { boundsOf, alignRects, distributeRects, measureFrameChild } from '../../designer/stage/layoutGeometry.js';
 // Rich text as a model: what the canvas and the code panel both edit text with.
 export { flatten as flattenText, marksAt, toggleMark, replaceRange, markOperations, markTags, inlineTags } from '../../designer/core/richText.js';
 // Renders an editor document as real DOM, with the types the inspector and renderer use.

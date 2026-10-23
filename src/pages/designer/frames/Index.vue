@@ -3,7 +3,8 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { DomButton, DomDesignerStage, DomDesignerLayers, DomFrameLayoutEditor, DomNumberInput, DomTextInput, DomTextareaInput } from '../../lib/vue';
 import FrameNode from './FrameNode.vue';
 import FrameViewport from './FrameViewport.vue';
-import { alignFrameChild, createFrameLayout, measureFrameChild, readFrameLayout, spaceFrameChildren } from '../frame/frameLayout.js';
+import { createFrameLayout, readFrameLayout } from '../frame/frameLayout.js';
+import { alignFrameChild, measureFrameChild, spaceFrameChildren } from '../stage/layoutGeometry.js';
 import { createFrameDemo, createFrameNode, exportFrameHtml, flattenFrames, frameTailwindContent, importFrameHtml, isFrameNode, tailwindFrameExample } from './frameDocument.js';
 
 const root = ref(createFrameDemo());
