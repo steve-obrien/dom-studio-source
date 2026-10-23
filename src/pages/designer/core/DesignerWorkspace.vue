@@ -15,6 +15,7 @@ import { useNodeStyle } from './nodeStyle.js';
 import { useGoogleFonts } from '../typography-editor/googleFonts.js';
 import AlignTools from '../stage/AlignTools.vue';
 import DesignerRulers from '../stage/DesignerRulers.vue';
+import DomImageEditor from '../image-editor/DomImageEditor.vue';
 import { boundsOf } from '../stage/layoutGeometry.js';
 import { copySubtree, fromTree, isExpr, subtreeIds } from './editorDocument.js';
 import { useEditorSession } from './useEditorSession.js';
@@ -90,6 +91,8 @@ const props = defineProps({
 	embedded: { type: Boolean, default: false },
 	/** Show rulers along the canvas when the designer opens, counted from the active artboard's corner. ⇧R toggles them. */
 	rulers: { type: Boolean, default: false },
+	/** Turns an image file chosen in the inspector into a source, such as by uploading it and returning its URL. By default the file is read into the page as a data URL. */
+	uploadImage: { type: Function, default: null },
 });
 const emit = defineEmits(['save']);
 const MIN_ZOOM = 0.1;
@@ -587,6 +590,29 @@ function remove() {
 	const host = placement.sharedParent.value?.id || nodes[nodes.length - 1].parent;
 	run(nodes.map((node) => onFile({ op: 'remove', id: node.id })));
 	selected.value = host;
+}
+
+/** An image layer's source, alt text, fit and filters, for the Image section. Bound sources are edited in the code. */
+const imageValue = computed(() => {
+	const node = active.value;
+	if (!node || tagOf(node) !== 'img' || isExpr(node.props.src) || isExpr(node.props.alt)) return null;
+	const style = node.style || {};
+	return { src: node.props.src || '', alt: node.props.alt || '', fit: style['object-fit'] || '', position: style['object-position'] || '', filter: style.filter || '' };
+});
+
+/** Writes the Image section's changes as one step; dragging a filter merges into it. */
+function setImage(value) {
+	const node = active.value;
+	const before = imageValue.value;
+	if (!node || !before) return;
+	const operations = ['src', 'alt'].filter((key) => value[key] !== before[key]).map((key) => onFile({ op: 'setProp', id: node.id, key, value: value[key] || undefined }));
+	const style = { ...(node.style || {}) };
+	for (const [key, css] of [['fit', 'object-fit'], ['position', 'object-position'], ['filter', 'filter']]) {
+		if (value[key]) style[css] = value[key];
+		else delete style[css];
+	}
+	if (JSON.stringify(style) !== JSON.stringify(node.style || {})) operations.push(onFile({ op: 'setField', id: node.id, key: 'style', value: Object.keys(style).length ? style : undefined }));
+	if (operations.length) run(operations, { merge: value.filter !== before.filter ? `image:${node.id}` : '' });
 }
 
 /** The selection's extent in the active artboard, highlighted on the rulers. */
@@ -1324,6 +1350,12 @@ defineExpose({
 							</div>
 						</section>
 
+						<section v-if="imageValue" class="border-b border-border px-4 py-3">
+							<DomImageEditor :model-value="imageValue" :upload="uploadImage || undefined" @update:model-value="setImage" @error="notice = $event" />
+						</section>
+						<!-- Apps built on the designer add their own controls for the selected layer here, such as the Social studio's pins. -->
+						<slot name="inspector" :node="active" :parent="parent" :set-prop="(key, value) => setProp(active.id, { key, value })" />
+
 						<section v-if="isFrame(active)" class="space-y-2 border-b border-border px-4 py-3">
 							<DomFrameLayoutEditor :key="active.id" title="Layout" :model-value="layout" @update:model-value="setLayout" />
 							<p v-if="!active.layout" class="text-[11px] leading-4 text-muted-fg">Read from the HTML at {{ activeArtboard?.width }}px. Changing a control adds an explicit override.</p>
@@ -1350,7 +1382,7 @@ defineExpose({
 						</div>
 						<div class="space-y-5 px-4 py-3">
 							<NodeInspector v-if="textChild" :key="`text-${textChild.id}`" :node="textChild" :type="types.get('text')" :data="previews[activeFile.id]" @set-prop="setProp(textChild.id, $event)" />
-							<NodeInspector :key="active.id" :node="active" :type="activeType" :data="previews[activeFile.id]" @set-prop="setProp(active.id, $event)" />
+							<NodeInspector :key="active.id" :node="active" :type="activeType" :data="previews[activeFile.id]" :omit="imageValue ? ['src', 'alt'] : []" @set-prop="setProp(active.id, $event)" />
 						</div>
 						</fieldset>
 					</template>

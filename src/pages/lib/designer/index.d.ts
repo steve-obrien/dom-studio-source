@@ -126,9 +126,14 @@ export interface DomDesignerProps {
 	googleFonts?: boolean;
 	/** Show rulers along the canvas when it opens, counted from the active artboard's corner. ⇧R toggles them. */
 	rulers?: boolean;
+	/** Turns an image file chosen in the inspector into a source, such as by uploading it and returning its URL. By default the file is read in as a data URL. */
+	uploadImage?: (file: File) => Promise<string>;
 	onSave?: (event: { id: string; value: DesignerWorkspace }) => void;
 }
-/** The DOM designer: artboards, layers, a generated inspector and a two-way code view. */
+/**
+ * The DOM designer: artboards, layers, a generated inspector and a two-way code view.
+ * Slots: `start` and `end` in the toolbar, and `inspector` ({ node, parent, setProp }) for your own controls for the selected layer.
+ */
 export declare const DomDesigner: DefineComponent<DomDesignerProps>;
 /** Editable source with line numbers and highlighted lines. */
 export declare const DomCodeView: DefineComponent<{ modelValue?: string; highlight?: SourceRange | null; label?: string; readonly?: boolean }>;
@@ -169,6 +174,15 @@ export interface EditorSession {
 	redo(): void;
 }
 export declare function useEditorSession(options: { workspace: DesignerWorkspace; onChange?: () => void; afterChange?: () => void; onError?: (message: string) => void }): EditorSession;
+
+/** An image's source, alt text, CSS object-fit and object-position, and CSS filter. */
+export type ImageValue = { src: string; alt: string; fit: string; position: string; filter: string };
+/** Image controls for an inspector: source (URL or a chosen file), alt text, fit and filters. */
+export declare const DomImageEditor: DefineComponent<{ modelValue: ImageValue; title?: string; upload?: (file: File) => Promise<string>; disabled?: boolean }>;
+export declare function parseFilter(css?: string): { values: Record<string, number>; rest: string };
+export declare function formatFilter(values?: Record<string, number>, rest?: string): string;
+export declare function safeImageSource(value: string): string;
+export declare function readImageFile(file: File, options?: { maxBytes?: number }): Promise<string>;
 
 /** A box in a frame's CSS pixels. */
 export type LayoutRect = { id?: string; left: number; top: number; width: number; height: number };

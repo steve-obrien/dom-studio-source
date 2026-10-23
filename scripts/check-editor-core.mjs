@@ -611,3 +611,17 @@ test('rich text: marks and edits on the flat model', async () => {
 	// Marks toggled at a caret apply to the text typed there.
 	assert.equal(show(replaceRange(pieces, 4, 4, 'Z', { bold: true }).pieces), 'Some|strong>Z| text |strong>bold one| more text |strong>bold two| final.');
 });
+
+test('image filters round-trip and unsafe sources are refused', async () => {
+	const { formatFilter, parseFilter, safeImageSource } = await import('../src/pages/designer/image-editor/imageStyle.js');
+	const { values, rest } = parseFilter('brightness(1.4) grayscale(50%) drop-shadow(0 1px 2px rgb(0 0 0 / 0.5))');
+	assert.equal(values.brightness, 140);
+	assert.equal(values.grayscale, 50);
+	assert.equal(values.contrast, 100);
+	assert.equal(rest, 'drop-shadow(0 1px 2px rgb(0 0 0 / 0.5))');
+	assert.equal(formatFilter({ ...values, grayscale: 0 }, rest), 'brightness(140%) drop-shadow(0 1px 2px rgb(0 0 0 / 0.5))');
+	assert.equal(formatFilter(parseFilter('').values), '');
+	assert.equal(safeImageSource('javascript:alert(1)'), '');
+	assert.equal(safeImageSource('/images/a.png'), '/images/a.png');
+	assert.equal(safeImageSource('https://example.com/a.png'), 'https://example.com/a.png');
+});

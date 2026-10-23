@@ -21,6 +21,7 @@ import { UNKNOWN, createScope, evaluate } from './expression.js';
  * unset field with a `defaultValue` shows that default (see `InspectorField`),
  * and a set one can be reset, which removes the prop from the source. Editors
  * without data bindings (the poster) turn off `bindable` and `extraProps`.
+ * `omit` leaves out props another control edits, such as an image's source.
  */
 defineOptions({ name: 'NodeInspector' });
 
@@ -31,6 +32,7 @@ const props = defineProps({
 	bindable: { type: Boolean, default: true },
 	extraProps: { type: Boolean, default: true },
 	disabled: { type: Boolean, default: false },
+	omit: { type: Array, default: () => [] },
 });
 const emit = defineEmits(['set-prop']);
 const defaultGroupOrder = ['Style', 'Props', 'Content', 'Attributes'];
@@ -41,13 +43,14 @@ const schemaKeys = computed(() => new Set(props.type.schema.flatMap((field) => f
 const groups = computed(() => {
 	const map = new Map();
 	for (const field of props.type.schema) {
+		if ((field.keys || [field.key]).every((key) => props.omit.includes(key))) continue;
 		const group = field.group || 'Props';
 		if (!map.has(group)) map.set(group, []);
 		map.get(group).push(field);
 	}
 	return [...map.entries()].sort(([a], [b]) => rank(a) - rank(b));
 });
-const otherProps = computed(() => Object.entries(props.node.props || {}).filter(([key]) => !schemaKeys.value.has(key) && !(props.node.type === 'text' && key === 'value')));
+const otherProps = computed(() => Object.entries(props.node.props || {}).filter(([key]) => !schemaKeys.value.has(key) && !props.omit.includes(key) && !(props.node.type === 'text' && key === 'value')));
 
 function rank(group) {
 	const order = props.type.groups || defaultGroupOrder;
