@@ -26,7 +26,7 @@ const tools = [
 	{ to: '/designer/poster', title: 'Poster studio', makes: 'Flyers, posters and portrait graphics', description: 'A portrait flyer in the Social post studio: DomDesigner with two-way code, multi-select, align, rulers, image filters, every social format and HTML export.' },
 	{ to: '/designer/social-card', title: 'Social card designer', makes: 'Open Graph and link-preview images', description: 'The Social post studio starting from a link preview, with its code open. Edit the HTML or the canvas; each follows the other.' },
 	{ to: '/designer/flowchart', title: 'Flowchart designer', makes: 'Process maps, diagrams and decision flows', description: 'An infinite workspace powered by Vue Flow. Connect editable steps, pan, zoom, navigate with a minimap and export your graph.' },
-	{ to: '/designer/frames', title: 'Nested frames & HTML import', makes: 'Editable layouts from Tailwind HTML', description: 'Nest flow, flex, grid and absolute frames. Switch layouts, snap within a frame, and import Tailwind HTML into an editable canvas.' },
+	{ to: '/designer/frames', title: 'Nested frames & HTML import', makes: 'Editable layouts from Tailwind HTML', description: 'DomDesigner on a page of nested flow, flex, grid and absolute frames. Switch a frame’s layout, move and align inside absolute ones, or paste Tailwind HTML into the code.' },
 ];
 const assemblyGuide = { to: '/designer/assembly', title: 'Build your own designer', description: 'Working Vue examples and assembly documentation for combining these blocks into HTML editors, appearance controls and flowcharts.' };
 const buildingBlocks = [
