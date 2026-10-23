@@ -75,6 +75,11 @@ export function importFrameHtml(html, document) {
 	return { root, removed };
 }
 
+/** Whether a layer is absolutely placed by its own inline style, with no designer layout of its own. */
+function placedByStyle(node) {
+	return String(node.style?.position || '').trim() === 'absolute' && !node.layout;
+}
+
 /** Applies managed layout above source utilities while leaving unrelated source styling intact. */
 export function frameNodeStyle(node, parent) {
 	const style = { ...node.style };
@@ -83,7 +88,13 @@ export function frameNodeStyle(node, parent) {
 	}
 	if (node.absoluteHeight && node.layout?.mode === 'absolute') style.height = `${node.absoluteHeight}px !important`;
 	if (parent?.layout) {
-		if (parent.layout.mode === 'absolute') {
+		if (parent.layout.mode === 'absolute' && placedByStyle(node)) {
+			// The source already places this layer with its own inline style (as a poster does), so only its box changes, written plainly.
+			const box = node.placements?.absolute;
+			for (const key of ['inset', 'right', 'bottom']) delete style[key];
+			if (box) for (const key of box.sized === false ? ['left', 'top'] : ['left', 'top', 'width', 'height']) if (Number.isFinite(box[key])) style[key] = `${Math.round(box[key])}px`;
+		} else if (parent.layout.mode === 'absolute') {
+			for (const key of ['left', 'top', 'right', 'bottom']) delete style[key];
 			Object.assign(style, { position: 'absolute !important', margin: '0px !important', inset: 'auto !important', boxSizing: 'border-box', flex: 'none !important' });
 			const box = node.placements?.absolute || { left: 24, top: 24, width: 160, height: 100 };
 			// A layer that was moved but never resized (`sized: false`) keeps its natural size, so its text never rewraps.
