@@ -1,6 +1,4 @@
 import { markRaw, ref, shallowRef } from 'vue';
-import { cloneValue } from './editorDocument.js';
-import { applyOperations } from './operations.js';
 import { beginInlineEdit, inlineEditTarget } from './inlineText.js';
 
 /**
@@ -41,8 +39,8 @@ export function useInlineText({ session, view = () => '', notify = () => {} }) {
 		while (host && host.dataset?.designerId !== target.id) host = host.parentElement?.closest('[data-designer-id]');
 		if (!host) return;
 		selected.value = target.id;
-		const edit = beginInlineEdit({ element: host, doc: file.doc, id: target.id, point: { x, y }, onChange: queueRead, onEnd: finish });
-		editing.value = { board: board.id, file: file.id, id: target.id, session: edit, view: view(), operations: '[]' };
+		const edit = beginInlineEdit({ element: host, doc: file.doc, id: target.id, point: { x, y }, getDoc: () => fileById(file.id)?.doc || file.doc, onChange: queueRead, onEnd: finish });
+		editing.value = { board: board.id, file: file.id, id: target.id, session: edit, view: view(), doc: file.doc };
 		read();
 	}
 
@@ -57,16 +55,10 @@ export function useInlineText({ session, view = () => '', notify = () => {} }) {
 		const file = current && fileById(current.file);
 		if (!file) { editState.value = { anchor: null, focus: null, marks: null }; return; }
 		const preview = current.session.preview(file.doc);
-		// The document is rebuilt only when the text changed, not when the caret moved.
-		const operations = JSON.stringify(preview.operations);
-		if (operations !== current.operations) {
-			current.operations = operations;
-			let next = null;
-			if (preview.operations.length) {
-				try { next = cloneValue(file.doc); applyOperations(next, preview.operations); }
-				catch { next = null; }
-			}
-			editDoc.value = next ? { file: file.id, doc: markRaw(next) } : null;
+		// The preview is replaced only when the text changed, not when the caret moved.
+		if (preview.doc !== current.doc) {
+			current.doc = preview.doc;
+			editDoc.value = preview.doc !== file.doc ? { file: file.id, doc: markRaw(preview.doc) } : null;
 		}
 		editState.value = { anchor: preview.anchor, focus: preview.focus, marks: current.session.marks() };
 	}

@@ -1,34 +1,42 @@
 import { cloneValue, isExpr, nodeId } from './editorDocument.js';
+import { applyOperations } from './operations.js';
+import { ANCHOR, FOCUS, buildInline, flatten, inlineTags, marksAt, normalize, positionIn, reconcile, replaceRange, tagName, toggleMark } from './richText.js';
+
+export { inlineTags };
 
 /**
  * Editing text in place on the canvas.
  *
  * A double-clicked paragraph, heading or other text element becomes
- * `contenteditable` in its artboard. The browser does the typing, selection
- * and marks (bold, italic, underline, strikethrough); nothing is written to
- * the document until the edit ends. Meanwhile `preview()` reads a copy of the
- * element on every change, so the code view shows the text and selection as
- * they are typed. When the edit ends the element's DOM is read back into
- * operations: text runs keep their ids (so the file keeps its formatting),
- * new marks become `<strong>`, `<em>`, `<u>` and `<s>` elements, and anything
- * the browser added that the file cannot hold is unwrapped.
+ * `contenteditable` in its artboard. The element is the editor's view of the
+ * text, and the document is its model: contenteditable is used to find out
+ * what the user means, not to decide the result.
+ *
+ * - Typing characters is left to the browser, so input methods (Chinese,
+ *   Japanese, Korean), spellcheck, autocorrect and phone keyboards work as
+ *   they do everywhere. Only the text node being typed in changes.
+ * - Everything that changes structure is done on the model (richText.js) and
+ *   the element is drawn again from it: bold, italic, underline and strike,
+ *   line breaks, paste, cut, typing over a selection, and deleting across
+ *   elements. The browser's `execCommand` is not used, so its markup (styled
+ *   spans, `<b>`) never decides what is saved.
+ * - Undo and redo inside the edit step through the model's states.
+ *
+ * Nothing is written to the document until the edit ends. Meanwhile
+ * `preview()` reads a copy of the element on every change, so the code view
+ * shows the text and selection as they are typed. When the edit ends the
+ * element is read back into operations: text runs keep their ids (so the file
+ * keeps its formatting) and marks are `<strong>`, `<em>`, `<u>` and `<s>`.
  *
  * Only literal text and inline elements are edited this way. Text bound to
  * data (`{{ item.title }}`) and elements that mix text with components are
  * left to the Data panel and the inspector.
  */
 
-/** Elements that may sit inside edited text. */
-export const inlineTags = new Set(['a', 'abbr', 'b', 'br', 'code', 'em', 'i', 'kbd', 'mark', 's', 'small', 'span', 'strong', 'sub', 'sup', 'time', 'u']);
-/** Elements the browser may create while editing, by the tag they are saved as. */
-const createdTags = { b: 'strong', strong: 'strong', i: 'em', em: 'em', u: 'u', s: 's', strike: 's', br: 'br', sub: 'sub', sup: 'sup' };
-const marks = { bold: 'bold', italic: 'italic', underline: 'underline', strike: 'strikeThrough' };
-/** Placeholders for the selection's ends while a copy of the edit is read (private-use characters, never typed). */
-const ANCHOR = '\uE000';
-const FOCUS = '\uE001';
-const pointMarks = /[\uE000\uE001]/g;
-
-function tagName(node) { return node.type.startsWith('html:') ? node.type.slice(5) : ''; }
+const markInputs = { formatBold: 'bold', formatItalic: 'italic', formatUnderline: 'underline', formatStrikeThrough: 'strike' };
+const markKeys = { b: 'bold', i: 'italic', u: 'underline' };
+/** Typing in one burst is one undo step inside the edit. */
+const typingPause = 1000;
 
 /** Why a node cannot be edited in place, or '' when it can. */
 function problemWith(doc, node, top) {
@@ -69,15 +77,17 @@ export function inlineEditTarget(doc, id) {
 /**
  * Makes a rendered element editable in place.
  *
- * @param {{ element: HTMLElement, doc: object, id: string, point?: { x: number, y: number }, onChange?: () => void, onEnd?: () => void }} options
- *   The rendered element and its node; `point` places the caret where the user double-clicked; `onChange` runs when the caret, selection or text changes; `onEnd` when the user finishes with Enter or Escape.
+ * @param {{ element: HTMLElement, doc: object, id: string, point?: { x: number, y: number }, getDoc?: () => object, onChange?: () => void, onEnd?: () => void }} options
+ *   `getDoc` returns the document as it is now, if it can change while the text is edited.
  * @returns {object} Session: `preview(doc)`, `marks()`, `toggle(mark)`, `operations(doc)` and `stop()`.
  */
-export function beginInlineEdit({ element, doc, id, point, onChange = () => {}, onEnd = () => {} }) {
+export function beginInlineEdit({ element, doc, id, point, getDoc = () => doc, onChange = () => {}, onEnd = () => {} }) {
 	const owner = element.ownerDocument;
 	// Rendered text nodes, matched to the runs they show, so the selection and edits find their source.
 	const texts = new Map();
 	const original = new Set();
+	// The rendered inline elements without their content, so text drawn again keeps their attributes.
+	const shells = new Map();
 	(function match(el, nodeIdValue) {
 		const node = doc.nodes[nodeIdValue];
 		original.add(nodeIdValue);
@@ -97,68 +107,274 @@ export function beginInlineEdit({ element, doc, id, point, onChange = () => {}, 
 			const found = rendered.slice(cursor).findIndex((item) => item.nodeType === 1 && item.dataset.designerId === childId);
 			if (found === -1) continue;
 			cursor += found;
+			shells.set(childId, rendered[cursor].cloneNode(false));
 			match(rendered[cursor++], childId);
 		}
 	})(element, id);
 
-	const { selection, inside, restore, onSelection, stop } = makeEditable({ element, point, onChange, onEnd });
+	// The last reading of the element, reused while it has not changed.
+	let last = null;
+	// Marks for the next text typed at a caret, as toggled with nothing selected: `{ at, marks }`.
+	let pending = null;
+	// Undo inside the edit: states of the text before each change.
+	const past = [];
+	const future = [];
+	let burst = { kind: '', time: 0 };
+
+	const editable = makeEditable({ element, point, onChange, onEnd, rich: { keydown: onKeydown, beforeinput: onBeforeInput, cut: onCut, paste: onPaste, lineBreak: () => insert('\n') } });
+	const { selection, inside, restore } = editable;
+
+	/** The selection's ends as DOM points, the later one first when both are in one node. */
+	function selectionEnds() {
+		if (!inside()) return [];
+		return ordered([textPoint(selection.anchorNode, selection.anchorOffset, ANCHOR), textPoint(selection.focusNode, selection.focusOffset, FOCUS)]);
+	}
+	function rangeEnds(range) {
+		return ordered([textPoint(range.startContainer, range.startOffset, ANCHOR), textPoint(range.endContainer, range.endOffset, FOCUS)]);
+	}
+	function ordered(points) {
+		if (points[0].node === points[1].node && points[0].offset < points[1].offset) points.reverse();
+		return points;
+	}
+
+	/**
+	 * Reads the element as the edit would save it, from a copy so the text
+	 * being typed is never disturbed: operations against `current`, the
+	 * document they make, and where two DOM points fall (the selection's ends
+	 * by default), as `{ id, offset, at }` in a text run of that document or
+	 * `{ element, at }` between elements. `at` counts across the whole text.
+	 */
+	function read(current = getDoc(), ends = selectionEnds()) {
+		const copy = element.cloneNode(true);
+		const counterpart = new Map();
+		(function pair(from, to) {
+			counterpart.set(from, to);
+			from.childNodes.forEach((child, index) => pair(child, to.childNodes[index]));
+		})(element, copy);
+		const copied = new Map();
+		for (const [node, runId] of texts) if (counterpart.has(node)) copied.set(counterpart.get(node), runId);
+		for (const end of ends) {
+			const target = counterpart.get(end.node);
+			if (!target) continue;
+			if (target.nodeType === 3) target.data = target.data.slice(0, end.offset) + end.mark + target.data.slice(end.offset);
+			else target.insertBefore(owner.createTextNode(end.mark), target.childNodes[end.offset] || null);
+		}
+		normalize(copy, current);
+		const found = {};
+		let count = 0;
+		// Ids for new runs count up, so the same text reads as the same operations.
+		const operations = reconcile(current, id, copy, copied, original, () => `preview-${count++}`, found);
+		const key = JSON.stringify(operations);
+		let next = current;
+		if (last?.base === current && last.key === key) next = last.doc;
+		else if (operations.length) {
+			try { next = cloneValue(current); applyOperations(next, operations); }
+			catch { next = current; }
+		}
+		last = { base: current, key, doc: next, anchor: found[ANCHOR] || null, focus: found[FOCUS] || null };
+		return { operations, doc: next, anchor: last.anchor, focus: last.focus };
+	}
+
+	/** The text as pieces, with two points (the selection by default) as offsets. */
+	function model(ends) {
+		const state = read(getDoc(), ends);
+		return withOffsets(flatten(state.doc, id), state.anchor, state.focus);
+	}
+	function withOffsets(pieces, anchor, focus) {
+		const a = anchor?.at ?? focus?.at;
+		const f = focus?.at ?? anchor?.at;
+		if (a === undefined) return { pieces, start: null, end: null };
+		return { pieces, start: Math.min(a, f), end: Math.max(a, f) };
+	}
+
+	/** Draws the element afresh from pieces and selects between two offsets. */
+	function draw(pieces, start, end = start) {
+		const shell = (entryId, tag) => (entryId && shells.has(entryId) ? shells.get(entryId).cloneNode(false) : owner.createElement(tag));
+		const built = buildInline(pieces, { document: owner, element: (entry) => shell(entry.id, entry.tag), lineBreak: (breakId) => shell(breakId, 'br') });
+		element.replaceChildren(built.fragment);
+		// A line break at the very end needs a second one to show the empty line after it.
+		if (pieces.at(-1)?.text === '\n') {
+			const placeholder = owner.createElement('br');
+			placeholder.dataset.designerPlaceholder = '';
+			element.append(placeholder);
+		}
+		texts.clear();
+		for (const [node, runId] of built.texts) texts.set(node, runId);
+		const from = positionIn(element, start, start === end ? 'left' : 'right');
+		const to = start === end ? from : positionIn(element, end, 'left');
+		const range = owner.createRange();
+		range.setStart(from.node, from.offset);
+		range.setEnd(to.node, to.offset);
+		selection.removeAllRanges();
+		selection.addRange(range);
+		editable.onSelection();
+	}
+
+	/** Keeps the text as it is before a change, for undo; a burst of typing is one step. */
+	function remember(kind, state = null) {
+		const now = Date.now();
+		const continues = kind === burst.kind && kind !== 'edit' && now - burst.time < typingPause;
+		burst = { kind, time: now };
+		if (continues) return;
+		const snapshot = state || model();
+		if (snapshot.start === null) return;
+		past.push({ pieces: snapshot.pieces, start: snapshot.start, end: snapshot.end });
+		if (past.length > 200) past.shift();
+		future.length = 0;
+	}
+	function step(from, to) {
+		if (!from.length) return;
+		const current = model();
+		to.push({ pieces: current.pieces, start: current.start ?? 0, end: current.end ?? 0 });
+		const state = from.pop();
+		burst = { kind: '', time: 0 };
+		pending = null;
+		draw(state.pieces, state.start, state.end);
+	}
+	function undo() { step(past, future); }
+	function redo() { step(future, past); }
+
+	/** Changes the text on the model, between two DOM points (the selection by default), and draws the result. */
+	function change(edit, ends) {
+		const state = model(ends);
+		if (state.start === null) return;
+		remember('edit', state);
+		const next = edit(state);
+		pending = null;
+		if (next) draw(next.pieces, next.start, next.end ?? next.start);
+	}
+
+	/** Replaces the selection (or the range between `ends`) with text; at a caret, marks toggled there apply to it. */
+	function insert(text, ends) {
+		change(({ pieces, start, end }) => {
+			const marks = pending && pending.at === start && start === end ? pending.marks : null;
+			const next = replaceRange(pieces, start, end, text, marks);
+			return { pieces: next.pieces, start: next.caret };
+		}, ends);
+	}
+
+	/** A mark from the Text panel or a shortcut: on the selected text, or for the next text typed at a caret. */
+	function toggleSelection(mark) {
+		const state = model();
+		if (state.start === null) return;
+		if (state.start === state.end) {
+			const marks = { ...(pending?.at === state.start ? pending.marks : {}) };
+			marks[mark] = !(mark in marks ? marks[mark] : marksAt(state.pieces, state.start)[mark]);
+			pending = { at: state.start, marks };
+			onChange();
+			return;
+		}
+		remember('edit', state);
+		pending = null;
+		draw(toggleMark(state.pieces, state.start, state.end, mark), state.start, state.end);
+	}
+
+	/** Whether a range stays inside one text node, where the browser's own edit changes nothing else. */
+	function withinText(range) {
+		const node = range?.startContainer;
+		return Boolean(node) && node === range.endContainer && node.nodeType === 3 && element.contains(node) && (range.collapsed || range.endOffset - range.startOffset < node.data.length);
+	}
+
+	/**
+	 * Whether the browser can type this itself: inside a text node, away from
+	 * its start, where it means to. At the start of a text node the text
+	 * before decides the marks (typing after a line break inside bold stays
+	 * bold), and where the browser moves the caret to type (past a line break,
+	 * over a collapsed space) the model types at the caret instead.
+	 */
+	function typesInPlace(type, range) {
+		if (!withinText(range)) return false;
+		if (type !== 'insertText' || !range.collapsed) return true;
+		return selection.isCollapsed && selection.anchorNode === range.startContainer && selection.anchorOffset === range.startOffset && range.startOffset > 0;
+	}
+
+	function onKeydown(event) {
+		const key = event.key.toLowerCase();
+		if (!(event.metaKey || event.ctrlKey) || event.altKey) return false;
+		if (markKeys[key] && !event.shiftKey) toggleSelection(markKeys[key]);
+		else if (key === 'z') (event.shiftKey ? redo : undo)();
+		else if (key === 'y' && !event.shiftKey) redo();
+		else return false;
+		event.preventDefault();
+		return true;
+	}
+
+	/** Every edit the browser is about to make: typing is left to it, anything that changes structure is made on the model. */
+	function onBeforeInput(event) {
+		const type = event.inputType;
+		if (type === 'historyUndo' || type === 'historyRedo') { event.preventDefault(); (type === 'historyUndo' ? undo : redo)(); return; }
+		if (type.startsWith('format')) { event.preventDefault(); if (markInputs[type]) toggleSelection(markInputs[type]); return; }
+		// Input methods compose text in place and cannot be cancelled; the result is read back like typing.
+		if (event.isComposing || /Composition/.test(type)) { remember('typing'); return; }
+		const range = event.getTargetRanges?.()[0] || (inside() ? selection.getRangeAt(0) : null);
+		const ends = range ? rangeEnds(range) : undefined;
+		if (type === 'insertText' || type === 'insertReplacementText') {
+			if (!pending && typesInPlace(type, range)) { remember('typing'); return; }
+			event.preventDefault();
+			insert(event.data ?? event.dataTransfer?.getData('text/plain') ?? '', type === 'insertText' && selection.isCollapsed ? undefined : ends);
+			return;
+		}
+		if (type === 'insertLineBreak') { event.preventDefault(); insert('\n', ends); return; }
+		if (type === 'insertParagraph') { event.preventDefault(); onEnd(); return; }
+		if (type.startsWith('insertFrom')) {
+			event.preventDefault();
+			insert((event.dataTransfer?.getData('text/plain') ?? event.data ?? '').replace(/\s+/g, ' '), ends);
+			return;
+		}
+		if (type.startsWith('delete')) {
+			if (!range || withinText(range)) { remember('deleting'); return; }
+			event.preventDefault();
+			change(({ pieces, start, end }) => {
+				const next = replaceRange(pieces, start, end, '');
+				return { pieces: next.pieces, start: next.caret };
+			}, ends);
+			return;
+		}
+		// Lists, links, alignment and other commands make markup the text does not hold.
+		event.preventDefault();
+	}
+
+	function onCut(event) {
+		if (!inside() || selection.isCollapsed) return;
+		event.preventDefault();
+		event.clipboardData?.setData('text/plain', selection.toString());
+		insert('');
+	}
+	/** Pasted content arrives as plain text, on one line, so no foreign markup reaches the file. */
+	function onPaste(event) {
+		event.preventDefault();
+		insert((event.clipboardData?.getData('text/plain') || '').replace(/\s+/g, ' '));
+	}
 
 	return {
 		id,
 		element,
 		/**
-		 * The edit as it would be saved now, read from a copy so the text being
-		 * typed is never disturbed: operations against `current`, and where the
-		 * selection's anchor and focus fall, as `{ id, offset }` in a text run
-		 * of the edited document or `{ element }` between elements.
+		 * The edit as it would be saved now: operations against `current`, the
+		 * document they make, and where the selection's anchor and focus fall.
 		 */
 		preview(current) {
-			const copy = element.cloneNode(true);
-			const counterpart = new Map();
-			(function pair(from, to) {
-				counterpart.set(from, to);
-				from.childNodes.forEach((child, index) => pair(child, to.childNodes[index]));
-			})(element, copy);
-			const copied = new Map();
-			for (const [node, runId] of texts) if (counterpart.has(node)) copied.set(counterpart.get(node), runId);
-			const found = {};
-			if (inside()) {
-				const points = [textPoint(selection.anchorNode, selection.anchorOffset, ANCHOR), textPoint(selection.focusNode, selection.focusOffset, FOCUS)];
-				// The later point goes in first, so the earlier one's offset still holds.
-				if (points[0].node === points[1].node && points[0].offset < points[1].offset) points.reverse();
-				for (const point of points) {
-					const target = counterpart.get(point.node);
-					if (point.node.nodeType === 3 && target) target.data = target.data.slice(0, point.offset) + point.mark + target.data.slice(point.offset);
-					else {
-						const host = (point.node.nodeType === 1 ? point.node : point.node.parentElement)?.closest('[data-designer-id]');
-						found[point.mark] = { element: host && element.contains(host) ? host.dataset.designerId : id };
-					}
-				}
-			}
-			normalize(copy, current);
-			let count = 0;
-			// Ids for new runs count up, so the same text previews as the same operations.
-			const operations = reconcile(current, id, copy, copied, original, () => `preview-${count++}`, found);
-			return { operations, anchor: found[ANCHOR] || null, focus: found[FOCUS] || null };
+			return read(current);
 		},
-		/** Which marks the selection has, for the inspector's toggles. */
+		/** Which marks the selection has, for the inspector's toggles; at a caret, those the next typed text gets. */
 		marks() {
-			return Object.fromEntries(Object.entries(marks).map(([name, command]) => [name, Boolean(owner.queryCommandState(command))]));
+			const state = last ? withOffsets(flatten(last.doc, id), last.anchor, last.focus) : model();
+			if (state.start === null) return marksAt([], 0);
+			const result = marksAt(state.pieces, state.start, state.end);
+			if (pending && (pending.at !== state.start || state.start !== state.end)) pending = null;
+			return pending ? { ...result, ...pending.marks } : result;
 		},
 		/** Toggles bold, italic, underline or strikethrough on the selected text. */
 		toggle(mark) {
-			if (!marks[mark]) return;
 			restore();
-			owner.execCommand('styleWithCSS', false, false);
-			owner.execCommand(marks[mark]);
-			onSelection();
+			toggleSelection(mark);
 		},
 		/** Reads the edited element back into operations against the current document. */
 		operations(current, { makeId = nodeId } = {}) {
 			normalize(element, current);
 			return reconcile(current, id, element, texts, original, makeId);
 		},
-		stop,
+		stop: editable.stop,
 	};
 }
 
@@ -202,8 +418,11 @@ function plainText(el) {
  * `contenteditable`, takes focus with the caret where the user double-clicked,
  * and ends on Enter or Escape; Shift+Enter breaks the line. Pasted content
  * arrives as plain text, on one line unless the text is `multiline`.
+ *
+ * Rich text passes `rich` handlers, which take over keys, the browser's
+ * edits (`beforeinput`), cut, paste and line breaks.
  */
-function makeEditable({ element, point, onChange, onEnd, multiline = false }) {
+function makeEditable({ element, point, onChange, onEnd, multiline = false, rich = null }) {
 	const owner = element.ownerDocument;
 	const view = owner.defaultView;
 	let saved = null;
@@ -224,22 +443,25 @@ function makeEditable({ element, point, onChange, onEnd, multiline = false }) {
 		onChange();
 	}
 	function onKeydown(event) {
+		if (rich?.keydown(event)) return;
 		if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); event.stopPropagation(); onEnd(); }
-		else if (event.key === 'Enter') { event.preventDefault(); owner.execCommand('insertLineBreak'); }
+		else if (event.key === 'Enter') { event.preventDefault(); if (rich) rich.lineBreak(); else owner.execCommand('insertLineBreak'); }
 		else if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); onEnd(); }
 	}
 	/** Pasted and dropped content arrives as plain text, so no foreign markup reaches the file. */
 	function onPaste(event) {
+		if (rich) { rich.paste(event); return; }
 		event.preventDefault();
 		const text = event.clipboardData?.getData('text/plain') || '';
 		owner.execCommand('insertText', false, multiline ? text.replace(/\r\n?/g, '\n') : text.replace(/\s+/g, ' '));
 	}
 	function onDrop(event) { event.preventDefault(); }
+	function onDragstart(event) { if (rich) event.preventDefault(); }
+	function onBeforeInput(event) { rich?.beforeinput(event); }
+	function onCut(event) { rich?.cut(event); }
+	const listeners = [['keydown', onKeydown], ['paste', onPaste], ['drop', onDrop], ['dragstart', onDragstart], ['beforeinput', onBeforeInput], ['cut', onCut], ['input', onChange]];
 	owner.addEventListener('selectionchange', onSelection);
-	element.addEventListener('keydown', onKeydown);
-	element.addEventListener('paste', onPaste);
-	element.addEventListener('drop', onDrop);
-	element.addEventListener('input', onChange);
+	for (const [name, listener] of listeners) element.addEventListener(name, listener);
 	onSelection();
 
 	/** Restores the user's selection, which a click in the inspector can take away. */
@@ -249,10 +471,7 @@ function makeEditable({ element, point, onChange, onEnd, multiline = false }) {
 	}
 	function stop() {
 		owner.removeEventListener('selectionchange', onSelection);
-		element.removeEventListener('keydown', onKeydown);
-		element.removeEventListener('paste', onPaste);
-		element.removeEventListener('drop', onDrop);
-		element.removeEventListener('input', onChange);
+		for (const [name, listener] of listeners) element.removeEventListener(name, listener);
 		element.removeAttribute('contenteditable');
 		element.style.cursor = '';
 		element.style.outline = '';
@@ -270,149 +489,6 @@ function textPoint(node, offset, mark) {
 		if (after?.nodeType === 3) return { node: after, offset: 0, mark };
 	}
 	return { node, offset, mark };
-}
-
-/**
- * Turns what the browser produced into elements the file can hold: `<b>` becomes `<strong>`, styled spans are unwrapped.
- *
- * The browser also rewrites the file's own elements: taking bold off a
- * `<strong>` turns it into `<span style="font-weight: normal">`, keeping its
- * attributes. An element whose tag no longer matches its layer in `doc` is
- * no longer that layer, so it is read like one the browser made.
- */
-function normalize(el, doc) {
-	for (let child of [...el.childNodes]) {
-		if (child.nodeType === 8) { child.remove(); continue; }
-		if (child.nodeType !== 1) continue;
-		let known = child.dataset.designerId;
-		const tag = child.tagName.toLowerCase();
-		if (known && doc.nodes[known] && tagName(doc.nodes[known]) !== tag) {
-			delete child.dataset.designerId;
-			known = '';
-		}
-		if (!known) {
-			const wanted = createdTags[tag];
-			if (!wanted) {
-				normalize(child, doc);
-				child.replaceWith(...child.childNodes);
-				continue;
-			}
-			if (wanted !== tag) {
-				const renamed = child.ownerDocument.createElement(wanted);
-				renamed.append(...child.childNodes);
-				child.replaceWith(renamed);
-				child = renamed;
-			}
-			for (const name of child.getAttributeNames()) child.removeAttribute(name);
-		}
-		normalize(child, doc);
-		if (!known && tag !== 'br' && !child.textContent) child.remove();
-	}
-	el.normalize();
-}
-
-/**
- * Operations that make the document's subtree at `hostId` match the edited DOM.
- * Runs keep their ids where the DOM still holds their text node; elements keep
- * theirs by `data-designer-id`. Ops are computed against a running copy of the
- * child lists, so they apply in order. Selection placeholders in the text are
- * taken out and their places recorded in `found`.
- */
-function reconcile(doc, hostId, element, texts, original, makeId, found = null) {
-	const operations = [];
-	const children = new Map();
-	const parents = new Map();
-	const claimed = new Set();
-	const listOf = (id) => {
-		if (!children.has(id)) children.set(id, [...(doc.nodes[id]?.children || [])]);
-		return children.get(id);
-	};
-	const parentOf = (id) => (parents.has(id) ? parents.get(id) : doc.nodes[id]?.parent);
-	const exists = (id) => Boolean(doc.nodes[id]) && !parents.has(`removed:${id}`);
-
-	function place(id, parent, index) {
-		const from = parentOf(id);
-		const list = listOf(from);
-		if (from === parent && list[index] === id) return;
-		list.splice(list.indexOf(id), 1);
-		listOf(parent).splice(index, 0, id);
-		parents.set(id, parent);
-		operations.push({ op: 'move', id, parent, index });
-	}
-	function add(parent, index, entry) {
-		listOf(parent).splice(index, 0, entry.id);
-		children.set(entry.id, []);
-		parents.set(entry.id, parent);
-		claimed.add(entry.id);
-		operations.push({ op: 'insert', parent, index, fragment: { rootId: entry.id, nodes: { [entry.id]: { ...entry, parent, children: [] } } } });
-	}
-
-	(function visit(parent, el) {
-		let index = 0;
-		for (const child of [...el.childNodes]) {
-			if (child.nodeType === 3) {
-				// The browser keeps typed spaces with no-break spaces; the file holds plain, single ones.
-				let value = child.data.replace(/\s+/g, ' ');
-				const points = [];
-				if (found) {
-					const plain = (text) => text.replace(pointMarks, '').replace(/\s+/g, ' ');
-					for (const mark of [ANCHOR, FOCUS]) {
-						const at = value.indexOf(mark);
-						if (at >= 0) points.push({ mark, offset: plain(value.slice(0, at)).length });
-					}
-					value = plain(value);
-				}
-				if (!value) { for (const point of points) found[point.mark] = { element: parent }; continue; }
-				let id = texts.get(child);
-				if (id && original.has(id) && !claimed.has(id) && doc.nodes[id]?.type === 'text') {
-					claimed.add(id);
-					place(id, parent, index);
-					if (String(doc.nodes[id].props.value ?? '') !== value) operations.push({ op: 'setText', id, value });
-				} else {
-					id = makeId();
-					add(parent, index, { id, type: 'text', props: { value } });
-				}
-				for (const point of points) found[point.mark] = { id, offset: Math.min(point.offset, value.length) };
-				index += 1;
-				continue;
-			}
-			if (child.nodeType !== 1) continue;
-			const known = child.dataset.designerId;
-			// An element the browser made that holds only the caret (bold switched on, nothing typed yet) is not text yet.
-			if (found && !known && child.tagName !== 'BR' && !child.textContent.replace(pointMarks, '')) {
-				for (const mark of child.textContent) found[mark] = { element: parent };
-				continue;
-			}
-			if (known && original.has(known) && !claimed.has(known)) {
-				claimed.add(known);
-				place(known, parent, index);
-				visit(known, child);
-			} else {
-				// A known id seen twice is the browser splitting an element; the copy keeps its attributes.
-				const source = known && doc.nodes[known];
-				const id = makeId();
-				add(parent, index, source ? { id, type: source.type, props: cloneValue(source.props) } : { id, type: `html:${child.tagName.toLowerCase()}`, props: {} });
-				visit(id, child);
-			}
-			index += 1;
-		}
-	})(hostId, element);
-
-	// Whatever the DOM no longer shows is removed, outermost first.
-	for (const id of original) {
-		if (id === hostId || claimed.has(id) || !exists(id)) continue;
-		const from = parentOf(id);
-		if (from && !claimed.has(from) && from !== hostId && original.has(from) && exists(from)) continue;
-		const list = listOf(from);
-		list.splice(list.indexOf(id), 1);
-		markRemoved(id);
-		operations.push({ op: 'remove', id });
-	}
-	function markRemoved(id) {
-		parents.set(`removed:${id}`, true);
-		for (const child of listOf(id)) markRemoved(child);
-	}
-	return operations;
 }
 
 /**

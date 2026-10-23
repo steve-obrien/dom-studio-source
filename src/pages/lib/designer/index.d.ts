@@ -199,7 +199,7 @@ export interface CodeSync {
 	clearSelection(): void;
 	[key: string]: unknown;
 }
-export declare function useCodeSync(options: { session: EditorSession; inline?: InlineText | null; isStudioComponent?: (tag: string) => boolean; tagOf: (node: DesignerNode) => string; element: (id: string) => Element | null; open?: Ref<boolean>; notify?: (message: string) => void }): CodeSync;
+export declare function useCodeSync(options: { session: EditorSession; inline?: InlineText | null; isStudioComponent?: (tag: string) => boolean; element: (id: string) => Element | null; open?: Ref<boolean> }): CodeSync;
 /** The code of the session's active file, in sync with the stage. */
 export declare const DomCodePanel: DefineComponent<{ sync: CodeSync; editor?: object | null; editorProps?: Record<string, unknown>; label?: string }>;
 
