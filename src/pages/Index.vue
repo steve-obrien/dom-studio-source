@@ -9,6 +9,7 @@ import HomeDesignerVisual from './_home/HomeDesignerVisual.vue';
 import HomeDocumentsVisual from './_home/HomeDocumentsVisual.vue';
 import HomeFilesVisual from './_home/HomeFilesVisual.vue';
 import HomeGridVisual from './_home/HomeGridVisual.vue';
+import HomeKanbanVisual from './_home/HomeKanbanVisual.vue';
 import HomeLiveDemo from './_home/HomeLiveDemo.vue';
 import HomeMobileVisual from './_home/HomeMobileVisual.vue';
 import HomePricingCompare from './_home/HomePricingCompare.vue';
@@ -38,6 +39,17 @@ const products = [
 		features: ['Gantt and resource rows with stacked overlaps', 'Draw to create, drag to move, stretch to resize', 'Zoom from hours to months without losing your place', 'Working hours, weekends and snapping', 'Week planner and month calendar views', 'Loads only the visible date range'],
 		link: 'Explore the Scheduler',
 		more: [{ to: '/data/gantt', label: 'Gantt' }, { to: '/data/month-calendar', label: 'Month calendar' }],
+	},
+	{
+		id: 'kanban',
+		product: 'Kanban',
+		visual: HomeKanbanVisual,
+		live: () => import('./_home/live/HomeKanbanLive.vue'),
+		title: 'Boards your team will actually use.',
+		text: 'Drag cards between columns, or move them from the keyboard. Each card is your own Vue component, so covers, checklists and owners look the way your product does.',
+		features: ['Drag cards and columns, with keyboard moves too', 'Cards rendered by your own Vue component', 'Cover images, tags, checklists and owners', 'Card actions handled by your app', 'Rows and columns as plain v-model arrays', 'Scrolls cleanly on phones and wide screens'],
+		link: 'Explore the Kanban',
+		to: '/data/kanban',
 	},
 	{
 		id: 'documents',
@@ -158,7 +170,7 @@ function withNavigation(product, index) {
 						</DomButton>
 					</div>
 				</div>
-				<nav class="mx-auto mt-10 grid max-w-5xl grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5" aria-label="Products on this page">
+				<nav class="mx-auto mt-10 grid max-w-6xl grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6" aria-label="Products on this page">
 					<a v-for="product in products" :key="product.id" :href="`#${product.id}`" class="group rounded-xl border border-border bg-secondary/20 px-4 py-3 text-left transition-colors hover:border-canvas-fg/30 hover:bg-secondary/50">
 						<span class="font-mono text-[0.65rem] text-muted-fg">{{ product.number }}</span>
 						<span class="mt-1 flex items-center justify-between text-sm font-semibold">{{ product.product }} <span class="text-muted-fg transition-transform group-hover:translate-y-0.5" aria-hidden="true">↓</span></span>
