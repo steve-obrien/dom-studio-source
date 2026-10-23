@@ -177,7 +177,8 @@ export const EditorRender = defineComponent({
 			const boundStyle = attributes.style;
 			delete attributes.style;
 			const frameStyle = frameNodeStyle(node, parent);
-			const style = boundStyle && typeof boundStyle === 'object' ? [boundStyle, frameStyle] : frameStyle;
+			// A layer hidden in the designer stays in the code; only the canvas leaves it out.
+			const style = [boundStyle && typeof boundStyle === 'object' ? boundStyle : null, frameStyle, node.hidden ? { display: 'none' } : null].filter(Boolean);
 
 			if (type.adapter === 'vue') {
 				if (!type.component) {

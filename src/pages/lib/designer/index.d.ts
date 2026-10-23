@@ -124,6 +124,8 @@ export interface DomDesignerProps {
 	codeEditorProps?: Record<string, unknown>;
 	/** Offer Google Fonts in the text controls and load the ones in use (default true). Turn off for email, which can only use installed fonts. */
 	googleFonts?: boolean;
+	/** Show rulers along the canvas when it opens, counted from the active artboard's corner. ⇧R toggles them. */
+	rulers?: boolean;
 	onSave?: (event: { id: string; value: DesignerWorkspace }) => void;
 }
 /** The DOM designer: artboards, layers, a generated inspector and a two-way code view. */

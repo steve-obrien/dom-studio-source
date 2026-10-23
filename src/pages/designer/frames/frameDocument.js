@@ -93,6 +93,8 @@ export function frameNodeStyle(node, parent) {
 			const box = node.placements?.absolute;
 			for (const key of ['inset', 'right', 'bottom']) delete style[key];
 			if (box) for (const key of box.sized === false ? ['left', 'top'] : ['left', 'top', 'width', 'height']) if (Number.isFinite(box[key])) style[key] = `${Math.round(box[key])}px`;
+		} else if (parent.layout.mode === 'absolute' && parent.layout.fromSource && !node.placements?.absolute) {
+			// Adopted from the source, and this layer was never measured (it was hidden): its own classes still place it.
 		} else if (parent.layout.mode === 'absolute') {
 			for (const key of ['left', 'top', 'right', 'bottom']) delete style[key];
 			Object.assign(style, { position: 'absolute !important', margin: '0px !important', inset: 'auto !important', boxSizing: 'border-box', flex: 'none !important' });

@@ -14,6 +14,8 @@ import { cssEditorContextKey } from '../_shared/cssEditorContext.js';
 import { useNodeStyle } from './nodeStyle.js';
 import { useGoogleFonts } from '../typography-editor/googleFonts.js';
 import AlignTools from '../stage/AlignTools.vue';
+import DesignerRulers from '../stage/DesignerRulers.vue';
+import { boundsOf } from '../stage/layoutGeometry.js';
 import { copySubtree, fromTree, isExpr, subtreeIds } from './editorDocument.js';
 import { useEditorSession } from './useEditorSession.js';
 import { useInlineText } from './useInlineText.js';
@@ -86,6 +88,8 @@ const props = defineProps({
 	 * scrolls the page (pinch or ⌘/Ctrl + scroll still zooms).
 	 */
 	embedded: { type: Boolean, default: false },
+	/** Show rulers along the canvas when the designer opens, counted from the active artboard's corner. ⇧R toggles them. */
+	rulers: { type: Boolean, default: false },
 });
 const emit = defineEmits(['save']);
 const MIN_ZOOM = 0.1;
@@ -155,6 +159,11 @@ const stageInset = computed(() => (props.codeLayout === 'below' && showCode.valu
 const hintInset = computed(() => (props.codeLayout === 'below' && showCode.value ? { bottom: `calc(${codeShare} + 0.75rem)` } : {}));
 const projectFiles = ref(null);
 const snapping = ref(true);
+const showRulers = ref(props.rulers);
+const RULER = 20;
+// The canvas viewport's size, for the rulers.
+const viewportSize = ref({ width: 0, height: 0 });
+let viewportObserver;
 const inline = useInlineText({ session, view: () => `${activeArtboardId.value}:${viewMode.value}:${canvasMode.value}`, notify: (text) => { notice.value = text; } });
 const { editing, editState, revisions } = inline;
 const finishTextEdit = inline.finish;
@@ -301,9 +310,15 @@ function layer(id) {
 	const heading = /^h[1-6]$/.test(tag) && !node.label ? headingText(node) : '';
 	const label = node.label || heading || (node.type.startsWith('vue:') ? tag : `${tag}${typeof node.props.id === 'string' ? ` #${node.props.id}` : ''}`);
 	const flags = (node.directives || []).filter((source) => /^v-(if|else|for)/.test(source)).map((source) => source.split('=')[0]);
+	// Locked and hidden layers show an icon that undoes it.
+	const actions = [
+		node.locked && { value: 'unlock', label: 'Unlock', icon: 'M6 11h12v9H6z M8.5 11V7.5a3.5 3.5 0 0 1 7 0V11' },
+		node.hidden && { value: 'show', label: 'Show', icon: 'M3 3l18 18 M10.6 10.6a2 2 0 0 0 2.8 2.8 M6.6 6.7C4 8.4 2.5 12 2.5 12s3.5 6.5 9.5 6.5c1.6 0 3-.5 4.3-1.1 M9.9 5.7c.7-.1 1.4-.2 2.1-.2 6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.2 3' },
+	].filter(Boolean);
 	return {
 		id,
 		label: flags.length ? `${label} · ${flags.join(' ')}` : label,
+		actions,
 		...layerIcon(node, tag),
 		open: true,
 		acceptsChildren: canNest(node),
@@ -567,11 +582,35 @@ function insertComponent(entry) {
 /** Removes the selection; the file root stays so every artboard has something to render. */
 /** Deletes the selected layers; the root stays. */
 function remove() {
-	const nodes = selectedNodes.value.filter((node) => node.parent);
+	const nodes = selectedNodes.value.filter((node) => node.parent && !node.locked);
 	if (!nodes.length) return;
 	const host = placement.sharedParent.value?.id || nodes[nodes.length - 1].parent;
 	run(nodes.map((node) => onFile({ op: 'remove', id: node.id })));
 	selected.value = host;
+}
+
+/** The selection's extent in the active artboard, highlighted on the rulers. */
+const rulerSelection = computed(() => {
+	// Re-measured after each render and edit.
+	detected.value;
+	historySize.value;
+	const view = activeViewport();
+	const boxes = selectedIds.value.map((id) => view?.element(id)?.getBoundingClientRect()).filter((rect) => rect?.width || rect?.height);
+	return boxes.length ? boundsOf(boxes.map((rect) => ({ left: rect.left, top: rect.top, width: rect.width, height: rect.height }))) : null;
+});
+
+/** Locks or hides the selected layers, or undoes it, following the primary layer. A locked layer cannot be hidden or shown. */
+function toggleFlag(field) {
+	const value = !active.value?.[field];
+	const nodes = selectedNodes.value.filter((node) => node.parent && (field === 'locked' || !node.locked) && Boolean(node[field]) !== value);
+	if (nodes.length) run(nodes.map((node) => onFile({ op: 'setField', id: node.id, key: field, value: value || undefined })));
+}
+
+/** The unlock and show icons on a layer row. */
+function onLayerAction({ action, value }) {
+	const node = doc.value.nodes[value];
+	if (!node) return;
+	run(onFile({ op: 'setField', id: node.id, key: action === 'unlock' ? 'locked' : 'hidden', value: undefined }));
 }
 
 function selectParent() {
@@ -583,6 +622,8 @@ function duplicate() {
 	if (!parent.value) return;
 	const fragment = copySubtree(doc.value, selected.value, { freshIds: true });
 	const copy = fragment.nodes[fragment.rootId];
+	// A copy is made to be changed, so it starts unlocked.
+	delete copy.locked;
 	if (copy.placements?.absolute) copy.placements.absolute = { ...copy.placements.absolute, left: copy.placements.absolute.left + 16, top: copy.placements.absolute.top + 16 };
 	run(onFile({ op: 'insert', parent: parent.value.id, index: parent.value.children.indexOf(selected.value) + 1, fragment }));
 	selected.value = fragment.rootId;
@@ -591,7 +632,7 @@ function duplicate() {
 /** Moves the selection earlier or later among its siblings. */
 function reorder(direction) {
 	const siblings = parent.value?.children;
-	if (!siblings) return;
+	if (!siblings || active.value?.locked) return;
 	const target = siblings.indexOf(selected.value) + direction;
 	if (target < 0 || target >= siblings.length) return;
 	run(onFile({ op: 'move', id: selected.value, parent: parent.value.id, index: target }));
@@ -919,6 +960,8 @@ function onKeydown(event) {
 	if (isTyping(event)) return;
 	if (event.code === 'Space' && !event.repeat) { spaceHeld.value = true; event.preventDefault(); return; }
 	if (mod && event.key.toLowerCase() === 'z') { event.preventDefault(); if (event.shiftKey) redo(); else undo(); return; }
+	if (!mod && event.shiftKey && event.code === 'KeyR') { event.preventDefault(); showRulers.value = !showRulers.value; return; }
+	if (mod && event.shiftKey && ['l', 'h'].includes(event.key.toLowerCase()) && selected.value) { event.preventDefault(); toggleFlag(event.key.toLowerCase() === 'l' ? 'locked' : 'hidden'); return; }
 	if (mod && event.key.toLowerCase() === 'y') { event.preventDefault(); redo(); return; }
 	if (mod && event.key.toLowerCase() === 'd') { event.preventDefault(); duplicate(); return; }
 	if (mod && (event.key === '=' || event.key === '+')) { event.preventDefault(); zoomBy(1.25); return; }
@@ -953,6 +996,10 @@ onMounted(async () => {
 	window.addEventListener('keyup', onKeyup);
 	window.addEventListener('blur', onWindowBlur);
 	viewport.value?.addEventListener('wheel', onWheel, { passive: false });
+	if (viewport.value && typeof ResizeObserver !== 'undefined') {
+		viewportObserver = new ResizeObserver(() => { viewportSize.value = { width: viewport.value.clientWidth, height: viewport.value.clientHeight }; });
+		viewportObserver.observe(viewport.value);
+	}
 	compileCss();
 	setTimeout(fitAll, 120);
 });
@@ -966,6 +1013,7 @@ onBeforeUnmount(() => {
 	window.removeEventListener('keyup', onKeyup);
 	window.removeEventListener('blur', onWindowBlur);
 	viewport.value?.removeEventListener('wheel', onWheel);
+	viewportObserver?.disconnect();
 });
 
 /**
@@ -1015,6 +1063,7 @@ defineExpose({
 				</div>
 				<template v-if="canvasMode === 'canvas'">
 					<label class="mr-2 hidden items-center gap-2 text-xs text-muted-fg md:flex"><input v-model="snapping" type="checkbox">Snap</label>
+					<label class="mr-2 hidden items-center gap-2 text-xs text-muted-fg md:flex" title="Rulers (⇧R)"><input v-model="showRulers" type="checkbox">Rulers</label>
 					<DomButton size="sm" variant="ghost" aria-label="Zoom out" title="Zoom out (⌘−)" @click="zoomBy(0.8)">−</DomButton>
 					<button type="button" class="w-14 rounded-md py-1 text-center text-xs tabular-nums text-muted-fg hover:bg-secondary" title="Reset to 100% (⇧0)" @click="zoomBy(1 / zoom)">{{ zoomLabel }}</button>
 					<DomButton size="sm" variant="ghost" aria-label="Zoom in" title="Zoom in (⌘+)" @click="zoomBy(1.25)">+</DomButton>
@@ -1074,10 +1123,10 @@ defineExpose({
 								>
 									<DomDesignerStage
 										:model-value="board.fileId === activeFile?.id ? selected : ''"
-										positioning
+										:positioning="!active?.locked"
 										frame-scoped
 										:zoom="canvasMode === 'canvas' ? zoom : 1"
-										reorder
+										:reorder="!active?.locked"
 										:editing="editing?.board === board.id ? editing.id : ''"
 										:snapping="snapping"
 										:spacing-snapping="snapping"
@@ -1108,6 +1157,11 @@ defineExpose({
 						</div>
 					</div>
 					<div v-if="spaceHeld || panning" class="absolute inset-0" aria-hidden="true"></div>
+				</div>
+				<div v-if="showRulers && canvasMode === 'canvas' && activeArtboard && viewportSize.width" class="pointer-events-none absolute z-[5] overflow-hidden" :style="{ left: 0, top: 0, width: `${viewportSize.width}px`, height: `${viewportSize.height}px`, paddingLeft: `${RULER}px`, paddingTop: `${RULER}px` }">
+					<div class="relative">
+						<DesignerRulers :width="(viewportSize.width - RULER) / zoom" :height="(viewportSize.height - RULER) / zoom" :scale="zoom" :size="RULER" :origin="{ x: (RULER - pan.x) / zoom - activeArtboard.x, y: (RULER - pan.y) / zoom - activeArtboard.y }" :selection="rulerSelection" />
+					</div>
 				</div>
 				<p v-if="compilerNotice" :style="hintInset" class="pointer-events-none absolute bottom-3 left-3 max-lg:bottom-20 max-w-md rounded-md bg-canvas/90 px-3 py-2 text-xs text-muted-fg shadow">{{ compilerNotice }}</p>
 				<p v-if="canvasMode === 'canvas'" :style="hintInset" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] text-muted-fg shadow md:block">Double-click text to edit · {{ embedded ? 'Drag the canvas to pan' : 'Scroll to pan' }} · ⌘/Ctrl + scroll to zoom · Space + drag · ⇧1 fit</p>
@@ -1157,7 +1211,7 @@ defineExpose({
 						</section>
 						<section>
 							<h2 class="mb-1 px-1 text-xs font-semibold uppercase tracking-wide text-muted-fg">Layers · {{ activeFile?.name }}</h2>
-							<DomDesignerLayers v-model="selected" v-model:values="selection" :items="layers" @reorder="moveLayer" />
+							<DomDesignerLayers v-model="selected" v-model:values="selection" :items="layers" @reorder="moveLayer" @action="onLayerAction" />
 						</section>
 					</div>
 					<div v-else-if="leftTab === 'insert'" class="min-h-0 flex-1 space-y-4 overflow-auto p-3">
@@ -1212,6 +1266,8 @@ defineExpose({
 								<p class="mt-0.5 truncate text-[11px] text-muted-fg">{{ placement.sharedParent.value ? `Inside ${placement.sharedParent.value.label || tagOf(placement.sharedParent.value)} · ${placement.modeOf(placement.sharedParent.value.id)}` : 'In different frames' }}</p>
 							</div>
 							<div class="-mr-1.5 flex shrink-0 items-center" role="toolbar" aria-label="Selection actions">
+								<button type="button" class="grid size-7 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg" :aria-label="active?.locked ? 'Unlock layers' : 'Lock layers'" v-dom-tooltip="active?.locked ? 'Unlock layers (⇧⌘L)' : 'Lock layers (⇧⌘L)'" @click="toggleFlag('locked')"><InspectorIcon :name="active?.locked ? 'lock' : 'unlock'" /></button>
+								<button type="button" class="grid size-7 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg" :aria-label="active?.hidden ? 'Show layers' : 'Hide layers'" v-dom-tooltip="active?.hidden ? 'Show layers (⇧⌘H)' : 'Hide layers (⇧⌘H)'" @click="toggleFlag('hidden')"><InspectorIcon :name="active?.hidden ? 'eye-off' : 'eye'" /></button>
 								<button type="button" class="grid size-7 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-destructive" aria-label="Delete layers" v-dom-tooltip="'Delete layers'" @click="remove()"><InspectorIcon name="trash" /></button>
 							</div>
 						</header>
@@ -1231,9 +1287,12 @@ defineExpose({
 								<p class="mt-0.5 truncate text-[11px] text-muted-fg">{{ parent ? `Inside ${parent.label || tagOf(parent)} · ${parentMode}` : 'File root' }}</p>
 							</div>
 							<div v-if="parent" class="-mr-1.5 flex shrink-0 items-center" role="toolbar" aria-label="Layer actions">
-								<button v-for="action in [{ icon: 'parent', label: 'Select parent', run: selectParent }, { icon: 'up', label: 'Move earlier', run: () => reorder(-1) }, { icon: 'down', label: 'Move later', run: () => reorder(1) }, { icon: 'duplicate', label: 'Duplicate (⌘D)', run: duplicate }, { icon: 'trash', label: 'Delete', run: remove }]" :key="action.icon" type="button" class="grid size-7 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg" :class="action.icon === 'trash' && 'hover:text-destructive'" :aria-label="action.label" v-dom-tooltip="action.label" @click="action.run()"><InspectorIcon :name="action.icon" /></button>
+								<button v-for="action in [{ icon: 'parent', label: 'Select parent', run: selectParent }, { icon: active.locked ? 'lock' : 'unlock', label: active.locked ? 'Unlock (⇧⌘L)' : 'Lock (⇧⌘L)', run: () => toggleFlag('locked'), pressed: Boolean(active.locked) }, { icon: active.hidden ? 'eye-off' : 'eye', label: active.hidden ? 'Show (⇧⌘H)' : 'Hide (⇧⌘H)', run: () => toggleFlag('hidden'), pressed: Boolean(active.hidden) }, { icon: 'up', label: 'Move earlier', run: () => reorder(-1), disabled: active.locked }, { icon: 'down', label: 'Move later', run: () => reorder(1), disabled: active.locked }, { icon: 'duplicate', label: 'Duplicate (⌘D)', run: duplicate }, { icon: 'trash', label: 'Delete', run: remove, disabled: active.locked }]" :key="action.label" type="button" class="grid size-7 place-items-center rounded-md text-muted-fg transition hover:bg-secondary hover:text-canvas-fg disabled:pointer-events-none disabled:opacity-40" :class="[action.icon === 'trash' && 'hover:text-destructive', action.pressed && 'text-primary']" :aria-label="action.label" :aria-pressed="'pressed' in action ? action.pressed : undefined" :disabled="action.disabled" v-dom-tooltip="action.label" @click="action.run()"><InspectorIcon :name="action.icon" /></button>
 							</div>
 						</header>
+						<p v-if="active.locked" class="border-b border-border bg-secondary/60 px-4 py-2.5 text-[11px] leading-4 text-muted-fg">Locked: it can’t be moved, edited or deleted. Unlock it to change it.</p>
+						<p v-else-if="active.hidden" class="border-b border-border bg-secondary/60 px-4 py-2.5 text-[11px] leading-4 text-muted-fg">Hidden on the canvas. It stays in the code.</p>
+						<fieldset :disabled="Boolean(active.locked)" class="contents">
 
 						<section v-if="inlineContent.length" class="space-y-2 border-b border-border px-4 py-3">
 							<h3 class="text-[11px] font-semibold">Content</h3>
@@ -1293,6 +1352,7 @@ defineExpose({
 							<NodeInspector v-if="textChild" :key="`text-${textChild.id}`" :node="textChild" :type="types.get('text')" :data="previews[activeFile.id]" @set-prop="setProp(textChild.id, $event)" />
 							<NodeInspector :key="active.id" :node="active" :type="activeType" :data="previews[activeFile.id]" @set-prop="setProp(active.id, $event)" />
 						</div>
+						</fieldset>
 					</template>
 
 					<div v-else-if="activeArtboard" class="space-y-5 p-4">

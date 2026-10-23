@@ -67,6 +67,7 @@ const functions = [
 		<DocPage name="useLayoutGeometry" eyebrow="Designer composable" tag="Beta" tagline="Where layers sit and how they move: drags, X/Y/W/H, and align and distribute for one layer or several.">
 			<DocSection title="What it does">
 				<p class="text-muted-fg">It measures layers as the browser renders them and writes their new positions through the session, so every move is undoable and reaches the code. It reads each frame’s layout from its classes, so a frame made absolute with Tailwind behaves like one set in the designer.</p>
+				<p class="text-muted-fg">Locked layers (<code>node.locked</code>) stay where they are: drags, X/Y/W/H and align skip them, though they still count toward a selection’s bounds. Hidden layers (<code>node.hidden</code>) are left out of the canvas but stay in the code, and keep the place their classes give them.</p>
 				<p class="text-muted-fg">Positions apply to layers in an absolute frame. Moving one adopts the frame first: every child’s current box is recorded, so nothing else jumps. Layers in flow, flex and grid frames are reordered on the stage instead.</p>
 			</DocSection>
 			<DocSection title="Try it" eyebrow="Example">
