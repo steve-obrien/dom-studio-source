@@ -17,6 +17,9 @@
  * pulls form components into the bundle. `props` are passed to that editor.
  * Props without a hint get an editor from their type; arrays, objects and
  * functions without one are left out.
+ *
+ * Each field also carries the prop's `defaultValue` when it is a plain string,
+ * number or boolean, so inspectors can show what an unset prop resolves to.
  */
 
 function componentProps(component) {
@@ -30,13 +33,37 @@ function componentProps(component) {
 // Default editor for a Vue prop type when no `_edit` hint is given.
 function defaultEditorForProp(def) {
 	if (!def) return 'DomTextInput';
-	const t = def?.type ?? def;
-	const types = Array.isArray(t) ? t : [t];
+	const types = propTypes(def);
 	if (types.includes(Boolean)) return 'DomToggle';
 	if (types.includes(String)) return 'DomTextInput';
 	if (types.includes(Number)) return 'DomNumberInput';
 	if (types.includes(Array) || types.includes(Object) || types.includes(Function)) return null;
 	return 'DomTextInput';
+}
+
+function propTypes(def) {
+	const t = def?.type ?? def;
+	return Array.isArray(t) ? t : [t];
+}
+
+/**
+ * The value Vue uses when a prop is not passed: its `default` (factories are
+ * called), or `false` for a Boolean prop without one. Objects, arrays and
+ * functions are left out, since an inspector can only show simple values.
+ */
+function defaultValueForProp(def) {
+	if (!def || typeof def !== 'object') return undefined;
+	const types = propTypes(def);
+	let value = def.default;
+	if (typeof value === 'function' && !types.includes(Function)) {
+		try {
+			value = value({});
+		} catch {
+			return undefined;
+		}
+	}
+	if (value === undefined && !('default' in def) && types.includes(Boolean)) value = false;
+	return ['string', 'number', 'boolean'].includes(typeof value) ? value : undefined;
 }
 
 function resolveComponent(hint, props, def) {
@@ -72,7 +99,7 @@ function prettify(s) {
  *
  * @param {object|string|null} component Vue component object.
  * @param {Record<string, object>} [hints] Per-prop overrides, stacked on `_edit`.
- * @returns {Array<{ key: string, label: string, description?: string, group?: string, component: string, props: object }>} Fields.
+ * @returns {Array<{ key: string, label: string, description?: string, group?: string, component: string, props: object, defaultValue?: string|number|boolean }>} Fields.
  */
 export function schemaForComponent(component, hints = {}) {
 	const fields = [];
@@ -81,7 +108,10 @@ export function schemaForComponent(component, hints = {}) {
 		const inlineEdit = def && typeof def === 'object' && def._edit;
 		const edit = normaliseEdit({ ...(inlineEdit || {}), ...(hints[key] || {}) }, def);
 		if (!edit.component) continue;
-		fields.push({ key, label: edit.label || prettify(key), description: edit.description, group: edit.group, component: edit.component, props: edit.props });
+		const field = { key, label: edit.label || prettify(key), description: edit.description, group: edit.group, component: edit.component, props: edit.props };
+		const defaultValue = defaultValueForProp(def);
+		if (defaultValue !== undefined) field.defaultValue = defaultValue;
+		fields.push(field);
 	}
 	return fields;
 }
