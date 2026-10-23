@@ -489,7 +489,27 @@ function focusNode(value, shouldScroll = false) {
  * @param {string|number} value
  */
 function scrollToNode(value) {
-	nextTick(() => rowRefs.get(String(value))?.scrollIntoView({ block: 'nearest' }));
+	nextTick(() => scrollWithinTree(rowRefs.get(String(value))));
+}
+
+/**
+ * Scrolls the row's nearest scrolling ancestor, never the page: on a phone,
+ * selecting on a design canvas must not jump the page down to the layer list.
+ *
+ * @param {HTMLElement | undefined} row
+ */
+function scrollWithinTree(row) {
+	let box = row?.parentElement;
+	while (box && box !== row.ownerDocument.body) {
+		const { overflowY } = getComputedStyle(box);
+		if (/auto|scroll|overlay/.test(overflowY) && box.scrollHeight > box.clientHeight) break;
+		box = box.parentElement;
+	}
+	if (!box || box === row.ownerDocument.body) return;
+	const rowBox = row.getBoundingClientRect();
+	const frame = box.getBoundingClientRect();
+	if (rowBox.top < frame.top) box.scrollTop -= frame.top - rowBox.top;
+	else if (rowBox.bottom > frame.bottom) box.scrollTop += Math.min(rowBox.bottom - frame.bottom, rowBox.top - frame.top);
 }
 
 function selectNode(node) {

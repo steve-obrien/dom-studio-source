@@ -8026,6 +8026,10 @@ export interface DomDesignerStageProps {
 	 */
 	selection?: Array<unknown>;
 	/**
+	 * Scale applied outside the stage's own document, such as a zoomed canvas around an artboard iframe, so outlines and handles keep their screen size.
+	 */
+	zoom?: number;
+	/**
 	 * Drag layers inside flow, flex and grid frames to reorder them. Emits reorder with the new parent and the sibling it goes before.
 	 */
 	reorder?: boolean;

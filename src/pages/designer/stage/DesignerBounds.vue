@@ -1,4 +1,6 @@
 <script setup>
+import { onMounted, ref } from 'vue';
+
 const props = defineProps({
 	box: { type: Object, required: true },
 	scale: { type: Number, default: 1 },
@@ -18,9 +20,12 @@ const handles = [
 	{ id: 'sw', label: 'bottom left', x: 0, y: 100, cursor: 'nesw-resize' },
 	{ id: 'w', label: 'left', x: 0, y: 50, cursor: 'ew-resize' },
 ];
+// Fingers need bigger handles than a mouse.
+const handleSize = ref(12);
+onMounted(() => { if (window.matchMedia?.('(pointer: coarse)').matches) handleSize.value = 20; });
 /** Keeps handles constant in screen pixels at every stage zoom. */
 function handleStyle(handle) {
-	return { left: `${handle.x}%`, top: `${handle.y}%`, width: `${12 / props.scale}px`, height: `${12 / props.scale}px`, borderWidth: `${2 / props.scale}px`, cursor: handle.cursor };
+	return { left: `${handle.x}%`, top: `${handle.y}%`, width: `${handleSize.value / props.scale}px`, height: `${handleSize.value / props.scale}px`, borderWidth: `${2 / props.scale}px`, cursor: handle.cursor };
 }
 </script>
 
