@@ -119,7 +119,8 @@ function applyChange({ row, column, value }) {
 ```
 
 - `editable` lets every plain column be edited. Set `editable: false` on a column to lock it, or `editable: true` to allow just that column. A function `editable(row, column)` decides per cell.
-- People double-click a cell to edit it. Add `cell-selection` for keyboard editing: arrow keys move between cells, Enter, F2 or typing starts an edit, Enter saves and moves down, Tab saves and moves right, Escape cancels.
+- People double-click a cell to edit it. Add `cell-selection` for keyboard editing: the grid body becomes one Tab stop, the first arrow key picks a cell, arrow keys move between cells, Enter, F2 or typing starts an edit, Enter saves and moves down, Tab saves and moves right, leaving the cell saves, and Escape cancels.
+- Select columns edit with a native select that includes an empty "-" choice. Add `validate` if the value is required.
 - `cell-selection` also adds range selection, copy, cut, paste from Excel or Google Sheets, Delete to clear, and undo or redo.
 - `validate(value, row, column)` returns `true` or an error message, which is shown and keeps the old value. Add a check for empty text if a column must not be blank.
 - `parse(text, column)` converts typed or pasted text before validation.
@@ -203,6 +204,10 @@ A resource API can take the query as it comes, with paging beside it. The same e
 	pageInfo: { strategy: 'page', page: 2, pageSize: 25, pageCount: 8, total: 184, hasNextPage: true, nextCursor: 'customer:50' },
 }
 ```
+
+## Toolbar and footer
+
+With `toolbar` on, the grid shows the `title`, a search box, filter chips with "Clear filters", the `toolbar-actions` slot, the Export menu when `exportable` is set, and a count such as "1,243 of 10,000 orders" using `resource-label`. The footer shows the column count, "N selected" when rows are selected, and short notices such as "Exported 1243 rows to CSV". Set `:toolbar="false"` to supply your own.
 
 ## Layout
 

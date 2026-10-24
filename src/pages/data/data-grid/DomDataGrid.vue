@@ -751,6 +751,12 @@ function inferColumnType(values) {
 	return 'text';
 }
 
+const countFormatter = new Intl.NumberFormat('en-GB');
+
+function formatCount(value) {
+	return Number.isFinite(Number(value)) ? countFormatter.format(Number(value)) : value;
+}
+
 function labelFromKey(key) {
 	return String(key)
 		.replace(/[_-]+/g, ' ')
@@ -2587,7 +2593,7 @@ function hasColumnMenu(column) {
 				<div class="min-w-0 flex-1">
 					<h2 :id="titleId" class="truncate text-sm font-semibold tracking-tight text-canvas-fg">{{ title }}</h2>
 					<p class="mt-0.5 text-xs text-muted-fg">
-						{{ shownRowCount }} of {{ totalRowCount }} {{ resourceLabel }}
+						{{ formatCount(shownRowCount) }} of {{ formatCount(totalRowCount) }} {{ resourceLabel }}
 						<span v-if="remote">from resource API</span>
 					</p>
 				</div>

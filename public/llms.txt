@@ -8,7 +8,7 @@ When building with DOM Studio, start from the closest block or example, compose 
 
 The package root and `@getdom/studio/vue` export the same Vue surface. Import `@getdom/studio/style.css` for styles and `@getdom/studio/headless` to register the framework-neutral `dom-*` custom elements. Blocks are repository-local source patterns to copy and adapt, not published package exports.
 
-The npm package ships Markdown docs for every component in `docs/components/` (start at `docs/components/README.md`), with props, defaults, events, slots, methods, keyboard support and types. Read `docs/components/<Name>.md` instead of component source.
+The npm package ships Markdown docs for every component in `docs/components/` (start at `docs/components/README.md`), with props, defaults, events, slots, methods, keyboard support and types. Read `docs/components/<Name>.md` before component source.
 
 ## Core Documentation
 

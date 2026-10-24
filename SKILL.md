@@ -41,7 +41,7 @@ vue({ template: { compilerOptions: { isCustomElement: (tag) => tag.startsWith('d
 
 ## Component Docs
 
-Read `node_modules/@getdom/studio/docs/components/<Name>.md` before using a component, for example `DomDataGrid.md`. Each file lists props with types and defaults, events with payload types, slots, template ref methods, keyboard support and the related types, so there is no need to read component source. Files marked "guide" in `docs/components/README.md` also cover usage, defaults to change, common mistakes and working examples. The same types are in `index.d.ts` with JSDoc.
+Read `node_modules/@getdom/studio/docs/components/<Name>.md` before using a component, for example `DomDataGrid.md`. Each file lists props with types and defaults, events with payload types, slots, template ref methods, keyboard support and the related types, so you rarely need to read component source. Files marked "guide" in `docs/components/README.md` also cover usage, defaults to change, common mistakes and working examples. The same types are in `index.d.ts` with JSDoc.
 
 ## Component Choice
 
