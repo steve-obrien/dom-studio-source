@@ -81,12 +81,13 @@ function setFormat(value) {
 	designer.value.fit();
 }
 
-/** Every format, resized from the design with each layer's pins; updated a moment after edits stop. */
+/** Every format, resized from the design with each layer's pins; redrawn at most once a frame, so previews follow a drag. */
 const previews = shallowRef([]);
-let previewTimer = 0;
-watch(() => [showFormats.value, file.value && JSON.stringify(file.value.doc)], () => {
-	clearTimeout(previewTimer);
-	previewTimer = setTimeout(() => {
+let previewFrame = 0;
+watch(() => [showFormats.value, file.value?.doc], () => {
+	if (previewFrame || typeof requestAnimationFrame !== 'function') return;
+	previewFrame = requestAnimationFrame(() => {
+		previewFrame = 0;
 		const target = file.value;
 		if (!target || !showFormats.value) return;
 		const base = { ...target, doc: baseDoc() };
@@ -95,8 +96,8 @@ watch(() => [showFormats.value, file.value && JSON.stringify(file.value.doc)], (
 			const markup = postMarkup({ ...base, doc: resizedDocument(base, format) });
 			return { ...format, value: `${format.width}x${format.height}`, current: format.width === size.value.width && format.height === size.value.height, markup, fonts };
 		});
-	}, 250);
-}, { immediate: true });
+	});
+}, { immediate: true, deep: true });
 
 /* Export ------------------------------------------------------------------------- */
 

@@ -1,4 +1,3 @@
-import { cloneValue } from '../core/editorDocument.js';
 import { exportFile, importFile } from '../canvas/canvasWorkspace.js';
 import { escapeHtml, posterLayerStyle, safePosterImage } from '../poster/posterModel.js';
 import { resizeLayer } from '../poster/posterResize.js';
@@ -118,17 +117,19 @@ export function formatOperations(doc, fileId, to) {
 }
 
 /**
- * A copy of a file's document at another format, for previews.
+ * The file's document at another format, for previews and export. Only the
+ * resized nodes are copied; the rest are shared with `file.doc`, so this is
+ * cheap enough to run for every format on every frame of a drag. Clone it
+ * before editing it.
  *
  * @param {object} file Designer file.
  * @param {{ width: number, height: number }} to Size.
  * @returns {object} Document.
  */
 export function resizedDocument(file, to) {
-	const doc = cloneValue(file.doc);
+	const doc = { ...file.doc, nodes: { ...file.doc.nodes } };
 	for (const operation of formatOperations(file.doc, file.id, to)) {
-		if (operation.key === 'style') doc.nodes[operation.id].style = operation.value;
-		else doc.nodes[operation.id].placements = operation.value;
+		doc.nodes[operation.id] = { ...doc.nodes[operation.id], [operation.key]: operation.value };
 	}
 	return doc;
 }
