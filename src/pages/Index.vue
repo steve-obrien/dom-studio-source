@@ -168,9 +168,9 @@ function withNavigation(product, index) {
 						</DomButton>
 					</div>
 				</div>
-				<nav class="mx-auto mt-10 grid max-w-6xl grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6" aria-label="Products on this page">
+				<nav class="mx-auto mt-10 grid max-w-6xl grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4" aria-label="Products on this page">
 					<a v-for="product in products" :key="product.id" :href="`#${product.id}`" class="group flex items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-secondary/50">
-						<img :src="`/media/product-icons/${product.id}.svg`" width="40" height="40" alt="" class="size-10 shrink-0 transition-transform group-hover:-translate-y-0.5">
+						<img :src="`/media/product-icons-3d/${product.id}.webp`" width="64" height="64" alt="" class="size-16 shrink-0 transition-transform group-hover:-translate-y-0.5">
 						<span class="min-w-0 flex-1">
 							<span class="block font-mono text-[0.65rem] text-muted-fg">{{ product.number }}</span>
 							<span class="mt-0.5 flex items-center justify-between gap-2 text-sm font-semibold">{{ product.product }} <span class="text-muted-fg transition-transform group-hover:translate-y-0.5" aria-hidden="true">↓</span></span>

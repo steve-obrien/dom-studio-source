@@ -20,6 +20,7 @@ defineProps({
 		<div class="mx-auto grid max-w-[1320px] gap-10 px-5 py-16 sm:px-8 lg:gap-14 lg:py-24">
 			<div class="grid min-w-0 gap-x-14 lg:grid-cols-2">
 				<div>
+				<img :src="`/media/product-icons-3d/${id}.webp`" width="128" height="128" alt="" loading="lazy" class="-ml-3 mb-3 size-28 sm:size-32">
 				<p class="font-mono text-xs uppercase tracking-[0.18em] text-muted-fg">{{ number }} / {{ product }}</p>
 				<h2 class="mt-4 text-3xl font-semibold leading-tight tracking-[-0.04em] sm:text-[2.6rem]">{{ title }}</h2>
 				<p class="mt-4 max-w-md text-base leading-7 text-muted-fg">{{ text }}</p>
