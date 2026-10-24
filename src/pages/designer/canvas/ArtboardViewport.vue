@@ -188,11 +188,25 @@ function element(id) {
 	return [...(mount.value?.querySelectorAll('[data-designer-id]') || [])].find((node) => node.dataset.designerId === id);
 }
 
+/**
+ * Scrolls a filled artboard's page so a layer is in view. Unlike
+ * scrollIntoView, it never scrolls the page's own `overflow-hidden` boxes,
+ * which a visitor could not scroll back.
+ */
+function reveal(id) {
+	const node = element(id);
+	const page = iframe.value?.contentDocument?.scrollingElement;
+	if (!props.fill || !node || !page) return;
+	const rect = node.getBoundingClientRect();
+	const into = (start, size, view) => (start < 0 ? start : start + size > view ? Math.min(start, start + size - view) : 0);
+	page.scrollBy({ top: into(rect.top, rect.height, page.clientHeight), left: into(rect.left, rect.width, page.clientWidth), behavior: 'smooth' });
+}
+
 watch(() => props.css, syncStyles);
 watch(() => [props.minHeight, props.fill], () => { syncStyles(); fit(); });
 onMounted(() => { if (iframe.value?.contentDocument?.readyState === 'complete') connect(); });
 onBeforeUnmount(cleanup);
-defineExpose({ element, fit });
+defineExpose({ element, fit, reveal });
 </script>
 
 <template>

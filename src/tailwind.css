@@ -82,6 +82,8 @@
 	--color-border: var(--border);
 	--color-input: var(--input);
 	--color-ring: var(--ring);
+	/* Designer selection, guides and handles: a fixed blue, as in Figma, so it shows on light and dark pages alike. */
+	--color-designer: var(--designer-accent, #0d99ff);
 	--radius-sm: calc(var(--radius) * 0.6);
 	--radius-md: calc(var(--radius) * 0.8);
 	--radius-lg: var(--radius);

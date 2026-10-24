@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { writeComponentDocs } from './generate-component-docs.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outputDir = path.join(root, 'dist/npm');
@@ -62,10 +63,11 @@ function buildPackage() {
 	}
 
 	copyFile(path.join(templateDir, 'README.md'), path.join(outputDir, 'README.md'));
+	const docs = writeComponentDocs(path.join(outputDir, 'docs/components'));
 	writePackageManifest();
 	validateOutput(runtimeFiles);
 
-	console.log(`Built ${runtimeFiles.size} runtime files in ${path.relative(root, outputDir)}.`);
+	console.log(`Built ${runtimeFiles.size} runtime files and ${docs.components} component docs in ${path.relative(root, outputDir)}.`);
 }
 
 /**

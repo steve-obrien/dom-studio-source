@@ -23,7 +23,7 @@ const specs = [
 <\/script>
 
 <template>
-	<main data-theme="dark" class="relative min-h-screen overflow-hidden bg-[#05060b] text-white">
+	<main data-theme="dark" class="relative min-h-screen min-w-[1120px] overflow-hidden bg-[#05060b] text-white">
 		<div class="absolute left-[520px] top-[-120px] size-[620px] rounded-full bg-violet-600/40 blur-[120px]"></div>
 		<div class="absolute left-[820px] top-[260px] size-[380px] rounded-full bg-cyan-400/30 blur-[100px]"></div>
 		<header class="relative flex items-center justify-between px-12 py-6">

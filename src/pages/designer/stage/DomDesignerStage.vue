@@ -350,16 +350,16 @@ onBeforeUnmount(cleanup);
 	<div ref="root" class="relative isolate" @click.capture="select" @mousedown.capture="keepTextSelection" @scroll.capture="measure">
 		<slot />
 		<div data-designer-overlay aria-hidden="true" class="pointer-events-none absolute inset-0 z-[2147483647]" :style="{ clipPath: guideClip }">
-			<div v-if="guides.x && guides.x.kind !== 'spacing'" class="absolute inset-y-0 bg-primary" :style="{ left: `${guides.x.target}px`, width: `${1 / screenScale}px` }" />
-			<div v-if="guides.y && guides.y.kind !== 'spacing'" class="absolute inset-x-0 bg-primary" :style="{ top: `${guides.y.target}px`, height: `${1 / screenScale}px` }" />
+			<div v-if="guides.x && guides.x.kind !== 'spacing'" class="absolute inset-y-0 bg-designer" :style="{ left: `${guides.x.target}px`, width: `${1 / screenScale}px` }" />
+			<div v-if="guides.y && guides.y.kind !== 'spacing'" class="absolute inset-x-0 bg-designer" :style="{ top: `${guides.y.target}px`, height: `${1 / screenScale}px` }" />
 			<SpacingGuides :matches="guides" :scale="screenScale" />
 			<template v-if="!interactive">
-				<div v-for="(item, index) in others" :key="index" class="absolute border-primary" :style="{ borderWidth: `${1 / screenScale}px`, left: `${item.left}px`, top: `${item.top}px`, width: `${item.width}px`, height: `${item.height}px` }" />
+				<div v-for="(item, index) in others" :key="index" class="absolute border-designer" :style="{ borderWidth: `${1 / screenScale}px`, left: `${item.left}px`, top: `${item.top}px`, width: `${item.width}px`, height: `${item.height}px` }" />
 			</template>
 			<template v-if="drop">
-				<div v-if="drop.frame" class="absolute border-dashed border-primary" :style="{ borderWidth: `${1 / screenScale}px`, left: `${drop.frame.left}px`, top: `${drop.frame.top}px`, width: `${drop.frame.width}px`, height: `${drop.frame.height}px` }" />
-				<div class="absolute border-dashed border-primary/60 bg-primary/5" :style="{ borderWidth: `${1 / screenScale}px`, left: `${drop.ghost.left}px`, top: `${drop.ghost.top}px`, width: `${drop.ghost.width}px`, height: `${drop.ghost.height}px` }" />
-				<div v-if="drop.line" class="absolute bg-primary" :style="{ left: `${drop.line.left}px`, top: `${drop.line.top}px`, width: `${drop.line.width}px`, height: `${drop.line.height}px` }" />
+				<div v-if="drop.frame" class="absolute border-dashed border-designer" :style="{ borderWidth: `${1 / screenScale}px`, left: `${drop.frame.left}px`, top: `${drop.frame.top}px`, width: `${drop.frame.width}px`, height: `${drop.frame.height}px` }" />
+				<div class="absolute border-dashed border-designer/60 bg-designer/5" :style="{ borderWidth: `${1 / screenScale}px`, left: `${drop.ghost.left}px`, top: `${drop.ghost.top}px`, width: `${drop.ghost.width}px`, height: `${drop.ghost.height}px` }" />
+				<div v-if="drop.line" class="absolute bg-designer" :style="{ left: `${drop.line.left}px`, top: `${drop.line.top}px`, width: `${drop.line.width}px`, height: `${drop.line.height}px` }" />
 			</template>
 		</div>
 		<DesignerBounds v-if="box && !interactive" :box="box" :scale="screenScale" :positioning="canPosition" :reorderable="canReorder" :editing="Boolean(editing) && editing === modelValue" @begin="begin($event.event, $event.handle)" @move="move" @finish="finish" @cancel="end" @nudge="nudge($event.event, $event.handle)" />
