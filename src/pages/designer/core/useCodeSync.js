@@ -166,8 +166,9 @@ export function useCodeSync({ session, inline = null, isStudioComponent = () => 
 	/** Text runs under the code's selected text, in source order, while that selection still matches the source. */
 	const markRuns = computed(() => {
 		const range = markRange.value;
+		if (!open.value || editing.value || !range) return null;
 		const known = offsets.value;
-		if (editing.value || !range || !known || range.source !== text.value || text.value !== mapped.value.source) return null;
+		if (!known || range.source !== text.value || text.value !== mapped.value.source) return null;
 		const nodes = shownDoc.value.nodes;
 		const runs = Object.entries(known)
 			.filter(([id, [start, end]]) => nodes[id]?.type === 'text' && !isExpr(nodes[id].props.value) && start < range.end && end > range.start)
@@ -350,7 +351,8 @@ export function useCodeSync({ session, inline = null, isStudioComponent = () => 
 
 	// Starting an in-place edit drops the code's text selection, so one side is selected at a time.
 	watch(editing, (value) => { if (value) { selection.value = null; markRange.value = null; } }, { flush: 'sync' });
-	watch([selection, mapped, text, editing], () => nextTick(showSelection), { flush: 'post' });
+	// Read only while the code is shown, so a closed panel never exports the file on each edit (a drag stays cheap).
+	watch(() => (open.value ? [selection.value, mapped.value, text.value, editing.value] : null), (shownState) => nextTick(shownState ? showSelection : clearSelection), { flush: 'post' });
 	// A draft belongs to one file; switching files or closing the code shows the export again.
 	watch(() => [activeFile.value?.id, open.value], reset);
 	onBeforeUnmount(() => { clearTimeout(timer); clearSelection(); });
