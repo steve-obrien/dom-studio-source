@@ -15,34 +15,48 @@ const storage = { kind: 'memory', async load() { return null; }, async save() {}
 const source = `<script setup>
 import { DomButton } from '@getdom/studio/vue';
 
-const plans = [
-	{ name: 'Taster', price: '£9', note: 'Two bags a month' },
-	{ name: 'Regular', price: '£16', note: 'Four bags a month' },
-	{ name: 'Office', price: '£42', note: 'Ten bags a month' },
+const specs = [
+	{ value: '8 days', label: 'Battery on one charge' },
+	{ value: '100 m', label: 'Water resistant' },
+	{ value: '2.4 g', label: 'Lighter than a coin' },
 ];
 <\/script>
 
 <template>
-	<main class="min-h-full bg-canvas text-canvas-fg">
-		<header class="flex items-center justify-between px-10 py-5">
-			<p class="text-lg font-semibold">Bean Club</p>
-			<nav class="flex gap-6 text-sm text-muted-fg">
-				<a href="#plans">Plans</a>
-				<a href="#origins">Origins</a>
-				<a href="#gifts">Gifts</a>
+	<main data-theme="dark" class="relative min-h-screen overflow-hidden bg-[#05060b] text-white">
+		<div class="absolute left-[520px] top-[-120px] size-[620px] rounded-full bg-violet-600/40 blur-[120px]"></div>
+		<div class="absolute left-[820px] top-[260px] size-[380px] rounded-full bg-cyan-400/30 blur-[100px]"></div>
+		<header class="relative flex items-center justify-between px-12 py-6">
+			<p class="text-lg font-semibold tracking-tight">Halo</p>
+			<nav class="flex gap-8 text-sm text-white/60">
+				<a href="#ring">Ring</a>
+				<a href="#health">Health</a>
+				<a href="#sizing">Sizing</a>
 			</nav>
+			<a href="#buy" class="rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium ring-1 ring-white/20">Buy</a>
 		</header>
-		<section class="relative h-[380px] px-10">
-			<h1 class="absolute left-10 top-16 w-[520px] text-6xl font-semibold leading-none tracking-tight">Fresh coffee, delivered.</h1>
-			<p class="absolute left-10 top-56 w-[440px] text-lg text-muted-fg">Roasted on Monday. At your door by Wednesday.</p>
-			<div class="absolute left-[640px] top-12 h-[280px] w-[420px] rounded-3xl bg-amber-700"></div>
-			<p class="absolute left-[700px] top-[290px] rounded-full bg-canvas px-4 py-2 text-sm font-medium shadow">New: Ethiopia Guji</p>
+		<section id="ring" class="relative h-[470px]">
+			<p class="absolute left-12 top-14 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-violet-200 ring-1 ring-white/15">New · Halo Ring 2</p>
+			<h1 class="absolute left-12 top-28 w-[420px] bg-gradient-to-b from-white to-white/60 bg-clip-text pb-2 text-7xl font-semibold leading-[1.02] tracking-tight text-transparent">Your health, in a ring.</h1>
+			<p class="absolute left-12 top-[300px] w-[420px] text-lg text-white/60">Sleep, heart and recovery, measured all night. No screen, no buzzing, just answers.</p>
+			<DomButton class="absolute left-12 top-[372px]" size="lg">Pre-order £299</DomButton>
+			<a href="#film" class="absolute left-[236px] top-[382px] text-sm font-medium text-cyan-300">Watch the film ›</a>
+			<div class="absolute left-[640px] top-6 size-[360px] rounded-full bg-[conic-gradient(from_210deg,#c4b5fd,#22d3ee,#f0abfc,#818cf8,#c4b5fd)] p-7 shadow-[0_0_140px_rgba(139,92,246,0.55)]">
+				<div class="size-full rounded-full bg-[radial-gradient(circle_at_50%_30%,#1e1b4b,#05060b_70%)] shadow-[inset_0_10px_40px_rgba(255,255,255,0.18)]"></div>
+			</div>
+			<div class="absolute left-[580px] top-[270px] rounded-2xl bg-white/10 px-5 py-3 ring-1 ring-white/20 backdrop-blur-xl">
+				<p class="text-xs text-white/60">Sleep score</p>
+				<p class="text-2xl font-semibold">92</p>
+			</div>
+			<div class="absolute left-[930px] top-[110px] rounded-2xl bg-white/10 px-5 py-3 ring-1 ring-white/20 backdrop-blur-xl">
+				<p class="text-xs text-white/60">Resting heart rate</p>
+				<p class="text-2xl font-semibold">54 bpm</p>
+			</div>
 		</section>
-		<section id="plans" class="grid grid-cols-3 gap-6 px-10 pb-16">
-			<article v-for="plan in plans" :key="plan.name" class="rounded-2xl border border-border p-6">
-				<h2 class="text-xl font-semibold">{{ plan.name }}</h2>
-				<p class="mt-2 text-3xl font-semibold">{{ plan.price }}</p>
-				<p class="mt-1 text-sm text-muted-fg">{{ plan.note }}</p>
+		<section id="health" class="relative grid grid-cols-3 gap-5 px-12 pb-14">
+			<article v-for="spec in specs" :key="spec.value" class="rounded-3xl bg-white/[0.06] p-6 ring-1 ring-white/10 backdrop-blur-xl">
+				<p class="bg-gradient-to-r from-violet-200 to-cyan-200 bg-clip-text text-4xl font-semibold tracking-tight text-transparent">{{ spec.value }}</p>
+				<p class="mt-1 text-sm text-white/55">{{ spec.label }}</p>
 			</article>
 		</section>
 	</main>
