@@ -1,66 +1,27 @@
 <script setup>
 import { computed, useId } from 'vue';
+import darkSvg from './brand-mark-dark.svg?raw';
+import lightSvg from './brand-mark-light.svg?raw';
 
 const props = defineProps({
 	title: { type: String, default: '' },
 });
 
+// Gradient, mask and clip ids must be unique per instance on the page.
 const baseId = useId();
-const topId = computed(() => `${baseId}-dom-studio-top`);
-const foldId = computed(() => `${baseId}-dom-studio-fold`);
-const baseGradientId = computed(() => `${baseId}-dom-studio-base`);
-const edgeId = computed(() => `${baseId}-dom-studio-edge`);
-const glowId = computed(() => `${baseId}-dom-studio-glow`);
+const scope = (svg) => svg.replace(/(id="|url\(#)(ds[ld]-)/g, `$1${baseId}-$2`);
+const light = computed(() => scope(lightSvg));
+const dark = computed(() => scope(darkSvg));
 </script>
 
 <template>
-	<svg
-		width="64"
-		height="64"
-		viewBox="0 0 64 64"
-		fill="none"
+	<span
+		class="inline-block"
+		:role="props.title ? 'img' : undefined"
 		:aria-hidden="props.title ? undefined : 'true'"
 		:aria-label="props.title || undefined"
-		focusable="false"
 	>
-		<defs>
-			<linearGradient :id="topId" x1="14" y1="10" x2="49" y2="31" gradientUnits="userSpaceOnUse">
-				<stop offset="0" stop-color="#6CE8FF" />
-				<stop offset="0.44" stop-color="#2D7BFF" />
-				<stop offset="1" stop-color="#5D4DFF" />
-			</linearGradient>
-			<linearGradient :id="foldId" x1="43" y1="16" x2="51" y2="45" gradientUnits="userSpaceOnUse">
-				<stop offset="0" stop-color="#77F0FF" />
-				<stop offset="0.42" stop-color="#6257FF" />
-				<stop offset="1" stop-color="#A26BFF" />
-			</linearGradient>
-			<linearGradient :id="baseGradientId" x1="16" y1="58" x2="48" y2="30" gradientUnits="userSpaceOnUse">
-				<stop offset="0" stop-color="#E45DFF" />
-				<stop offset="0.46" stop-color="#5A36E8" />
-				<stop offset="1" stop-color="#4A8CFF" />
-			</linearGradient>
-			<linearGradient :id="edgeId" x1="16" y1="8" x2="51" y2="55" gradientUnits="userSpaceOnUse">
-				<stop offset="0" stop-color="#EFFFFF" />
-				<stop offset="0.28" stop-color="#8AE8FF" />
-				<stop offset="0.7" stop-color="#A99DFF" />
-				<stop offset="1" stop-color="#FF72F8" />
-			</linearGradient>
-			<filter :id="glowId" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-				<feDropShadow dx="0" dy="0" stdDeviation="2.2" flood-color="#5A7CFF" flood-opacity="0.42" />
-				<feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#140A3F" flood-opacity="0.55" />
-			</filter>
-		</defs>
-		<rect width="64" height="64" rx="14" fill="#050A14" />
-		<rect x="0.75" y="0.75" width="62.5" height="62.5" rx="13.25" fill="none" stroke="currentColor" stroke-opacity="0.12" stroke-width="1.5" />
-		<g :filter="`url(#${glowId})`">
-			<path d="M14 10h15.7c6.3 0 11.6 2.1 15.8 6.2 4.1 4.1 6.2 9.4 6.2 15.8 0 3.9-.8 7.6-2.5 10.9C45.7 32.8 38 26.2 27.8 26.2H14z" :fill="`url(#${topId})`" />
-			<path d="M27.8 26.2c10.2 0 17.9 6.6 21.4 16.7A22.4 22.4 0 0 0 51.7 32c0-6.4-2.1-11.7-6.2-15.8z" :fill="`url(#${foldId})`" />
-			<path d="M14 58h13.3c6.6 0 12.2-2 16.7-6.1 4.5-4 6.9-9 7.1-15.1-4.8-7-11.6-10.6-20.3-10.6H14l12.7 10.6C19.8 42.9 14 48 14 58z" :fill="`url(#${baseGradientId})`" />
-			<path d="M14 26.2h16.8L24 32.5l7.9 6.4C23.3 42.9 16.7 49.2 14 58z" fill="#050A14" fill-opacity="0.96" />
-			<path d="M14 10h15.7c6.3 0 11.6 2.1 15.8 6.2 4.1 4.1 6.2 9.4 6.2 15.8 0 14.4-10.1 26-24.4 26H14c0-8.2 5.8-15.1 12.7-21.2L14 26.2z" fill="none" :stroke="`url(#${edgeId})`" stroke-width="1.25" stroke-linejoin="round" />
-			<path d="M30.8 26.4 45.5 16.2" fill="none" stroke="#FFFFFF" stroke-opacity="0.44" stroke-width="1.1" stroke-linecap="round" />
-			<path d="M30.8 26.2v31.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.28" stroke-width="1" />
-			<path d="M14 26.2V10h15.7c6.3 0 11.6 2.1 15.8 6.2" fill="none" stroke="#FFFFFF" stroke-opacity="0.23" stroke-width="1" />
-		</g>
-	</svg>
+		<span class="block size-full dark:hidden [&>svg]:size-full" v-html="light" />
+		<span class="hidden size-full dark:block [&>svg]:size-full" v-html="dark" />
+	</span>
 </template>
