@@ -50,6 +50,11 @@ They preserve existing GitHub Release notes. Never move a release tag.
   deployment secrets. Its temporary GitHub token reads published releases; no
   GitHub credential needs to be installed on the website server.
 
+Website deployment and release-history sync run on the dedicated `worker-dom-studio`
+runner. npm publishing stays on GitHub-hosted Ubuntu because npm trusted publishing
+does not support self-hosted runners. See [worker operations](github-actions.md)
+for labels, service commands, and recovery.
+
 The repository is private. Trusted publishing works, but npm provenance is not
 available for private repositories. Never make the repository public as a release
 workaround. Public notes must be reviewed for private information before publishing.
