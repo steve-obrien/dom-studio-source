@@ -85,6 +85,7 @@ const selected = (option) => String(field.value.value ?? '') === valueOf(option)
 			<button
 				v-for="(option, index) in options"
 				:key="valueOf(option) || index"
+				type="button"
 				role="radio"
 				:data-value="valueOf(option)"
 				:disabled="field.disabled.value || undefined"

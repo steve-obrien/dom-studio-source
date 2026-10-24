@@ -3,117 +3,27 @@ import { ref } from 'vue';
 import DomStudioLayout from '../../_layout/DomStudioLayout.vue';
 import DocPage from '../../_layout/DocPage.vue';
 import DocSection from '../../_layout/DocSection.vue';
-import CodePanel from '../../_layout/docs/CodePanel.vue';
 import ComponentQuickStart from '../../_layout/docs/ComponentQuickStart.vue';
-import Example from '../../_layout/docs/Example.vue';
+import ComponentGuide from '../../_layout/docs/ComponentGuide.vue';
 import ComponentProps from '../../_layout/docs/ComponentProps.vue';
 import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
 import ComponentSlots from '../../_layout/docs/ComponentSlots.vue';
-import { createComponentExampleSources } from '../../_layout/docs/componentExampleSources.js';
+import ComponentMethods from '../../_layout/docs/ComponentMethods.vue';
+import ComponentKeyboard from '../../_layout/docs/ComponentKeyboard.vue';
 import DomDataGrid from './DomDataGrid.vue';
 import DomDataGridSrc from './DomDataGrid.vue?raw';
-import TradingDeskGrid from './examples/TradingDeskGrid.vue';
-import TradingDeskGridSrc from './examples/TradingDeskGrid.vue?raw';
-import CustomerDatabase from './examples/CustomerDatabase.vue';
-import CustomerDatabaseSrc from './examples/CustomerDatabase.vue?raw';
-import LargeMemoryGrid from './examples/LargeMemoryGrid.vue';
-import LargeMemoryGridSrc from './examples/LargeMemoryGrid.vue?raw';
-import KeywordOpportunityGrid from './examples/KeywordOpportunityGrid.vue';
-import KeywordOpportunityGridSrc from './examples/KeywordOpportunityGrid.vue?raw';
-import ServerResourceGrid from './examples/ServerResourceGrid.vue';
-import ServerResourceGridSrc from './examples/ServerResourceGrid.vue?raw';
-import LiveSqlQueryLog from './examples/LiveSqlQueryLog.vue';
-import LiveSqlQueryLogSrc from './examples/LiveSqlQueryLog.vue?raw';
-import CustomColumnComponents from './examples/CustomColumnComponents.vue';
-import CustomColumnComponentsSrc from './examples/CustomColumnComponents.vue?raw';
-import EditNameCellSrc from './examples/EditNameCell.vue?raw';
-import RowActionsCellSrc from './examples/RowActionsCell.vue?raw';
-
-import FlushGrid from './examples/FlushGrid.vue';
-import FlushGridSrc from './examples/FlushGrid.vue?raw';
+import guide from './DomDataGrid.md?guide';
 
 const doc = DomDataGrid.__doc;
 const installationMethod = ref('npm');
-const exampleSources = {
-	tradingDeskGrid: createComponentExampleSources(TradingDeskGridSrc),
-	flushGrid: createComponentExampleSources(FlushGridSrc),
-	customerDatabase: createComponentExampleSources(CustomerDatabaseSrc),
-	largeMemoryGrid: createComponentExampleSources(LargeMemoryGridSrc),
-	keywordOpportunityGrid: createComponentExampleSources(KeywordOpportunityGridSrc),
-	serverResourceGrid: createComponentExampleSources(ServerResourceGridSrc),
-	liveSqlQueryLog: createComponentExampleSources(LiveSqlQueryLogSrc),
-	customColumnComponents: createComponentExampleSources(CustomColumnComponentsSrc),
-};
 
-const proFeatures = [
-	{ title: 'Pinned columns', props: 'column.pinned, pinnedColumns', text: 'Keep identifiers on the left and totals on the right while wide sheets scroll. Pin or unpin from the column menu.' },
-	{ title: 'Inline editing', props: 'editable, column.editable, validate', text: 'Double-click, press Enter or just type. Typed editors for numbers, currency, dates, options and booleans, with validation.' },
-	{ title: 'Range copy and paste', props: 'cellSelection', text: 'Drag or Shift-select a range, copy it into Excel, paste a block back. Delete clears, Cmd+Z undoes.' },
-	{ title: 'Grouping and totals', props: 'groupBy, column.aggregate, showTotals', text: 'Group by any column, nest groups, and roll up sum, average, count, min and max per group and overall.' },
-	{ title: 'Excel and CSV export', props: 'exportable, exportExcel(), exportCsv()', text: 'A real .xlsx with typed numbers, dates and currency, or UTF-8 CSV. Exports follow the current filters, sort and grouping.' },
-	{ title: 'Virtual rows', props: 'virtualRows', text: 'Every feature above works on large in-memory sets; only the visible rows are mounted.' },
-];
-
-const resourceApiCode = `// Request
-{
-\tresource: 'customers',
-\tquery: {
-\t\tsearch: 'atlas',
-\t\tfilters: {
-\t\t\tstatus: { type: 'select', values: ['active', 'trial'] },
-\t\t\tarr: { type: 'currency', min: 50000, max: 250000 },
-\t\t},
-\t\tsort: {
-\t\t\tkey: 'updatedAt',
-\t\t\tdirection: 'desc',
-\t\t\trules: [
-\t\t\t\t{ key: 'updatedAt', direction: 'desc' },
-\t\t\t\t{ key: 'arr', direction: 'desc' },
-\t\t\t],
-\t\t},
-\t},
-\tpagination: {
-\t\tstrategy: 'page',
-\t\tpage: 2,
-\t\tpageSize: 25,
-\t},
-}
-
-// Same endpoint for forever scrolling.
-{
-\tresource: 'customers',
-\tquery,
-\tpagination: {
-\t\tstrategy: 'cursor',
-\t\tcursor: 'customer:25',
-\t\tlimit: 25,
-\t},
-}
-
-// Response
-{
-\tdata: [
-\t\t/* normalized customer rows */
-\t],
-\tpageInfo: {
-\t\tstrategy: 'page',
-\t\tpage: 2,
-\t\tpageSize: 25,
-\t\tpageCount: 8,
-\t\ttotal: 184,
-\t\treturned: 25,
-\t\thasNextPage: true,
-\t\thasPreviousPage: true,
-\t\tnextCursor: 'customer:50',
-\t},
-\tmeta: {
-\t\tresource: 'customers',
-\t\trequestedAt: '2026-06-17T10:00:00.000Z',
-\t\ttotal: 184,
-\t\treturned: 25,
-\t\tquery,
-\t},
-}`;
+// The guide's <!-- example: Name --> markers pick from these by file name.
+const exampleComponents = import.meta.glob('./examples/*.vue', { eager: true, import: 'default' });
+const exampleSources = import.meta.glob('./examples/*.vue', { eager: true, query: '?raw', import: 'default' });
+const examples = Object.fromEntries(Object.keys(exampleComponents).map((file) => [
+	file.replace(/^\.\/examples\/|\.vue$/g, ''),
+	{ component: exampleComponents[file], source: exampleSources[file] },
+]));
 </script>
 
 <template>
@@ -121,178 +31,14 @@ const resourceApiCode = `// Request
 		<DocPage :name="doc.name" :tagline="doc.description" :tag="doc.tag">
 			<ComponentQuickStart component-name="DomDataGrid" />
 
-			<DocSection eyebrow="Grid Pro" title="Trading desk: edit, group, pin and export">
-				<Example
-					v-model:installation-method="installationMethod"
-					:source="TradingDeskGridSrc"
-					:source-variants="exampleSources.tradingDeskGrid"
-					filename="TradingDeskGrid.vue"
-					description="2,500 positions grouped by desk, with Ticker pinned left and P&L pinned right. Click a cell and use the arrow keys, drag a range to see its sum, double-click or type to edit, copy and paste to and from a spreadsheet, and export the current view to Excel. Open a column menu to pin or group by another column."
-					:preview-lines="0"
-				>
-					<TradingDeskGrid />
-				</Example>
-
-				<div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-					<div v-for="feature in proFeatures" :key="feature.title" class="rounded-lg border border-border bg-canvas p-4">
-						<p class="text-sm font-semibold text-canvas-fg">{{ feature.title }}</p>
-						<p class="mt-1 text-sm leading-6 text-muted-fg">{{ feature.text }}</p>
-						<p class="mt-2 font-mono text-xs text-muted-fg">{{ feature.props }}</p>
-					</div>
-				</div>
-			</DocSection>
-
-			<DocSection eyebrow="Demo" title="Database-style account table">
-				<Example
-					v-model:installation-method="installationMethod"
-					:source="CustomerDatabaseSrc"
-					:source-variants="exampleSources.customerDatabase"
-					filename="CustomerDatabase.vue"
-					description="Column filters use typed controls: date columns open a date range, number columns use min/max, select columns use checklist filters, and applied filters are visible in both the header and toolbar."
-					:preview-lines="0"
-				>
-					<CustomerDatabase />
-				</Example>
-			</DocSection>
-
-			<DocSection eyebrow="Layout" title="Flush page edges">
-				<p class="mb-4 text-sm text-muted-fg">Use layout="flush" to remove side borders, rounding and shadow. Supply horizontal padding with gutter-class="px-4 sm:px-6" to align the toolbar, footer and outer header/body cell edges. Middle cells retain their spacing. The application owns the negative-margin wrapper and its page gutter; CSS variable classes such as px-[var(--page-gutter)] also work. The default card layout is unchanged, and flush defaults to px-3 when no gutter is supplied.</p>
-				<Example title="Full-width article library" :code="FlushGridSrc" :source-variants="exampleSources.flushGrid" v-model:installation-method="installationMethod">
-					<FlushGrid />
-				</Example>
-			</DocSection>
-
-			<DocSection eyebrow="Large memory" title="Virtual rows for in-memory data">
-				<Example
-					v-model:installation-method="installationMethod"
-					:source="LargeMemoryGridSrc"
-					:source-variants="exampleSources.largeMemoryGrid"
-					filename="LargeMemoryGrid.vue"
-					description="Use virtualRows when a large local array is already in memory. The grid keeps the full 10,000-row data set available for client-side search, filters, and sort, while the isolated virtual row renderer mounts only the visible rows plus the configured buffer."
-					:preview-lines="0"
-				>
-					<LargeMemoryGrid />
-				</Example>
-			</DocSection>
-
-			<DocSection eyebrow="Advanced sorting" title="Keyword table sort presets">
-				<Example
-					v-model:installation-method="installationMethod"
-					:source="KeywordOpportunityGridSrc"
-					:source-variants="exampleSources.keywordOpportunityGrid"
-					filename="KeywordOpportunityGrid.vue"
-					description="Enable multiSort when header clicks should toggle ordered sort rules per column. Click Volume to add it, click Difficulty to add a second rule, and click a sorted header through asc, desc, and off."
-					:preview-lines="0"
-				>
-					<KeywordOpportunityGrid />
-				</Example>
-			</DocSection>
-
-			<DocSection eyebrow="Remote data" title="Server pagination and forever scrolling">
-				<Example
-					v-model:installation-method="installationMethod"
-					:source="ServerResourceGridSrc"
-					:source-variants="exampleSources.serverResourceGrid"
-					filename="ServerResourceGrid.vue"
-					description="The same resource endpoint handles page-number navigation and cursor-based forever scrolling. The grid sends search, filters, and sort; pagination adds either page/pageSize or cursor/limit."
-					:preview-lines="0"
-				>
-					<ServerResourceGrid />
-				</Example>
-			</DocSection>
-
-			<DocSection eyebrow="Live data" title="SQL query log with duration ordering">
-				<Example
-					v-model:installation-method="installationMethod"
-					:source="LiveSqlQueryLogSrc"
-					:source-variants="exampleSources.liveSqlQueryLog"
-					filename="LiveSqlQueryLog.vue"
-					description="A live developer query-log surface that treats the grid as a server-backed resource: new query rows stream into the buffer, search and typed filters update the resource query, and duration_ms desc exposes the slowest statements first."
-					:preview-lines="0"
-				>
-					<LiveSqlQueryLog />
-				</Example>
-			</DocSection>
-
-			<DocSection eyebrow="Custom cells" title="Column components and row actions">
-				<Example
-					v-model:installation-method="installationMethod"
-					:source="CustomColumnComponentsSrc"
-					:source-variants="exampleSources.customColumnComponents"
-					install-note="This example also uses EditNameCell.vue and RowActionsCell.vue, available directly below."
-					filename="CustomColumnComponents.vue"
-					description="Set column.component to a Vue component. The component receives row, column, value, formatted, rowIndex, and rowKey. Display-only columns such as actions still use a stable key, but do not need a matching row property."
-					:preview-lines="0"
-				>
-					<CustomColumnComponents />
-				</Example>
-
-				<div class="mt-5 grid gap-4 lg:grid-cols-2">
-					<div class="min-w-0">
-						<p class="mb-2 text-sm font-semibold text-canvas-fg">EditNameCell.vue</p>
-						<CodePanel
-							class="overflow-hidden rounded-lg border border-border"
-							:source="EditNameCellSrc"
-							:preview-lines="0"
-							:default-open="false"
-							:border-top="false"
-							filename="EditNameCell.vue"
-							lang="vue"
-						/>
-					</div>
-					<div class="min-w-0">
-						<p class="mb-2 text-sm font-semibold text-canvas-fg">RowActionsCell.vue</p>
-						<CodePanel
-							class="overflow-hidden rounded-lg border border-border"
-							:source="RowActionsCellSrc"
-							:preview-lines="0"
-							:default-open="false"
-							:border-top="false"
-							filename="RowActionsCell.vue"
-							lang="vue"
-						/>
-					</div>
-				</div>
-			</DocSection>
-
-			<DocSection eyebrow="Architecture" title="Resource query API">
-				<div class="space-y-4 text-sm leading-7 text-muted-fg">
-					<p>
-						The component filters client-side by default so it works immediately with local rows. Set
-						<code class="text-canvas-fg">remote</code> when the grid should render API results exactly as supplied and use
-						<code class="text-canvas-fg">query-change</code> to request a SQL-backed resource. Keep pagination beside the grid query so the same endpoint can support numbered pages, previous/next controls, and cursor-fed scrolling.
-					</p>
-					<p>
-						Use <code class="text-canvas-fg">virtualRows</code> when rows are already held in memory but the DOM should stay small. It swaps the table body to a dedicated virtual row renderer, using <code class="text-canvas-fg">virtualRowBuffer</code> to keep extra rows mounted above and below the viewport.
-					</p>
-					<p>
-						For custom rendering, add <code class="text-canvas-fg">component</code> to a column definition. The column
-						<code class="text-canvas-fg">key</code> is the stable column id; set <code class="text-canvas-fg">field</code> when the component should read a different row property, or omit it for display-only columns such as row actions.
-					</p>
-					<p>
-						Column definitions are the contract. A date column gets a date-range filter, numeric columns get min/max, boolean columns get a yes/no segmented control, and select columns can render known options from the resource schema.
-						Set <code class="text-canvas-fg">filterable: false</code> on display-only or operational columns so they stay out of the filter UI and resource query.
-					</p>
-					<p>
-						For more complex ordering, pass <code class="text-canvas-fg">sort.rules</code> as an ordered array, or enable <code class="text-canvas-fg">multiSort</code> so header clicks build that array interactively.
-						A keyword table can send <code class="text-canvas-fg">searchVolume desc</code> followed by <code class="text-canvas-fg">difficulty asc</code>, and a resource API can translate that directly to a multi-column ORDER BY.
-					</p>
-				</div>
-				<CodePanel
-					class="mt-5 overflow-hidden rounded-lg border border-border"
-					:source="resourceApiCode"
-					:preview-lines="0"
-					:default-open="false"
-					:border-top="false"
-					filename="resource-query-api.js"
-					lang="js"
-				/>
-			</DocSection>
+			<ComponentGuide v-model:installation-method="installationMethod" :guide="guide" :examples="examples" />
 
 			<DocSection title="Reference">
 				<ComponentProps :component="DomDataGrid" :source="DomDataGridSrc" />
 				<ComponentEvents :component="DomDataGrid" :source="DomDataGridSrc" />
 				<ComponentSlots :component="DomDataGrid" :source="DomDataGridSrc" />
+				<ComponentMethods :component="DomDataGrid" />
+				<ComponentKeyboard :component="DomDataGrid" />
 			</DocSection>
 		</DocPage>
 	</DomStudioLayout>

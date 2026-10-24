@@ -45,6 +45,27 @@ and intrinsic component styles without choosing the theme values. Copy
 `theme.css` into your project when you want all of DOM Studio's defaults as a
 starting point, then edit that local copy.
 
+Some components render custom elements whose tags start with `dom-`. Tell Vue
+about them in `vite.config.js`:
+
+```js
+import vue from '@vitejs/plugin-vue';
+
+export default {
+	plugins: [
+		vue({ template: { compilerOptions: { isCustomElement: (tag) => tag.startsWith('dom-') } } }),
+	],
+};
+```
+
+## Component docs in the package
+
+`docs/components/` has one Markdown file per component, such as
+`docs/components/DomDataGrid.md`, with props, defaults, events, slots, template
+ref methods, keyboard support and types. Some also include a usage guide and
+working examples. Start at `docs/components/README.md`. Coding agents can read
+these files directly from `node_modules/@getdom/studio`.
+
 The explicit Vue entry point exports the same component surface:
 
 ```js

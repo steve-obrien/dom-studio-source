@@ -1936,7 +1936,7 @@ export const componentCatalog = [
 				},
 				{
 					"name": "range-change",
-					"payload": "({ startRow, endRow, startColumn, endColumn, rows, columns }) | null",
+					"payload": "DataGridRange | null",
 					"description": "Fired when the selected cell range changes. Indexes are visible positions."
 				},
 				{
@@ -1994,6 +1994,53 @@ export const componentCatalog = [
 				{
 					"name": "empty",
 					"description": "Custom empty state."
+				}
+			],
+			"methods": [
+				{
+					"name": "exportCsv",
+					"signature": "(options?: { onlySelected?: boolean; fileName?: string; download?: boolean }) => string",
+					"description": "Downloads the filtered, sorted rows as CSV and returns the text. Pass download: false to only get the text."
+				},
+				{
+					"name": "exportExcel",
+					"signature": "(options?: { onlySelected?: boolean; fileName?: string; download?: boolean }) => Blob",
+					"description": "Downloads the filtered, sorted rows as an Excel workbook with typed cells and returns the file."
+				},
+				{
+					"name": "getRange",
+					"signature": "() => DataGridRange | null",
+					"description": "Returns the selected cell range, or null."
+				},
+				{
+					"name": "selectRange",
+					"signature": "(range: { startRow: number; endRow?: number; startColumn?: number | string; endColumn?: number | string }) => void",
+					"description": "Selects a cell range by visible row position and column index or key."
+				},
+				{
+					"name": "clearRange",
+					"signature": "() => void",
+					"description": "Clears the active cell and range."
+				},
+				{
+					"name": "undo",
+					"signature": "() => boolean",
+					"description": "Undoes the last edit, paste or delete. Returns false when there is nothing to undo."
+				},
+				{
+					"name": "redo",
+					"signature": "() => boolean",
+					"description": "Redoes the last undone change. Returns false when there is nothing to redo."
+				},
+				{
+					"name": "expandAllGroups",
+					"signature": "() => void",
+					"description": "Opens every group."
+				},
+				{
+					"name": "collapseAllGroups",
+					"signature": "() => void",
+					"description": "Closes every group."
 				}
 			],
 			"keyboard": [

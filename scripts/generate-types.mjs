@@ -3,6 +3,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import { parse } from '@vue/compiler-sfc';
+import { findMatching } from './lib/source-scan.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const vueEntryPath = path.join(root, 'src/pages/lib/vue/index.js');
@@ -321,6 +322,44 @@ const manualPropTypes = {
 	},
 };
 
+/**
+ * Component files whose JSDoc typedefs are the public contract. Each typedef
+ * becomes an exported interface, so the declaration and the source share one
+ * description. Property types are written in TypeScript syntax inside the
+ * JSDoc braces.
+ */
+const jsdocTypedefSources = [
+	{
+		file: 'src/pages/data/data-grid/DomDataGrid.vue',
+		openTypes: ['DataGridColumn', 'DataGridSortRule', 'DataGridSort'],
+	},
+];
+
+/** Listener payload types for documented component events. Other events receive `any`. */
+const eventPayloadTypes = {
+	DomDataGrid: {
+		'update:filters': 'Record<string, DataGridFilter>',
+		'update:sort': 'DataGridSort',
+		'update:search': 'string',
+		'update:selectedKeys': 'Array<string | number>',
+		'query-change': 'DataGridQuery',
+		'cell-update': 'DataGridCellUpdate',
+		'cells-update': 'DataGridCellsUpdate',
+		'update:pinnedColumns': 'Record<string, \'left\' | \'right\'>',
+		'update:groupBy': 'string | Array<string>',
+		'row-click': '{ row: Record<string, unknown>; index: number }',
+		'range-change': 'DataGridRange | null',
+	},
+};
+
+/** Slot prop types for documented component slots. Other slots receive `any`. */
+const slotPropTypes = {
+	DomDataGrid: {
+		cell: 'DataGridCellSlotProps',
+		'toolbar-actions': 'DataGridToolbarSlotProps',
+	},
+};
+
 /** Maps public exports to assigned `defineComponent()` calls when a file also contains internal components. */
 const defineComponentAssignments = {
 	DomForm: 'DomFormComponent',
@@ -415,6 +454,7 @@ const componentExports = parseVueComponentExports();
 const components = componentExports.map((component) => ({
 	...component,
 	props: extractComponentProps(component),
+	doc: extractComponentDoc(component),
 }));
 
 writeFile(vueTypesPath, buildVueTypes(components));
@@ -670,57 +710,6 @@ function skipWhitespace(source, index) {
 	return index;
 }
 
-function findMatching(source, openIndex, openChar, closeChar) {
-	let depth = 0;
-	let quote = '';
-	let escaped = false;
-	let comment = '';
-
-	for (let index = openIndex; index < source.length; index += 1) {
-		const char = source[index];
-		const next = source[index + 1];
-
-		if (comment === 'line') {
-			if (char === '\n') comment = '';
-			continue;
-		}
-		if (comment === 'block') {
-			if (char === '*' && next === '/') {
-				comment = '';
-				index += 1;
-			}
-			continue;
-		}
-		if (quote) {
-			if (escaped) escaped = false;
-			else if (char === '\\') escaped = true;
-			else if (char === quote) quote = '';
-			continue;
-		}
-		if (char === '/' && next === '/') {
-			comment = 'line';
-			index += 1;
-			continue;
-		}
-		if (char === '/' && next === '*') {
-			comment = 'block';
-			index += 1;
-			continue;
-		}
-		if (char === '\'' || char === '"' || char === '`') {
-			quote = char;
-			continue;
-		}
-		if (char === openChar) depth += 1;
-		if (char === closeChar) {
-			depth -= 1;
-			if (depth === 0) return index;
-		}
-	}
-
-	return -1;
-}
-
 function evaluateSfcGlobals(file, names, globals = {}) {
 	const source = fs.readFileSync(file, 'utf8');
 	const { descriptor } = parse(source, { filename: file });
@@ -817,7 +806,11 @@ function buildVueTypes(componentEntries) {
 		const interfaceName = `${component.name}Props`;
 		emittedInterfaces.add(interfaceName);
 		lines.push(...componentInterfaceLines(component, interfaceName));
-		lines.push(`export declare const ${component.name}: DomComponent<${interfaceName}>;`);
+		const slotLines = componentSlotLines(component, `${component.name}Slots`);
+		lines.push(...slotLines);
+		lines.push(...componentExposedLines(component, `${component.name}Exposed`));
+		const slotsArgument = slotLines.length ? `, ${component.name}Slots` : '';
+		lines.push(`export declare const ${component.name}: DomComponent<${interfaceName}${slotsArgument}>;`);
 		lines.push('');
 	}
 
@@ -988,12 +981,13 @@ function sharedVueTypes() {
 		'/**',
 		' * Represents a generated DOM Studio Vue component declaration.',
 		' *',
-		' * Props remain strict while slots accept arbitrary names and payloads until',
-		' * component-specific slot contracts are available in the generated output.',
+		' * Props remain strict. Components that document their slots pass a slot',
+		' * contract; the rest accept arbitrary slot names and payloads.',
 		' *',
 		' * @template Props - Public props accepted by the component.',
+		' * @template Slots - Slot names and the props each slot receives.',
 		' */',
-		'export type DomComponent<Props extends Record<string, any> = Record<string, unknown>> = DefineSetupFnComponent<Props, {}, SlotsType<Record<string, (...args: Array<any>) => any>>>;',
+		'export type DomComponent<Props extends Record<string, any> = Record<string, unknown>, Slots extends Record<string, any> = Record<string, (...args: Array<any>) => any>> = DefineSetupFnComponent<Props, {}, SlotsType<Slots>>;',
 		'export type DomTooltipPlacement = \'top\' | \'bottom\' | \'left\' | \'right\';',
 		'export interface DomTooltipDirectiveOptions {',
 		'\tlabel?: string;',
@@ -1126,45 +1120,7 @@ function sharedVueTypes() {
 		'\tkeywords?: Array<string>;',
 		'\tshortcut?: string;',
 		'}',
-		'export interface DataGridColumn {',
-		'\tkey: string;',
-		'\tfield?: string;',
-		'\tlabel?: string;',
-		'\ttype?: \'text\' | \'number\' | \'date\' | \'boolean\' | \'select\' | \'currency\';',
-		'\twidth?: string | number;',
-		'\talign?: \'left\' | \'center\' | \'right\';',
-		'\tcomponent?: DomVueComponent | string;',
-		'\tresizable?: boolean;',
-		'\tsortable?: boolean;',
-		'\tfilterable?: boolean;',
-		'\tsearchable?: boolean;',
-		'\toptions?: Array<string | number | boolean | DomOption | Record<string, unknown>>;',
-		'\tcurrency?: string;',
-		'\taccessor?: (row: Record<string, unknown>, column: DataGridColumn) => unknown;',
-		'\tsortAccessor?: (row: Record<string, unknown>, column: DataGridColumn) => unknown;',
-		'\tformat?: (value: unknown, row: Record<string, unknown>, column: DataGridColumn) => string | number;',
-		'\t[key: string]: unknown;',
-		'}',
-		'export interface DataGridSortContext {',
-		'\tcolumn?: DataGridColumn;',
-		'\tcolumns: Array<DataGridColumn>;',
-		'}',
-		'export interface DataGridSortRule {',
-		'\tkey?: string;',
-		'\tfield?: string;',
-		'\tlabel?: string;',
-		'\ttype?: DataGridColumn[\'type\'];',
-		'\tdirection?: \'asc\' | \'desc\';',
-		'\taccessor?: (row: Record<string, unknown>, column?: DataGridColumn | DataGridSortRule) => unknown;',
-		'\tcompare?: (leftRow: Record<string, unknown>, rightRow: Record<string, unknown>, rule: DataGridSortRule, context: DataGridSortContext) => number;',
-		'\t[key: string]: unknown;',
-		'}',
-		'export interface DataGridSort {',
-		'\tkey?: string;',
-		'\tdirection?: \'asc\' | \'desc\' | \'\';',
-		'\trules?: Array<DataGridSortRule>;',
-		'\t[key: string]: unknown;',
-		'}',
+		...jsdocTypedefInterfaces(),
 		'export interface KanbanColumn {',
 		'\tkey: string | number;',
 		'\tlabel?: string;',
@@ -1969,10 +1925,19 @@ function componentInterfaceLines(component, interfaceName) {
 	} else {
 		for (const [name, definition] of propEntries) {
 			const description = propDescription(definition);
-			if (description) lines.push(...jsdocLines(description, 1));
+			const defaultText = propDefault(definition);
+			const doc = [description, defaultText !== undefined ? `@default ${defaultText}` : ''].filter(Boolean).join('\n');
+			if (doc) lines.push(...jsdocLines(doc, 1));
 			const optional = propRequired(definition) ? '' : '?';
 			lines.push(`\t${quoteProperty(name)}${optional}: ${propType(component, name, definition)};`);
 		}
+	}
+	for (const event of component.doc?.events || []) {
+		if (!event?.name) continue;
+		const payloadType = eventPayloadTypes[component.name]?.[event.name] || 'any';
+		const doc = [event.description, event.payload && payloadType === 'any' ? `Payload: ${event.payload}` : ''].filter(Boolean).join('\n');
+		if (doc) lines.push(...jsdocLines(doc, 1));
+		lines.push(`\t${quoteProperty(eventListenerName(event.name))}?: (payload: ${payloadType}) => void;`);
 	}
 	lines.push('}');
 
@@ -1981,6 +1946,172 @@ function componentInterfaceLines(component, interfaceName) {
 	}
 
 	return lines;
+}
+
+/**
+ * Builds the slot contract for a component that documents its slots.
+ *
+ * @param {{ name: string, doc?: { slots?: Array<{ name: string, payload?: string, description?: string }> } }} component - Component metadata.
+ * @param {string} interfaceName - Slots interface name.
+ * @returns {Array<string>} Declaration lines, or none when no slots are documented.
+ */
+function componentSlotLines(component, interfaceName) {
+	const slots = (component.doc?.slots || []).filter((slot) => slot?.name);
+	if (!slots.length) return [];
+	const lines = [`export interface ${interfaceName} {`];
+	for (const slot of slots) {
+		const name = slot.name === '(default)' ? 'default' : slot.name;
+		const propsType = slotPropTypes[component.name]?.[name] || 'any';
+		const doc = [slot.description, slot.payload && propsType === 'any' ? `Slot props: ${slot.payload}` : ''].filter(Boolean).join('\n');
+		if (doc) lines.push(...jsdocLines(doc, 1));
+		lines.push(`\t${quoteProperty(name)}?: (props: ${propsType}) => any;`);
+	}
+	lines.push('\t[name: string]: ((...args: Array<any>) => any) | undefined;');
+	lines.push('}');
+	return lines;
+}
+
+/**
+ * Builds the template ref contract for a component that documents its
+ * exposed methods in `__doc.methods`, each with a TypeScript signature.
+ *
+ * @param {{ doc?: { methods?: Array<{ name: string, signature?: string, description?: string }> } }} component - Component metadata.
+ * @param {string} interfaceName - Exposed interface name.
+ * @returns {Array<string>} Declaration lines, or none when no methods are documented.
+ */
+function componentExposedLines(component, interfaceName) {
+	const methods = (component.doc?.methods || []).filter((method) => method?.name);
+	if (!methods.length) return [];
+	const lines = [`/** Methods available on a template ref to ${component.name}. */`, `export interface ${interfaceName} {`];
+	for (const method of methods) {
+		if (method.description) lines.push(...jsdocLines(method.description, 1));
+		lines.push(`\t${quoteProperty(method.name)}: ${method.signature || '(...args: Array<any>) => any'};`);
+	}
+	lines.push('}');
+	return lines;
+}
+
+/**
+ * Converts a Vue event name to its listener prop, matching Vue's toHandlerKey.
+ *
+ * @param {string} eventName - Emitted event name, such as cell-update or update:sort.
+ * @returns {string} Listener prop name, such as onCellUpdate or onUpdate:sort.
+ */
+function eventListenerName(eventName) {
+	const camel = eventName.replace(/-(\w)/g, (_match, char) => char.toUpperCase());
+	return `on${camel.charAt(0).toUpperCase()}${camel.slice(1)}`;
+}
+
+/**
+ * Describes a prop default for the generated JSDoc, so readers see what the
+ * component does when the prop is left out.
+ *
+ * @param {unknown} definition - Runtime prop definition.
+ * @returns {string | undefined} Default as source text, or undefined when there is none worth showing.
+ */
+function propDefault(definition) {
+	if (!definition || typeof definition !== 'object' || !('default' in definition)) return undefined;
+	let value = definition.default;
+	const types = Array.isArray(definition.type) ? definition.type : [definition.type];
+	if (typeof value === 'function' && !types.includes(Function)) {
+		try {
+			value = value();
+		} catch {
+			return undefined;
+		}
+	}
+	if (value === undefined || typeof value === 'function') return undefined;
+	if (value === null || ['string', 'number', 'boolean'].includes(typeof value)) return JSON.stringify(value).replace(/^"(.*)"$/, "'$1'");
+	try {
+		const text = JSON.stringify(value);
+		return text && text.length <= 80 ? text : undefined;
+	} catch {
+		return undefined;
+	}
+}
+
+/**
+ * Reads the `__doc` metadata (events, slots, keyboard) from a component.
+ *
+ * @param {{ name: string, file: string, aliasOf?: string }} component - Public component export metadata.
+ * @returns {Record<string, any> | null} Evaluated documentation, or null when absent.
+ */
+function extractComponentDoc(component) {
+	if (component.aliasOf) return null;
+	const source = fs.readFileSync(component.file, 'utf8');
+	const index = source.indexOf('__doc:');
+	if (index < 0) return null;
+	const open = source.indexOf('{', index);
+	const close = findMatching(source, open, '{', '}');
+	if (open < 0 || close < 0) return null;
+	try {
+		return runExpression(source.slice(open, close + 1));
+	} catch (error) {
+		console.warn(`Could not evaluate __doc for ${component.name}: ${error.message}`);
+		return null;
+	}
+}
+
+/**
+ * Builds exported interfaces from the JSDoc typedefs listed in jsdocTypedefSources.
+ *
+ * @returns {Array<string>} Declaration lines.
+ */
+function jsdocTypedefInterfaces() {
+	const lines = [];
+	for (const { file, openTypes = [] } of jsdocTypedefSources) {
+		const source = fs.readFileSync(path.join(root, file), 'utf8');
+		for (const typedef of parseJsdocTypedefs(source)) {
+			if (typedef.description) lines.push(...jsdocLines(typedef.description));
+			lines.push(`export interface ${typedef.name} {`);
+			for (const property of typedef.properties) {
+				if (property.description) lines.push(...jsdocLines(property.description, 1));
+				lines.push(`\t${quoteProperty(property.name)}${property.optional ? '?' : ''}: ${property.type};`);
+			}
+			if (openTypes.includes(typedef.name)) lines.push('\t[key: string]: unknown;');
+			lines.push('}');
+		}
+	}
+	return lines;
+}
+
+/**
+ * Parses `@typedef {object} Name` blocks and their `@property` tags. Types
+ * may contain nested braces, such as inline object or function types.
+ *
+ * @param {string} source - File source.
+ * @returns {Array<{ name: string, description: string, properties: Array<{ name: string, type: string, optional: boolean, description: string }> }>} Typedefs in source order.
+ */
+function parseJsdocTypedefs(source) {
+	const typedefs = [];
+	const commentPattern = /\/\*\*([\s\S]*?)\*\//g;
+	let comment;
+	while ((comment = commentPattern.exec(source))) {
+		const text = comment[1].split('\n').map((line) => line.replace(/^\s*\*\s?/, '')).join('\n');
+		const typedefMatch = /@typedef\s+\{object\}\s+(\w+)([^@]*)/.exec(text);
+		if (!typedefMatch) continue;
+		const typedef = { name: typedefMatch[1], description: typedefMatch[2].trim(), properties: [] };
+		let index = text.indexOf('@property');
+		while (index >= 0) {
+			const open = text.indexOf('{', index);
+			const close = findMatching(text, open, '{', '}');
+			const type = text.slice(open + 1, close).trim();
+			const next = text.indexOf('@property', close);
+			const rest = text.slice(close + 1, next < 0 ? text.length : next).trim();
+			const nameMatch = /^(\[)?([\w$]+)\]?\s*([\s\S]*)$/.exec(rest);
+			if (nameMatch) {
+				typedef.properties.push({
+					name: nameMatch[2],
+					type: type.replace(/\s*\|\s*/g, ' | '),
+					optional: Boolean(nameMatch[1]),
+					description: nameMatch[3].replace(/\s+/g, ' ').trim(),
+				});
+			}
+			index = next;
+		}
+		typedefs.push(typedef);
+	}
+	return typedefs;
 }
 
 function propDescription(definition) {

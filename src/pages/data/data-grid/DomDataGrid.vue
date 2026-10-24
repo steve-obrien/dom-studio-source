@@ -3,40 +3,48 @@
 * @typedef {object} DataGridColumn
 * @property {string} key Stable column id. It can match a row property, or identify a display-only column such as actions.
 * @property {string} [field] Row property to read when it differs from key.
-* @property {string} [label] Header label.
-* @property {'text'|'number'|'date'|'boolean'|'select'|'currency'} [type] Column data type. Drives sorting, formatting, and filter controls.
-* @property {string|number} [width] CSS width for the column.
-* @property {'left'|'center'|'right'} [align] Cell alignment.
-* @property {object|Function|string} [component] Vue component used to render cells in this column. Receives row, column, value, formatted, rowIndex, and rowKey props.
+* @property {string} [label] Header label. Defaults to the key in title case.
+* @property {'text'|'number'|'date'|'boolean'|'select'|'currency'} [type] Column data type. Drives sorting, formatting, alignment, the filter control and the editor. Defaults to 'text'.
+* @property {string|number} [width] CSS width for the column. Numbers are pixels. Defaults by type: 13rem text, 7rem number and boolean, 8.5rem currency, 9.5rem date, 9rem select.
+* @property {'left'|'center'|'right'} [align] Cell alignment. Defaults to right for number and currency, center for boolean, left otherwise.
+* @property {DomVueComponent|string} [component] Vue component used to render cells in this column. Receives row, column, value, formatted, rowIndex and rowKey props, and may emit update:value or action.
 * @property {boolean} [resizable] Set false to disable drag resizing for this column.
 * @property {boolean} [sortable] Set false to disable sorting.
 * @property {boolean} [filterable] Set false to disable filtering for this column, hide the filter button, and omit the column from query filters.
 * @property {boolean} [searchable] Set false to remove the column from global search.
-* @property {Array<string|number|boolean|object>} [options] Select filter options. Objects may include label, value, and tone.
-* @property {string} [currency] Currency code for currency columns.
-* @property {Function} [accessor] Function that receives a row and returns the cell value.
-* @property {Function} [sortAccessor] Function that receives a row and column and returns the value used for local sorting.
-* @property {Function} [format] Function that receives value, row, and column and returns display text.
+* @property {boolean} [hidden] Set true to leave the column out of the grid.
+* @property {Array<string|number|boolean|DomOption|Record<string, unknown>>} [options] Choices for select columns, used by the filter checklist and the editor. Objects may include label, value and tone. Supply them for large data sets; otherwise the grid scans every row to find the choices.
+* @property {string} [currency] ISO currency code for currency columns. Defaults to 'GBP'.
+* @property {string} [locale] Locale used to format numbers, currency and dates in this column. Defaults to 'en-GB'.
+* @property {(row: Record<string, unknown>, column: DataGridColumn) => unknown} [accessor] Returns the cell value for a row. Use it for computed or nested values.
+* @property {(row: Record<string, unknown>, column: DataGridColumn) => unknown} [sortAccessor] Returns the value used for local sorting when it differs from the cell value.
+* @property {(value: unknown, row: Record<string, unknown>, column: DataGridColumn) => string|number} [format] Returns the display text for a cell. Also used by global search.
 * @property {'left'|'right'|boolean} [pinned] Pin the column to the left or right edge so it stays visible while the grid scrolls sideways. true pins left.
-* @property {boolean|Function} [editable] Allow inline editing for this column, or a function that receives row and column and decides per cell. Defaults to the grid editable prop for plain cells.
-* @property {Function} [parse] Function that receives typed text and column and returns the value to store. Overrides the built-in parser for edits and paste.
-* @property {Function} [validate] Function that receives value, row, and column. Return true to accept, or a message to reject the edit.
-* @property {'sum'|'avg'|'count'|'min'|'max'|Function} [aggregate] Aggregate shown on group rows and the totals row. A function receives values, rows, and column.
-* @property {Function} [formatAggregate] Function that receives the aggregate value, column, and aggregate kind and returns display text.
+* @property {boolean|((row: Record<string, unknown>, column: DataGridColumn) => boolean)} [editable] Allow inline editing for this column, or decide per cell. Defaults to the grid editable prop for plain cells.
+* @property {(text: string, column: DataGridColumn) => unknown} [parse] Converts typed or pasted text to the value to store. Overrides the built-in parser for the column type.
+* @property {(value: unknown, row: Record<string, unknown>, column: DataGridColumn) => true|string} [validate] Return true to accept an edit, or a message to reject it.
+* @property {'sum'|'avg'|'count'|'min'|'max'|((values: Array<unknown>, rows: Array<Record<string, unknown>>, column: DataGridColumn) => unknown)} [aggregate] Aggregate shown on group rows and the totals row.
+* @property {(value: unknown, column: DataGridColumn, kind: string) => string} [formatAggregate] Returns display text for an aggregate value.
 * @property {boolean} [exportable] Set false to leave the column out of CSV and Excel exports.
-* @property {Function} [exportValue] Function that receives value, row, and column and returns the exported and copied value.
+* @property {(value: unknown, row: Record<string, unknown>, column: DataGridColumn) => unknown} [exportValue] Returns the exported and copied value for a cell.
 */
 
 /**
 * @typedef {object} DataGridFilter
-* @property {string} [type]
-* @property {string} [operator]
-* @property {unknown} [value]
-* @property {Array<unknown>} [values]
-* @property {string|number} [min]
-* @property {string|number} [max]
-* @property {string} [start]
-* @property {string} [end]
+* @property {string} [type] Column type the filter belongs to.
+* @property {string} [operator] Text operator, such as contains.
+* @property {unknown} [value] Text or boolean filter value.
+* @property {Array<unknown>} [values] Chosen values for select filters.
+* @property {string|number} [min] Lower bound for number and currency filters.
+* @property {string|number} [max] Upper bound for number and currency filters.
+* @property {string} [start] Start date (YYYY-MM-DD) for date filters.
+* @property {string} [end] End date (YYYY-MM-DD) for date filters.
+*/
+
+/**
+* @typedef {object} DataGridSortContext
+* @property {DataGridColumn} [column] Column being sorted, when the rule matches one.
+* @property {Array<DataGridColumn>} columns Every grid column.
 */
 
 /**
@@ -44,22 +52,69 @@
 * @property {string} [key] Column key, row field, or stable custom sort id.
 * @property {'asc'|'desc'} [direction]
 * @property {string} [field] Row property to sort by when it differs from key.
-* @property {Function} [accessor] Function that receives a row and returns the local sort value.
-* @property {Function} [compare] Function that receives left row, right row, rule, and context and returns an ascending comparison result.
+* @property {string} [label] Label shown for computed sort rules.
+* @property {DataGridColumn['type']} [type] Value type used for comparison when the rule has no matching column.
+* @property {(row: Record<string, unknown>, column?: DataGridColumn|DataGridSortRule) => unknown} [accessor] Returns the local sort value for a row.
+* @property {(leftRow: Record<string, unknown>, rightRow: Record<string, unknown>, rule: DataGridSortRule, context: DataGridSortContext) => number} [compare] Returns an ascending comparison result for two rows.
 */
 
 /**
 * @typedef {object} DataGridSort
-* @property {string} [key]
-* @property {'asc'|'desc'|''} [direction]
+* @property {string} [key] Sorted column key.
+* @property {'asc'|'desc'|''} [direction] Sort direction; empty means unsorted.
 * @property {Array<DataGridSortRule>} [rules] Ordered sort rules for multi-column or computed local sorting and server query payloads.
 */
 
 /**
 * @typedef {object} DataGridQuery
-* @property {string} search
-* @property {Record<string, DataGridFilter>} filters
-* @property {DataGridSort|null} sort
+* @property {string} search Global search text.
+* @property {Record<string, DataGridFilter>} filters Applied filters keyed by column key.
+* @property {DataGridSort|null} sort Current sort.
+*/
+
+/**
+* @typedef {object} DataGridCellUpdate
+* @property {Record<string, unknown>} row Row being changed. The grid does not mutate it.
+* @property {DataGridColumn} column Column being changed.
+* @property {number} rowIndex Visible row position.
+* @property {string|number} rowKey Row key from rowKey.
+* @property {unknown} value New parsed and validated value.
+* @property {unknown} previousValue Value before the change.
+* @property {'editor'|'paste'|'delete'|'cut'|'undo'|'redo'|'component'} source What made the change.
+*/
+
+/**
+* @typedef {object} DataGridCellsUpdate
+* @property {'editor'|'paste'|'delete'|'cut'|'undo'|'redo'|'component'} source What made the changes.
+* @property {Array<DataGridCellUpdate>} changes Every cell change in this step.
+*/
+
+/**
+* @typedef {object} DataGridRange
+* @property {number} startRow First visible row position in the range.
+* @property {number} endRow Last visible row position in the range.
+* @property {number} startColumn First visible column index in the range.
+* @property {number} endColumn Last visible column index in the range.
+* @property {Array<Record<string, unknown>>} rows Rows in the range.
+* @property {Array<DataGridColumn>} columns Columns in the range.
+*/
+
+/**
+* @typedef {object} DataGridCellSlotProps
+* @property {Record<string, unknown>} row Row being rendered.
+* @property {DataGridColumn} column Column being rendered.
+* @property {unknown} value Raw cell value.
+* @property {string|number} formatted Display text for the value.
+* @property {number} rowIndex Visible row position.
+* @property {string|number} rowKey Row key from rowKey.
+*/
+
+/**
+* @typedef {object} DataGridToolbarSlotProps
+* @property {DataGridQuery} query Current query.
+* @property {() => void} clearFilters Clears every column filter.
+* @property {() => void} exportCsv Downloads the filtered, sorted rows as CSV.
+* @property {() => void} exportExcel Downloads the filtered, sorted rows as Excel (.xlsx).
 */
 
 export const dataGridProps = {
@@ -279,7 +334,7 @@ defineOptions({
 			{ name: 'viewport-end', payload: '{ scrollTop, scrollHeight, clientHeight, remaining, atEnd }', description: 'Fired when the scrollable row viewport reaches the bottom threshold. Useful for cursor pagination and infinite loading.' },
 			{ name: 'cell-update', payload: '({ row, column, rowIndex, rowKey, value, previousValue, source })', description: 'Fired when a cell value changes: an inline edit, paste, delete, undo or redo (source), or a column component emitting update:value. The grid does not mutate rows; write value back to your data.' },
 			{ name: 'cells-update', payload: '({ source, changes })', description: 'Fired once per edit, paste, delete, undo or redo with every change, after the individual cell-update events. Use it instead of cell-update to apply a batch in one step.' },
-			{ name: 'range-change', payload: '({ startRow, endRow, startColumn, endColumn, rows, columns }) | null', description: 'Fired when the selected cell range changes. Indexes are visible positions.' },
+			{ name: 'range-change', payload: 'DataGridRange | null', description: 'Fired when the selected cell range changes. Indexes are visible positions.' },
 			{ name: 'update:pinnedColumns', payload: 'Record<string, \'left\' | \'right\'>', description: 'Fired when a column is pinned or unpinned from the column menu.' },
 			{ name: 'update:groupBy', payload: 'string | Array<string>', description: 'Fired when grouping changes from the column menu or toolbar.' },
 			{ name: 'export', payload: '({ format, rows, columns, fileName })', description: 'Fired after a CSV or Excel export is built.' },
@@ -293,6 +348,17 @@ defineOptions({
 			{ name: 'cell', payload: '{ row, column, value, formatted, rowIndex, rowKey }', description: 'Custom cell renderer.' },
 			{ name: 'toolbar-actions', payload: '{ query, clearFilters, exportCsv, exportExcel }', description: 'Extra controls rendered next to search and Clear filters.' },
 			{ name: 'empty', description: 'Custom empty state.' },
+		],
+		methods: [
+			{ name: 'exportCsv', signature: '(options?: { onlySelected?: boolean; fileName?: string; download?: boolean }) => string', description: 'Downloads the filtered, sorted rows as CSV and returns the text. Pass download: false to only get the text.' },
+			{ name: 'exportExcel', signature: '(options?: { onlySelected?: boolean; fileName?: string; download?: boolean }) => Blob', description: 'Downloads the filtered, sorted rows as an Excel workbook with typed cells and returns the file.' },
+			{ name: 'getRange', signature: '() => DataGridRange | null', description: 'Returns the selected cell range, or null.' },
+			{ name: 'selectRange', signature: '(range: { startRow: number; endRow?: number; startColumn?: number | string; endColumn?: number | string }) => void', description: 'Selects a cell range by visible row position and column index or key.' },
+			{ name: 'clearRange', signature: '() => void', description: 'Clears the active cell and range.' },
+			{ name: 'undo', signature: '() => boolean', description: 'Undoes the last edit, paste or delete. Returns false when there is nothing to undo.' },
+			{ name: 'redo', signature: '() => boolean', description: 'Redoes the last undone change. Returns false when there is nothing to redo.' },
+			{ name: 'expandAllGroups', signature: '() => void', description: 'Opens every group.' },
+			{ name: 'collapseAllGroups', signature: '() => void', description: 'Closes every group.' },
 		],
 		keyboard: [
 			{ keys: 'Enter / Space on a header', action: 'Toggle sort when the column is sortable.' },
