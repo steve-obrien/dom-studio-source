@@ -229,7 +229,7 @@ const layers = computed(() => (doc.value ? [layer(doc.value.rootId)] : []));
 watch(selected, async (id) => {
 	if (canvasMode.value !== 'page' || !id) return;
 	await nextTick();
-	activeViewport()?.element(id)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+	activeViewport()?.reveal(id);
 });
 watch(canvasMode, (mode) => {
 	try { localStorage.setItem(canvasModeKey, mode); } catch { /* storage unavailable */ }
