@@ -5837,6 +5837,19 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "designer/image-editor",
+		"path": "../designer/image-editor/DomImageEditor.vue",
+		"section": "designer",
+		"slug": "image-editor",
+		"exportName": "DomImageEditor",
+		"route": "/designer/image-editor",
+		"doc": {
+			"name": "Image editor",
+			"description": "Image source, alt text, fit and filters for a designer inspector."
+		},
+		"studio": {}
+	},
+	{
 		"id": "designer/layers",
 		"path": "../designer/layers/DomDesignerLayers.vue",
 		"section": "designer",

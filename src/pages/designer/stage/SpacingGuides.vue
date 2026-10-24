@@ -18,7 +18,7 @@ function measurements() {
 </script>
 
 <template>
-	<svg v-if="measures.length" class="absolute inset-0 h-full w-full overflow-visible text-primary" aria-hidden="true">
+	<svg v-if="measures.length" class="absolute inset-0 h-full w-full overflow-visible text-designer" aria-hidden="true">
 		<g v-for="(measure, index) in measures" :key="index" :stroke-width="unit" stroke="currentColor" fill="none">
 			<template v-if="measure.axis === 'x'">
 				<path :d="`M${measure.from},${measure.cross}H${measure.to} M${measure.from},${measure.cross - 4 * unit}v${8 * unit} M${measure.to},${measure.cross - 4 * unit}v${8 * unit}`" />

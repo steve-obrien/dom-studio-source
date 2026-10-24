@@ -1124,14 +1124,14 @@ defineExpose({
 							<div
 								v-if="canvasMode === 'canvas'"
 								class="absolute bottom-full left-0 flex cursor-move select-none items-center gap-2 whitespace-nowrap pb-2 text-muted-fg"
-								:class="board.id === activeArtboard?.id && 'text-primary'"
+								:class="board.id === activeArtboard?.id && 'text-designer'"
 								:style="{ fontSize: `${12 / zoom}px` }"
 								@pointerdown="onArtboardTitlePointerdown($event, board)"
 							>
 								<span class="font-medium">{{ board.name }}</span>
 								<span class="tabular-nums opacity-70">{{ board.width }} × {{ board.height }}</span>
 							</div>
-							<div :class="canvasMode === 'page' ? 'size-full' : ['shadow-lg ring-1', board.id === activeArtboard?.id ? 'ring-primary' : 'ring-border']">
+							<div :class="canvasMode === 'page' ? 'size-full' : ['shadow-lg ring-1', board.id === activeArtboard?.id ? 'ring-designer' : 'ring-border']">
 								<ArtboardViewport
 									:ref="(instance) => setArtboardRef(board.id, instance)"
 									:width="board.width"
@@ -1177,8 +1177,8 @@ defineExpose({
 									</DomDesignerStage>
 								</ArtboardViewport>
 							</div>
-							<div v-if="canvasMode === 'canvas'" class="pointer-events-none absolute inset-x-0 border-t border-dashed border-primary/60" :style="{ top: `${board.height}px`, borderTopWidth: `${1 / zoom}px` }" aria-hidden="true">
-								<span v-if="board.width * zoom >= 140" class="absolute bottom-full right-0 whitespace-nowrap rounded-sm bg-canvas/90 px-1 text-primary" :style="{ fontSize: `${11 / zoom}px`, marginBottom: `${2 / zoom}px` }">Screen height {{ board.height }}</span>
+							<div v-if="canvasMode === 'canvas'" class="pointer-events-none absolute inset-x-0 border-t border-dashed border-designer/60" :style="{ top: `${board.height}px`, borderTopWidth: `${1 / zoom}px` }" aria-hidden="true">
+								<span v-if="board.width * zoom >= 140" class="absolute bottom-full right-0 whitespace-nowrap rounded-sm bg-canvas/90 px-1 text-designer" :style="{ fontSize: `${11 / zoom}px`, marginBottom: `${2 / zoom}px` }">Screen height {{ board.height }}</span>
 							</div>
 						</div>
 					</div>

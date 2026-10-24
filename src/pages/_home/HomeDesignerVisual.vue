@@ -40,7 +40,7 @@ const label = computed(() => layers.find((layer) => layer.id === selected.value)
 
 /** @param {string} id Layer id. @returns {string} Selection outline classes for an artboard layer. */
 function outline(id) {
-	return selected.value === id ? 'outline-2 outline-offset-2 outline-ring' : 'hover:outline-1 hover:outline-offset-2 hover:outline-ring/60';
+	return selected.value === id ? 'outline-2 outline-offset-2 outline-designer' : 'hover:outline-1 hover:outline-offset-2 hover:outline-designer/60';
 }
 
 /** @param {string} id Layer to select on the artboard, in the layer list and in the source. @returns {void} */
@@ -69,7 +69,7 @@ function select(id) {
 			</ul>
 			<div class="min-w-0">
 				<div class="p-4 sm:p-6">
-					<div class="relative mx-auto max-w-[34rem] cursor-pointer overflow-hidden rounded-lg bg-[#05060b] text-white shadow-md" :class="selected === 'page' && 'outline-2 outline-offset-2 outline-ring'" @click.self="select('page')">
+					<div class="relative mx-auto max-w-[34rem] cursor-pointer overflow-hidden rounded-lg bg-[#05060b] text-white shadow-md" :class="selected === 'page' && 'outline-2 outline-offset-2 outline-designer'" @click.self="select('page')">
 						<div class="pointer-events-none absolute -right-16 -top-20 size-72 rounded-full bg-violet-600/40 blur-3xl" aria-hidden="true"></div>
 						<div class="pointer-events-none absolute -bottom-10 right-0 size-48 rounded-full bg-cyan-400/25 blur-3xl" aria-hidden="true"></div>
 						<div class="relative flex cursor-pointer items-center justify-between rounded px-5 py-3 text-[0.7rem]" :class="outline('header')" @click="select('header')">

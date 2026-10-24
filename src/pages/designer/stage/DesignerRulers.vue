@@ -41,13 +41,13 @@ const vertical = computed(() => ticks(props.origin.y || 0, props.height));
 <template>
 	<div aria-hidden="true" class="pointer-events-none select-none text-muted-fg">
 		<svg class="absolute left-0 bg-canvas" :style="{ top: `${-size}px`, width: `${width * scale}px`, height: `${size}px` }">
-			<rect v-if="selection" :x="(selection.left - (origin.x || 0)) * scale" y="0" :width="selection.width * scale" :height="size" class="fill-primary/15" />
+			<rect v-if="selection" :x="(selection.left - (origin.x || 0)) * scale" y="0" :width="selection.width * scale" :height="size" class="fill-designer/15" />
 			<line v-for="tick in horizontal" :key="tick.value" :x1="tick.at * scale" :x2="tick.at * scale" :y1="tick.major ? 0 : size * 0.65" :y2="size" stroke="currentColor" stroke-width="1" :opacity="tick.major ? 0.7 : 0.35" />
 			<text v-for="tick in horizontal.filter((item) => item.major)" :key="`h${tick.value}`" :x="tick.at * scale + 3" y="9" font-size="9" fill="currentColor">{{ tick.value }}</text>
 			<line x1="0" :x2="width * scale" :y1="size - 0.5" :y2="size - 0.5" stroke="currentColor" opacity="0.4" />
 		</svg>
 		<svg class="absolute top-0 bg-canvas" :style="{ left: `${-size}px`, width: `${size}px`, height: `${height * scale}px` }">
-			<rect v-if="selection" x="0" :y="(selection.top - (origin.y || 0)) * scale" :width="size" :height="selection.height * scale" class="fill-primary/15" />
+			<rect v-if="selection" x="0" :y="(selection.top - (origin.y || 0)) * scale" :width="size" :height="selection.height * scale" class="fill-designer/15" />
 			<line v-for="tick in vertical" :key="tick.value" :y1="tick.at * scale" :y2="tick.at * scale" :x1="tick.major ? 0 : size * 0.65" :x2="size" stroke="currentColor" stroke-width="1" :opacity="tick.major ? 0.7 : 0.35" />
 			<text v-for="tick in vertical.filter((item) => item.major)" :key="`v${tick.value}`" x="9" :y="tick.at * scale + 3" font-size="9" fill="currentColor" :transform="`rotate(-90 9 ${tick.at * scale + 3})`" text-anchor="end">{{ tick.value }}</text>
 			<line :x1="size - 0.5" :x2="size - 0.5" y1="0" :y2="height * scale" stroke="currentColor" opacity="0.4" />
