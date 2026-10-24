@@ -4,6 +4,9 @@ import { fileURLToPath } from 'node:url';
 import vue from '@vitejs/plugin-vue';
 import tailwindcss from '@tailwindcss/vite';
 import designerFileStorageServer from './src/pages/designer/core/fileStorageServer.js';
+import MarkdownIt from 'markdown-it';
+import fs from 'node:fs';
+import { parseGuide } from './scripts/lib/component-docs.mjs';
 import {
 	componentCatalogOutputPath,
 	isComponentCatalogFile,
@@ -26,6 +29,7 @@ function createViteConfig({ command }) {
 		plugins: [
 			domStudioComponentCatalogPlugin(projectRoot),
 			domStudioStylesFirstPlugin(),
+			domStudioGuidePlugin(),
 			designerFileStorageServer({ root: projectRoot }),
 			vue({
 				template: {
@@ -99,6 +103,38 @@ function isDomStudioCustomElement(tag) {
 }
 
 export default defineConfig(createViteConfig);
+
+/**
+ * Loads a component guide (`DomDataGrid.md?guide`) as sections of rendered
+ * HTML, code and live-example markers. The same Markdown is shipped in the npm
+ * package, so the site page and the package docs share one source.
+ *
+ * @returns {import('vite').Plugin} Guide loader plugin.
+ */
+function domStudioGuidePlugin() {
+	const markdown = new MarkdownIt({ html: false, linkify: false, typographer: false });
+	return {
+		name: 'dom-studio-guide',
+		/**
+		 * Renders the guide's Markdown blocks to HTML at build time.
+		 *
+		 * @param {string} id Module id.
+		 * @returns {string|undefined} Module source for guide imports.
+		 */
+		load(id) {
+			const [file, query] = id.split('?');
+			if (query !== 'guide' || !file.endsWith('.md')) return;
+			this.addWatchFile(file);
+			const sections = parseGuide(fs.readFileSync(file, 'utf8')).map((section) => ({
+				...section,
+				blocks: section.blocks.map((block) => (
+					block.type === 'markdown' ? { type: 'html', html: markdown.render(block.text) } : block
+				)),
+			}));
+			return `export default ${JSON.stringify(sections)};`;
+		},
+	};
+}
 
 /**
  * Places the entry stylesheet before SSR module preloads so the parser discovers

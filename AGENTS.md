@@ -44,6 +44,8 @@ The app uses Vite, Vue Router, Pinia, Tailwind CSS v4, Express, Knex, MySQL, Str
 - Use semantic theme classes and CSS variables from `src/style.css`; avoid hard-coded raw colors unless defining or extending a theme token.
 - Keep docs pages inside `DomStudioLayout`, `DocPage`, and `DocSection` unless the surrounding section uses a different established pattern.
 - Component docs should prefer `defineOptions({ __doc: ... })` plus prop `_edit` metadata where useful.
+- Document events, slots, template ref methods (`methods: [{ name, signature, description }]`) and keyboard keys in `__doc`; `npm run types:generate` turns them into typed listener props, a `<Name>Slots` and a `<Name>Exposed` interface. Public payload and option types are JSDoc `@typedef`s in the component, written with TypeScript types, and listed in `jsdocTypedefSources` in `scripts/generate-types.mjs`.
+- Usage guides live beside the component as `<Name>.md` (see `src/pages/data/data-grid/DomDataGrid.md`). The docs page renders it with `ComponentGuide` from `import guide from './<Name>.md?guide'`, and `npm run package:build` ships it in `docs/components/<Name>.md` with a generated API reference. `<!-- example: File -->` embeds `examples/File.vue` live on the site and as a linked file in the package.
 - Blocks should include an `Index.vue`, at least one realistic `examples/*.vue` file, and `block.meta.js` when they should appear well in navigation.
 - API routes live under `server/api` and use filename conventions such as `checkout.get.js`, `[slug].get.js`, or `webhook.post.js`. Use `export const config = { body: 'raw' }` for Stripe-style signature verification.
 - Never commit secrets. Use `.env.example` for shape only.

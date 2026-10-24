@@ -31,7 +31,17 @@ import {
 } from '@getdom/studio';
 ```
 
-The package root exports the same Vue surface as `@getdom/studio/vue`. Use headless custom elements by importing `@getdom/studio/headless`; Vite treats tags beginning with `dom-` as custom elements.
+The package root exports the same Vue surface as `@getdom/studio/vue`. Use headless custom elements by importing `@getdom/studio/headless`.
+
+Some components render custom elements whose tags start with `dom-`. Tell Vue about them in `vite.config.js`:
+
+```js
+vue({ template: { compilerOptions: { isCustomElement: (tag) => tag.startsWith('dom-') } } })
+```
+
+## Component Docs
+
+Read `node_modules/@getdom/studio/docs/components/<Name>.md` before using a component, for example `DomDataGrid.md`. Each file lists props with types and defaults, events with payload types, slots, template ref methods, keyboard support and the related types, so you rarely need to read component source. Files marked "guide" in `docs/components/README.md` also cover usage, defaults to change, common mistakes and working examples. The same types are in `index.d.ts` with JSDoc.
 
 ## Component Choice
 

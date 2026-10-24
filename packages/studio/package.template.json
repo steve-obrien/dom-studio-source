@@ -51,6 +51,7 @@
 		"./tailwind.css": "./src/tailwind.css",
 		"./theme.css": "./src/theme.css",
 		"./llms.txt": "./public/llms.txt",
+		"./docs/*": "./docs/*",
 		"./skill": "./SKILL.md",
 		"./skills.sh": "./public/skills.sh",
 		"./package.json": "./package.json"
