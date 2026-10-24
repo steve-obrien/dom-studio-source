@@ -17,9 +17,7 @@ import { artboardViewportCss } from './artboardCss.js';
  *
  * With `fill`, the artboard is one real viewport instead: the iframe fills its
  * container and scrolls itself, so viewport units and scrolling behave as in a
- * browser window. It reports its size through `resize`. It is never narrower
- * than `width`: in a smaller space the window keeps the artboard's width and
- * scrolls sideways, as a page wider than the screen would.
+ * browser window. It reports its size through `resize`.
  */
 const props = defineProps({
 	css: { type: String, default: '' },
@@ -30,7 +28,6 @@ const props = defineProps({
 });
 const emit = defineEmits(['ready', 'styles', 'wheel', 'keydown', 'pointerdown', 'resize', 'touch']);
 const iframe = ref(null);
-const frame = ref(null);
 const mount = shallowRef(null);
 const height = ref(props.minHeight);
 let styleObserver;
@@ -192,9 +189,9 @@ function element(id) {
 }
 
 /**
- * Scrolls a filled artboard so a layer is in view, down inside the page and
- * sideways in the frame. Unlike scrollIntoView, it never scrolls the page's
- * own `overflow-hidden` boxes, which a visitor could not scroll back.
+ * Scrolls a filled artboard's page so a layer is in view. Unlike
+ * scrollIntoView, it never scrolls the page's own `overflow-hidden` boxes,
+ * which a visitor could not scroll back.
  */
 function reveal(id) {
 	const node = element(id);
@@ -202,9 +199,7 @@ function reveal(id) {
 	if (!props.fill || !node || !page) return;
 	const rect = node.getBoundingClientRect();
 	const into = (start, size, view) => (start < 0 ? start : start + size > view ? Math.min(start, start + size - view) : 0);
-	page.scrollBy({ top: into(rect.top, rect.height, page.clientHeight), behavior: 'smooth' });
-	const left = rect.left - page.scrollLeft + iframe.value.offsetLeft - frame.value.scrollLeft;
-	frame.value.scrollBy({ left: into(left, rect.width, frame.value.clientWidth), behavior: 'smooth' });
+	page.scrollBy({ top: into(rect.top, rect.height, page.clientHeight), left: into(rect.left, rect.width, page.clientWidth), behavior: 'smooth' });
 }
 
 watch(() => props.css, syncStyles);
@@ -215,13 +210,13 @@ defineExpose({ element, fit, reveal });
 </script>
 
 <template>
-	<div ref="frame" :class="fill && 'size-full overflow-x-auto overflow-y-hidden'">
+	<div :class="fill && 'size-full'">
 		<iframe
 			ref="iframe"
 			:title="title"
 			sandbox="allow-same-origin"
 			:srcdoc="source"
-			:style="fill ? { width: '100%', minWidth: `${width}px`, height: '100%' } : { width: `${width}px`, height: `${height}px` }"
+			:style="fill ? { width: '100%', height: '100%' } : { width: `${width}px`, height: `${height}px` }"
 			class="block max-w-none border-0 bg-canvas"
 			@load="connect"
 		/>
