@@ -145,6 +145,14 @@ const zoom = ref(0.5);
 const pan = ref({ x: 48, y: 72 });
 const panning = ref(false);
 const spaceHeld = ref(false);
+// Pointer selects and moves layers; Hand pans the canvas. Holding Space borrows the hand until it is released.
+const tool = ref('pointer');
+// Page mode scrolls like a browser and has no tools, so the hand only applies on the canvas.
+const handActive = computed(() => canvasMode.value === 'canvas' && (tool.value === 'hand' || spaceHeld.value));
+const tools = [
+	{ id: 'pointer', label: 'Pointer', icon: 'pointer', tip: 'Pointer (V): select and move layers' },
+	{ id: 'hand', label: 'Hand', icon: 'hand', tip: 'Hand (H): move the canvas. Hold Space to use it for a moment' },
+];
 const leftTab = ref('layers');
 // Phones: one bottom sheet holds the panels. It rests at a snap point (tab bar only, half, or nearly full) or follows a drag.
 const sheetTabs = [{ id: 'layers', label: 'Layers' }, { id: 'insert', label: 'Insert' }, { id: 'data', label: 'Data' }, { id: 'inspect', label: 'Inspect' }];
@@ -822,11 +830,11 @@ function frame(boards) {
 function fitAll() { frame(artboards.value); }
 function focusArtboard(board) { activeArtboardId.value = board.id; frame([board]); }
 
-/** Pans with middle button, space+drag, or a drag on empty canvas; touch pans and pinches anywhere. */
+/** Pans with middle button, the hand tool (or Space held), or a drag on empty canvas; touch pans and pinches anywhere. */
 function onCanvasPointerdown(event) {
 	if (event.pointerType === 'touch') { onTouch(event); return; }
 	const empty = event.target === viewport.value || event.target.dataset?.canvasWorld !== undefined;
-	if (!(event.button === 1 || spaceHeld.value || (event.button === 0 && empty))) return;
+	if (!(event.button === 1 || handActive.value || (event.button === 0 && empty))) return;
 	event.preventDefault();
 	gesture = { kind: 'pan', pointer: event.pointerId, x: event.clientX, y: event.clientY, origin: { ...pan.value } };
 	panning.value = true;
@@ -835,7 +843,7 @@ function onCanvasPointerdown(event) {
 
 /** Drags an artboard by its title. */
 function onArtboardTitlePointerdown(event, board) {
-	if (event.button !== 0 || spaceHeld.value) return;
+	if (event.button !== 0 || handActive.value) return;
 	event.preventDefault();
 	event.stopPropagation();
 	activeArtboardId.value = board.id;
@@ -984,7 +992,9 @@ function onKeydown(event) {
 	// ⌘S saves from anywhere, even mid-edit, rather than opening the browser's save dialog.
 	if (mod && event.key.toLowerCase() === 's' && projectFiles.value) { event.preventDefault(); saveProjectFile(); return; }
 	if (isTyping(event)) return;
-	if (event.code === 'Space' && !event.repeat) { spaceHeld.value = true; event.preventDefault(); return; }
+	if (event.code === 'Space' && !mod) { event.preventDefault(); spaceHeld.value = true; return; }
+	if (!mod && !event.altKey && event.code === 'KeyV') { event.preventDefault(); tool.value = 'pointer'; return; }
+	if (!mod && !event.altKey && event.code === 'KeyH' && !event.shiftKey) { event.preventDefault(); tool.value = 'hand'; return; }
 	if (mod && event.key.toLowerCase() === 'z') { event.preventDefault(); if (event.shiftKey) redo(); else undo(); return; }
 	if (!mod && event.shiftKey && event.code === 'KeyR') { event.preventDefault(); showRulers.value = !showRulers.value; return; }
 	if (mod && event.shiftKey && ['l', 'h'].includes(event.key.toLowerCase()) && selected.value) { event.preventDefault(); toggleFlag(event.key.toLowerCase() === 'l' ? 'locked' : 'hidden'); return; }
@@ -999,8 +1009,11 @@ function onKeydown(event) {
 	if (event.key === 'Escape' && parent.value) { event.preventDefault(); selected.value = parent.value.id; }
 }
 
+// Releasing Space hands back whichever tool was picked. Listening in the capture phase means nothing on the page can swallow the keyup.
 function onKeyup(event) {
-	if (event.code === 'Space') spaceHeld.value = false;
+	if (event.code === 'Space' && spaceHeld.value) { spaceHeld.value = false; event.preventDefault(); }
+	// macOS drops the keyup of keys released while ⌘ is down, so ⌘ going up ends the hold too.
+	if (event.key === 'Meta') spaceHeld.value = false;
 }
 function onWindowBlur() { spaceHeld.value = false; }
 
@@ -1019,7 +1032,7 @@ onMounted(async () => {
 		activeArtboardId.value = saved.artboards[0].id;
 	}
 	window.addEventListener('keydown', onKeydown);
-	window.addEventListener('keyup', onKeyup);
+	window.addEventListener('keyup', onKeyup, true);
 	window.addEventListener('blur', onWindowBlur);
 	viewport.value?.addEventListener('wheel', onWheel, { passive: false });
 	if (viewport.value && typeof ResizeObserver !== 'undefined') {
@@ -1088,6 +1101,9 @@ defineExpose({
 					<button v-for="mode in [{ id: 'canvas', label: 'Canvas', tip: 'Canvas: artboards side by side to pan and zoom' }, { id: 'page', label: 'Page', tip: 'Page: the selected artboard fills the space as a real, scrolling browser window' }]" :key="mode.id" v-dom-tooltip="mode.tip" type="button" :aria-pressed="canvasMode === mode.id" class="rounded-md px-2.5 py-1 text-xs font-medium transition" :class="canvasMode === mode.id ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'" @click="canvasMode = mode.id">{{ mode.label }}</button>
 				</div>
 				<template v-if="canvasMode === 'canvas'">
+					<div class="flex rounded-lg bg-secondary p-0.5" role="group" aria-label="Tool">
+						<button v-for="item in tools" :key="item.id" v-dom-tooltip="item.tip" type="button" :aria-label="item.label" :aria-pressed="(item.id === 'hand') === handActive" class="grid size-7 place-items-center rounded-md transition" :class="(item.id === 'hand') === handActive ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'" @click="tool = item.id"><InspectorIcon :name="item.icon" /></button>
+					</div>
 					<label class="mr-2 hidden items-center gap-2 text-xs text-muted-fg md:flex"><input v-model="snapping" type="checkbox">Snap</label>
 					<label class="mr-2 hidden items-center gap-2 text-xs text-muted-fg md:flex" title="Rulers (⇧R)"><input v-model="showRulers" type="checkbox">Rulers</label>
 					<DomButton size="sm" variant="ghost" aria-label="Zoom out" title="Zoom out (⌘−)" @click="zoomBy(0.8)">−</DomButton>
@@ -1112,7 +1128,7 @@ defineExpose({
 				<div
 					ref="viewport"
 					class="absolute inset-0 touch-none overflow-hidden bg-secondary/60 [background-image:radial-gradient(var(--border)_1px,transparent_1px)]"
-					:class="panning ? 'cursor-grabbing' : spaceHeld ? 'cursor-grab' : ''"
+					:class="panning ? 'cursor-grabbing' : handActive ? 'cursor-grab' : ''"
 					:style="[stageInset, { backgroundSize: `${24 * zoom}px ${24 * zoom}px`, backgroundPosition: `${pan.x}px ${pan.y}px` }]"
 					@pointerdown="onCanvasPointerdown"
 					@pointermove="onCanvasPointermove"
@@ -1182,7 +1198,7 @@ defineExpose({
 							</div>
 						</div>
 					</div>
-					<div v-if="spaceHeld || panning" class="absolute inset-0" aria-hidden="true"></div>
+					<div v-if="handActive || panning" class="absolute inset-0" aria-hidden="true"></div>
 				</div>
 				<div v-if="showRulers && canvasMode === 'canvas' && activeArtboard && viewportSize.width" class="pointer-events-none absolute z-[5] overflow-hidden" :style="{ left: 0, top: 0, width: `${viewportSize.width}px`, height: `${viewportSize.height}px`, paddingLeft: `${RULER}px`, paddingTop: `${RULER}px` }">
 					<div class="relative">
@@ -1190,7 +1206,7 @@ defineExpose({
 					</div>
 				</div>
 				<p v-if="compilerNotice" :style="hintInset" class="pointer-events-none absolute bottom-3 left-3 max-lg:bottom-20 max-w-md rounded-md bg-canvas/90 px-3 py-2 text-xs text-muted-fg shadow">{{ compilerNotice }}</p>
-				<p v-if="canvasMode === 'canvas'" :style="hintInset" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] text-muted-fg shadow md:block">Double-click text to edit · {{ embedded ? 'Drag the canvas to pan' : 'Scroll to pan' }} · ⌘/Ctrl + scroll to zoom · Space + drag · ⇧1 fit</p>
+				<p v-if="canvasMode === 'canvas'" :style="hintInset" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] text-muted-fg shadow md:block">Double-click text to edit · {{ embedded ? 'Drag the canvas to pan' : 'Scroll to pan' }} · ⌘/Ctrl + scroll to zoom · Hold Space to pan · ⇧1 fit</p>
 				<p v-else-if="pageSize" :style="hintInset" class="pointer-events-none absolute bottom-3 right-3 hidden rounded-md bg-canvas/90 px-3 py-2 text-[11px] tabular-nums text-muted-fg shadow md:block">Viewport {{ pageSize.width }} × {{ pageSize.height }}</p>
 
 				<aside v-if="showCode" class="absolute z-20 flex flex-col bg-canvas" :class="codeLayout === 'below' ? 'inset-x-0 bottom-0 border-t border-border' : 'inset-y-0 right-0 w-full max-w-xl border-l border-border shadow-xl'" :style="codeLayout === 'below' ? { height: codeShare } : {}">
