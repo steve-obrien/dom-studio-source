@@ -145,6 +145,8 @@ const zoom = ref(0.5);
 const pan = ref({ x: 48, y: 72 });
 const panning = ref(false);
 const spaceHeld = ref(false);
+// When Space last went down (or auto-repeated). A held key keeps repeating, so a stale time means its keyup was missed.
+let spaceSeenAt = 0;
 // Pointer selects and moves layers; Hand pans the canvas. Holding Space borrows the hand until it is released.
 const tool = ref('pointer');
 // Page mode scrolls like a browser and has no tools, so the hand only applies on the canvas.
@@ -830,9 +832,15 @@ function frame(boards) {
 function fitAll() { frame(artboards.value); }
 function focusArtboard(board) { activeArtboardId.value = board.id; frame([board]); }
 
+/** Ends a Space hold whose keyup never arrived, e.g. released outside the window: a held key keeps auto-repeating. */
+function dropStaleSpace() {
+	if (spaceHeld.value && performance.now() - spaceSeenAt > 2000) spaceHeld.value = false;
+}
+
 /** Pans with middle button, the hand tool (or Space held), or a drag on empty canvas; touch pans and pinches anywhere. */
 function onCanvasPointerdown(event) {
 	if (event.pointerType === 'touch') { onTouch(event); return; }
+	dropStaleSpace();
 	const empty = event.target === viewport.value || event.target.dataset?.canvasWorld !== undefined;
 	if (!(event.button === 1 || handActive.value || (event.button === 0 && empty))) return;
 	event.preventDefault();
@@ -853,6 +861,7 @@ function onArtboardTitlePointerdown(event, board) {
 }
 
 function onCanvasPointermove(event) {
+	dropStaleSpace();
 	if (touches.has(event.pointerId)) { onTouch(event); return; }
 	if (!gesture || gesture.pointer !== event.pointerId) return;
 	const dx = event.clientX - gesture.x;
@@ -992,7 +1001,7 @@ function onKeydown(event) {
 	// ⌘S saves from anywhere, even mid-edit, rather than opening the browser's save dialog.
 	if (mod && event.key.toLowerCase() === 's' && projectFiles.value) { event.preventDefault(); saveProjectFile(); return; }
 	if (isTyping(event)) return;
-	if (event.code === 'Space' && !mod) { event.preventDefault(); spaceHeld.value = true; return; }
+	if (event.code === 'Space' && !mod) { event.preventDefault(); spaceHeld.value = true; spaceSeenAt = performance.now(); return; }
 	if (!mod && !event.altKey && event.code === 'KeyV') { event.preventDefault(); tool.value = 'pointer'; return; }
 	if (!mod && !event.altKey && event.code === 'KeyH' && !event.shiftKey) { event.preventDefault(); tool.value = 'hand'; return; }
 	if (mod && event.key.toLowerCase() === 'z') { event.preventDefault(); if (event.shiftKey) redo(); else undo(); return; }
@@ -1009,7 +1018,8 @@ function onKeydown(event) {
 	if (event.key === 'Escape' && parent.value) { event.preventDefault(); selected.value = parent.value.id; }
 }
 
-// Releasing Space hands back whichever tool was picked. Listening in the capture phase means nothing on the page can swallow the keyup.
+// Releasing Space hands back whichever tool was picked. Listening in the capture phase means nothing on the page can swallow the keyup;
+// artboards render in iframes, which forward their keyups here too.
 function onKeyup(event) {
 	if (event.code === 'Space' && spaceHeld.value) { spaceHeld.value = false; event.preventDefault(); }
 	// macOS drops the keyup of keys released while ⌘ is down, so ⌘ going up ends the hold too.
@@ -1102,7 +1112,7 @@ defineExpose({
 				</div>
 				<template v-if="canvasMode === 'canvas'">
 					<div class="flex rounded-lg bg-secondary p-0.5" role="group" aria-label="Tool">
-						<button v-for="item in tools" :key="item.id" v-dom-tooltip="item.tip" type="button" :aria-label="item.label" :aria-pressed="(item.id === 'hand') === handActive" class="grid size-7 place-items-center rounded-md transition" :class="(item.id === 'hand') === handActive ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'" @click="tool = item.id"><InspectorIcon :name="item.icon" /></button>
+						<button v-for="item in tools" :key="item.id" v-dom-tooltip="item.tip" type="button" :aria-label="item.label" :aria-pressed="(item.id === 'hand') === handActive" class="grid size-7 place-items-center rounded-md transition" :class="(item.id === 'hand') === handActive ? 'bg-canvas text-canvas-fg shadow-sm' : 'text-muted-fg hover:text-canvas-fg'" @click="tool = item.id; spaceHeld = false"><InspectorIcon :name="item.icon" /></button>
 					</div>
 					<label class="mr-2 hidden items-center gap-2 text-xs text-muted-fg md:flex"><input v-model="snapping" type="checkbox">Snap</label>
 					<label class="mr-2 hidden items-center gap-2 text-xs text-muted-fg md:flex" title="Rulers (⇧R)"><input v-model="showRulers" type="checkbox">Rulers</label>
@@ -1160,6 +1170,7 @@ defineExpose({
 									@styles="board.id === activeArtboard?.id && refresh()"
 									@wheel="onWheel"
 									@keydown="onKeydown"
+									@keyup="onKeyup"
 									@pointerdown="activeArtboardId = board.id"
 									@touch="onTouch"
 								>

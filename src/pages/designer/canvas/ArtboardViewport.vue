@@ -26,7 +26,7 @@ const props = defineProps({
 	title: { type: String, default: 'Artboard' },
 	fill: { type: Boolean, default: false },
 });
-const emit = defineEmits(['ready', 'styles', 'wheel', 'keydown', 'pointerdown', 'resize', 'touch']);
+const emit = defineEmits(['ready', 'styles', 'wheel', 'keydown', 'keyup', 'pointerdown', 'resize', 'touch']);
 const iframe = ref(null);
 const mount = shallowRef(null);
 const height = ref(props.minHeight);
@@ -104,6 +104,7 @@ function forwardWheel(event) {
 
 /** Forwards shortcuts unless the user is typing inside artboard content. */
 function forwardKeydown(event) { emit('keydown', event); }
+function forwardKeyup(event) { emit('keyup', event); }
 
 /** Tells the canvas which artboard is active when the user presses inside it. */
 function forwardPointerdown(event) { emit('pointerdown', event); }
@@ -151,6 +152,7 @@ async function connect() {
 	styleObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
 	doc.addEventListener('wheel', forwardWheel, { passive: false });
 	doc.addEventListener('keydown', forwardKeydown);
+	doc.addEventListener('keyup', forwardKeyup);
 	doc.addEventListener('pointerdown', forwardPointerdown, true);
 	for (const type of touchEvents) doc.addEventListener(type, forwardTouch, true);
 	doc.addEventListener('click', suppressPanClick, true);
@@ -177,6 +179,7 @@ function cleanup() {
 	const doc = iframe.value?.contentDocument;
 	doc?.removeEventListener('wheel', forwardWheel);
 	doc?.removeEventListener('keydown', forwardKeydown);
+	doc?.removeEventListener('keyup', forwardKeyup);
 	doc?.removeEventListener('pointerdown', forwardPointerdown, true);
 	for (const type of touchEvents) doc?.removeEventListener(type, forwardTouch, true);
 	doc?.removeEventListener('click', suppressPanClick, true);
