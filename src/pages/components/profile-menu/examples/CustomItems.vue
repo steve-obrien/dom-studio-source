@@ -6,7 +6,7 @@ const selected = ref('none');
 const themeMode = ref('stored preference');
 
 const items = [
-	{ type: 'label', value: 'signed-in-as', label: 'Logged in as', description: 'steven.a.obrien@gmail.com' },
+	{ type: 'label', value: 'signed-in-as', label: 'Logged in as', description: 'alex@example.com' },
 	{ separator: true },
 	{ value: 'profile', label: 'Profile', description: 'Account details and preferences', icon: 'profile', href: '#profile', accessorySlot: 'theme-switcher' },
 	{
@@ -30,7 +30,7 @@ const items = [
 	<div class="grid gap-3">
 		<DomProfileMenu
 			name="Steven O'Brien"
-			email="steven.a.obrien@gmail.com"
+			email="alex@example.com"
 			initials="SO"
 			:items="items"
 			@select="selected = $event.value"

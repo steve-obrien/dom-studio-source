@@ -26,7 +26,7 @@ function icon(name) {
 			<template #trigger>
 				<span class="flex min-w-0 items-center gap-2">
 					<DomAvatar initials="SO" name="Steven O'Brien" size="sm" />
-					<span class="truncate text-sm">steven.a.obrien@gmail.com</span>
+					<span class="truncate text-sm">alex@example.com</span>
 				</span>
 			</template>
 
@@ -75,7 +75,7 @@ function icon(name) {
 				<MenuSeparator />
 				<MenuLabel>
 					<span class="block text-[11px] font-medium uppercase text-muted-fg">Logged in as</span>
-					<span class="mt-0.5 block truncate text-sm font-medium text-canvas-fg">steven.a.obrien@gmail.com</span>
+					<span class="mt-0.5 block truncate text-sm font-medium text-canvas-fg">alex@example.com</span>
 				</MenuLabel>
 				<MenuSeparator />
 
