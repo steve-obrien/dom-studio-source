@@ -6,6 +6,7 @@ import { buildSitemap, readSiteUrl } from './lib/sitemap.mjs';
 
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, 'dist', 'client');
+const serverDistDir = path.join(rootDir, 'dist', 'server');
 
 /**
  * Escapes text for safe insertion into generated HTML and XML.
@@ -116,15 +117,18 @@ const injectMetaIntoPage = async (siteUrl, routePath) => {
 };
 
 /**
- * Generates SEO artifacts from the current route inventory.
+ * Generates source-backed SEO artifacts and a production route inventory without
+ * querying the blog database. Persisted articles are merged by the live endpoint.
  *
  * @returns {Promise<void>}
  */
 const main = async () => {
 	const siteUrl = await readSiteUrl({ rootDir });
-	const routeRecords = await loadStaticRouteRecords();
+	const routeRecords = await loadStaticRouteRecords({ throwOnError: true, includeDatabaseBlog: false });
 	const routes = routeRecords.map((routeRecord) => routeRecord.path);
 	await mkdir(distDir, { recursive: true });
+	await mkdir(serverDistDir, { recursive: true });
+	await writeFile(path.join(serverDistDir, 'sitemap-routes.json'), `${JSON.stringify(routeRecords, null, '\t')}\n`);
 	await writeFile(path.join(distDir, 'robots.txt'), buildRobots(siteUrl));
 	await writeFile(path.join(distDir, 'sitemap.xml'), buildSitemap(siteUrl, routeRecords));
 	await Promise.all(routes.map((routePath) => injectMetaIntoPage(siteUrl, routePath)));
