@@ -986,6 +986,45 @@ function onSheetPointerup(event) {
 	sheetSnap.value = ratio < 0.25 ? 'peek' : ratio < 0.7 ? 'half' : 'full';
 }
 
+/* Side panels ----------------------------------------------------------------------- */
+
+/** From lg up the layers and inspector columns are resizable; each inner edge is a handle. */
+const panelDefaults = { left: 256, right: 304 };
+const panelLimits = { min: 200, max: 520 };
+const panelWidths = ref({ ...panelDefaults });
+const panelDrag = ref(null);
+const panelGrid = computed(() => ({ '--panel-left': `${panelWidths.value.left}px`, '--panel-right': `${panelWidths.value.right}px` }));
+
+function setPanelWidth(side, width) {
+	panelWidths.value = { ...panelWidths.value, [side]: Math.round(Math.min(panelLimits.max, Math.max(panelLimits.min, width))) };
+}
+
+function onPanelPointerdown(side, event) {
+	if (event.button !== 0) return;
+	event.preventDefault();
+	event.currentTarget.setPointerCapture(event.pointerId);
+	panelDrag.value = { side, pointer: event.pointerId, x: event.clientX, start: panelWidths.value[side] };
+}
+
+function onPanelPointermove(event) {
+	const drag = panelDrag.value;
+	if (!drag || drag.pointer !== event.pointerId) return;
+	const delta = event.clientX - drag.x;
+	setPanelWidth(drag.side, drag.start + (drag.side === 'left' ? delta : -delta));
+}
+
+function onPanelPointerup(event) {
+	if (panelDrag.value?.pointer === event.pointerId) panelDrag.value = null;
+}
+
+/** Arrow keys move the focused edge, Shift for a bigger step. */
+function onPanelKeydown(side, event) {
+	if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+	event.preventDefault();
+	const step = (event.shiftKey ? 48 : 16) * (event.key === 'ArrowRight' ? 1 : -1);
+	setPanelWidth(side, panelWidths.value[side] + (side === 'left' ? step : -step));
+}
+
 /* Keyboard -------------------------------------------------------------------------- */
 
 /** True while the user is typing, so shortcuts never steal keystrokes. */
@@ -1133,7 +1172,7 @@ defineExpose({
 			<button type="button" class="text-xs text-muted-fg hover:text-canvas-fg" @click="notice = ''">Dismiss</button>
 		</p>
 
-		<div class="relative min-h-0 flex-1 lg:grid lg:grid-cols-[16rem_minmax(0,1fr)_19rem]">
+		<div class="relative min-h-0 flex-1 lg:grid lg:grid-cols-[var(--panel-left)_minmax(0,1fr)_var(--panel-right)]" :class="panelDrag && 'select-none'" :style="panelGrid">
 			<section class="absolute inset-0 min-w-0 overflow-hidden lg:relative lg:inset-auto lg:order-2">
 				<div
 					ref="viewport"
@@ -1436,6 +1475,29 @@ defineExpose({
 						</div>
 					</div>
 				</aside>
+			</div>
+			<!-- The panels' inner borders double as resize handles, with a wider hit area than the line. -->
+			<div
+				v-for="side in ['left', 'right']"
+				:key="side"
+				class="group absolute inset-y-0 z-30 hidden w-2 -translate-x-1/2 cursor-col-resize touch-none outline-none lg:block"
+				:style="{ left: side === 'left' ? 'calc(var(--panel-left) - 0.5px)' : 'calc(100% - var(--panel-right) + 0.5px)' }"
+				role="separator"
+				aria-orientation="vertical"
+				:aria-label="side === 'left' ? 'Resize layers panel' : 'Resize inspector'"
+				:aria-valuenow="panelWidths[side]"
+				:aria-valuemin="panelLimits.min"
+				:aria-valuemax="panelLimits.max"
+				tabindex="0"
+				:data-dragging="panelDrag?.side === side"
+				@pointerdown="onPanelPointerdown(side, $event)"
+				@pointermove="onPanelPointermove"
+				@pointerup="onPanelPointerup"
+				@lostpointercapture="onPanelPointerup"
+				@keydown="onPanelKeydown(side, $event)"
+				@dblclick="setPanelWidth(side, panelDefaults[side])"
+			>
+				<span class="absolute inset-y-0 left-1/2 w-0.5 -translate-x-1/2 transition-colors group-hover:bg-ring group-hover:delay-150 group-focus-visible:bg-ring group-data-[dragging=true]:bg-ring" aria-hidden="true"></span>
 			</div>
 		</div>
 	</div>
