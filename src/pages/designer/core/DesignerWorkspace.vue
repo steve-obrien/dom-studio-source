@@ -1246,7 +1246,7 @@ defineExpose({
 						<button v-for="tab in sheetTabs" :key="tab.id" type="button" role="tab" :aria-selected="sheetTab === tab.id" class="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition" :class="sheetTab === tab.id ? 'bg-secondary text-canvas-fg' : 'text-muted-fg'" @click="openSheetTab(tab.id)"><span>{{ tab.label }}</span><span v-if="tab.id === 'inspect' && activeType" class="truncate font-mono text-[10px] text-muted-fg">&lt;{{ activeType.tag }}&gt;</span></button>
 					</div>
 				</div>
-				<aside class="flex min-h-0 flex-1 flex-col lg:order-1 lg:border-r" :class="sheetTab === 'inspect' && 'max-lg:hidden'">
+				<aside class="flex min-h-0 flex-1 flex-col lg:order-1 lg:border-r lg:border-border" :class="sheetTab === 'inspect' && 'max-lg:hidden'">
 					<div class="flex shrink-0 gap-1 border-b border-border p-2 max-lg:hidden" role="tablist" aria-label="Left panel">
 						<button v-for="tab in ['layers', 'insert', 'data']" :key="tab" type="button" role="tab" :aria-selected="leftTab === tab" class="flex-1 rounded-md px-2 py-1 text-xs font-medium capitalize transition" :class="leftTab === tab ? 'bg-secondary text-canvas-fg' : 'text-muted-fg hover:text-canvas-fg'" @click="leftTab = tab">{{ tab }}</button>
 					</div>
@@ -1310,7 +1310,7 @@ defineExpose({
 						<DomButton size="sm" variant="secondary" :disabled="!Object.keys(doc?.data || {}).length" @click="run(onFile({ op: 'setData', path: [], value: {} }))">Reset to samples</DomButton>
 					</div>
 				</aside>
-				<aside class="min-h-0 flex-1 overflow-auto text-xs lg:order-3 lg:border-l" :class="sheetTab !== 'inspect' && 'max-lg:hidden'">
+				<aside class="min-h-0 flex-1 overflow-auto text-xs lg:order-3 lg:border-l lg:border-border" :class="sheetTab !== 'inspect' && 'max-lg:hidden'">
 					<template v-if="selectedNodes.length > 1">
 						<header class="flex items-start justify-between gap-2 border-b border-border px-4 py-3">
 							<div class="min-w-0">

@@ -17,8 +17,8 @@ defineProps({
 
 <template>
 	<section :id="id" class="scroll-mt-20 border-t border-border" :class="tinted && 'bg-secondary/20'">
-		<div class="mx-auto grid max-w-[1320px] gap-10 px-5 py-16 sm:px-8 lg:gap-14 lg:py-24">
-			<div class="grid min-w-0 gap-x-14 lg:grid-cols-2">
+		<div class="grid gap-10 px-5 py-16 sm:px-8 lg:gap-14 lg:py-24">
+			<div class="mx-auto grid w-full min-w-0 max-w-[1256px] gap-x-14 lg:grid-cols-2">
 				<div>
 				<img :src="`/media/product-icons-3d/${id}.webp`" width="128" height="128" alt="" loading="lazy" class="-ml-3 mb-3 size-28 sm:size-32">
 				<p class="font-mono text-xs uppercase tracking-[0.18em] text-muted-fg">{{ number }} / {{ product }}</p>
