@@ -187,35 +187,35 @@ function hiddenPagesLabel(item) {
 
 function activePageClasses() {
 	const styles = {
-		primary: 'z-20 border-primary bg-primary text-primary-fg shadow-sm',
-		secondary: 'z-20 border-border bg-secondary bg-[linear-gradient(rgb(0_0_0/6%)_0_0)] text-secondary-fg shadow-[inset_0_2px_4px_rgba(0,0,0,0.28)]',
+		primary: 'bg-primary text-primary-fg',
+		secondary: 'bg-secondary text-canvas-fg font-semibold shadow-[inset_0_1px_3px_rgb(0_0_0/0.14)] dark:shadow-[inset_0_1px_3px_rgb(0_0_0/0.5)]',
 	};
 	return styles[props.activeStyle] || styles.secondary;
 }
 
 function buttonClasses(active = false) {
 	return [
-		'relative grid size-9 place-items-center border text-sm font-medium transition hover:z-30 focus:z-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 disabled:cursor-not-allowed disabled:opacity-45',
+		'grid h-9 min-w-9 place-items-center px-2 text-sm font-medium tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/60 disabled:cursor-not-allowed disabled:opacity-40',
 		active
 			? activePageClasses()
-			: 'border-border bg-canvas text-canvas-fg hover:border-primary/40 hover:bg-secondary',
+			: 'text-muted-fg hover:bg-secondary/40 hover:text-canvas-fg disabled:hover:bg-transparent disabled:hover:text-muted-fg',
 	];
 }
 
 function controlClasses(item, index) {
 	return [
 		buttonClasses(item.type === 'page' && item.page === currentPage.value),
-		index === 0 ? 'ml-0' : '-ml-px',
-		index === 0 && 'rounded-l-md',
-		index === controls.value.length - 1 && 'rounded-r-md',
+		index > 0 && 'border-l border-[color:var(--skin-control-border,var(--border))]',
+		index === 0 && 'rounded-l-[calc(var(--radius-md)-1px)]',
+		index === controls.value.length - 1 && 'rounded-r-[calc(var(--radius-md)-1px)]',
 	];
 }
 </script>
 
 <template>
 	<nav class="flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between" :aria-label="label">
-		<p class="text-muted-fg">{{ itemRangeLabel }}</p>
-		<div class="inline-flex items-center rounded-md shadow-sm">
+		<p class="whitespace-nowrap text-muted-fg tabular-nums">{{ itemRangeLabel }}</p>
+		<div class="skin-control inline-flex items-stretch self-start rounded-md sm:self-auto">
 			<template v-for="(item, index) in controls" :key="item.key">
 				<DomDropdown
 					v-if="item.type === 'ellipsis'"
