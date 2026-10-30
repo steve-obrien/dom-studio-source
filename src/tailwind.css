@@ -1,0 +1,373 @@
+@source "./pages/**/*.{vue,js}";
+@source inline("transition duration-1000 ease-in ease-out opacity-0 opacity-100 scale-50 scale-100");
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * The month calendar always responds to its own container. Tailwind expands
+ * theme(...) while compiling the combined app stylesheet, so consumer @theme
+ * overrides remain the single source of truth for its sensible defaults.
+ */
+.dom-month-calendar__grid {
+	--dom-month-calendar-day-min-height: 7.5rem;
+	--dom-month-calendar-day-headers-display: none;
+	--dom-month-calendar-row-rail-align: center;
+	--dom-month-calendar-row-rail-direction: row;
+	--dom-month-calendar-row-rail-justify: space-between;
+	--dom-month-calendar-row-rail-min-height: 2.5rem;
+	--dom-month-calendar-row-rail-padding: 0.5rem;
+	--dom-month-calendar-week-number-order: 0;
+	--dom-month-calendar-week-columns: minmax(0, 1fr);
+}
+
+.dom-month-calendar__continuous-mobile-header {
+	display: flex;
+}
+
+@container (min-width: theme(--breakpoint-lg)) {
+	/* Flush gutters belong only to the outside edges in the seven-column grid.
+	 * In the compact day list every cell keeps both consumer-supplied gutters. */
+	.dom-month-calendar[data-layout="flush"] .dom-month-calendar__week > :not(:first-child),
+	.dom-month-calendar[data-layout="flush"] .dom-month-calendar__day-headers > :not(:first-child) {
+		padding-left: 0.75rem;
+	}
+
+	.dom-month-calendar[data-layout="flush"] .dom-month-calendar__week > :not(:last-child),
+	.dom-month-calendar[data-layout="flush"] .dom-month-calendar__day-headers > :not(:last-child) {
+		padding-right: 0.75rem;
+	}
+
+	.dom-month-calendar__continuous-mobile-header {
+		display: none;
+	}
+
+	.dom-month-calendar__grid {
+		--dom-month-calendar-day-min-height: 11rem;
+		--dom-month-calendar-day-headers-display: grid;
+		--dom-month-calendar-row-rail-align: flex-start;
+		--dom-month-calendar-row-rail-direction: column;
+		--dom-month-calendar-row-rail-justify: flex-start;
+		--dom-month-calendar-row-rail-min-height: 11rem;
+		--dom-month-calendar-row-rail-padding: 0.75rem;
+		--dom-month-calendar-week-number-order: -1;
+		--dom-month-calendar-week-columns: var(--dom-month-calendar-wide-week-columns);
+		--dom-month-calendar-wide-border-left-width: 1px;
+		--dom-month-calendar-wide-border-top-width: 0;
+		--dom-month-calendar-wide-boundary-gradient: linear-gradient(var(--dom-month-calendar-boundary-color), var(--dom-month-calendar-boundary-color));
+		--dom-month-calendar-wide-boundary-left-size: 2px 100%;
+		--dom-month-calendar-wide-boundary-top-size: 100% 2px;
+	}
+}
+
+@theme inline {
+	--color-desktop-rail: var(--desktop-rail, var(--secondary));
+	--color-desktop-sidebar: var(--desktop-sidebar, var(--secondary));
+	--color-desktop-selection: var(--desktop-selection, var(--accent));
+	--color-desktop-divider: var(--desktop-divider, var(--border));
+	--color-canvas: var(--canvas);
+	--color-canvas-fg: var(--canvas-fg);
+	--color-primary: var(--primary);
+	--color-primary-fg: var(--primary-fg);
+	--color-secondary: var(--secondary);
+	--color-secondary-fg: var(--secondary-fg);
+	--color-muted: var(--muted);
+	--color-muted-fg: var(--muted-fg);
+	--color-accent: var(--accent);
+	--color-accent-fg: var(--accent-fg);
+	--color-destructive: var(--destructive);
+	--color-destructive-fg: var(--destructive-fg);
+	--color-success: var(--success);
+	--color-success-fg: var(--success-fg);
+	--color-warning: var(--warning);
+	--color-warning-fg: var(--warning-fg);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	/* Designer selection, guides and handles: a fixed blue, as in Figma, so it shows on light and dark pages alike. */
+	--color-designer: var(--designer-accent, #0d99ff);
+	--radius-sm: calc(var(--radius) * 0.6);
+	--radius-md: calc(var(--radius) * 0.8);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.4);
+	--radius-2xl: calc(var(--radius) * 1.8);
+	--radius-3xl: calc(var(--radius) * 2.2);
+	--radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer utilities {
+	.skin-card {
+		background-color: var(--skin-card-bg, var(--canvas));
+		background-image: var(--skin-card-bg-image, none);
+		border-color: var(--skin-card-border, var(--border));
+		border-style: var(--skin-card-border-style, solid);
+		border-width: var(--skin-card-border-width, 1px);
+		box-shadow: var(--skin-card-shadow, var(--shadow-xs));
+		color: var(--skin-card-fg, var(--canvas-fg));
+		backdrop-filter: var(--skin-card-backdrop, none);
+		-webkit-backdrop-filter: var(--skin-card-backdrop, none);
+	}
+
+	.skin-popover {
+		background-color: var(--skin-popover-bg, var(--canvas));
+		background-image: var(--skin-popover-bg-image, none);
+		border-color: var(--skin-popover-border, var(--border));
+		border-style: var(--skin-popover-border-style, solid);
+		border-width: var(--skin-popover-border-width, 1px);
+		box-shadow: var(--skin-popover-shadow, var(--shadow-lg));
+		color: var(--skin-popover-fg, var(--canvas-fg));
+		backdrop-filter: var(--skin-popover-backdrop, none);
+		-webkit-backdrop-filter: var(--skin-popover-backdrop, none);
+	}
+
+	.skin-overlay {
+		background-color: var(--skin-overlay-bg, var(--canvas));
+		background-image: var(--skin-overlay-bg-image, none);
+		border-color: var(--skin-overlay-border, var(--border));
+		border-style: var(--skin-overlay-border-style, solid);
+		border-width: var(--skin-overlay-border-width, 1px);
+		box-shadow: var(--skin-overlay-shadow, var(--shadow-2xl));
+		color: var(--skin-overlay-fg, var(--canvas-fg));
+		backdrop-filter: var(--skin-overlay-backdrop, blur(20px) saturate(1.12));
+		-webkit-backdrop-filter: var(--skin-overlay-backdrop, blur(20px) saturate(1.12));
+	}
+
+	.skin-control {
+		background-color: var(--skin-control-bg, var(--canvas));
+		background-image: var(--skin-control-bg-image, none);
+		border-color: var(--skin-control-border, var(--border));
+		border-style: var(--skin-control-border-style, solid);
+		border-width: var(--skin-control-border-width, 1px);
+		box-shadow: var(--skin-control-shadow, var(--shadow-xs));
+		color: var(--skin-control-fg, var(--secondary-fg));
+		backdrop-filter: var(--skin-control-backdrop, none);
+		-webkit-backdrop-filter: var(--skin-control-backdrop, none);
+	}
+
+	.skin-action {
+		background-color: var(--skin-action-bg, var(--primary));
+		background-image: var(--skin-action-bg-image, linear-gradient(to bottom, color-mix(in oklch, white 10%, transparent), transparent));
+		border-color: var(--skin-action-border, color-mix(in oklch, var(--primary) 80%, var(--border)));
+		border-style: var(--skin-action-border-style, solid);
+		border-width: var(--skin-action-border-width, 1px);
+		box-shadow: var(--skin-action-shadow, var(--shadow-sm));
+		color: var(--skin-action-fg, var(--primary-fg));
+		backdrop-filter: var(--skin-action-backdrop, none);
+		-webkit-backdrop-filter: var(--skin-action-backdrop, none);
+	}
+}
+
+/* DOM Studio custom-elements: hide pre-upgrade light-DOM children so SSR'd
+ * dialog / popover content doesn't render in flow before the JS module
+ * loads and the shadow DOM takes over. Trigger slots stay visible. */
+dom-dialog:not(:defined) > *:not([slot="trigger"]),
+dom-popover:not(:defined) > *:not([slot="trigger"]) {
+	display: none;
+}
+
+/* Shiki code blocks. Shiki emits dual-theme styles in one render — the inline
+ * styles carry the light colours and the dark colours as CSS variables.
+ * Override those vars when [data-theme="dark"] is on the root. */
+.dom-shiki {
+	min-width: 0;
+	max-width: 100%;
+	overflow-x: auto;
+}
+.dom-shiki .shiki {
+	box-sizing: border-box;
+	margin: 0;
+	min-width: 0;
+	max-width: 100%;
+	overflow-x: auto;
+	padding: 1rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+	font-size: 12.5px;
+	line-height: 1.65;
+}
+.dom-shiki .shiki,
+.dom-shiki .shiki code {
+	background-color: inherit;
+}
+[data-theme="dark"] .dom-shiki .shiki:not([data-theme="light"] *),
+[data-theme="dark"] .dom-shiki .shiki span:not([data-theme="light"] *),
+.dom-code[data-theme="dark"] > .dom-shiki .shiki,
+.dom-code[data-theme="dark"] > .dom-shiki .shiki span {
+	color: var(--shiki-dark) !important;
+	background-color: var(--shiki-dark-bg) !important;
+}
+[data-theme="dark"] .dom-shiki .shiki span:not([data-theme="light"] *),
+.dom-code[data-theme="dark"] > .dom-shiki .shiki span {
+	font-style: var(--shiki-dark-font-style) !important;
+	font-weight: var(--shiki-dark-font-weight) !important;
+	text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+[data-theme="dark"] .dom-code-token:not([data-theme="light"] *) {
+	background-color: var(--shiki-dark-bg) !important;
+	color: var(--shiki-dark) !important;
+	font-style: var(--shiki-dark-font-style) !important;
+	font-weight: var(--shiki-dark-font-weight) !important;
+	text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+@layer components {
+	.skin-input {
+		background-color: var(--skin-input-bg, var(--canvas));
+		background-image: var(--skin-input-bg-image, none);
+		border-color: var(--skin-input-border, var(--input));
+		border-style: var(--skin-input-border-style, solid);
+		border-width: var(--skin-input-border-width, 1px);
+		box-shadow: var(--skin-input-shadow, inset 0 1px 2px rgb(15 23 42 / 0.1));
+		color: var(--skin-input-fg, var(--canvas-fg));
+		backdrop-filter: var(--skin-input-backdrop, none);
+		-webkit-backdrop-filter: var(--skin-input-backdrop, none);
+		@apply w-full rounded-lg px-3 py-2 text-sm outline-none transition placeholder:text-muted-fg focus:border-ring focus:ring-2 focus:ring-ring/30 disabled:opacity-50;
+	}
+
+	dom-dropdown[open] > [slot="trigger"].skin-input,
+	dom-dropdown[open] > [data-trigger].skin-input {
+		@apply border-ring ring-2 ring-ring/30;
+	}
+
+	.dom-floating-transition {
+		--dom-floating-enter-x: 0px;
+		--dom-floating-enter-y: -10px;
+		--dom-floating-origin: top center;
+		--dom-floating-scale: 0.975;
+		--dom-floating-enter-opacity-duration: 190ms;
+		--dom-floating-enter-transform-duration: 260ms;
+		--dom-floating-leave-opacity-duration: 190ms;
+		--dom-floating-leave-transform-duration: 260ms;
+		--dom-floating-enter-easing: cubic-bezier(0.16, 1, 0.3, 1);
+		--dom-floating-leave-easing: cubic-bezier(0.25, 0.1, 0.25, 1);
+		--dom-popover-arrow-x: 50%;
+		--dom-popover-arrow-y: auto;
+		opacity: 0;
+		transform: translate3d(var(--dom-floating-enter-x), var(--dom-floating-enter-y), 0) scale(var(--dom-floating-scale));
+		transform-origin: var(--dom-floating-origin);
+		transition:
+			opacity var(--dom-floating-enter-opacity-duration) var(--dom-floating-enter-easing),
+			transform var(--dom-floating-enter-transform-duration) var(--dom-floating-enter-easing);
+		will-change: opacity, transform;
+		animation: none;
+	}
+
+	@keyframes dom-floating-scale-fade-opacity-in {
+		from { opacity: 0; }
+		to { opacity: 1; }
+	}
+
+	@keyframes dom-floating-scale-fade-opacity-out {
+		from { opacity: 1; }
+		to { opacity: 0; }
+	}
+
+	@keyframes dom-floating-scale-fade-transform-in {
+		from { transform: translate3d(var(--dom-floating-enter-x), var(--dom-floating-enter-y), 0) scale(var(--dom-floating-scale)); }
+		to { transform: translate3d(0, 0, 0) scale(1); }
+	}
+
+	@keyframes dom-floating-scale-fade-transform-out {
+		from { transform: translate3d(0, 0, 0) scale(1); }
+		to { transform: translate3d(var(--dom-floating-enter-x), var(--dom-floating-enter-y), 0) scale(var(--dom-floating-scale)); }
+	}
+
+	.dom-floating-transition:popover-open,
+	.dom-floating-transition[data-floating-open="true"] {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+
+	.dom-floating-transition[data-entering="from"]:popover-open,
+	.dom-floating-transition[data-entering="from"][data-floating-open="true"],
+	.dom-floating-transition[data-leaving="to"]:popover-open,
+	.dom-floating-transition[data-leaving="to"][data-floating-open="true"] {
+		opacity: 0;
+		transform: translate3d(var(--dom-floating-enter-x), var(--dom-floating-enter-y), 0) scale(var(--dom-floating-scale));
+	}
+
+	.dom-floating-transition[data-entering="to"]:popover-open,
+	.dom-floating-transition[data-entering="to"][data-floating-open="true"],
+	.dom-floating-transition[data-leaving="from"]:popover-open,
+	.dom-floating-transition[data-leaving="from"][data-floating-open="true"] {
+		opacity: 1;
+		transform: translate3d(0, 0, 0) scale(1);
+	}
+
+	.dom-floating-transition[data-floating-effect="scale-fade"][data-entering="to"]:popover-open,
+	.dom-floating-transition[data-floating-effect="scale-fade"][data-entering="to"][data-floating-open="true"] {
+		animation:
+			dom-floating-scale-fade-opacity-in var(--dom-floating-enter-opacity-duration) var(--dom-floating-enter-easing) both,
+			dom-floating-scale-fade-transform-in var(--dom-floating-enter-transform-duration) var(--dom-floating-enter-easing) both;
+	}
+
+	.dom-floating-transition[data-leaving="to"]:popover-open {
+		transition:
+			opacity var(--dom-floating-leave-opacity-duration) linear,
+			transform var(--dom-floating-leave-transform-duration) var(--dom-floating-leave-easing);
+	}
+
+	.dom-floating-transition[data-leaving="to"][data-floating-open="true"] {
+		transition:
+			opacity var(--dom-floating-leave-opacity-duration) linear,
+			transform var(--dom-floating-leave-transform-duration) var(--dom-floating-leave-easing);
+	}
+
+	.dom-floating-transition[data-floating-effect="scale-fade"][data-leaving="to"]:popover-open,
+	.dom-floating-transition[data-floating-effect="scale-fade"][data-leaving="to"][data-floating-open="true"] {
+		transition: none;
+		animation:
+			dom-floating-scale-fade-opacity-out var(--dom-floating-leave-opacity-duration) linear both,
+			dom-floating-scale-fade-transform-out var(--dom-floating-leave-transform-duration) var(--dom-floating-leave-easing) both;
+	}
+
+	@starting-style {
+		.dom-floating-transition:popover-open {
+			opacity: 0;
+			transform: translate3d(var(--dom-floating-enter-x), var(--dom-floating-enter-y), 0) scale(var(--dom-floating-scale));
+		}
+	}
+
+	.dom-floating-transition:not([data-animate-placement]) {
+		transition-property: opacity;
+	}
+
+	.dom-floating-transition[data-side="top"] {
+		--dom-floating-enter-y: 10px;
+		--dom-floating-origin: bottom center;
+	}
+
+	.dom-floating-transition[data-side="bottom"] {
+		--dom-floating-enter-y: -10px;
+		--dom-floating-origin: top center;
+	}
+
+	.dom-floating-transition[data-side="left"] {
+		--dom-floating-enter-x: 10px;
+		--dom-floating-enter-y: 0px;
+		--dom-floating-origin: center right;
+	}
+
+	.dom-floating-transition[data-side="right"] {
+		--dom-floating-enter-x: -10px;
+		--dom-floating-enter-y: 0px;
+		--dom-floating-origin: center left;
+	}
+
+	.dom-floating-transition[data-floating-effect="fade"] {
+		--dom-floating-enter-x: 0px;
+		--dom-floating-enter-y: 0px;
+		--dom-floating-scale: 1;
+		--dom-floating-enter-transform-duration: 0ms;
+		--dom-floating-leave-transform-duration: 0ms;
+	}
+
+	[data-invalid] .skin-input,
+	.skin-input[data-invalid] {
+		@apply border-destructive focus:border-destructive focus:ring-destructive/25;
+	}
+
+	[data-invalid] dom-dropdown[open] > [slot="trigger"].skin-input,
+	[data-invalid] dom-dropdown[open] > [data-trigger].skin-input,
+	dom-dropdown[open] > [slot="trigger"].skin-input[aria-invalid="true"],
+	dom-dropdown[open] > [data-trigger].skin-input[aria-invalid="true"] {
+		@apply border-destructive ring-2 ring-destructive/25;
+	}
+}

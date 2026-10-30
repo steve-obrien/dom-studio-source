@@ -1,0 +1,347 @@
+import {
+	componentAnchor,
+	componentNavigationSections,
+	getComponentNavigationSection,
+	getComponentRecords,
+	labelFromSection,
+	primaryExportNameForSlug,
+} from './componentManager.js';
+import { inspectComponentRecord } from './componentInspector.js';
+import { getBlockNavItems } from '../blocks/blockRegistry.js';
+
+/**
+ * Sidebar order follows the header: paid products first, simple primitives later.
+ * Any section added to the component manager but missing here is appended so it stays discoverable.
+ */
+const advancedSections = ['data', 'designer', 'charts', 'ai'];
+const sidebarComponentSectionOrder = [
+	...advancedSections,
+	...componentNavigationSections.filter((section) => !advancedSections.includes(section)),
+];
+
+export const staticIconPaths = {
+	Documentation: 'M6 4h9l3 3v13H6V4Zm9 0v4h4M9 11h6M9 15h6',
+	AI: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z',
+	'AI UI guide': 'M4 5h16v14H4V5Zm4 4h8M8 13h5',
+	Install: 'M12 3v12M7 10l5 5 5-5M5 20h14',
+	'AI builders': 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Zm6 9 .9 2.6 2.6.9-2.6.9L18 20l-.9-2.6-2.6-.9 2.6-.9L18 12Z',
+	Tools: 'M5 5h14v4H5V5Zm0 6h6v8H5v-8Zm8 0h6v8h-6v-8Z',
+	Experiments: 'M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3M8 14h8',
+	'CSS button builder': 'M7 8h10a4 4 0 0 1 0 8H7a4 4 0 0 1 0-8Zm2 4h6',
+	'Liquid glass': 'M12 3c4 4 7 7 7 11a7 7 0 0 1-14 0c0-4 3-7 7-11Zm-4 12c1 2 3 3 5 3',
+	'JSON Unstringifier': 'M8 8l-3 4 3 4M16 8l3 4-3 4M11 6h2M10 18h4',
+	Theming: 'M5 18c4-7 10-11 14-12-1 4-5 10-12 14l-2-2Zm4-1 8-8M6 13l5 5',
+	'Component metadata': 'M6 5h12v14H6V5Zm3 4h6M9 13h6M9 17h3',
+	'Form schema': 'M6 4h8l4 4v12H6V4Zm8 0v5h5M9 12h6M9 16h8',
+	Icons: 'M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z',
+	Studio: 'M4 5h16v14H4V5Zm4 4h8M8 13h5',
+	Canvas: 'M4 4h7v7H4V4Zm9 0h7v5h-7V4Zm0 7h7v9h-7v-9ZM4 13h7v7H4v-7Z',
+	'Nested frames': 'M4 4h16v16H4V4Zm4 4h8v8H8V8Z',
+	'Social posts': 'M5 5h14v14H5V5Zm0 10 4-4 3 3 2-2 5 5M15 9h.01',
+	'Poster studio': 'M7 3h10v18H7V3Zm3 4h4M10 15h4M10 18h2',
+	'Social card': 'M3 6h18v12H3V6Zm3 9 3-3 2 2 2-2 3 3M15 9h3',
+	'Flowchart designer': 'M4 4h6v5H4V4Zm10 11h6v5h-6v-5ZM7 9v4h10v2',
+	'Building blocks': 'M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 3.5h7M16.5 13v7',
+	Playground: 'M8 4l8 8-8 8',
+	Mobile: 'M8 3h8a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm3 15h4',
+	Data: 'M5 7c0-2 14-2 14 0v10c0 2-14 2-14 0V7Zm0 0c0 2 14 2 14 0M5 12c0 2 14 2 14 0',
+	Dev: 'M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14',
+	'Code block': 'M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14',
+	'JSON viewer': 'M5 5h5v5H5V5Zm9 0h5v5h-5V5ZM5 14h5v5H5v-5Zm9 0h5v5h-5v-5Z',
+	'Media browser': 'M5 6h14v12H5V6Zm3 9 3-3 2 2 2-3 3 4M8 9h.01',
+	'Media Browser': 'M5 6h14v12H5V6Zm3 9 3-3 2 2 2-3 3 4M8 9h.01',
+	'Data grid': 'M5 5h14v14H5V5Zm0 5h14M5 14h14M10 5v14M15 5v14',
+	'Data Grid': 'M5 5h14v14H5V5Zm0 5h14M5 14h14M10 5v14M15 5v14',
+	Dashboard: 'M4 5h7v7H4V5Zm9 0h7v5h-7V5ZM4 14h7v5H4v-5Zm9-2h7v7h-7v-7Z',
+	Finance: 'M4 19V5M4 19h16M7 14l4-5 4 3 5-7',
+	Chat: 'M5 6h14v9H9l-4 4V6Z',
+	Mail: 'M4 6h16v12H4V6Zm0 0 8 7 8-7',
+	Forms: 'M7 4h10l3 3v13H7V4Zm10 0v4h4M10 12h7M10 16h5',
+	Form: 'M6 4h12v16H6V4Zm3 5h6M9 13h6M9 17h4',
+	Login: 'M10 17l5-5-5-5M15 12H3M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5',
+	Onboarding: 'M6 5h12v14H6V5Zm3 4h6M9 13h3M15 13h.01M9 17h6',
+	'Application layout': 'M4 5h16v14H4V5Zm5 0v14M12 9h5M12 13h4',
+	Overview: 'M5 5h14v14H5V5Zm4 4h6M9 13h6',
+	Dropdown: 'M7 10l5 5 5-5',
+	Dialog: 'M5 6h14v12H5V6Zm4 4h6',
+	Drawer: 'M4 5h16v14H4V5Zm0 0h6v14',
+	Lightbox: 'M7 7h12v12H7V7Zm-2 9H4V5h11M10 16l3-4 3 3 3-4',
+	Popover: 'M6 7h12v8H9l-3 3V7Z',
+	Tabs: 'M4 7h7v4H4V7Zm9 0h7v4h-7V7ZM4 11h16v8H4v-8Z',
+	Toggle: 'M8 9h8a3 3 0 0 1 0 6H8a3 3 0 0 1 0-6Zm0 0a3 3 0 0 0 0 6',
+	Tooltip: 'M5 5h14v9H9l-4 4V5Z',
+	Accordion: 'M7 8h10M7 16h10M9 6l-2 2 2 2M15 14l2 2-2 2',
+	Button: 'M8 8h8a4 4 0 0 1 0 8H8a4 4 0 0 1 0-8Z',
+	'Icon button': 'M12 8v8M8 12h8M12 4a8 8 0 1 1 0 16 8 8 0 0 1 0-16Z',
+	'Profile menu': 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM4 19a5 5 0 0 1 10 0M16 7h4M16 12h4M16 17h4',
+	'Scroll menu': 'M5 6h11M5 12h11M5 18h11M19 5v14M17 7l2-2 2 2M17 17l2 2 2-2',
+	Toolbar: 'M5 8h14M7 8v8M12 8v8M17 8v8M5 16h14',
+	'Command palette': 'M6 7h12M8 12h8M8 17h4M17 15l2 2-2 2',
+	'Context menu': 'M5 4l7 16 2-6 6-2L5 4ZM15 5h5M16 8h4M17 11h3',
+	Menu: 'M6 7h12M6 12h12M6 17h12',
+	Toast: 'M6 7h12v8H9l-3 3V7Z',
+	'Toast stack': 'M7 4h12v8H7V4Zm-2 4v8h12M3 12v8h12M10 8h6',
+	'Theme switcher': 'M12 3a9 9 0 1 0 9 9 6 6 0 0 1-9-9ZM12 3v18',
+	Pagination: 'M7 8l-4 4 4 4M17 8l4 4-4 4M10 12h4',
+	Card: 'M5 7h14v10H5V7Zm3 3h8M8 14h5',
+	'Card rail': 'M4 8h5v8H4V8Zm7 0h5v8h-5V8Zm7 0h2v8h-2V8Z',
+	Badge: 'M7 8h10a4 4 0 0 1 0 8H7a4 4 0 0 1 0-8Zm2 4h.01M13 12h2',
+	'Status pill': 'M8 8h8a4 4 0 0 1 0 8H8a4 4 0 0 1 0-8Zm2 4h.01M14 12h2',
+	Avatar: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 20a7 7 0 0 1 14 0',
+	'Avatar stack': 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8 1a3 3 0 1 0 0-6M4 20a5 5 0 0 1 10 0M13 20a5 5 0 0 1 7-4.5',
+	'Empty state': 'M6 7h12v10H6V7Zm3 4h6M10 15h4',
+	Alert: 'M12 4l9 16H3L12 4Zm0 5v4M12 17h.01',
+	Skeleton: 'M5 7h14M5 12h10M5 17h7',
+	Progress: 'M5 12h14M5 12a3 3 0 0 1 3-3h8a3 3 0 0 1 0 6H8a3 3 0 0 1-3-3Z',
+	Spinner: 'M12 4a8 8 0 1 1-8 8',
+	Combobox: 'M5 7h14M7 12h8M7 17h5',
+	Select: 'M6 7h12v10H6V7Zm3 4h6M10 14l2 2 2-2',
+	Autocomplete: 'M5 11h10M5 16h7M16 16l3 3M14 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z',
+	'Boolean input': 'M8 12l2.5 2.5L16 9M5 5h14v14H5V5Z',
+	'Boolean Input': 'M8 12l2.5 2.5L16 9M5 5h14v14H5V5Z',
+	Calendar: 'M7 4v3M17 4v3M5 8h14M6 6h12v13H6V6Zm3 6h2M13 12h2M9 16h2',
+	'Date time picker': 'M7 4v3M17 4v3M5 8h14M6 6h12v13H6V6Zm7 7v3l2 1',
+	'Date Time Picker': 'M7 4v3M17 4v3M5 8h14M6 6h12v13H6V6Zm7 7v3l2 1',
+	'Time selector': 'M12 6v6l4 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z',
+	'Time Selector': 'M12 6v6l4 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z',
+	Checkbox: 'M8 12l2.5 2.5L16 9M5 5h14v14H5V5Z',
+	'Code input': 'M9 8l-4 4 4 4M15 8l4 4-4 4M13 6l-2 12',
+	'Color input': 'M12 4a8 8 0 1 0 0 16h1.5a1.5 1.5 0 0 0 0-3H12a2 2 0 0 1 0-4h2a6 6 0 0 0-2-9ZM8 10h.01M10 7h.01M14 7h.01',
+	'Color Input': 'M12 4a8 8 0 1 0 0 16h1.5a1.5 1.5 0 0 0 0-3H12a2 2 0 0 1 0-4h2a6 6 0 0 0-2-9ZM8 10h.01M10 7h.01M14 7h.01',
+	Field: 'M6 7h12M6 11h12M6 15h8M5 5h14v14H5V5Z',
+	'JSON input': 'M8 8l-3 4 3 4M16 8l3 4-3 4M11 6h2M10 18h4',
+	'JSON list input': 'M8 7h11M8 12h11M8 17h11M5 7h.01M5 12h.01M5 17h.01',
+	Listbox: 'M6 6h12v12H6V6Zm3 4h6M9 14h4',
+	'Native select': 'M6 7h12v10H6V7Zm4 4h4M9 14l3 3 3-3',
+	'Number input': 'M9 5l-2 14M15 5l-2 14M5 9h14M5 15h14',
+	'Number Input': 'M9 5l-2 14M15 5l-2 14M5 9h14M5 15h14',
+	'Money input': 'M12 5v14M7 8h7a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h8',
+	'Money Input': 'M12 5v14M7 8h7a3 3 0 0 1 0 6H9a3 3 0 0 0 0 6h8',
+	'File upload': 'M12 16V4M8 8l4-4 4 4M5 16v3h14v-3',
+	'File Upload': 'M12 16V4M8 8l4-4 4 4M5 16v3h14v-3',
+	'Password input': 'M7 11V8a5 5 0 0 1 10 0v3M6 11h12v8H6v-8Zm6 3v2',
+	'Position input': 'M8 8h8v8H8V8ZM4 4h.01M12 4h.01M20 4h.01M4 12h.01M20 12h.01M4 20h.01M12 20h.01M20 20h.01',
+	'Radio group': 'M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0-5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z',
+	'Select input': 'M6 7h12v10H6V7Zm3 4h6M10 14l2 2 2-2',
+	'Select Input': 'M6 7h12v10H6V7Zm3 4h6M10 14l2 2 2-2',
+	'Text input': 'M5 7h14M12 7v10M8 17h8',
+	'Text Input': 'M5 7h14M12 7v10M8 17h8',
+	Textarea: 'M6 6h12v12H6V6Zm3 4h6M9 13h6M9 16h4',
+	'Textarea Input': 'M6 6h12v12H6V6Zm3 4h6M9 13h6M9 16h4',
+	'Toggle button': 'M6 8h12v8H6V8Zm3 4 2 2 4-4',
+	'Toggle button group': 'M4 8h16v8H4V8Zm5 0v8M15 8v8M11.5 12h2',
+	'WYSIWYG field': 'M5 5h14v14H5V5Zm0 4h14M8 7h.01M11 7h.01M9 13v-2h6v2M12 11v6M10 17h4',
+	'Action sheet': 'M5 6h14v12H5V6Zm0 7h14M9 16h6',
+	'App bottom nav': 'M6 4h12v16H6V4Zm0 12h12M9 18h.01M12 18h.01M15 18h.01',
+	'App list item': 'M5 6h14v12H5V6Zm3 4h.01M11 10h5M8 14h.01M11 14h5',
+	'App shell': 'M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm-2 4h14M5 17h14',
+	'App stack': 'M8 4h11v14H8V4ZM5 7h3M5 7v14h11v-3',
+	'App top bar': 'M6 4h12v16H6V4Zm0 5h12M9 7h6',
+	'Safe area': 'M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 6V7h2M15 7h2v2M9 15v2h2M15 17h2v-2',
+};
+
+/**
+ * Full designer apps sit at the top level; their component building blocks nest below them.
+ */
+const designerToolNavItems = [
+	{ to: '/designer', label: 'Overview' },
+	{ to: '/designer/canvas', label: 'Canvas', tag: 'New' },
+	{ to: '/designer/social', label: 'Social posts', tag: 'New' },
+	{ to: '/designer/poster', label: 'Poster studio', tag: 'Beta' },
+	{ to: '/designer/social-card', label: 'Social card' },
+	{ to: '/designer/flowchart', label: 'Flowchart designer', tag: 'Beta' },
+	{ to: '/designer/frames', label: 'Nested frames' },
+];
+
+/** The behaviour the designer tools share, documented as composables. */
+const designerComposableNavItems = [
+	{ to: '/designer/composables', label: 'Overview' },
+	{ to: '/designer/composables/editor-session', label: 'useEditorSession' },
+	{ to: '/designer/composables/code-sync', label: 'useCodeSync' },
+	{ to: '/designer/composables/inline-text', label: 'useInlineText' },
+	{ to: '/designer/composables/layout-geometry', label: 'useLayoutGeometry' },
+	{ to: '/designer/composables/rich-text', label: 'Rich text model' },
+];
+
+/** Editor-surface blocks lead; style controls and newly discovered blocks follow alphabetically. */
+const designerBlockOrder = ['stage', 'layers', 'frame'];
+
+const blockNavItems = [
+	{ to: '/blocks', label: 'Overview', icon: staticIconPaths.Overview },
+	...getBlockNavItems(),
+];
+const componentNavGroups = groupsFromDiscoveredComponents();
+
+const sectionGroup = (label) => componentNavGroups.filter((group) => group.label === label);
+const advancedGroupLabels = advancedSections.map(labelFromSection);
+
+export const sideNavLinks = [
+	{
+		label: 'Documentation',
+		items: [
+			{ to: '/install', label: 'Install', tag: 'New' },
+			{ to: '/theming', label: 'Theming', tag: 'New' },
+			{ to: '/component-spec', label: 'Component metadata' },
+		],
+	},
+	...advancedGroupLabels.flatMap(sectionGroup),
+	{
+		label: 'Blocks',
+		items: blockNavItems,
+	},
+	{
+		label: 'Tools',
+		items: [
+			{ to: '/tools/json-unstringifier', label: 'JSON Unstringifier', tag: 'New' },
+			{ to: '/components/playground', label: 'Playground' },
+		],
+	},
+	...componentNavGroups.filter((group) => !advancedGroupLabels.includes(group.label)),
+	{
+		label: 'Headless',
+		items: [
+			{ to: '/headless', label: 'Overview' },
+			{ to: '/headless/dropdown', label: 'Dropdown' },
+			{ to: '/headless/dialog', label: 'Dialog' },
+			{ to: '/headless/drawer', label: 'Drawer' },
+			{ to: '/headless/popover', label: 'Popover' },
+			{ to: '/headless/floating', label: 'Floating' },
+			{ to: '/headless/tabs', label: 'Tabs' },
+			{ to: '/headless/toggle', label: 'Toggle' },
+			{ to: '/headless/tooltip', label: 'Tooltip' },
+			{ to: '/headless/accordion', label: 'Accordion' },
+			{ to: '/headless/combobox', label: 'Combobox' },
+			{ to: '/headless/autocomplete', label: 'Autocomplete' },
+		],
+	},
+	{
+		label: 'Experiments',
+		items: [
+			{ to: '/experiments/css-button-creator', label: 'CSS button builder' },
+			{ to: '/experiments/liquid-glass', label: 'Liquid glass', tag: 'New' },
+		],
+	},
+].map((group) => ({
+	...group,
+	items: group.items.map((item) => ({
+		...item,
+		icon: item.icon || staticIconPaths[item.label] || 'M5 12h14',
+	})),
+}));
+
+/**
+ * Groups component families by their navigation metadata while retaining stable URLs.
+ *
+ * @returns {Array<object>} Sidebar categories and their component links.
+ */
+function groupsFromDiscoveredComponents() {
+	const records = getComponentRecords()
+		.map(inspectComponentRecord)
+		.filter((record) => !record.navHidden)
+		.sort(sortRecords);
+	const families = records.reduce((map, record) => {
+		const key = `${record.section}/${record.slug}`;
+		if (!map.has(key)) map.set(key, []);
+		map.get(key).push(record);
+		return map;
+	}, new Map());
+
+	return sidebarComponentSectionOrder
+		.map((section) => ({
+			label: labelFromSection(section),
+			badge: ['mobile', 'designer'].includes(section) ? 'Beta' : undefined,
+			items: [
+				...(section === 'designer' ? designerToolNavItems : []),
+				...(section === 'ai' ? [
+					{ to: '/ai', label: 'Overview', icon: staticIconPaths.AI },
+					{ to: '/ai/ui', label: 'AI UI guide' },
+					{ to: '/ai/builders', label: 'AI builders' },
+				] : []),
+				...(section === 'components' ? [{ to: '/components', label: 'Overview', icon: staticIconPaths.Overview }] : []),
+				...(section === 'forms' ? [{ to: '/forms', label: 'Overview', icon: staticIconPaths.Overview }] : []),
+				...(section === 'charts' ? [{ to: '/charts', label: 'Overview', icon: staticIconPaths.Overview }, { to: '/charts/finance', label: 'Finance', icon: staticIconPaths.Finance, tag: 'New' }] : []),
+				...(section === 'data' ? [{ to: '/data', label: 'Overview', icon: staticIconPaths.Overview }] : []),
+				...(section === 'dev' ? [{ to: '/dev', label: 'Overview', icon: staticIconPaths.Overview }] : []),
+				...(section === 'mobile' ? [{ to: '/mobile', label: 'Overview', icon: staticIconPaths.Overview }] : []),
+				...(section === 'visual' ? [{ to: '/icons', label: 'Icons', icon: staticIconPaths.Icons }] : []),
+				...sectionFamilyNavItems(section, Array.from(families.values())
+					.filter((family) => getComponentNavigationSection(primaryRecord(family)) === section)),
+			],
+		}))
+		.filter((group) => group.items.length);
+}
+
+/**
+ * Converts a section's component families into sidebar items.
+ * Designer families are grouped under one "Building blocks" branch so they do not compete with the full tools.
+ *
+ * @param {string} section Component navigation section.
+ * @param {Array<Array<object>>} sectionFamilies Component families in that section.
+ * @returns {Array<object>} Sidebar items.
+ */
+function sectionFamilyNavItems(section, sectionFamilies) {
+	if (section !== 'designer') return sectionFamilies.map(navItemFromFamily);
+	const blocks = sectionFamilies
+		.slice()
+		.sort((a, b) => designerBlockRank(a) - designerBlockRank(b))
+		.map(navItemFromFamily);
+	return [{
+		to: '/designer#building-blocks',
+		label: 'Building blocks',
+		count: blocks.length || undefined,
+		children: [
+			{ to: '/designer/assembly', label: 'Assembly guide' },
+			...blocks,
+		],
+	}, {
+		to: '/designer/composables',
+		label: 'Composables',
+		children: designerComposableNavItems,
+	}];
+}
+
+/**
+ * Ranks a designer family for the building-blocks list, keeping the discovered order for unranked families.
+ *
+ * @param {Array<object>} family Component records that share a slug.
+ * @returns {number} Sort rank.
+ */
+function designerBlockRank(family) {
+	const index = designerBlockOrder.indexOf(primaryRecord(family).slug);
+	return index === -1 ? designerBlockOrder.length : index;
+}
+
+function navItemFromFamily(family) {
+	const primary = primaryRecord(family);
+	const children = family
+		.filter((record) => record !== primary)
+		.sort(sortRecords)
+		.map((record) => ({
+			to: `${record.route}#${componentAnchor(record)}`,
+			label: record.label,
+			tag: record.badge,
+			icon: record.icon,
+		}));
+
+	return {
+		to: primary.route,
+		label: primary.label,
+		tag: primary.badge,
+		icon: primary.icon,
+		children,
+	};
+}
+
+function primaryRecord(family) {
+	const slug = family[0]?.slug || '';
+	const expected = primaryExportNameForSlug(slug);
+	return family.find((record) => record.doc.nav?.primary)
+		|| family.find((record) => record.exportName === expected)
+		|| family[0];
+}
+
+function sortRecords(a, b) {
+	const orderDelta = a.order - b.order;
+	if (orderDelta) return orderDelta;
+	return a.label.localeCompare(b.label);
+}

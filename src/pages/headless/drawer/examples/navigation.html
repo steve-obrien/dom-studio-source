@@ -1,0 +1,18 @@
+<dom-drawer side="right" class="bg-canvas">
+	<button
+		slot="trigger"
+		type="button"
+		class="inline-flex h-10 items-center rounded-full bg-secondary px-4 text-sm font-medium text-canvas-fg ring-1 ring-border transition hover:bg-accent"
+	>
+		Open menu
+	</button>
+	<nav class="flex flex-col h-full skin-card text-canvas-fg">
+		<a href="#" data-close class="border-b border-border px-4 py-4 text-sm font-medium hover:bg-secondary/60">Home</a>
+		<a href="#" data-close class="border-b border-border px-4 py-4 text-sm font-medium text-muted-fg hover:bg-secondary/60 hover:text-canvas-fg">Projects</a>
+		<a href="#" data-close class="border-b border-border px-4 py-4 text-sm font-medium text-muted-fg hover:bg-secondary/60 hover:text-canvas-fg">Settings</a>
+	</nav>
+</dom-drawer>
+
+<script type="module">
+	import '@getdom/studio/headless/drawer.js';
+</script>

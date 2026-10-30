@@ -1,0 +1,165 @@
+{
+	"name": "@getdom/studio",
+	"version": "0.1.0",
+	"private": true,
+	"description": "DOM Studio is a complete Vue and Web Component UI system you can own, edit, and ship.",
+	"type": "module",
+	"sideEffects": [
+		"**/*.css",
+		"src/pages/lib/headless/*.js"
+	],
+	"types": "./src/pages/lib/vue/index.d.ts",
+	"scripts": {
+		"dev": "npm run catalog:generate && npm run seo:generate && node server.js",
+		"build": "npm run catalog:generate && npm run build:client && npm run build:server && npm run seo:generate",
+		"build:client": "vite build --outDir dist/client --ssrManifest",
+		"build:server": "vite build --outDir dist/server --ssr src/entry-server.js",
+		"catalog:generate": "node scripts/generate-component-catalog.mjs",
+		"seo:generate": "node scripts/generate-seo-files.mjs",
+		"check:seo": "node --test scripts/check-seo.mjs",
+		"types:generate": "node scripts/generate-types.mjs",
+		"package:build": "node scripts/build-npm-package.mjs",
+		"package:check": "npm run package:build && npm_config_cache=/tmp/getdom-studio-npm-cache npm pack ./dist/npm --dry-run",
+		"package:pack": "npm run package:build && npm_config_cache=/tmp/getdom-studio-npm-cache npm pack ./dist/npm --pack-destination ./dist",
+		"package:smoke": "npm run package:build && npm_config_cache=/tmp/getdom-studio-npm-cache npm install --prefix tests/npm-package-smoke --package-lock=false && npm run build --prefix tests/npm-package-smoke",
+		"check:releases": "node --test scripts/release-npm-package.test.mjs",
+		"prepack": "npm run catalog:generate && npm run types:generate",
+		"check:form-definition": "node scripts/check-form-definition.mjs",
+		"check:theme-ai": "node scripts/check-theme-ai-endpoint.mjs",
+		"db:migrate": "knex migrate:latest",
+		"db:rollback": "knex migrate:rollback",
+		"now:test": "npm --prefix packages/now test",
+		"preview": "NODE_ENV=production PORT=8102 node server.js",
+		"dev:screenshot": "HOST=127.0.0.1 PORT=8110 npm run dev",
+		"check:charts": "node --test scripts/check-charts.mjs",
+		"check:editor-core": "node --test scripts/check-editor-core.mjs",
+		"templates:social": "node scripts/generate-social-templates.mjs",
+		"check:poster": "node --test scripts/check-poster.mjs",
+		"check:gantt": "node --test scripts/check-gantt.mjs",
+		"check:media-input": "node --test scripts/check-media-input.mjs",
+		"check:font-picker": "node --test scripts/check-font-picker.mjs",
+		"check:option-lists": "node --test scripts/check-option-lists.mjs"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/steve-obrien/dom-studio-source.git"
+	},
+	"keywords": [
+		"vue",
+		"web-components",
+		"custom-elements",
+		"component-library",
+		"design-system",
+		"llm-ui"
+	],
+	"author": "Steve O'Brien",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"bugs": {
+		"url": "https://github.com/steve-obrien/dom-studio-source/issues"
+	},
+	"homepage": "https://getdom.studio",
+	"dependencies": {
+		"@tiptap/extension-code-block": "3.27.3",
+		"@tiptap/extension-collaboration": "^3.27.3",
+		"@tiptap/extension-collaboration-caret": "^3.27.3",
+		"@tiptap/extension-image": "^3.27.3",
+		"@tiptap/extension-link": "^3.27.3",
+		"@tiptap/extension-placeholder": "^3.27.3",
+		"@tiptap/extension-table": "3.27.3",
+		"@tiptap/extension-underline": "^3.27.3",
+		"@tiptap/starter-kit": "^3.27.3",
+		"@tiptap/vue-3": "^3.27.3",
+		"@unovis/ts": "1.7.0",
+		"@unovis/vue": "1.7.0",
+		"@vitejs/plugin-basic-ssl": "^2.3.0",
+		"@vue-flow/background": "^1.3.2",
+		"@vue-flow/controls": "^1.1.3",
+		"@vue-flow/core": "^1.48.2",
+		"@vue-flow/minimap": "^1.5.4",
+		"compression": "^1.8.1",
+		"dotenv": "^16.6.1",
+		"express": "^4.22.2",
+		"knex": "^3.2.10",
+		"markdown-it": "^14.2.0",
+		"monaco-editor": "^0.55.1",
+		"mysql2": "^3.22.5",
+		"pinia": "^3.0.4",
+		"stripe": "^22.2.0",
+		"tailwindcss": "^4.2.4",
+		"vue": "^3.5.34",
+		"vue-router": "^5.3.1",
+		"ws": "^8.21.1",
+		"y-protocols": "^1.0.7",
+		"yjs": "^13.6.31"
+	},
+	"devDependencies": {
+		"@fontsource-variable/plus-jakarta-sans": "^5.3.0",
+		"@tailwindcss/vite": "^4.2.4",
+		"@vitejs/plugin-vue": "^6.0.6",
+		"@vue/compiler-sfc": "^3.5.34",
+		"vite": "^8.0.10"
+	},
+	"typesVersions": {
+		"*": {
+			"vue": [
+				"src/pages/lib/vue/index.d.ts"
+			],
+			"headless": [
+				"src/pages/lib/headless/index.d.ts"
+			],
+			"headless/*.js": [
+				"src/pages/lib/headless/*.d.ts"
+			],
+			"headless/*": [
+				"src/pages/lib/headless/*.d.ts"
+			]
+		}
+	},
+	"files": [
+		"README.md",
+		"LICENSE.md",
+		"SKILL.md",
+		"public/llms.txt",
+		"public/skills.sh",
+		"src/pages/_layout",
+		"src/pages/components",
+		"src/pages/data",
+		"src/pages/dev",
+		"src/pages/forms",
+		"src/pages/lib",
+		"src/pages/mobile",
+		"src/pages/visual",
+		"src/style.css",
+		"src/pages/charts",
+		"src/pages/designer"
+	],
+	"exports": {
+		".": {
+			"types": "./src/pages/lib/vue/index.d.ts",
+			"import": "./src/pages/lib/vue/index.js"
+		},
+		"./vue": {
+			"types": "./src/pages/lib/vue/index.d.ts",
+			"import": "./src/pages/lib/vue/index.js"
+		},
+		"./headless": {
+			"types": "./src/pages/lib/headless/index.d.ts",
+			"import": "./src/pages/lib/headless/index.js"
+		},
+		"./headless/*.js": {
+			"types": "./src/pages/lib/headless/*.d.ts",
+			"import": "./src/pages/lib/headless/*.js"
+		},
+		"./headless/*": {
+			"types": "./src/pages/lib/headless/*.d.ts",
+			"import": "./src/pages/lib/headless/*.js"
+		},
+		"./style.css": "./src/style.css",
+		"./llms.txt": "./public/llms.txt",
+		"./skill": "./SKILL.md",
+		"./skills.sh": "./public/skills.sh"
+	},
+	"engines": {
+		"node": ">=22.12.0"
+	}
+}

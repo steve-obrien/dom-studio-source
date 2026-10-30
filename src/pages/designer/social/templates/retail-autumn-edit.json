@@ -1,0 +1,67 @@
+{
+	"id": "retail-autumn-edit",
+	"title": "Autumn edit",
+	"industry": "retail",
+	"kind": "announcement",
+	"source": "hand-written",
+	"width": 1080,
+	"height": 1350,
+	"background": "#efeae2",
+	"layers": [
+		{
+			"type": "shape",
+			"name": "Product photo",
+			"x": 140,
+			"y": 120,
+			"width": 800,
+			"height": 720,
+			"fill": "#c9b8a6",
+			"radius": 400
+		},
+		{
+			"type": "text",
+			"name": "Eyebrow",
+			"value": "THE AUTUMN EDIT",
+			"x": 72,
+			"y": 900,
+			"width": 936,
+			"height": 44,
+			"font": "sans",
+			"fontSize": 30,
+			"fontWeight": "700",
+			"letterSpacing": 8,
+			"textAlign": "center",
+			"color": "#3d3229",
+			"pinX": "stretch"
+		},
+		{
+			"type": "text",
+			"name": "Headline",
+			"value": "New arrivals,\nmade to last.",
+			"x": 72,
+			"y": 960,
+			"width": 936,
+			"height": 210,
+			"font": "serif",
+			"fontSize": 92,
+			"lineHeight": 1.1,
+			"textAlign": "center",
+			"color": "#2a221c",
+			"pinX": "stretch"
+		},
+		{
+			"type": "text",
+			"name": "Footer",
+			"value": "Shop now at mercer.co",
+			"x": 72,
+			"y": 1236,
+			"width": 936,
+			"height": 40,
+			"font": "sans",
+			"fontSize": 30,
+			"textAlign": "center",
+			"color": "#6e6156",
+			"pinX": "stretch"
+		}
+	]
+}

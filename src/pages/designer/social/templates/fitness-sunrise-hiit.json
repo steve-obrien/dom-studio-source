@@ -1,0 +1,90 @@
+{
+	"id": "fitness-sunrise-hiit",
+	"title": "Sunrise HIIT launch",
+	"industry": "fitness",
+	"kind": "announcement",
+	"source": "hand-written",
+	"width": 1080,
+	"height": 1350,
+	"background": "#111111",
+	"layers": [
+		{
+			"type": "shape",
+			"name": "Offer band",
+			"x": 0,
+			"y": 980,
+			"width": 1080,
+			"height": 370,
+			"fill": "#d7ff3a"
+		},
+		{
+			"type": "text",
+			"name": "Eyebrow",
+			"value": "NEW CLASS",
+			"x": 72,
+			"y": 96,
+			"width": 600,
+			"height": 44,
+			"font": "sans",
+			"fontSize": 32,
+			"fontWeight": "900",
+			"letterSpacing": 8,
+			"color": "#d7ff3a"
+		},
+		{
+			"type": "text",
+			"name": "Headline",
+			"value": "SUNRISE\nHIIT",
+			"x": 72,
+			"y": 200,
+			"width": 936,
+			"height": 360,
+			"font": "condensed",
+			"fontSize": 190,
+			"lineHeight": 0.9,
+			"color": "#ffffff",
+			"pinX": "stretch"
+		},
+		{
+			"type": "text",
+			"name": "Body",
+			"value": "45 minutes. Full body. Every weekday at 6:30am.",
+			"x": 72,
+			"y": 640,
+			"width": 840,
+			"height": 120,
+			"font": "sans",
+			"fontSize": 44,
+			"lineHeight": 1.25,
+			"color": "#d4d4d4"
+		},
+		{
+			"type": "text",
+			"name": "Offer",
+			"value": "FIRST CLASS\nFREE",
+			"x": 72,
+			"y": 1010,
+			"width": 936,
+			"height": 230,
+			"font": "condensed",
+			"fontSize": 110,
+			"lineHeight": 1,
+			"color": "#111111",
+			"pinX": "stretch"
+		},
+		{
+			"type": "text",
+			"name": "Footer",
+			"value": "Ironworks Gym · Book in the app",
+			"x": 72,
+			"y": 1262,
+			"width": 936,
+			"height": 46,
+			"font": "sans",
+			"fontSize": 32,
+			"fontWeight": "700",
+			"color": "#111111",
+			"pinX": "stretch"
+		}
+	]
+}

@@ -1,0 +1,90 @@
+<script setup>
+import { computed } from 'vue';
+
+defineOptions({
+	__doc: {
+		name: 'App list item',
+		tag: '<DomAppListItem>',
+		description: 'A touch-sized row that works in any layout. Use as="div" for rows containing switches, inputs, or other controls so interactive elements are never nested inside a button.',
+		slots: [
+			{ name: 'icon', description: 'Leading icon or avatar.' },
+			{ name: 'trailing', description: 'Trailing value, switch, badge, or custom action.' },
+		],
+		playground: {
+			mobileSlot: 'content',
+			initial: {
+				label: 'Sync Capacitor status bar',
+				description: 'Match native chrome to the DOM Studio theme.',
+				meta: 'Now',
+				chevron: true,
+			},
+		},
+	},
+});
+
+const props = defineProps({
+	as: {
+		type: String,
+		default: 'button',
+		_edit: { description: 'Element or component used for the row.' },
+	},
+	label: {
+		type: String,
+		required: true,
+		_edit: { description: 'Primary row label.' },
+	},
+	description: {
+		type: String,
+		default: '',
+		_edit: { description: 'Optional secondary copy.' },
+	},
+	meta: {
+		type: String,
+		default: '',
+		_edit: { description: 'Small trailing metadata shown beside the label.' },
+	},
+	chevron: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Show a trailing chevron when no trailing slot is provided.' },
+	},
+	selected: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Show the row as selected.' },
+	},
+	danger: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Style the row as a destructive action.' },
+	},
+});
+
+const isButton = computed(() => props.as === 'button');
+</script>
+
+<template>
+	<component
+		:is="as"
+		class="flex min-h-14 w-full items-center gap-3 border-b border-border bg-canvas px-4 py-3 text-left transition last:border-b-0 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:opacity-50 disabled:pointer-events-none"
+		:class="[selected && 'bg-secondary', danger && 'text-destructive', as !== 'div' && 'hover:bg-secondary/60 active:bg-secondary']"
+		:type="isButton ? 'button' : undefined"
+	>
+		<div v-if="$slots.icon" class="grid size-10 shrink-0 place-items-center rounded-2xl bg-secondary text-muted-fg">
+			<slot name="icon" />
+		</div>
+		<div class="min-w-0 flex-1">
+			<div class="flex min-w-0 items-baseline gap-2">
+				<p class="min-w-0 flex-1 break-words text-sm font-medium" :class="danger ? 'text-destructive' : 'text-canvas-fg'">{{ label }}</p>
+				<p v-if="meta" class="max-w-[45%] shrink-0 break-words text-right text-xs text-muted-fg">{{ meta }}</p>
+			</div>
+			<p v-if="description" class="mt-0.5 line-clamp-2 text-xs leading-5 text-muted-fg">{{ description }}</p>
+		</div>
+		<div v-if="$slots.trailing" class="flex shrink-0 items-center text-muted-fg [&_dom-toggle]:before:absolute [&_dom-toggle]:before:inset-x-0 [&_dom-toggle]:before:-inset-y-2.5">
+			<slot name="trailing" />
+		</div>
+		<svg v-else-if="chevron" class="size-4 shrink-0 text-muted-fg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+			<path d="M7.3 4.3a1 1 0 0 1 1.4 0l5 5a1 1 0 0 1 0 1.4l-5 5a1 1 0 1 1-1.4-1.4L11.58 10 7.3 5.7a1 1 0 0 1 0-1.4Z" />
+		</svg>
+	</component>
+</template>

@@ -1,0 +1,17 @@
+<dom-popover>
+	<button
+		slot="trigger"
+		type="button"
+		class="inline-flex h-10 items-center rounded-full bg-secondary px-4 text-sm font-medium text-canvas-fg ring-1 ring-border hover:bg-accent"
+	>
+		More
+	</button>
+	<div slot="panel" class="max-w-xs rounded-2xl border border-border bg-canvas p-4 text-sm text-muted-fg shadow-lg">
+		<p class="font-semibold text-canvas-fg">Quick facts</p>
+		<p class="mt-2">Anything you like — text, buttons, even forms.</p>
+	</div>
+</dom-popover>
+
+<script type="module">
+	import '@getdom/studio/headless/popover.js';
+</script>

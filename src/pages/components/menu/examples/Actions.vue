@@ -1,0 +1,21 @@
+<script setup>
+import { ref } from 'vue';
+import { DomMenu } from '@getdom/studio/vue';
+
+const selected = ref('none');
+const items = [
+	{ value: 'rename', label: 'Rename' },
+	{ value: 'duplicate', label: 'Duplicate' },
+	{ separator: true },
+	{ value: 'notifications', label: 'Notifications', type: 'checkbox', checked: true },
+	{ value: 'archive', label: 'Archive' },
+	{ value: 'delete', label: 'Delete', tone: 'danger' },
+];
+</script>
+
+<template>
+	<div class="grid w-full max-w-sm gap-3">
+		<DomMenu :items="items" @select="selected = $event.value" />
+		<p class="text-xs text-muted-fg">Selected: <code class="text-canvas-fg">{{ selected }}</code></p>
+	</div>
+</template>

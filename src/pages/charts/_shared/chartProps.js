@@ -1,0 +1,23 @@
+/** Shared presentation and data contract for the Cartesian chart family. */
+export const chartProps = {
+	rows: { type: Array, default: () => [], _edit: { description: 'Application-owned records. Missing measurements remain gaps; zero is valid.' } },
+	series: { type: Array, default: () => [], _edit: { description: 'Field keys or { key, label, color, dashed } definitions. Keep keys stable when filtering.' } },
+	xKey: { type: String, default: 'date', _edit: { description: 'Record field used for category or horizontal axis values.' } },
+	xType: { type: String, default: 'category', _edit: { options: ['category', 'time', 'number'], description: 'Category preserves row order; time and number use proportional, sorted coordinates.' } },
+	title: { type: String, default: 'Chart', _edit: { description: 'Visible title and accessible chart name.' } },
+	description: { type: String, default: '', _edit: { description: 'Supporting context, units, or reporting period.' } },
+	height: { type: Number, default: 280, _edit: { description: 'Plot height in pixels; width responds to its container.' } },
+	format: { type: String, default: 'number', _edit: { options: ['number', 'compact', 'currency', 'percent'], description: 'Value format. Percent expects fractions, such as 0.25 for 25%.' } },
+	currency: { type: String, default: 'GBP', _edit: { description: 'ISO currency code for currency formatting.' } },
+	locale: { type: String, default: 'en-GB', _edit: { description: 'Locale used for number and date labels.' } },
+	valueFormatter: { type: Function, default: null, _edit: { description: 'Optional (value) => string override shared by axes, tooltips, and tables.' } },
+	xFormatter: { type: Function, default: null, _edit: { description: 'Optional (value) => string override for category/date labels.' } },
+	yFormatter: { type: Function, default: null, _edit: { description: 'Optional (value) => string for value-axis ticks only. Tooltips and tables keep the full valueFormatter output.' } },
+	loading: { type: Boolean, default: false, _edit: { description: 'Show a loading state in the reserved plot space.' } },
+	error: { type: String, default: '', _edit: { description: 'Show an application-owned error with a retry action.' } },
+	emptyLabel: { type: String, default: 'No data for this period', _edit: { description: 'Message when no finite measurements are available.' } },
+	legend: { type: Boolean, default: true, _edit: { description: 'Show buttons to toggle series without changing their colours.' } },
+	showTable: { type: Boolean, default: true, _edit: { description: 'Offer an accessible, server-rendered table of the chart data.' } },
+	grid: { type: Boolean, default: true, _edit: { description: 'Show subtle value-axis grid lines.' } },
+	curve: { type: String, default: 'linear', _edit: { options: ['linear', 'monotoneX', 'step'], description: 'Line interpolation. Linear avoids implying unobserved smooth changes.' } },
+};

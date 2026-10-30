@@ -1,0 +1,103 @@
+{
+	"id": "saas-product-launch",
+	"title": "Product launch",
+	"industry": "saas",
+	"kind": "announcement",
+	"source": "hand-written",
+	"width": 1080,
+	"height": 1350,
+	"background": "#0b1020",
+	"layers": [
+		{
+			"type": "shape",
+			"name": "Glow",
+			"x": 540,
+			"y": -200,
+			"width": 800,
+			"height": 800,
+			"fill": "#4f46e5",
+			"radius": 400,
+			"opacity": 45
+		},
+		{
+			"type": "text",
+			"name": "Eyebrow",
+			"value": "NOW AVAILABLE",
+			"x": 72,
+			"y": 96,
+			"width": 600,
+			"height": 40,
+			"font": "mono",
+			"fontSize": 28,
+			"letterSpacing": 4,
+			"color": "#a5b4fc"
+		},
+		{
+			"type": "text",
+			"name": "Headline",
+			"value": "Reports that\nwrite themselves",
+			"x": 72,
+			"y": 380,
+			"width": 936,
+			"height": 240,
+			"font": "sans",
+			"fontSize": 104,
+			"fontWeight": "900",
+			"lineHeight": 1.05,
+			"letterSpacing": -2,
+			"color": "#ffffff",
+			"pinX": "stretch"
+		},
+		{
+			"type": "text",
+			"name": "Body",
+			"value": "Ledgerly turns your accounting data into a board-ready summary every Monday.",
+			"x": 72,
+			"y": 660,
+			"width": 860,
+			"height": 170,
+			"font": "sans",
+			"fontSize": 40,
+			"lineHeight": 1.35,
+			"color": "#c7d2fe"
+		},
+		{
+			"type": "shape",
+			"name": "Button",
+			"x": 72,
+			"y": 900,
+			"width": 380,
+			"height": 100,
+			"fill": "#ffffff",
+			"radius": 50
+		},
+		{
+			"type": "text",
+			"name": "Button label",
+			"value": "Start free trial",
+			"x": 72,
+			"y": 924,
+			"width": 380,
+			"height": 50,
+			"font": "sans",
+			"fontSize": 36,
+			"fontWeight": "700",
+			"textAlign": "center",
+			"color": "#0b1020"
+		},
+		{
+			"type": "text",
+			"name": "Brand",
+			"value": "LEDGERLY",
+			"x": 72,
+			"y": 1236,
+			"width": 600,
+			"height": 40,
+			"font": "sans",
+			"fontSize": 30,
+			"fontWeight": "900",
+			"letterSpacing": 6,
+			"color": "#ffffff"
+		}
+	]
+}

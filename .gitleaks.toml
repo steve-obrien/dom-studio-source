@@ -1,0 +1,18 @@
+title = "DOM Studio source distribution"
+
+[extend]
+useDefault = true
+
+# These literal fixture values are nonfunctional and are used only by local tests/demos.
+# Both the exact path and the entire extracted value must match; all default rules remain enabled.
+[[allowlists]]
+description = "Mocked Stripe credential in checkout unit tests"
+condition = "AND"
+paths = ['server/lib/billingCheckout\.test\.js$']
+regexes = ['^sk_test_placeholder$']
+
+[[allowlists]]
+description = "In-memory integration marketplace demonstration credential"
+condition = "AND"
+paths = ['src/pages/blocks/developer-experience/integration-marketplace/examples/IntegrationMarketplace\.vue$']
+regexes = ['^rk_test_marketplace_123456$']

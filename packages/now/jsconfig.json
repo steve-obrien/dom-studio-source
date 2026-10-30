@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"],
+			"#now/*": ["src/framework/*"]
+		}
+	},
+	"exclude": ["dist", "node_modules", "wad2/node_modules"]
+}

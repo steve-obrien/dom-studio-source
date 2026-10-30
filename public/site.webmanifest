@@ -1,0 +1,16 @@
+{
+	"name": "DOM Studio",
+	"short_name": "DOM Studio",
+	"description": "A complete Vue and Web Component UI system you can own, edit, and ship.",
+	"icons": [
+		{
+			"src": "/favicon.svg",
+			"sizes": "64x64",
+			"type": "image/svg+xml",
+			"purpose": "any"
+		}
+	],
+	"theme_color": "#0B0F14",
+	"background_color": "#F6F7F7",
+	"display": "standalone"
+}

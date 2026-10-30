@@ -1,0 +1,6 @@
+/* Limit the site's utility inventory to shipped UI rather than scripts and docs. */
+@import "tailwindcss" source(none);
+@import "./tailwind.css";
+@import "./theme.css";
+@source "./App.vue";
+@source "./NotFoundPage.vue";

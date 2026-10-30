@@ -1,0 +1,208 @@
+<script setup>
+import { computed, nextTick, onMounted, ref, shallowRef, useId, watch } from 'vue';
+import { resolveFloatingTeleportTarget } from '../../lib/vue/floatingTeleportTarget.js';
+import DomFieldLoadingSpinner from '../_shared/DomFieldLoadingSpinner.vue';
+import { booleanProp, normalizeOption, searchableText } from '../_shared/options.js';
+import DomOptionStatus from '../_shared/DomOptionStatus.vue';
+import { useOptionPaging } from '../_shared/useOptionPaging.js';
+import DomField from '../field/DomField.vue';
+import { fieldProps } from '../field/fieldProps.js';
+import { useField } from '../field/useField.js';
+
+const listId = `dom-autocomplete-${useId()}`;
+
+defineOptions({
+	__doc: {
+		name: 'Autocomplete',
+		tag: '<DomAutocomplete>',
+		description: 'Free-text autocomplete with optional suggestions, floating positioning, keyboard navigation, and query events for async lookups.',
+		slots: [
+			{ name: 'item', payload: '{ item, index, selected, query }', description: 'Replaces each suggestion body without replacing the selection checkmark.' },
+		],
+		events: [
+			{ name: 'query', payload: '(query: string)', description: 'Fired as the user types. Use it to fetch or replace suggestions.' },
+			{ name: 'select', payload: '({ item, value, label, text, query })', description: 'Fired when a suggestion is chosen. item is the original option object.' },
+			{ name: 'commit', payload: '({ value, label, custom })', description: 'Fired when the current text is committed with Enter.' },
+			{ name: 'load-more', payload: '{ query }', description: 'Request the next page when hasMore is true.' },
+			{ name: 'open', description: 'Fired when suggestions open.' },
+			{ name: 'close', description: 'Fired when suggestions close.' },
+		],
+	},
+});
+
+const props = defineProps({
+	...fieldProps,
+	modelValue: {
+		type: String,
+		default: '',
+		_edit: { group: 'Control props', description: 'Current text value.' },
+	},
+	options: {
+		type: Array,
+		default: () => [],
+		_edit: {
+			component: 'DomJsonListInput',
+			description: 'Suggestions. May be replaced by async lookup results.',
+			props: {
+				compact: true,
+				addLabel: '+ Add suggestion',
+				schema: [
+					{ key: 'label', label: 'Label', placeholder: 'Suggestion label', default: (index) => `Suggestion ${index + 1}` },
+					{ key: 'value', label: 'Value', placeholder: 'suggestion-value', default: (index) => `suggestion-${index + 1}` },
+				],
+			},
+		},
+	},
+	placeholder: {
+		type: String,
+		default: 'Search...',
+		_edit: { group: 'Control props', description: 'Placeholder shown when the input is empty.' },
+	},
+	placement: {
+		type: String,
+		default: 'bottom',
+		_edit: { group: 'Control props', options: ['bottom', 'top', 'right', 'left'], description: 'Preferred side before collision handling.' },
+	},
+	floatingMode: {
+		type: String,
+		default: 'viewport',
+		_edit: { group: 'Control props', options: ['viewport', 'anchor'], description: 'viewport keeps suggestions inside the browser; anchor keeps them attached while scrolling.' },
+	},
+	loading: {
+		type: [Boolean, String],
+		default: false,
+		_edit: { group: 'Control props', description: 'Show an inline spinner while async suggestions are being fetched.' },
+	},
+	filterOptions: { type: [Boolean, String], default: true },
+	hasMore: { type: [Boolean, String], default: false },
+});
+const emit = defineEmits(['update:modelValue', 'query', 'select', 'commit', 'load-more', 'list-scroll', 'open', 'close', 'focus', 'blur']);
+
+const root = ref(null);
+const inputEl = ref(null);
+const list = ref(null);
+const query = ref('');
+const isOpen = ref(false);
+const isMounted = ref(false);
+const teleportTarget = shallowRef(null);
+const currentText = ref('');
+const field = useField(props, emit, { idPrefix: 'dom-autocomplete' });
+const isLoading = computed(() => booleanProp(props.loading, false));
+
+const items = computed(() => props.options.map((option) => normalizeOption(option)).filter(Boolean));
+const hasMoreOptions = computed(() => booleanProp(props.hasMore));
+const filterLocally = computed(() => booleanProp(props.filterOptions, true));
+const matchingOptions = computed(() => items.value.filter((option) => !filterLocally.value || searchableText(option, ['label', 'value', 'description', 'group', 'email', 'role']).includes(query.value.trim().toLowerCase())));
+const paging = useOptionPaging(props, emit, { list, options: items, query, open: isOpen });
+
+/**
+ * Synchronize the free-text input from the Vue model value.
+ *
+ * @returns {void}
+ */
+function syncInputFromModel() {
+	currentText.value = field.value.value ?? '';
+	if (inputEl.value) inputEl.value.value = field.value.value ?? '';
+}
+
+onMounted(async () => {
+	teleportTarget.value = resolveFloatingTeleportTarget(root.value);
+	isMounted.value = true;
+	await nextTick();
+	await import('../../lib/headless/autocomplete.js');
+	syncInputFromModel();
+	root.value?.addEventListener('dom:input', (event) => {
+		currentText.value = event.detail.value;
+		field.onInput(event.detail.value);
+	});
+	root.value?.addEventListener('dom:query', (event) => { query.value = event.detail.query; emit('query', event.detail.query); });
+	root.value?.addEventListener('dom:open', () => { isOpen.value = true; emit('open'); });
+	root.value?.addEventListener('dom:close', () => { isOpen.value = false; emit('close'); });
+	root.value?.addEventListener('dom:load-more', () => paging.requestMore());
+	root.value?.addEventListener('dom:select', (event) => {
+		const index = Number(event.detail.option?.dataset.index);
+		const item = Number.isFinite(index) ? items.value[index] : null;
+		const text = event.detail.label ?? event.detail.value ?? '';
+		field.onInput(text);
+		emit('select', {
+			item,
+			value: event.detail.value,
+			label: event.detail.label,
+			text,
+			query: currentText.value,
+			option: event.detail.option,
+		});
+		currentText.value = text;
+	});
+	root.value?.addEventListener('dom:change', (event) => emit('commit', event.detail));
+});
+
+watch(field.value, syncInputFromModel);
+
+</script>
+
+<template>
+	<DomField v-bind="field.fieldAttrs.value" :chrome="chrome">
+		<dom-autocomplete
+			ref="root"
+			:data-menu-id="listId"
+			:value="field.value.value ?? null"
+			:placement="placement"
+			:floating-mode="floatingMode"
+			:filter-options="String(filterLocally)"
+			:has-more="hasMoreOptions ? '' : null"
+			class="relative block"
+		>
+			<input
+				v-bind="field.inputAttrs.value"
+				ref="inputEl"
+				slot="input"
+				type="text"
+				class="skin-input h-10 pr-10"
+				:class="isLoading ? 'pr-20' : ''"
+				@focus="field.onFocus"
+				@blur="field.onBlur"
+			/>
+			<DomFieldLoadingSpinner
+				v-if="isLoading"
+				class="absolute right-9 top-1"
+			/>
+			<button
+				slot="toggle"
+				type="button"
+				class="absolute right-1 top-1 inline-flex size-8 items-center justify-center rounded-md text-muted-fg transition hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/60 disabled:cursor-not-allowed disabled:opacity-50"
+				aria-label="Show suggestions"
+				:disabled="field.disabled.value || field.readOnly.value || undefined"
+			>
+				<svg viewBox="0 0 20 20" class="size-4" fill="none" aria-hidden="true">
+					<path d="M6 8l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+				</svg>
+			</button>
+			<Teleport :to="teleportTarget || 'body'" :disabled="!isMounted || !teleportTarget">
+				<ul
+					:id="listId"
+					ref="list"
+					hidden
+					:aria-busy="isLoading"
+					@scroll="paging.onScroll"
+					class="dom-floating-transition skin-popover z-50 max-h-[min(15rem,var(--dom-floating-available-height))] overflow-auto rounded-2xl p-1"
+				>
+					<li
+						v-for="(option, index) in items"
+						:key="option.value ?? index"
+						:data-value="option.value"
+						:data-label="option.label"
+						:data-index="index"
+						:data-search="searchableText(option, ['label', 'value', 'description', 'group', 'email', 'role'])"
+						:aria-disabled="option.disabled || undefined"
+						class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-sm text-canvas-fg transition hover:bg-accent hover:text-accent-fg data-[active]:bg-accent data-[active]:text-accent-fg aria-selected:bg-accent aria-selected:text-accent-fg aria-disabled:cursor-not-allowed aria-disabled:opacity-50"
+					>
+						<span class="min-w-0 flex-1"><slot name="item" :item="option" :index="index" :selected="option.label === field.value.value" :query="query">{{ option.label }}</slot></span>
+						<svg v-if="option.label === field.value.value" viewBox="0 0 20 20" class="size-4 shrink-0" fill="none" aria-hidden="true"><path d="M4.5 10.5 8 14l7.5-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+					</li>
+					<DomOptionStatus as="li" :loading="isLoading" :has-more="hasMoreOptions" :empty="!matchingOptions.length" @load-more="paging.requestMore(true)" />
+				</ul>
+			</Teleport>
+		</dom-autocomplete>
+	</DomField>
+</template>

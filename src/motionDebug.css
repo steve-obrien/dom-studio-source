@@ -1,0 +1,41 @@
+:root {
+	--dom-studio-motion-debug-duration: 4s;
+}
+
+:root[data-dom-studio-motion-debug] *,
+:root[data-dom-studio-motion-debug] *::before,
+:root[data-dom-studio-motion-debug] *::after {
+	animation-duration: var(--dom-studio-motion-debug-duration) !important;
+	transition-duration: var(--dom-studio-motion-debug-duration) !important;
+}
+
+:root[data-dom-studio-motion-debug] {
+	--dom-dialog-backdrop-duration: var(--dom-studio-motion-debug-duration);
+}
+
+/* Shadow DOM descendants are outside the universal selector above. */
+:root[data-dom-studio-motion-debug] dom-dialog::part(dialog) {
+	animation-duration: var(--dom-studio-motion-debug-duration) !important;
+	transition-duration: var(--dom-studio-motion-debug-duration) !important;
+}
+
+:root[data-dom-studio-motion-debug]::after {
+	position: fixed;
+	top: 0.75rem;
+	right: 0.75rem;
+	z-index: 2147483647;
+	padding: 0.4rem 0.65rem;
+	border: 1px solid rgb(255 255 255 / 25%);
+	border-radius: 0.375rem;
+	background: rgb(15 23 42 / 92%);
+	box-shadow: 0 0.5rem 1.5rem rgb(15 23 42 / 25%);
+	color: white;
+	content: "Motion debug · slowed";
+	font: 700 0.75rem/1.25 system-ui, sans-serif;
+	letter-spacing: 0.02em;
+	pointer-events: none;
+}
+
+:root[data-dom-studio-motion-debug-locked]::after {
+	content: "Motion debug · slowed · locked";
+}

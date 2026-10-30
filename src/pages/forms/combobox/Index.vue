@@ -1,0 +1,164 @@
+<script setup>
+import DomStudioLayout from '../../_layout/DomStudioLayout.vue';
+import DocPage from '../../_layout/DocPage.vue';
+import DocSection from '../../_layout/DocSection.vue';
+import Playground from '../../_layout/docs/Playground.vue';
+import PropsTable from '../../_layout/PropsTable.vue';
+import PickFruit from './examples/PickFruit.vue';
+import PickFruitSrc from './examples/PickFruit.vue?raw';
+import PeopleLookup from './examples/PeopleLookup.vue';
+import PeopleLookupSrc from './examples/PeopleLookup.vue?raw';
+import PeoplePlayground from './examples/PeoplePlayground.vue';
+import PeoplePlaygroundSrc from './examples/PeoplePlayground.vue?raw';
+import ServerLoadedPeople from './examples/ServerLoadedPeople.vue';
+import ServerLoadedPeopleSrc from './examples/ServerLoadedPeople.vue?raw';
+import Example from '../../_layout/docs/Example.vue';
+import { RouterLink } from 'vue-router';
+import OptionPagingGuide from '../_shared/OptionPagingGuide.vue';
+
+const peoplePlaygroundInspect = {
+	props: {
+		modelValue: {
+			type: String,
+			default: '',
+			_edit: { label: 'Selected value', description: 'The option value currently committed by v-model.' },
+		},
+		options: {
+			type: Array,
+			default: () => [],
+			_edit: {
+				description: 'Rows of JSON-like option data used by the custom item slot.',
+				component: 'DomJsonListInput',
+				props: {
+					label: 'People',
+					addLabel: '+ Add person',
+					compact: true,
+					schema: [
+						{ key: 'value', label: 'Value', placeholder: 'person-id', default: (index) => `person-${index + 1}` },
+						{ key: 'label', label: 'Name', placeholder: 'Person name', default: (index) => `Person ${index + 1}` },
+						{ key: 'role', label: 'Role', placeholder: 'Role or title' },
+						{ key: 'avatar', label: 'Avatar URL', type: 'url', placeholder: 'https://...' },
+					],
+				},
+			},
+		},
+		placeholder: {
+			type: String,
+			default: 'Assign a person',
+			_edit: { description: 'Placeholder shown when no option is selected.' },
+		},
+		placement: {
+			type: String,
+			default: 'bottom',
+			_edit: { options: ['bottom', 'top', 'right', 'left'], description: 'Preferred side before collision handling.' },
+		},
+		floatingMode: {
+			type: String,
+			default: 'viewport',
+			_edit: { options: ['viewport', 'anchor'], description: 'viewport keeps the list inside the browser; anchor keeps it attached while scrolling.' },
+		},
+		clearable: {
+			type: Boolean,
+			default: true,
+			_edit: { description: 'Show a clear button when an option has been selected.' },
+		},
+		loading: {
+			type: Boolean,
+			default: false,
+			_edit: { description: 'Show an inline spinner while async options are being fetched.' },
+		},
+	},
+};
+
+const props = [
+	{ name: 'v-model', type: 'string', default: '—', description: 'Selected option value.' },
+	{ name: 'options', type: 'Array<{ value, label }> | string[]', default: '—', description: 'Available options.' },
+	{ name: 'placeholder', type: 'string', default: "'Search…'", description: 'Input placeholder.' },
+	{ name: 'floatingMode', type: "'viewport' | 'anchor'", default: "'viewport'", description: 'Choose whether the list stays in the browser or follows the input while scrolling.' },
+	{ name: 'clearable', type: 'boolean', default: 'true', description: 'Show an inline clear button when an option is selected.' },
+	{ name: 'loading', type: 'boolean', default: 'false', description: 'Show an inline spinner while async options are being fetched.' },
+	{ name: 'filterOptions', type: 'boolean', default: 'true', description: 'Set false for server-filtered or server-ranked options.' },
+	{ name: 'hasMore', type: 'boolean', default: 'false', description: 'Enable incremental scrolling, keyboard paging and the Load more button through @load-more.' },
+	{ name: 'selectedOptions', type: 'DomOption[]', default: '[]', description: 'Resolved initial selected records outside the currently loaded page.' },
+];
+const keys = [
+	{ k: '↑ / ↓', d: 'Move active option.' },
+	{ k: 'Enter', d: 'Commit active option.' },
+	{ k: 'Esc', d: 'Close the list.' },
+	{ k: 'Type', d: 'Filter the list live.' },
+];
+</script>
+
+<template>
+	<DomStudioLayout>
+		<DocPage name="Combobox" tagline="A styled select-like control: show the option label, store the option value, and keep keyboard navigation." tag="<dom-combobox>">
+			<DocSection eyebrow="Playground" title="Custom item playground">
+				<Playground
+					:inspect="peoplePlaygroundInspect"
+					:component="PeoplePlayground"
+					:source="PeoplePlaygroundSrc"
+					filename="PeoplePlayground.vue"
+					title="People combobox playground"
+					description="Edit people rows in the inspector and the custom item slot keeps rendering the richer markup."
+				/>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Vue">
+				<Example
+					:source="PickFruitSrc"
+					filename="PickFruit.vue"
+					description="The input displays the label, while v-model receives the option value."
+				>
+					<PickFruit />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Custom item markup">
+				<Example
+					:source="PeopleLookupSrc"
+					filename="PeopleLookup.vue"
+					description="Type ob to highlight Steve Obrien and Robin. The item slot uses query and escaped text segments inside mark elements; literal <Ops> text never becomes HTML."
+				>
+					<PeopleLookup />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Server-loaded options">
+				<Example
+					:source="ServerLoadedPeopleSrc"
+					filename="ServerLoadedPeople.vue"
+					description="@query lets the parent fetch options and pass the current server results back through options."
+				>
+					<ServerLoadedPeople />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Usage" title="Plain HTML">
+				<p class="text-sm leading-relaxed text-muted-fg">
+					Use the headless custom element when you want the same combobox behaviour in plain HTML or another framework.
+					The headless page includes copyable DOM-defined list examples.
+				</p>
+				<RouterLink
+					to="/headless/combobox"
+					class="mt-4 inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-fg transition hover:opacity-90"
+				>
+					View headless combobox
+				</RouterLink>
+			</DocSection>
+
+			<OptionPagingGuide />
+			<DocSection title="Props">
+				<PropsTable :rows="props" />
+			</DocSection>
+
+			<DocSection title="Keyboard">
+				<ul class="space-y-2 rounded-2xl border border-border bg-secondary/40 p-5 text-sm">
+					<li v-for="row in keys" :key="row.k" class="flex items-start gap-4">
+						<kbd class="rounded bg-canvas px-2 py-0.5 font-mono text-xs ring-1 ring-border">{{ row.k }}</kbd>
+						<span class="text-muted-fg">{{ row.d }}</span>
+					</li>
+				</ul>
+			</DocSection>
+		</DocPage>
+	</DomStudioLayout>
+</template>

@@ -1,0 +1,127 @@
+<script setup>
+import { ref } from 'vue';
+import { DomButton, DomForm, forms } from '../../../lib/vue';
+
+const invitation = ref({
+	workspace: 'DOM Studio Studio',
+	role: 'viewer',
+	message: 'You are invited to collaborate on the next release.',
+	invitees: [],
+});
+const submitResult = ref(null);
+const children = ref([
+	{
+		component: 'DomTextInput',
+		props: {
+			name: 'workspace',
+			label: 'Workspace',
+			required: true,
+		},
+	},
+	{
+		component: 'DomSelect',
+		props: {
+			name: 'role',
+			label: 'Invitee role',
+			description: 'Every invitee added below will receive this access level.',
+			required: true,
+			options: [
+				{ label: 'Owner', value: 'owner' },
+				{ label: 'Admin', value: 'admin' },
+				{ label: 'Viewer', value: 'viewer' },
+			],
+		},
+	},
+	{
+		component: 'DomTextareaInput',
+		props: {
+			name: 'message',
+			label: 'Invitation message',
+			description: 'Top-level message stored beside the nested invitees array.',
+			rows: 3,
+		},
+	},
+]);
+
+function inviteeFields(index) {
+	return [
+		{
+			component: 'p',
+			props: { class: 'text-xs font-semibold uppercase tracking-wider text-muted-fg' },
+			children: [{ text: `Invitee ${index + 1}` }],
+		},
+		{
+			component: 'DomTextInput',
+			props: {
+				name: 'name',
+				label: 'Name',
+				required: true,
+			},
+		},
+		{
+			component: 'DomEmailInput',
+			props: {
+				name: 'email',
+				label: 'Email',
+				required: true,
+			},
+		},
+	];
+}
+
+function addInvitee() {
+	const index = invitation.value.invitees.length;
+	forms.invites?.setFieldValue(`invitees.${index}`, { name: '', email: '' });
+	forms.invites?.addSubform(`invitees.${index}`, inviteeFields(index), {
+		id: `invitee-${index}`,
+	});
+}
+
+async function validateInvitees() {
+	const valid = await forms.invites?.validate();
+	submitResult.value = {
+		status: valid ? 'valid' : 'invalid',
+		role: invitation.value.role,
+		invitees: invitation.value.invitees.length,
+	};
+}
+
+function onSubmit({ values }) {
+	submitResult.value = {
+		status: 'submitted',
+		role: values.role,
+		invitees: values.invitees.length,
+	};
+}
+
+function onInvalid({ values, state }) {
+	submitResult.value = {
+		status: 'invalid',
+		role: values.role,
+		errorCount: state.errorCount,
+	};
+}
+</script>
+
+<template>
+	<div class="w-full max-w-md">
+		<DomForm
+			name="invites"
+			v-model="invitation"
+			v-model:children="children"
+			class="space-y-4"
+			@submit="onSubmit"
+			@invalid="onInvalid"
+		>
+			<div class="flex flex-wrap gap-2 border-t border-border pt-4">
+				<DomButton type="button" variant="secondary" @click="addInvitee">Add invitee</DomButton>
+				<DomButton type="submit">Send invitations</DomButton>
+				<DomButton type="button" variant="secondary" @click="validateInvitees">Validate only</DomButton>
+			</div>
+		</DomForm>
+
+		<pre class="mt-4 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ invitation }}</pre>
+		<pre class="mt-3 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ submitResult }}</pre>
+		<pre class="mt-3 max-h-40 overflow-auto rounded-lg border border-border bg-secondary/30 p-3 text-xs text-muted-fg">{{ children }}</pre>
+	</div>
+</template>

@@ -1,0 +1,18 @@
+<dom-dropdown>
+	<button
+		slot="trigger"
+		type="button"
+		class="inline-flex h-10 items-center gap-2 rounded-full bg-secondary px-4 text-sm font-medium text-canvas-fg ring-1 ring-border hover:bg-accent"
+	>
+		Account ▾
+	</button>
+	<div slot="menu" class="dom-dropdown-menu min-w-[10rem] rounded-2xl border border-border bg-canvas p-1 shadow-lg">
+		<button role="menuitem" data-value="profile" class="block w-full rounded-xl px-3 py-2 text-left text-sm text-canvas-fg hover:bg-secondary">Profile</button>
+		<button role="menuitem" data-value="billing" class="block w-full rounded-xl px-3 py-2 text-left text-sm text-canvas-fg hover:bg-secondary">Billing</button>
+		<button role="menuitem" data-value="signout" class="block w-full rounded-xl px-3 py-2 text-left text-sm text-canvas-fg hover:bg-secondary">Sign out</button>
+	</div>
+</dom-dropdown>
+
+<script type="module">
+	import '@getdom/studio/headless/dropdown.js';
+</script>

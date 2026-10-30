@@ -1,0 +1,26 @@
+<div class="relative flex min-h-56 w-full items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-secondary/30 p-8">
+	<div class="absolute left-6 top-5 text-xs text-muted-fg">Overflow and transforms on parents do not clip this panel.</div>
+	<dom-popover placement="bottom-end" offset="10" collision-padding="16" flip lock-scroll>
+		<button
+			slot="trigger"
+			type="button"
+			class="inline-flex h-10 items-center rounded-full bg-canvas-fg px-4 text-sm font-medium text-canvas shadow-sm hover:bg-canvas-fg/90"
+		>
+			Open anchored panel
+		</button>
+		<div slot="panel" class="dom-floating-transition w-72 rounded-xl border border-border skin-popover p-4 text-sm text-canvas-fg shadow-2xl">
+			<p class="font-semibold">Top-layer popover</p>
+			<p class="mt-2 text-muted-fg">
+				The panel is measured, flipped, shifted, and kept aligned while scrolling or resizing.
+			</p>
+			<div class="mt-3 max-h-[min(9rem,var(--dom-floating-available-height))] overflow-auto rounded-lg bg-secondary/50 p-3 text-xs leading-5">
+				<p>Available height comes from <code>--dom-floating-available-height</code>.</p>
+				<p class="mt-2">Use it to constrain long menus without guessing viewport size.</p>
+			</div>
+		</div>
+	</dom-popover>
+</div>
+
+<script type="module">
+	import '@getdom/studio/headless/popover.js';
+</script>

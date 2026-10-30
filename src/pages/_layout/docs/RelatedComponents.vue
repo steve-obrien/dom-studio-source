@@ -1,0 +1,95 @@
+<script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import {
+	componentAnchor,
+	primaryExportNameForSlug,
+} from '../componentManager.js';
+import { getRuntimeComponentRecords } from '../componentRuntimeRecords.js';
+import { inspectComponentRecord } from '../componentInspector.js';
+import ComponentProps from './ComponentProps.vue';
+import ComponentSlots from './ComponentSlots.vue';
+import ComponentEvents from './ComponentEvents.vue';
+import ComponentKeyboard from './ComponentKeyboard.vue';
+
+const route = useRoute();
+
+const related = computed(() => {
+	const family = getRuntimeComponentRecords()
+		.map(inspectComponentRecord)
+		.filter((record) => !record.hidden && record.route === route.path);
+	const primary = primaryRecord(family);
+	return family
+		.filter((record) => record !== primary && !record.navHidden)
+		.sort(sortRecords)
+		.map((record) => ({
+			...record,
+			anchor: componentAnchor(record),
+		}));
+});
+
+/**
+ * Selects the primary component in a component-folder family.
+ *
+ * @param {Array<object>} family Component records that share one route.
+ * @returns {object|undefined} Primary component record.
+ */
+function primaryRecord(family) {
+	const slug = family[0]?.slug || '';
+	const expected = primaryExportNameForSlug(slug);
+	return family.find((record) => record.doc.nav?.primary)
+		|| family.find((record) => record.exportName === expected)
+		|| family[0];
+}
+
+/**
+ * Sorts related component records by documentation order and label.
+ *
+ * @param {object} a First component record.
+ * @param {object} b Second component record.
+ * @returns {number} Sort comparison result.
+ */
+function sortRecords(a, b) {
+	const orderDelta = a.order - b.order;
+	if (orderDelta) return orderDelta;
+	return a.label.localeCompare(b.label);
+}
+</script>
+
+<template>
+	<section v-if="related.length" class="space-y-4">
+		<div>
+			<h2 class="text-2xl font-semibold tracking-tight text-canvas-fg">Related components</h2>
+			<p class="mt-2 text-sm leading-6 text-muted-fg">
+				Generated from sibling component files that share this documentation route.
+			</p>
+		</div>
+
+		<details
+			v-for="record in related"
+			:id="record.anchor"
+			:key="record.exportName"
+			:open="route.hash === `#${record.anchor}`"
+			class="group rounded-2xl border border-border bg-secondary/25"
+		>
+			<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-3">
+				<span class="min-w-0">
+					<span class="block truncate text-sm font-semibold text-canvas-fg">{{ record.label }}</span>
+					<span v-if="record.doc.description" class="mt-1 block text-sm leading-5 text-muted-fg">
+						{{ record.doc.description }}
+					</span>
+				</span>
+				<span class="text-sm text-muted-fg transition group-open:rotate-180">⌄</span>
+			</summary>
+			<div class="space-y-6 border-t border-border p-4">
+				<div v-if="record.doc.tag" class="text-sm text-muted-fg">
+					<code class="font-mono text-canvas-fg">{{ record.doc.tag }}</code>
+				</div>
+				<ComponentProps :component="record.component" />
+				<ComponentSlots :component="record.component" />
+				<ComponentEvents :component="record.component" />
+				<ComponentKeyboard :component="record.component" />
+			</div>
+		</details>
+	</section>
+</template>

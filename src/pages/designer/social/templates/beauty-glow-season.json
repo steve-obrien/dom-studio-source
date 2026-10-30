@@ -1,0 +1,85 @@
+{
+	"id": "beauty-glow-season",
+	"title": "Glow season",
+	"industry": "beauty",
+	"kind": "offer",
+	"source": "hand-written",
+	"width": 1080,
+	"height": 1350,
+	"background": "#f8e1e7",
+	"layers": [
+		{
+			"type": "shape",
+			"name": "Circle",
+			"x": -200,
+			"y": 800,
+			"width": 700,
+			"height": 700,
+			"fill": "#f2c4d0",
+			"radius": 350
+		},
+		{
+			"type": "text",
+			"name": "Headline",
+			"value": "Glow\nseason",
+			"x": 72,
+			"y": 140,
+			"width": 936,
+			"height": 340,
+			"font": "serif",
+			"fontSize": 170,
+			"lineHeight": 0.95,
+			"color": "#5b2333"
+		},
+		{
+			"type": "text",
+			"name": "Body",
+			"value": "Book a signature facial in November and get a complimentary LED treatment.",
+			"x": 72,
+			"y": 540,
+			"width": 800,
+			"height": 170,
+			"font": "sans",
+			"fontSize": 40,
+			"lineHeight": 1.35,
+			"color": "#5b2333"
+		},
+		{
+			"type": "shape",
+			"name": "Button",
+			"x": 72,
+			"y": 780,
+			"width": 400,
+			"height": 100,
+			"fill": "#5b2333",
+			"radius": 50
+		},
+		{
+			"type": "text",
+			"name": "Button label",
+			"value": "Book now",
+			"x": 72,
+			"y": 804,
+			"width": 400,
+			"height": 52,
+			"font": "sans",
+			"fontSize": 36,
+			"fontWeight": "700",
+			"textAlign": "center",
+			"color": "#ffffff"
+		},
+		{
+			"type": "text",
+			"name": "Brand",
+			"value": "Studio Lumen",
+			"x": 560,
+			"y": 1220,
+			"width": 448,
+			"height": 60,
+			"font": "serif",
+			"fontSize": 44,
+			"textAlign": "right",
+			"color": "#5b2333"
+		}
+	]
+}

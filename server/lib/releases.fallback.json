@@ -1,0 +1,8 @@
+[
+	{
+		"version": "0.2.0",
+		"title": "DOM Studio 0.2.0",
+		"publishedAt": "2026-09-21T09:33:27.883Z",
+		"body": "This release expands DOM Studio from its initial public package with new\napplication UI, reporting, media, mobile, and visual-design surfaces.\n\n### Added\n\n- `DomNotificationInbox` for durable, application-owned in-app notifications,\n  plus `notificationTone()` and `notificationToast()` presentation helpers.\n- A reporting chart family with line, area, bar, donut, sparkline, metric-card,\n  date-range, legend, tooltip, and container components powered by Unovis.\n- `DomGantt` for project schedules and resource planning, including keyboard and\n  pointer movement, resizing, row changes, zoom levels, and working-time views.\n- Audio and camera input components, audio visualisation, and a vertical video\n  feed with captions and controlled playback.\n- Mobile application primitives for bottom sheets, swipe actions, profile\n  headers, nested stacks, keyboard-aware shells, and contained action sheets.\n- `DomMenuStack` for bounded nested navigation inside popovers and other app\n  surfaces.\n- Responsive dialog companion panels for assistant and reference workflows.\n- Beta visual designer components for frames, stages, layers, backgrounds,\n  borders, shadows, snapping, spacing, and layout controls.\n\n### Improved\n\n- Expanded generated TypeScript declarations and public Vue exports for the new\n  components, props, events, helpers, and data contracts.\n- Refined touch gestures, mobile safe-area and keyboard behaviour, popovers,\n  drawers, dialogs, form controls, themes, documentation, and agent guidance."
+	}
+]

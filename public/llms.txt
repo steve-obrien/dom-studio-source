@@ -1,0 +1,71 @@
+# DOM Studio
+
+> DOM Studio is a complete, code-first Vue 3 and web component interface system for building application UI that teams can own, edit, and ship.
+
+DOM Studio combines public Vue package exports, framework-neutral headless elements, copyable source blocks, documentation metadata, semantic theme tokens, and optional Studio-editable UI specs. It is designed for product interfaces such as dashboards, settings, forms, chat and agent tools, mail clients, operations consoles, billing, onboarding, data workflows, and mobile app shells.
+
+When building with DOM Studio, start from the closest block or example, compose with existing components, use props for behaviour, and use Tailwind CSS v4 utilities with semantic theme tokens for presentation. Let DOM Studio own accessibility, focus management, keyboard navigation, overlays, selection behaviour, and form semantics. Use a Studio spec only when the generated UI should remain visually editable or serializable as a named component tree.
+
+The package root and `@getdom/studio/vue` export the same Vue surface. Import `@getdom/studio/style.css` for styles and `@getdom/studio/headless` to register the framework-neutral `dom-*` custom elements. Blocks are repository-local source patterns to copy and adapt, not published package exports.
+
+The npm package ships Markdown docs for every component in `docs/components/` (start at `docs/components/README.md`), with props, defaults, events, slots, methods, keyboard support and types. Read `docs/components/<Name>.md` before component source.
+
+## Core Documentation
+
+- [Overview](https://getdom.studio/): Product positioning, package usage, and the main DOM Studio surfaces.
+- [AI components and UI](https://getdom.studio/ai): Agent conversations, voice and camera controls, shared composers, review components, and examples.
+- [AI UI guide](https://getdom.studio/ai/ui): Practical patterns for prompts, context, streaming, tool actions, review, voice, accessibility, and recovery.
+- [AI builders](https://getdom.studio/ai/builders): Rules for reliable LLM-generated interfaces and when to return Studio specs.
+- [Theming](https://getdom.studio/theming): Semantic colour tokens, light and dark themes, material skins, radii, and shadows.
+- [Component metadata](https://getdom.studio/component-spec): Vue props, `defineOptions({ __doc })`, and `_edit` hints for generated documentation and editing controls, with a working component example.
+- [Canvas](https://getdom.studio/designer/canvas): Visual editing of Vue files with live components, an inspector generated from props, and a two-way code view (optionally Monaco). Embed it with `DomDesigner` from `@getdom/studio/designer`.
+- [Designer composables](https://getdom.studio/designer/composables): Build your own editor from the parts DomDesigner uses: `useEditorSession` (document, selection, undo), `useCodeSync` with `DomCodePanel` (two-way Vue source), `useInlineText` (in-place text editing with marks), `useLayoutGeometry` (drag, align and distribute a multiple selection) and the rich text model (`toggleMark`, `markOperations`), all from `@getdom/studio/designer`.
+
+## UI Library
+
+- [General components](https://getdom.studio/components/button): Actions, overlays, menus, breadcrumbs, steppers, navigation, disclosure, toolbars, and interaction primitives.
+- [Forms](https://getdom.studio/forms): Form composition, fields, validation, fixed and autosizing textareas, compound composers with attachment/action slots, selectors, dates, files, code, and structured JSON values.
+- [Data components](https://getdom.studio/data): Controlled filter queries, data grids, timelines, Kanban boards, calendars, media workflows, document editing, and agent conversations.
+- [Filter bar](https://getdom.studio/data/filter-bar): Transport-free search and logical filter definitions that emit one controlled resource query.
+- [Activity timeline](https://getdom.studio/data/activity-timeline): Ordered resource activity with logical field mappings, semantic status, controlled loading, and customizable slots.
+- [Gantt](https://getdom.studio/data/gantt): Horizontal resource planning, project schedules, and roadmaps from application-owned rows and dated items, with time zoom, working-hour visibility, and drag-to-plan intent.
+- [Developer components](https://getdom.studio/dev): Code, JSON, payload, and implementation-data inspection utilities.
+- [Visual components](https://getdom.studio/visual/card): Cards, badges, status, alerts, empty states, progress, skeletons, avatars, and diffs.
+- [Mobile components](https://getdom.studio/mobile): App shells, top and bottom navigation, screen stacks, safe areas, list rows, and action sheets.
+- [Headless elements](https://getdom.studio/headless): Framework-neutral `dom-*` custom elements for accessible behaviour without prescribed presentation.
+
+## Application Blocks
+
+- [Block catalog](https://getdom.studio/blocks): Complete, source-copy application workflows organised by nested product category.
+- [Application layout](https://getdom.studio/blocks/app-shells/application-layout): Responsive product shell with navigation and application content.
+- [AI collaboration shell](https://getdom.studio/blocks/app-shells/ai-workspaces/ai-collaboration-shell): Workspace composition for AI-assisted product work.
+- [Dashboard](https://getdom.studio/blocks/app-shells/dashboard): Dense, practical dashboard composition.
+- [Forms workflow](https://getdom.studio/blocks/data-capture/forms): Product-grade data capture built from DOM Studio form primitives.
+- [Chat](https://getdom.studio/blocks/communication/chat): Application chat workflow and message composition.
+- [Mail](https://getdom.studio/blocks/communication/mail): Mail client layout and interaction pattern.
+- [Resource scheduler](https://getdom.studio/blocks/operations/scheduling/resource-scheduler): Operations scheduling with resource-aware planning.
+
+## Optional
+
+- [Dialog](https://getdom.studio/components/dialog): Modal behaviour, focus handling, stacked dialogs, and schema-driven forms.
+- [Combobox](https://getdom.studio/forms/combobox): Searchable, committed selection; use autocomplete instead for free text with suggestions.
+- [Document editor](https://getdom.studio/data/document-editor): Rich document editing with collaboration and reviewable AI workflow examples.
+- [Agent chat](https://getdom.studio/data/agent-chat): Reusable agent conversation, conversation list, and chat shell surfaces.
+- [Month calendar](https://getdom.studio/data/month-calendar): Data-backed month planning and customisable calendar workflows.
+- [Week planner](https://getdom.studio/data/week-planner): Fixed-width day swim lanes with internal two-axis scrolling, configurable drag-to-create time ranges, a live current-time line, and virtualized horizontal ranges up to a full year or more.
+- [Data grid](https://getdom.studio/data/data-grid): Sortable, filterable, API-shaped tabular data.
+- [Breadcrumbs](https://getdom.studio/components/breadcrumbs): Route or resource-path navigation with current-location semantics and optional middle-path collapsing.
+- [Stepper](https://getdom.studio/components/stepper): Controlled horizontal or vertical progress navigation for multi-step workflows.
+- [Kanban](https://getdom.studio/data/kanban): Controlled status boards with custom Vue cards, card and column ordering, async creation hooks, and resource rows shared with grid or calendar views.
+- [Code block](https://getdom.studio/dev/code-block): Highlighted read-only code for implementation and diagnostic output.
+- [JSON viewer](https://getdom.studio/dev/json-viewer): Structured payload and diagnostic-data inspection.
+- [Text diff](https://getdom.studio/visual/text-diff): Reviewable before-and-after text and code changes.
+- [Scroll menu](https://getdom.studio/components/scroll-menu): Scrollspy page contents built from real fragment links and current-location semantics.
+
+## Charts and reporting
+
+Data Visualisation lives at `/charts`. Use `DomLineChart`, `DomAreaChart`, `DomBarChart`, `DomDonutChart`, and `DomSparkline` for application-owned records, `DomMetricCard` for summary measurements, and `DomDateRangePicker` for inclusive reporting dates and comparison periods. The chart family uses Unovis 1.7 and loads the drawing engine after browser mount. Headings and data tables render on the server.
+
+Cartesian charts accept `rows`, `xKey`, and `series` definitions with stable keys, labels, and optional colours. Use `xType="time"` for proportional date spacing and `xType="number"` for numeric coordinates. Default category axes preserve record order. Missing measurements remain distinct from zero. Percentage stacks require non-negative values; `format="percent"` expects fractional values. Applications own aggregation, queries, and comparison calculations.
+
+Chart colours use `--chart-1` through `--chart-5` from the default theme. Consumers supplying their own theme should define these tokens; charts fall back to the primary colour. `DomChartContainer`, `DomChartLegend`, and `DomChartTooltip` are available for custom Unovis compositions. Unovis dependencies are included with the package; source-copy consumers must also install matching `@unovis/vue` and `@unovis/ts` versions (`1.7.0`).

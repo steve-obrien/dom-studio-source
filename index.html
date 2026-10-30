@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<!--now-head-->
+		<!--now-preload-links-->
+		<script>
+			(() => {
+				try {
+					const stored = localStorage.getItem('theme-mode') || 'system';
+					const explicit = stored === 'light' || stored === 'dark';
+					document.documentElement.dataset.theme = explicit
+						? stored
+						: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				} catch {
+					document.documentElement.dataset.theme = 'light';
+				}
+			})();
+		</script>
+		<link rel="stylesheet" href="/src/site.css">
+		<style>
+			.docs-sidebar {
+				display: none;
+			}
+
+			@media (min-width: 768px) {
+				.docs-sidebar {
+					display: block;
+				}
+			}
+		</style>
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+		<link rel="manifest" href="/site.webmanifest">
+		<meta name="theme-color" content="#0B0F14">
+	</head>
+	<body>
+		<div id="app"><!--now-html--></div>
+		<script>window.__NOW__ = <!--now-payload--></script>
+		<script type="module" src="/src/entry-client.js"></script>
+	</body>
+</html>
