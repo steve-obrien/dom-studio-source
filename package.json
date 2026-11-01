@@ -38,7 +38,9 @@
 		"check:gantt": "node --test scripts/check-gantt.mjs",
 		"check:media-input": "node --test scripts/check-media-input.mjs",
 		"check:font-picker": "node --test scripts/check-font-picker.mjs",
-		"check:option-lists": "node --test scripts/check-option-lists.mjs"
+		"check:option-lists": "node --test scripts/check-option-lists.mjs",
+		"release": "node scripts/release-npm-package.mjs",
+		"release:prepare": "node scripts/release-npm-package.mjs"
 	},
 	"repository": {
 		"type": "git",

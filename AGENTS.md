@@ -65,16 +65,21 @@ Choose the smallest validation that matches the change:
 
 When making frontend changes, verify the affected route in a browser at desktop and mobile sizes when practical.
 
-## Source distribution
+## Canonical development repository
 
-This repository is a reviewed source distribution with independent Git history.
-Preserve the commercial licence and the public package contracts. Use
-`docs/local-development.md` for setup and `docs/releases.md` for package checks.
+This is the canonical DOM Studio development repository. Preserve its reviewed
+history, commercial licence, and public package contracts. Use
+`docs/local-development.md` for setup, `docs/releases.md` for package checks,
+and `docs/repository-migration.md` for history and operational cutover details.
 
-This checkout has no official website deployment or npm publication workflow.
-Do not add production configuration, credentials, database exports, private
-application history, internal work records, or self-hosted runner configuration.
-Review and scan the complete intended source before sharing an update.
+Do not merge, mirror-push, or fetch-and-push unfiltered history from the previous
+repository. Import future work as reviewed patches or through the same history
+filtering process. Keep credentials, database exports, private applications,
+and internal work records out of both new commits and imported historical refs.
+
+Production deployment and npm publication are still configured separately in
+the previous operational repository. A push here is not proof of a deployment
+or package release. Preserve existing published tags and package versions.
 
 Use a dedicated, clearly named testing browser session. Do not take over a user's
 existing browser tabs. Close task-owned test tabs, browser instances, and local

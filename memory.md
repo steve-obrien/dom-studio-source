@@ -1,8 +1,13 @@
 # DOM Studio source context
 
-This source distribution contains the Vue and Web Component system, copyable
+This development repository contains the Vue and Web Component system, copyable
 blocks, examples, and the documentation application. The commercial terms in
 `LICENSE.md` apply. Use the source files as the authority when notes differ.
+
+Development now belongs in `steve-obrien/dom-studio-source`. Its imported history
+was filtered before linking it to the reviewed source snapshot. Never merge
+unfiltered history from the previous repository. See `docs/repository-migration.md`
+for the operational cutover that remains separate from development.
 
 ## Architecture
 

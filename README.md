@@ -1,9 +1,14 @@
 # DOM Studio
 
-This repository is a reviewed source distribution of DOM Studio. It includes
-the components, blocks, examples, and documentation application, with a fresh
-Git history. Production deployment configuration and internal work records are
-not included. Use of the source remains subject to [LICENSE.md](LICENSE.md).
+This is the main development and source repository for DOM Studio. It includes
+the components, blocks, examples, documentation application, and reviewed
+historical development commits. Use of the source remains subject to
+[LICENSE.md](LICENSE.md).
+
+The imported history excludes the former private application, credential files,
+and internal work records. Historical release markers use the `history/` prefix.
+See [repository migration](docs/repository-migration.md) for the history boundary
+and the separate production deployment and npm publishing cutover.
 
 DOM Studio is a complete Vue and Web Component UI system you can own, edit, and ship with humans and LLMs working from the same component contract.
 

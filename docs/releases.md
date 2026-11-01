@@ -1,8 +1,10 @@
 # Package checks in the source repository
 
-This repository contains a reviewed source snapshot. Its Git history begins
-with the initial source distribution; historical npm releases are described in
-`CHANGELOG.md`, not recreated as Git tags here.
+This is the development repository with reviewed historical commits. Historical
+release markers use `history/vVERSION`; they navigate sanitized source and do
+not publish packages. Existing official version tags and release records remain
+unchanged in the previous operational repository. Published changes are also
+described in `CHANGELOG.md`.
 
 The official package remains `@getdom/studio`. This checkout has no publishing
 or production deployment workflows. Its root package is private to prevent
@@ -31,6 +33,15 @@ release dates and notes. The local app's `/releases` page uses the bundled
 historical baseline unless `RELEASES_FILE` supplies a validated public snapshot.
 An optional `RELEASES_GITHUB_TOKEN` can read releases created in this source
 repository; it is not required for local development.
+
+## Preparing future releases
+
+`npm run release:prepare -- VERSION` validates a future package candidate locally.
+It never commits, pushes, tags, or publishes. Choose a version above the currently
+published npm version and write reviewed notes before running it. Publication
+from this repository requires the separate setup in
+[repository migration](repository-migration.md); no deployment or publishing
+workflow is enabled by this history import.
 
 ## Secret scanning
 
