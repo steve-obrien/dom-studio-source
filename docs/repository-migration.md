@@ -1,7 +1,9 @@
 # Development repository migration
 
 Development now belongs in `steve-obrien/dom-studio-source`, kept private initially.
-The local checkout is `dom-studio-source`; create new branches from its `main`.
+The existing local `getdom.studio` project folder is the clean checkout;
+`dom-studio-source` is an alias to the same folder. Both use this repository
+and its `main` branch. Create new branches from that `main`.
 The previous repository remains intact for rollback and its existing operational
 configuration. Do not continue independent product development in both places.
 
@@ -35,11 +37,19 @@ its entire reachable history first. Re-run Gitleaks against every imported ref.
 
 ## Existing working changes
 
-Active, uncommitted development work in the original checkout must be moved
-separately after the current editor or agent finishes. It is not included in
-the history migration and must remain uncommitted until its own review is
-complete. Preserve the original checkout as a recovery copy, and never overwrite
-newer edits there while transferring the work.
+The outstanding homepage, embedded demo, and data-grid resizing changes were
+transferred to this repository's `main` on 2026-11-01 after updating from origin.
+The original checkout, including its uncommitted files and ignored local
+configuration, is retained in a separate legacy backup. Its local agent
+instructions direct future development to this checkout. Existing Codex project
+and Dock Run paths continue to use `getdom.studio`, now backed by the clean
+repository. Local credentials remain in ignored configuration, outside Git.
+
+Use this repository and its `main` branch as the default for new work. Additional
+changes made in the old checkout after the transfer must still be reviewed and
+moved as patches; never merge its unfiltered history. Keep the original available
+until the operational changeover below is verified and its deletion is explicitly
+requested.
 
 ## Production and package publication
 
