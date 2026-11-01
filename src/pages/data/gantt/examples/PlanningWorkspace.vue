@@ -2,6 +2,11 @@
 import { computed, onMounted, ref, useId } from 'vue';
 import { DomButton, DomDialog, DomGantt, DomNativeSelect, DomTextInput } from '../../../lib/vue';
 
+defineProps({
+	/** Groups the controls, timeline and footer inside a surrounding card's shared frame. */
+	embedded: { type: Boolean, default: false },
+});
+
 const scenario = ref('resources');
 const startDate = ref('2026-09-07');
 const zoom = ref('weeks');
@@ -288,16 +293,19 @@ function removeItem() {
 </script>
 
 <template>
-	<div class="w-full min-w-0 space-y-4" data-gantt-demo>
-		<div class="flex flex-wrap gap-1 rounded-lg bg-secondary/50 p-1" role="group" aria-label="Planner example">
-			<DomButton v-for="option in scenarioOptions" :key="option.value" size="sm" :variant="scenario === option.value ? 'secondary' : 'ghost'" :aria-pressed="scenario === option.value" @click="changeScenario(option.value)">{{ option.label }}</DomButton>
-		</div>
-		<div class="flex flex-wrap items-start justify-between gap-2">
-			<div><h3 class="text-lg font-semibold tracking-tight">{{ active.title }}</h3><p class="mt-1 text-sm leading-6 text-muted-fg">{{ active.description }}</p></div>
-			<span class="rounded-full border border-border px-2.5 py-1 text-[10px] font-medium text-muted-fg">Interactive example</span>
+	<div class="w-full min-w-0" :class="!embedded && 'space-y-4'" data-gantt-demo>
+		<div class="space-y-4" :class="embedded && 'p-4'">
+			<div class="flex flex-wrap gap-1 rounded-lg bg-secondary/50 p-1" role="group" aria-label="Planner example">
+				<DomButton v-for="option in scenarioOptions" :key="option.value" size="sm" :variant="scenario === option.value ? 'secondary' : 'ghost'" :aria-pressed="scenario === option.value" @click="changeScenario(option.value)">{{ option.label }}</DomButton>
+			</div>
+			<div class="flex flex-wrap items-start justify-between gap-2">
+				<div><h3 class="text-lg font-semibold tracking-tight">{{ active.title }}</h3><p class="mt-1 text-sm leading-6 text-muted-fg">{{ active.description }}</p></div>
+				<span class="rounded-full border border-border px-2.5 py-1 text-[10px] font-medium text-muted-fg">Interactive example</span>
+			</div>
 		</div>
 		<DomGantt
 			:key="scenario"
+			:class="embedded && 'rounded-none! border-x-0!'"
 			v-model:zoom="zoom"
 			v-model:plan-mode="planMode"
 			:rows="active.rows"
@@ -327,8 +335,8 @@ function removeItem() {
 				</div>
 			</template>
 		</DomGantt>
-		<p v-if="bookingError" class="text-xs leading-5 text-destructive" role="alert">{{ bookingError }}</p>
-		<p class="text-xs leading-5 text-muted-fg" role="status">{{ notice }} Changes stay in this example until the page reloads.</p>
+		<p v-if="bookingError" class="text-xs leading-5 text-destructive" :class="embedded && 'px-4 pt-3'" role="alert">{{ bookingError }}</p>
+		<p class="text-xs leading-5 text-muted-fg" :class="embedded && 'px-4 py-3'" role="status">{{ notice }} Changes stay in this example until the page reloads.</p>
 		<DomDialog v-model="dialogOpen" :title="active.preventOverlaps ? (draft?.id ? 'Edit booking' : 'New booking') : (draft?.id ? 'Edit planned work' : 'Plan work')" description="Choose a name and time span. The end is the moment this booking or task finishes." size="sm">
 			<form v-if="draft" :id="formId" class="space-y-4" @submit.prevent="saveItem">
 				<DomTextInput v-model="draft.title" :label="active.itemLabel || 'Item name'" :placeholder="active.itemPlaceholder || 'Project or feature name'" required autofocus />

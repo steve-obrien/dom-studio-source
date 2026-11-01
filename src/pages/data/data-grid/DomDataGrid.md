@@ -211,6 +211,7 @@ With `toolbar` on, the grid shows the `title`, a search box, filter chips with "
 
 ## Layout
 
+- Drag a header divider to resize a column; right-pinned columns resize from their left edge. Resizing starts from the displayed width and keeps the other column widths steady. Spare space remains empty instead of stretching the columns, and `min-column-width` limits how far a column can shrink.
 - `layout="flush"` removes the outer border, rounding and shadow for edge-to-edge pages; `gutter-class` aligns the outer cell padding with your page gutter.
 - Narrow screens scroll the table sideways inside its frame, and pinned columns unpin themselves when they would leave too little room to scroll.
 - Use the `cell` slot for one-off cell rendering, `toolbar-actions` for buttons next to search, and `empty` for a custom empty state.

@@ -23,6 +23,7 @@ import { DomButton, DomCodeBlock } from './lib/vue';
 const products = [
 	{
 		id: 'data-grid',
+		wideDemo: true,
 		visual: HomeGridVisual,
 		live: () => import('./_home/live/HomeGridLive.vue'),
 		title: 'A data grid for the serious work.',
@@ -32,6 +33,7 @@ const products = [
 	},
 	{
 		id: 'scheduler',
+		wideDemo: true,
 		visual: HomeSchedulerVisual,
 		live: () => import('./_home/live/HomeSchedulerLive.vue'),
 		title: 'Plan people, rooms and time.',
@@ -42,6 +44,7 @@ const products = [
 	},
 	{
 		id: 'kanban',
+		wideDemo: true,
 		product: 'Kanban',
 		visual: HomeKanbanVisual,
 		live: () => import('./_home/live/HomeKanbanLive.vue'),
@@ -62,6 +65,7 @@ const products = [
 	},
 	{
 		id: 'files',
+		wideDemo: true,
 		visual: HomeFilesVisual,
 		live: () => import('./_home/live/HomeFilesLive.vue'),
 		title: 'A media library you don’t have to build.',
@@ -71,6 +75,7 @@ const products = [
 	},
 	{
 		id: 'designer',
+		wideDemo: true,
 		visual: HomeDesignerVisual,
 		live: () => import('./_home/live/HomeDesignerLive.vue'),
 		liveMinWidth: 1024,
@@ -83,6 +88,7 @@ const products = [
 	},
 	{
 		id: 'social',
+		wideDemo: true,
 		product: 'Social studio',
 		visual: HomeSocialVisual,
 		live: () => import('./_home/live/HomeSocialLive.vue'),
@@ -104,6 +110,7 @@ const products = [
 	},
 	{
 		id: 'ai',
+		wideDemo: true,
 		visual: HomeAIVisual,
 		live: () => import('./_home/live/HomeAILive.vue'),
 		title: 'Give your agent a proper interface.',
@@ -114,6 +121,7 @@ const products = [
 	},
 	{
 		id: 'workflows',
+		wideDemo: true,
 		product: 'AI workflows',
 		visual: HomeWorkflowVisual,
 		title: 'Show the AI process, step by step.',
@@ -179,7 +187,7 @@ function withNavigation(product, index) {
 				</nav>
 			</section>
 
-			<HomeProductSection v-for="product in products" :id="product.id" :key="product.id" :number="product.number" :product="product.product" :title="product.title" :text="product.text" :features="product.features" :to="product.to" :link="product.link" :more="product.more" :tinted="product.tinted">
+			<HomeProductSection v-for="product in products" :id="product.id" :key="product.id" :number="product.number" :product="product.product" :title="product.title" :text="product.text" :features="product.features" :to="product.to" :link="product.link" :more="product.more" :tinted="product.tinted" :wide-demo="product.wideDemo">
 				<HomeLiveDemo v-if="product.live" :load="product.live" :min-width="product.liveMinWidth">
 					<component :is="product.visual" />
 				</HomeLiveDemo>

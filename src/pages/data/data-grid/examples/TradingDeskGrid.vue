@@ -2,6 +2,11 @@
 import { ref } from 'vue';
 import { DomDataGrid } from '../../../lib/vue';
 
+defineProps({
+	/** Shares the surrounding card's frame and keeps the edit history inside its footer. */
+	embedded: { type: Boolean, default: false },
+});
+
 const rows = ref(createPositions(2500));
 const groupBy = ref('desk');
 const pinnedColumns = ref({ ticker: 'left', pnl: 'right' });
@@ -92,11 +97,18 @@ const columns = [
  * Applies one cell change. The grid emits changes; the data stays yours.
  *
  * @param {{ row: object, column: object, value: unknown, previousValue: unknown, source: string }} change Cell change.
+ * @returns {void}
  */
 function applyChange({ row, column, value }) {
 	row[column.field || column.key] = value;
 }
 
+/**
+ * Keeps the four latest edit summaries visible below the grid.
+ *
+ * @param {{ source: string, changes: Array<object> }} payload Completed batch of cell changes.
+ * @returns {void}
+ */
 function logChanges({ source, changes: batch }) {
 	const [first] = batch;
 	const summary = batch.length === 1
@@ -105,12 +117,24 @@ function logChanges({ source, changes: batch }) {
 	changes.value = [{ id: `${Date.now()}-${Math.random()}`, source, summary }, ...changes.value].slice(0, 4);
 }
 
+/**
+ * Formats a percentage with two decimals and a positive sign when applicable.
+ *
+ * @param {unknown} value Percentage value to display.
+ * @returns {string} Formatted percentage, or an empty string for a non-finite value.
+ */
 function formatPercent(value) {
 	const number = Number(value);
 	if (!Number.isFinite(number)) return '';
 	return `${number > 0 ? '+' : ''}${number.toFixed(2)}%`;
 }
 
+/**
+ * Creates repeatable sample positions for trading, grouping and editing demos.
+ *
+ * @param {number} count Number of positions to generate.
+ * @returns {Array<object>} Application-owned trading positions.
+ */
 function createPositions(count) {
 	const desks = ['Equities', 'Rates', 'Credit', 'FX', 'Commodities'];
 	const regions = ['EMEA', 'Americas', 'APAC'];
@@ -124,6 +148,7 @@ function createPositions(count) {
 		Commodities: ['Brent Dec', 'Gold spot', 'Copper 3M', 'Nat gas Jan', 'Wheat Mar'],
 	};
 	let seed = 42;
+	/** Advances the seeded random sequence. @returns {number} Value from zero up to one. */
 	const random = () => {
 		seed = (seed * 16807) % 2147483647;
 		return (seed - 1) / 2147483646;
@@ -153,8 +178,11 @@ function createPositions(count) {
 </script>
 
 <template>
-	<div class="grid gap-3">
+	<div class="grid min-w-0" :class="!embedded && 'gap-3'">
 		<DomDataGrid
+			:layout="embedded ? 'flush' : 'card'"
+			gutter-class="px-4"
+			:class="embedded && 'border-t-0!'"
 			v-model:group-by="groupBy"
 			v-model:pinned-columns="pinnedColumns"
 			:rows="rows"
@@ -173,7 +201,7 @@ function createPositions(count) {
 			@cells-update="logChanges"
 		/>
 
-		<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-fg">
+		<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-fg" :class="embedded && 'px-4 py-3'">
 			<span class="font-semibold text-canvas-fg">Recent edits</span>
 			<span v-if="!changes.length">Double-click a cell, type over it, or paste a block from a spreadsheet.</span>
 			<span v-for="change in changes" :key="change.id" class="tabular-nums">

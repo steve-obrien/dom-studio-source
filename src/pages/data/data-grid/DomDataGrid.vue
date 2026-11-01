@@ -402,7 +402,9 @@ const emit = defineEmits([
 const titleId = `dom-data-grid-${useId()}`;
 const filterDrafts = reactive({});
 const resizedColumnWidths = reactive({});
-const viewportState = reactive({ scrollTop: 0, clientHeight: 0, clientWidth: 0 });
+const resizedUtilityWidths = reactive({ select: 44, number: 54 });
+const fixedColumnWidths = ref(false);
+const viewportState = reactive({ scrollTop: 0, scrollLeft: 0, clientHeight: 0, clientWidth: 0 });
 const internalFilters = ref({});
 const internalSort = ref(normalizeSort(props.sort));
 const internalSearch = ref(props.search || '');
@@ -421,6 +423,7 @@ const editHistory = { past: [], future: [] };
 let editorElement = null;
 let rangeDragging = false;
 let resizeListenersAttached = false;
+let viewportObserver = null;
 const blankGroupKey = '\u0000blank';
 const interactiveSelector = 'input, button, select, textarea, a[href], label, [contenteditable=""], [contenteditable="true"], [data-grid-interactive]';
 const gridNotice = ref('');
@@ -452,11 +455,12 @@ const normalizedColumns = computed(() => {
 // Pinning is suspended when pinned columns would leave too little room to
 // scroll the rest, such as a wide pinned set on a phone.
 const pinsSuspended = computed(() => {
+	if (columnResize.value) return columnResize.value.pinsSuspended;
 	const width = viewportState.clientWidth;
 	if (!width) return false;
 	const pinnedWidth = normalizedColumns.value.reduce((total, column) => total + (columnPin(column) ? columnPixelWidth(column) : 0), 0);
 	if (!pinnedWidth) return false;
-	const utilityWidth = (props.selectable ? 44 : 0) + (props.showRowNumbers ? 54 : 0);
+	const utilityWidth = utilityColumnWidth();
 	return utilityWidth + pinnedWidth > width * 0.7;
 });
 const visibleColumns = computed(() => {
@@ -474,7 +478,7 @@ const visibleColumns = computed(() => {
 });
 const pinLayout = computed(() => {
 	const columns = {};
-	const utilityLeft = (props.selectable ? 44 : 0) + (props.showRowNumbers ? 54 : 0);
+	const utilityLeft = utilityColumnWidth();
 	const leftColumns = visibleColumns.value.filter((column) => column.pinned === 'left');
 	const rightColumns = visibleColumns.value.filter((column) => column.pinned === 'right');
 	let left = utilityLeft;
@@ -619,10 +623,23 @@ const someVisibleSelected = computed(() => (
 const gridHeightStyle = computed(() => ({
 	maxHeight: typeof props.height === 'number' ? `${props.height}px` : props.height,
 }));
-const tableStyle = computed(() => ({
-	minWidth: `${tableMinWidth()}px`,
-}));
-const emptyColspan = computed(() => visibleColumns.value.length + (props.selectable ? 1 : 0) + (props.showRowNumbers ? 1 : 0));
+// After a manual resize, spare space belongs to an empty track, not to the
+// data columns. Preserve the current scroll offset when shrinking at the end.
+const columnSpacerWidth = computed(() => fixedColumnWidths.value
+	? Math.max(0, viewportState.clientWidth + viewportState.scrollLeft - tableColumnWidth())
+	: 0);
+const columnTracks = computed(() => {
+	const tracks = visibleColumns.value.map((column, columnIndex) => ({ column, columnIndex }));
+	if (columnSpacerWidth.value > 0) {
+		const rightIndex = tracks.findIndex(({ column }) => column.pinned === 'right');
+		tracks.splice(rightIndex < 0 ? tracks.length : rightIndex, 0, { column: null, columnIndex: -1 });
+	}
+	return tracks;
+});
+const tableStyle = computed(() => fixedColumnWidths.value
+	? { width: `${tableColumnWidth() + columnSpacerWidth.value}px` }
+	: { minWidth: `${Math.max(720, tableColumnWidth())}px` });
+const emptyColspan = computed(() => columnTracks.value.length + utilityColumnCount.value);
 const headerOffset = computed(() => props.showColumnLetters ? '1.75rem' : '0px');
 const virtualRowHeightPx = computed(() => {
 	const value = Number(props.virtualRowHeight);
@@ -686,6 +703,7 @@ watch(rangeRect, (rect) => {
 
 onBeforeUnmount(() => {
 	removeColumnResizeListeners();
+	viewportObserver?.disconnect();
 	columnResize.value = null;
 	if (typeof document === 'undefined') return;
 	document.removeEventListener('copy', onDocumentCopy);
@@ -697,6 +715,10 @@ onBeforeUnmount(() => {
 
 onMounted(() => {
 	nextTick(refreshViewportMetrics);
+	if (typeof ResizeObserver !== 'undefined' && scrollViewport.value) {
+		viewportObserver = new ResizeObserver(refreshViewportMetrics);
+		viewportObserver.observe(scrollViewport.value);
+	}
 	document.addEventListener('copy', onDocumentCopy);
 	document.addEventListener('cut', onDocumentCut);
 	document.addEventListener('paste', onDocumentPaste);
@@ -783,10 +805,23 @@ function defaultAlign(type) {
 	return 'left';
 }
 
-function tableMinWidth() {
-	const utilityWidth = (props.selectable ? 44 : 0) + (props.showRowNumbers ? 54 : 0);
+/**
+ * Returns the combined width of enabled selection and row-number tracks.
+ *
+ * @returns {number} Utility track width in layout pixels.
+ */
+function utilityColumnWidth() {
+	return (props.selectable ? resizedUtilityWidths.select : 0) + (props.showRowNumbers ? resizedUtilityWidths.number : 0);
+}
+
+/**
+ * Sums data and utility tracks without distributing spare viewport space.
+ *
+ * @returns {number} Occupied table width in layout pixels.
+ */
+function tableColumnWidth() {
 	const columnWidthTotal = visibleColumns.value.reduce((total, column) => total + columnPixelWidth(column), 0);
-	return Math.max(720, utilityWidth + columnWidthTotal);
+	return utilityColumnWidth() + columnWidthTotal;
 }
 
 function columnWidthStyle(column) {
@@ -817,12 +852,46 @@ function canResizeColumn(column) {
 	return props.resizableColumns && column.resizable !== false;
 }
 
+/**
+ * Freezes every rendered track before dragging so native table stretching
+ * cannot redistribute the pointer delta among neighbouring columns.
+ *
+ * @returns {number} Ratio of viewport pixels to table layout pixels.
+ */
+function snapshotColumnWidths() {
+	const table = headerElement.value?.closest('table');
+	if (!table) return 1;
+	const layoutWidth = Number.parseFloat(getComputedStyle(table).width);
+	const scale = layoutWidth > 0 ? table.getBoundingClientRect().width / layoutWidth : 1;
+	const widths = Array.from(table.querySelectorAll(':scope > colgroup > col[data-grid-column]'), (element) => ({
+		key: element.dataset.gridColumn,
+		width: element.getBoundingClientRect().width / scale,
+	}));
+	for (const element of table.querySelectorAll(':scope > colgroup > col[data-grid-utility]')) {
+		resizedUtilityWidths[element.dataset.gridUtility] = element.getBoundingClientRect().width / scale;
+	}
+	for (const { key, width } of widths) resizedColumnWidths[key] = width;
+	fixedColumnWidths.value = true;
+	return scale;
+}
+
+/**
+ * Starts a primary-pointer resize from the displayed width. Right-pinned
+ * columns resize from their left edge because their right edge is anchored.
+ *
+ * @param {DataGridColumn} column Column whose divider was pressed.
+ * @param {PointerEvent} event Pointer press on the resize handle.
+ * @returns {void}
+ */
 function startColumnResize(column, event) {
-	if (!canResizeColumn(column)) return;
+	if (!canResizeColumn(column) || event.button !== 0 || event.isPrimary === false || columnResize.value) return;
 
 	event.preventDefault();
 	event.stopPropagation();
 
+	const suspended = pinsSuspended.value;
+	const scale = snapshotColumnWidths();
+	refreshViewportMetrics();
 	const startWidth = columnPixelWidth(column);
 	columnResize.value = {
 		key: column.key,
@@ -830,11 +899,18 @@ function startColumnResize(column, event) {
 		startX: event.clientX,
 		startWidth,
 		width: startWidth,
+		scale,
+		pointerId: event.pointerId,
+		pinned: column.pinned,
+		direction: column.pinned === 'right' ? -1 : 1,
+		startScrollLeft: viewportState.scrollLeft,
+		pinsSuspended: suspended,
 	};
 
 	addColumnResizeListeners();
 }
 
+/** Attaches document drag listeners and temporarily disables text selection. */
 function addColumnResizeListeners() {
 	if (typeof document === 'undefined') return;
 	if (resizeListenersAttached) removeColumnResizeListeners();
@@ -849,6 +925,7 @@ function addColumnResizeListeners() {
 	document.addEventListener('pointercancel', finishColumnResize);
 }
 
+/** Removes owned drag listeners and restores the previous body interaction styles. */
 function removeColumnResizeListeners() {
 	if (!resizeListenersAttached || typeof document === 'undefined') return;
 
@@ -860,15 +937,23 @@ function removeColumnResizeListeners() {
 	document.body.style.userSelect = previousBodyUserSelect;
 }
 
+/**
+ * Applies pointer movement one-for-one to the active divider, accounting for
+ * scaled containers and horizontal scrolling while retaining the minimum width.
+ *
+ * @param {PointerEvent} event Pointer movement for the active resize.
+ * @returns {void}
+ */
 function updateColumnResize(event) {
 	const resize = columnResize.value;
-	if (!resize) return;
+	if (!resize || event.pointerId !== resize.pointerId) return;
 
 	event.preventDefault();
 
+	const scrollDelta = resize.pinned ? 0 : (scrollViewport.value?.scrollLeft || 0) - resize.startScrollLeft;
 	const width = Math.max(
 		minimumColumnWidth(),
-		Math.round(resize.startWidth + event.clientX - resize.startX),
+		resize.startWidth + resize.direction * (event.clientX - resize.startX) / resize.scale + scrollDelta,
 	);
 
 	if (width === resize.width) return;
@@ -886,7 +971,16 @@ function updateColumnResize(event) {
 	});
 }
 
+/**
+ * Commits the releasing pointer's final position and emits the completed width.
+ * Cancellation keeps the last applied width and still cleans up drag listeners.
+ *
+ * @param {PointerEvent} [event] Pointer release or cancellation, when available.
+ * @returns {void}
+ */
 function finishColumnResize(event) {
+	if (event && event.pointerId !== columnResize.value?.pointerId) return;
+	if (event?.type === 'pointerup') updateColumnResize(event);
 	if (event) event.preventDefault();
 
 	const resize = columnResize.value;
@@ -1488,13 +1582,21 @@ function rowDensityClass() {
 	return props.density === 'comfortable' ? 'h-12' : 'h-9';
 }
 
+/** Refreshes viewport dimensions after mounting, scrolling or container resizing. */
 function refreshViewportMetrics() {
 	if (!scrollViewport.value) return;
 	updateViewportMetrics(scrollViewport.value);
 }
 
+/**
+ * Records viewport geometry used by virtualization, pinning and resize spacing.
+ *
+ * @param {HTMLElement} element Grid's scrolling viewport.
+ * @returns {void}
+ */
 function updateViewportMetrics(element) {
 	viewportState.scrollTop = element.scrollTop;
+	viewportState.scrollLeft = element.scrollLeft;
 	viewportState.clientHeight = element.clientHeight;
 	viewportState.clientWidth = element.clientWidth;
 	if (headerElement.value) headerHeight.value = headerElement.value.offsetHeight;
@@ -1593,9 +1695,15 @@ function pinStyle(column) {
 	return pin ? { [pin.side]: `${pin.offset}px` } : null;
 }
 
+/**
+ * Positions utility cells using their displayed widths, including stretched grids.
+ *
+ * @param {'select'|'number'} kind Utility column to position.
+ * @returns {{ left: string }|null} Sticky offset when left pinning is enabled.
+ */
 function utilityPinStyle(kind) {
 	if (!pinLayout.value.hasLeft) return null;
-	return { left: kind === 'number' && props.selectable ? '44px' : '0px' };
+	return { left: kind === 'number' && props.selectable ? `${resizedUtilityWidths.select}px` : '0px' };
 }
 
 function pinAttrs(column) {
@@ -2742,13 +2850,12 @@ function hasColumnMenu(column) {
 				:aria-colcount="visibleColumns.length + utilityColumnCount"
 			>
 				<colgroup>
-					<col v-if="selectable" class="w-11" />
-					<col v-if="showRowNumbers" class="w-[3.375rem]" />
-					<col
-						v-for="column in visibleColumns"
-						:key="column.key"
-						:style="{ width: columnWidthStyle(column), minWidth: columnWidthStyle(column) }"
-					/>
+					<col v-if="selectable" data-grid-utility="select" :style="{ width: `${resizedUtilityWidths.select}px` }" />
+					<col v-if="showRowNumbers" data-grid-utility="number" :style="{ width: `${resizedUtilityWidths.number}px` }" />
+					<template v-for="{ column, columnIndex } in columnTracks" :key="column ? column.key : columnIndex">
+						<col v-if="!column" :style="{ width: `${columnSpacerWidth}px` }" />
+						<col v-else :data-grid-column="column.key" :style="{ width: columnWidthStyle(column) }" />
+					</template>
 				</colgroup>
 
 				<thead ref="headerElement" class="text-xs">
@@ -2765,16 +2872,26 @@ function hasColumnMenu(column) {
 							:class="headerCellClass(pinLayout.hasLeft, 'bg-secondary')"
 							:style="headerCellStyle('0px', utilityPinStyle('number'))"
 						></th>
-						<th
-							v-for="(column, columnIndex) in visibleColumns"
-							:key="`${column.key}-letter`"
-							class="border-b border-r border-border px-2 py-1.5 text-center font-semibold last:border-r-0"
-							:class="headerCellClass(Boolean(pinInfo(column)), 'bg-secondary')"
-							:style="headerCellStyle('0px', pinStyle(column))"
-							:data-pin-edge="pinInfo(column)?.edge ? pinInfo(column).side : undefined"
-						>
-							{{ columnLetter(columnIndex) }}
-						</th>
+						<template v-for="{ column, columnIndex } in columnTracks" :key="column ? column.key : columnIndex">
+							<th
+								v-if="!column"
+								aria-hidden="true"
+								data-grid-spacer
+								class="border-b border-border p-0"
+								:class="headerCellClass(false, 'bg-secondary')"
+								:style="headerCellStyle('0px')"
+							></th>
+							<th
+								v-else
+								class="border-b border-r border-border px-2 py-1.5 text-center font-semibold last:border-r-0"
+								:aria-colindex="columnIndex + utilityColumnCount + 1"
+								:class="headerCellClass(Boolean(pinInfo(column)), 'bg-secondary')"
+								:style="headerCellStyle('0px', pinStyle(column))"
+								:data-pin-edge="pinInfo(column)?.edge ? pinInfo(column).side : undefined"
+							>
+								{{ columnLetter(columnIndex) }}
+							</th>
+						</template>
 					</tr>
 
 					<tr class="bg-canvas text-muted-fg" :class="layout === 'flush' && gutterClass" :aria-rowindex="headerRowCount">
@@ -2801,248 +2918,258 @@ function hasColumnMenu(column) {
 						>
 							#
 						</th>
-						<th
-							v-for="column in visibleColumns"
-							:key="column.key"
-							scope="col"
-							class="relative overflow-hidden border-b border-r border-border px-0 text-left align-middle last:border-r-0"
-							:aria-sort="ariaSort(column)"
-							:class="headerCellClass(Boolean(pinInfo(column)), 'bg-canvas')"
-							:style="headerCellStyle(headerOffset, pinStyle(column))"
-							:data-pin-edge="pinInfo(column)?.edge ? pinInfo(column).side : undefined"
-						>
-							<div
-								class="relative flex min-w-0 items-center overflow-hidden px-1 py-1.5"
-								:class="hasColumnMenu(column) ? 'pr-9' : 'pr-1'"
+						<template v-for="{ column, columnIndex } in columnTracks" :key="column ? column.key : columnIndex">
+							<th
+								v-if="!column"
+								aria-hidden="true"
+								data-grid-spacer
+								class="border-b border-border p-0"
+								:class="headerCellClass(false, 'bg-canvas')"
+								:style="headerCellStyle(headerOffset)"
+							></th>
+							<th
+								v-else
+								scope="col"
+								class="relative overflow-hidden border-b border-r border-border px-0 text-left align-middle last:border-r-0"
+								:aria-sort="ariaSort(column)"
+								:aria-colindex="columnIndex + utilityColumnCount + 1"
+								:class="headerCellClass(Boolean(pinInfo(column)), 'bg-canvas')"
+								:style="headerCellStyle(headerOffset, pinStyle(column))"
+								:data-pin-edge="pinInfo(column)?.edge ? pinInfo(column).side : undefined"
 							>
-								<button
-									type="button"
-									class="flex min-w-0 w-full items-center gap-1.5 overflow-hidden rounded-md px-1 py-1 text-left font-semibold text-canvas-fg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-									:class="column.sortable ? 'hover:bg-secondary' : 'cursor-default'"
-									:disabled="!column.sortable"
-									:aria-label="sortButtonLabel(column)"
-									:title="sortButtonLabel(column)"
-									@click="toggleSort(column)"
+								<div
+									class="relative flex min-w-0 items-center overflow-hidden px-1 py-1.5"
+									:class="hasColumnMenu(column) ? 'pr-9' : 'pr-1'"
 								>
-									<svg
-										v-if="column.pinned"
-										class="size-3 shrink-0 text-primary"
-										viewBox="0 0 24 24"
-										fill="none"
-										aria-hidden="true"
+									<button
+										type="button"
+										class="flex min-w-0 w-full items-center gap-1.5 overflow-hidden rounded-md px-1 py-1 text-left font-semibold text-canvas-fg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+										:class="column.sortable ? 'hover:bg-secondary' : 'cursor-default'"
+										:disabled="!column.sortable"
+										:aria-label="sortButtonLabel(column)"
+										:title="sortButtonLabel(column)"
+										@click="toggleSort(column)"
 									>
-										<path d="M9 4h6l-1 6 3 3H7l3-3-1-6Zm3 9v7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-									<span class="truncate">{{ column.label }}</span>
-									<span
-										v-if="multiSort && sortRankForColumn(column)"
-										class="grid size-4 shrink-0 place-items-center rounded bg-primary text-[10px] font-semibold leading-none text-primary-fg"
-										aria-hidden="true"
-									>
-										{{ sortRankForColumn(column) }}
-									</span>
-									<svg
-										v-if="column.sortable"
-										class="size-3.5 shrink text-muted-fg"
-										viewBox="0 0 24 24"
-										fill="none"
-										aria-hidden="true"
-									>
-										<path
-											v-if="sortDirectionForColumn(column) === 'asc'"
-											d="m7 14 5-5 5 5"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-										/>
-										<path
-											v-else-if="sortDirectionForColumn(column) === 'desc'"
-											d="m7 10 5 5 5-5"
-											stroke="currentColor"
-											stroke-width="2"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-										/>
-										<path
-											v-else
-											d="m8 9 4-4 4 4M16 15l-4 4-4-4"
-											stroke="currentColor"
-											stroke-width="1.8"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-										/>
-									</svg>
-								</button>
+										<svg
+											v-if="column.pinned"
+											class="size-3 shrink-0 text-primary"
+											viewBox="0 0 24 24"
+											fill="none"
+											aria-hidden="true"
+										>
+											<path d="M9 4h6l-1 6 3 3H7l3-3-1-6Zm3 9v7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+										</svg>
+										<span class="truncate">{{ column.label }}</span>
+										<span
+											v-if="multiSort && sortRankForColumn(column)"
+											class="grid size-4 shrink-0 place-items-center rounded bg-primary text-[10px] font-semibold leading-none text-primary-fg"
+											aria-hidden="true"
+										>
+											{{ sortRankForColumn(column) }}
+										</span>
+										<svg
+											v-if="column.sortable"
+											class="size-3.5 shrink text-muted-fg"
+											viewBox="0 0 24 24"
+											fill="none"
+											aria-hidden="true"
+										>
+											<path
+												v-if="sortDirectionForColumn(column) === 'asc'"
+												d="m7 14 5-5 5 5"
+												stroke="currentColor"
+												stroke-width="2"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+											/>
+											<path
+												v-else-if="sortDirectionForColumn(column) === 'desc'"
+												d="m7 10 5 5 5-5"
+												stroke="currentColor"
+												stroke-width="2"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+											/>
+											<path
+												v-else
+												d="m8 9 4-4 4 4M16 15l-4 4-4-4"
+												stroke="currentColor"
+												stroke-width="1.8"
+												stroke-linecap="round"
+												stroke-linejoin="round"
+											/>
+										</svg>
+									</button>
 
-								<div v-if="hasColumnMenu(column)" class="absolute right-1 top-1/2 -translate-y-1/2">
-									<DomPopover
-										position="bottom-end"
-										width="w-[20rem]"
-										padding="p-0"
-										:arrow="false"
-									>
-										<template #trigger>
-											<button
-												type="button"
-												class="relative grid size-7 shrink-0 place-items-center rounded-md border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-												:class="activeFilters[column.key]
-													? 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300'
-													: 'border-transparent text-muted-fg hover:border-border hover:bg-secondary hover:text-canvas-fg'"
-												:aria-label="column.filterable ? `Filter ${column.label}` : `${column.label} column menu`"
-											>
-												<svg v-if="column.filterable" class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-													<path d="M4 5h16l-6.2 7.1V18l-3.6 1.8v-7.7L4 5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
-												</svg>
-												<svg v-else class="size-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-													<circle cx="12" cy="6" r="1.6" />
-													<circle cx="12" cy="12" r="1.6" />
-													<circle cx="12" cy="18" r="1.6" />
-												</svg>
-												<span
-													v-if="activeFilters[column.key]"
-													class="absolute right-1 top-1 size-1.5 rounded-full bg-sky-500"
-												></span>
-											</button>
-										</template>
+									<div v-if="hasColumnMenu(column)" class="absolute right-1 top-1/2 -translate-y-1/2">
+										<DomPopover
+											position="bottom-end"
+											width="w-[20rem]"
+											padding="p-0"
+											:arrow="false"
+										>
+											<template #trigger>
+												<button
+													type="button"
+													class="relative grid size-7 shrink-0 place-items-center rounded-md border transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+													:class="activeFilters[column.key]
+														? 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300'
+														: 'border-transparent text-muted-fg hover:border-border hover:bg-secondary hover:text-canvas-fg'"
+													:aria-label="column.filterable ? `Filter ${column.label}` : `${column.label} column menu`"
+												>
+													<svg v-if="column.filterable" class="size-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+														<path d="M4 5h16l-6.2 7.1V18l-3.6 1.8v-7.7L4 5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+													</svg>
+													<svg v-else class="size-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+														<circle cx="12" cy="6" r="1.6" />
+														<circle cx="12" cy="12" r="1.6" />
+														<circle cx="12" cy="18" r="1.6" />
+													</svg>
+													<span
+														v-if="activeFilters[column.key]"
+														class="absolute right-1 top-1 size-1.5 rounded-full bg-sky-500"
+													></span>
+												</button>
+											</template>
 
-										<template #default="{ close }">
-											<div v-if="columnMenu" class="grid gap-3 border-b border-border p-4 text-sm">
-												<p class="font-semibold text-canvas-fg">{{ column.label }}</p>
-												<div class="grid gap-1.5">
-													<span class="text-xs font-medium text-muted-fg">Pin column</span>
-													<div class="grid grid-cols-3 gap-1 rounded-md border border-border bg-secondary/40 p-1">
+											<template #default="{ close }">
+												<div v-if="columnMenu" class="grid gap-3 border-b border-border p-4 text-sm">
+													<p class="font-semibold text-canvas-fg">{{ column.label }}</p>
+													<div class="grid gap-1.5">
+														<span class="text-xs font-medium text-muted-fg">Pin column</span>
+														<div class="grid grid-cols-3 gap-1 rounded-md border border-border bg-secondary/40 p-1">
+															<button
+																v-for="option in [{ label: 'Left', value: 'left' }, { label: 'None', value: '' }, { label: 'Right', value: 'right' }]"
+																:key="option.label"
+																type="button"
+																class="h-8 rounded px-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+																:class="(column.pinned || '') === option.value ? 'bg-canvas text-canvas-fg shadow-xs' : 'text-muted-fg hover:text-canvas-fg'"
+																:aria-pressed="(column.pinned || '') === option.value"
+																@click="setColumnPin(column, option.value)"
+															>
+																{{ option.label }}
+															</button>
+														</div>
+													</div>
+													<button
+														type="button"
+														class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-border px-3 text-xs font-semibold transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+														@click="toggleGroupColumn(column); close();"
+													>
+														<svg class="size-4 text-muted-fg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+															<path d="M4 6h16M8 12h12M12 18h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+														</svg>
+														{{ isGroupedColumn(column) ? `Stop grouping by ${column.label}` : `Group by ${column.label}` }}
+													</button>
+												</div>
+
+												<div v-if="column.filterable && filterDrafts[column.key]" class="grid gap-4 p-4 text-sm">
+													<div>
+														<p class="font-semibold text-canvas-fg">Filter {{ column.label }}</p>
+													</div>
+
+													<div v-if="column.type === 'number' || column.type === 'currency'" class="grid grid-cols-2 gap-3">
+														<label class="grid gap-1.5">
+															<span class="text-xs font-medium text-muted-fg">Minimum</span>
+															<input v-model="filterDrafts[column.key].min" type="number" class="skin-input h-9 rounded-md" placeholder="Any" />
+														</label>
+														<label class="grid gap-1.5">
+															<span class="text-xs font-medium text-muted-fg">Maximum</span>
+															<input v-model="filterDrafts[column.key].max" type="number" class="skin-input h-9 rounded-md" placeholder="Any" />
+														</label>
+													</div>
+
+													<div v-else-if="column.type === 'date'" class="grid grid-cols-2 gap-3">
+														<label class="grid gap-1.5">
+															<span class="text-xs font-medium text-muted-fg">From</span>
+															<input v-model="filterDrafts[column.key].start" type="date" class="skin-input h-9 rounded-md" />
+														</label>
+														<label class="grid gap-1.5">
+															<span class="text-xs font-medium text-muted-fg">To</span>
+															<input v-model="filterDrafts[column.key].end" type="date" class="skin-input h-9 rounded-md" />
+														</label>
+													</div>
+
+													<div v-else-if="column.type === 'boolean'" class="grid grid-cols-3 gap-1 rounded-md border border-border bg-secondary/40 p-1">
 														<button
-															v-for="option in [{ label: 'Left', value: 'left' }, { label: 'None', value: '' }, { label: 'Right', value: 'right' }]"
+															v-for="option in [{ label: 'Any', value: '' }, { label: 'Yes', value: true }, { label: 'No', value: false }]"
 															:key="option.label"
 															type="button"
 															class="h-8 rounded px-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-															:class="(column.pinned || '') === option.value ? 'bg-canvas text-canvas-fg shadow-xs' : 'text-muted-fg hover:text-canvas-fg'"
-															:aria-pressed="(column.pinned || '') === option.value"
-															@click="setColumnPin(column, option.value)"
+															:class="filterDrafts[column.key].value === option.value ? 'bg-canvas text-canvas-fg shadow-xs' : 'text-muted-fg hover:text-canvas-fg'"
+															@click="setDraftBoolean(column, option.value)"
 														>
 															{{ option.label }}
 														</button>
 													</div>
-												</div>
-												<button
-													type="button"
-													class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-border px-3 text-xs font-semibold transition hover:bg-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-													@click="toggleGroupColumn(column); close();"
-												>
-													<svg class="size-4 text-muted-fg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-														<path d="M4 6h16M8 12h12M12 18h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-													</svg>
-													{{ isGroupedColumn(column) ? `Stop grouping by ${column.label}` : `Group by ${column.label}` }}
-												</button>
-											</div>
 
-											<div v-if="column.filterable && filterDrafts[column.key]" class="grid gap-4 p-4 text-sm">
-												<div>
-													<p class="font-semibold text-canvas-fg">Filter {{ column.label }}</p>
-												</div>
+													<div v-else-if="column.type === 'select'" class="grid gap-2">
+														<p class="text-xs font-medium text-muted-fg">Values</p>
+														<div class="max-h-52 overflow-y-auto rounded-md border border-border bg-canvas p-1">
+															<label
+																v-for="option in optionRecords(column)"
+																:key="String(option.value)"
+																class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm transition hover:bg-secondary"
+															>
+																<input
+																	type="checkbox"
+																	class="size-4 rounded border-border accent-primary"
+																	:checked="filterDrafts[column.key].values?.map(String).includes(String(option.value))"
+																	@change="toggleDraftOption(column, option.value)"
+																/>
+																<span class="min-w-0 flex-1 truncate">{{ option.label }}</span>
+																<span v-if="option.tone" class="size-2 rounded-full" :class="toneClass(option.tone)"></span>
+															</label>
+														</div>
+													</div>
 
-												<div v-if="column.type === 'number' || column.type === 'currency'" class="grid grid-cols-2 gap-3">
-													<label class="grid gap-1.5">
-														<span class="text-xs font-medium text-muted-fg">Minimum</span>
-														<input v-model="filterDrafts[column.key].min" type="number" class="skin-input h-9 rounded-md" placeholder="Any" />
-													</label>
-													<label class="grid gap-1.5">
-														<span class="text-xs font-medium text-muted-fg">Maximum</span>
-														<input v-model="filterDrafts[column.key].max" type="number" class="skin-input h-9 rounded-md" placeholder="Any" />
-													</label>
-												</div>
-
-												<div v-else-if="column.type === 'date'" class="grid grid-cols-2 gap-3">
-													<label class="grid gap-1.5">
-														<span class="text-xs font-medium text-muted-fg">From</span>
-														<input v-model="filterDrafts[column.key].start" type="date" class="skin-input h-9 rounded-md" />
-													</label>
-													<label class="grid gap-1.5">
-														<span class="text-xs font-medium text-muted-fg">To</span>
-														<input v-model="filterDrafts[column.key].end" type="date" class="skin-input h-9 rounded-md" />
-													</label>
-												</div>
-
-												<div v-else-if="column.type === 'boolean'" class="grid grid-cols-3 gap-1 rounded-md border border-border bg-secondary/40 p-1">
-													<button
-														v-for="option in [{ label: 'Any', value: '' }, { label: 'Yes', value: true }, { label: 'No', value: false }]"
-														:key="option.label"
-														type="button"
-														class="h-8 rounded px-2 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-														:class="filterDrafts[column.key].value === option.value ? 'bg-canvas text-canvas-fg shadow-xs' : 'text-muted-fg hover:text-canvas-fg'"
-														@click="setDraftBoolean(column, option.value)"
-													>
-														{{ option.label }}
-													</button>
-												</div>
-
-												<div v-else-if="column.type === 'select'" class="grid gap-2">
-													<p class="text-xs font-medium text-muted-fg">Values</p>
-													<div class="max-h-52 overflow-y-auto rounded-md border border-border bg-canvas p-1">
-														<label
-															v-for="option in optionRecords(column)"
-															:key="String(option.value)"
-															class="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm transition hover:bg-secondary"
-														>
-															<input
-																type="checkbox"
-																class="size-4 rounded border-border accent-primary"
-																:checked="filterDrafts[column.key].values?.map(String).includes(String(option.value))"
-																@change="toggleDraftOption(column, option.value)"
-															/>
-															<span class="min-w-0 flex-1 truncate">{{ option.label }}</span>
-															<span v-if="option.tone" class="size-2 rounded-full" :class="toneClass(option.tone)"></span>
+													<div v-else class="grid gap-3">
+														<label class="grid gap-1.5">
+															<span class="text-xs font-medium text-muted-fg">Match</span>
+															<select v-model="filterDrafts[column.key].operator" class="skin-input h-9 rounded-md">
+																<option value="contains">Contains</option>
+																<option value="equals">Equals</option>
+																<option value="starts">Starts with</option>
+															</select>
+														</label>
+														<label class="grid gap-1.5">
+															<span class="text-xs font-medium text-muted-fg">Value</span>
+															<input v-model="filterDrafts[column.key].value" type="text" class="skin-input h-9 rounded-md" placeholder="Search this column" />
 														</label>
 													</div>
-												</div>
 
-												<div v-else class="grid gap-3">
-													<label class="grid gap-1.5">
-														<span class="text-xs font-medium text-muted-fg">Match</span>
-														<select v-model="filterDrafts[column.key].operator" class="skin-input h-9 rounded-md">
-															<option value="contains">Contains</option>
-															<option value="equals">Equals</option>
-															<option value="starts">Starts with</option>
-														</select>
-													</label>
-													<label class="grid gap-1.5">
-														<span class="text-xs font-medium text-muted-fg">Value</span>
-														<input v-model="filterDrafts[column.key].value" type="text" class="skin-input h-9 rounded-md" placeholder="Search this column" />
-													</label>
+													<div class="flex items-center justify-between gap-2 border-t border-border pt-3">
+														<button
+															type="button"
+															class="inline-flex h-9 items-center rounded-md px-3 text-xs font-semibold text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+															@click="clearColumnFilter(column); close();"
+														>
+															Clear
+														</button>
+														<button
+															type="button"
+															class="skin-action inline-flex h-9 items-center rounded-md px-3 text-xs font-semibold transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+															@click="applyFilter(column); close();"
+														>
+															Apply filter
+														</button>
+													</div>
 												</div>
-
-												<div class="flex items-center justify-between gap-2 border-t border-border pt-3">
-													<button
-														type="button"
-														class="inline-flex h-9 items-center rounded-md px-3 text-xs font-semibold text-muted-fg transition hover:bg-secondary hover:text-canvas-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-														@click="clearColumnFilter(column); close();"
-													>
-														Clear
-													</button>
-													<button
-														type="button"
-														class="skin-action inline-flex h-9 items-center rounded-md px-3 text-xs font-semibold transition hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-														@click="applyFilter(column); close();"
-													>
-														Apply filter
-													</button>
-												</div>
-											</div>
-										</template>
-									</DomPopover>
+											</template>
+										</DomPopover>
+									</div>
 								</div>
-							</div>
-							<span
-								v-if="canResizeColumn(column)"
-								class="absolute inset-y-0 right-0 z-30 block w-2 cursor-col-resize touch-none transition-opacity"
-								:class="columnResize?.key === column.key ? 'opacity-100' : 'opacity-0 hover:opacity-100'"
-								@pointerdown="startColumnResize(column, $event)"
-								@click.stop
-							>
-								<span class="mx-auto block h-full w-px bg-primary/60"></span>
-							</span>
-						</th>
+								<span
+									v-if="canResizeColumn(column)"
+									class="absolute inset-y-0 z-30 block w-2 cursor-col-resize touch-none transition-opacity"
+									:class="[column.pinned === 'right' ? 'left-0' : 'right-0', columnResize?.key === column.key ? 'opacity-100' : 'opacity-0 hover:opacity-100']"
+									@pointerdown="startColumnResize(column, $event)"
+									@click.stop
+								>
+									<span class="mx-auto block h-full w-px bg-primary/60"></span>
+								</span>
+							</th>
+						</template>
 					</tr>
 				</thead>
 
@@ -3104,35 +3231,38 @@ function hasColumnMenu(column) {
 								:style="utilityPinStyle('number')"
 								v-bind="utilityPinAttrs()"
 							></td>
-							<td
-								v-for="(column, columnIndex) in visibleColumns"
-								:key="column.key"
-								class="border-b border-r border-border px-3 align-middle last:border-r-0"
-								:class="[cellAlignClass(column), rowDensityClass(), bodyCellPositionClass(column), columnIndex === 0 ? 'overflow-visible' : 'overflow-hidden']"
-								:style="pinStyle(column)"
-								v-bind="pinAttrs(column)"
-							>
-								<button
-									v-if="columnIndex === 0"
-									type="button"
-									class="flex w-max min-w-0 items-center gap-1.5 whitespace-nowrap rounded text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-									:style="{ paddingLeft: `${item.level * 16}px` }"
-									:aria-label="`${item.expanded ? 'Collapse' : 'Expand'} ${item.column.label} ${item.label}`"
-									:title="`${item.column.label}: ${item.label}`"
-									@click="toggleGroup(item)"
+							<template v-for="{ column, columnIndex } in columnTracks" :key="column ? column.key : columnIndex">
+								<td v-if="!column" aria-hidden="true" data-grid-spacer class="border-b border-border p-0"></td>
+								<td
+									v-else
+									class="border-b border-r border-border px-3 align-middle last:border-r-0"
+									:aria-colindex="columnIndex + utilityColumnCount + 1"
+									:class="[cellAlignClass(column), rowDensityClass(), bodyCellPositionClass(column), columnIndex === 0 ? 'overflow-visible' : 'overflow-hidden']"
+									:style="pinStyle(column)"
+									v-bind="pinAttrs(column)"
 								>
-									<svg class="size-3.5 shrink-0 text-muted-fg transition-transform" :class="item.expanded && 'rotate-90'" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-										<path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-									</svg>
-									<span class="font-semibold">{{ item.label }}</span>
-									<span class="shrink-0 rounded bg-canvas px-1.5 text-[11px] font-semibold tabular-nums text-muted-fg ring-1 ring-border">{{ item.count }}</span>
-								</button>
-								<span
-									v-else-if="column.aggregate"
-									class="block truncate font-semibold"
-									:title="`${aggregateLabel(column)} of ${column.label}`"
-								>{{ formatAggregate(item.aggregates[column.key], column) }}</span>
-							</td>
+									<button
+										v-if="columnIndex === 0"
+										type="button"
+										class="flex w-max min-w-0 items-center gap-1.5 whitespace-nowrap rounded text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+										:style="{ paddingLeft: `${item.level * 16}px` }"
+										:aria-label="`${item.expanded ? 'Collapse' : 'Expand'} ${item.column.label} ${item.label}`"
+										:title="`${item.column.label}: ${item.label}`"
+										@click="toggleGroup(item)"
+									>
+										<svg class="size-3.5 shrink-0 text-muted-fg transition-transform" :class="item.expanded && 'rotate-90'" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+											<path d="m9 6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+										</svg>
+										<span class="font-semibold">{{ item.label }}</span>
+										<span class="shrink-0 rounded bg-canvas px-1.5 text-[11px] font-semibold tabular-nums text-muted-fg ring-1 ring-border">{{ item.count }}</span>
+									</button>
+									<span
+										v-else-if="column.aggregate"
+										class="block truncate font-semibold"
+										:title="`${aggregateLabel(column)} of ${column.label}`"
+									>{{ formatAggregate(item.aggregates[column.key], column) }}</span>
+								</td>
+							</template>
 						</tr>
 
 						<tr
@@ -3170,83 +3300,85 @@ function hasColumnMenu(column) {
 							>
 								{{ item.line + 1 }}
 							</td>
-							<td
-								v-for="(column, columnIndex) in visibleColumns"
-								:key="column.key"
-								class="overflow-hidden border-b border-r border-border px-3 align-middle last:border-r-0"
-								:class="[cellAlignClass(column), rowDensityClass(), bodyCellPositionClass(column)]"
-								:style="[pinStyle(column), rowIndent(column, columnIndex)]"
-								v-bind="cellAttrs(item, column, columnIndex)"
-								@pointerdown="onCellPointerDown(item, columnIndex, $event)"
-								@pointerenter="onCellPointerEnter(item, columnIndex)"
-								@dblclick="onCellDoubleClick(item, column, columnIndex, $event)"
-							>
-								<template v-if="isEditingCell(item, columnIndex)">
-									<select
-										v-if="column.type === 'select'"
-										:ref="setEditorElement"
-										v-model="editingCell.draft"
-										class="absolute inset-0 z-10 h-full w-full border-0 bg-canvas px-2 text-sm text-canvas-fg outline-2 -outline-offset-2"
-										:class="editingCell.error ? 'outline-destructive' : 'outline-primary'"
-										:aria-label="`Edit ${column.label}`"
-										:aria-invalid="Boolean(editingCell.error) || undefined"
-										:title="editingCell.error || undefined"
-										@keydown="onEditorKeydown"
-										@blur="onEditorBlur"
-										@click.stop
-									>
-										<option value="">-</option>
-										<option v-for="option in optionRecords(column)" :key="String(option.value)" :value="String(option.value)">{{ option.label }}</option>
-									</select>
-									<input
-										v-else
-										:ref="setEditorElement"
-										v-model="editingCell.draft"
-										:type="column.type === 'date' ? 'date' : 'text'"
-										:inputmode="column.type === 'number' || column.type === 'currency' ? 'decimal' : undefined"
-										class="absolute inset-0 z-10 h-full w-full border-0 bg-canvas px-3 text-sm text-canvas-fg outline-2 -outline-offset-2"
-										:class="[editingCell.error ? 'outline-destructive' : 'outline-primary', cellAlignClass(column)]"
-										:aria-label="`Edit ${column.label}`"
-										:aria-invalid="Boolean(editingCell.error) || undefined"
-										:title="editingCell.error || undefined"
-										@keydown="onEditorKeydown"
-										@blur="onEditorBlur"
-										@click.stop
-									/>
-								</template>
-								<slot
+							<template v-for="{ column, columnIndex } in columnTracks" :key="column ? column.key : columnIndex">
+								<td v-if="!column" aria-hidden="true" data-grid-spacer class="border-b border-border p-0"></td>
+								<td
 									v-else
-									name="cell"
-									:row="item.row"
-									:column="column"
-									:value="cellValue(item.row, column)"
-									:formatted="formattedCell(item.row, column)"
-									:row-index="item.index"
-									:row-key="rowKey(item.row, item.index)"
+									class="overflow-hidden border-b border-r border-border px-3 align-middle last:border-r-0"
+									:class="[cellAlignClass(column), rowDensityClass(), bodyCellPositionClass(column)]"
+									:style="[pinStyle(column), rowIndent(column, columnIndex)]"
+									v-bind="cellAttrs(item, column, columnIndex)"
+									@pointerdown="onCellPointerDown(item, columnIndex, $event)"
+									@pointerenter="onCellPointerEnter(item, columnIndex)"
+									@dblclick="onCellDoubleClick(item, column, columnIndex, $event)"
 								>
-									<component
-										:is="column.component"
-										v-if="column.component"
+									<template v-if="isEditingCell(item, columnIndex)">
+										<select
+											v-if="column.type === 'select'"
+											:ref="setEditorElement"
+											v-model="editingCell.draft"
+											class="absolute inset-0 z-10 h-full w-full border-0 bg-canvas px-2 text-sm text-canvas-fg outline-2 -outline-offset-2"
+											:class="editingCell.error ? 'outline-destructive' : 'outline-primary'"
+											:aria-label="`Edit ${column.label}`"
+											:aria-invalid="Boolean(editingCell.error) || undefined"
+											:title="editingCell.error || undefined"
+											@keydown="onEditorKeydown"
+											@blur="onEditorBlur"
+											@click.stop
+										>
+											<option value="">-</option>
+											<option v-for="option in optionRecords(column)" :key="String(option.value)" :value="String(option.value)">{{ option.label }}</option>
+										</select>
+										<input
+											v-else
+											:ref="setEditorElement"
+											v-model="editingCell.draft"
+											:type="column.type === 'date' ? 'date' : 'text'"
+											:inputmode="column.type === 'number' || column.type === 'currency' ? 'decimal' : undefined"
+											class="absolute inset-0 z-10 h-full w-full border-0 bg-canvas px-3 text-sm text-canvas-fg outline-2 -outline-offset-2"
+											:class="[editingCell.error ? 'outline-destructive' : 'outline-primary', cellAlignClass(column)]"
+											:aria-label="`Edit ${column.label}`"
+											:aria-invalid="Boolean(editingCell.error) || undefined"
+											:title="editingCell.error || undefined"
+											@keydown="onEditorKeydown"
+											@blur="onEditorBlur"
+											@click.stop
+										/>
+									</template>
+									<slot
+										v-else
+										name="cell"
 										:row="item.row"
 										:column="column"
 										:value="cellValue(item.row, column)"
 										:formatted="formattedCell(item.row, column)"
 										:row-index="item.index"
 										:row-key="rowKey(item.row, item.index)"
-										@update:value="onCellComponentUpdate(item.row, column, item.index, $event)"
-										@action="onCellComponentAction(item.row, column, item.index, $event)"
-									/>
-									<span v-else-if="column.type === 'boolean'" class="inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="cellValue(item.row, column) ? toneClass('green') : toneClass('neutral')">
-										{{ formattedCell(item.row, column) }}
-									</span>
-									<span v-else-if="column.type === 'select'" class="inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="toneClass(optionTone(column, cellValue(item.row, column)))">
-										<span class="size-1.5 rounded-full bg-current opacity-70"></span>
-										<span class="truncate">{{ formattedCell(item.row, column) }}</span>
-									</span>
-									<span v-else-if="formattedCell(item.row, column)" class="block max-w-full truncate">{{ formattedCell(item.row, column) }}</span>
-									<span v-else class="text-muted-fg/60">-</span>
-								</slot>
-							</td>
+									>
+										<component
+											:is="column.component"
+											v-if="column.component"
+											:row="item.row"
+											:column="column"
+											:value="cellValue(item.row, column)"
+											:formatted="formattedCell(item.row, column)"
+											:row-index="item.index"
+											:row-key="rowKey(item.row, item.index)"
+											@update:value="onCellComponentUpdate(item.row, column, item.index, $event)"
+											@action="onCellComponentAction(item.row, column, item.index, $event)"
+										/>
+										<span v-else-if="column.type === 'boolean'" class="inline-flex items-center justify-center rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="cellValue(item.row, column) ? toneClass('green') : toneClass('neutral')">
+											{{ formattedCell(item.row, column) }}
+										</span>
+										<span v-else-if="column.type === 'select'" class="inline-flex max-w-full items-center gap-1.5 rounded-md px-2 py-0.5 text-xs font-semibold ring-1" :class="toneClass(optionTone(column, cellValue(item.row, column)))">
+											<span class="size-1.5 rounded-full bg-current opacity-70"></span>
+											<span class="truncate">{{ formattedCell(item.row, column) }}</span>
+										</span>
+										<span v-else-if="formattedCell(item.row, column)" class="block max-w-full truncate">{{ formattedCell(item.row, column) }}</span>
+										<span v-else class="text-muted-fg/60">-</span>
+									</slot>
+								</td>
+							</template>
 						</tr>
 					</template>
 				</DataGridVirtualRows>
@@ -3267,18 +3399,21 @@ function hasColumnMenu(column) {
 						>
 							&Sigma;
 						</td>
-						<td
-							v-for="(column, columnIndex) in visibleColumns"
-							:key="column.key"
-							class="sticky bottom-0 h-9 overflow-hidden border-r border-t border-border bg-secondary px-3 font-semibold text-canvas-fg last:border-r-0"
-							:class="[cellAlignClass(column), pinInfo(column) ? 'z-30' : 'z-20']"
-							:style="pinStyle(column)"
-							:data-pin-edge="pinInfo(column)?.edge ? pinInfo(column).side : undefined"
-							:title="column.aggregate ? `${aggregateLabel(column)} of ${column.label}` : undefined"
-						>
-							<span v-if="column.aggregate" class="block truncate">{{ formatAggregate(totalAggregates[column.key], column) }}</span>
-							<span v-else-if="columnIndex === 0" class="block truncate text-muted-fg">Total</span>
-						</td>
+						<template v-for="{ column, columnIndex } in columnTracks" :key="column ? column.key : columnIndex">
+							<td v-if="!column" aria-hidden="true" data-grid-spacer class="sticky bottom-0 border-t border-border bg-secondary p-0"></td>
+							<td
+								v-else
+								class="sticky bottom-0 h-9 overflow-hidden border-r border-t border-border bg-secondary px-3 font-semibold text-canvas-fg last:border-r-0"
+								:aria-colindex="columnIndex + utilityColumnCount + 1"
+								:class="[cellAlignClass(column), pinInfo(column) ? 'z-30' : 'z-20']"
+								:style="pinStyle(column)"
+								:data-pin-edge="pinInfo(column)?.edge ? pinInfo(column).side : undefined"
+								:title="column.aggregate ? `${aggregateLabel(column)} of ${column.label}` : undefined"
+							>
+								<span v-if="column.aggregate" class="block truncate">{{ formatAggregate(totalAggregates[column.key], column) }}</span>
+								<span v-else-if="columnIndex === 0" class="block truncate text-muted-fg">Total</span>
+							</td>
+						</template>
 					</tr>
 				</tfoot>
 			</table>
@@ -3307,7 +3442,7 @@ function hasColumnMenu(column) {
 	padding-left: inherit;
 }
 
-[data-layout="flush"] > [data-grid-viewport] > table > :deep(:is(thead, tbody, tfoot) > tr:not([aria-hidden="true"]) > :is(th, td):last-child) {
+[data-layout="flush"] > [data-grid-viewport] > table > :deep(:is(thead, tbody, tfoot) > tr:not([aria-hidden="true"]) > :is(th, td):not([data-grid-spacer]):is(:last-child, :has(+ [data-grid-spacer]:last-child))) {
 	padding-right: inherit;
 }
 
@@ -3318,8 +3453,8 @@ function hasColumnMenu(column) {
 	padding-left: 0;
 }
 
-[data-layout="flush"] > [data-grid-viewport] > table > thead > tr > th:last-child > div:not(.pr-9),
-[data-layout="flush"] > [data-grid-viewport] > table > thead > tr > th:last-child > div > button {
+[data-layout="flush"] > [data-grid-viewport] > table > thead > tr > th:is(:last-child, :has(+ [data-grid-spacer]:last-child)) > div:not(.pr-9),
+[data-layout="flush"] > [data-grid-viewport] > table > thead > tr > th:is(:last-child, :has(+ [data-grid-spacer]:last-child)) > div > button {
 	padding-right: 0;
 }
 

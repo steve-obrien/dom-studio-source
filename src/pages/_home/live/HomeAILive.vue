@@ -2,6 +2,7 @@
 import { onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import DomAgentChatShell from '../../data/agent-chat/DomAgentChatShell.vue';
+import DomCard from '../../visual/card/DomCard.vue';
 import WeatherToolCard from '../../data/agent-chat/examples/WeatherToolCard.vue';
 import { useAgentChatDemoStore } from '../../data/agent-chat/examples/useAgentChatDemoStore.js';
 
@@ -17,8 +18,9 @@ onMounted(() => {
 </script>
 
 <template>
-	<div class="h-[640px] overflow-hidden rounded-2xl border border-border bg-secondary/20 p-2 shadow-xl shadow-canvas-fg/5">
+	<DomCard padding="none" class="h-[640px] shadow-xl shadow-canvas-fg/5">
 		<DomAgentChatShell
+			class="rounded-none! border-0! shadow-none!"
 			:model-value="input"
 			:conversations="conversations"
 			:conversation="activeConversation"
@@ -47,5 +49,5 @@ onMounted(() => {
 			@stop="store.stopStreaming"
 			@tool-action="store.handleToolAction"
 		/>
-	</div>
+	</DomCard>
 </template>

@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 import * as Y from 'yjs';
 import { Awareness, applyAwarenessUpdate, encodeAwarenessUpdate } from 'y-protocols/awareness';
 import DomDocumentEditor from '../../data/document-editor/DomDocumentEditor.vue';
+import DomCard from '../../visual/card/DomCard.vue';
 
 /**
  * The real document editor on the homepage. Two simulated teammates share the
@@ -214,17 +215,22 @@ function destroy() {
 </script>
 
 <template>
-	<div ref="target" class="overflow-hidden rounded-2xl border border-border bg-canvas shadow-xl shadow-canvas-fg/5">
-		<DomDocumentEditor
-			v-if="you"
-			:collaboration="you"
-			:collaborators="people.map((peer) => peer.user)"
-			title="Q4 platform launch"
-			status="3 editing live"
-			chrome="none"
-			:show-suggestion-rail="false"
-			min-height="24rem"
-			@ready="onReady"
-		/>
+	<div ref="target">
+		<DomCard
+			padding="none"
+			class="shadow-xl shadow-canvas-fg/5 focus-within:ring-2 focus-within:ring-ring/30 [&_.dom-document-editor\_\_paper]:m-0! [&_.dom-document-editor\_\_paper]:rounded-none! [&_.dom-document-editor\_\_paper]:border-0! [&_.dom-document-editor\_\_paper]:shadow-none! [&_[data-document-editor-toolbar]]:border-b [&_[data-document-editor-toolbar]]:border-border [&_[data-document-editor-toolbar]]:pb-2"
+		>
+			<DomDocumentEditor
+				v-if="you"
+				:collaboration="you"
+				:collaborators="people.map((peer) => peer.user)"
+				title="Q4 platform launch"
+				status="3 editing live"
+				chrome="none"
+				:show-suggestion-rail="false"
+				min-height="24rem"
+				@ready="onReady"
+			/>
+		</DomCard>
 	</div>
 </template>

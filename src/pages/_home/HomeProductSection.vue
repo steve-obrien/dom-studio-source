@@ -12,13 +12,15 @@ defineProps({
 	link: { type: String, required: true },
 	more: { type: Array, default: () => [] },
 	tinted: { type: Boolean, default: false },
+	/** Lets large application demos use the page width while keeping the introduction readable. */
+	wideDemo: { type: Boolean, default: false },
 });
 </script>
 
 <template>
 	<section :id="id" class="scroll-mt-20 border-t border-border" :class="tinted && 'bg-secondary/20'">
-		<div class="grid gap-10 px-5 py-16 sm:px-8 lg:gap-14 lg:py-24">
-			<div class="mx-auto grid w-full min-w-0 max-w-[1256px] gap-x-14 lg:grid-cols-2">
+		<div class="grid min-w-0 gap-10 py-16 lg:gap-14 lg:py-24">
+			<div class="mx-auto grid w-full min-w-0 max-w-[1320px] gap-x-14 px-5 sm:px-8 lg:grid-cols-2">
 				<div>
 				<img :src="`/media/product-icons-3d/${id}.webp`" width="128" height="128" alt="" loading="lazy" class="-ml-3 mb-3 size-28 sm:size-32">
 				<p class="font-mono text-xs uppercase tracking-[0.18em] text-muted-fg">{{ number }} / {{ product }}</p>
@@ -38,7 +40,7 @@ defineProps({
 				</div>
 				</div>
 			</div>
-			<div class="min-w-0">
+			<div class="mx-auto w-full min-w-0 px-5 sm:px-8" :class="!wideDemo && 'max-w-[1320px]'">
 				<slot />
 			</div>
 		</div>
