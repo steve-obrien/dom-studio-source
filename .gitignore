@@ -13,3 +13,11 @@ localhost+*-key.pem
 localhost+*.pem
 # Files saved by the designer canvas in development (set DESIGNER_FILES_DIR to edit a project folder instead).
 designer-files
+
+# Keep local credentials and verification artifacts outside the shared source.
+*.key
+*.pem
+*.p12
+*.pfx
+coverage
+.gitleaks-report*

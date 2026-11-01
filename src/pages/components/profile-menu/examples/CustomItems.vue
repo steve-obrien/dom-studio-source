@@ -29,9 +29,9 @@ const items = [
 <template>
 	<div class="grid gap-3">
 		<DomProfileMenu
-			name="Steven O'Brien"
+			name="Alex Morgan"
 			email="alex@example.com"
-			initials="SO"
+			initials="AM"
 			:items="items"
 			@select="selected = $event.value"
 			@theme="themeMode = $event.mode"

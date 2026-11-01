@@ -38,7 +38,7 @@ function createOrganizationOption(organization) {
 function buildMenuItems() {
 	const organization = currentOrganization.value;
 	return [
-		{ type: 'label', value: 'signed-in-as', label: 'Logged in as', description: 'steve@newicon.net' },
+		{ type: 'label', value: 'signed-in-as', label: 'Logged in as', description: 'alex@example.com' },
 		{ separator: true },
 		{
 			value: 'organization-switcher',
@@ -100,9 +100,9 @@ const items = computed(buildMenuItems);
 <template>
 	<div class="grid gap-3">
 		<DomProfileMenu
-			name="Steve O'Brien"
-			email="steve@newicon.net"
-			initials="SO"
+			name="Alex Morgan"
+			email="alex@example.com"
+			initials="AM"
 			:items="items"
 			width="min-w-[19rem]"
 			@change="onMenuChange"

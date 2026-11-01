@@ -7,7 +7,7 @@ import { publicReleases, validateReleaseHistory } from './releaseRecords.js';
 export { publicReleases } from './releaseRecords.js';
 
 const markdown = new MarkdownIt({ html: false, linkify: false });
-const endpoint = 'https://api.github.com/repos/steve-obrien/dom.studio/releases';
+const endpoint = 'https://api.github.com/repos/steve-obrien/dom-studio-source/releases';
 let cached = fallback;
 let expiresAt = 0;
 let pending;

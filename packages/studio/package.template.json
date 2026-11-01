@@ -8,7 +8,7 @@
 	"homepage": "https://getdom.studio",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/steve-obrien/dom.studio.git"
+		"url": "git+https://github.com/steve-obrien/dom-studio-source.git"
 	},
 	"keywords": [
 		"vue",

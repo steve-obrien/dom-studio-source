@@ -85,9 +85,9 @@ const items = computed(buildMenuItems);
 <template>
 	<div class="grid gap-3">
 		<DomProfileMenu
-			name="Steve O'Brien"
-			email="steve@newicon.net"
-			initials="SO"
+			name="Alex Morgan"
+			email="alex@example.com"
+			initials="AM"
 			:items="items"
 			width="min-w-[19rem]"
 			@change="onMenuChange"

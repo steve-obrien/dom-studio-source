@@ -1,5 +1,10 @@
 # DOM Studio
 
+This repository is a reviewed source distribution of DOM Studio. It includes
+the components, blocks, examples, and documentation application, with a fresh
+Git history. Production deployment configuration and internal work records are
+not included. Use of the source remains subject to [LICENSE.md](LICENSE.md).
+
 DOM Studio is a complete Vue and Web Component UI system you can own, edit, and ship with humans and LLMs working from the same component contract.
 
 It includes:
@@ -183,58 +188,53 @@ distributed, or client use.
 See [`LICENSE.md`](LICENSE.md) for the evaluation grant, commercial permissions,
 and redistribution restrictions.
 
-## Package release
+## Package inspection
 
-Build and inspect the public npm package without publishing it:
+Build and inspect the npm package locally without publishing it:
 
 ```sh
 npm run package:check
+npm run package:smoke
 ```
 
-Create the package tarball after inspection:
+The generated package lives in `dist/npm`. It includes the public runtime,
+types, component guides, styles, and agent context. The website, application
+server, billing code, and repository-local blocks are excluded from that package.
+Use `npm run package:pack` to create a tarball for inspection.
 
-```sh
-npm run package:pack
-```
-
-Prepare a release, including reviewed notes in `CHANGELOG.md`, and validate its
-package before committing and tagging:
-
-```sh
-npm run release:prepare
-# Or choose an explicit version:
-npm run release:prepare -- 0.2.1
-```
-
-An annotated version tag triggers `.github/workflows/release.yml`, which publishes
-the tested package and creates GitHub Release notes after npm verification. The
-website displays published notes at `/releases`. See [the release guide](docs/releases.md)
-for one-time setup, AI-written changelogs, and recovery after partial failure.
-
-The generated package lives in `dist/npm`. It contains the public runtime export
-graph, generated declarations, stylesheet, agent context, README, and licence;
-it excludes the website, blocks, server, billing code, and documentation app.
+This source repository does not deploy the official website or publish npm
+releases. Published package notes are available at
+[DOM Studio releases](https://getdom.studio/releases). See
+[local package checks](docs/releases.md) for the commands available here.
 
 ## Development
 
+Use Node.js 22.12 or newer; Node.js 24 LTS is recommended for this checkout.
+Start the documentation app without connecting any external services:
+
 ```sh
-npm install
+npm ci
+cp .env.example .env
 npm run dev
+```
+
+Open `http://localhost:8100`. The development server and Vite live reload share
+that port; no local certificate or reverse proxy is required. Most component
+pages and in-memory block demos work without database or provider credentials.
+Some account, billing, blog, and AI features need their own service configuration
+and are unavailable until it is supplied. Do not use production credentials for
+local evaluation. See [local development](docs/local-development.md).
+
+```sh
 npm run dev:screenshot
 npm run build
 npm run preview
 npm run types:generate
 ```
 
-DOM Studio reserves local ports **8100–8199**. The main SSR/API server and
-Vite live reload share HTTP port `8100`; use `https://local.getdom.studio`
-through Caddy. `npm run preview` uses HTTP `8102`, and `npm run dev:screenshot`
-uses HTTP `8110`. There is no separate API listener on `8101`.
-Caddy terminates local HTTPS and forwards to `http://127.0.0.1:8100`, including
-WebSocket connections. The Node server needs no local TLS certificate, matching
-production where the reverse proxy owns HTTPS. Browser URLs and OAuth callbacks
-remain on `https://local.getdom.studio`.
-See `~/Sites/PORTS.md` for the shared allocation register.
+The screenshot server uses `http://localhost:8110`; production-build preview uses
+`http://localhost:8102`. To run Now's focused tests, install its separate dependencies
+once with `npm ci --prefix packages/now`.
 
 The reusable SSR/backend framework prototype lives in `packages/now`.
 
@@ -266,7 +266,7 @@ The debug duration defaults to four seconds and can be changed with
 `--dom-studio-motion-debug-duration`. The keyboard controls and CSS load only
 in development mode and are excluded from production builds.
 
-Use `npm run check:theme-ai` only when the theme AI endpoint is reachable. By default it posts to `https://local.getdom.studio/api/ai/theme`, or you can override that with `THEME_AI_ENDPOINT` and either `THEME_AI_PUBLIC_TOKEN` or `VITE_THEME_AI_PUBLIC_TOKEN`.
+Use `npm run check:theme-ai` only when the theme AI endpoint is reachable. By default it posts to `http://localhost:8100/api/ai/theme`, or you can override that with `THEME_AI_ENDPOINT` and either `THEME_AI_PUBLIC_TOKEN` or `VITE_THEME_AI_PUBLIC_TOKEN`.
 
 The root app is served by Now through `server.js`; `npm run dev`, `npm run build`, and `npm run preview` all use that SSR path.
 

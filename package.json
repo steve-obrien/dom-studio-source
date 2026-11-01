@@ -22,14 +22,11 @@
 		"package:check": "npm run package:build && npm_config_cache=/tmp/getdom-studio-npm-cache npm pack ./dist/npm --dry-run",
 		"package:pack": "npm run package:build && npm_config_cache=/tmp/getdom-studio-npm-cache npm pack ./dist/npm --pack-destination ./dist",
 		"package:smoke": "npm run package:build && npm_config_cache=/tmp/getdom-studio-npm-cache npm install --prefix tests/npm-package-smoke --package-lock=false && npm run build --prefix tests/npm-package-smoke",
-		"release": "node scripts/release-npm-package.mjs",
-		"release:prepare": "node scripts/release-npm-package.mjs",
 		"check:releases": "node --test scripts/release-npm-package.test.mjs",
 		"prepack": "npm run catalog:generate && npm run types:generate",
 		"check:form-definition": "node scripts/check-form-definition.mjs",
 		"check:theme-ai": "node scripts/check-theme-ai-endpoint.mjs",
 		"db:migrate": "knex migrate:latest",
-		"db:import:production": "node scripts/import-production-db.mjs",
 		"db:rollback": "knex migrate:rollback",
 		"now:test": "npm --prefix packages/now test",
 		"preview": "NODE_ENV=production PORT=8102 node server.js",
@@ -45,7 +42,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/steve-obrien/dom.studio.git"
+		"url": "git+https://github.com/steve-obrien/dom-studio-source.git"
 	},
 	"keywords": [
 		"vue",
@@ -58,7 +55,7 @@
 	"author": "Steve O'Brien",
 	"license": "SEE LICENSE IN LICENSE.md",
 	"bugs": {
-		"url": "https://github.com/steve-obrien/dom.studio/issues"
+		"url": "https://github.com/steve-obrien/dom-studio-source/issues"
 	},
 	"homepage": "https://getdom.studio",
 	"dependencies": {
@@ -161,5 +158,8 @@
 		"./llms.txt": "./public/llms.txt",
 		"./skill": "./SKILL.md",
 		"./skills.sh": "./public/skills.sh"
+	},
+	"engines": {
+		"node": ">=22.12.0"
 	}
 }

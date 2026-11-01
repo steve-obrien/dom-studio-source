@@ -47,7 +47,7 @@ function buildMenuItems() {
 			paths: organizationSettingsPaths,
 		},
 		{ separator: true },
-		{ type: 'label', value: 'account-label', label: 'Personal account', description: 'steve@newicon.net' },
+		{ type: 'label', value: 'account-label', label: 'Personal account', description: 'alex@example.com' },
 		{ value: 'profile', label: 'Profile', description: 'Personal details and preferences', icon: 'profile', href: '#profile', accessorySlot: 'theme-switcher' },
 		{ value: 'logout', label: 'Log out', description: 'End the current session', icon: 'logout', tone: 'danger' },
 	];
@@ -87,7 +87,7 @@ const items = computed(buildMenuItems);
 	<div class="grid gap-3">
 		<DomProfileMenu
 			:name="currentOrganization.name"
-			email="Steve O'Brien"
+			email="Alex Morgan"
 			:initials="currentOrganization.initials"
 			:items="items"
 			width="min-w-[19rem]"
