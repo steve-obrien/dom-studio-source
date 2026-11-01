@@ -47,7 +47,6 @@ const {
 const editorRef = ref(null);
 const editorInstance = shallowRef(null);
 const mediaDialogOpen = ref(false);
-const collaborationPreviewOpen = ref(false);
 const mediaRequest = shallowRef(null);
 const currentEditorPayload = ref(null);
 const collaborationDocument = shallowRef(null);
@@ -74,7 +73,7 @@ const collaborationSummary = computed(() => {
 		const others = Math.max(0, activeCollaborators.value.length - 1);
 		return others
 			? `${others} other ${others === 1 ? 'person is' : 'people are'} editing this temporary document.`
-			: 'You’re the only person here right now. Open another tab to edit together, or try the collaboration preview.';
+			: 'You’re the only person here right now. Open another tab to edit together, or try the collaboration preview above.';
 	}
 	return 'Connecting to the temporary collaboration room.';
 });
@@ -314,12 +313,11 @@ function isImageMediaItem(item) {
 			</svg>
 			<div class="min-w-0 flex-1 basis-56">
 				<h3 class="text-sm font-semibold text-canvas-fg">Realtime collaborative editing</h3>
-				<p class="mt-1 text-sm leading-6 text-muted-fg">Write together with live edits, named cursors, and shared selections. Exploring solo? See it in action with a demo teammate.</p>
+				<p class="mt-1 text-sm leading-6 text-muted-fg">Two views of the same sample document, with live edits, named cursors, and shared selections. Alex is a demo participant, so you can try editing together on your own.</p>
 			</div>
-			<DomButton class="w-full justify-center sm:w-auto" size="sm" variant="secondary" @click="collaborationPreviewOpen = true">
-				Preview collaboration
-			</DomButton>
 		</div>
+
+		<DocumentEditorCollaborationPreview />
 
 		<div class="flex w-full min-w-0 flex-wrap items-center gap-3 rounded-lg border border-border bg-canvas p-3">
 			<div class="min-w-0 flex-1">
@@ -347,7 +345,6 @@ function isImageMediaItem(item) {
 			:collaboration="collaboration"
 			:collaborators="remoteCollaborators"
 			:ai-user="aiUser"
-			autofocus
 			@change="handleEditorChange"
 			@media-request="openMediaPicker"
 			@ready="handleEditorReady"
@@ -382,16 +379,6 @@ function isImageMediaItem(item) {
 				density="compact"
 			/>
 		</div>
-
-		<DomDialog
-			v-model="collaborationPreviewOpen"
-			title="See collaboration in action"
-			description="Two views of the same sample document. Alex is a demo participant, so you can try editing together on your own."
-			size="xl"
-			@keydown.esc.capture.stop.prevent="collaborationPreviewOpen = false"
-		>
-			<DocumentEditorCollaborationPreview v-if="collaborationPreviewOpen" />
-		</DomDialog>
 
 		<DomDialog
 			v-model="mediaDialogOpen"

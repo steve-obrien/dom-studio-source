@@ -141,7 +141,7 @@ function configureExtensions({ extensions }) {
 				<Example
 					:source="DocumentEditorDemoSrc"
 					filename="DocumentEditorDemo.vue"
-					description="Everyone on this page can edit the same temporary document. See each other's changes and cursors as they happen, or open the collaboration preview to try it on your own."
+					description="Try the two connected editors below to see shared edits and cursors on your own, then use the live workspace to collaborate with other people on this page."
 					:preview-lines="0"
 				>
 					<DocumentEditorDemo />

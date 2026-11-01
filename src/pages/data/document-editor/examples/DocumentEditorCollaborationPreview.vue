@@ -140,19 +140,20 @@ function handleReady(index, { editor }) {
 }
 
 /**
- * Restores the sample and selects Alex's first paragraph so the other view
- * immediately demonstrates the real collaboration cursor and selection.
+ * Restores the sample and prepares Alex's first paragraph selection. Focus is
+ * opt-in so mounting the inline preview never moves focus or scrolls the page.
  *
+ * @param {boolean} [focusEditor=false] Whether an explicit action should focus Alex's editor.
  * @returns {void}
  */
-function resetPreview() {
+function resetPreview(focusEditor = false) {
 	if (!ready.value) return;
 	editors[0].commands.setContent(sampleDocument);
 	const from = editors[1].state.doc.firstChild.nodeSize + 1;
-	editors[1].chain()
-		.setTextSelection({ from, to: from + originalText.length })
-		.focus(null, { scrollIntoView: false })
-		.run();
+	const selection = editors[1].chain()
+		.setTextSelection({ from, to: from + originalText.length });
+	if (focusEditor) selection.focus(null, { scrollIntoView: false });
+	selection.run();
 	editAdded.value = false;
 }
 
@@ -190,12 +191,12 @@ function destroyPreview() {
 </script>
 
 <template>
-	<div class="space-y-4">
+	<section class="space-y-4" aria-label="Collaboration preview" data-collaboration-preview>
 		<div class="flex flex-wrap items-center gap-2">
 			<DomButton size="sm" variant="primary" :disabled="!ready || editAdded" @click="addAlexEdit">Try Alex’s edit</DomButton>
-			<DomButton size="sm" variant="secondary" :disabled="!ready" @click="resetPreview">Reset preview</DomButton>
+			<DomButton size="sm" variant="secondary" :disabled="!ready" @click="resetPreview(true)">Reset preview</DomButton>
 			<p v-if="ready" class="basis-full text-xs leading-5 text-muted-fg" role="status">
-				{{ editAdded ? 'Alex’s edit appeared in both views. Try typing or selecting text in either editor.' : 'Alex has selected a paragraph. Look for the named cursor and highlight in your view.' }}
+				{{ editAdded ? 'Alex’s edit appeared in both views. Try typing or selecting text in either editor.' : 'Type or select text in either editor to see the changes and named cursors in the other view.' }}
 			</p>
 			<p v-else class="basis-full text-xs leading-5 text-muted-fg" role="status">Loading collaboration preview…</p>
 		</div>
@@ -222,6 +223,6 @@ function destroyPreview() {
 				/>
 			</div>
 		</div>
-		<p class="text-xs leading-5 text-muted-fg">This preview stays in your browser and resets when you close it. To collaborate with another person, open the main demo in a second tab or share its link.</p>
-	</div>
+		<p class="text-xs leading-5 text-muted-fg">This preview stays in your browser and resets when you reload or leave the page. To collaborate with another person, open this page in a second tab or share its link and use the shared document below.</p>
+	</section>
 </template>
