@@ -58,6 +58,21 @@
 	}
 }
 
+/*
+ * Native single-line selects draw their own chevron. Safari paints its native
+ * arrow against the right border and ignores padding-right, so selects looked
+ * jammed against the edge. Unlayered so p-* and px-* utilities cannot take
+ * away the room the chevron needs; background-color utilities still apply.
+ */
+select:not([multiple], [size]) {
+	appearance: none;
+	padding-right: 2.25rem;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E");
+	background-position: right 0.625rem center;
+	background-repeat: no-repeat;
+	background-size: 1rem;
+}
+
 @theme inline {
 	--color-desktop-rail: var(--desktop-rail, var(--secondary));
 	--color-desktop-sidebar: var(--desktop-sidebar, var(--secondary));

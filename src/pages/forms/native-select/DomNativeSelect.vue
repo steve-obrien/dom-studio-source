@@ -51,22 +51,17 @@ function isSelected(value) { return String(field.value.value ?? '') === String(v
 
 <template>
 	<DomField v-bind="field.fieldAttrs.value" :chrome="chrome">
-		<div class="relative">
-			<select
-				v-bind="field.inputAttrs.value"
-				class="skin-input h-10 appearance-none pr-10"
-				@change="field.onInput($event.target.value)"
-				@focus="field.onFocus"
-				@blur="field.onBlur"
-			>
-				<option v-if="placeholder" disabled value="" :selected="isSelected('')">{{ placeholder }}</option>
-				<option v-for="option in options" :key="valueOf(option)" :value="valueOf(option)" :selected="isSelected(valueOf(option))">
-					{{ labelOf(option) }}
-				</option>
-			</select>
-			<svg class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-fg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-				<path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-			</svg>
-		</div>
+		<select
+			v-bind="field.inputAttrs.value"
+			class="skin-input h-10"
+			@change="field.onInput($event.target.value)"
+			@focus="field.onFocus"
+			@blur="field.onBlur"
+		>
+			<option v-if="placeholder" disabled value="" :selected="isSelected('')">{{ placeholder }}</option>
+			<option v-for="option in options" :key="valueOf(option)" :value="valueOf(option)" :selected="isSelected(valueOf(option))">
+				{{ labelOf(option) }}
+			</option>
+		</select>
 	</DomField>
 </template>
