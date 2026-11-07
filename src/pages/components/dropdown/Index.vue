@@ -18,6 +18,8 @@ import Rich from './examples/Rich.vue';
 import RichSrc from './examples/Rich.vue?raw';
 import WorkspaceSwitcher from './examples/WorkspaceSwitcher.vue';
 import WorkspaceSwitcherSrc from './examples/WorkspaceSwitcher.vue?raw';
+import ApplicationEnvironmentSwitcher from './examples/ApplicationEnvironmentSwitcher.vue';
+import ApplicationEnvironmentSwitcherSrc from './examples/ApplicationEnvironmentSwitcher.vue?raw';
 import StatusMenu from './examples/StatusMenu.vue';
 import StatusMenuSrc from './examples/StatusMenu.vue?raw';
 import Actions from './examples/Actions.vue';
@@ -75,6 +77,16 @@ const playgroundItems = [
 					description="Use rich dropdown rows for workspace, account, team, and organization switchers."
 				>
 					<WorkspaceSwitcher />
+				</Example>
+			</DocSection>
+
+			<DocSection eyebrow="Demo" title="Application and environment switcher">
+				<Example
+					:source="ApplicationEnvironmentSwitcherSrc"
+					filename="ApplicationEnvironmentSwitcher.vue"
+					description="Compose a two-column application and environment picker with a custom dropdown panel, two radio menus, avatars, and action buttons."
+				>
+					<ApplicationEnvironmentSwitcher />
 				</Example>
 			</DocSection>
 
