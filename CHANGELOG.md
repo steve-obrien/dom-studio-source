@@ -1,5 +1,67 @@
 # Changelog
 
+## 0.2.7 - 2026-11-07
+
+### Added
+
+- `@getdom/studio/designer` exports `DomDesigner`, a visual designer for Vue
+  layouts with a canvas, layers, inspector, rulers, multi-select with align and
+  distribute, in-place text editing and a two-way code view (plain or Monaco).
+  Its building blocks (editor session, code sync, inline text, layout geometry,
+  document model, history, Vue import and export, storage adapters) are
+  exported for custom editors.
+- Data grids gain opt-in pinned columns (`column.pinned`,
+  `v-model:pinnedColumns`), inline editing (`editable`, `column.editable`),
+  spreadsheet cell selection with copy, paste and undo (`cellSelection`), row
+  grouping with aggregates (`v-model:groupBy`, `groupsExpanded`), a totals row
+  (`showTotals`), a header column menu (`columnMenu`) and CSV and Excel export
+  (`exportable`, `exportFileName`, `exportCsv()`, `exportExcel()`).
+- Data grid columns resize by dragging a header divider. Other columns keep
+  their widths, and `min-column-width` limits how far a column shrinks.
+- `DomTypographyEditor` with typography model helpers, and `*FromCss` parsers
+  for the shadow, border, background and backdrop editors.
+- `DomDesktopLayout` for desktop application workspaces, with rail, sidebar,
+  selection and divider theme tokens.
+- `DomTreeView` gains `indent`, `guides` (`none`, `always`, `hover`) and
+  `selection` (`solid`, `subtle`) props, a `dense` density, and multiple
+  selection through `v-model:values`.
+- `DomSelect` has a compact `size="sm"` trigger for inspectors and toolbars.
+- `DomSplitterPanel` supports `reverse` to place the leading pane on the right.
+- `DomMonthCalendar` supports `layout="flush"` with `gutter-class` and
+  `bottom-border` for edge-to-edge calendars.
+- `DomFontPicker` accepts installed fonts with `source: 'system'`; they are
+  never requested from Google Fonts.
+- The package ships component docs under `docs/components/<Name>.md` (usage
+  guide where available plus a generated API reference) so AI agents can read
+  them without the source. Public types now include defaults, typed event
+  listeners, slots and exposed methods.
+- The dropdown docs include an application and environment switcher demo.
+
+### Improved
+
+- Pagination uses a lighter active page without heavy shadows and follows the
+  theme skin.
+- The document editor toolbar lines up with the paper and keeps editor focus
+  when its buttons are clicked.
+
+### Fixed
+
+- Native selects keep their chevron inset from the right border in every
+  browser. Safari previously drew it against the edge.
+- Data grids scroll smoothly on mobile: sticky header cells no longer create a
+  backdrop-filter layer each.
+- `DomTreeView` `compact` and `comfortable` densities now differ in row height.
+- `DomRadioGroup` options no longer submit a surrounding form.
+
+### Upgrade notes
+
+- Single-line `<select>` elements now use `appearance: none` with a drawn
+  chevron and 2.25rem of right padding that padding utilities cannot reduce.
+- `DomTreeView` with `density="comfortable"` now renders 40px rows; use
+  `compact` (the default, 32px) to keep the previous look.
+- The designer adds `@vue/compiler-dom` and `@vue/compiler-sfc` dependencies.
+- The package `repository` field now points to `steve-obrien/dom-studio-source`.
+
 ## 0.2.6 - 2026-10-10
 
 ### Fixed

@@ -1,6 +1,6 @@
 {
 	"name": "@getdom/studio",
-	"version": "0.2.6",
+	"version": "0.2.7",
 	"description": "A Vue 3 and Web Component interface system for application UI.",
 	"type": "module",
 	"license": "SEE LICENSE IN LICENSE.md",
