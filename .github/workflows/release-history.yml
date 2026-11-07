@@ -1,0 +1,64 @@
+name: Sync published release history
+
+on:
+  workflow_run:
+    workflows: ["Publish DOM Studio"]
+    types: [completed]
+  release:
+    types: [published, edited, deleted, unpublished]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-history-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    # Stays off until this repository has the production runner, secrets and a
+    # backfilled release history; set the RELEASE_HISTORY_SYNC variable to true.
+    if: vars.RELEASE_HISTORY_SYNC == 'true' && (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: [self-hosted, linux, ARM64, dom-studio]
+    timeout-minutes: 10
+    environment: production
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      APP_DIR: ${{ secrets.VM_APP_DIR || '/opt/getdom.studio' }}
+      SSH_HOST: ${{ secrets.VM_HOST }}
+      SSH_PORT: ${{ secrets.VM_PORT || '22' }}
+      SSH_USER: ${{ secrets.VM_USER }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Export published notes only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/export-release-history.mjs "$RUNNER_TEMP/release-history.json"
+      - name: Configure temporary SSH credentials
+        env:
+          VM_SSH_KEY: ${{ secrets.VM_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d "$RUNNER_TEMP/dom-studio-ssh"
+          umask 077
+          printf '%s\n' "$VM_SSH_KEY" > "$RUNNER_TEMP/dom-studio-ssh/deploy_key"
+          ssh-keyscan -p "$SSH_PORT" "$SSH_HOST" > "$RUNNER_TEMP/dom-studio-ssh/known_hosts"
+
+      - name: Atomically replace the shared website snapshot
+        run: |
+          set -euo pipefail
+          destination="$APP_DIR/shared/release-history.json"
+          temporary="$destination.$GITHUB_RUN_ID.$GITHUB_RUN_ATTEMPT.tmp"
+          scp -F /dev/null -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/dom-studio-ssh/known_hosts" -i "$RUNNER_TEMP/dom-studio-ssh/deploy_key" -P "$SSH_PORT" "$RUNNER_TEMP/release-history.json" "$SSH_USER@$SSH_HOST:$temporary"
+          ssh -F /dev/null -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile="$RUNNER_TEMP/dom-studio-ssh/known_hosts" -i "$RUNNER_TEMP/dom-studio-ssh/deploy_key" -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+          	"chmod 644 '$temporary' && mv -f '$temporary' '$destination'"
+
+      - name: Remove temporary SSH credentials
+        if: always()
+        run: rm -rf -- "$RUNNER_TEMP/dom-studio-ssh"

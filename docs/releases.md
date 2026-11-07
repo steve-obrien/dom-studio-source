@@ -1,14 +1,17 @@
-# Package checks in the source repository
+# DOM Studio releases
 
-This is the development repository with reviewed historical commits. Historical
-release markers use `history/vVERSION`; they navigate sanitized source and do
-not publish packages. Existing official version tags and release records remain
-unchanged in the previous operational repository. Published changes are also
-described in `CHANGELOG.md`.
+Releases of `@getdom/studio` come from this repository, `steve-obrien/dom-studio-source`.
+`CHANGELOG.md` is the reviewed source of release notes. Annotated `vVERSION` tags
+identify the released source; npm contains the package; GitHub Releases in this
+repository contain the published announcement.
 
-The official package remains `@getdom/studio`. This checkout has no publishing
-or production deployment workflows. Its root package is private to prevent
-accidental root publication.
+Historical release markers use `history/vVERSION`. They navigate sanitized source
+and never publish packages. Tags and GitHub Releases for 0.2.6 and earlier remain
+in the previous repository. Preserve existing published tags and npm versions:
+never move a release tag or republish a version.
+
+The repository root package is private to prevent accidental root publication.
+Do not run `npm publish` from the repository root.
 
 ## Validate and inspect
 
@@ -28,25 +31,77 @@ npm run package:smoke
 command publishes a release. `package:pack` writes a local tarball to `dist`.
 The package version is declared in `packages/studio/package.template.json`.
 
-Use [the official release page](https://getdom.studio/releases) for published
-release dates and notes. The local app's `/releases` page uses the bundled
-historical baseline unless `RELEASES_FILE` supplies a validated public snapshot.
-An optional `RELEASES_GITHUB_TOKEN` can read releases created in this source
-repository; it is not required for local development.
+## Prepare
 
-## Preparing future releases
+Review `git log --format=fuller PREVIOUS_TAG..HEAD` and the full diff. Write
+customer-facing notes for the intended changes, including dependency and
+migration requirements. Add a section `## VERSION - YYYY-MM-DD` to
+`CHANGELOG.md`, then run:
 
-`npm run release:prepare -- VERSION` validates a future package candidate locally.
-It never commits, pushes, tags, or publishes. Choose a version above the currently
-published npm version and write reviewed notes before running it. Publication
-from this repository requires the separate setup in
-[repository migration](repository-migration.md); no deployment or publishing
-workflow is enabled by this history import.
+```sh
+npm run release:prepare -- VERSION
+```
+
+`-- patch` accepts the suggested candidate (an already prepared unpublished
+version, otherwise the next patch). Preparation checks synchronized main,
+registry state, changelog, tests, builds and package contents, and writes the
+version into `packages/studio/package.template.json`. It never commits, pushes,
+tags or publishes.
+
+## Publish
+
+After reviewing and committing the intended files, push main and an annotated
+tag at that commit, only when publication is intended:
+
+```sh
+git push origin main
+git tag -a vVERSION -m "DOM Studio VERSION"
+git push origin vVERSION
+```
+
+The `Publish DOM Studio` workflow (`.github/workflows/release.yml`) verifies the
+annotated tag is on main and matches the package version, builds and tests the
+package, publishes the tarball with npm trusted publishing, verifies its
+registry integrity, then creates the GitHub Release from that version's
+changelog section. Reruns (`workflow_dispatch` with the existing tag) resume an
+interrupted publish only when the existing npm tarball has the identical
+integrity hash, and preserve existing GitHub Release notes.
+
+## One-time configuration
+
+- In the npm package settings for `@getdom/studio`, the GitHub trusted publisher
+  is owner `steve-obrien`, repository `dom-studio-source`, workflow
+  `release.yml`, environment `npm-release`, allowing direct `npm publish`.
+- The GitHub environment `npm-release` exists in this repository. Add release
+  approval or tag protection rules there as desired.
+- npm trusted publishing requires a GitHub-hosted runner; the workflow uses
+  Ubuntu and Node 24. The repository is private, so npm provenance is not
+  available. Never make the repository public as a release workaround.
+
+## Website release history
+
+`.github/workflows/release-history.yml` exports stable, published GitHub
+Releases from this repository and atomically replaces
+`$APP_DIR/shared/release-history.json` on the production server. It runs on the
+self-hosted `dom-studio` runner with the `production` environment's VM secrets.
+
+The sync stays off until the `RELEASE_HISTORY_SYNC` repository variable is set
+to `true`. Before enabling it, register the runner for this repository,
+configure the `production` environment secrets, and recreate the published
+0.2.x GitHub Releases here. The export reads only this repository's releases,
+so enabling it earlier would drop older entries from the website snapshot.
+Until then the website keeps serving its last good snapshot.
+
+`RELEASES_FILE` optionally overrides the snapshot path. The local app's
+`/releases` page uses the bundled historical baseline unless `RELEASES_FILE`
+supplies a validated public snapshot. An optional `RELEASES_GITHUB_TOKEN` can
+read releases from this repository directly; it is not required for local
+development.
 
 ## Secret scanning
 
 Run [Gitleaks](https://github.com/gitleaks/gitleaks) 8.30.1 or newer against the
-committed history before distributing an update:
+committed history before tagging a release:
 
 ```sh
 gitleaks git . --redact --log-opts="--all"

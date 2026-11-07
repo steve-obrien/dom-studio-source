@@ -77,9 +77,11 @@ repository. Import future work as reviewed patches or through the same history
 filtering process. Keep credentials, database exports, private applications,
 and internal work records out of both new commits and imported historical refs.
 
-Production deployment and npm publication are still configured separately in
-the previous operational repository. A push here is not proof of a deployment
-or package release. Preserve existing published tags and package versions.
+npm releases are published from this repository by pushing an annotated
+`vVERSION` tag (see `docs/releases.md`); never push a release tag unless a
+release is intended. Production site deployment is still configured in the
+previous operational repository, so a push here is not proof of a deployment.
+Preserve existing published tags and package versions.
 
 Use a dedicated, clearly named testing browser session. Do not take over a user's
 existing browser tabs. Close task-owned test tabs, browser instances, and local

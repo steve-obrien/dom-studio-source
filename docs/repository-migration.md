@@ -4,8 +4,9 @@ Development now belongs in `steve-obrien/dom-studio-source`, kept private initia
 The existing local `getdom.studio` project folder is the clean checkout;
 `dom-studio-source` is an alias to the same folder. Both use this repository
 and its `main` branch. Create new branches from that `main`.
-The previous repository remains intact for rollback and its existing operational
-configuration. Do not continue independent product development in both places.
+Package releases also come from this repository. The previous repository remains
+intact for rollback and still runs production site deployment. Do not continue
+independent product development in both places.
 
 ## Preserved history
 
@@ -27,8 +28,9 @@ were removed from messages. Filtered commits have new IDs.
 
 Release markers are named `history/v0.2.0` through `history/v0.2.6`. They do not
 replace published version tags or claim a new package release. Historical tags
-are not triggers for publication. Preserve official tags and existing npm
-versions in the original release system.
+are not triggers for publication. Official tags and GitHub Releases for 0.2.6
+and earlier remain in the previous repository; preserve them and existing npm
+versions.
 
 Never merge or mirror the unfiltered original repository into this one. An old
 branch can reintroduce the removed material through its ancestors, even if its
@@ -53,26 +55,31 @@ requested.
 
 ## Production and package publication
 
-Moving development does not move GitHub repository settings or external service
-bindings. At migration time, deployment, release-history synchronization, and
-npm publication are still attached to the previous operational repository.
-No site deployment or npm publication is performed by this migration.
+Package releases moved to this repository with 0.2.7. `.github/workflows/release.yml`
+publishes `@getdom/studio` from annotated `vVERSION` tags on main through npm
+trusted publishing with the `npm-release` environment; see
+[releases](releases.md). The npm trusted publisher for `@getdom/studio` names
+this repository, `release.yml` and `npm-release`. Do not republish an existing
+version or move an old published tag.
 
-Complete the operational changeover as a separate verified step:
+Production site deployment remains attached to the previous repository until
+its own changeover is verified:
 
-1. Restore and review the required deployment and release workflows in this
-	repository. Configure its `production` and `npm-release` environments.
+1. Restore and review the deployment workflow in this repository and configure
+	its `production` environment.
 2. Configure deployment credentials and the trusted runner for this repository,
 	or use an appropriate isolated runner. Repository secrets cannot be copied
 	by reading their old plaintext through GitHub's API.
 3. Point the production checkout at the new repository and selected reviewed
 	commit. Verify migration compatibility and the built application's health
 	before enabling automatic deployments here or retiring the old path.
-4. Update the npm trusted publisher to this repository's reviewed release
-	workflow and environment before the next new package version. Do not
-	republish an existing version or move an old published tag.
-5. Retain the existing published release-note snapshot and update its source
-	for future releases before retiring the previous synchronization workflow.
+
+Website release-history synchronization (`release-history.yml`) is present here
+but stays off until the `RELEASE_HISTORY_SYNC` repository variable is `true`.
+Enable it only after the runner and `production` secrets above are configured
+and the published 0.2.x GitHub Releases have been recreated here, so the
+website snapshot keeps its older entries. Then retire the previous
+synchronization workflow.
 
 The original repository should stay private. Retire its development and
 operational entry points only after their replacements are verified.
