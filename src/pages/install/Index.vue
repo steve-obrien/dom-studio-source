@@ -37,6 +37,8 @@ const recommendedCode = `:root,
 	--muted-fg: oklch(0.5 0 0);
 	--accent: oklch(0.97 0 0);
 	--accent-fg: oklch(0.205 0 0);
+	--selection: oklch(0.52 0.16 255);
+	--selection-fg: oklch(0.985 0 0);
 	--destructive: oklch(0.577 0.245 27.325);
 	--destructive-fg: oklch(0.985 0 0);
 	--success: oklch(0.57 0.194 149.35);
@@ -66,6 +68,8 @@ const darkCode = `[data-theme="dark"] {
 	--muted-fg: oklch(0.708 0 0);
 	--accent: oklch(0.269 0 0);
 	--accent-fg: oklch(0.985 0 0);
+	--selection: oklch(0.73 0.14 255);
+	--selection-fg: oklch(0.145 0 0);
 	--destructive: oklch(0.704 0.191 22.216);
 	--destructive-fg: oklch(0.985 0 0);
 	--success: oklch(0.696 0.17 162.48);

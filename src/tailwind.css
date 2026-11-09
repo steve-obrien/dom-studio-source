@@ -88,6 +88,8 @@ select:not([multiple], [size]) {
 	--color-muted-fg: var(--muted-fg);
 	--color-accent: var(--accent);
 	--color-accent-fg: var(--accent-fg);
+	--color-selection: var(--selection, var(--primary));
+	--color-selection-fg: var(--selection-fg, var(--primary-fg));
 	--color-destructive: var(--destructive);
 	--color-destructive-fg: var(--destructive-fg);
 	--color-success: var(--success);

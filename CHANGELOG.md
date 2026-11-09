@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.2.8 - 2026-11-09
+
+### Added
+
+- `--selection` and `--selection-fg` theme colors for persistent choices, with
+  Tailwind utilities, theme editor controls, and install examples.
+
+### Improved
+
+- The application and environment switcher example marks both selected choices
+  independently of hover and focus. It uses a compact single-box row, aligned
+  add actions, and Left/Right arrow keys to move between the two lists.
+- Selected rows keep a thin outline on hover; keyboard focus uses a stronger
+  outline so the focused choice remains distinct.
+
+### Upgrade notes
+
+- Custom themes can set `--selection` and `--selection-fg` in their light and
+  dark variants to control selected choices separately from primary actions.
+
 ## 0.2.7 - 2026-11-07
 
 ### Added

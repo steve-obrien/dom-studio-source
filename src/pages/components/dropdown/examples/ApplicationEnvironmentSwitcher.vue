@@ -3,6 +3,8 @@ import { computed, ref } from 'vue';
 import { DomAvatar, DomButton, DomDropdown, DomMenu } from '@getdom/studio/vue';
 
 const dropdown = ref(null);
+const applicationSection = ref(null);
+const environmentSection = ref(null);
 const lastAction = ref('');
 const applications = [
 	{
@@ -128,6 +130,22 @@ function requestAction(action) {
 	lastAction.value = action;
 	dropdown.value?.close();
 }
+
+/**
+ * Move keyboard focus between the application and environment radio lists.
+ *
+ * @param {KeyboardEvent} event Arrow-key event from a menu row.
+ * @param {'ArrowLeft' | 'ArrowRight'} direction Direction that enters the adjacent list.
+ * @returns {void}
+ */
+function moveBetweenMenus(event, direction) {
+	if (event.key !== direction || !event.target.closest('[role="menuitemradio"]')) return;
+	const targetSection = direction === 'ArrowRight' ? environmentSection.value : applicationSection.value;
+	const firstItem = targetSection?.querySelector('[role="menuitemradio"]');
+	if (!firstItem) return;
+	event.preventDefault();
+	firstItem.focus();
+}
 </script>
 
 <template>
@@ -135,7 +153,7 @@ function requestAction(action) {
 		<DomDropdown
 			ref="dropdown"
 			panel-type="dialog"
-			width="w-[min(42rem,calc(100vw-2rem))]"
+			width="w-[min(36rem,calc(100vw-2rem))]"
 		>
 			<template #trigger>
 				<DomAvatar :name="selectedApplication?.label" :initials="selectedApplication?.initials" shape="square" size="xs" class="bg-success/10 text-success ring-success/20" />
@@ -149,41 +167,55 @@ function requestAction(action) {
 
 			<template #panel>
 				<div role="dialog" aria-label="Application and environment" class="grid max-h-[min(75vh,33rem)] grid-cols-1 overflow-y-auto rounded-xl sm:grid-cols-2">
-					<section aria-label="Applications" class="flex min-h-48 min-w-0 flex-col sm:min-h-72">
-						<div class="min-h-0 flex-1 p-2">
+					<section ref="applicationSection" aria-label="Applications" class="flex min-w-0 flex-col" @keydown="moveBetweenMenus($event, 'ArrowRight')">
+						<div class="min-h-0 flex-1 p-2 [&_[role=menuitemradio][aria-checked=true]]:bg-selection/10 [&_[role=menuitemradio][aria-checked=true]]:ring-1 [&_[role=menuitemradio][aria-checked=true]]:ring-inset [&_[role=menuitemradio][aria-checked=true]]:ring-selection/60 [&_[role=menuitemradio][aria-checked=true]:hover]:bg-selection/15 [&_[role=menuitemradio][aria-checked=true]:hover]:ring-selection/80 [&_[role=menuitemradio][aria-checked=true]:focus]:bg-selection/15 [&_[role=menuitemradio][aria-checked=true]:focus-visible]:bg-selection/20 [&_[role=menuitemradio][aria-checked=true]:focus-visible]:ring-2 [&_[role=menuitemradio][aria-checked=true]:focus-visible]:ring-selection [&_[role=menuitemradio]:focus-visible]:ring-2 [&_[role=menuitemradio]:focus-visible]:ring-ring/70">
+							<h3 class="px-3 pb-1 pt-1 text-xs font-semibold uppercase tracking-wider text-muted-fg">Applications</h3>
 							<DomMenu :items="applicationItems" :skin="false" @change="selectApplication">
 								<template #item-row="{ item }">
-									<span class="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1" :class="item.checked && 'bg-secondary'">
+									<span class="flex min-w-0 flex-1 items-center gap-3">
 										<DomAvatar :name="item.label" :initials="item.initials" shape="square" size="sm" class="bg-success/10 text-success ring-success/20" />
-										<span class="min-w-0 truncate font-medium">{{ item.label }}</span>
+										<span class="min-w-0 flex-1 truncate font-medium">{{ item.label }}</span>
+										<span v-if="item.checked" class="ml-auto mr-1 grid size-5 shrink-0 place-items-center rounded-full bg-selection text-selection-fg" aria-hidden="true">
+											<svg viewBox="0 0 20 20" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10 3 3 7-7" /></svg>
+										</span>
 									</span>
 								</template>
 							</DomMenu>
 						</div>
 						<div class="border-t border-border p-2">
-							<DomButton variant="ghost" size="sm" class="w-full !justify-start !text-primary" @click="requestAction('New application')">
-								<span class="grid size-6 place-items-center rounded-lg border border-border text-lg leading-none" aria-hidden="true">+</span>
-								New application
+							<DomButton variant="ghost" size="md" class="w-full !h-12 !justify-start !gap-3 !rounded-xl !px-3" @click="requestAction('New application')">
+								<span class="grid size-8 shrink-0 place-items-center rounded-lg border border-border bg-canvas" aria-hidden="true">
+									<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+								</span>
+								<span class="leading-5">New application</span>
 							</DomButton>
 						</div>
 					</section>
 
-					<section :aria-label="`Environments for ${selectedApplication?.label}`" class="flex min-h-48 min-w-0 flex-col border-t border-border sm:min-h-72 sm:border-l sm:border-t-0">
-						<div class="min-h-0 flex-1 p-2">
+					<section ref="environmentSection" :aria-label="`Environments for ${selectedApplication?.label}`" class="flex min-w-0 flex-col border-t border-border sm:border-l sm:border-t-0" @keydown="moveBetweenMenus($event, 'ArrowLeft')">
+						<div class="min-h-0 flex-1 p-2 [&_[role=menuitemradio][aria-checked=true]]:bg-selection/10 [&_[role=menuitemradio][aria-checked=true]]:ring-1 [&_[role=menuitemradio][aria-checked=true]]:ring-inset [&_[role=menuitemradio][aria-checked=true]]:ring-selection/60 [&_[role=menuitemradio][aria-checked=true]:hover]:bg-selection/15 [&_[role=menuitemradio][aria-checked=true]:hover]:ring-selection/80 [&_[role=menuitemradio][aria-checked=true]:focus]:bg-selection/15 [&_[role=menuitemradio][aria-checked=true]:focus-visible]:bg-selection/20 [&_[role=menuitemradio][aria-checked=true]:focus-visible]:ring-2 [&_[role=menuitemradio][aria-checked=true]:focus-visible]:ring-selection [&_[role=menuitemradio]:focus-visible]:ring-2 [&_[role=menuitemradio]:focus-visible]:ring-ring/70">
+							<div class="flex items-center justify-between gap-2 px-3 pb-1 pt-1">
+								<h3 class="shrink-0 text-xs font-semibold uppercase tracking-wider text-muted-fg">Environments</h3>
+								<span class="min-w-0 truncate text-xs text-muted-fg">{{ selectedApplication?.label }}</span>
+							</div>
 							<DomMenu :key="selectedApplicationId" :items="environmentItems" :skin="false" @change="selectEnvironment">
 								<template #item-row="{ item }">
-									<span class="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-1" :class="item.checked && 'bg-secondary'">
+									<span class="flex min-w-0 flex-1 items-center gap-3">
 										<span class="grid size-8 shrink-0 place-items-center rounded-lg border border-border bg-canvas" aria-hidden="true"><span class="size-5 rounded-md bg-primary"></span></span>
-										<span class="min-w-0 truncate font-medium">{{ item.label }}</span>
-										<svg v-if="item.checked" viewBox="0 0 20 20" class="ml-auto size-4 shrink-0 text-muted-fg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 10 4 4 8-8" /></svg>
+										<span class="min-w-0 flex-1 truncate font-medium">{{ item.label }}</span>
+										<span v-if="item.checked" class="ml-auto mr-1 grid size-5 shrink-0 place-items-center rounded-full bg-selection text-selection-fg" aria-hidden="true">
+											<svg viewBox="0 0 20 20" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 10 3 3 7-7" /></svg>
+										</span>
 									</span>
 								</template>
 							</DomMenu>
 						</div>
 						<div class="border-t border-border p-2">
-							<DomButton variant="ghost" size="sm" class="w-full !justify-start !text-primary" @click="requestAction(`New environment for ${selectedApplication?.label}`)">
-								<span class="grid size-6 place-items-center rounded-lg border border-border text-lg leading-none" aria-hidden="true">+</span>
-								New environment
+							<DomButton variant="ghost" size="md" class="w-full !h-12 !justify-start !gap-3 !rounded-xl !px-3" @click="requestAction(`New environment for ${selectedApplication?.label}`)">
+								<span class="grid size-8 shrink-0 place-items-center rounded-lg border border-border bg-canvas" aria-hidden="true">
+									<svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+								</span>
+								<span class="leading-5">New environment</span>
 							</DomButton>
 						</div>
 					</section>

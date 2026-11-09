@@ -84,7 +84,7 @@ const playgroundItems = [
 				<Example
 					:source="ApplicationEnvironmentSwitcherSrc"
 					filename="ApplicationEnvironmentSwitcher.vue"
-					description="Compose a two-column application and environment picker with a custom dropdown panel, two radio menus, avatars, and action buttons."
+					description="Compose a two-column application and environment picker with persistent selection markers, arrow-key movement between radio menus, avatars, and action buttons."
 				>
 					<ApplicationEnvironmentSwitcher />
 				</Example>
