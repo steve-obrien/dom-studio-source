@@ -1,5 +1,11 @@
 [
 	{
+		"version": "0.2.8",
+		"title": "DOM Studio 0.2.8",
+		"publishedAt": "2026-11-09T11:37:15Z",
+		"body": "### Added\n\n- `--selection` and `--selection-fg` theme colors for persistent choices, with\n  Tailwind utilities, theme editor controls, and install examples.\n\n### Improved\n\n- The application and environment switcher example marks both selected choices\n  independently of hover and focus. It uses a compact single-box row, aligned\n  add actions, and Left/Right arrow keys to move between the two lists.\n- Selected rows keep a thin outline on hover; keyboard focus uses a stronger\n  outline so the focused choice remains distinct.\n\n### Upgrade notes\n\n- Custom themes can set `--selection` and `--selection-fg` in their light and\n  dark variants to control selected choices separately from primary actions.\n"
+	},
+	{
 		"version": "0.2.7",
 		"title": "DOM Studio 0.2.7",
 		"publishedAt": "2026-11-07T13:23:36Z",
