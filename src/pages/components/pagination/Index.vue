@@ -2,21 +2,31 @@
 import DomStudioLayout from '../../_layout/DomStudioLayout.vue';
 import DocPage from '../../_layout/DocPage.vue';
 import DocSection from '../../_layout/DocSection.vue';
-import Example from '../../_layout/docs/Example.vue';
+import ComponentGuide from '../../_layout/docs/ComponentGuide.vue';
 import Playground from '../../_layout/docs/Playground.vue';
 import ComponentProps from '../../_layout/docs/ComponentProps.vue';
 import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
+import ComponentKeyboard from '../../_layout/docs/ComponentKeyboard.vue';
 import { DomPagination } from '../../lib/vue';
 
 import ResourcePages from './examples/ResourcePages.vue';
 import ResourcePagesSrc from './examples/ResourcePages.vue?raw';
+import LargeDataset from './examples/LargeDataset.vue';
+import LargeDatasetSrc from './examples/LargeDataset.vue?raw';
+import guide from './DomPagination.md?guide';
 
 const doc = DomPagination.__doc;
+const examples = {
+	LargeDataset: { component: LargeDataset, source: LargeDatasetSrc },
+	ResourcePages: { component: ResourcePages, source: ResourcePagesSrc },
+};
 </script>
 
 <template>
 	<DomStudioLayout>
 		<DocPage :name="doc.name" :tagline="doc.description" :tag="doc.tag">
+			<ComponentGuide :guide="guide" :examples="examples" />
+
 			<DocSection eyebrow="Playground" title="Try every prop live">
 				<Playground
 					:inspect="DomPagination"
@@ -26,21 +36,12 @@ const doc = DomPagination.__doc;
 				/>
 			</DocSection>
 
-			<DocSection eyebrow="Demo" title="Resource page navigation">
-				<Example
-					:source="ResourcePagesSrc"
-					filename="ResourcePages.vue"
-					description="Use DomPagination beside data grids, audit logs, search results, and API-backed resource lists."
-				>
-					<ResourcePages />
-				</Example>
-			</DocSection>
-
 			<DocSection title="Reference">
 				<ComponentProps :component="DomPagination" />
 			</DocSection>
 
 			<ComponentEvents :component="DomPagination" />
+			<ComponentKeyboard :component="DomPagination" />
 		</DocPage>
 	</DomStudioLayout>
 </template>

@@ -28,6 +28,11 @@ const props = defineProps({
 		default: 'md',
 		_edit: { group: 'Control props', options: ['sm', 'md', 'lg'], description: 'Switch size. Matches DomButton size names.' },
 	},
+	showState: {
+		type: Boolean,
+		default: false,
+		_edit: { group: 'Control props', description: 'Show On or Off inside a wider switch track.' },
+	},
 });
 const emit = defineEmits(['update:modelValue', 'focus', 'blur']);
 
@@ -73,6 +78,14 @@ const sizeConfig = computed(() => ({
 	label: 'text-sm',
 	description: 'text-xs',
 	style: {},
+}));
+/** Reserves a fixed text area beside the thumb when the current state is shown. */
+const switchStyle = computed(() => ({
+	...sizeConfig.value.style,
+	...(props.showState ? {
+		'--dom-toggle-width': 'calc(var(--dom-toggle-thumb-size, 1.25rem) + 2.5rem + 4px)',
+		'--dom-toggle-thumb-offset': '2.5rem',
+	} : {}),
 }));
 const wrapperClasses = computed(() => [
 	'inline-flex items-center',
@@ -140,10 +153,17 @@ function toggleFromLabel() {
 			:aria-invalid="field.invalid.value || undefined"
 			:aria-errormessage="field.errorId.value || undefined"
 			:data-invalid="field.invalid.value ? '' : undefined"
-			:style="sizeConfig.style"
+			:style="switchStyle"
 			@focus="field.onFocus"
 			@blur="field.onBlur"
-		/>
+		>
+			<span
+				v-if="showState"
+				aria-hidden="true"
+				class="pointer-events-none absolute inset-y-0 flex w-10 select-none items-center justify-center text-xs font-semibold"
+				:class="field.value.value ? 'left-0.5 text-primary-fg' : 'right-0.5 text-canvas-fg'"
+			>{{ field.value.value ? 'On' : 'Off' }}</span>
+		</dom-toggle>
 		<span
 			v-if="chrome !== 'none' && (label || description || field.errors.value.length)"
 			class="grid gap-0.5"

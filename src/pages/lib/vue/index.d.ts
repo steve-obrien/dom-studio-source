@@ -6103,6 +6103,11 @@ export interface DomPaginationProps {
 	 */
 	pageCount?: number | null;
 	/**
+	 * Numbered page buttons with jump popovers, or a compact editable Page X of Y control for large datasets.
+	 * @default 'pages'
+	 */
+	variant?: "pages" | "input";
+	/**
 	 * Pages to show around the current page.
 	 * @default 1
 	 */
@@ -6118,7 +6123,7 @@ export interface DomPaginationProps {
 	 */
 	disabled?: boolean;
 	/**
-	 * Hide first and last buttons.
+	 * Hide first and last buttons. The input variant also hides them on small screens.
 	 * @default false
 	 */
 	compact?: boolean;
@@ -6871,6 +6876,11 @@ export interface DomToggleProps {
 	 * @default 'md'
 	 */
 	size?: "sm" | "md" | "lg";
+	/**
+	 * Show On or Off inside a wider switch track.
+	 * @default false
+	 */
+	showState?: boolean;
 	/**
 	 * Emitted when checked changes.
 	 * Payload: (checked: boolean)
@@ -9618,6 +9628,11 @@ export interface DomNumberInputProps {
 	 */
 	max?: number;
 	/**
+	 * Add a horizontal drag handle and focused mouse-wheel adjustment. Shift accelerates; mouse adjustments respect min, max and step.
+	 * @default false
+	 */
+	scrubbable?: boolean;
+	/**
 	 * Increment used by the browser spin buttons and arrow keys.
 	 * @default 1
 	 */
@@ -9637,6 +9652,11 @@ export interface DomNumberInputProps {
 	 * Payload: FocusEvent
 	 */
 	onBlur?: (payload: any) => void;
+	/**
+	 * Fired once when a mouse drag finishes. Model updates during the drag are live previews.
+	 * Payload: number
+	 */
+	onScrubEnd?: (payload: any) => void;
 }
 export declare const DomNumberInput: DomComponent<DomNumberInputProps>;
 

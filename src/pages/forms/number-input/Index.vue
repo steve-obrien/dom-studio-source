@@ -7,12 +7,15 @@ import Example from '../../_layout/docs/Example.vue';
 import Playground from '../../_layout/docs/Playground.vue';
 import ComponentProps from '../../_layout/docs/ComponentProps.vue';
 import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
+import ComponentKeyboard from '../../_layout/docs/ComponentKeyboard.vue';
 import { DomNumberInput } from '../../lib/vue';
 
 import QuantityInput from './examples/QuantityInput.vue';
 import QuantityInputSrc from './examples/QuantityInput.vue?raw';
 import DecimalAndPercentage from './examples/DecimalAndPercentage.vue';
 import DecimalAndPercentageSrc from './examples/DecimalAndPercentage.vue?raw';
+import ScrubbableInput from './examples/ScrubbableInput.vue';
+import ScrubbableInputSrc from './examples/ScrubbableInput.vue?raw';
 
 const doc = DomNumberInput.__doc;
 
@@ -90,6 +93,18 @@ Use the project's existing package manager and Vue conventions. Do not replace u
 				</Example>
 			</DocSection>
 
+			<DocSection eyebrow="Mouse controls" title="Drag and scroll to adjust">
+				<p class="mb-4 max-w-3xl text-sm leading-6 text-muted-fg">
+					Enable <code>scrubbable</code> for the designer's horizontal drag interaction. The left handle adjusts
+					the value; the mouse wheel adjusts only while the input has focus. Shift multiplies a step by ten,
+					and Escape cancels a drag. Mouse adjustments respect <code>min</code>, <code>max</code> and <code>step</code>.
+					Model values update live; use <code>@scrub-end</code> when a drag should trigger expensive work only once on release.
+				</p>
+				<Example :source="ScrubbableInputSrc" filename="ScrubbableInput.vue" :preview-lines="0">
+					<ScrubbableInput />
+				</Example>
+			</DocSection>
+
 			<DocSection eyebrow="Behavior" title="What value does v-model receive?">
 				<div class="grid gap-4 text-sm leading-6 text-muted-fg md:grid-cols-2">
 					<div class="rounded-lg border border-border p-4">
@@ -115,6 +130,7 @@ Use the project's existing package manager and Vue conventions. Do not replace u
 			<DocSection title="Vue number input API">
 				<ComponentProps :component="DomNumberInput" />
 				<ComponentEvents :component="DomNumberInput" />
+				<ComponentKeyboard :component="DomNumberInput" />
 			</DocSection>
 		</DocPage>
 	</DomStudioLayout>

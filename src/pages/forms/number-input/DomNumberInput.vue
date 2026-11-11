@@ -2,6 +2,7 @@
 import DomField from '../field/DomField.vue';
 import { fieldProps } from '../field/fieldProps.js';
 import { useField } from '../field/useField.js';
+import NumberInputControl from './NumberInputControl.vue';
 
 defineOptions({
 	__doc: {
@@ -13,6 +14,12 @@ defineOptions({
 			{ name: 'update:modelValue', payload: 'number | string', description: 'Fired with a number as the user types, or an empty string when cleared.' },
 			{ name: 'focus', payload: 'FocusEvent', description: 'Fired when the number input receives focus.' },
 			{ name: 'blur', payload: 'FocusEvent', description: 'Fired when the number input loses focus.' },
+			{ name: 'scrub-end', payload: 'number', description: 'Fired once when a mouse drag finishes. Model updates during the drag are live previews.' },
+		],
+		keyboard: [
+			{ keys: 'ArrowUp / ArrowDown', action: 'Adjust by one step. Scrubbable controls respect min and max.' },
+			{ keys: 'Shift + drag / arrows / wheel', action: 'Adjust ten steps at a time when scrubbable is enabled.' },
+			{ keys: 'Escape while dragging', action: 'Cancel the drag and restore its starting value.' },
 		],
 		playground: {
 			initial: {
@@ -44,13 +51,18 @@ const props = defineProps({
 		default: null,
 		_edit: { description: 'Maximum accepted number and native spinbutton boundary.' },
 	},
+	scrubbable: {
+		type: Boolean,
+		default: false,
+		_edit: { description: 'Add a horizontal drag handle and focused mouse-wheel adjustment. Shift accelerates; mouse adjustments respect min, max and step.' },
+	},
 	step: {
 		type: Number,
 		default: 1,
 		_edit: { description: 'Increment used by the browser spin buttons and arrow keys.' },
 	},
 });
-const emit = defineEmits(['update:modelValue', 'focus', 'blur']);
+const emit = defineEmits(['update:modelValue', 'focus', 'blur', 'scrub-end']);
 const field = useField(props, emit, { idPrefix: 'dom-number-input' });
 
 /**
@@ -68,7 +80,23 @@ function toNumber(value) {
 
 <template>
 	<DomField v-bind="field.fieldAttrs.value" :chrome="chrome">
+		<NumberInputControl
+			v-if="scrubbable"
+			v-bind="field.inputAttrs.value"
+			:model-value="field.value.value"
+			:min="min"
+			:max="max"
+			:step="step"
+			:disabled="field.disabled.value"
+			:read-only="field.readOnly.value"
+			scrubbable
+			@update:model-value="field.onInput"
+			@focus="field.onFocus"
+			@blur="field.onBlur"
+			@scrub-end="emit('scrub-end', $event)"
+		/>
 		<input
+			v-else
 			v-bind="field.inputAttrs.value"
 			type="number"
 			:min="min"

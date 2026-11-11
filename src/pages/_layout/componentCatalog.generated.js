@@ -929,6 +929,32 @@ export const componentCatalog = [
 					"description": "Fired with page transition metadata."
 				}
 			],
+			"keyboard": [
+				{
+					"keys": "Tab / Shift+Tab",
+					"action": "Move between navigation buttons, the page field, and Go."
+				},
+				{
+					"keys": "Enter / Space",
+					"action": "Activate a page button or open a Go to page popover."
+				},
+				{
+					"keys": "Enter in page field",
+					"action": "Navigate to a valid page. Typing and blur do not navigate."
+				},
+				{
+					"keys": "Esc",
+					"action": "Cancel a page edit or close the popover and return focus to its trigger."
+				},
+				{
+					"keys": "Drag ellipsis / Shift + drag",
+					"action": "Preview pages within the omitted range; release to navigate once. Shift moves ten pages per step; Escape cancels."
+				},
+				{
+					"keys": "Focused wheel / ArrowUp / ArrowDown",
+					"action": "Adjust the page draft within its bounds. Enter or Go commits it."
+				}
+			],
 			"playground": {
 				"initial": {
 					"page": 4,
@@ -4127,6 +4153,25 @@ export const componentCatalog = [
 					"name": "blur",
 					"payload": "FocusEvent",
 					"description": "Fired when the number input loses focus."
+				},
+				{
+					"name": "scrub-end",
+					"payload": "number",
+					"description": "Fired once when a mouse drag finishes. Model updates during the drag are live previews."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "ArrowUp / ArrowDown",
+					"action": "Adjust by one step. Scrubbable controls respect min and max."
+				},
+				{
+					"keys": "Shift + drag / arrows / wheel",
+					"action": "Adjust ten steps at a time when scrubbable is enabled."
+				},
+				{
+					"keys": "Escape while dragging",
+					"action": "Cancel the drag and restore its starting value."
 				}
 			],
 			"playground": {
