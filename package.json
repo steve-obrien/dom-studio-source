@@ -28,6 +28,8 @@
 		"check:theme-ai": "node scripts/check-theme-ai-endpoint.mjs",
 		"db:migrate": "knex migrate:latest",
 		"db:rollback": "knex migrate:rollback",
+		"report:access-clicks": "node scripts/report-access-clicks.mjs",
+		"check:access-clicks": "node --test server/lib/accessClicks.test.js",
 		"now:test": "npm --prefix packages/now test",
 		"preview": "NODE_ENV=production PORT=8102 node server.js",
 		"dev:screenshot": "HOST=127.0.0.1 PORT=8110 npm run dev",

@@ -11,7 +11,7 @@ import { openAnalyticsSettings } from '../../analytics.js';
 	<DomStudioLayout>
 		<DocPage name="Privacy policy" eyebrow="Legal" tagline="How DB3 Ltd handles personal information when you visit getdom.studio, buy a licence, or use our online services.">
 			<div class="space-y-10 text-base leading-7 text-muted-fg [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4">
-				<p class="text-sm">Last updated: <time datetime="2026-09-28">28 September 2026</time></p>
+				<p class="text-sm">Last updated: <time datetime="2026-11-12">12 November 2026</time></p>
 				<DocSection title="1. Who is responsible for your information">
 					<LegalBusinessDetails />
 					<p>We are the controller of personal information used to run this website, manage DOM Studio purchases and accounts, and respond to enquiries. This policy covers those activities. If you use DOM Studio components in your own application, you are responsible for that application's data handling and privacy notices.</p>
@@ -22,9 +22,10 @@ import { openAnalyticsSettings } from '../../analytics.js';
 						<li><strong class="text-canvas-fg">Purchase and licence information:</strong> purchaser or business name, email address, licence type and reference, payment status, amount, currency, transaction identifiers, receipts and the licence terms supplied with your purchase. Stripe collects payment and billing details directly; we do not receive or store your full payment card number or security code.</li>
 						<li><strong class="text-canvas-fg">Technical information:</strong> IP address, browser and device information, requested pages, timestamps, and diagnostic or security events generated when your browser communicates with the website and its service providers.</li>
 						<li><strong class="text-canvas-fg">Optional analytics:</strong> when you allow analytics, Google Analytics receives information about visits, pages, interactions, device/browser characteristics, referral sources and approximate location.</li>
+						<li><strong class="text-canvas-fg">Anonymous click totals:</strong> our server counts Get full access clicks by day, button layout, broad page section, device type and browser family. These totals do not contain IP addresses, account details, cookies, full URLs or visitor identifiers, and are not sent to Google. Temporary network-based checks help filter bots and rapid repeats; their limit keys expire from server memory within one minute.</li>
 						<li><strong class="text-canvas-fg">Content you submit:</strong> prompts, theme settings and information you enter into online features. Some interactive examples send input to our server; others use browser storage. Please use sample data in demonstrations and avoid personal, confidential or sensitive information.</li>
 					</ul>
-					<p>We receive information directly from you, automatically from your use of the site, and from providers such as Stripe when they confirm a payment. Information needed to fulfil a purchase or authenticate an account is necessary for that service; without it we may be unable to provide access. Analytics is optional.</p>
+					<p>We receive information directly from you, automatically from your use of the site, and from providers such as Stripe when they confirm a payment. Information needed to fulfil a purchase or authenticate an account is necessary for that service; without it we may be unable to provide access. Google Analytics is optional.</p>
 				</DocSection>
 				<DocSection title="3. Why we use it and our legal bases">
 					<ul class="list-disc space-y-3 pl-6">
@@ -38,7 +39,7 @@ import { openAnalyticsSettings } from '../../analytics.js';
 				<DocSection title="4. Cookies and browser storage">
 					<p>We use cookies and similar storage for sign-in, security and the preferences you choose. The <code class="break-all">dom_studio_session</code> cookie keeps you signed in and is normally valid for up to 30 days, unless you sign out or it is invalidated earlier. Browser storage remembers settings such as your theme, documentation layout and analytics choice, and may hold work you save in interactive tools. Local storage remains until you clear it or the relevant feature replaces it.</p>
 					<p>Google Analytics is disabled until you choose to allow it. When enabled, Google may set cookies such as <code>_ga</code> and <code>_ga_…</code> to distinguish visits; these can persist for up to two years, subject to Google's settings and your browser. Our analytics integration excludes authentication and licence pages and does not enable advertising consent.</p>
-					<p><button type="button" class="font-medium text-primary underline underline-offset-4" @click="openAnalyticsSettings">Open Cookie settings</button> to allow or decline analytics at any time. Declining stops further analytics collection by our integration. You can also delete existing cookies and local storage in your browser. Blocking essential storage may prevent sign-in or stop preferences being remembered. Stripe's checkout uses its own cookies and privacy controls.</p>
+					<p><button type="button" class="font-medium text-primary underline underline-offset-4" @click="openAnalyticsSettings">Open Cookie settings</button> to allow or decline Google Analytics at any time. Declining stops further Google Analytics collection by our integration. The anonymous click totals use no cookies or browser storage and are separate from that choice; our counter skips requests carrying Do Not Track or Global Privacy Control signals. You can also delete existing cookies and local storage in your browser. Blocking essential storage may prevent sign-in or stop preferences being remembered. Stripe's checkout uses its own cookies and privacy controls.</p>
 				</DocSection>
 				<DocSection title="5. Providers and information sharing">
 					<p>We share information only as needed to provide the service, operate the business or meet legal duties. The services involved include:</p>
@@ -57,6 +58,7 @@ import { openAnalyticsSettings } from '../../analytics.js';
 				<DocSection title="7. How long information is kept">
 					<p>We retain information according to its purpose, the continuing licence relationship, legal requirements and any unresolved dispute. Account records are kept while needed to provide access. Because licences permit ongoing use, we retain the minimum purchase and entitlement evidence needed to verify those rights, including after an account closes where necessary.</p>
 					<p>Financial records are retained for the applicable statutory accounting and tax period. Enquiries, security logs and diagnostic records are kept only as long as needed to resolve the issue, protect the service or establish or defend a claim. Provider-held records follow the retention applicable to their service and our configuration. Backups may retain information until their normal replacement cycle completes.</p>
+					<p>Anonymous daily click totals may be retained for comparison over time. They contain no individual visitor history.</p>
 					<p>You can ask us about the retention applicable to a particular record or request deletion. We may need to retain some information to meet legal obligations or preserve evidence of a licence; we will explain this when responding.</p>
 				</DocSection>
 				<DocSection title="8. Your rights and choices">

@@ -56,7 +56,7 @@ onBeforeUnmount(() => {
 		<div>
 			<p id="analytics-consent-title" class="font-semibold">Help improve DOM Studio</p>
 			<p id="analytics-consent-description" class="mt-1 text-sm leading-6 text-muted-fg">
-				Allow privacy-conscious Google Analytics to measure visits and understand which documentation is useful. Analytics stays off unless you choose to allow it.
+				Allow privacy-conscious Google Analytics to measure visits and understand which documentation is useful. Google Analytics stays off unless you choose to allow it. We also keep anonymous totals of Get full access clicks without cookies.
 				<RouterLink to="/privacy" class="text-primary underline underline-offset-4">Privacy policy</RouterLink>.
 			</p>
 		</div>

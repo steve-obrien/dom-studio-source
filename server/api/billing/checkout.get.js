@@ -4,6 +4,7 @@ import { getOfferForLicence, normalizeLicence } from '../../lib/billingOffer.js'
 import { getPaymentLinkId, validatePaymentLink } from '../../lib/billingCheckout.js';
 import { getBillingOrigin } from '../../lib/licenceEmail.js';
 import { privateBillingResponse } from '../../lib/billingHttp.js';
+import { recordAccessClick } from '../../lib/accessClicks.js';
 
 /**
  * Sends a guest or signed-in buyer straight to a verified licence Payment Link.
@@ -16,6 +17,8 @@ import { privateBillingResponse } from '../../lib/billingHttp.js';
 export async function get(req, res) {
 	const licence = normalizeLicence(req.query?.licence);
 	privateBillingResponse(res);
+	// Analytics must not delay checkout, including during database failures.
+	void recordAccessClick(req);
 	const auth = await getAuthSession(req);
 
 	const offer = getOfferForLicence(licence);

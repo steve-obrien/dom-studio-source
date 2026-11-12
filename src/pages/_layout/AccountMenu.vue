@@ -107,7 +107,7 @@ async function selectAccountAction(value) {
 			</DomButton>
 			<DomButton
 				:as="'a'"
-				href="/api/billing/checkout?licence=individual"
+				:href="`/api/billing/checkout?licence=individual&source=get-full-access&placement=${compact ? 'compact' : 'standard'}`"
 				:size="compact ? 'sm' : 'md'"
 				:aria-label="compact ? 'Get full access' : undefined"
 				:title="compact ? 'Get full access' : undefined"
@@ -153,7 +153,7 @@ async function selectAccountAction(value) {
 		<template v-if="needsPurchase">
 			<DomButton
 				:as="'a'"
-				href="/api/billing/checkout?licence=individual"
+				:href="`/api/billing/checkout?licence=individual&source=get-full-access&placement=${compact ? 'compact' : 'standard'}`"
 				:size="compact ? 'sm' : 'md'"
 				:aria-label="compact ? 'Get full access' : undefined"
 				:title="compact ? 'Get full access' : undefined"
