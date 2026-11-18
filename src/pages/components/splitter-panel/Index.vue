@@ -7,6 +7,7 @@ import Example from '../../_layout/docs/Example.vue';
 import ComponentProps from '../../_layout/docs/ComponentProps.vue';
 import ComponentSlots from '../../_layout/docs/ComponentSlots.vue';
 import ComponentEvents from '../../_layout/docs/ComponentEvents.vue';
+import ComponentKeyboard from '../../_layout/docs/ComponentKeyboard.vue';
 import { DomSplitterPanel } from '../../lib/vue';
 
 import EditorWorkspace from './examples/EditorWorkspace.vue';
@@ -100,11 +101,11 @@ const previewHeight = ref(420);
 				</Example>
 			</DocSection>
 
-			<DocSection eyebrow="Demo" title="Two-pane review">
+			<DocSection eyebrow="Demo" title="Collapsible conversation sidebar">
 				<Example
 					:source="InboxReviewSrc"
 					filename="InboxReview.vue"
-					description="Omit the end slot when a list/detail layout only needs one resizable side panel."
+					description="Drag the divider toward Conversations. It holds at 160 px, then snaps closed after another 32 px. Pull the divider back into the conversation to reopen the sidebar, or focus it and press Enter."
 				>
 					<InboxReview />
 				</Example>
@@ -114,7 +115,7 @@ const previewHeight = ref(420);
 				<Example
 					:source="NestedWorkspaceSrc"
 					filename="NestedWorkspace.vue"
-					description="Combine horizontal and vertical splitters to build denser editor, console, and inspector layouts."
+					description="Horizontal and vertical splitters use flush dividers so the console border meets the side panels. The divider stays easy to grab."
 				>
 					<NestedWorkspace />
 				</Example>
@@ -138,9 +139,17 @@ const previewHeight = ref(420);
 				<CodeBlock :code="verticalVue" lang="vue" />
 			</DocSection>
 
+			<DocSection eyebrow="Usage" title="Enable drag-to-collapse">
+				<div class="max-w-3xl space-y-4 text-sm leading-7 text-muted-fg">
+					<p>Enable <code>start-collapsible</code> or <code>end-collapsible</code> on either axis. The pane holds at its expanded minimum until you drag past it by <code>collapse-threshold</code>, which defaults to 32 pixels. Drag the divider away from the edge to reopen the pane and continue resizing.</p>
+					<p>A collapsed pane reports a size of <code>0</code> through <code>v-model:start-size</code> or <code>v-model:end-size</code>. Set the model to <code>0</code> to start collapsed or close it from another control. Set it to a positive size to reopen it.</p>
+				</div>
+			</DocSection>
+
 			<DocSection title="Reference">
 				<ComponentProps :component="DomSplitterPanel" />
 				<ComponentEvents :component="DomSplitterPanel" />
+				<ComponentKeyboard :component="DomSplitterPanel" />
 			</DocSection>
 
 			<ComponentSlots :component="DomSplitterPanel" />

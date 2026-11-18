@@ -2954,12 +2954,12 @@ export interface DomSplitterPanelProps {
 	 */
 	reverse?: boolean;
 	/**
-	 * Initial width or height of the leading pane in pixels.
+	 * Width or height of the leading pane in pixels. Pass 0 to collapse it when startCollapsible is enabled.
 	 * @default 280
 	 */
 	startSize?: number;
 	/**
-	 * Initial width or height of the trailing pane in pixels.
+	 * Width or height of the trailing pane in pixels. Pass 0 to collapse it when endCollapsible is enabled.
 	 * @default 360
 	 */
 	endSize?: number;
@@ -2979,32 +2979,52 @@ export interface DomSplitterPanelProps {
 	 */
 	minEnd?: number;
 	/**
+	 * Allow the leading pane to snap closed when dragged past its expanded minimum.
+	 * @default false
+	 */
+	startCollapsible?: boolean;
+	/**
+	 * Allow the trailing pane to snap closed when dragged past its expanded minimum.
+	 * @default false
+	 */
+	endCollapsible?: boolean;
+	/**
+	 * Extra drag distance in pixels to snap a pane closed or pull it open, capped at that pane’s expanded minimum.
+	 * @default 32
+	 */
+	collapseThreshold?: number;
+	/**
 	 * Splitter handle hit area in pixels.
 	 * @default 8
 	 */
 	handleSize?: number;
 	/**
-	 * Classes applied to each resize button. Use this to make handles transparent, bordered, or prominent.
+	 * Join adjacent panes with a one-pixel divider while keeping the full handle hit area.
+	 * @default false
+	 */
+	flush?: boolean;
+	/**
+	 * Classes applied to each resize handle. Use this to make handles transparent, bordered, or prominent.
 	 * @default 'transition hover:bg-ring/25 focus-visible:bg-ring/35 data-[dragging=true]:bg-ring/35'
 	 */
 	handleClass?: string | Array<unknown> | Record<string, unknown>;
 	/**
-	 * Additional classes applied to the active resize button while dragging.
+	 * Additional classes applied to the active resize handle while dragging.
 	 * @default ''
 	 */
 	activeHandleClass?: string | Array<unknown> | Record<string, unknown>;
 	/**
-	 * Classes applied to the small visual indicator inside each resize button.
+	 * Classes applied to the small visual indicator inside each resize handle.
 	 * @default ''
 	 */
 	handleIndicatorClass?: string | Array<unknown> | Record<string, unknown>;
 	/**
-	 * Emitted when the leading pane is resized.
+	 * Emitted when the leading pane is resized. A collapsed pane emits 0.
 	 * Payload: (pixels)
 	 */
 	"onUpdate:startSize"?: (payload: any) => void;
 	/**
-	 * Emitted when the trailing pane is resized.
+	 * Emitted when the trailing pane is resized. A collapsed pane emits 0.
 	 * Payload: (pixels)
 	 */
 	"onUpdate:endSize"?: (payload: any) => void;

@@ -1187,28 +1187,40 @@ export const componentCatalog = [
 				},
 				{
 					"name": "start-handle",
-					"description": "Optional content inside the leading resize handle."
+					"description": "Optional content inside the leading resize handle.",
+					"props": "{ active, orientation, collapsed }"
 				},
 				{
 					"name": "end-handle",
-					"description": "Optional content inside the trailing resize handle."
+					"description": "Optional content inside the trailing resize handle.",
+					"props": "{ active, orientation, collapsed }"
 				}
 			],
 			"events": [
 				{
 					"name": "update:startSize",
 					"payload": "(pixels)",
-					"description": "Emitted when the leading pane is resized."
+					"description": "Emitted when the leading pane is resized. A collapsed pane emits 0."
 				},
 				{
 					"name": "update:endSize",
 					"payload": "(pixels)",
-					"description": "Emitted when the trailing pane is resized."
+					"description": "Emitted when the trailing pane is resized. A collapsed pane emits 0."
 				},
 				{
 					"name": "resize",
 					"payload": "({ startSize, endSize })",
 					"description": "Emitted after either splitter handle moves."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Arrow keys",
+					"action": "Resize along the splitter axis. Hold Shift for larger steps. Press the arrow away from the collapsed edge to reopen a pane at its minimum."
+				},
+				{
+					"keys": "Enter",
+					"action": "Collapse the pane or restore its previous size when collapse is enabled."
 				}
 			]
 		},

@@ -2,22 +2,23 @@
 import { ref } from 'vue';
 import { DomSplitterPanel } from '../../../lib/vue';
 
-const listWidth = ref(280);
+const listWidth = ref(260);
 </script>
 
 <template>
 	<div class="w-full overflow-x-auto">
 		<DomSplitterPanel
 			v-model:start-size="listWidth"
-			class="h-[320px] min-w-[720px] overflow-hidden rounded-xl border border-border bg-canvas text-sm shadow-sm"
-			:min-start="220"
-			:min-main="360"
+			class="h-[320px] overflow-hidden rounded-xl border border-border bg-canvas text-sm shadow-sm"
+			:min-start="160"
+			:min-main="140"
+			:handle-size="12"
+			start-collapsible
 		>
 			<template #start>
-				<aside class="h-full border-r border-border skin-card">
+				<aside class="h-full overflow-y-auto border-r border-border skin-card">
 					<header class="border-b border-border px-4 py-3">
-						<p class="font-semibold text-canvas-fg">Inbox</p>
-						<p class="text-xs text-muted-fg">Drag the divider to widen the message list.</p>
+						<p class="font-semibold text-canvas-fg">Conversations</p>
 					</header>
 					<div class="divide-y divide-border">
 						<button class="block w-full bg-secondary px-4 py-3 text-left">
@@ -36,9 +37,9 @@ const listWidth = ref(280);
 				</aside>
 			</template>
 
-			<article class="h-full min-w-0 overflow-y-auto p-6">
+			<article class="h-full min-w-0 overflow-y-auto p-3 sm:p-6">
 				<p class="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Design review</p>
-				<h3 class="mt-2 text-2xl font-semibold tracking-tight text-canvas-fg">The template editor feels clearer with resizable tools.</h3>
+				<h3 class="mt-2 text-lg font-semibold tracking-tight text-canvas-fg sm:text-2xl">Template editor feedback</h3>
 				<p class="mt-3 leading-7 text-muted-fg">
 					Two-pane splitters are useful when the primary content should stay dominant, but a navigation or list panel still needs manual control.
 				</p>

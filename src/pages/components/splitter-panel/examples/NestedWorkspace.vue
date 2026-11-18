@@ -16,10 +16,11 @@ const preview = ref(250);
 			:min-start="180"
 			:min-main="320"
 			:min-end="220"
+			flush
 			handle-class="transition hover:bg-border/70 focus-visible:bg-ring/35 data-[dragging=true]:bg-ring/30"
 		>
 			<template #start>
-				<aside class="flex h-full flex-col skin-card">
+				<aside class="flex h-full flex-col bg-canvas">
 					<header class="border-b border-border px-4 py-3">
 						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Workspace</p>
 					</header>
@@ -38,6 +39,7 @@ const preview = ref(250);
 				:min-start="170"
 				:min-main="120"
 				:handle-size="10"
+				flush
 				handle-class="transition hover:bg-border/70 focus-visible:bg-ring/35 data-[dragging=true]:bg-ring/30"
 			>
 				<template #start>
@@ -62,7 +64,7 @@ const preview = ref(250);
 					</main>
 				</template>
 
-				<section class="h-full overflow-auto border-t border-border bg-canvas p-4 font-mono text-xs leading-6 text-muted-fg">
+				<section class="h-full overflow-auto bg-canvas p-4 font-mono text-xs leading-6 text-muted-fg">
 					<p class="text-canvas-fg">build: preview updated</p>
 					<p>layout: vertical splitter resized</p>
 					<p>sync: persisted panel sizes</p>
@@ -71,7 +73,7 @@ const preview = ref(250);
 			</DomSplitterPanel>
 
 			<template #end>
-				<aside class="h-full overflow-auto skin-card p-4">
+				<aside class="h-full overflow-auto bg-canvas p-4">
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-fg">Inspector</p>
 					<div class="mt-4 space-y-3">
 						<label class="block text-xs font-medium text-muted-fg">Width</label>
@@ -79,7 +81,7 @@ const preview = ref(250);
 						<label class="block text-xs font-medium text-muted-fg">Height</label>
 						<div class="rounded-md border border-border bg-canvas px-3 py-2 text-canvas-fg">split</div>
 						<label class="block text-xs font-medium text-muted-fg">Handle</label>
-						<div class="rounded-md border border-border bg-canvas px-3 py-2 text-canvas-fg">transparent</div>
+						<div class="rounded-md border border-border bg-canvas px-3 py-2 text-canvas-fg">flush</div>
 					</div>
 				</aside>
 			</template>
