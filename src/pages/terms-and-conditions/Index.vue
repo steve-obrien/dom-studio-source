@@ -11,14 +11,14 @@ import licenceUrl from '../../../LICENSE.md?url';
 	<DomStudioLayout>
 		<DocPage name="Terms and conditions" eyebrow="Legal" tagline="The terms for using getdom.studio and purchasing DOM Studio licences from DB3 Ltd.">
 			<div class="space-y-10 text-base leading-7 text-muted-fg [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-4">
-				<p class="text-sm">Last updated: <time datetime="2026-09-28">28 September 2026</time></p>
+				<p class="text-sm">Last updated <time datetime="2026-11-22">22 November 2026</time></p>
 				<DocSection title="1. About us and these terms">
 					<LegalBusinessDetails />
 					<p>These terms apply to the DOM Studio website, documentation, online tools and purchases. Please read them before using the services or placing an order and keep a copy for your records. You must be at least 18 to purchase or create an account. If you act for an organisation, you confirm that you have authority to bind it.</p>
 					<p>Software use is also governed by the <a :href="licenceUrl" download="DOM-Studio-Commercial-License.md">DOM Studio Commercial License 1.0</a>, supplied with the package and purchase confirmation. The licence controls software permissions and restrictions; your order confirmation controls the purchased licence type, price and any expressly agreed additional services. These terms do not reduce rights promised with an existing purchase or override mandatory consumer rights.</p>
 				</DocSection>
 				<DocSection title="2. What DOM Studio provides">
-					<p>DOM Studio provides Vue and Web Component interface software, source materials, examples and documentation. The public package is available for local evaluation. Production, deployed, distributed and paid client use requires an appropriate commercial licence.</p>
+					<p>DOM Studio provides Vue and Web Component interface software, source materials, examples and documentation. The public source repository and npm package are available for free local evaluation and non-public testing. A commercial licence is required for production, including internal business apps, for products you publish or distribute, and for paid client work.</p>
 					<p>The product and included access are described on the pricing page and in your order. Features identified as experimental, beta, planned or preview may change. Base your purchase on the features and commitments stated at the time of purchase, not on an assumption that a future feature will be delivered.</p>
 				</DocSection>
 				<DocSection title="3. Orders, payment and delivery">
@@ -28,11 +28,11 @@ import licenceUrl from '../../../LICENSE.md?url';
 				</DocSection>
 				<DocSection title="4. Your software licence">
 					<ul class="list-disc space-y-3 pl-6">
-						<li><strong class="text-canvas-fg">Evaluation:</strong> local development and non-public testing only. It does not permit production deployment, distribution or paid client services.</li>
-						<li><strong class="text-canvas-fg">Individual:</strong> one named developer may use and modify the software in unlimited personal, commercial and bespoke client products. Sharing the library or paid source access with other developers is not included.</li>
+						<li><strong class="text-canvas-fg">Evaluation.</strong> You may inspect, copy and modify the public source or npm package for evaluation in local development and non-public testing.</li>
+						<li><strong class="text-canvas-fg">Individual.</strong> One named developer may use and modify the software in unlimited personal, commercial and bespoke client products. Additional developers need their own licence or a Team licence.</li>
 						<li><strong class="text-canvas-fg">Team:</strong> the purchasing legal entity may allow its employees and contractors to use the software on its behalf, including in its own and bespoke client products. Contractors cannot retain or reuse it for unrelated work.</li>
 						<li><strong class="text-canvas-fg">Client delivery:</strong> clients may operate and maintain a delivered bespoke end product. They need their own licence to extract or reuse DOM Studio in another product.</li>
-						<li><strong class="text-canvas-fg">Redistribution:</strong> the software may be distributed only as part of a larger end product with substantial functionality beyond DOM Studio. You may not resell, share or publish it as a standalone library, UI kit, template library, starter kit or competing component-building product.</li>
+						<li><strong class="text-canvas-fg">Redistribution.</strong> Within GitHub you may fork the public repository under the GitHub Terms of Service. A commercial licence permits distribution as part of a larger end product with substantial functionality beyond DOM Studio, subject to the full licence terms.</li>
 					</ul>
 					<p>The commercial licence permits ongoing use of versions obtained under it, subject to its conditions. Included updates cover releases under major version 1 while DOM Studio makes them available. Future major upgrades are optional and may cost extra. Perpetual use does not promise indefinite operation of hosted services, support or development of future releases. Existing purchases, including introductory £1 and lifetime v1 offers, retain their promised rights.</p>
 					<p>This section is a summary. Read and retain the <a :href="licenceUrl" download="DOM-Studio-Commercial-License.md">full commercial licence</a>. Third-party dependencies retain their own licences and notices.</p>

@@ -40,7 +40,7 @@ const pageDescriptions = {
 	'/headless': 'Page / Framework-neutral custom element primitives.',
 	'/icons': 'Page / Copyable SVG icon inventory generated from DOM Studio metadata and source usage.',
 	'/mobile': 'Page / Mobile app shell, navigation, safe areas, and action sheets.',
-	'/pricing': 'Page / DOM Studio source access and pricing.',
+	'/pricing': 'Page / DOM Studio public source and production licence pricing.',
 	'/theming': 'Page / Theme tokens, skins, dark mode, and style guidance.',
 	'/tools/json-unstringifier': 'Tool / Convert stringified, escaped, or minified JSON into pretty copy-ready JSON.',
 };

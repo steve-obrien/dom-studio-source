@@ -26,7 +26,7 @@ const menuItems = computed(() => {
 			{ label: 'Sign in', value: 'sign-in' },
 			{ label: 'Find my licence', value: 'licences' },
 			{ separator: true },
-			{ label: 'Get source access', value: 'purchase' },
+			{ label: 'Get a production licence', value: 'purchase' },
 		];
 	}
 
@@ -42,11 +42,11 @@ const menuItems = computed(() => {
 	if (needsPurchase.value) {
 		items.push(
 			{ separator: true },
-			{ label: 'Get source access', value: 'purchase', tone: 'primary' },
+			{ label: 'Get a production licence', value: 'purchase', tone: 'primary' },
 		);
 	} else {
 		items.push({
-			label: 'Source access active',
+			label: 'Licence access active',
 			value: 'source-active',
 			eyebrow: 'Plan',
 			disabled: true,
@@ -109,9 +109,9 @@ async function selectAccountAction(value) {
 				:as="'a'"
 				:href="`/api/billing/checkout?licence=individual&source=get-full-access&placement=${compact ? 'compact' : 'standard'}`"
 				:size="compact ? 'sm' : 'md'"
-				:aria-label="compact ? 'Get full access' : undefined"
-				:title="compact ? 'Get full access' : undefined"
-			>{{ compact ? 'Get' : 'Get full access' }}</DomButton>
+				:aria-label="compact ? 'Get a production licence' : undefined"
+				:title="compact ? 'Get a production licence' : undefined"
+			>{{ compact ? 'Get' : 'Get a licence' }}</DomButton>
 		</template>
 		<DomDropdown
 			v-else

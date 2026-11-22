@@ -180,7 +180,7 @@ const manualRoutes = [
 	{
 		path: '/auth/sign-in',
 		component: SignInPage,
-		meta: { title: 'Sign in', description: 'Sign in to DOM Studio source access.' },
+		meta: { title: 'Sign in', description: 'Sign in to your DOM Studio account.' },
 	},
 	{
 		path: '/auth/sign-up',
@@ -190,7 +190,7 @@ const manualRoutes = [
 	{
 		path: '/paywall',
 		component: PaywallPage,
-		meta: { title: 'Source access', description: 'Unlock DOM Studio source access.' },
+		meta: { title: 'Production licence', description: 'Get a DOM Studio production licence.' },
 	},
 	{
 		path: '/tools',

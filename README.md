@@ -186,12 +186,13 @@ When consuming the published package, those agent context files are available at
 
 ## Commercial Model
 
-The public `@getdom/studio` package may be installed for local evaluation. A
-paid Individual or Team licence is required for production, deployed,
-distributed, or client use.
+The source repository and the public `@getdom/studio` package are available
+for free local evaluation and non-public testing. A paid Individual or Team
+licence is required for production, including internal apps, for products
+you publish or distribute, and for paid client work.
 
-See [`LICENSE.md`](LICENSE.md) for the evaluation grant, commercial permissions,
-and redistribution restrictions.
+See [`LICENSE.md`](LICENSE.md) for the full terms and
+[DOM Studio pricing](https://getdom.studio/pricing) for licence options.
 
 ## Package inspection
 
@@ -207,8 +208,8 @@ types, component guides, styles, and agent context. The website, application
 server, billing code, and repository-local blocks are excluded from that package.
 Use `npm run package:pack` to create a tarball for inspection.
 
-This source repository does not deploy the official website or publish npm
-releases. Published package notes are available at
+This source repository publishes npm releases from annotated version tags.
+The official website deploys separately. Published package notes are available at
 [DOM Studio releases](https://getdom.studio/releases). See
 [local package checks](docs/releases.md) for the commands available here.
 

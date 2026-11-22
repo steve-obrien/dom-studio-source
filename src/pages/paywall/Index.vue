@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import DomStudioLayout from '../_layout/DomStudioLayout.vue';
+import { domStudioSourceUrl } from '../_layout/docs/sourceLinks.js';
 import { DomButton } from '../lib/vue';
 import { useAuth } from '../../composable/useAuth.js';
 import { useBillingOffer } from '../../composable/useBillingOffer.js';
@@ -29,15 +30,16 @@ const checkoutHref = computed(() => `/api/billing/checkout?licence=individual&fr
 		<section class="mx-auto grid min-h-[calc(100vh-13rem)] w-full max-w-6xl items-center gap-10 py-10 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
 			<div>
 				<p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-fg">DOM Studio access</p>
-				<h1 class="mt-3 text-5xl font-bold leading-[1.05] tracking-tight text-canvas-fg sm:text-6xl">Unlock the code behind DOM Studio.</h1>
+				<h1 class="mt-3 text-5xl font-bold leading-[1.05] tracking-tight text-canvas-fg sm:text-6xl">Get a DOM Studio production licence.</h1>
 				<p class="mt-5 max-w-xl text-lg leading-8 text-muted-fg">
-					Buy a licence through Stripe, then verify your purchase email to unlock editable implementation patterns and source previews. No account needed to buy.
+					Explore and evaluate the public source for free. Buy a licence to use DOM Studio in production or for paid client work. No account needed to buy.
 				</p>
 				<div class="mt-8 flex flex-wrap items-center gap-3">
 					<DomButton :as="'a'" :href="checkoutHref" size="lg">Continue to checkout</DomButton>
 					<DomButton :as="'router-link'" :to="signInTo" variant="secondary" size="lg">
-						{{ isAuthenticated ? 'Refresh access' : 'I already have access' }}
+						{{ isAuthenticated ? 'Refresh access' : 'I already have a licence' }}
 					</DomButton>
+					<DomButton as="a" :href="domStudioSourceUrl" variant="secondary" size="lg">Browse source on GitHub</DomButton>
 				</div>
 				<p v-if="user" class="mt-4 text-sm text-muted-fg">
 					Signed in as <span class="font-medium text-canvas-fg">{{ user.email }}</span>.
@@ -61,11 +63,11 @@ const checkoutHref = computed(() => `/api/billing/checkout?licence=individual&fr
 					<ul class="mt-5 space-y-3 text-sm text-muted-fg">
 						<li class="flex gap-2">
 							<span class="mt-2 size-1.5 rounded-full bg-success"></span>
-							<span>Generated Vue source before you copy it.</span>
+							<span>Production use for one named developer.</span>
 						</li>
 						<li class="flex gap-2">
 							<span class="mt-2 size-1.5 rounded-full bg-success"></span>
-							<span>Private source releases and implementation notes.</span>
+							<span>Unlimited own products and bespoke client projects.</span>
 						</li>
 						<li class="flex gap-2">
 							<span class="mt-2 size-1.5 rounded-full bg-success"></span>

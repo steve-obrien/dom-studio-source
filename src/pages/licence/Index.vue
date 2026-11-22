@@ -48,7 +48,7 @@ watch(() => user.value?.id, loadLicences);
 		<section class="mx-auto w-full max-w-2xl py-10 sm:py-16">
 			<p class="text-xs font-semibold uppercase tracking-wider text-muted-fg">Your purchase</p>
 			<h1 class="mt-3 text-4xl font-bold tracking-tight">Your DOM Studio licence.</h1>
-			<p class="mt-4 text-base leading-7 text-muted-fg">Your licence is valid without an account. Sign in to keep its confirmation handy and use your source access.</p>
+			<p class="mt-4 text-base leading-7 text-muted-fg">Your licence is valid without an account. Sign in to find and download your confirmation.</p>
 			<p v-if="loading" role="status" class="mt-8">Loading your licences…</p>
 			<p v-if="error" role="alert" class="mt-8 text-destructive">{{ error }}</p>
 			<div v-if="licences.length" class="mt-8 space-y-6">
@@ -57,7 +57,7 @@ watch(() => user.value?.id, loadLicences);
 			</div>
 			<div v-else-if="!loading" class="mt-8 rounded-2xl border border-border p-6 sm:p-8">
 				<h2 class="mb-4 text-xl font-semibold">{{ isAuthenticated ? 'Link a purchase to your account' : 'Set up your account or sign in' }}</h2>
-				<p v-if="isAuthenticated" class="mb-4 text-sm leading-6 text-muted-fg">No licence confirmations are linked here yet. Verify the email used at checkout to find your purchase. Existing source access is unchanged.</p>
+				<p v-if="isAuthenticated" class="mb-4 text-sm leading-6 text-muted-fg">No licence confirmations are linked here yet. Verify the email used at checkout to find your purchase.</p>
 				<EmailLinkForm :email="user?.email || ''" />
 			</div>
 			<p class="mt-8 text-sm text-muted-fg">Haven’t bought a licence yet? <RouterLink to="/pricing" class="font-medium text-canvas-fg underline underline-offset-4">Choose your licence</RouterLink>. No account needed at checkout.</p>

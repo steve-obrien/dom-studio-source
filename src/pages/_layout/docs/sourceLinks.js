@@ -1,4 +1,5 @@
-const githubSourceBase = 'https://github.com/steve-obrien/dom-studio-source/blob/main/';
+export const domStudioSourceUrl = 'https://github.com/steve-obrien/dom-studio-source';
+const githubSourceBase = `${domStudioSourceUrl}/blob/main/`;
 const localSourceRoot = typeof __DOM_STUDIO_SOURCE_ROOT__ === 'string'
 	? __DOM_STUDIO_SOURCE_ROOT__
 	: '';

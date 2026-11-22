@@ -75,8 +75,7 @@ integrity hash, and preserve existing GitHub Release notes.
 - The GitHub environment `npm-release` exists in this repository. Add release
   approval or tag protection rules there as desired.
 - npm trusted publishing requires a GitHub-hosted runner; the workflow uses
-  Ubuntu and Node 24. The repository is private, so npm provenance is not
-  available. Never make the repository public as a release workaround.
+  Ubuntu and Node 24.
 
 ## Website release history
 

@@ -1,10 +1,10 @@
-# Get full access click reporting
+# Licence button click reporting
 
 DOM Studio records anonymous, first-party counts for both signed-out and
-signed-in **Get full access** buttons, including the compact **Get** variant.
+signed-in **Get a licence** buttons, including the compact **Get** variant.
 The existing checkout URL carries a fixed source and layout tag. The server
 records an eligible navigation and continues to the same Stripe checkout.
-Other checkout links and the account menu's **Get source access** action are
+Other checkout links and the account menu's **Get a production licence** action are
 not included in this metric. A click is counted even if checkout subsequently
 fails; it is not evidence of a purchase or a unique person.
 

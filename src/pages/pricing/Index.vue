@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 import DomStudioLayout from '../_layout/DomStudioLayout.vue';
 import CodeBlock from '../_layout/CodeBlock.vue';
+import { domStudioSourceUrl } from '../_layout/docs/sourceLinks.js';
 import { DomButton, DomAccordion } from '../lib/vue';
 import { useBillingOffer } from '../../composable/useBillingOffer.js';
 import { formatBillingPrice } from '../../../shared/billing.js';
@@ -18,18 +19,15 @@ const licences = computed(() => [
 		hasPromotion: hasIndividualPromotion.value,
 		offerLabel: individual.value.offerLabel,
 		priceSuffix: 'Use forever · All v1 updates included',
-		cta: 'Get individual access',
+		cta: 'Buy Individual licence',
 		ctaTo: '/api/billing/checkout?licence=individual',
 		ctaExternal: true,
 		ctaVariant: 'primary',
 		highlight: true,
 		features: [
-			'Generated Vue source shown before you copy',
-			'Private source repo and downloadable releases',
-			'Copy, import, or vendor with git subtree',
-			'Portable docs for your own app components',
-			'Unlimited personal, commercial, and client projects',
-			'Perpetual use with all v1 updates included',
+			'Commercial production use for one named developer',
+			'Unlimited own products and bespoke client projects',
+			'Copy, import, or vendor code into your products',
 		],
 	},
 	{
@@ -40,23 +38,20 @@ const licences = computed(() => [
 		hasPromotion: hasTeamPromotion.value,
 		offerLabel: team.value.offerLabel,
 		priceSuffix: 'Use forever · All v1 updates included',
-		cta: 'Get team access',
+		cta: 'Buy Team licence',
 		ctaTo: '/api/billing/checkout?licence=team',
 		ctaExternal: true,
 		ctaVariant: 'secondary',
 		features: [
-			'Everything in Individual',
-			'Unlimited team seats inside your company',
-			'Client-project licence for customer codebases',
-			'App blocks for admin, billing, settings, and onboarding',
-			'Private examples and implementation notes',
-			'Employees and contractors working for your company',
+			'Commercial production use for one organisation',
+			'Unlimited employees and contractors working on its behalf',
+			'Unlimited company products and bespoke client projects',
 		],
 	},
 ]);
 
 const proPerks = [
-	{ title: 'Editable delivery', body: 'Every paid component is visible as generated source. Copy it into your app, import it as a package, or vendor the whole workspace with git subtree.' },
+	{ title: 'Editable delivery', body: 'Inspect the component source on GitHub. A commercial licence lets you copy it into your product, import the npm package, or vendor the workspace with git subtree.' },
 	{ title: 'Portable living docs', body: 'Bring the DOM Studio documentation engine into your own product. It discovers local components, examples, props, and usage notes automatically.' },
 	{ title: 'Editable generated apps', body: 'Generated screens are built from the same headless primitives, DomForm, and Vue components you can inspect and change.' },
 	{ title: 'Theme ownership', body: 'Styles are token driven and designed to be copied. Your app owns the CSS variables, spacing, radius, and final look.' },
@@ -70,8 +65,9 @@ const sourceHighlights = [
 ];
 
 const faqs = [
-	{ title: 'Do I get the source code?', content: 'Yes. The paid version is source access, not a black-box dependency. You can inspect the generated source on the site, download releases, copy individual components, or vendor the repo into your project.' },
-	{ title: 'Do I have to use DOM Studio as a dependency?', content: 'No. Import mode is there when it is convenient. Copy mode and git subtree mode are there when you want to own and edit the code inside your app.' },
+	{ title: 'What can I do for free?', content: 'Anyone can browse the source, clone the repository, install the npm package, and modify the code to evaluate it locally or in a non-public test environment. No account or licence purchase is needed.' },
+	{ title: 'When do I need a paid licence?', content: 'Buy an Individual or Team licence for production use, including internal business apps, for products you publish or distribute, and for paid client work.' },
+	{ title: 'Can I copy components into my app?', content: 'Yes. You can import the npm package, copy individual components, or vendor the workspace with git subtree. The same licence terms apply whichever method you use.' },
 	{ title: 'Can I package the docs with my own app?', content: 'That is the plan. The docs engine is designed to discover your copied components and examples, so each app can carry its own living component library without setting up Storybook.' },
 	{ title: 'Can I change the theme?', content: 'Yes. Theme values are CSS variables and component styles are designed to be copied into your project. The host app owns the final tokens, not the package.' },
 	{ title: 'What does perpetual use include?', content: 'Pay once and use the versions you receive forever. All v1 updates are included. Future major upgrades are optional and may be sold separately; you can keep using your existing version without paying again.' },
@@ -82,13 +78,10 @@ const faqs = [
 ];
 
 const comparisonRows = [
-	{ feature: 'Generated source preview', individual: true, team: true },
-	{ feature: 'Private source releases', individual: true, team: true },
-	{ feature: 'Copy and subtree workflow', individual: true, team: true },
-	{ feature: 'Portable docs engine', individual: true, team: true },
-	{ feature: 'Use in your own products', individual: true, team: true },
-	{ feature: 'Unlimited team seats', individual: false, team: true },
-	{ feature: 'Client-project licence', individual: true, team: true },
+	{ feature: 'Public source and local evaluation', evaluation: true, individual: true, team: true },
+	{ feature: 'Production use in your own products', evaluation: false, individual: true, team: true },
+	{ feature: 'Paid client projects', evaluation: false, individual: true, team: true },
+	{ feature: 'Unlimited team seats for production', evaluation: false, individual: false, team: true },
 ];
 
 const generatedSource = [
@@ -121,8 +114,12 @@ const generatedSource = [
 			<p class="text-xs font-semibold uppercase tracking-[0.22em] text-muted-fg">Pricing</p>
 			<h1 class="mt-3 text-5xl font-bold leading-[1.05] tracking-tight text-canvas-fg sm:text-6xl">Vue component library pricing and licences.</h1>
 			<p class="mx-auto mt-5 max-w-2xl text-lg text-muted-fg">
-				A complete Vue and Web Component UI system you can own, edit, and ship. Choose an Individual or Team licence to unlock DOM Studio source access, generated examples, and the living documentation workflow.
+				Browse the complete Vue and Web Component UI system on GitHub and evaluate it for free. Choose an Individual or Team licence when you’re ready to use it in production or for paid client work.
 			</p>
+			<div class="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-3">
+				<DomButton as="a" :href="domStudioSourceUrl" variant="secondary">Browse source on GitHub</DomButton>
+				<a :href="domStudioSourceUrl + '/blob/main/LICENSE.md'" class="text-sm text-primary underline underline-offset-4">Read the licence</a>
+			</div>
 			<div class="mt-6 inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-4 py-1.5 text-xs font-medium uppercase tracking-wider text-muted-fg">
 				<span class="size-1.5 rounded-full bg-success"></span>
 				One-time payment · Perpetual use · No subscription
@@ -177,10 +174,9 @@ const generatedSource = [
 		<section class="mt-24 border-t border-border pt-16">
 			<div class="grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
 				<div>
-					<p class="text-xs font-semibold uppercase tracking-[0.18em] text-muted-fg">Source access</p>
-					<h2 class="mt-2 text-3xl font-bold tracking-tight text-canvas-fg">See the code before you bring it home.</h2>
+					<h2 class="text-3xl font-bold tracking-tight text-canvas-fg">Explore the source locally.</h2>
 					<p class="mt-4 text-sm leading-relaxed text-muted-fg">
-						DOM Studio access shows the generated source that powers each component or block. It is built from DOM Studio primitives, so the code you preview is the code you can copy, edit, and document inside your own app.
+						Clone the repository or install the npm package to try components, blocks, and their examples. The source shows how they fit together and how to adapt them to your app.
 					</p>
 					<ul class="mt-6 grid gap-3 text-sm">
 						<li v-for="item in sourceHighlights" :key="item" class="flex items-start gap-2 text-muted-fg">
@@ -226,16 +222,18 @@ const generatedSource = [
 				<table class="w-full text-left text-sm">
 					<thead class="bg-secondary text-xs uppercase tracking-wider text-muted-fg">
 						<tr>
-							<th class="px-4 py-3 font-medium">Feature</th>
-							<th class="px-4 py-3 text-center font-medium">Individual</th>
-							<th class="px-4 py-3 text-center font-medium">Team</th>
+							<th scope="col" class="px-2 py-3 font-medium sm:px-4">Permission</th>
+							<th scope="col" class="px-2 py-3 text-center font-medium sm:px-4">Evaluation</th>
+							<th scope="col" class="px-2 py-3 text-center font-medium sm:px-4">Individual</th>
+							<th scope="col" class="px-2 py-3 text-center font-medium sm:px-4">Team</th>
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-border">
 						<tr v-for="r in comparisonRows" :key="r.feature">
-							<td class="px-4 py-3 text-canvas-fg">{{ r.feature }}</td>
-							<td class="px-4 py-3 text-center text-muted-fg">{{ r.individual ? '✓' : '—' }}</td>
-							<td class="px-4 py-3 text-center text-muted-fg">{{ r.team ? '✓' : '—' }}</td>
+							<th scope="row" class="px-2 py-3 font-normal text-canvas-fg sm:px-4">{{ r.feature }}</th>
+							<td class="px-2 py-3 text-center text-muted-fg sm:px-4">{{ r.evaluation ? 'Yes' : '—' }}</td>
+							<td class="px-2 py-3 text-center text-muted-fg sm:px-4">{{ r.individual ? 'Yes' : '—' }}</td>
+							<td class="px-2 py-3 text-center text-muted-fg sm:px-4">{{ r.team ? 'Yes' : '—' }}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -255,7 +253,7 @@ const generatedSource = [
 		<section id="checkout" class="mt-24 border-t border-border pt-16 text-center">
 			<div class="mx-auto max-w-2xl rounded-3xl border border-border bg-secondary/40 p-10">
 				<h2 class="text-3xl font-bold tracking-tight text-canvas-fg">Own, edit, and ship your UI system.</h2>
-				<p class="mt-3 text-muted-fg">Buy once for DOM Studio v1 access. Copy components into your app, vendor the workspace with git subtree, and keep the living docs close to the code.</p>
+				<p class="mt-3 text-muted-fg">Buy a perpetual production licence for DOM Studio, with all v1 updates included.</p>
 				<div class="mt-6 flex flex-wrap items-center justify-center gap-3">
 					<DomButton :as="'a'" href="/api/billing/checkout?licence=individual" size="lg">Individual - {{ formatBillingPrice(individualPrice) }} USD once</DomButton>
 					<DomButton :as="'a'" href="/api/billing/checkout?licence=team" variant="secondary" size="lg">Team - {{ formatBillingPrice(teamPrice) }} USD once</DomButton>

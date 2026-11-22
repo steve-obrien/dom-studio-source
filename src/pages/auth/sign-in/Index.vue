@@ -69,9 +69,9 @@ async function signOut() {
 				<div class="hidden bg-primary p-8 text-primary-fg md:flex md:flex-col md:justify-between">
 					<div>
 						<p class="text-xs font-semibold uppercase tracking-[0.18em] text-primary-fg/70">DOM Studio</p>
-						<h1 class="mt-6 text-4xl/snug font-bold tracking-tight ">Source access for people who own their UI.</h1>
+						<h1 class="mt-6 text-4xl/snug font-bold tracking-tight ">Your DOM Studio account.</h1>
 						<p class="mt-4 text-sm leading-6 text-primary-fg/70">
-							Continue into paid templates, source previews, experiments, and private implementation notes.
+							Sign in to link a purchase and find your licence confirmation.
 						</p>
 					</div>
 					<div class="rounded-2xl border border-primary-fg/15 bg-primary-fg/10 p-4">
@@ -90,13 +90,13 @@ async function signOut() {
 
 						<div class="mt-8 space-y-4">
 							<div v-if="needsPurchase" class="rounded-2xl border border-border bg-secondary/40 p-4">
-								<p class="text-sm font-semibold text-canvas-fg">Finish unlocking lifetime access</p>
+								<p class="text-sm font-semibold text-canvas-fg">Get a production licence</p>
 								<p class="mt-1 text-sm leading-6 text-muted-fg">
-									Continue to payment to unlock DOM Studio source access for this account.
+									Continue to checkout to license DOM Studio for production.
 								</p>
 							</div>
 							<div v-else-if="hasSourceAccess" class="rounded-2xl border border-success/30 bg-success/10 p-4">
-								<p class="text-sm font-semibold text-canvas-fg">Source access is active</p>
+								<p class="text-sm font-semibold text-canvas-fg">Your account has licence access</p>
 								<p class="mt-1 text-sm leading-6 text-muted-fg">
 									Your lifetime access is already linked to this account.
 								</p>

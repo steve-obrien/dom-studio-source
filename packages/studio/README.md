@@ -118,12 +118,14 @@ props and events, and implementation notes:
 
 ## Licence
 
-The package is publicly downloadable for local evaluation. A paid DOM Studio
-licence is required for production, deployed, distributed, commercial, or
-client use. See `LICENSE.md` in this package for the complete terms.
+The package and [source repository](https://github.com/steve-obrien/dom-studio-source)
+are available for free local evaluation and non-public testing. A paid DOM
+Studio licence is required for production, including internal apps, for
+products you publish or distribute, and for paid client work. See
+`LICENSE.md` in this package for the complete terms.
 
-Documentation, examples, licences, and source access are available from
-[getdom.studio](https://getdom.studio).
+See [getdom.studio](https://getdom.studio) for documentation and examples
+and [pricing](https://getdom.studio/pricing) for licence options.
 
 ## Charts and reporting
 

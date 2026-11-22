@@ -1,6 +1,7 @@
 # Development repository migration
 
-Development now belongs in `steve-obrien/dom-studio-source`, kept private initially.
+Development belongs in the public, commercially licensed
+`steve-obrien/dom-studio-source` repository.
 The existing local `getdom.studio` project folder is the clean checkout;
 `dom-studio-source` is an alias to the same folder. Both use this repository
 and its `main` branch. Create new branches from that `main`.
@@ -83,3 +84,4 @@ synchronization workflow.
 
 The original repository should stay private. Retire its development and
 operational entry points only after their replacements are verified.
+Keep production-connected self-hosted runners scoped to private repositories.

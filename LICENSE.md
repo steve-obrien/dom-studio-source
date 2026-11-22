@@ -6,16 +6,19 @@ This license applies to DOM Studio, including the `@getdom/studio` package,
 components, source files, examples, templates, blocks, documentation assets,
 and modified versions of those materials (the "Software").
 
-## Evaluation license
+## Public source and evaluation license
 
-You may install, copy, and modify the publicly available `@getdom/studio`
-package solely to evaluate it in local development and non-public test
-environments.
+You may read the official public source repository and, free of charge,
+download, install, copy, and modify the Software from that repository or the
+`@getdom/studio` package for evaluation in local development and non-public
+test environments. GitHub users may also view and fork the public repository
+on GitHub as permitted by the GitHub Terms of Service. Keep the copyright,
+licence, and attribution notices in any copy or fork.
 
-The evaluation license does not permit you to use the Software in a production
-environment, publish or deploy a product containing the Software, distribute a
-product containing the Software to another person, or use the Software to
-provide paid services to a client.
+A commercial licence is required to use the Software in production, including
+internal business applications, to publish or distribute a product containing
+the Software, or to provide paid services to a client using the Software.
+Third-party materials remain subject to their own licences and notices.
 
 ## Commercial license
 
@@ -68,7 +71,9 @@ given rights to reuse the Software outside it.
 
 You must not:
 
-- sell, sublicense, publish, share, or redistribute the Software as a standalone product;
+- sell, sublicense, publish, share, or redistribute the Software as a
+  standalone product, except for GitHub forks permitted by the public source
+  terms above;
 - make the Software available as a component library, UI kit, template library, starter kit, source catalogue, or substantially similar product;
 - use the Software to create a product whose primary purpose is to let its users build or export competing component libraries, templates, or UI kits;
 - share account access, paid downloads, source archives, or private documentation outside the scope of the purchased licence;

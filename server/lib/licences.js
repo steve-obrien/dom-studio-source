@@ -121,7 +121,7 @@ export async function fulfillLicence(session, eventId, { db = getDb(), send = se
 			to: purchase.purchaser_email,
 			subject: `Your DOM Studio ${purchase.licence_type} licence`,
 			key: `licence-${purchase.licence_reference}`,
-			text: `${confirmation}\n\nYour licence is valid without an account. To set up an account for source access, verify your purchase email at ${getBillingOrigin()}/licence.\n`,
+			text: `${confirmation}\n\nYour licence is valid without an account. To link your purchase and download its confirmation online, verify your purchase email at ${getBillingOrigin()}/licence.\n`,
 			attachments: [{ filename: `${purchase.licence_reference}.txt`, content: Buffer.from(confirmation).toString('base64') }],
 		});
 		await db('stripe_checkout_sessions').where({ id: purchase.id }).update({ confirmation_sent_at: db.fn.now() });
