@@ -11,8 +11,7 @@ defineOptions({
 			initial: {
 				label: 'Saving',
 				size: 'md',
-				background: 'color-mix(in oklab, var(--warning) 20%, transparent)',
-				foreground: 'var(--warning)',
+				variant: 'tail',
 			},
 		},
 	},
@@ -32,12 +31,21 @@ const props = defineProps({
 			description: 'Spinner size.',
 		},
 	},
+	variant: {
+		type: String,
+		default: 'arc',
+		_edit: {
+			options: ['arc', 'tail'],
+			description: 'Use a solid arc or a highlight with a fading tail.',
+		},
+	},
 	tone: {
 		type: String,
 		default: 'primary',
 		_edit: {
 			options: ['primary', 'neutral', 'success', 'warning', 'danger'],
 			description: 'Spinner foreground colour when no custom foreground is provided.',
+			overriddenBy: 'foreground',
 		},
 	},
 	background: {
@@ -93,19 +101,38 @@ function getSpinnerStyle() {
 
 <template>
 	<span role="status" :aria-label="label" class="inline-flex items-center">
-		<span :class="classes" :style="spinnerStyle" aria-hidden="true"></span>
+		<span :class="classes" :data-variant="variant" :style="spinnerStyle" aria-hidden="true"></span>
 		<span class="sr-only">{{ label }}</span>
 	</span>
 </template>
 
 <style scoped>
 .dom-spinner {
+	--dom-spinner-color: var(--dom-spinner-foreground, currentColor);
+	--dom-spinner-track: var(--dom-spinner-background, color-mix(in oklab, var(--dom-spinner-color) 20%, transparent));
+
 	animation: dom-spinner-spin 0.7s linear infinite;
-	border-color: var(
-		--dom-spinner-background,
-		color-mix(in oklab, var(--dom-spinner-foreground, currentColor) 20%, transparent)
-	);
-	border-top-color: var(--dom-spinner-foreground, currentColor);
+	border-color: var(--dom-spinner-track);
+	border-top-color: var(--dom-spinner-color);
+}
+
+@supports (background: conic-gradient(transparent, currentColor)) and (mask: radial-gradient(black, transparent)) {
+	@media (forced-colors: none) {
+		.dom-spinner[data-variant='tail'] {
+			border-color: transparent;
+			background: conic-gradient(from 20deg, transparent 0deg 225deg, var(--dom-spinner-color) 360deg)
+				border-box var(--dom-spinner-track);
+			mask: radial-gradient(closest-side, transparent calc(100% - 2.5px), black calc(100% - 1.5px));
+		}
+	}
+}
+
+@media (forced-colors: active) {
+	.dom-spinner[data-variant='tail'] {
+		forced-color-adjust: none;
+		border-color: GrayText;
+		border-top-color: CanvasText;
+	}
 }
 
 @keyframes dom-spinner-spin {

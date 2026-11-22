@@ -6692,6 +6692,11 @@ export interface DomSpinnerProps {
 	 */
 	size?: "sm" | "md" | "lg";
 	/**
+	 * Use a solid arc or a highlight with a fading tail.
+	 * @default 'arc'
+	 */
+	variant?: "arc" | "tail";
+	/**
 	 * Spinner foreground colour when no custom foreground is provided.
 	 * @default 'primary'
 	 */

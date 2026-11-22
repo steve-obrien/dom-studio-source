@@ -20,6 +20,7 @@
  *
  * Each field also carries the prop's `defaultValue` when it is a plain string,
  * number or boolean, so inspectors can show what an unset prop resolves to.
+ * Use `_edit.overriddenBy` to name a sibling prop that takes precedence when truthy.
  */
 
 function componentProps(component) {
@@ -72,10 +73,17 @@ function resolveComponent(hint, props, def) {
 	return defaultEditorForProp(def);
 }
 
+/**
+ * Separates inspector hints from the props forwarded to a field's editor.
+ *
+ * @param {object} hint Merged hints for the prop.
+ * @param {object|Function} def Vue prop definition.
+ * @returns {object} Normalized editor configuration.
+ */
 function normaliseEdit(hint = {}, def) {
 	const props = { ...(hint.props || {}) };
 	for (const [key, value] of Object.entries(hint)) {
-		if (['component', 'props', 'label', 'description', 'group'].includes(key)) continue;
+		if (['component', 'props', 'label', 'description', 'group', 'overriddenBy'].includes(key)) continue;
 		if (!(key in props)) props[key] = value;
 	}
 	return {
@@ -83,6 +91,7 @@ function normaliseEdit(hint = {}, def) {
 		label: hint.label ?? props.label,
 		description: hint.description ?? props.description,
 		group: hint.group ?? props.group,
+		overriddenBy: hint.overriddenBy,
 		props,
 	};
 }
@@ -99,11 +108,12 @@ function prettify(s) {
  *
  * @param {object|string|null} component Vue component object.
  * @param {Record<string, object>} [hints] Per-prop overrides, stacked on `_edit`.
- * @returns {Array<{ key: string, label: string, description?: string, group?: string, component: string, props: object, defaultValue?: string|number|boolean }>} Fields.
+ * @returns {import('../../lib/designer/index.js').InspectorFieldSchema[]} Fields.
  */
 export function schemaForComponent(component, hints = {}) {
 	const fields = [];
-	for (const [key, def] of Object.entries(componentProps(component))) {
+	const definitions = componentProps(component);
+	for (const [key, def] of Object.entries(definitions)) {
 		if (key === 'class' || key === 'modelModifiers' || key.startsWith('_')) continue;
 		const inlineEdit = def && typeof def === 'object' && def._edit;
 		const edit = normaliseEdit({ ...(inlineEdit || {}), ...(hints[key] || {}) }, def);
@@ -111,7 +121,33 @@ export function schemaForComponent(component, hints = {}) {
 		const field = { key, label: edit.label || prettify(key), description: edit.description, group: edit.group, component: edit.component, props: edit.props };
 		const defaultValue = defaultValueForProp(def);
 		if (defaultValue !== undefined) field.defaultValue = defaultValue;
+		const source = edit.overriddenBy;
+		if (typeof source === 'string' && source !== key && Object.hasOwn(definitions, source)) {
+			const sourceDef = definitions[source];
+			const sourceEdit = { ...sourceDef?._edit, ...hints[source] };
+			field.overriddenBy = {
+				key: source,
+				label: sourceEdit.label ?? sourceEdit.props?.label ?? prettify(source),
+				defaultValue: defaultValueForProp(sourceDef),
+			};
+		}
 		fields.push(field);
 	}
 	return fields;
+}
+
+/**
+ * Explains an active prop override using the effective value of its source prop.
+ *
+ * @param {import('../../lib/designer/index.js').InspectorFieldSchema} field Inspector field.
+ * @param {Record<string, unknown>} values Current component props.
+ * @param {(value: unknown) => unknown} [resolve] Resolves bindings to preview values.
+ * @returns {string} Explanation, or an empty string when the field is active.
+ */
+export function fieldOverrideReason(field, values, resolve) {
+	const source = field.overriddenBy;
+	if (!source) return '';
+	const value = values[source.key];
+	const resolved = resolve ? resolve(value) : value;
+	return (resolved === undefined ? source.defaultValue : resolved) ? `Overridden by ${source.label}.` : '';
 }

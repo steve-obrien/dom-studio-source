@@ -12,7 +12,7 @@ import { importVueFile, sampleVueFile } from '../src/pages/designer/canvas/canva
 import { alignRects, boundsOf, distributeRects } from '../src/pages/designer/stage/layoutGeometry.js';
 import { applySource, matchNodes, nodeAtLine } from '../src/pages/designer/core/sourceSync.js';
 import { catalogFromExports, createComponentCatalog } from '../src/pages/designer/core/componentCatalog.js';
-import { schemaForComponent } from '../src/pages/designer/core/componentSchema.js';
+import { fieldOverrideReason, schemaForComponent } from '../src/pages/designer/core/componentSchema.js';
 import { createEditorTypes } from '../src/pages/designer/core/componentTypes.js';
 import { createWorkspace } from '../src/pages/designer/canvas/canvasWorkspace.js';
 import { exportMappedVue } from '../src/pages/designer/core/vueAdapter.js';
@@ -417,6 +417,22 @@ test('component catalogs come from exports, not the docs site', () => {
 	const types = createEditorTypes(catalog);
 	assert.equal(types.get('vue:DomBadge').schema.some((field) => field.key === 'tone'), true);
 	assert.equal(types.get('vue:LocalWidget').placeholder, true);
+});
+
+test('the inspector follows a sibling prop override and its default', () => {
+	const component = {
+		props: {
+			tone: { type: String, _edit: { options: ['neutral', 'success'], overriddenBy: 'foreground' } },
+			foreground: { type: String, default: 'red', _edit: { label: 'Custom colour' } },
+		},
+	};
+	const [tone, foreground] = schemaForComponent(component);
+	assert.deepEqual(tone.props, { options: ['neutral', 'success'] });
+	assert.equal(fieldOverrideReason(tone, {}), 'Overridden by Custom colour.');
+	assert.equal(fieldOverrideReason(tone, { foreground: 'blue' }), 'Overridden by Custom colour.');
+	assert.equal(fieldOverrideReason(tone, { foreground: '' }), '');
+	assert.equal(fieldOverrideReason(tone, { foreground: expr('colour') }, () => ''), '');
+	assert.equal(fieldOverrideReason(foreground, { tone: 'success' }), '');
 });
 
 test('workspaces open from source files', () => {

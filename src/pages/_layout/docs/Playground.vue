@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref, useSlots } from 'vue';
 import CodePanel from './CodePanel.vue';
 import InspectorField from '../inspector/InspectorField.vue';
 import { inferSchema } from '../inspector/useInspector.js';
+import { fieldOverrideReason } from '../../designer/core/componentSchema.js';
 import MobilePreview from './MobilePreview.vue';
 import DomAppShell from '../../mobile/shell/DomAppShell.vue';
 
@@ -299,6 +300,7 @@ const previewClasses = computed(() => {
 								:key="f.key"
 								:field="f"
 								:model-value="data[f.key]"
+								:override-reason="fieldOverrideReason(f, data)"
 								@update:model-value="(v) => data[f.key] = v"
 							/>
 						</section>

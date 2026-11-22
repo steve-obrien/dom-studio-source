@@ -36,6 +36,7 @@ const editFields = [
 	['props', 'Configuration passed to that editor, such as rows, compact, or schema.'],
 	['label', 'A readable field label. Defaults to a label derived from the prop name.'],
 	['group', 'An optional group heading for related fields in the playground.'],
+	['overriddenBy', 'The name of a sibling prop. A truthy value in that prop disables this editor and names the override. Clearing the override restores the editor and its previous value.'],
 ];
 
 const docCode = `defineOptions({

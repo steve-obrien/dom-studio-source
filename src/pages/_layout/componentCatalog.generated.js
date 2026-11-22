@@ -5762,8 +5762,7 @@ export const componentCatalog = [
 				"initial": {
 					"label": "Saving",
 					"size": "md",
-					"background": "color-mix(in oklab, var(--warning) 20%, transparent)",
-					"foreground": "var(--warning)"
+					"variant": "tail"
 				}
 			}
 		},

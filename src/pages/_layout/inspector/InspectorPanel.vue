@@ -11,6 +11,7 @@ import {
 	duplicateNode,
 } from './useInspector.js';
 import InspectorField from './InspectorField.vue';
+import { fieldOverrideReason } from '../../designer/core/componentSchema.js';
 
 const props = defineProps({
 	tree: { type: Object, required: true },
@@ -106,6 +107,7 @@ function onMove(dir) {
 						:key="(f.target || 'props') + ':' + f.key"
 						:field="f"
 						:model-value="getFieldValue(selected, f)"
+						:override-reason="fieldOverrideReason(f, selected.props)"
 						@update:model-value="(v) => setFieldValue(selected, f, v)"
 					/>
 				</div>

@@ -90,6 +90,9 @@ export interface InspectorFieldSchema {
 	group?: string;
 	component: string;
 	props: Record<string, unknown>;
+	defaultValue?: string | number | boolean;
+	/** Sibling prop that takes precedence when its effective value is truthy. */
+	overriddenBy?: { key: string; label: string; defaultValue?: string | number | boolean };
 }
 export interface EditorHistory {
 	run(operations: DesignerOperation | Array<DesignerOperation>, options?: { merge?: string; label?: string }): Array<DesignerOperation>;

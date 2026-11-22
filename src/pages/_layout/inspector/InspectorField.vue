@@ -9,9 +9,19 @@ import { getEditor, getDefaultEditor } from './editorRegistry.js';
 const props = defineProps({
 	field: { type: Object, required: true },
 	modelValue: { default: undefined },
+	overrideReason: { type: String, default: '' },
 });
 const emit = defineEmits(['update:modelValue']);
-const update = (v) => emit('update:modelValue', v);
+
+/**
+ * Forwards edits only while the field controls the preview.
+ *
+ * @param {unknown} value Edited field value.
+ * @returns {void}
+ */
+function update(value) {
+	if (!props.overrideReason) emit('update:modelValue', value);
+}
 
 const editor = computed(() => getEditor(props.field.component) || getDefaultEditor());
 
@@ -30,8 +40,13 @@ const defaultPlaceholder = computed(() => {
 // pick up their own props (options, rows, min/max/step, placeholder, …).
 const editorProps = computed(() => {
 	// eslint-disable-next-line no-unused-vars
-	const { key, keys, component, target, label, description, group, half, defaultValue, props: fieldProps = {}, ...rest } = props.field;
-	return { ...rest, ...fieldProps, ...defaultPlaceholder.value };
+	const { key, keys, component, target, label, description, group, half, defaultValue, overriddenBy, props: fieldProps = {}, ...rest } = props.field;
+	return {
+		...rest,
+		...fieldProps,
+		...defaultPlaceholder.value,
+		...(props.overrideReason ? { disabled: true, description: props.overrideReason } : {}),
+	};
 });
 </script>
 
