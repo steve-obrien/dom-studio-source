@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.2.9 - 2026-11-23
+
+### Added
+
+- `DomAiInput`, an autosizing AI composer with attachments, media library
+  references, model-specific settings, and configurable Enter and Shift+Enter
+  shortcuts. Choose a sliding or flyout model picker and put Plan and Build
+  beside the attachment button.
+- Opt-in inline Markdown in `DomAiInput` and `DomTextareaComposer`, including
+  lists and interactive task checkboxes. The composer submits Markdown text.
+- A compact `DomAudioControls` layout with one-click microphone capture, a live
+  waveform, mute, and input selection. `DomAiInput` can enable its regular Send
+  button for app-owned audio even when the text field is empty.
+- Collapsible panes and flush dividers in `DomSplitterPanel`, optional On and Off
+  labels in `DomToggle`, and drag and wheel adjustments in `DomNumberInput`.
+- Numeric navigation for large page counts in `DomPagination` and a fading
+  `tail` variant for `DomSpinner`.
+
+### Improved
+
+- `DomMenuStack` lets apps replace the rows or adjust the padding of each
+  contained page.
+- Dialogs expose their title as an accessible name to assistive technology.
+
+### Upgrade notes
+
+- Inline Markdown is opt-in. npm installs its Tiptap and Markdown dependencies
+  with the package. If you copy the components into your app, include those
+  dependencies when you enable Markdown.
+- The package includes the licence terms for the public source repository and
+  npm distribution. See `LICENSE.md` for the complete terms.
+
 ## 0.2.8 - 2026-11-09
 
 ### Added
