@@ -153,6 +153,7 @@ const props = defineProps({
 	disabled: { type: Boolean, default: false, _edit: { description: 'Disable the editor and its controls.' } },
 	submitting: { type: Boolean, default: false, _edit: { description: 'Show progress and disable submission and toolbar controls while sending.' } },
 	submitDisabled: { type: Boolean, default: false, _edit: { description: 'Disable sending while the host is preparing the request.' } },
+	allowEmptySubmit: { type: Boolean, default: false, _edit: { description: 'Allow sending when the host supplies content outside the draft, such as a voice recording.' } },
 });
 const emit = defineEmits(['update:modelValue', 'submit']);
 
@@ -334,7 +335,7 @@ function submit(text) {
 			:submitting="submitting"
 			:submit-disabled="submitDisabled || missingMode"
 			:submit-on-enter="submitOnEnter"
-			:allow-empty-submit="attachmentItems.length > 0"
+			:allow-empty-submit="allowEmptySubmit || attachmentItems.length > 0"
 			submit-label="Send to AI"
 			@update:model-value="updateDraft({ text: $event })"
 			@submit="submit"

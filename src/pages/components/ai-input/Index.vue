@@ -55,7 +55,7 @@ const doc = DomAiInput.__doc;
 			</DocSection>
 
 			<DocSection id="coding-toolbar" title="Codex-style coding toolbar">
-				<Example :source="codingComposerSource" filename="CodingComposer.vue" description="The workspace sets Plan or Build and the approval policy. Click the microphone beside Send to start a local audio preview and show the live controls inline.">
+				<Example :source="codingComposerSource" filename="CodingComposer.vue" description="Start the microphone to record with a live waveform. Use Send to submit the recording to the local demo, or use × to discard it.">
 					<CodingComposer />
 				</Example>
 			</DocSection>
@@ -80,6 +80,7 @@ const doc = DomAiInput.__doc;
 					<li>The model picker uses <code>DomMenuStack</code> inside <code>DomDropdown</code>. Choose a model with settings to slide into its Features page. Back returns to the same model search.</li>
 					<li>Use <code>model-picker="flyout"</code> for side menus. Set <code>model-placement="trailing"</code> to show the current reasoning effort near Send.</li>
 					<li>Put <code>&lt;DomAudioControls compact&gt;</code> in the <code>actions</code> slot for inline microphone capture. For live dictation, pass the <code>MediaStream</code> from <code>@stream</code> to your transcription session. Show interim text as it arrives, merge final text into the draft, and finish the session when the stream becomes <code>null</code>.</li>
+					<li>Bind <code>allow-empty-submit</code> to whether the app has audio ready to send. The <code>submit</code> handler can finish the recording and send it with the composer request.</li>
 					<li>Use <code>layout="workflow"</code> to show the Plan and Build menu beside the attachment button. For an app-owned workflow control, use the toolbar layout with <code>:mode-in-picker="false"</code> and write its choice to <code>draft.mode</code>.</li>
 					<li>Replace the attachment trigger with the <code>add</code> slot. Put existing library files in <code>draft.media</code> to send their IDs and names alongside any local files.</li>
 					<li>Pass a model catalogue with each model’s supported workflow modes, reasoning efforts, and speeds. Use <code>autoFeatures</code> for the options supported by automatic routing and <code>resolvedModelLabel</code> when the app knows which model Auto chose.</li>

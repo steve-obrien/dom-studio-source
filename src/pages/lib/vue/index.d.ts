@@ -9654,6 +9654,11 @@ export interface DomAiInputProps {
 	 */
 	submitDisabled?: boolean;
 	/**
+	 * Allow sending when the host supplies content outside the draft, such as a voice recording.
+	 * @default false
+	 */
+	allowEmptySubmit?: boolean;
+	/**
 	 * Emitted when the prompt, files, model, or execution settings change.
 	 */
 	"onUpdate:modelValue"?: (payload: AiInputDraft) => void;
