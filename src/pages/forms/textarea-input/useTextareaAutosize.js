@@ -1,4 +1,4 @@
-import { nextTick, onBeforeUnmount, onMounted, ref, toValue, watch } from 'vue';
+import { nextTick, onBeforeUnmount, ref, toValue, watch } from 'vue';
 
 /**
  * Reads a computed CSS length and falls back when the browser reports a
@@ -130,14 +130,23 @@ export function useTextareaAutosize(options) {
 		{ immediate: true, flush: 'post' },
 	);
 
-	onMounted(() => {
+	/**
+	 * Observes the current textarea, including after an editor-mode change.
+	 *
+	 * @param {HTMLTextAreaElement|null} element Current native input.
+	 * @returns {void}
+	 */
+	function observeTextarea(element) {
+		resizeObserver?.disconnect();
+		if (!element) return;
 		resize();
-		if (typeof ResizeObserver === 'undefined' || !textarea.value) return;
-		observedWidth = textarea.value.getBoundingClientRect().width;
+		if (typeof ResizeObserver === 'undefined') return;
+		observedWidth = element.getBoundingClientRect().width;
 		resizeObserver = new ResizeObserver(onElementResize);
-		resizeObserver.observe(textarea.value);
-	});
+		resizeObserver.observe(element);
+	}
 
+	watch(textarea, observeTextarea, { flush: 'post' });
 	onBeforeUnmount(() => resizeObserver?.disconnect());
 
 	return {

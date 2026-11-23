@@ -373,6 +373,7 @@ defineExpose({
 		class="dom-dialog"
 		:static="static || null"
 		:no-backdrop="backdrop ? null : ''"
+		:aria-label="title || null"
 		:aria-labelledby="titleId || null"
 		:aria-describedby="descriptionId || null"
 	>

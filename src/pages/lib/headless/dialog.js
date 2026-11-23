@@ -135,7 +135,7 @@ function transitionTotalMs(element) {
 }
 
 export class DomDialogElement extends DomElementBase {
-	static get observedAttributes() { return ['open', 'aria-labelledby', 'aria-describedby']; }
+	static get observedAttributes() { return ['open', 'aria-label', 'aria-labelledby', 'aria-describedby']; }
 
 	static __doc = {
 		name: 'dom-dialog',
@@ -246,7 +246,7 @@ export class DomDialogElement extends DomElementBase {
 	 * @returns {void}
 	 */
 	_syncAria() {
-		for (const name of ['aria-labelledby', 'aria-describedby']) {
+		for (const name of ['aria-label', 'aria-labelledby', 'aria-describedby']) {
 			const value = this.getAttribute(name);
 			if (value) this._dialog.setAttribute(name, value);
 			else this._dialog.removeAttribute(name);

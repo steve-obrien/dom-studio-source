@@ -141,6 +141,7 @@ export { default as DomEmailInput } from '../../forms/email-input/DomEmailInput.
 export { default as DomUrlInput } from '../../forms/url-input/DomUrlInput.vue';
 export { default as DomTextareaInput } from '../../forms/textarea-input/DomTextareaInput.vue';
 export { default as DomTextareaComposer } from '../../forms/textarea-composer/DomTextareaComposer.vue';
+export { default as DomAiInput } from '../../components/ai-input/DomAiInput.vue';
 export { default as DomWysiwyg } from '../../forms/wysiwyg/DomWysiwyg.vue';
 export { default as DomNumberInput } from '../../forms/number-input/DomNumberInput.vue';
 export { default as DomMoneyInput } from '../../forms/money-input/DomMoneyInput.vue';

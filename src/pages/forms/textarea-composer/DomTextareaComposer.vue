@@ -1,10 +1,12 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from 'vue';
 import DomIconButton from '../../components/icon-button/DomIconButton.vue';
 import DomField from '../field/DomField.vue';
 import { fieldProps } from '../field/fieldProps.js';
 import { useField } from '../field/useField.js';
 import { useTextareaAutosize } from '../textarea-input/useTextareaAutosize.js';
+
+const MarkdownComposerEditor = defineAsyncComponent(() => import('./MarkdownComposerEditor.vue'));
 
 defineOptions({
 	__doc: {
@@ -49,6 +51,11 @@ const props = defineProps({
 		default: 8,
 		_edit: { group: 'Control props', min: 0, description: 'Maximum rows before text scrolls. Use 0 for no maximum.' },
 	},
+	markdown: {
+		type: Boolean,
+		default: false,
+		_edit: { group: 'Control props', description: 'Edit formatted text inline and emit a Markdown string.' },
+	},
 	ariaLabel: {
 		type: String,
 		default: 'Message',
@@ -91,6 +98,13 @@ const autosize = computed(() => props.autosize);
 const rows = computed(() => props.rows);
 const maxRows = computed(() => props.maxRows);
 const text = computed(() => String(field.value.value ?? ''));
+const markdownEditor = ref(null);
+const editorAttributes = computed(() => ({
+	id: field.id.value,
+	'aria-invalid': field.invalid.value || undefined,
+	'aria-describedby': field.describedBy.value || undefined,
+	'aria-errormessage': field.errorId.value || undefined,
+}));
 const controlsDisabled = computed(() => (
 	field.disabled.value
 	|| field.readOnly.value
@@ -230,12 +244,13 @@ function onKeydown(event) {
 }
 
 /**
- * Moves focus to the native textarea.
+ * Moves focus to the current editor.
  *
  * @returns {void}
  */
 function focus() {
-	textarea.value?.focus();
+	if (props.markdown) markdownEditor.value?.focus();
+	else textarea.value?.focus();
 }
 
 defineExpose({ focus, resize });
@@ -257,9 +272,28 @@ defineExpose({ focus, resize });
 				/>
 			</div>
 
+			<template v-if="markdown">
+				<input v-if="field.htmlName.value" type="hidden" :name="field.htmlName.value" :value="text" :disabled="field.disabled.value" />
+				<MarkdownComposerEditor
+					ref="markdownEditor"
+					:text="text"
+					:placeholder="placeholder"
+					:rows="rows"
+					:max-rows="maxRows"
+					:autosize="autosize"
+					:disabled="field.disabled.value"
+					:read-only="field.readOnly.value"
+					:attributes="{ ...editorAttributes, 'aria-label': label || ariaLabel, 'aria-required': required || undefined }"
+					:handle-keydown="onKeydown"
+					@update:text="field.onInput"
+					@focus="field.onFocus"
+					@blur="onBlur"
+				/>
+			</template>
 			<textarea
+				v-else
 				ref="textarea"
-				:id="field.id.value"
+				v-bind="editorAttributes"
 				:name="field.htmlName.value"
 				:value="text"
 				:placeholder="placeholder"
@@ -268,9 +302,6 @@ defineExpose({ focus, resize });
 				:readonly="field.readOnly.value || undefined"
 				:required="required || undefined"
 				:aria-label="label ? undefined : ariaLabel"
-				:aria-invalid="field.invalid.value || undefined"
-				:aria-describedby="field.describedBy.value || undefined"
-				:aria-errormessage="field.errorId.value || undefined"
 				:class="[
 					'block w-full border-0 bg-transparent px-3 pb-2 pt-3 text-base leading-6 text-canvas-fg outline-none placeholder:text-muted-fg disabled:cursor-not-allowed disabled:opacity-50',
 					autosize ? 'resize-none overflow-y-hidden' : 'resize-y',
@@ -283,12 +314,12 @@ defineExpose({ focus, resize });
 
 			<div
 				v-if="$slots.leading || $slots.actions || showSubmit"
-				class="flex min-h-10 items-end justify-between gap-2 px-2 pb-2"
+				class="flex min-h-10 flex-wrap items-end justify-end gap-x-2 gap-y-1 px-2 pb-2"
 			>
-				<div class="flex min-w-0 flex-1 items-center gap-1">
+				<div class="flex min-w-0 flex-[1_1_9rem] items-center gap-1 empty:basis-0">
 					<slot name="leading" :value="text" :submit="submit" :disabled="controlsDisabled" />
 				</div>
-				<div class="flex shrink-0 items-center gap-1">
+				<div class="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-1">
 					<slot name="actions" :value="text" :submit="submit" :disabled="controlsDisabled" />
 					<slot
 						v-if="showSubmit"

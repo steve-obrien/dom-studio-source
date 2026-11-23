@@ -29,6 +29,7 @@ const typeByConstructor = {
 };
 
 const manualPropTypes = {
+	DomAiInput: { modelValue: 'AiInputDraft', models: 'Array<AiInputModel>', autoFeatures: 'AiInputModelFeatures', layout: "'toolbar' | 'workflow'", modelPicker: "'stack' | 'flyout'", modelPlacement: "'leading' | 'trailing'" },
 	DomDesignerFrame: { layout: 'Partial<DesignerFrameLayout>' },
 	DomFrameLayoutEditor: { modelValue: 'DesignerFrameLayout' },
 	DomShadowEditor: { modelValue: 'Array<DesignerShadowLayer>' },
@@ -329,6 +330,7 @@ const manualPropTypes = {
  * JSDoc braces.
  */
 const jsdocTypedefSources = [
+	{ file: 'src/pages/components/ai-input/DomAiInput.vue' },
 	{
 		file: 'src/pages/data/data-grid/DomDataGrid.vue',
 		openTypes: ['DataGridColumn', 'DataGridSortRule', 'DataGridSort'],
@@ -337,6 +339,7 @@ const jsdocTypedefSources = [
 
 /** Listener payload types for documented component events. Other events receive `any`. */
 const eventPayloadTypes = {
+	DomAiInput: { 'update:modelValue': 'AiInputDraft', submit: 'AiInputRequest' },
 	DomDataGrid: {
 		'update:filters': 'Record<string, DataGridFilter>',
 		'update:sort': 'DataGridSort',
@@ -354,6 +357,7 @@ const eventPayloadTypes = {
 
 /** Slot prop types for documented component slots. Other slots receive `any`. */
 const slotPropTypes = {
+	DomAiInput: { add: '{ disabled: boolean }', tools: '{ disabled: boolean }', actions: '{ disabled: boolean }' },
 	DomDataGrid: {
 		cell: 'DataGridCellSlotProps',
 		'toolbar-actions': 'DataGridToolbarSlotProps',

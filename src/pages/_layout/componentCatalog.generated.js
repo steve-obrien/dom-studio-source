@@ -11,6 +11,68 @@ export const componentCatalog = [
 		"studio": {}
 	},
 	{
+		"id": "components/ai-input",
+		"path": "../components/ai-input/DomAiInput.vue",
+		"section": "components",
+		"slug": "ai-input",
+		"exportName": "DomAiInput",
+		"route": "/components/ai-input",
+		"doc": {
+			"name": "AI Input",
+			"tag": "<DomAiInput>",
+			"description": "Compose a prompt with files and choose a model with its supported workflow modes, reasoning efforts, and speeds.",
+			"icon": "M5 6h14v10H9l-4 3V6Zm7 2v6m-3-3h6",
+			"nav": {
+				"section": "ai"
+			},
+			"order": 15,
+			"events": [
+				{
+					"name": "update:modelValue",
+					"payload": "AiInputDraft",
+					"description": "Emitted when the prompt, files, model, or execution settings change."
+				},
+				{
+					"name": "submit",
+					"payload": "AiInputRequest",
+					"description": "Emitted with the prompt, a snapshot of its files, and the current execution preferences."
+				}
+			],
+			"slots": [
+				{
+					"name": "add",
+					"payload": "{ disabled }",
+					"description": "Replace the native file picker trigger, for example with an application media library."
+				},
+				{
+					"name": "tools",
+					"payload": "{ disabled }",
+					"description": "Application controls next to the attachment trigger, such as workflow or approval settings."
+				},
+				{
+					"name": "actions",
+					"payload": "{ disabled }",
+					"description": "Additional controls immediately before the send button."
+				}
+			],
+			"keyboard": [
+				{
+					"keys": "Enter",
+					"action": "Send from the editor. When submitOnEnter is false, insert a newline."
+				},
+				{
+					"keys": "Shift + Enter",
+					"action": "Insert a newline. When submitOnEnter is false, send from the editor."
+				},
+				{
+					"keys": "Escape",
+					"action": "Dismiss the workflow menu, model picker, or Features view."
+				}
+			]
+		},
+		"studio": {}
+	},
+	{
 		"id": "components/audio-controls",
 		"path": "../components/audio-controls/DomAudioControls.vue",
 		"section": "components",
@@ -841,6 +903,11 @@ export const componentCatalog = [
 					"name": "root",
 					"payload": "{ screen, stack }",
 					"description": "Content above the root menu rows."
+				},
+				{
+					"name": "rows",
+					"payload": "{ screen, stack }",
+					"description": "Replace the rows for each screen. Use stack.push(id) to open a registered page."
 				},
 				{
 					"name": "(item.slot)",

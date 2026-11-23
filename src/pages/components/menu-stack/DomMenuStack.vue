@@ -13,6 +13,7 @@ defineOptions({
 		description: 'Nested navigation that slides inside its container on mobile and desktop. Reuses App stack transitions, retained page state, scrolling, and focus. Each item has a unique id and label, plus children, a component and props, or a named slot for richer pages. Leaf items accept to or href, or emit select for application actions.',
 		slots: [
 			{ name: 'root', payload: '{ screen, stack }', description: 'Content above the root menu rows.' },
+			{ name: 'rows', payload: '{ screen, stack }', description: 'Replace the rows for each screen. Use stack.push(id) to open a registered page.' },
 			{ name: '(item.slot)', payload: '{ screen, stack }', description: 'Page content above child rows. Set an item’s slot to this slot name; components receive screen and stack props too.' },
 		],
 		events: [
@@ -37,6 +38,7 @@ const props = defineProps({
 	height: { type: String, default: 'min(24rem, calc(100dvh - 6rem))', _edit: { description: 'Bounded container height. Use 100% in an explicitly sized parent.' } },
 	path: { type: Array, default: null, _edit: { description: 'Controlled path of page ids starting with root. Bind with v-model:path.' } },
 	animate: { type: Boolean, default: true, _edit: { description: 'Enable sliding transitions; reduced-motion preferences are respected.' } },
+	panelClass: { type: String, default: 'p-2!', _edit: { description: 'Classes applied to each scrollable page.' } },
 });
 const emit = defineEmits(['select', 'update:path', 'navigate']);
 const screens = computed(() => buildMenuScreens(props.items, props.title));
@@ -79,7 +81,7 @@ function rowAttributes(item) {
 		:height="height"
 		:path="path"
 		:animate="animate"
-		mobile-panel-class="p-2!"
+		:mobile-panel-class="panelClass"
 		@update:path="emit('update:path', $event)"
 		@navigate="emit('navigate', $event)"
 	>
@@ -89,22 +91,24 @@ function rowAttributes(item) {
 					<component v-if="screen.component" :is="screen.component" v-bind="screen.props" :screen="screen" :stack="stack" />
 				</slot>
 				<component v-else-if="screen.component" :is="screen.component" v-bind="screen.props" :screen="screen" :stack="stack" />
-				<nav v-if="screen.items.length" :aria-label="screen.title">
-					<ul class="space-y-1">
-						<li v-for="item in screen.items" :key="item.id">
-							<component
-								:is="rowElement(item)"
-								v-bind="rowAttributes(item)"
-								:aria-label="item.label || item.title || item.id"
-								class="block w-full overflow-hidden rounded-lg text-left hover:bg-secondary focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50"
-								@click="activate(item, stack)"
-							>
-								<DomAppListItem as="div" class="bg-transparent!" :label="item.label || item.title || item.id" :description="item.description" :meta="item.meta" :chevron="hasMenuPage(item)" />
-							</component>
-						</li>
-					</ul>
-				</nav>
-				<p v-else-if="!screen.component && (!screen.slot || screen.id === 'root') && !$slots[screen.slot]" class="p-4 text-sm text-muted-fg">No menu items.</p>
+				<slot name="rows" :screen="screen" :stack="stack">
+					<nav v-if="screen.items.length" :aria-label="screen.title">
+						<ul class="space-y-1">
+							<li v-for="item in screen.items" :key="item.id">
+								<component
+									:is="rowElement(item)"
+									v-bind="rowAttributes(item)"
+									:aria-label="item.label || item.title || item.id"
+									class="block w-full overflow-hidden rounded-lg text-left hover:bg-secondary focus-visible:outline-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50"
+									@click="activate(item, stack)"
+								>
+									<DomAppListItem as="div" class="bg-transparent!" :label="item.label || item.title || item.id" :description="item.description" :meta="item.meta" :chevron="hasMenuPage(item)" />
+								</component>
+							</li>
+						</ul>
+					</nav>
+					<p v-else-if="!screen.component && (!screen.slot || screen.id === 'root') && !$slots[screen.slot]" class="p-4 text-sm text-muted-fg">No menu items.</p>
+				</slot>
 			</template>
 		</DomAppStackScreen>
 	</DomAppStack>

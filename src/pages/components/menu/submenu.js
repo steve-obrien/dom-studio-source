@@ -25,8 +25,9 @@ export function isLeavingSubmenu(event, trigger, panel) {
 	);
 }
 
+/** Focuses the first enabled action, including radio and checkbox choices. */
 export function focusFirstMenuItem(panel) {
-	panel?.querySelector('[role="menuitem"]')?.focus();
+	panel?.querySelector(':is([role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]):not([aria-disabled="true"], :disabled)')?.focus();
 }
 
 export function isSubmenuOpenKey(event) {

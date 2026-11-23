@@ -297,6 +297,144 @@ export interface DomCommandPaletteItem extends DomMenuItemRecord {
 	keywords?: Array<string>;
 	shortcut?: string;
 }
+/**
+ * A library file reference.
+ */
+export interface AiInputMediaAttachment {
+	/**
+	 * Stable identifier used by the host to resolve the file.
+	 */
+	id: string;
+	/**
+	 * Display filename.
+	 */
+	name: string;
+}
+/**
+ * An available execution setting.
+ */
+export interface AiInputFeatureOption {
+	/**
+	 * Value passed to the host.
+	 */
+	value: string;
+	/**
+	 * Text shown for the option.
+	 */
+	label: string;
+}
+/**
+ * Model-specific execution capabilities.
+ */
+export interface AiInputModelFeatures {
+	/**
+	 * Supported workflow modes. Omit for either mode when a workflow is configured.
+	 */
+	modes?: Array<'plan' | 'build'>;
+	/**
+	 * Supported reasoning efforts. The first option is the default.
+	 */
+	reasoningEfforts?: AiInputFeatureOption[];
+	/**
+	 * Supported execution speeds. The first option is the default.
+	 */
+	speeds?: AiInputFeatureOption[];
+}
+/**
+ * Model supplied by the application.
+ */
+export interface AiInputModel {
+	/**
+	 * Stable model identifier, preferably qualified by provider.
+	 */
+	id: string;
+	/**
+	 * Model name displayed in the composer.
+	 */
+	label: string;
+	/**
+	 * Provider name used to group models in the picker.
+	 */
+	provider: string;
+	/**
+	 * Short guidance displayed in the picker.
+	 */
+	description?: string;
+	/**
+	 * Settings supported by this model.
+	 */
+	features?: AiInputModelFeatures;
+	/**
+	 * Set false to offer just Standard when features.speeds is omitted and the draft sets a speed.
+	 */
+	fast?: boolean;
+}
+/**
+ * User-editable prompt and execution preferences.
+ */
+export interface AiInputDraft {
+	/**
+	 * Prompt text, including any line breaks.
+	 */
+	text?: string;
+	/**
+	 * Local files chosen for the prompt.
+	 */
+	attachments?: File[];
+	/**
+	 * Existing files referenced by the prompt.
+	 */
+	media?: AiInputMediaAttachment[];
+	/**
+	 * Requested workflow mode. A model may require a supported mode to be selected.
+	 */
+	mode?: 'plan' | 'build';
+	/**
+	 * Requested reasoning effort.
+	 */
+	reasoningEffort?: string;
+	/**
+	 * Requested execution speed.
+	 */
+	speed?: string;
+	/**
+	 * Selected model identifier. Defaults to `auto`.
+	 */
+	model?: string;
+}
+/**
+ * Prompt and effective settings when the user submits.
+ */
+export interface AiInputRequest {
+	/**
+	 * Prompt text, including any line breaks.
+	 */
+	text: string;
+	/**
+	 * Local files chosen for the prompt.
+	 */
+	attachments: File[];
+	/**
+	 * Existing files referenced by the prompt.
+	 */
+	media?: AiInputMediaAttachment[];
+	/**
+	 * Effective model identifier or `auto`.
+	 */
+	model: string;
+	/**
+	 * Selected workflow mode when enabled.
+	 */
+	mode?: 'plan' | 'build';
+	/**
+	 * Effective reasoning effort when supported.
+	 */
+	reasoningEffort?: string;
+	/**
+	 * Effective execution speed when supported.
+	 */
+	speed?: string;
+}
 export interface DataGridColumn {
 	/**
 	 * Stable column id. It can match a row property, or identify a display-only column such as actions.
@@ -2201,6 +2339,16 @@ export interface DomAudioControlsProps {
 	 */
 	label?: string;
 	/**
+	 * Use an icon trigger and a smaller toolbar-sized set of live controls.
+	 * @default false
+	 */
+	compact?: boolean;
+	/**
+	 * Prevent microphone capture and release any active or pending input.
+	 * @default false
+	 */
+	disabled?: boolean;
+	/**
 	 * Input device ID, or empty for system default. Supports v-model:deviceId.
 	 * @default ''
 	 */
@@ -2466,6 +2614,11 @@ export interface DomMenuStackProps {
 	 */
 	animate?: boolean;
 	/**
+	 * Classes applied to each scrollable page.
+	 * @default 'p-2!'
+	 */
+	panelClass?: string;
+	/**
 	 * A leaf was selected. Close the containing popover here if desired.
 	 * Payload: (item)
 	 */
@@ -2487,6 +2640,11 @@ export interface DomMenuStackSlots {
 	 * Slot props: { screen, stack }
 	 */
 	root?: (props: any) => any;
+	/**
+	 * Replace the rows for each screen. Use stack.push(id) to open a registered page.
+	 * Slot props: { screen, stack }
+	 */
+	rows?: (props: any) => any;
 	/**
 	 * Page content above child rows. Set an item’s slot to this slot name; components receive screen and stack props too.
 	 * Slot props: { screen, stack }
@@ -9319,6 +9477,11 @@ export interface DomTextareaComposerProps {
 	 */
 	maxRows?: number;
 	/**
+	 * Edit formatted text inline and emit a Markdown string.
+	 * @default false
+	 */
+	markdown?: boolean;
+	/**
 	 * Accessible textarea label used when no visible field label is supplied.
 	 * @default 'Message'
 	 */
@@ -9403,6 +9566,118 @@ export interface DomTextareaComposerSlots {
 	[name: string]: ((...args: Array<any>) => any) | undefined;
 }
 export declare const DomTextareaComposer: DomComponent<DomTextareaComposerProps, DomTextareaComposerSlots>;
+
+export interface DomAiInputProps {
+	/**
+	 * Draft bound with v-model. Includes text, local attachments, media references, and execution settings.
+	 * @default {}
+	 */
+	modelValue?: AiInputDraft;
+	/**
+	 * Host-provided model catalogue. Auto is always available.
+	 * @default []
+	 */
+	models?: Array<AiInputModel>;
+	/**
+	 * Capabilities advertised by the application when Auto is selected.
+	 * @default {}
+	 */
+	autoFeatures?: AiInputModelFeatures;
+	/**
+	 * Host-reported model to display when Auto is selected and its choice is known.
+	 * @default ''
+	 */
+	resolvedModelLabel?: string;
+	/**
+	 * The workflow layout shows a mode menu beside the attachment button.
+	 * @default 'toolbar'
+	 */
+	layout?: 'toolbar' | 'workflow';
+	/**
+	 * Show the workflow mode in the model picker. Turn off when an application control sets draft.mode.
+	 * @default true
+	 */
+	modeInPicker?: boolean;
+	/**
+	 * Use a sliding Features page or compact side flyouts for model settings.
+	 * @default 'stack'
+	 */
+	modelPicker?: 'stack' | 'flyout';
+	/**
+	 * Place the model picker next to the attachment button or near Send, where it also shows the active reasoning effort.
+	 * @default 'leading'
+	 */
+	modelPlacement?: 'leading' | 'trailing';
+	/**
+	 * When enabled, Enter sends and Shift + Enter adds a line. Turn it off to swap the shortcuts.
+	 * @default true
+	 */
+	submitOnEnter?: boolean;
+	/**
+	 * Format shortcuts as you type and submit the prompt as Markdown.
+	 * @default false
+	 */
+	markdown?: boolean;
+	/**
+	 * Hint shown in the empty prompt editor.
+	 * @default 'Ask AI…'
+	 */
+	placeholder?: string;
+	/**
+	 * Accessible name of the prompt editor.
+	 * @default 'AI prompt'
+	 */
+	ariaLabel?: string;
+	/**
+	 * Minimum number of text rows.
+	 * @default 2
+	 */
+	rows?: number;
+	/**
+	 * Maximum rows before scrolling. Use 0 for no limit.
+	 * @default 8
+	 */
+	maxRows?: number;
+	/**
+	 * Disable the editor and its controls.
+	 * @default false
+	 */
+	disabled?: boolean;
+	/**
+	 * Show progress and disable submission and toolbar controls while sending.
+	 * @default false
+	 */
+	submitting?: boolean;
+	/**
+	 * Disable sending while the host is preparing the request.
+	 * @default false
+	 */
+	submitDisabled?: boolean;
+	/**
+	 * Emitted when the prompt, files, model, or execution settings change.
+	 */
+	"onUpdate:modelValue"?: (payload: AiInputDraft) => void;
+	/**
+	 * Emitted with the prompt, a snapshot of its files, and the current execution preferences.
+	 */
+	onSubmit?: (payload: AiInputRequest) => void;
+}
+export interface DomAiInputSlots {
+	/**
+	 * Replace the native file picker trigger, for example with an application media library.
+	 */
+	add?: (props: { disabled: boolean }) => any;
+	/**
+	 * Application controls next to the attachment trigger, such as workflow or approval settings.
+	 */
+	tools?: (props: { disabled: boolean }) => any;
+	/**
+	 * Additional controls immediately before the send button.
+	 */
+	actions?: (props: { disabled: boolean }) => any;
+	[name: string]: ((...args: Array<any>) => any) | undefined;
+}
+export declare const DomAiInput: DomComponent<DomAiInputProps, DomAiInputSlots>;
 
 export interface DomWysiwygProps {
 	/**
