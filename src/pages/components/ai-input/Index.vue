@@ -19,6 +19,8 @@ import CodingComposer from './examples/CodingComposer.vue';
 import codingComposerSource from './examples/CodingComposer.vue?raw';
 import MediaLibraryComposer from './examples/MediaLibraryComposer.vue';
 import mediaLibraryComposerSource from './examples/MediaLibraryComposer.vue?raw';
+import VoiceComposer from './examples/VoiceComposer.vue';
+import voiceComposerSource from './examples/VoiceComposer.vue?raw';
 
 const doc = DomAiInput.__doc;
 </script>
@@ -55,6 +57,12 @@ const doc = DomAiInput.__doc;
 			<DocSection id="coding-toolbar" title="Codex-style coding toolbar">
 				<Example :source="codingComposerSource" filename="CodingComposer.vue" description="The workspace sets Plan or Build and the approval policy. Click the microphone beside Send to start a local audio preview and show the live controls inline.">
 					<CodingComposer />
+				</Example>
+			</DocSection>
+
+			<DocSection id="voice-demo" title="Try a simulated voice prompt">
+				<Example :source="voiceComposerSource" filename="VoiceComposer.vue" description="Click the microphone to fill the prompt with a sample transcript. Edit it, then send to watch the sample reply stream in. Playback uses a voice on your device when available.">
+					<VoiceComposer />
 				</Example>
 			</DocSection>
 
